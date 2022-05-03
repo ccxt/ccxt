@@ -498,6 +498,130 @@ module.exports = class mexc extends ccxt.mexc {
         client.resolve (stored, messageHash);
     }
 
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let messageHash = 'trade';
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash += ':' + market['symbol'];
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
+        let trades = undefined;
+        if (type === 'spot') {
+            throw new NotSupported (this.id + ' watchMyTrades does not support spot markets');
+        } else {
+            trades = await this.watchSwapPrivate (messageHash, params);
+        }
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    handleMyTrade (client, message, subscription = undefined) {
+        //
+        // swap trade
+        //    {
+        //        channel: 'push.personal.order.deal',
+        //        data: {
+        //          category: 1,
+        //          fee: 0.00060288,
+        //          feeCurrency: 'USDT',
+        //          id: '311655369',
+        //          isSelf: false,
+        //          orderId: '276461245253669888',
+        //          positionMode: 1,
+        //          price: 100.48,
+        //          profit: 0.0003,
+        //          side: 4,
+        //          symbol: 'LTC_USDT',
+        //          taker: true,
+        //          timestamp: 1651583897276,
+        //          vol: 1
+        //        },
+        //        ts: 1651583897291
+        //    }
+        //
+        //
+        const data = this.safeValue (message, 'data', {});
+        const marketId = this.safeString (data, 'symbol');
+        const market = this.safeMarket (marketId);
+        const parsed = this.parseWsTrade (data, market);
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const trades = this.myTrades;
+        trades.append (parsed);
+        let channel = 'trade';
+        // non-symbol specific
+        client.resolve (trades, channel);
+        channel += ':' + market['symbol'];
+        client.resolve (trades, channel);
+    }
+
+    parseWsTrade (trade, market = undefined) {
+        //
+        //   {
+        //       category: 1,
+        //       fee: 0.00060288,
+        //       feeCurrency: 'USDT',
+        //       id: '311655369',
+        //       isSelf: false,
+        //       orderId: '276461245253669888',
+        //       positionMode: 1,
+        //       price: 100.48,
+        //       profit: 0.0003,
+        //       side: 4,
+        //       symbol: 'LTC_USDT',
+        //       taker: true,
+        //       timestamp: 1651583897276,
+        //       vol: 1
+        //   }
+        //
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market, '_');
+        const symbol = market['symbol'];
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'vol');
+        const costString = this.safeString (trade, 'amount');
+        const rawSide = this.safeString (trade, 'side');
+        const side = this.parseSwapSide (rawSide);
+        const id = this.safeString2 (trade, 'id');
+        const feeCostString = this.safeString (trade, 'fee');
+        let fee = undefined;
+        if (feeCostString !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'feeCurrency');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCostString,
+                'currency': feeCurrencyCode,
+            };
+        }
+        const orderId = this.safeString (trade, 'orderId');
+        const isTaker = this.safeValue (trade, 'taker', true);
+        const takerOrMaker = isTaker ? 'taker' : 'maker';
+        return this.safeTrade ({
+            'info': trade,
+            'id': id,
+            'order': orderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
+            'fee': fee,
+        }, market);
+    }
+
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let messageHash = 'order';
@@ -700,24 +824,17 @@ module.exports = class mexc extends ccxt.mexc {
         const cost = this.safeString2 (order, 'deal_amount', 'dealAvgPrice');
         const marketId = this.safeString2 (order, 'symbol', 'symbolDisplay');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const sideCheck = this.safeInteger (order, 'side');
-        let side = undefined;
-        if (sideCheck === 1) {
-            side = 'open long';
-        } else if (side === 2) {
-            side = 'close short';
-        } else if (side === 3) {
-            side = 'open short';
-        } else if (side === 4) {
-            side = 'close long';
-        }
-        const tradeType = this.safeStringLower (order, 'tradeType');
-        if (tradeType === 'ask') {
-            side = 'sell';
-        } else if (tradeType === 'bid') {
-            side = 'buy';
-        } else {
-            side = tradeType;
+        const sideCheck = this.safeString (order, 'side');
+        let side = this.parseSwapSide (sideCheck);
+        if (side === undefined) {
+            const tradeType = this.safeStringLower (order, 'tradeType');
+            if (tradeType === 'ask') {
+                side = 'sell';
+            } else if (tradeType === 'bid') {
+                side = 'buy';
+            } else {
+                side = tradeType;
+            }
         }
         const status = this.parseWsOrderStatus (state, market);
         let clientOrderId = this.safeString2 (order, 'client_order_id', 'orderId');
@@ -749,6 +866,16 @@ module.exports = class mexc extends ccxt.mexc {
             'trades': undefined,
             'info': order,
         }, market);
+    }
+
+    parseSwapSide (side) {
+        const sides = {
+            '1': 'open long',
+            '2': 'close short',
+            '3': 'open short',
+            '4': 'close long',
+        };
+        return this.safeString (sides, side, side);
     }
 
     parseWsOrderStatus (status, market = undefined) {
@@ -1056,7 +1183,7 @@ module.exports = class mexc extends ccxt.mexc {
             'push.personal.order': this.handleOrder,
             'push.personal.trigger.order': this.handleOrder,
             'push.personal.plan.order': this.handleOrder,
-            // 'push.personal.order.deal': this.handleMyTrade,
+            'push.personal.order.deal': this.handleMyTrade,
         };
         const method = this.safeValue (methods, channel);
         if (method !== undefined) {
