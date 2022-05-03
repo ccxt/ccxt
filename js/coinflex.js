@@ -16,6 +16,7 @@ module.exports = class coinflex extends Exchange {
             'name': 'CoinFLEX',
             'countries': [ 'SC' ], // Seychelles
             'rateLimit': 120, // 2500 requests per 5 minutes, 100 requests per minute
+            'userAgent': this.userAgents['chrome100'],
             'version': 'v3',
             'certified': false,
             'has': {
@@ -376,7 +377,7 @@ module.exports = class coinflex extends Exchange {
                     symbol += ':' + settle + '-' + this.yymmdd (settlementTime);
                 }
             } else if (type === 'SPREAD' || type === 'REPO') {
-                // continue;
+                symbol = id;
             }
             result.push ({
                 'id': id,
@@ -1690,7 +1691,6 @@ module.exports = class coinflex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        headers = { 'User-Agent': 'CCXT:)' };
         const [ finalPath, query ] = this.resolvePath (path, params);
         let url = this.urls['api'][api] + '/' + finalPath;
         let encodedParams = '';
