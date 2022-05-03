@@ -430,7 +430,6 @@ class gateio(Exchange):
                     'delivery': 'delivery',
                 },
                 'defaultType': 'spot',
-                'defaultMarginType': 'isolated',
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': ['usdt', 'btc'],
@@ -1094,6 +1093,31 @@ class gateio(Exchange):
                 return {
                     'currency_pair': market['id'],
                 }
+
+    def get_margin_type(self, stop, params):
+        """
+         * @ignore
+        Gets the margin type for self api call
+        :param bool stop: True if for a stop order
+        :param dict params: Request params
+        :returns: The marginType and the updated request params with marginType removed, marginType value is the value that can be read by the "account" property specified in gateios api docs
+        """
+        defaultMarginType = self.safe_string_lower_2(self.options, 'defaultMarginType', 'marginType', 'spot')  # 'margin' is isolated margin on gateio's api
+        marginType = self.safe_string_lower_2(params, 'marginType', 'account', defaultMarginType)
+        params = self.omit(params, ['marginType'])
+        if marginType == 'cross':
+            marginType = 'cross_margin'
+        elif marginType == 'isolated':
+            marginType = 'margin'
+        elif marginType == '':
+            marginType = 'spot'
+        if stop:
+            if marginType == 'spot':
+                marginType = 'normal'
+                # gateio spot and margin stop orders use the term normal instead of spot
+            if marginType == 'cross_margin':
+                raise BadRequest(self.id + ' createOrder does not support stop orders for cross margin')
+        return [marginType, params]
 
     def get_settlement_currencies(self, type, method):
         options = self.safe_value(self.options, type, {})  # ['BTC', 'USDT'] unified codes
@@ -1804,41 +1828,50 @@ class gateio(Exchange):
 
     def fetch_balance(self, params={}):
         """
-         * @param params exchange specific parameters
-         * @param params.type spot, margin, swap or future, if not provided self.options['defaultType'] is used
-         * @param params.settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
-         * @param params.marginType 'cross' or 'isolated' - marginType for type='margin' default='isolated'
+        :param dict params: exchange specific parameters
+        :param str params['type']: spot, margin, swap or future, if not provided self.options['defaultType'] is used
+        :param str params['settle']: 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
+        :param str params['marginType']: 'cross' or 'isolated' - marginType for margin trading if not provided self.options['defaultMarginType'] is used
+        :param str params['symbol']: margin only - unified ccxt symbol
         """
         self.load_markets()
         type = None
-        method = None
+        marginType = None
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
-        if type == 'margin':
-            defaultMarginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
-            marginType = self.safe_string(params, 'marginType', defaultMarginType)
-            params = self.omit(params, 'marginType')
-            if marginType == 'cross':
-                method = 'privateMarginGetCrossAccounts'
-            else:
-                method = 'privateMarginGetAccounts'
-        else:
-            method = self.get_supported_mapping(type, {
-                'spot': 'privateSpotGetAccounts',
-                'funding': 'privateMarginGetFundingAccounts',
-                'swap': 'privateFuturesGetSettleAccounts',
-                'future': 'privateDeliveryGetSettleAccounts',
-            })
+        spot = type == 'spot'
         swap = type == 'swap'
         future = type == 'future'
+        contract = swap or future
         request = {}
-        response = []
-        if swap or future:
+        if contract:
             defaultSettle = 'usdt' if swap else 'btc'
-            request['settle'] = self.safe_string_lower(params, 'settle', defaultSettle)
-            response_item = getattr(self, method)(self.extend(request, params))
-            response = [response_item]
+            settle = self.safe_string_lower(params, 'settle', defaultSettle)
+            params = self.omit(params, 'settle')
+            request['settle'] = settle
         else:
-            response = getattr(self, method)(self.extend(request, params))
+            marginType, params = self.get_margin_type(False, params)
+            symbol = self.safe_string(params, 'symbol')
+            if symbol is not None:
+                market = self.market(symbol)
+                request['currency_pair'] = market['id']
+        crossMargin = marginType == 'cross_margin'
+        margin = marginType == 'margin'
+        spotMethod = 'privateSpotGetAccounts'
+        if spot:
+            spotMethod = self.get_supported_mapping(marginType, {
+                'spot': 'privateSpotGetAccounts',
+                'margin': 'privateMarginGetAccounts',
+                'cross_margin': 'privateMarginGetCrossAccounts',
+            })
+        method = self.get_supported_mapping(type, {
+            'spot': spotMethod,
+            'funding': 'privateMarginGetFundingAccounts',
+            'swap': 'privateFuturesGetSettleAccounts',
+            'future': 'privateDeliveryGetSettleAccounts',
+        })
+        response = getattr(self, method)(self.extend(request, params))
+        if contract:
+            response = [response]
         # Spot / margin funding
         #
         #     [
@@ -1946,7 +1979,6 @@ class gateio(Exchange):
         #        user: "6333333",
         #    }
         #
-        margin = type == 'margin'
         result = {
             'info': response,
         }
@@ -1965,7 +1997,7 @@ class gateio(Exchange):
             data = flatBalances
         for i in range(0, len(data)):
             entry = data[i]
-            if margin:
+            if margin and not crossMargin:
                 marketId = self.safe_string(entry, 'currency_pair')
                 symbol = self.safe_symbol(marketId, None, '_')
                 base = self.safe_value(entry, 'base', {})
@@ -1979,7 +2011,7 @@ class gateio(Exchange):
             else:
                 code = self.safe_currency_code(self.safe_string(entry, 'currency', {}))
                 result[code] = self.fetch_balance_helper(entry)
-        return result if margin else self.safe_balance(result)
+        return result if (margin and not crossMargin) else self.safe_balance(result)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
