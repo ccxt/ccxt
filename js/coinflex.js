@@ -18,6 +18,7 @@ module.exports = class coinflex extends Exchange {
             'rateLimit': 120, // 2500 requests per 5 minutes, 100 requests per minute
             'version': 'v3',
             'certified': false,
+            'userAgent': this.userAgents['chrome100'],
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -1688,7 +1689,6 @@ module.exports = class coinflex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        headers = { 'User-Agent': 'CCXT:)' };
         const [ finalPath, query ] = this.resolvePath (path, params);
         let url = this.urls['api'][api] + '/' + finalPath;
         let encodedParams = '';
