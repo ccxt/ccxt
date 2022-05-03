@@ -16,9 +16,9 @@ module.exports = class coinflex extends Exchange {
             'name': 'CoinFLEX',
             'countries': [ 'SC' ], // Seychelles
             'rateLimit': 120, // 2500 requests per 5 minutes, 100 requests per minute
-            'userAgent': this.userAgents['chrome100'],
             'version': 'v3',
             'certified': false,
+            'userAgent': this.userAgents['chrome100'],
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -1631,7 +1631,7 @@ module.exports = class coinflex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        let clientOrderId = this.safeString (params, 'clientOrderId');
+        const clientOrderId = this.safeString (params, 'clientOrderId');
         const maxCOI = '9223372036854775807';
         if ((clientOrderId !== undefined) && Precise.stringGt (clientOrderId, maxCOI)) {
             throw new InvalidOrder (this.id + ' createOrder() param clientOrderId should not exceed ' + maxCOI);
