@@ -375,8 +375,6 @@ module.exports = class coinflex extends Exchange {
                     marketType = 'future';
                     symbol += ':' + settle + '-' + this.yymmdd (settlementTime);
                 }
-            } else if (type === 'SPREAD' || type === 'REPO') {
-                // continue;
             }
             result.push ({
                 'id': id,
