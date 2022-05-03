@@ -38,6 +38,7 @@ class coinex(Exchange):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchDeposits': True,
@@ -1437,9 +1438,12 @@ class coinex(Exchange):
         swap = market['swap']
         stopPrice = self.safe_string_2(params, 'stopPrice', 'stop_price')
         postOnly = self.safe_value(params, 'postOnly', False)
-        reduceOnly = self.safe_value(params, 'reduceOnly')
         positionId = self.safe_integer_2(params, 'position_id', 'positionId')  # Required for closing swap positions
         timeInForce = self.safe_string(params, 'timeInForce')  # Spot: IOC, FOK, PO, GTC, ... NORMAL(default), MAKER_ONLY
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        if reduceOnly is not None:
+            if market['type'] != 'swap':
+                raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap markets only')
         method = None
         request = {
             'market': market['id'],
@@ -1611,6 +1615,12 @@ class coinex(Exchange):
         #
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
+
+    def create_reduce_only_order(self, symbol, type, side, amount, price=None, params={}):
+        request = {
+            'reduceOnly': True,
+        }
+        return self.create_order(symbol, type, side, amount, price, self.extend(request, params))
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()

@@ -33,6 +33,7 @@ class coinex extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchDeposits' => true,
@@ -1477,9 +1478,14 @@ class coinex extends Exchange {
         $swap = $market['swap'];
         $stopPrice = $this->safe_string_2($params, 'stopPrice', 'stop_price');
         $postOnly = $this->safe_value($params, 'postOnly', false);
-        $reduceOnly = $this->safe_value($params, 'reduceOnly');
         $positionId = $this->safe_integer_2($params, 'position_id', 'positionId'); // Required for closing $swap positions
         $timeInForce = $this->safe_string($params, 'timeInForce'); // Spot => IOC, FOK, PO, GTC, ... NORMAL (default), MAKER_ONLY
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        if ($reduceOnly !== null) {
+            if ($market['type'] !== 'swap') {
+                throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $market['type'] . ' orders, $reduceOnly orders are supported for $swap markets only');
+            }
+        }
         $method = null;
         $request = array(
             'market' => $market['id'],
@@ -1676,6 +1682,13 @@ class coinex extends Exchange {
         //
         $data = $this->safe_value($response, 'data');
         return $this->parse_order($data, $market);
+    }
+
+    public function create_reduce_only_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $request = array(
+            'reduceOnly' => true,
+        );
+        return yield $this->create_order($symbol, $type, $side, $amount, $price, array_merge($request, $params));
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
