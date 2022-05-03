@@ -14,7 +14,7 @@ module.exports = class mexc extends ccxt.mexc {
             'has': {
                 'ws': true,
                 'watchBalance': true,
-                'watchMyTrades': false,
+                'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
@@ -1184,6 +1184,7 @@ module.exports = class mexc extends ccxt.mexc {
             'push.personal.trigger.order': this.handleOrder,
             'push.personal.plan.order': this.handleOrder,
             'push.personal.order.deal': this.handleMyTrade,
+            'push.personal.asset': this.handleBalance,
         };
         const method = this.safeValue (methods, channel);
         if (method !== undefined) {
