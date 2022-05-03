@@ -27,6 +27,7 @@ module.exports = class coinex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDeposits': true,
@@ -1471,9 +1472,14 @@ module.exports = class coinex extends Exchange {
         const swap = market['swap'];
         const stopPrice = this.safeString2 (params, 'stopPrice', 'stop_price');
         const postOnly = this.safeValue (params, 'postOnly', false);
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
         const positionId = this.safeInteger2 (params, 'position_id', 'positionId'); // Required for closing swap positions
         let timeInForce = this.safeString (params, 'timeInForce'); // Spot: IOC, FOK, PO, GTC, ... NORMAL (default), MAKER_ONLY
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        if (reduceOnly !== undefined) {
+            if (market['type'] !== 'swap') {
+                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap markets only');
+            }
+        }
         let method = undefined;
         const request = {
             'market': market['id'],
@@ -1670,6 +1676,13 @@ module.exports = class coinex extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         return this.parseOrder (data, market);
+    }
+
+    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        const request = {
+            'reduceOnly': true,
+        };
+        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
