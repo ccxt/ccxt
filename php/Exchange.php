@@ -2594,7 +2594,7 @@ class Exchange {
                 return $deposit_address;
             }
         } else {
-            throw new NotSupported($this->id + ' fetchDepositAddress not supported yet');
+            throw new NotSupported($this->id . ' fetchDepositAddress() not supported yet');
         }
     }
 
@@ -2829,7 +2829,7 @@ class Exchange {
                 return $this->currencies_by_id[$code];
             }
         }
-        throw new ExchangeError($this->id + ' does not have currency code ' + ((string) $code));
+        throw new ExchangeError($this->id . ' does not have currency code ' . ((string) $code));
     }
 
     public function market($symbol) {
