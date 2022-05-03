@@ -792,7 +792,7 @@ module.exports = class mexc extends ccxt.mexc {
         //           remainA: 0,
         //           id: '0b1bf3a33916499f8d1a711a7d5a6fc4',
         //           status: 2,
-        //           tradeType: 1,
+        //           tradeType: 1, // 1 = buy, 2 = sell
         //           orderType: 3, // 1 = limit, 3 = market, 100 = 'limit
         //           createTime: 1651499416000,
         //           isTaker: 1,
@@ -850,18 +850,19 @@ module.exports = class mexc extends ccxt.mexc {
         const timestamp = this.safeInteger (order, 'createTime');
         const price = this.safeString (order, 'price');
         const amount = this.safeString2 (order, 'quantity', 'vol');
-        const remaining = this.safeString (order, 'remain_quantity');
-        const filled = this.safeString2 (order, 'deal_quantity', 'dealVol');
-        const cost = this.safeString2 (order, 'deal_amount', 'dealAvgPrice');
+        const remaining = this.safeString (order, 'remainQuantity');
+        const filled = this.safeString (order, 'dealVol');
+        const cost = this.safeString2 (order, 'amount');
+        const avgPrice = this.safeString (order, 'dealAvgPrice');
         const marketId = this.safeString2 (order, 'symbol', 'symbolDisplay');
         const symbol = this.safeSymbol (marketId, market, '_');
         const sideCheck = this.safeString (order, 'side');
         let side = this.parseSwapSide (sideCheck);
         if (side === undefined) {
             const tradeType = this.safeStringLower (order, 'tradeType');
-            if (tradeType === 'ask') {
+            if ((tradeType === 'ask') || (tradeType === '2')) {
                 side = 'sell';
-            } else if (tradeType === 'bid') {
+            } else if ((tradeType === 'bid') || (tradeType === '1')) {
                 side = 'buy';
             } else {
                 side = tradeType;
@@ -888,7 +889,7 @@ module.exports = class mexc extends ccxt.mexc {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'average': undefined,
+            'average': avgPrice,
             'amount': amount,
             'cost': cost,
             'filled': filled,
