@@ -46,7 +46,7 @@ module.exports = class mexc extends ccxt.mexc {
             },
             'streaming': {
                 'ping': this.ping,
-                'keepAlive': 9000,
+                'keepAlive': 10000,
             },
             'exceptions': {
                 'ws': {
@@ -673,7 +673,7 @@ module.exports = class mexc extends ccxt.mexc {
         sortedParams['api_secret'] = this.secret;
         const encodedParams = this.urlencode (sortedParams);
         const hash = this.hash (encodedParams, 'md5');
-        request['sign'] = hash + 'here';
+        request['sign'] = hash;
         const extendedRequest = this.extend (request, params);
         return await this.watch (url, messageHash, extendedRequest, channel);
     }
@@ -738,6 +738,12 @@ module.exports = class mexc extends ccxt.mexc {
     }
 
     handleMessage (client, message) {
+        //
+        // spot pong
+        //  "ping"
+        //
+        // swap pong
+        //  { channel: 'pong', data: 1651570941402, ts: 1651570941402 }
         //
         // auth spot
         //
@@ -855,8 +861,13 @@ module.exports = class mexc extends ccxt.mexc {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
+        if (message === 'pong') {
+            this.handlePong (client, message);
+            return;
+        }
         const channel = this.safeString (message, 'channel');
         const methods = {
+            'pong': this.handlePong,
             'rs.login': this.handleAuthenticate,
             'push.deal': this.handleTrades,
             'orderbook': this.handleOrderBook,
@@ -873,6 +884,18 @@ module.exports = class mexc extends ccxt.mexc {
     }
 
     ping (client) {
+        const type = this.safeString (this.options, 'defaultType', 'spot');
+        if (type === 'spot') {
+            return 'ping';
+        }
         return { 'method': 'ping' };
+    }
+
+    handlePong (client, message) {
+        //
+        // { channel: 'pong', data: 1651570941402, ts: 1651570941402 }
+        //
+        client.lastPong = this.milliseconds ();
+        return message;
     }
 };
