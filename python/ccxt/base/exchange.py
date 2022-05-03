@@ -2219,7 +2219,7 @@ class Exchange(object):
 
     def currency(self, code):
         if not self.currencies:
-            raise ExchangeError(self.id + ' Currencies not loaded')
+            raise ExchangeError(self.id + ' currencies not loaded')
         if isinstance(code, str):
             if code in self.currencies:
                 return self.currencies[code]
