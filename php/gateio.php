@@ -657,17 +657,17 @@ class gateio extends Exchange {
         //
         //     array(
         //         {
-        //             "id":"QTUM_ETH",
-        //             "base":"QTUM",
-        //             "quote":"ETH",
-        //             "fee":"0.2",
-        //             "min_base_amount":"0.01",
-        //             "min_quote_amount":"0.001",
-        //             "amount_precision":3,
-        //             "precision":6,
-        //             "trade_status":"tradable",
-        //             "sell_start":0,
-        //             "buy_start":0
+        //             "id" => "QTUM_ETH",
+        //             "base" => "QTUM",
+        //             "quote" => "ETH",
+        //             "fee" => "0.2",
+        //             "min_base_amount" => "0.01",
+        //             "min_quote_amount" => "0.001",
+        //             "amount_precision" => 3,
+        //             "precision" => 6,
+        //             "trade_status" => "tradable",
+        //             "sell_start" => 0,
+        //             "buy_start" => 0
         //         }
         //     )
         //
@@ -787,6 +787,7 @@ class gateio extends Exchange {
     public function parse_contract_market($market, $settleId) {
         //
         //  Perpetual swap
+        //
         //    {
         //        "name" => "BTC_USDT",
         //        "type" => "direct",
@@ -829,6 +830,7 @@ class gateio extends Exchange {
         //    }
         //
         //  Delivery Futures
+        //
         //    {
         //        "name" => "BTC_USDT_20200814",
         //        "underlying" => "BTC_USDT",
@@ -959,40 +961,40 @@ class gateio extends Exchange {
             $response = $this->publicOptionsGetContracts ($query);
             //
             //    array(
-            //      {
-            //          "orders_limit":"50",
-            //          "order_size_max":"100000",
-            //          "mark_price_round":"0.1",
-            //          "order_size_min":"1",
-            //          "position_limit":"1000000",
-            //          "orderbook_id":"575967",
-            //          "order_price_deviate":"0.9",
-            //          "is_call":true, // true means Call false means Put
-            //          "last_price":"93.9",
-            //          "bid1_size":"0",
-            //          "bid1_price":"0",
-            //          "taker_fee_rate":"0.0004",
-            //          "underlying":"BTC_USDT",
-            //          "create_time":"1646381188",
-            //          "price_limit_fee_rate":"0.1",
-            //          "maker_fee_rate":"0.0004",
-            //          "trade_id":"727",
-            //          "order_price_round":"0.1",
-            //          "settle_fee_rate":"0.0001",
-            //          "trade_size":"1982",
-            //          "ref_rebate_rate":"0",
-            //          "name":"BTC_USDT-20220311-44000-C",
-            //          "underlying_price":"39194.26",
-            //          "strike_price":"44000",
-            //          "multiplier":"0.0001",
-            //          "ask1_price":"0",
-            //          "ref_discount_rate":"0",
-            //          "expiration_time":"1646985600",
-            //          "mark_price":"12.15",
-            //          "position_size":"4",
-            //          "ask1_size":"0",
-            //          "tag":"WEEK"
-            //       }
+            //        {
+            //            "orders_limit" => "50",
+            //            "order_size_max" => "100000",
+            //            "mark_price_round" => "0.1",
+            //            "order_size_min" => "1",
+            //            "position_limit" => "1000000",
+            //            "orderbook_id" => "575967",
+            //            "order_price_deviate" => "0.9",
+            //            "is_call" => true, // true means Call false means Put
+            //            "last_price" => "93.9",
+            //            "bid1_size" => "0",
+            //            "bid1_price" => "0",
+            //            "taker_fee_rate" => "0.0004",
+            //            "underlying" => "BTC_USDT",
+            //            "create_time" => "1646381188",
+            //            "price_limit_fee_rate" => "0.1",
+            //            "maker_fee_rate" => "0.0004",
+            //            "trade_id" => "727",
+            //            "order_price_round" => "0.1",
+            //            "settle_fee_rate" => "0.0001",
+            //            "trade_size" => "1982",
+            //            "ref_rebate_rate" => "0",
+            //            "name" => "BTC_USDT-20220311-44000-C",
+            //            "underlying_price" => "39194.26",
+            //            "strike_price" => "44000",
+            //            "multiplier" => "0.0001",
+            //            "ask1_price" => "0",
+            //            "ref_discount_rate" => "0",
+            //            "expiration_time" => "1646985600",
+            //            "mark_price" => "12.15",
+            //            "position_size" => "4",
+            //            "ask1_size" => "0",
+            //            "tag" => "WEEK"
+            //        }
             //    )
             //
             for ($i = 0; $i < count($response); $i++) {
@@ -1078,9 +1080,9 @@ class gateio extends Exchange {
         //
         //    array(
         //        {
-        //           "index_time":"1646915796",
-        //           "name":"BTC_USDT",
-        //           "index_price":"39142.73"
+        //            "index_time" => "1646915796",
+        //            "name" => "BTC_USDT",
+        //            "index_price" => "39142.73"
         //        }
         //    )
         //
@@ -1155,14 +1157,14 @@ class gateio extends Exchange {
         }
         $response = $this->publicSpotGetCurrencies ($params);
         //
-        //     {
-        //       "currency" => "BCN",
-        //       "delisted" => false,
-        //       "withdraw_disabled" => true,
-        //       "withdraw_delayed" => false,
-        //       "deposit_disabled" => true,
-        //       "trade_disabled" => false
-        //     }
+        //    {
+        //        "currency" => "BCN",
+        //        "delisted" => false,
+        //        "withdraw_disabled" => true,
+        //        "withdraw_delayed" => false,
+        //        "deposit_disabled" => true,
+        //        "trade_disabled" => false
+        //    }
         //
         $result = array();
         // TODO => remove magic constants
@@ -1395,13 +1397,13 @@ class gateio extends Exchange {
         for ($i = 0; $i < count($addresses); $i++) {
             $entry = $addresses[$i];
             //
-            //     {
-            //       "chain" => "ETH",
-            //       "address" => "0x359a697945E79C7e17b634675BD73B33324E9408",
-            //       "payment_id" => "",
-            //       "payment_name" => "",
-            //       "obtain_failed" => "0"
-            //     }
+            //    {
+            //        "chain" => "ETH",
+            //        "address" => "0x359a697945E79C7e17b634675BD73B33324E9408",
+            //        "payment_id" => "",
+            //        "payment_name" => "",
+            //        "obtain_failed" => "0"
+            //    }
             //
             $obtainFailed = $this->safe_integer($entry, 'obtain_failed');
             if ($obtainFailed) {
@@ -1473,18 +1475,18 @@ class gateio extends Exchange {
         );
         $response = $this->privateWalletGetFee (array_merge($request, $params));
         //
-        //     {
-        //       "user_id" => 1486602,
-        //       "taker_fee" => "0.002",
-        //       "maker_fee" => "0.002",
-        //       "gt_discount" => true,
-        //       "gt_taker_fee" => "0.0015",
-        //       "gt_maker_fee" => "0.0015",
-        //       "loan_fee" => "0.18",
-        //       "point_type" => "0",
-        //       "futures_taker_fee" => "0.0005",
-        //       "futures_maker_fee" => "0"
-        //     }
+        //    {
+        //        "user_id" => 1486602,
+        //        "taker_fee" => "0.002",
+        //        "maker_fee" => "0.002",
+        //        "gt_discount" => true,
+        //        "gt_taker_fee" => "0.0015",
+        //        "gt_maker_fee" => "0.0015",
+        //        "loan_fee" => "0.18",
+        //        "point_type" => "0",
+        //        "futures_taker_fee" => "0.0005",
+        //        "futures_maker_fee" => "0"
+        //    }
         //
         return $this->parse_trading_fee($response, $market);
     }
@@ -1493,18 +1495,18 @@ class gateio extends Exchange {
         $this->load_markets();
         $response = $this->privateWalletGetFee ($params);
         //
-        //     {
-        //       "user_id" => 1486602,
-        //       "taker_fee" => "0.002",
-        //       "maker_fee" => "0.002",
-        //       "gt_discount" => true,
-        //       "gt_taker_fee" => "0.0015",
-        //       "gt_maker_fee" => "0.0015",
-        //       "loan_fee" => "0.18",
-        //       "point_type" => "0",
-        //       "futures_taker_fee" => "0.0005",
-        //       "futures_maker_fee" => "0"
-        //     }
+        //    {
+        //        "user_id" => 1486602,
+        //        "taker_fee" => "0.002",
+        //        "maker_fee" => "0.002",
+        //        "gt_discount" => true,
+        //        "gt_taker_fee" => "0.0015",
+        //        "gt_maker_fee" => "0.0015",
+        //        "loan_fee" => "0.18",
+        //        "point_type" => "0",
+        //        "futures_taker_fee" => "0.0005",
+        //        "futures_maker_fee" => "0"
+        //    }
         //
         return $this->parse_trading_fees($response);
     }
@@ -1786,7 +1788,7 @@ class gateio extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         //
-        //  SPOT
+        // SPOT
         //
         //     {
         //         "currency_pair" => "KFC_USDT",
@@ -1800,7 +1802,7 @@ class gateio extends Exchange {
         //         "low_24h" => "7.095"
         //     }
         //
-        //  LINEAR/DELIVERY
+        // LINEAR/DELIVERY
         //
         //     {
         //         "contract" => "BTC_USDT",
@@ -1935,6 +1937,7 @@ class gateio extends Exchange {
         if ($contract) {
             $response = array( $response );
         }
+        //
         // Spot / $margin funding
         //
         //     array(
@@ -1974,21 +1977,22 @@ class gateio extends Exchange {
         //    )
         //
         // Cross $margin
-        //   {
-        //       "user_id" => 10406147,
-        //       "locked" => false,
-        //       "balances" => {
+        //
+        //    {
+        //        "user_id" => 10406147,
+        //        "locked" => false,
+        //        "balances" => {
         //            "USDT" => array(
         //                "available" => "1",
         //                "freeze" => "0",
         //                "borrowed" => "0",
         //                "interest" => "0"
         //            }
-        //       ),
-        //       "total" => "1",
-        //       "borrowed" => "0",
-        //       "interest" => "0",
-        //       "risk" => "9999.99"
+        //        ),
+        //        "total" => "1",
+        //        "borrowed" => "0",
+        //        "interest" => "0",
+        //        "risk" => "9999.99"
         //    }
         //
         //  Perpetual Swap
@@ -2018,7 +2022,7 @@ class gateio extends Exchange {
         //        user => "6333333",
         //    }
         //
-        //   Delivery Future
+        // Delivery Future
         //
         //    {
         //        order_margin => "0",
@@ -2190,9 +2194,9 @@ class gateio extends Exchange {
         //     {
         //          "t":1632873600,         // Unix timestamp in seconds
         //          "o" => "41025",           // Open price
-        //          "h" => "41882.17",         // Highest price
-        //          "c" => "41776.92",         // Close price
-        //          "l" => "40783.94"          // Lowest price
+        //          "h" => "41882.17",        // Highest price
+        //          "c" => "41776.92",        // Close price
+        //          "l" => "40783.94"         // Lowest price
         //     }
         //
         if (gettype($ohlcv) === 'array' && count(array_filter(array_keys($ohlcv), 'is_string')) == 0) {
@@ -2426,13 +2430,13 @@ class gateio extends Exchange {
         // perpetual swap rest
         //
         //     {
-        //         "size":-5,
-        //         "order_id":"130264979823",
-        //         "id":26884791,
-        //         "role":"taker",
-        //         "create_time":1645465199.5472,
-        //         "contract":"DOGE_USDT",
-        //         "price":"0.136888"
+        //         "size" => -5,
+        //         "order_id" => "130264979823",
+        //         "id" => 26884791,
+        //         "role" => "taker",
+        //         "create_time" => 1645465199.5472,
+        //         "contract" => "DOGE_USDT",
+        //         "price" => "0.136888"
         //     }
         //
         // future rest
@@ -2597,8 +2601,6 @@ class gateio extends Exchange {
         //        "status" => "DONE",
         //        "memo" => ""
         //    }
-        //
-        // withdrawals
         //
         // withdraw
         //
@@ -2869,7 +2871,7 @@ class gateio extends Exchange {
         //
         // spot conditional
         //
-        //     array("id":5891843)
+        //     array("id" => 5891843)
         //
         // future and perpetual swaps
         //
@@ -2897,7 +2899,7 @@ class gateio extends Exchange {
         //
         // futures and perpetual swaps conditionals
         //
-        //     array("id":7615567)
+        //     array("id" => 7615567)
         //
         return $this->parse_order($response, $market);
     }
@@ -2947,11 +2949,13 @@ class gateio extends Exchange {
         //
         // SPOT TRIGGER ORDERS
         // createOrder
+        //
         //    {
-        //        "id":12604556
+        //        "id" => 12604556
         //    }
         //
         // fetchOrder/cancelOrder
+        //
         //    {
         //        "market" => "ADA_USDT",
         //        "user" => 6392049,
@@ -3001,13 +3005,14 @@ class gateio extends Exchange {
         //    }
         //
         // TRIGGER ORDERS (FUTURE AND SWAP)
-        //
         // createOrder
+        //
         //    {
-        //        "id":12604556
+        //        "id" => 12604556
         //    }
         //
         // fetchOrder/cancelOrder
+        //
         //    {
         //        "user" => 6320300,
         //        "trigger" => array(
@@ -3261,6 +3266,7 @@ class gateio extends Exchange {
             //     )
             //
             // price_orders
+            //
             //    array(
             //        {
             //            "market" => "ADA_USDT",
@@ -3326,6 +3332,7 @@ class gateio extends Exchange {
         $response = $this->$method (array_merge($request, $params));
         //
         // SPOT
+        //
         //    {
         //        "id" => "8834234273",
         //        "text" => "3",
@@ -3354,6 +3361,7 @@ class gateio extends Exchange {
         //    }
         //
         // Perpetual Swap
+        //
         //    {
         //        "status" => "finished",
         //        "size" => -1,
@@ -3574,13 +3582,13 @@ class gateio extends Exchange {
         //
         // according to the docs (however actual $response seems to be an empty string '')
         //
-        //     {
-        //       "currency" => "BTC",
-        //       "from" => "spot",
-        //       "to" => "margin",
-        //       "amount" => "1",
-        //       "currency_pair" => "BTC_USDT"
-        //     }
+        //    {
+        //        "currency" => "BTC",
+        //        "from" => "spot",
+        //        "to" => "margin",
+        //        "amount" => "1",
+        //        "currency_pair" => "BTC_USDT"
+        //    }
         //
         $transfer = $this->parse_transfer($response, $currency);
         return array_merge($transfer, array(
@@ -3828,53 +3836,56 @@ class gateio extends Exchange {
             'future' => 'publicDeliveryGetSettleContracts',
         ));
         $response = $this->$method ($query);
-        //  Perpetual $swap
-        //      array(
-        //          {
-        //              "name" => "BTC_USDT",
-        //              "type" => "direct",
-        //              "quanto_multiplier" => "0.0001",
-        //              "ref_discount_rate" => "0",
-        //              "order_price_deviate" => "0.5",
-        //              "maintenance_rate" => "0.005",
-        //              "mark_type" => "index",
-        //              "last_price" => "38026",
-        //              "mark_price" => "37985.6",
-        //              "index_price" => "37954.92",
-        //              "funding_rate_indicative" => "0.000219",
-        //              "mark_price_round" => "0.01",
-        //              "funding_offset" => 0,
-        //              "in_delisting" => false,
-        //              "risk_limit_base" => "1000000",
-        //              "interest_rate" => "0.0003",
-        //              "order_price_round" => "0.1",
-        //              "order_size_min" => 1,
-        //              "ref_rebate_rate" => "0.2",
-        //              "funding_interval" => 28800,
-        //              "risk_limit_step" => "1000000",
-        //              "leverage_min" => "1",
-        //              "leverage_max" => "100",
-        //              "risk_limit_max" => "8000000",
-        //              "maker_fee_rate" => "-0.00025",
-        //              "taker_fee_rate" => "0.00075",
-        //              "funding_rate" => "0.002053",
-        //              "order_size_max" => 1000000,
-        //              "funding_next_apply" => 1610035200,
-        //              "short_users" => 977,
-        //              "config_change_time" => 1609899548,
-        //              "trade_size" => 28530850594,
-        //              "position_size" => 5223816,
-        //              "long_users" => 455,
-        //              "funding_impact_value" => "60000",
-        //              "orders_limit" => 50,
-        //              "trade_id" => 10851092,
-        //              "orderbook_id" => 2129638396
-        //          }
-        //      )
         //
-        //  Delivery Futures
-        //      array(
-        //          {
+        // Perpetual $swap
+        //
+        //    array(
+        //        {
+        //            "name" => "BTC_USDT",
+        //            "type" => "direct",
+        //            "quanto_multiplier" => "0.0001",
+        //            "ref_discount_rate" => "0",
+        //            "order_price_deviate" => "0.5",
+        //            "maintenance_rate" => "0.005",
+        //            "mark_type" => "index",
+        //            "last_price" => "38026",
+        //            "mark_price" => "37985.6",
+        //            "index_price" => "37954.92",
+        //            "funding_rate_indicative" => "0.000219",
+        //            "mark_price_round" => "0.01",
+        //            "funding_offset" => 0,
+        //            "in_delisting" => false,
+        //            "risk_limit_base" => "1000000",
+        //            "interest_rate" => "0.0003",
+        //            "order_price_round" => "0.1",
+        //            "order_size_min" => 1,
+        //            "ref_rebate_rate" => "0.2",
+        //            "funding_interval" => 28800,
+        //            "risk_limit_step" => "1000000",
+        //            "leverage_min" => "1",
+        //            "leverage_max" => "100",
+        //            "risk_limit_max" => "8000000",
+        //            "maker_fee_rate" => "-0.00025",
+        //            "taker_fee_rate" => "0.00075",
+        //            "funding_rate" => "0.002053",
+        //            "order_size_max" => 1000000,
+        //            "funding_next_apply" => 1610035200,
+        //            "short_users" => 977,
+        //            "config_change_time" => 1609899548,
+        //            "trade_size" => 28530850594,
+        //            "position_size" => 5223816,
+        //            "long_users" => 455,
+        //            "funding_impact_value" => "60000",
+        //            "orders_limit" => 50,
+        //            "trade_id" => 10851092,
+        //            "orderbook_id" => 2129638396
+        //        }
+        //    )
+        //
+        // Delivery Futures
+        //
+        //    array(
+        //        {
         //            "name" => "BTC_USDT_20200814",
         //            "underlying" => "BTC_USDT",
         //            "cycle" => "WEEKLY",
@@ -3914,8 +3925,8 @@ class gateio extends Exchange {
         //            "position_size" => 130,
         //            "config_change_time" => 1593158867,
         //            "in_delisting" => false
-        //          }
-        //        )
+        //        }
+        //    )
         //
         return $this->parse_leverage_tiers($response, $symbols, 'name');
     }
@@ -3928,7 +3939,8 @@ class gateio extends Exchange {
          * @param {dict} $market CCXT $market
          */
         //
-        //    Perpetual swap
+        // Perpetual swap
+        //
         //    {
         //        "name" => "BTC_USDT",
         //        "type" => "direct",
@@ -3970,7 +3982,8 @@ class gateio extends Exchange {
         //        "orderbook_id" => 2129638396
         //    }
         //
-        //    Delivery Futures
+        // Delivery Futures
+        //
         //    {
         //        "name" => "BTC_USDT_20200814",
         //        "underlying" => "BTC_USDT",
@@ -4096,11 +4109,11 @@ class gateio extends Exchange {
             return;
         }
         //
-        //     array("label" => "ORDER_NOT_FOUND", "message" => "Order not found")
-        //     array("label" => "INVALID_PARAM_VALUE", "message" => "invalid argument => status")
-        //     array("label" => "INVALID_PARAM_VALUE", "message" => "invalid argument => Trigger.rule")
-        //     array("label" => "INVALID_PARAM_VALUE", "message" => "invalid argument => trigger.expiration invalid range")
-        //     array("label" => "INVALID_ARGUMENT", "detail" => "invalid size")
+        //    array("label" => "ORDER_NOT_FOUND", "message" => "Order not found")
+        //    array("label" => "INVALID_PARAM_VALUE", "message" => "invalid argument => status")
+        //    array("label" => "INVALID_PARAM_VALUE", "message" => "invalid argument => Trigger.rule")
+        //    array("label" => "INVALID_PARAM_VALUE", "message" => "invalid argument => trigger.expiration invalid range")
+        //    array("label" => "INVALID_ARGUMENT", "detail" => "invalid size")
         //
         $label = $this->safe_string($response, 'label');
         if ($label !== null) {
