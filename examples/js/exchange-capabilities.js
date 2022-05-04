@@ -7,6 +7,7 @@ const csv = process.argv.includes ('--csv')
     , asTable = require ('as-table').configure (asTableConfig)
     , log = require ('ololog').noLocate
     , ansi = require ('ansicolor').nice
+    , sortCertified = process.argv.includes ('--sort-certified') || process.argv.includes ('--certified')
 
 console.log (ccxt.iso8601 (ccxt.milliseconds ()))
 console.log ('CCXT v' + ccxt.version)
@@ -36,7 +37,7 @@ async function main () {
         'wavesexchange',
         'zb',
     ]
-    const exchangeNames = ccxt.unique (certified.concat (ccxt.exchanges));
+    const exchangeNames = ccxt.unique (sortCertified ? certified.concat (ccxt.exchanges) : ccxt.exchanges);
     let exchanges = exchangeNames.map (id => new ccxt[id] ())
     const metainfo = ccxt.flatten (exchanges.map (exchange => Object.keys (exchange.has)))
     const reduced = metainfo.reduce ((previous, current) => {
