@@ -699,8 +699,8 @@ module.exports = class coinflex extends Exchange {
             'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': this.parseNumber (priceString),
-            'amount': this.parseNumber (amountString),
+            'price': priceString,
+            'amount': amountString,
             'cost': cost,
             'fee': fee,
             'info': trade,
@@ -1330,10 +1330,10 @@ module.exports = class coinflex extends Exchange {
             } else {
                 const feeKeys = Object.keys (feesRaw);
                 if (feeKeys.length > 0) {
-                    const firstKey = feeKeys[0];
+                    const firstCurrencyId = feeKeys[0];
                     fees = {
-                        'currency': firstKey,
-                        'fee': feesRaw[firstKey],
+                        'currency': this.safeCurrency (firstCurrencyId),
+                        'fee': feesRaw[firstCurrencyId],
                     };
                 }
             }
