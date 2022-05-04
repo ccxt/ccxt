@@ -95,7 +95,7 @@ module.exports = class coinflex extends Exchange {
                 'fetchTransactions': undefined,
                 'fetchTransfers': true,
                 'fetchWithdrawal': true,
-                'fetchWithdrawals': true,
+                'fetchWithdrawals': undefined,
                 'loadMarkets': true,
                 'privateAPI': true,
                 'publicAPI': true,
@@ -189,7 +189,7 @@ module.exports = class coinflex extends Exchange {
                         'v3/deposit': 1,
                         'v3/withdrawal-addresses': 1,
                         'v3/withdrawal': 1,
-                        'v3/withdrawal-fee': 1,
+                        'v3/withdrawal-fee': 1, // TO_DO
                         'v3/transfer': 1,
                         'v3/flexasset/mint': 1,
                         'v3/flexasset/redeem': 1,
@@ -215,7 +215,7 @@ module.exports = class coinflex extends Exchange {
                         'v2/borrow/close': 1,
                         'v2/AMM/create': 1,
                         'v2/AMM/redeem': 1,
-                        'v3/withdrawal': 1, // TO_DO
+                        'v3/withdrawal': 1,
                         'v3/transfer': 1,
                         'v3/flexasset/mint': 1,
                         'v3/AMM/create': 1,
@@ -224,7 +224,7 @@ module.exports = class coinflex extends Exchange {
                         'v2/cancel/orders': 1,
                         'v2/cancel/orders/{marketCode}': 1,
                         'v2.1/delivery/orders/{deliveryOrderId}': 1,
-                        'v2/orders/cancel': 1, // TO_DO
+                        'v2/orders/cancel': 1,
                     },
                 },
             },
@@ -241,14 +241,16 @@ module.exports = class coinflex extends Exchange {
                 'baseApiDomain': 'v2api.coinflex.com',
                 'defaultType': 'spot', // spot, swap
                 'networks': {
+                    // 'SOLANA': 'SPL',
+                    'BTC': 'BTC',
                     'ERC20': 'ERC20',
                     'BEP20': 'BEP20',
-                    // 'SOLANA': 'SPL',
                 },
                 'networksByIds': {
+                    // 'SPL': 'SOLANA',
+                    'BTC': 'BTC',
                     'ERC20': 'ERC20',
                     'BEP20': 'BEP20',
-                    // 'SPL': 'SOLANA',
                 },
             },
             'commonCurrencies': {
@@ -260,12 +262,15 @@ module.exports = class coinflex extends Exchange {
                     '710003': InvalidOrder,
                     '710006': InsufficientFunds,
                     '20001': BadRequest,
+                    '25030': BadRequest,
                 },
                 'broad': {
                     'sanity bound check as price': InvalidOrder,
                     'balance check as balance': InsufficientFunds, // "FAILED balance check as balance (0.8037741278120500) < value (5.20000)"
                     'Open order not found with clientOrderId or orderId': OrderNotFound,
-                    'result not found, please check your parameters': BadRequest, // '20001'
+                    'result not found, please check your parameters': BadRequest, // 20001
+                    '2FA is not turned on': PermissionDenied, // 25009
+                    'Invalid Code': BadRequest, // 25030
                 },
             },
         });
@@ -274,9 +279,7 @@ module.exports = class coinflex extends Exchange {
     async fetchStatus (params = {}) {
         const response = await this.publicGetV2Ping (params);
         //
-        //     {
-        //         "success": "true"
-        //     }
+        //     { "success": "true" }
         //
         const statusRaw = this.safeString (response, 'success');
         const status = this.safeString ({ 'true': 'ok', 'false': 'maintenance' }, statusRaw, statusRaw);
@@ -476,6 +479,7 @@ module.exports = class coinflex extends Exchange {
             const fees = {};
             const networks = {};
             const networkList = this.safeValue (entry, 'networkList', []);
+            let precision = undefined;
             for (let j = 0; j < networkList.length; j++) {
                 const networkItem = networkList[j];
                 const networkId = this.safeString (networkItem, 'network');
@@ -485,6 +489,7 @@ module.exports = class coinflex extends Exchange {
                 isDepositEnabled = isDepositEnabled || depositEnable;
                 isWithdrawEnabled = isWithdrawEnabled || withdrawEnable;
                 fees[networkId] = undefined;
+                precision = this.safeInteger (networkItem, 'transactionPrecision');
                 networks[networkId] = {
                     'id': networkId,
                     'network': networkId,
@@ -492,7 +497,7 @@ module.exports = class coinflex extends Exchange {
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
                     'fee': undefined,
-                    'precision': this.safeInteger (networkItem, 'transactionPrecision'),
+                    'precision': precision,
                     'limits': {
                         'deposit': {
                             'min': this.safeNumber (networkItem, 'minDeposit'),
@@ -510,7 +515,7 @@ module.exports = class coinflex extends Exchange {
                 'id': id,
                 'name': code,
                 'code': code,
-                'precision': undefined,
+                'precision': precision, // TODO: this need codebase changes, as precision is network specific, but currencyToPrecision bugs in that case
                 'info': entry,
                 'active': isWithdrawEnabled && isDepositEnabled,
                 'deposit': isDepositEnabled,
@@ -2008,6 +2013,47 @@ module.exports = class coinflex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseTransfer (data, currency);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const twoFaCode = this.safeString (params, 'code');
+        if (twoFaCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires two-factor "code" parameter for withdrawals');
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        const networkName = this.safeStringUpper (params, 'network');
+        const networkId = this.safeStringUpper (networks, networkName, networkName);
+        const request = {
+            'asset': currency['id'],
+            'network': networkId,
+            'quantity': this.currencyToPrecision (code, amount),
+            'address': address,
+            // below are required params by this time
+            'externalFee': false,
+            'tfaType': 'GOOGLE',
+            'code': twoFaCode,
+        };
+        const response = await this.privatePostV3Withdrawal (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "id": "752907053614432259",
+        //             "asset": "USDT",
+        //             "network": "SLP",
+        //             "address": "simpleledger:qzlg6uvceehgzgtz6phmvy8gtdqyt6vf35fxqwx3p7",
+        //             "quantity": "1000.0",
+        //             "externalFee": true,
+        //             "fee": "0",
+        //             "status": "PENDING",
+        //             "requestedAt": "1617940800000"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseTransaction (data, currency);
     }
 
     nonce () {
