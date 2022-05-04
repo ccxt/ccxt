@@ -3557,6 +3557,18 @@ module.exports = class gateio extends Exchange {
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name gateio#transfer
+         * @description makes internal transfers of funds between accounts on the same exchange
+         * @param {str} code unified currency code for currency being transferred
+         * @param {float} amount the amount of currency to transfer
+         * @param {str} fromAccount the account to transfer currency from
+         * @param {str} toAccount the account to transfer currency to
+         * @param {dict} params Exchange specific parameters
+         * @param {dict} params.symbol Unified market symbol *required for type == margin*
+         * @returns A [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
@@ -3577,6 +3589,15 @@ module.exports = class gateio extends Exchange {
             'to': toId,
             'amount': truncated,
         };
+        if (fromAccount === 'margin' || toAccount === 'margin') {
+            const symbol = this.safeString2 (params, 'symbol', 'currency_pair');
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' transfer() requires params.symbol for isolated margin transfers');
+            }
+            const market = this.market (symbol);
+            request['currency_pair'] = market['id'];
+            params = this.omit (params, 'symbol');
+        }
         if ((toId === 'futures') || (toId === 'delivery') || (fromId === 'futures') || (fromId === 'delivery')) {
             request['settle'] = currency['lowerCaseId'];
         }
