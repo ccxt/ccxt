@@ -207,7 +207,7 @@ module.exports = class coinflex extends Exchange {
                     'post': {
                         'v2.1/delivery/orders': 1,
                         'v2/orders/place': 1, // Note: supports batch/bulk orders
-                        'v2/orders/modify': 1, // TO_DO
+                        'v2/orders/modify': 1,
                         'v2/mint': 1,
                         'v2/redeem': 1,
                         'v2/borrow': 1,
@@ -221,10 +221,10 @@ module.exports = class coinflex extends Exchange {
                         'v3/AMM/create': 1,
                     },
                     'delete': {
+                        'v2/cancel/orders': 1,
                         'v2/cancel/orders/{marketCode}': 1,
                         'v2.1/delivery/orders/{deliveryOrderId}': 1,
                         'v2/orders/cancel': 1, // TO_DO
-                        'v2/cancel/orders': 1, // TO_DO
                     },
                 },
             },
@@ -761,6 +761,8 @@ module.exports = class coinflex extends Exchange {
             'OrderOpened': 'open',
             'OrderMatched': 'closed',
             'OrderClosed': 'canceled',
+            // cancelOrder
+            'CANCELED_BY_USER': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1861,10 +1863,69 @@ module.exports = class coinflex extends Exchange {
         //                 "marketCode": "XRP-USD",
         //                 "orderType": "LIMIT"
         //             }
+        //
         const data = this.safeValue (response, 'data', []);
         const firstOrder = this.safeValue (data, 0, {});
         this.checkOrderResponseForException (response, firstOrder);
         return this.parseOrder (firstOrder, market);
+    }
+
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        await this.loadMarkets ();
+        const request = {
+            'responseType': 'FULL', // FULL, ACK
+            'orders': [],
+        };
+        for (let i = 0; i < ids.length; i++) {
+            request['orders'].push ({
+                'marketCode': market['id'],
+                'orderId': ids[i],
+            });
+        }
+        const response = await this.privateDeleteV2OrdersCancel (this.extend (request, params));
+        //
+        //     {
+        //         "event": "cancelOrder",
+        //         "timestamp": "1651697925019",
+        //         "accountId": "38420",
+        //         "data": [
+        //             {
+        //                 "success": "true",
+        //                 "timestamp": "1651699447397",
+        //                 "clientOrderId": "1651692616185",
+        //                 "orderId": "1002128500938",
+        //                 "price": "0.56",
+        //                 "quantity": "8.0",
+        //                 "side": "BUY",
+        //                 "status": "CANCELED_BY_USER",
+        //                 "marketCode": "XRP-USD",
+        //                 "timeInForce": "GTC",
+        //                 "matchId": "0",
+        //                 "remainQuantity": "8.0",
+        //                 "notice": "OrderClosed",
+        //                 "orderType": "LIMIT",
+        //                 "isTriggered": "false"
+        //             }
+        //         ]
+        //     }
+        //
+        // Note, for inexistent order-id, the order-object might be like:
+        //
+        //             {
+        //                 "success": "false",
+        //                 "timestamp": "1651697925019",
+        //                 "code": "40035",
+        //                 "message": "Open order not found with clientOrderId or orderId",
+        //                 "orderId": "1002128500938",
+        //                 "marketCode": "XRP/USD"
+        //             }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -1903,9 +1964,10 @@ module.exports = class coinflex extends Exchange {
         const [ finalPath, query ] = this.resolvePath (path, params);
         let url = this.urls['api'][api] + '/' + finalPath;
         let encodedParams = '';
+        const isGetRequest = (method === 'GET');
         if (Object.keys (query).length) {
-            encodedParams = this.urlencode (query);
-            if (method === 'GET') {
+            encodedParams = this.rawencode (query);
+            if (isGetRequest) {
                 url += '?' + encodedParams;
             }
         }
@@ -1914,12 +1976,12 @@ module.exports = class coinflex extends Exchange {
             const nonce = this.nonce ().toString ();
             const datetime = this.ymdhms (this.milliseconds (), 'T');
             let auth = datetime + "\n" + nonce + "\n" + method + "\n" + this.options['baseApiDomain'] + "\n" + '/' + finalPath + "\n"; // eslint-disable-line quotes
-            if (method === 'POST') {
+            if (isGetRequest) {
+                auth += encodedParams;
+            } else {
                 const jsonified = this.json (query);
                 auth += jsonified;
                 body = jsonified;
-            } else {
-                auth += encodedParams;
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
             headers = {};
