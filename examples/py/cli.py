@@ -52,6 +52,9 @@ parser.add_argument('--debug', action='store_true', help='enable debug output')
 parser.add_argument('--sandbox', action='store_true', help='enable sandbox/testnet')
 parser.add_argument('--testnet', action='store_true', help='enable sandbox/testnet')
 parser.add_argument('--test', action='store_true', help='enable sandbox/testnet')
+parser.add_argument('--spot', action='store_true', help='enable spot markets')
+parser.add_argument('--swap', action='store_true', help='enable swap markets')
+parser.add_argument('--future', action='store_true', help='enable future markets')
 parser.add_argument('exchange_id', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('method', type=str, help='method or property', nargs='?')
 parser.add_argument('args', type=str, help='arguments', nargs='*')
@@ -121,6 +124,13 @@ async def main():
         config.update(keys[argv.exchange_id])
 
     exchange = getattr(ccxtpro, argv.exchange_id)(config)
+
+    if argv.spot:
+        exchange.options['defaultType'] = 'spot'
+    elif argv.swap:
+        exchange.options['defaultType'] = 'swap'
+    elif argv.future:
+        exchange.options['defaultType'] = 'future'
 
     # check auth keys in env var
     requiredCredentials = exchange.requiredCredentials
