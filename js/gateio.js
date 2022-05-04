@@ -3156,15 +3156,14 @@ module.exports = class gateio extends Exchange {
          * @param {str} symbol Unified market symbol
          * @param {dict} params Parameters specified by the exchange api
          * @param {bool} params.stop True if the order being fetched is a trigger order
+         * @param {str} params.marginType 'cross' or 'isolated' - marginType for margin trading if not provided this.options['defaultMarginType'] is used
+         * @param {str} params.type 'spot', 'swap', or 'future', if not provided this.options['defaultMarginType'] is used
+         * @param {str} params.settle 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future
          * @returns An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const stop = this.safeValue2 (params, 'is_stop_order', 'stop', false);
         params = this.omit (params, [ 'is_stop_order', 'stop' ]);
-        const market = this.market (symbol);
         let clientOrderId = this.safeString2 (params, 'text', 'clientOrderId');
         let orderId = id;
         if (clientOrderId !== undefined) {
@@ -3177,21 +3176,41 @@ module.exports = class gateio extends Exchange {
         const request = {
             'order_id': orderId,
         };
-        if (market['spot'] || market['margin']) {
-            request['currency_pair'] = market['id'];
+        let market = undefined;
+        let settle = undefined;
+        let type = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            if (market['spot']) {
+                request['currency_pair'] = market['id'];
+            } else {
+                settle = market['settle'];
+            }
+        }
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const swap = type === 'swap';
+        if (swap || type === 'future') {
+            if (settle === undefined) {
+                const defaultSettle = swap ? 'usdt' : 'btc';
+                settle = this.safeStringLower (params, 'settle', defaultSettle);
+                params = this.omit (params, 'settle');
+            }
+            request['settle'] = settle;
         } else {
-            request['settle'] = market['settleId'];
+            let marginType = undefined;
+            [ marginType, params ] = this.getMarginType (stop, params);
+            request['account'] = marginType;
         }
         let method = undefined;
         if (stop) {
-            method = this.getSupportedMapping (market['type'], {
+            method = this.getSupportedMapping (type, {
                 'spot': 'privateSpotGetPriceOrdersOrderId',
                 'margin': 'privateSpotGetPriceOrdersOrderId',
                 'swap': 'privateFuturesGetSettlePriceOrdersOrderId',
                 'future': 'privateDeliveryGetSettlePriceOrdersOrderId',
             });
         } else {
-            method = this.getSupportedMapping (market['type'], {
+            method = this.getSupportedMapping (type, {
                 'spot': 'privateSpotGetOrdersOrderId',
                 'margin': 'privateSpotGetOrdersOrderId',
                 'swap': 'privateFuturesGetSettleOrdersOrderId',
