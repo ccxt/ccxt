@@ -3132,8 +3132,15 @@ module.exports = class coinex extends Exchange {
             'amount': undefined,
             'fromAccount': undefined,
             'toAccount': undefined,
-            'status': this.safeString (transfer, 'message'),
+            'status': this.parseTransferStatus (transfer, 'code'),
         };
+    }
+
+    parseTransferStatus (status) {
+        if (status === 0) {
+            return 'ok';
+        }
+        return 'failed';
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
