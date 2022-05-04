@@ -3549,6 +3549,18 @@ module.exports = class gateio extends Exchange {
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name gateio#transfer
+         * @description makes internal transfers of funds between accounts on the same exchange
+         * @param {str} code unified currency code for currency being transferred
+         * @param {float} amount the amount of currency to transfer
+         * @param {str} fromAccount the account to transfer currency from
+         * @param {str} toAccount the account to transfer currency to
+         * @param {dict} params Exchange specific parameters
+         * @param {dict} params.symbol Unified market symbol *required for type == margin*
+         * @returns A [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
