@@ -3555,6 +3555,16 @@ class gateio extends Exchange {
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * makes internal transfers of funds between accounts on the same exchange
+         * @param {str} $code unified $currency $code for $currency being transferred
+         * @param {float} $amount the $amount of $currency to $transfer
+         * @param {str} $fromAccount the account to $transfer $currency from
+         * @param {str} $toAccount the account to $transfer $currency to
+         * @param {dict} $params Exchange specific parameters
+         * @param {dict} $params->symbol Unified $market $symbol *required for type == margin*
+         * @return A {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
@@ -3575,6 +3585,15 @@ class gateio extends Exchange {
             'to' => $toId,
             'amount' => $truncated,
         );
+        if ($fromAccount === 'margin' || $toAccount === 'margin') {
+            $symbol = $this->safe_string_2($params, 'symbol', 'currency_pair');
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' $transfer() requires $params->symbol for isolated margin transfers');
+            }
+            $market = $this->market($symbol);
+            $request['currency_pair'] = $market['id'];
+            $params = $this->omit($params, 'symbol');
+        }
         if (($toId === 'futures') || ($toId === 'delivery') || ($fromId === 'futures') || ($fromId === 'delivery')) {
             $request['settle'] = $currency['lowerCaseId'];
         }

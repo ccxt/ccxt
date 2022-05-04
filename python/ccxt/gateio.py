@@ -3399,6 +3399,16 @@ class gateio(Exchange):
         return self.parse_orders(response, market)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        makes internal transfers of funds between accounts on the same exchange
+        :param str code: unified currency code for currency being transferred
+        :param float amount: the amount of currency to transfer
+        :param str fromAccount: the account to transfer currency from
+        :param str toAccount: the account to transfer currency to
+        :param dict params: Exchange specific parameters
+        :param dict params['symbol']: Unified market symbol *required for type == margin*
+        :returns: A `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
@@ -3417,6 +3427,13 @@ class gateio(Exchange):
             'to': toId,
             'amount': truncated,
         }
+        if fromAccount == 'margin' or toAccount == 'margin':
+            symbol = self.safe_string_2(params, 'symbol', 'currency_pair')
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' transfer() requires params.symbol for isolated margin transfers')
+            market = self.market(symbol)
+            request['currency_pair'] = market['id']
+            params = self.omit(params, 'symbol')
         if (toId == 'futures') or (toId == 'delivery') or (fromId == 'futures') or (fromId == 'delivery'):
             request['settle'] = currency['lowerCaseId']
         response = self.privateWalletPostTransfers(self.extend(request, params))
