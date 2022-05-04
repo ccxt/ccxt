@@ -55,6 +55,7 @@ parser.add_argument('--test', action='store_true', help='enable sandbox/testnet'
 parser.add_argument('--spot', action='store_true', help='enable spot markets')
 parser.add_argument('--swap', action='store_true', help='enable swap markets')
 parser.add_argument('--future', action='store_true', help='enable future markets')
+parser.add_argument('--newUpdates', action='store_true', help='enable newUpdates mode')
 parser.add_argument('exchange_id', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('method', type=str, help='method or property', nargs='?')
 parser.add_argument('args', type=str, help='arguments', nargs='*')
@@ -131,6 +132,9 @@ async def main():
         exchange.options['defaultType'] = 'swap'
     elif argv.future:
         exchange.options['defaultType'] = 'future'
+
+    if argv.newUpdates:
+        exchange.newUpdates = True
 
     # check auth keys in env var
     requiredCredentials = exchange.requiredCredentials

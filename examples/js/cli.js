@@ -17,6 +17,7 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , isSpot = process.argv.includes ('--spot')
     , isSwap = process.argv.includes ('--swap')
     , isFuture = process.argv.includes ('--future')
+    , newUpdates = process.argv.includes ('--newUpdates')
 
 //-----------------------------------------------------------------------------
 
@@ -78,7 +79,11 @@ try {
     } else if (isFuture) {
         exchange.options['defaultType'] = 'future';
     }
-    
+
+    if (newUpdates) {
+        exchange.newUpdates = true;
+    }
+
     // check auth keys in env var
     const requiredCredentials = exchange.requiredCredentials;
     for (const [credential, isRequired] of Object.entries (requiredCredentials)) {
