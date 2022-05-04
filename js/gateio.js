@@ -637,7 +637,7 @@ module.exports = class gateio extends Exchange {
         }
         const resultLength = result.length;
         if (resultLength === 0) {
-            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'swap', 'future' or 'option'"); // eslint-disable-line quotes
+            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'swap', 'future' or 'option'"); // eslint-disable-line quotes
         }
         return result;
     }
