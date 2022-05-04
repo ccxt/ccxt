@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, InvalidOrder, OrderNotFound, ArgumentsRequired, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, BadRequest, PermissionDenied, InvalidOrder, OrderNotFound, ArgumentsRequired, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -27,9 +27,9 @@ module.exports = class coinflex extends Exchange {
                 'future': true,
                 'option': undefined,
                 'addMargin': undefined,
-                'cancelAllOrders': undefined,
-                'cancelOrder': undefined,
-                'cancelOrders': undefined,
+                'cancelAllOrders': true,
+                'cancelOrder': true,
+                'cancelOrders': true,
                 'createDepositAddress': undefined,
                 'createLimitOrder': true,
                 'createMarketOrder': true,
@@ -104,7 +104,7 @@ module.exports = class coinflex extends Exchange {
                 'setMarginMode': undefined,
                 'setPositionMode': undefined,
                 'signIn': undefined,
-                'transfer': undefined,
+                'transfer': true,
                 'withdraw': undefined,
             },
             'timeframes': {
@@ -216,7 +216,7 @@ module.exports = class coinflex extends Exchange {
                         'v2/AMM/create': 1,
                         'v2/AMM/redeem': 1,
                         'v3/withdrawal': 1, // TO_DO
-                        'v3/transfer': 1, // TO_DO
+                        'v3/transfer': 1,
                         'v3/flexasset/mint': 1,
                         'v3/AMM/create': 1,
                     },
@@ -259,11 +259,13 @@ module.exports = class coinflex extends Exchange {
                     '40035': OrderNotFound,
                     '710003': InvalidOrder,
                     '710006': InsufficientFunds,
+                    '20001': BadRequest,
                 },
                 'broad': {
                     'sanity bound check as price': InvalidOrder,
                     'balance check as balance': InsufficientFunds, // "FAILED balance check as balance (0.8037741278120500) < value (5.20000)"
                     'Open order not found with clientOrderId or orderId': OrderNotFound,
+                    'result not found, please check your parameters': BadRequest, // '20001'
                 },
             },
         });
@@ -1517,6 +1519,18 @@ module.exports = class coinflex extends Exchange {
         //         ]
         //     }
         //
+        // Note, when there are no withdrawal records, you might get:
+        //
+        //     {
+        //         "success": false,
+        //         "code": "20001",
+        //         "message": "result not found, please check your parameters"
+        //     }
+        //
+        const statusCode = this.safeValue (response, 'code');
+        if (statusCode === '20001') {
+            return [];
+        }
         const data = this.safeValue (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit, params);
     }
@@ -1689,11 +1703,25 @@ module.exports = class coinflex extends Exchange {
         //         "transferredAt": "1651428178967"
         //      }
         //
+        // transfer
+        //
+        //     {
+        //         "asset": "USDT",
+        //         "quantity": "5",
+        //         "fromAccount": "38420",
+        //         "toAccount": "38776",
+        //         "transferredAt": "1651704762775"
+        //     }
+        //
         const currencyId = this.safeString (transfer, 'asset');
         const timestamp = this.safeString (transfer, 'transferredAt');
         const fromAccount = this.safeString (transfer, 'fromAccount');
         const toAccount = this.safeString (transfer, 'toAccount');
-        const status = this.parseTransactionStatus (this.safeString (transfer, 'status'));
+        let status = this.parseTransactionStatus (this.safeString (transfer, 'status'));
+        // if case of 'transfer', as status field is not available, 'transferredAt' prop should mean that transfer was done
+        if (status === undefined && timestamp !== undefined) {
+            status = 'ok';
+        }
         return {
             'id': this.safeString (transfer, 'id'),
             'timestamp': timestamp,
@@ -1954,6 +1982,32 @@ module.exports = class coinflex extends Exchange {
         // if there has been no orders pending, then data property will be null.
         //
         return response;
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+            'quantity': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        };
+        const response = await this.privatePostV3Transfer (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "asset": "USDT",
+        //             "quantity": "5",
+        //             "fromAccount": "38420",
+        //             "toAccount": "38776",
+        //             "transferredAt": "1651704762775"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTransfer (data, currency);
     }
 
     nonce () {
