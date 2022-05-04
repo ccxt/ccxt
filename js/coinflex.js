@@ -207,7 +207,7 @@ module.exports = class coinflex extends Exchange {
                     'post': {
                         'v2.1/delivery/orders': 1,
                         'v2/orders/place': 1, // Note: supports batch/bulk orders
-                        'v2/orders/modify': 1,
+                        'v2/orders/modify': 1, // TO_DO
                         'v2/mint': 1,
                         'v2/redeem': 1,
                         'v2/borrow': 1,
@@ -215,16 +215,16 @@ module.exports = class coinflex extends Exchange {
                         'v2/borrow/close': 1,
                         'v2/AMM/create': 1,
                         'v2/AMM/redeem': 1,
-                        'v3/withdrawal': 1,
-                        'v3/transfer': 1,
+                        'v3/withdrawal': 1, // TO_DO
+                        'v3/transfer': 1, // TO_DO
                         'v3/flexasset/mint': 1,
                         'v3/AMM/create': 1,
                     },
                     'delete': {
                         'v2/cancel/orders/{marketCode}': 1,
                         'v2.1/delivery/orders/{deliveryOrderId}': 1,
-                        'v2/orders/cancel': 1,
-                        'v2/cancel/orders': 1,
+                        'v2/orders/cancel': 1, // TO_DO
+                        'v2/cancel/orders': 1, // TO_DO
                     },
                 },
             },
@@ -1276,6 +1276,13 @@ module.exports = class coinflex extends Exchange {
         //         "isTriggered": "false"
         //     }
         //
+        // cancelAllOrders
+        //
+        //     {
+        //         "marketCode": "XRP-USD",
+        //         "msg": "All open orders for the specified market have been queued for cancellation"
+        //     }
+        //
         const marketId = this.safeString (order, 'marketCode');
         market = this.safeMarket (marketId, market);
         const isCreateOrder = 'timestamp' in order;
@@ -1796,6 +1803,34 @@ module.exports = class coinflex extends Exchange {
             throw new ExchangeError (body);
         }
         return this.parseOrder (firstResult, market);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {};
+        let method = 'privateDeleteV2CancelOrders';
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['marketCode'] = market['id'];
+            method = 'privateDeleteV2CancelOrdersMarketCode';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "event": "orders",
+        //         "timestamp": "1651651758625",
+        //         "accountId": "38420",
+        //         "data": {
+        //             "marketCode": "XRP-USD",
+        //             "msg": "All open orders for the specified market have been queued for cancellation"
+        //         }
+        //     }
+        //
+        // Note: when fired without symbol, the 'data' object only contains a msg property with '{"msg":"All open orders for the account have been queued for cancellation"}'
+        // if there has been no orders pending, then data property will be null.
+        //
+        return response;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
