@@ -60,6 +60,7 @@ module.exports = class coinex extends Exchange {
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -3089,6 +3090,49 @@ module.exports = class coinex extends Exchange {
             'status': status,
             'updated': undefined,
             'fee': fee,
+        };
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('transfer', undefined, params);
+        if (marketType !== 'spot') {
+            throw new BadRequest (this.id + ' transfer() requires defaultType to be spot');
+        }
+        const currency = this.safeCurrencyCode (code);
+        const amountToPrecision = this.currencyToPrecision (code, amount);
+        let transfer = undefined;
+        if ((fromAccount === 'spot') && (toAccount === 'swap')) {
+            transfer = 'in';
+        } else if ((fromAccount === 'swap') && (toAccount === 'spot')) {
+            transfer = 'out';
+        }
+        const request = {
+            'amount': amountToPrecision,
+            'coin_type': currency,
+            'transfer_side': transfer, // 'in': spot to swap, 'out': swap to spot
+        };
+        const response = await this.privatePostContractBalanceTransfer (this.extend (request, query));
+        //
+        //     {"code": 0, "data": null, "message": "Success"}
+        //
+        return this.extend (this.parseTransfer (response, currency), {
+            'amount': this.parseNumber (amountToPrecision),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        });
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        return {
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': currency,
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': this.safeString (transfer, 'message'),
         };
     }
 
