@@ -2731,7 +2731,6 @@ module.exports = class gateio extends Exchange {
             } else {
                 let marginType = undefined;
                 [ marginType, params ] = this.getMarginType (false, params);
-                params = this.omit (params, 'account');
                 // spot order
                 request = {
                     // 'text': clientOrderId, // 't-abcdef1234567890',
@@ -2804,6 +2803,7 @@ module.exports = class gateio extends Exchange {
                 const options = this.safeValue (this.options, 'createOrder', {});
                 let marginType = undefined;
                 [ marginType, params ] = this.getMarginType (true, params);
+                params = this.omit (params, 'account');
                 const defaultExpiration = this.safeInteger (options, 'expiration');
                 const expiration = this.safeInteger (params, 'expiration', defaultExpiration);
                 const rule = (side === 'buy') ? '>=' : '<=';
