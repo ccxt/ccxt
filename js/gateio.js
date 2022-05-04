@@ -3569,6 +3569,14 @@ module.exports = class gateio extends Exchange {
             'to': toId,
             'amount': truncated,
         };
+        if (fromAccount === 'margin' || toAccount === 'margin') {
+            const symbol = this.safeString2 (params, 'symbol', 'currency_pair');
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' transfer requires a params.symbol argument for isolated margin transfers');
+            }
+            const market = this.market (symbol);
+            request['currency_pair'] = market['id'];
+        }
         if ((toId === 'futures') || (toId === 'delivery') || (fromId === 'futures') || (fromId === 'delivery')) {
             request['settle'] = currency['lowerCaseId'];
         }
