@@ -3115,15 +3115,14 @@ module.exports = class coinex extends Exchange {
             fromAccount = 'spot';
             toAccount = 'swap';
         }
-        if (currency === undefined) {
-            currency = this.safeString (transfer, 'asset');
-        }
+        const currencyId = this.safeString (transfer, 'asset');
+        const currencyCode = this.safeCurrencyCode (currencyId, currency);
         return {
             'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'currency': currency,
-            'amount': this.safeString (transfer, 'amount'),
+            'currency': currencyCode,
+            'amount': this.safeNumber (transfer, 'amount'),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
             'status': this.safeString (transfer, 'message'),
