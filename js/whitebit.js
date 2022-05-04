@@ -512,8 +512,6 @@ module.exports = class whitebit extends Exchange {
         //
         market = this.safeMarket (undefined, market);
         const last = this.safeString (ticker, 'last_price');
-        const change = this.safeString (ticker, 'change');
-        const percentage = Precise.stringMul (change, '0.01');
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': undefined,
@@ -530,7 +528,7 @@ module.exports = class whitebit extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': percentage,
+            'percentage': this.safeString (ticker, 'change'),
             'average': undefined,
             'baseVolume': this.safeString2 (ticker, 'base_volume', 'volume'),
             'quoteVolume': this.safeString2 (ticker, 'quote_volume', 'deal'),
