@@ -3588,6 +3588,7 @@ module.exports = class gateio extends Exchange {
             }
             const market = this.market (symbol);
             request['currency_pair'] = market['id'];
+            params = this.omit (params, 'symbol');
         }
         if ((toId === 'futures') || (toId === 'delivery') || (fromId === 'futures') || (fromId === 'delivery')) {
             request['settle'] = currency['lowerCaseId'];
