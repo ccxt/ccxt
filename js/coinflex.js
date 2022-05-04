@@ -256,12 +256,14 @@ module.exports = class coinflex extends Exchange {
             'exceptions': {
                 'exact': {
                     '40001': BadRequest,
+                    '40035': OrderNotFound,
                     '710003': InvalidOrder,
                     '710006': InsufficientFunds,
                 },
                 'broad': {
                     'sanity bound check as price': InvalidOrder,
                     'balance check as balance': InsufficientFunds, // "FAILED balance check as balance (0.8037741278120500) < value (5.20000)"
+                    'Open order not found with clientOrderId or orderId': OrderNotFound,
                 },
             },
         });
@@ -668,7 +670,6 @@ module.exports = class coinflex extends Exchange {
             const tradeData = trade[id];
             amountString = this.safeString (tradeData, 'matchQuantity');
             priceString = this.safeString (tradeData, 'matchPrice');
-            cost = Precise.stringMul (amountString, priceString);
             timestamp = this.safeInteger (tradeData, 'timestamp');
             takerOrMakerRaw = this.safeString (trade, 'orderMatchType');
         } else {
@@ -1704,7 +1705,7 @@ module.exports = class coinflex extends Exchange {
         };
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async buildOrderRequest (market, type, side, amount, price = undefined, params = {}) {
         const clientOrderId = this.safeString (params, 'clientOrderId');
         const maxCOI = '9223372036854775807';
         if ((clientOrderId !== undefined) && Precise.stringGt (clientOrderId, maxCOI)) {
@@ -1716,34 +1717,56 @@ module.exports = class coinflex extends Exchange {
             throw new ArgumentsRequired (this.id + ' createOrder() : to create a stop order, you need to specify the "stopPrice" param');
         }
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const order = {
             'marketCode': market['id'],
             'side': this.convertOrderSide (side),
             'orderType': this.convertOrderType (type),
-            'quantity': this.amountToPrecision (symbol, amount),
+            'quantity': this.amountToPrecision (market['symbol'], amount),
         };
         const stopPrice = this.safeNumber (params, 'stopPrice');
         const isStopOrder = stopPrice !== undefined;
         if (isStopOrder) {
-            order['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            order['stopPrice'] = this.priceToPrecision (market['symbol'], stopPrice);
             params = this.omit (params, 'stopPrice');
         }
         if (price !== undefined && type === 'limit') {
             // stop orders have separate field for limit price
             if (isStopOrder) {
-                const limitPrice = this.safeNumber (params, 'limitPrice', price);
-                order['limitPrice'] = this.priceToPrecision (symbol, limitPrice);
+                let limitPrice = this.safeNumber (params, 'limitPrice');
+                if (limitPrice !== undefined) {
+                    params = this.omit (params, 'limitPrice');
+                } else {
+                    limitPrice = price;
+                }
+                order['limitPrice'] = this.priceToPrecision (market['symbol'], limitPrice);
             } else {
-                order['price'] = this.priceToPrecision (symbol, price);
+                order['price'] = this.priceToPrecision (market['symbol'], price);
             }
         }
-        order['clientOrderId'] = (clientOrderId !== undefined) ? clientOrderId : this.microseconds ().toString ();
+        // order['clientOrderId'] = (clientOrderId !== undefined) ? clientOrderId : this.microseconds ().toString ();
         const request = {
             'responseType': 'FULL', // FULL, ACK
             'orders': [ order ],
         };
-        const response = await this.privatePostV2OrdersPlace (this.extend (request, params));
+        return [ request, params ];
+    }
+
+    checkOrderResponseForException (response, firstResult) {
+        const success = this.safeValue (firstResult, 'success');
+        if (success === 'false') {
+            const message = this.safeString (firstResult, 'message');
+            const code = this.safeString (firstResult, 'code');
+            const body = this.id + ' ' + this.json (response);
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, body);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, body);
+            throw new ExchangeError (body);
+        }
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        const market = this.market (symbol);
+        const [ request, query ] = await this.buildOrderRequest (market, type, side, amount, price, params);
+        const response = await this.privatePostV2OrdersPlace (this.extend (request, query));
         //
         //     {
         //         "event": "placeOrder",
@@ -1792,17 +1815,56 @@ module.exports = class coinflex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const firstResult = this.safeValue (data, 0, {});
-        const success = this.safeValue (firstResult, 'success');
-        if (success === 'false') {
-            const message = this.safeString (firstResult, 'message');
-            const code = this.safeString (firstResult, 'code');
-            const body = this.id + ' ' + this.json (response);
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, body);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, body);
-            throw new ExchangeError (body);
-        }
-        return this.parseOrder (firstResult, market);
+        const firstOrder = this.safeValue (data, 0, {});
+        this.checkOrderResponseForException (response, firstOrder);
+        return this.parseOrder (firstOrder, market);
+    }
+
+    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        const market = this.market (symbol);
+        const [ request, query ] = await this.buildOrderRequest (market, type, side, amount, price, params);
+        request['orders'][0]['orderId'] = id;
+        const response = await this.privatePostV2OrdersModify (this.extend (request, query));
+        //
+        //     {
+        //         "event": "modifyOrder",
+        //         "timestamp": "1651695117070",
+        //         "accountId": "38420",
+        //         "data": [
+        //             {
+        //                 "success": "true",
+        //                 "timestamp": "1651696843859",
+        //                 "clientOrderId": "1651692616185",
+        //                 "orderId": "1002128500938",
+        //                 "price": "0.5600",
+        //                 "quantity": "8.0",
+        //                 "side": "BUY",
+        //                 "marketCode": "XRP-USD",
+        //                 "timeInForce": "GTC",
+        //                 "notice": "OrderModified",
+        //                 "orderType": "LIMIT"
+        //             }
+        //         ]
+        //     }
+        //
+        //
+        // Note, for inexistent order-id, the order-object might be like:
+        //
+        //             {
+        //                 "success": "false",
+        //                 "timestamp": "1651695117070",
+        //                 "code": "40035",
+        //                 "message": "Open order not found with clientOrderId or orderId",
+        //                 "price": "0.56",
+        //                 "quantity": "8",
+        //                 "side": "BUY",
+        //                 "marketCode": "XRP-USD",
+        //                 "orderType": "LIMIT"
+        //             }
+        const data = this.safeValue (response, 'data', []);
+        const firstOrder = this.safeValue (data, 0, {});
+        this.checkOrderResponseForException (response, firstOrder);
+        return this.parseOrder (firstOrder, market);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -1833,6 +1895,10 @@ module.exports = class coinflex extends Exchange {
         return response;
     }
 
+    nonce () {
+        return this.milliseconds ();
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const [ finalPath, query ] = this.resolvePath (path, params);
         let url = this.urls['api'][api] + '/' + finalPath;
@@ -1845,9 +1911,9 @@ module.exports = class coinflex extends Exchange {
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ();
+            const nonce = this.nonce ().toString ();
             const datetime = this.ymdhms (this.milliseconds (), 'T');
-            let auth = datetime + '\n' + nonce + '\n' + method + '\n' + this.options['baseApiDomain'] + '\n' + '/' + finalPath + '\n';
+            let auth = datetime + "\n" + nonce + "\n" + method + "\n" + this.options['baseApiDomain'] + "\n" + '/' + finalPath + "\n"; // eslint-disable-line quotes
             if (method === 'POST') {
                 const jsonified = this.json (query);
                 auth += jsonified;
