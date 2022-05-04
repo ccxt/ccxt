@@ -3584,7 +3584,7 @@ module.exports = class gateio extends Exchange {
         if (fromAccount === 'margin' || toAccount === 'margin') {
             const symbol = this.safeString2 (params, 'symbol', 'currency_pair');
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' transfer requires a params.symbol argument for isolated margin transfers');
+                throw new ArgumentsRequired (this.id + ' transfer requires params.symbol for isolated margin transfers');
             }
             const market = this.market (symbol);
             request['currency_pair'] = market['id'];
