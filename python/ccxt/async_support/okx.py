@@ -3562,7 +3562,7 @@ class okx(Exchange):
             instrument = self.safe_string(entry, 'instType')
             if (instrument == 'FUTURES') or (instrument == 'SWAP'):
                 result.append(self.parse_position(positions[i]))
-        return result
+        return self.filter_by_array(result, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):
         #

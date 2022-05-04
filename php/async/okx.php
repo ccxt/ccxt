@@ -3715,7 +3715,7 @@ class okx extends Exchange {
                 $result[] = $this->parse_position($positions[$i]);
             }
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 
     public function parse_position($position, $market = null) {
