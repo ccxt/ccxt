@@ -14,6 +14,9 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , iso8601 = process.argv.includes ('--iso8601')
     , cors = process.argv.includes ('--cors')
     , signIn = process.argv.includes ('--sign-in') || process.argv.includes ('--signIn')
+    , isSpot = process.argv.includes ('--spot')
+    , isSwap = process.argv.includes ('--swap')
+    , isFuture = process.argv.includes ('--future')
 
 //-----------------------------------------------------------------------------
 
@@ -68,6 +71,14 @@ try {
         ... settings,
     })
 
+    if (isSpot) {
+        exchange.options['defaultType'] = 'spot';
+    } else if (isSwap) {
+        exchange.options['defaultType'] = 'swap';
+    } else if (isFuture) {
+        exchange.options['defaultType'] = 'future';
+    }
+    
     // check auth keys in env var
     const requiredCredentials = exchange.requiredCredentials;
     for (const [credential, isRequired] of Object.entries (requiredCredentials)) {
