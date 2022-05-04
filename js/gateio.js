@@ -3188,6 +3188,10 @@ module.exports = class gateio extends Exchange {
             }
         }
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        if (!stop && type === 'spot' && symbol === undefined) {
+            // Symbol not required for stop orders
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument for spot orders');
+        }
         const swap = type === 'swap';
         if (swap || type === 'future') {
             if (settle === undefined) {
