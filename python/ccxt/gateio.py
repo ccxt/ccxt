@@ -3027,14 +3027,14 @@ class gateio(Exchange):
         :param str symbol: Unified market symbol
         :param dict params: Parameters specified by the exchange api
         :param bool params['stop']: True if the order being fetched is a trigger order
+        :param str params['marginType']: 'cross' or 'isolated' - marginType for margin trading if not provided self.options['defaultMarginType'] is used
+        :param str params['type']: 'spot', 'swap', or 'future', if not provided self.options['defaultMarginType'] is used
+        :param str params['settle']: 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol is not None, default="usdt" for swap and "btc" for future
         :returns: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
         stop = self.safe_value_2(params, 'is_stop_order', 'stop', False)
         params = self.omit(params, ['is_stop_order', 'stop'])
-        market = self.market(symbol)
         clientOrderId = self.safe_string_2(params, 'text', 'clientOrderId')
         orderId = id
         if clientOrderId is not None:
@@ -3045,20 +3045,40 @@ class gateio(Exchange):
         request = {
             'order_id': orderId,
         }
-        if market['spot'] or market['margin']:
-            request['currency_pair'] = market['id']
+        market = None
+        settle = None
+        type = None
+        if symbol is not None:
+            market = self.market(symbol)
+            if market['spot']:
+                request['currency_pair'] = market['id']
+            else:
+                settle = market['settle']
+        type, params = self.handle_market_type_and_params('fetchOrder', market, params)
+        if not stop and type == 'spot' and symbol is None:
+            # Symbol not required for stop orders
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument for spot orders')
+        swap = type == 'swap'
+        if swap or type == 'future':
+            if settle is None:
+                defaultSettle = 'usdt' if swap else 'btc'
+                settle = self.safe_string_lower(params, 'settle', defaultSettle)
+                params = self.omit(params, 'settle')
+            request['settle'] = settle
         else:
-            request['settle'] = market['settleId']
+            marginType = None
+            marginType, params = self.get_margin_type(stop, params)
+            request['account'] = marginType
         method = None
         if stop:
-            method = self.get_supported_mapping(market['type'], {
+            method = self.get_supported_mapping(type, {
                 'spot': 'privateSpotGetPriceOrdersOrderId',
                 'margin': 'privateSpotGetPriceOrdersOrderId',
                 'swap': 'privateFuturesGetSettlePriceOrdersOrderId',
                 'future': 'privateDeliveryGetSettlePriceOrdersOrderId',
             })
         else:
-            method = self.get_supported_mapping(market['type'], {
+            method = self.get_supported_mapping(type, {
                 'spot': 'privateSpotGetOrdersOrderId',
                 'margin': 'privateSpotGetOrdersOrderId',
                 'swap': 'privateFuturesGetSettleOrdersOrderId',
