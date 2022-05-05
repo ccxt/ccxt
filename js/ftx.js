@@ -1494,14 +1494,19 @@ module.exports = class ftx extends Exchange {
             const timeInForce = this.safeString (params, 'timeInForce');
             const postOnly = this.safeValue (params, 'postOnly', false);
             params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
-            if (!((timeInForce === 'IOC') || (timeInForce === 'PO'))) {
-                throw new InvalidOrder (this.id + ' createOrder () does not accept timeInForce: ' + timeInForce + ' orders, only IOC and PO orders are allowed');
+            if (timeInForce !== undefined) {
+                if (!((timeInForce === 'IOC') || (timeInForce === 'PO'))) {
+                    throw new InvalidOrder (this.id + ' createOrder () does not accept timeInForce: ' + timeInForce + ' orders, only IOC and PO orders are allowed');
+                }
             }
             const maker = ((timeInForce === 'PO') || postOnly);
             const ioc = (timeInForce === 'IOC');
             if (maker) {
                 request['postOnly'] = 'true';
             }
+            // TODO ioc and postOnly both throw "Invalid Parameter X" errors await support response
+            // ftx throw error when ioc is passed to market orders
+            // ftx also throws errors when passed ioc limit orders
             if (ioc) {
                 request['ioc'] = 'true';
             }
