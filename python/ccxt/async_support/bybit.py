@@ -2164,7 +2164,17 @@ class bybit(Exchange):
                 defaultMethod = 'v2PrivatePostOrderCancelAll'
         elif market['future']:
             defaultMethod = 'futuresPrivatePostOrderCancelAll'
+        stop = self.safe_value(params, 'stop')
+        if stop:
+            if market['swap']:
+                if market['linear']:
+                    defaultMethod = 'privateLinearPostStopOrderCancelAll'
+                elif market['inverse']:
+                    defaultMethod = 'v2PrivatePostStopOrderCancelAll'
+            elif market['future']:
+                defaultMethod = 'futuresPrivatePostStopOrderCancelAll'
         method = self.safe_string(options, 'method', defaultMethod)
+        params = self.omit(params, 'stop')
         response = await getattr(self, method)(self.extend(request, params))
         result = self.safe_value(response, 'result', [])
         return self.parse_orders(result, market)
