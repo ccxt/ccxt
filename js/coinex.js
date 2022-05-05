@@ -3130,7 +3130,7 @@ module.exports = class coinex extends Exchange {
         }
         return 'failed';
     }
-  
+
     parseTransfer (transfer, currency = undefined) {
         //
         // fetchTransfers
@@ -3163,7 +3163,7 @@ module.exports = class coinex extends Exchange {
             'amount': this.safeNumber (transfer, 'amount'),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': this.parseTransferStatus (transfer, 'code'),
+            'status': this.parseTransferStatus (this.safeInteger (transfer, 'code')),
         };
     }
 
