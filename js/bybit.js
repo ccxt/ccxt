@@ -1573,8 +1573,11 @@ module.exports = class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const method = market['linear'] ? 'publicLinearGetFundingPrevFundingRate' : 'v2PublicGetFundingPrevFundingRate';
-        // TODO const method = market['linear'] ? 'publicGetPublicLinearFundingPrevFundingRate' : 'publicGetV2PublicFundingRate ???? throws ExchangeError';
+        const isUsdcSettled = (market['option']) || (market['settle'] !== undefined) && (market['settle'] === 'USD');
+        if (!market['linear'] || isUsdcSettled) {
+            throw new NotSupported (this.id + ' fetchFundingRate() does not support this market ' + symbol);
+        }
+        const method = 'publicLinearGetFundingPrevFundingRate';
         const response = await this[method] (this.extend (request, params));
         //
         //     {
