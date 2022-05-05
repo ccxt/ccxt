@@ -132,6 +132,10 @@ module.exports = class huobi extends Exchange {
                 'hostnames': {
                     'contract': 'api.hbdm.com',
                     'spot': 'api.huobi.pro',
+                    'statusSpot': 'status.huobigroup.com',
+                    'statusFutures': 'status-dm.huobigroup.com',
+                    'statusInverseSwap': 'status-swap.huobigroup.com',
+                    'statusLinearSwap': 'status-linear-swap.huobigroup.com',
                     // recommended for AWS
                     // 'contract': 'api.hbdm.vn',
                     // 'spot': 'api-aws.huobi.pro',
@@ -144,6 +148,10 @@ module.exports = class huobi extends Exchange {
                     'private': 'https://{hostname}',
                     'v2Public': 'https://{hostname}',
                     'v2Private': 'https://{hostname}',
+                    'statusSpot': 'https://{hostname}',
+                    'statusFutures': 'https://{hostname}',
+                    'statusInverseSwap': 'https://{hostname}',
+                    'statusLinearSwap': 'https://{hostname}',
                 },
                 'www': 'https://www.huobi.com',
                 'referral': {
@@ -902,6 +910,17 @@ module.exports = class huobi extends Exchange {
                 'BIFI': 'Bitcoin File', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
             },
         });
+    }
+
+    async fetchStatus (params = {}) {
+
+        return {
+            'status': undefined,
+            'updated': undefined,
+            'eta': undefined,
+            'url': undefined,
+            'info': undefined,
+        };
     }
 
     async fetchTime (params = {}) {
