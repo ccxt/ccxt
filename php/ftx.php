@@ -1430,6 +1430,14 @@ class ftx extends Exchange {
         $clientOrderId = $this->safe_string($order, 'clientId');
         $stopPrice = $this->safe_number($order, 'triggerPrice');
         $postOnly = $this->safe_value($order, 'postOnly');
+        $ioc = $this->safe_value($order, 'ioc');
+        $timeInForce = null;
+        if ($ioc) {
+            $timeInForce = 'IOC';
+        }
+        if ($postOnly) {
+            $timeInForce = 'PO';
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -1439,7 +1447,7 @@ class ftx extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
-            'timeInForce' => null,
+            'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
@@ -1468,6 +1476,9 @@ class ftx extends Exchange {
             // 'ioc' => false, // optional, default is false, limit or $market orders only
             // 'postOnly' => false, // optional, default is false, limit or $market orders only
             // 'clientId' => 'abcdef0123456789', // string, optional, client order id, limit or $market orders only
+            // 'triggerPrice' => 0.306525, // required for stop and takeProfit orders
+            // 'trailValue' => -0.306525, // required for trailingStop orders, negative for "sell"; positive for "buy"
+            // 'orderPrice' => 0.306525, // optional, for stop and takeProfit orders only ($market by default). If not specified, a $market order will be submitted
         );
         $clientOrderId = $this->safe_string_2($params, 'clientId', 'clientOrderId');
         if ($clientOrderId !== null) {
@@ -1475,33 +1486,60 @@ class ftx extends Exchange {
             $params = $this->omit($params, array( 'clientId', 'clientOrderId' ));
         }
         $method = null;
-        if ($type === 'limit') {
+        $stopPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
+        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice' ));
+        if ((($type === 'limit') || ($type === 'market')) && ($stopPrice === null)) {
             $method = 'privatePostOrders';
-            $request['price'] = floatval($this->price_to_precision($symbol, $price));
-        } else if ($type === 'market') {
-            $method = 'privatePostOrders';
-            $request['price'] = null;
-        } else if (($type === 'stop') || ($type === 'takeProfit')) {
+            if ($type === 'limit') {
+                $request['price'] = floatval($this->price_to_precision($symbol, $price));
+            } else if ($type === 'market') {
+                $request['price'] = null;
+            }
+            $timeInForce = $this->safe_string($params, 'timeInForce');
+            $postOnly = $this->safe_value($params, 'postOnly', false);
+            $params = $this->omit($params, array( 'timeInForce', 'postOnly' ));
+            if ($timeInForce !== null) {
+                if (!(($timeInForce === 'IOC') || ($timeInForce === 'PO'))) {
+                    throw new InvalidOrder($this->id . ' createOrder () does not accept $timeInForce => ' . $timeInForce . ' orders, only IOC and PO orders are allowed');
+                }
+            }
+            $maker = (($timeInForce === 'PO') || $postOnly);
+            if (($type === 'market') && $maker) {
+                throw new InvalidOrder($this->id . ' createOrder () does not accept $postOnly => true or $timeInForce => PO for $market orders');
+            }
+            $ioc = ($timeInForce === 'IOC');
+            if ($maker) {
+                $request['postOnly'] = true;
+            }
+            if ($ioc) {
+                $request['ioc'] = true;
+            }
+        } else if (($type === 'stop') || ($type === 'takeProfit') || ($stopPrice !== null)) {
             $method = 'privatePostConditionalOrders';
-            $stopPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
             if ($stopPrice === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $stopPrice parameter or a triggerPrice parameter for ' . $type . ' orders');
+                throw new ArgumentsRequired($this->id . ' createOrder () requires a $stopPrice parameter or a triggerPrice parameter for ' . $type . ' orders');
             } else {
-                $params = $this->omit($params, array( 'stopPrice', 'triggerPrice' ));
                 $request['triggerPrice'] = floatval($this->price_to_precision($symbol, $stopPrice));
+            }
+            if (($type === 'limit') && ($price === null)) {
+                throw new ArgumentsRequired($this->id . ' createOrder () requires a $price argument for stop limit orders');
             }
             if ($price !== null) {
                 $request['orderPrice'] = floatval($this->price_to_precision($symbol, $price)); // optional, order $type is limit if this is specified, otherwise $market
             }
+            if (($type === 'limit') || ($type === 'market')) {
+                // default to stop orders for main argument
+                $request['type'] = 'stop';
+            }
         } else if ($type === 'trailingStop') {
             $trailValue = $this->safe_number($params, 'trailValue', $price);
             if ($trailValue === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $trailValue parameter or a $price argument (negative or positive) for a ' . $type . ' order');
+                throw new ArgumentsRequired($this->id . ' createOrder () requires a $trailValue parameter or a $price argument (negative or positive) for a ' . $type . ' order');
             }
             $method = 'privatePostConditionalOrders';
             $request['trailValue'] = floatval($this->price_to_precision($symbol, $trailValue)); // negative for "sell", positive for "buy"
         } else {
-            throw new InvalidOrder($this->id . ' createOrder() does not support order $type ' . $type . ', only limit, $market, stop, trailingStop, or takeProfit orders are supported');
+            throw new InvalidOrder($this->id . ' createOrder () does not support order $type ' . $type . ', only limit, $market, stop, trailingStop, or takeProfit orders are supported');
         }
         $response = $this->$method (array_merge($request, $params));
         //
@@ -2411,7 +2449,7 @@ class ftx extends Exchange {
         // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (($leverage < 1) || ($leverage > 20)) {
-            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 20');
+            throw new BadRequest($this->id . ' setLeverage () $leverage should be between 1 and 20');
         }
         $request = array(
             'leverage' => $leverage,
@@ -2576,20 +2614,20 @@ class ftx extends Exchange {
         if ($numCodes === 1) {
             $millisecondsPer5000Hours = 18000000000;
             if (($limit !== null) && ($limit > 5000)) {
-                throw new BadRequest($this->id . ' fetchBorrowRateHistories() $limit cannot exceed 5000 for a single currency');
+                throw new BadRequest($this->id . ' fetchBorrowRateHistories () $limit cannot exceed 5000 for a single currency');
             }
             if (($endTime !== null) && ($since !== null) && (($endTime - $since) > $millisecondsPer5000Hours)) {
-                throw new BadRequest($this->id . ' fetchBorrowRateHistories() requires the time range between the $since time and the end time to be less than 5000 hours for a single currency');
+                throw new BadRequest($this->id . ' fetchBorrowRateHistories () requires the time range between the $since time and the end time to be less than 5000 hours for a single currency');
             }
             $currency = $this->currency($codes[0]);
             $request['coin'] = $currency['id'];
         } else {
             $millisecondsPer2Days = 172800000;
             if (($limit !== null) && ($limit > 48)) {
-                throw new BadRequest($this->id . ' fetchBorrowRateHistories() $limit cannot exceed 48 for multiple currencies');
+                throw new BadRequest($this->id . ' fetchBorrowRateHistories () $limit cannot exceed 48 for multiple currencies');
             }
             if (($endTime !== null) && ($since !== null) && (($endTime - $since) > $millisecondsPer2Days)) {
-                throw new BadRequest($this->id . ' fetchBorrowRateHistories() requires the time range between the $since time and the end time to be less than 48 hours for multiple currencies');
+                throw new BadRequest($this->id . ' fetchBorrowRateHistories () requires the time range between the $since time and the end time to be less than 48 hours for multiple currencies');
             }
         }
         $millisecondsPerHour = 3600000;
@@ -2645,7 +2683,7 @@ class ftx extends Exchange {
         $histories = $this->fetch_borrow_rate_histories(array( $code ), $since, $limit, $params);
         $borrowRateHistory = $this->safe_value($histories, $code);
         if ($borrowRateHistory === null) {
-            throw new BadRequest($this->id . ' fetchBorrowRateHistory() returned no data for ' . $code);
+            throw new BadRequest($this->id . ' fetchBorrowRateHistory () returned no data for ' . $code);
         }
         return $borrowRateHistory;
     }

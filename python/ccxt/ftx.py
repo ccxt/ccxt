@@ -1393,6 +1393,12 @@ class ftx(Exchange):
         clientOrderId = self.safe_string(order, 'clientId')
         stopPrice = self.safe_number(order, 'triggerPrice')
         postOnly = self.safe_value(order, 'postOnly')
+        ioc = self.safe_value(order, 'ioc')
+        timeInForce = None
+        if ioc:
+            timeInForce = 'IOC'
+        if postOnly:
+            timeInForce = 'PO'
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1402,7 +1408,7 @@ class ftx(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
-            'timeInForce': None,
+            'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
             'price': price,
@@ -1430,28 +1436,50 @@ class ftx(Exchange):
             # 'ioc': False,  # optional, default is False, limit or market orders only
             # 'postOnly': False,  # optional, default is False, limit or market orders only
             # 'clientId': 'abcdef0123456789',  # string, optional, client order id, limit or market orders only
+            # 'triggerPrice': 0.306525,  # required for stop and takeProfit orders
+            # 'trailValue': -0.306525,  # required for trailingStop orders, negative for "sell"; positive for "buy"
+            # 'orderPrice': 0.306525,  # optional, for stop and takeProfit orders only(market by default). If not specified, a market order will be submitted
         }
         clientOrderId = self.safe_string_2(params, 'clientId', 'clientOrderId')
         if clientOrderId is not None:
             request['clientId'] = clientOrderId
             params = self.omit(params, ['clientId', 'clientOrderId'])
         method = None
-        if type == 'limit':
+        stopPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
+        params = self.omit(params, ['stopPrice', 'triggerPrice'])
+        if ((type == 'limit') or (type == 'market')) and (stopPrice is None):
             method = 'privatePostOrders'
-            request['price'] = float(self.price_to_precision(symbol, price))
-        elif type == 'market':
-            method = 'privatePostOrders'
-            request['price'] = None
-        elif (type == 'stop') or (type == 'takeProfit'):
+            if type == 'limit':
+                request['price'] = float(self.price_to_precision(symbol, price))
+            elif type == 'market':
+                request['price'] = None
+            timeInForce = self.safe_string(params, 'timeInForce')
+            postOnly = self.safe_value(params, 'postOnly', False)
+            params = self.omit(params, ['timeInForce', 'postOnly'])
+            if timeInForce is not None:
+                if not ((timeInForce == 'IOC') or (timeInForce == 'PO')):
+                    raise InvalidOrder(self.id + ' createOrder() does not accept timeInForce: ' + timeInForce + ' orders, only IOC and PO orders are allowed')
+            maker = ((timeInForce == 'PO') or postOnly)
+            if (type == 'market') and maker:
+                raise InvalidOrder(self.id + ' createOrder() does not accept postOnly: True or timeInForce: PO for market orders')
+            ioc = (timeInForce == 'IOC')
+            if maker:
+                request['postOnly'] = True
+            if ioc:
+                request['ioc'] = True
+        elif (type == 'stop') or (type == 'takeProfit') or (stopPrice is not None):
             method = 'privatePostConditionalOrders'
-            stopPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
             if stopPrice is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders')
             else:
-                params = self.omit(params, ['stopPrice', 'triggerPrice'])
                 request['triggerPrice'] = float(self.price_to_precision(symbol, stopPrice))
+            if (type == 'limit') and (price is None):
+                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for stop limit orders')
             if price is not None:
                 request['orderPrice'] = float(self.price_to_precision(symbol, price))  # optional, order type is limit if self is specified, otherwise market
+            if (type == 'limit') or (type == 'market'):
+                # default to stop orders for main argument
+                request['type'] = 'stop'
         elif type == 'trailingStop':
             trailValue = self.safe_number(params, 'trailValue', price)
             if trailValue is None:
