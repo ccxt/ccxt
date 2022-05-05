@@ -1264,10 +1264,10 @@ module.exports = class bybit extends Exchange {
         let method = undefined;
         if (market['type'] === 'spot') {
             method = 'publicGetSpotQuoteV1Ticker24hr';
-        } else if (market['type'] === 'swap' && market['settle'] !== 'USD') {
+        } else if (market['contract'] && market['settle'] !== 'USD') {
             // inverse perpetual // usdt linear // inverse futures
             method = 'publicGetV2PublicTickers';
-        } else if (market['type'] === 'option') {
+        } else if (market['option']) {
             // usdc option
             method = 'publicGetOptionUsdcOpenapiPublicV1Tick';
         } else {
@@ -1425,8 +1425,25 @@ module.exports = class bybit extends Exchange {
         //         "close":7541
         //     }
         //
+        // usdc perpetual
+        //     {
+        //         "symbol":"BTCPERP",
+        //         "volume":"0.01",
+        //         "period":"1",
+        //         "openTime":"1636358160",
+        //         "open":"66001.50",
+        //         "high":"66001.50",
+        //         "low":"66001.50",
+        //         "close":"66001.50",
+        //         "turnover":"1188.02"
+        //     }
+        //
+        let timestamp = this.safeTimestamp2 (ohlcv, 'open_time', 'openTime');
+        if (timestamp === undefined) {
+            timestamp = this.safeTimestamp (ohlcv, 'start_at');
+        }
         return [
-            this.safeTimestamp2 (ohlcv, 'open_time', 'start_at'),
+            timestamp,
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
@@ -1442,32 +1459,62 @@ module.exports = class bybit extends Exchange {
         params = this.omit (params, 'price');
         const request = {
             'symbol': market['id'],
-            'interval': this.timeframes[timeframe],
         };
         const duration = this.parseTimeframe (timeframe);
         const now = this.seconds ();
+        let sinceTimestamp = undefined;
         if (since === undefined) {
             if (limit === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument or a limit argument');
             } else {
-                request['from'] = now - limit * duration;
+                sinceTimestamp = now - limit * duration;
             }
         } else {
-            request['from'] = parseInt (since / 1000);
+            sinceTimestamp = parseInt (since / 1000);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // max 200, default 200
         }
-        let method = 'publicGetV2PublicKlineList';
-        if (price === 'mark') {
-            method = 'publicGetV2PublicMarkPriceKline';
-        } else if (price === 'index') {
-            method = 'publicGetV2PublicIndexPriceKline';
-        } else if (price === 'premiumIndex') {
-            method = 'publicGetV2PublicPremiumIndexKline';
-        } else if (market['linear']) {
-            method = 'publicGetPublicLinearKline';
+        let method = undefined;
+        let intervalKey = 'interval';
+        let sinceKey = 'from';
+        const isUsdcSettled = (market['option']) || (market['settle'] !== undefined) && (market['settle'] === 'USD');
+        if (market['spot']) {
+            method = 'publicGetSpotQuoteV1Kline';
+        } else if (market['contract'] && !isUsdcSettled) {
+            if (market['linear']) {
+                // linear swaps/futures
+                const methods = {
+                    'mark': 'publicGetPublicLinearMarkPriceKline',
+                    'index': 'publicGetPublicLinearIndexPriceKline',
+                    'premium': 'publicGetPublicLinearPremiumIndexKline',
+                };
+                method = this.safeValue (methods, price, 'publicGetPublicLinearKline');
+            } else {
+                // inverse swaps/ futures
+                const methods = {
+                    'mark': 'publicGetV2PublicMarkPriceKline',
+                    'index': 'publicGetV2PublicIndexPriceKline',
+                    'premium': 'publicGetV2PublicPremiumPriceKline',
+                };
+                method = this.safeValue (methods, price, 'publicGetV2PublicKlineList');
+            }
+        } else {
+            // usdc markets
+            if (market['option']) {
+                throw new NotSupported (this.id + ' fetchOHLCV() is not supported for USDC options markets');
+            }
+            intervalKey = 'period';
+            sinceKey = 'startTime';
+            const methods = {
+                'mark': 'publicGetPerpetualUsdcOpenapiPublicV1MarkPriceKline',
+                'index': 'publicGetPerpetualUsdcOpenapiPublicV1IndexPriceKline',
+                'premium': 'publicGetPerpetualUsdcOpenapiPublicV1PremiumPriceKline',
+            };
+            method = this.safeValue (methods, price, 'publicGetPerpetualUsdcOpenapiPublicV1KlineList');
         }
+        request[intervalKey] = this.timeframes[timeframe];
+        request[sinceKey] = sinceTimestamp;
         const response = await this[method] (this.extend (request, params));
         //
         // inverse perpetual BTC/USD
