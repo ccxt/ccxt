@@ -1632,20 +1632,11 @@ module.exports = class gateio extends Exchange {
         await this.loadMarkets ();
         // let defaultType = 'future';
         let market = undefined;
-        let request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbol = market['symbol'];
-            [ request, params ] = this.prepareRequest (market, undefined, params);
         }
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchFundingHistory', market, params);
-        if (market === undefined) {
-            const defaultSettle = (type === 'swap') ? 'usdt' : 'btc';
-            const settle = this.safeString (params, 'settle', defaultSettle);
-            request['settle'] = settle;
-            params = this.omit (params, 'settle');
-        }
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchFundingHistory', market, params);
+        const [ request, requestParams ] = this.prepareRequest (market, type, query);
         request['type'] = 'fund';  // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
         if (since !== undefined) {
             request['from'] = since / 1000;
@@ -1657,7 +1648,7 @@ module.exports = class gateio extends Exchange {
             'swap': 'privateFuturesGetSettleAccountBook',
             'future': 'privateDeliveryGetSettleAccountBook',
         });
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, requestParams));
         //
         //    [
         //        {
