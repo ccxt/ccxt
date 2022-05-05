@@ -87,6 +87,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Writing a crypto trading bot](https://www.kleemans.ch/writing-a-crypto-trading-bot) – How to write an automated trading bot, for fun and profit.
 
+[Daily Binance Crypto Trade Signals](https://medium.com/coinmonks/daily-binance-us-crypto-trade-signals-fda4e8a205c8) – How to use Kaggle’s schedule feature to build a daily cryptocurrency trade signals webpage.
+
 [graphql-ccxt](https://github.com/fibo/graphql-ccxt) – Joins together GraphQL and CCXT: can fetch prices, read balance, open orders, ... on multiple exchanges at once.
 
 [ccxt-go](https://github.com/prompt-cash/ccxt-go) – CCXT port to Go (Golang).
@@ -151,6 +153,8 @@ php -f path/to/example.php # substitute for actual filename here
 [Trade and Invest Smarter — The Reinforcement Learning Way](https://towardsdatascience.com/trade-smarter-w-reinforcement-learning-a5e91163f315) – A deep dive into  trading and investing using deep reinforcement learning with Python.
 
 [Cryptocurrencies and APIs](https://jonc.dev/cryptocurrency) – A presentation given to kick off the Bloomberg cryptocurrency hackathon and as a Recurse Center talk.
+
+[How to use CCXT to algo trade](https://www.youtube.com/watch?v=3EQsDdjZTlc) – An easy to watch video tutorial on how to use CCXT for algotrading.
 
 [Perform Currency Conversions And Get Bitcoin Prices In Python](http://www.maxpython.com/packages/perform-currency-conversions-and-get-bitcoin-prices-in-python.php) – an article showing how to use CCXT to get exchange rates, Bitcoin prices and perform currency conversions.
 

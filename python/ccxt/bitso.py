@@ -658,7 +658,7 @@ class bitso(Exchange):
         # warn the user with an exception if the user wants to filter
         # starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if (since is not None) and not markerInParams:
-            raise ExchangeError(self.id + ' fetchMyTrades does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id')
+            raise ExchangeError(self.id + ' fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id')
         # convert it to an integer unconditionally
         if markerInParams:
             params = self.extend(params, {
@@ -750,7 +750,7 @@ class bitso(Exchange):
         # warn the user with an exception if the user wants to filter
         # starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if (since is not None) and not markerInParams:
-            raise ExchangeError(self.id + ' fetchOpenOrders does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id')
+            raise ExchangeError(self.id + ' fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id')
         # convert it to an integer unconditionally
         if markerInParams:
             params = self.extend(params, {

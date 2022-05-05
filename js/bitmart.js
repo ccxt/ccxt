@@ -258,6 +258,9 @@ module.exports = class bitmart extends Exchange {
                     '50023': BadSymbol, // 400, This Symbol can't place order by api
                     '50029': InvalidOrder, // {"message":"param not match : size * price >=1000","code":50029,"trace":"f931f030-b692-401b-a0c5-65edbeadc598","data":{}}
                     '50030': InvalidOrder, // {"message":"Order is already canceled","code":50030,"trace":"8d6f64ee-ad26-45a4-9efd-1080f9fca1fa","data":{}}
+                    // below Error codes used interchangeably for both failed postOnly and IOC orders depending on market price and order side
+                    '50035': InvalidOrder, // {"message":"The price is low and there is no matching depth","code":50035,"trace":"677f01c7-8b88-4346-b097-b4226c75c90e","data":{}}
+                    '50034': InvalidOrder, // {"message":"The price is high and there is no matching depth","code":50034,"trace":"ebfae59a-ba69-4735-86b2-0ed7b9ca14ea","data":{}}
                     '53000': AccountSuspended, // 403, Your account is frozen due to security policies. Please contact customer service
                     '53001': AccountSuspended, // {"message":"Your kyc country is restricted. Please contact customer service.","code":53001,"trace":"8b445940-c123-4de9-86d7-73c5be2e7a24","data":{}}
                     '57001': BadRequest, // 405, Method Not Allowed
@@ -410,6 +413,7 @@ module.exports = class bitmart extends Exchange {
             'status': status,
             'updated': this.milliseconds (),
             'eta': eta,
+            'url': undefined,
             'info': response,
         };
     }
@@ -673,60 +677,70 @@ module.exports = class bitmart extends Exchange {
         //
         // spot
         //
-        //     {
-        //         "symbol":"ETH_BTC",
-        //         "last_price":"0.036037",
-        //         "quote_volume_24h":"4380.6660000000",
-        //         "base_volume_24h":"159.3582006712",
-        //         "high_24h":"0.036972",
-        //         "low_24h":"0.035524",
-        //         "open_24h":"0.036561",
-        //         "close_24h":"0.036037",
-        //         "best_ask":"0.036077",
-        //         "best_ask_size":"9.9500",
-        //         "best_bid":"0.035983",
-        //         "best_bid_size":"4.2792",
-        //         "fluctuation":"-0.0143",
-        //         "s_t": "1630981727", // ws only
-        //         "url":"https://www.bitmart.com/trade?symbol=ETH_BTC"
-        //     }
+        //      {
+        //          "symbol":"DOGE_USDT",
+        //          "last_price":"0.128300",
+        //          "quote_volume_24h":"2296619.060420",
+        //          "base_volume_24h":"17508866.000000000000000000000000000000",
+        //          "high_24h":"0.133900",
+        //          "low_24h":"0.127799",
+        //          "open_24h":"0.133100",
+        //          "close_24h":"0.128300",
+        //          "best_ask":"0.128530",
+        //          "best_ask_size":"15170",
+        //          "best_bid":"0.128200",
+        //          "best_bid_size":"21232",
+        //          "fluctuation":"-0.0361",
+        //          "s_t": 1610936002, // ws only
+        //          "url":"https://www.bitmart.com/trade?symbol=DOGE_USDT"
+        //      }
         //
         // contract
         //
-        //     {
-        //         contract_symbol: "DGBUSDT",
-        //         last_price: "0.05759",
-        //         index_price: "0.05757755",
-        //         last_funding_rate: "0.00010000",
-        //         price_change_percent_24h: "0.244",
-        //         volume_24h: "64303817.028126",
-        //         url: "https://futures.bitmart.com/en?symbol=DGBUSDT"
-        //     }
+        //      {
+        //          "contract_symbol":"DOGEUSDT",
+        //          "last_price":"0.130340",
+        //          "index_price":"0.13048245",
+        //          "last_funding_rate":"0.00002287",
+        //          "price_change_percent_24h":"-2.074",
+        //          "volume_24h":"113705028.59482228",
+        //          "url":"https://futures.bitmart.com/en?symbol=DOGEUSDT",
+        //          "high_price":"0.134520",
+        //          "low_price":"0.128570",
+        //          "legal_coin_price":"0.1302699"
+        //      }
         //
         const timestamp = this.safeTimestamp2 (ticker, 'timestamp', 's_t', this.milliseconds ());
-        const marketId = this.safeString2 (ticker, 'symbol', 'contract_id');
+        const marketId = this.safeString2 (ticker, 'symbol', 'contract_symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const last = this.safeString2 (ticker, 'close_24h', 'last_price');
-        let percentage = this.safeString2 (ticker, 'fluctuation', 'rise_fall_rate');
-        percentage = Precise.stringMul (percentage, '100');
+        let percentage = this.safeString (ticker, 'price_change_percent_24h');
         if (percentage === undefined) {
-            percentage = this.safeString (ticker, 'price_change_percent_24h');
+            const percentageRaw = this.safeString (ticker, 'fluctuation');
+            if ((percentageRaw !== undefined) && (percentageRaw !== '0')) { // a few tickers show strictly '0' in fluctuation field
+                const direction = percentageRaw[0];
+                percentage = direction + Precise.stringMul (percentageRaw.replace (direction, ''), '100');
+            } else if (percentageRaw === '0') {
+                percentage = '0';
+            }
         }
-        const baseVolume = this.safeString2 (ticker, 'base_coin_volume', 'base_volume_24h');
-        let quoteVolume = this.safeString2 (ticker, 'quote_coin_volume', 'quote_volume_24h');
+        const baseVolume = this.safeString (ticker, 'base_volume_24h');
+        let quoteVolume = this.safeString (ticker, 'quote_volume_24h');
         quoteVolume = this.safeString (ticker, 'volume_24h', quoteVolume);
-        const average = this.safeString (ticker, 'avg_price');
+        const average = this.safeString2 (ticker, 'avg_price', 'index_price');
         const price = this.safeString (ticker, 'depth_price', ticker);
+        const high = this.safeString2 (ticker, 'high_24h', 'high_price');
+        const low = this.safeString2 (ticker, 'low_24h', 'low_price');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeString2 (ticker, 'high', 'high_24h'),
-            'low': this.safeString2 (ticker, 'low', 'low_24h'),
-            'bid': this.safeString2 (price, 'best_bid', 'bid_price'),
+            'high': high,
+            'low': low,
+            'bid': this.safeString (price, 'best_bid'),
             'bidVolume': this.safeString (ticker, 'best_bid_size'),
-            'ask': this.safeString2 (price, 'best_ask', 'ask_price'),
+            'ask': this.safeString (price, 'best_ask'),
             'askVolume': this.safeString (ticker, 'best_ask_size'),
             'vwap': undefined,
             'open': this.safeString (ticker, 'open_24h'),
@@ -749,7 +763,7 @@ module.exports = class bitmart extends Exchange {
         let method = undefined;
         if (market['swap'] || market['future']) {
             method = 'publicContractGetTickers';
-            request['contractID'] = market['id'];
+            request['contract_symbol'] = market['id'];
         } else if (market['spot']) {
             method = 'publicSpotGetTicker';
             request['symbol'] = market['id'];
@@ -786,28 +800,37 @@ module.exports = class bitmart extends Exchange {
         //
         // contract
         //
-        //     {
-        //         message: "OK",
-        //         code: "1000",
-        //         trace: "84a0dc44-b395-4bae-a1b7-fe1201defd51",
-        //         data: {
-        //             tickers: [
-        //                 {
-        //                     contract_symbol: "DGBUSDT",
-        //                     last_price: "0.05759",
-        //                     index_price: "0.05757755",
-        //                     last_funding_rate: "0.00010000",
-        //                     price_change_percent_24h: "0.244",
-        //                     volume_24h: "64303817.028126",
-        //                     url: "https://futures.bitmart.com/en?symbol=DGBUSDT"
-        //                 },
-        //             ],
-        //         },
-        //     }
+        //      {
+        //          "message":"OK",
+        //          "code":1000,
+        //          "trace":"4a0ebceb-d3f7-45a3-8feb-f61e230e24cd",
+        //          "data":{
+        //              "tickers":[
+        //                  {
+        //                      "contract_symbol":"DOGEUSDT",
+        //                      "last_price":"0.130180",
+        //                      "index_price":"0.13028635",
+        //                      "last_funding_rate":"0.00002025",
+        //                      "price_change_percent_24h":"-2.326",
+        //                      "volume_24h":"116789313.01797258",
+        //                      "url":"https://futures.bitmart.com/en?symbol=DOGEUSDT",
+        //                      "high_price":"0.134520",
+        //                      "low_price":"0.128570",
+        //                      "legal_coin_price":"0.13017401"
+        //                  }
+        //              ]
+        //          }
+        //      }
         //
         const data = this.safeValue (response, 'data', {});
         const tickers = this.safeValue (data, 'tickers', []);
-        const tickersById = this.indexBy (tickers, 'symbol');
+        // fails in naming for contract tickers 'contract_symbol'
+        let tickersById = undefined;
+        if (market['spot']) {
+            tickersById = this.indexBy (tickers, 'symbol');
+        } else if (market['swap'] || market['future']) {
+            tickersById = this.indexBy (tickers, 'contract_symbol');
+        }
         const ticker = this.safeValue (tickersById, market['id']);
         return this.parseTicker (ticker, market);
     }
@@ -1694,6 +1717,27 @@ module.exports = class bitmart extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
             request['vol'] = this.amountToPrecision (symbol, amount);
         }
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        if ((timeInForce !== undefined) || postOnly || (type === 'limit_maker') || (type === 'ioc')) {
+            if (timeInForce === 'FOK') {
+                throw new InvalidOrder (this.id + ' createOrder() only accepts timeInForce parameter values of IOC or PO');
+            }
+            const maker = ((timeInForce === 'PO') || postOnly || (type === 'limit_maker'));
+            const ioc = ((timeInForce === 'IOC') || (type === 'ioc'));
+            if (maker && ioc) {
+                throw new InvalidOrder (this.id + ' createOrder() does not accept IOC postOnly orders, the order cannot be both postOnly and IOC');
+            }
+            if (type === 'market') {
+                throw new InvalidOrder (this.id + ' createOrder() does not accept market postOnly orders or market IOC orders, only limit postOnly order or limit IOC orders are allowed');
+            }
+            if (maker) {
+                request['type'] = 'limit_maker';
+            } else if (ioc) {
+                request['type'] = 'ioc';
+            }
+            params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
+        }
         const response = await this[method] (this.extend (request, params));
         //
         // spot and contract
@@ -1997,7 +2041,7 @@ module.exports = class bitmart extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!(market['swap'] || market['future'])) {
-            throw new NotSupported (this.id + ' fetchOrders does not support ' + market['type'] + ' markets, only contracts are supported');
+            throw new NotSupported (this.id + ' fetchOrders() does not support ' + market['type'] + ' markets, only contracts are supported');
         }
         return await this.fetchOrdersByStatus (0, symbol, since, limit, params);
     }

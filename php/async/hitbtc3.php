@@ -1494,7 +1494,7 @@ class hitbtc3 extends Exchange {
         );
         if (($type === 'limit') || ($type === 'stopLimit')) {
             if ($price === null) {
-                throw new ExchangeError($this->id . ' limit order requires price');
+                throw new ExchangeError($this->id . ' editOrder() limit order requires price');
             }
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
@@ -1767,7 +1767,7 @@ class hitbtc3 extends Exchange {
         $fromNetwork = $this->safe_string($networks, $fromNetwork); // handle ETH>ERC20 alias
         $toNetwork = $this->safe_string($networks, $toNetwork); // handle ETH>ERC20 alias
         if ($fromNetwork === $toNetwork) {
-            throw new BadRequest($this->id . ' $fromNetwork cannot be the same as toNetwork');
+            throw new BadRequest($this->id . ' convertCurrencyNetwork() $fromNetwork cannot be the same as toNetwork');
         }
         if (($fromNetwork === null) || ($toNetwork === null)) {
             $keys = is_array($networks) ? array_keys($networks) : array();

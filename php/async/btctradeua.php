@@ -372,7 +372,7 @@ class btctradeua extends Exchange {
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type === 'market') {
-            throw new ExchangeError($this->id . ' allows limit orders only');
+            throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);

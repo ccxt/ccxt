@@ -822,7 +822,7 @@ module.exports = class Exchange {
     }
 
     async fetchPermissions (params = {}) {
-        throw new NotSupported (this.id + ' fetchPermissions() not supported yet')
+        throw new NotSupported (this.id + ' fetchPermissions() is not supported yet')
     }
 
     // is async (returns a promise)
@@ -855,12 +855,12 @@ module.exports = class Exchange {
     }
 
     fetchBidsAsks (symbols = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchBidsAsks not supported yet')
+        throw new NotSupported (this.id + ' fetchBidsAsks() is not supported yet')
     }
 
     async fetchOHLCVC (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (!this.has['fetchTrades']) {
-            throw new NotSupported (this.id + ' fetchOHLCV() not supported yet')
+            throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet')
         }
         await this.loadMarkets ()
         const trades = await this.fetchTrades (symbol, since, limit, params)
@@ -870,7 +870,7 @@ module.exports = class Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (!this.has['fetchTrades']) {
-            throw new NotSupported (this.id + ' fetchOHLCV() not supported yet')
+            throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet')
         }
         await this.loadMarkets ()
         const trades = await this.fetchTrades (symbol, since, limit, params)
@@ -922,21 +922,21 @@ module.exports = class Exchange {
             const tickers = await this.fetchTickers ([ symbol ], params);
             const ticker = this.safeValue (tickers, symbol);
             if (ticker === undefined) {
-                throw new InvalidAddress (this.id + ' fetchTickers could not find a ticker for ' + symbol);
+                throw new InvalidAddress (this.id + ' fetchTickers() could not find a ticker for ' + symbol);
             } else {
                 return ticker;
             }
         } else {
-            throw new NotSupported (this.id + ' fetchTicker not supported yet');
+            throw new NotSupported (this.id + ' fetchTicker() is not supported yet');
         }
     }
 
     fetchTickers (symbols = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchTickers not supported yet')
+        throw new NotSupported (this.id + ' fetchTickers() is not supported yet')
     }
 
     fetchOrder (id, symbol = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchOrder not supported yet');
+        throw new NotSupported (this.id + ' fetchOrder() is not supported yet');
     }
 
     fetchUnifiedOrder (order, params = {}) {
@@ -944,11 +944,11 @@ module.exports = class Exchange {
     }
 
     createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        throw new NotSupported (this.id + ' createOrder not supported yet');
+        throw new NotSupported (this.id + ' createOrder() is not supported yet');
     }
 
     cancelOrder (id, symbol = undefined, params = {}) {
-        throw new NotSupported (this.id + ' cancelOrder not supported yet');
+        throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
     }
 
     cancelUnifiedOrder (order, params = {}) {
@@ -956,31 +956,31 @@ module.exports = class Exchange {
     }
 
     fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchOrders not supported yet');
+        throw new NotSupported (this.id + ' fetchOrders() is not supported yet');
     }
 
     fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchOpenOrders not supported yet');
+        throw new NotSupported (this.id + ' fetchOpenOrders() is not supported yet');
     }
 
     fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchClosedOrders not supported yet');
+        throw new NotSupported (this.id + ' fetchClosedOrders() is not supported yet');
     }
 
     fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchMyTrades not supported yet');
+        throw new NotSupported (this.id + ' fetchMyTrades() is not supported yet');
     }
 
     fetchTransactions (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchTransactions not supported yet');
+        throw new NotSupported (this.id + ' fetchTransactions() is not supported yet');
     }
 
     fetchDeposits (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchDeposits not supported yet');
+        throw new NotSupported (this.id + ' fetchDeposits() is not supported yet');
     }
 
     fetchWithdrawals (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchWithdrawals not supported yet');
+        throw new NotSupported (this.id + ' fetchWithdrawals() is not supported yet');
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -988,12 +988,12 @@ module.exports = class Exchange {
             const depositAddresses = await this.fetchDepositAddresses ([ code ], params);
             const depositAddress = this.safeValue (depositAddresses, code);
             if (depositAddress === undefined) {
-                throw new InvalidAddress (this.id + ' fetchDepositAddress could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
+                throw new InvalidAddress (this.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
             } else {
                 return depositAddress;
             }
         } else {
-            throw new NotSupported (this.id + ' fetchDepositAddress not supported yet');
+            throw new NotSupported (this.id + ' fetchDepositAddress() not supported yet');
         }
     }
 
@@ -1153,7 +1153,7 @@ module.exports = class Exchange {
     }
 
     async fetchBalance (params = {}) {
-        throw new NotSupported (this.id + ' fetchBalance not supported yet')
+        throw new NotSupported (this.id + ' fetchBalance() not supported yet')
     }
 
     async fetchPartialBalance (part, params = {}) {
@@ -1184,12 +1184,12 @@ module.exports = class Exchange {
     }
 
     async fetchTradingFees (params = {}) {
-        throw new NotSupported (this.id + ' fetchTradingFees not supported yet')
+        throw new NotSupported (this.id + ' fetchTradingFees() not supported yet')
     }
 
     async fetchTradingFee (symbol, params = {}) {
         if (!this.has['fetchTradingFees']) {
-            throw new NotSupported (this.id + ' fetchTradingFee not supported yet')
+            throw new NotSupported (this.id + ' fetchTradingFee() not supported yet')
         }
         return await this.fetchTradingFees (params)
     }
@@ -1620,7 +1620,7 @@ module.exports = class Exchange {
     parseOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (ohlcvs)) {
-        //     throw new ExchangeError (this.id + ' parseOHLCVs expected an array in the ohlcvs argument, but got ' + typeof ohlcvs);
+        //     throw new ExchangeError (this.id + ' parseOHLCVs() expected an array in the ohlcvs argument, but got ' + typeof ohlcvs);
         // }
         const parsed = ohlcvs.map ((ohlcv) => this.parseOHLCV (ohlcv, market))
         const sorted = this.sortBy (parsed, 0)

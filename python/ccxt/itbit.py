@@ -161,7 +161,7 @@ class itbit(Exchange):
         symbol = self.safe_symbol(None, market)
         serverTimeUTC = self.safe_string(ticker, 'serverTimeUTC')
         if not serverTimeUTC:
-            raise ExchangeError(self.id + ' fetchTicker returned a bad response: ' + self.json(ticker))
+            raise ExchangeError(self.id + ' fetchTicker() returned a bad response: ' + self.json(ticker))
         timestamp = self.parse8601(serverTimeUTC)
         vwap = self.safe_string(ticker, 'vwap24h')
         baseVolume = self.safe_string(ticker, 'volume24h')
@@ -594,7 +594,7 @@ class itbit(Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         if type == 'market':
-            raise ExchangeError(self.id + ' allows limit orders only')
+            raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         walletIdInParams = ('walletId' in params)
         if not walletIdInParams:
             raise ExchangeError(self.id + ' createOrder() requires a walletId parameter')

@@ -428,7 +428,7 @@ class coinone(Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':
-            raise ExchangeError(self.id + ' allows limit orders only')
+            raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         await self.load_markets()
         request = {
             'price': price,
@@ -593,7 +593,7 @@ class coinone(Exchange):
         # The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
         # For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
         if symbol is None:
-            raise ExchangeError(self.id + ' allows fetching closed orders with a specific symbol')
+            raise ExchangeError(self.id + ' fetchOpenOrders() allows fetching closed orders with a specific symbol')
         await self.load_markets()
         market = self.market(symbol)
         request = {

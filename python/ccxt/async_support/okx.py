@@ -750,6 +750,7 @@ class okx(Exchange):
             'updated': timestamp,
             'status': 'ok' if (dataLength == 0) else 'maintenance',
             'eta': None,
+            'url': None,
             'info': response,
         }
         for i in range(0, len(data)):
@@ -979,7 +980,7 @@ class okx(Exchange):
             defaultUnderlying = self.safe_value(self.options, 'defaultUnderlying', 'BTC-USD')
             currencyId = self.safe_string_2(params, 'uly', 'marketId', defaultUnderlying)
             if currencyId is None:
-                raise ArgumentsRequired(self.id + ' fetchMarketsByType requires an underlying uly or marketId parameter for options markets')
+                raise ArgumentsRequired(self.id + ' fetchMarketsByType() requires an underlying uly or marketId parameter for options markets')
             else:
                 request['uly'] = currencyId
         response = await self.publicGetPublicInstruments(self.extend(request, params))
@@ -1272,7 +1273,7 @@ class okx(Exchange):
             defaultUnderlying = self.safe_value(self.options, 'defaultUnderlying', 'BTC-USD')
             currencyId = self.safe_string_2(params, 'uly', 'marketId', defaultUnderlying)
             if currencyId is None:
-                raise ArgumentsRequired(self.id + ' fetchTickersByType requires an underlying uly or marketId parameter for options markets')
+                raise ArgumentsRequired(self.id + ' fetchTickersByType() requires an underlying uly or marketId parameter for options markets')
             else:
                 request['uly'] = currencyId
         response = await self.publicGetMarketTickers(self.extend(request, params))
@@ -1615,7 +1616,7 @@ class okx(Exchange):
         elif market['swap'] or market['future'] or market['option']:
             request['uly'] = market['baseId'] + '-' + market['quoteId']
         else:
-            raise NotSupported(self.id + ' fetchTradingFee supports spot, swap, future or option markets only')
+            raise NotSupported(self.id + ' fetchTradingFee() supports spot, swap, future or option markets only')
         response = await self.privateGetAccountTradeFee(self.extend(request, params))
         #
         #     {
@@ -3561,7 +3562,7 @@ class okx(Exchange):
             instrument = self.safe_string(entry, 'instType')
             if (instrument == 'FUTURES') or (instrument == 'SWAP'):
                 result.append(self.parse_position(positions[i]))
-        return result
+        return self.filter_by_array(result, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):
         #
@@ -3885,7 +3886,7 @@ class okx(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
-            raise ExchangeError(self.id + ' fetchFundingRate is only valid for swap markets')
+            raise ExchangeError(self.id + ' fetchFundingRate() is only valid for swap markets')
         request = {
             'instId': market['id'],
         }
@@ -4057,13 +4058,13 @@ class okx(Exchange):
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (leverage < 1) or (leverage > 125):
-            raise BadRequest(self.id + ' setLeverage leverage should be between 1 and 125')
+            raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 125')
         await self.load_markets()
         market = self.market(symbol)
         marginMode = self.safe_string_lower(params, 'mgnMode')
         params = self.omit(params, ['mgnMode'])
         if (marginMode != 'cross') and (marginMode != 'isolated'):
-            raise BadRequest(self.id + ' setLeverage params["mgnMode"] must be either cross or isolated')
+            raise BadRequest(self.id + ' setLeverage() params["mgnMode"] must be either cross or isolated')
         request = {
             'lever': leverage,
             'mgnMode': marginMode,
@@ -4116,12 +4117,12 @@ class okx(Exchange):
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         marginType = marginType.lower()
         if (marginType != 'cross') and (marginType != 'isolated'):
-            raise BadRequest(self.id + ' setMarginMode marginType must be either cross or isolated')
+            raise BadRequest(self.id + ' setMarginMode() marginType must be either cross or isolated')
         await self.load_markets()
         market = self.market(symbol)
         lever = self.safe_integer(params, 'lever')
         if (lever is None) or (lever < 1) or (lever > 125):
-            raise BadRequest(self.id + ' setMarginMode params["lever"] should be between 1 and 125')
+            raise BadRequest(self.id + ' setMarginMode() params["lever"] should be between 1 and 125')
         params = self.omit(params, ['lever'])
         request = {
             'lever': lever,

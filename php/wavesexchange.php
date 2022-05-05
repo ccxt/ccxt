@@ -991,7 +991,7 @@ class wavesexchange extends Exchange {
         }
         if (!(is_array($currencies) && array_key_exists($code, $currencies))) {
             $codes = is_array($currencies) ? array_keys($currencies) : array();
-            throw new ExchangeError($this->id . ' fetch ' . $code . ' deposit $address not supported. Currency $code must be one of ' . implode(', ', $codes));
+            throw new ExchangeError($this->id . ' fetchDepositAddress() ' . $code . ' not supported. Currency $code must be one of ' . implode(', ', $codes));
         }
         $response = null;
         if ($network === null) {
@@ -2040,7 +2040,7 @@ class wavesexchange extends Exchange {
             }
             if (!(is_array($currencies) && array_key_exists($code, $currencies))) {
                 $codes = is_array($currencies) ? array_keys($currencies) : array();
-                throw new ExchangeError($this->id . ' fetch ' . $code . ' withdrawals are not supported. Currency $code must be one of ' . (string) $codes);
+                throw new ExchangeError($this->id . ' withdraw() ' . $code . ' not supported. Currency $code must be one of ' . (string) $codes);
             }
         }
         $this->load_markets();

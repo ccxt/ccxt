@@ -305,7 +305,7 @@ module.exports = class coinspot extends Exchange {
         await this.loadMarkets ();
         const method = 'privatePostMy' + this.capitalize (side);
         if (type === 'market') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
+            throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
         const request = {
             'cointype': this.marketId (symbol),

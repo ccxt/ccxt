@@ -696,7 +696,7 @@ module.exports = class idex extends Exchange {
         // ]
         const extendedRequest = this.extend (request, params);
         if (extendedRequest['wallet'] === undefined) {
-            throw new BadRequest (this.id + ' wallet is undefined, set this.walletAddress or "address" in params');
+            throw new BadRequest (this.id + ' fetchBalance() wallet is undefined, set this.walletAddress or "address" in params');
         }
         let response = undefined;
         try {
@@ -753,7 +753,7 @@ module.exports = class idex extends Exchange {
         // ]
         const extendedRequest = this.extend (request, params);
         if (extendedRequest['wallet'] === undefined) {
-            throw new BadRequest (this.id + ' walletAddress is undefined, set this.walletAddress or "address" in params');
+            throw new BadRequest (this.id + ' fetchMyTrades() walletAddress is undefined, set this.walletAddress or "address" in params');
         }
         let response = undefined;
         try {
@@ -1004,7 +1004,7 @@ module.exports = class idex extends Exchange {
         let stopPriceString = undefined;
         if ((type === 'stopLossLimit') || (type === 'takeProfitLimit') || ('stopPrice' in params)) {
             if (!('stopPrice' in params)) {
-                throw new BadRequest (this.id + ' stopPrice is a required parameter for ' + type + 'orders');
+                throw new BadRequest (this.id + ' createOrder() stopPrice is a required parameter for ' + type + 'orders');
             }
             stopPriceString = this.priceToPrecision (symbol, params['stopPrice']);
         }
@@ -1029,7 +1029,7 @@ module.exports = class idex extends Exchange {
         let amountEnum = 0; // base quantity
         if ('quoteOrderQuantity' in params) {
             if (type !== 'market') {
-                throw new NotSupported (this.id + ' quoteOrderQuantity is not supported for ' + type + ' orders, only supported for market orders');
+                throw new NotSupported (this.id + ' createOrder() quoteOrderQuantity is not supported for ' + type + ' orders, only supported for market orders');
             }
             amountEnum = 1;
             amount = this.safeNumber (params, 'quoteOrderQuantity');

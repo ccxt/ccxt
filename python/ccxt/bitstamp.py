@@ -679,7 +679,7 @@ class bitstamp(Exchange):
         currencyIds = list(trade.keys())
         numCurrencyIds = len(currencyIds)
         if numCurrencyIds > 2:
-            raise ExchangeError(self.id + ' getMarketFromTrade too many keys: ' + self.json(currencyIds) + ' in the trade: ' + self.json(trade))
+            raise ExchangeError(self.id + ' getMarketFromTrade() too many keys: ' + self.json(currencyIds) + ' in the trade: ' + self.json(trade))
         if numCurrencyIds == 2:
             marketId = currencyIds[0] + currencyIds[1]
             if marketId in self.markets_by_id:

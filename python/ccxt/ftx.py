@@ -2305,7 +2305,7 @@ class ftx(Exchange):
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (leverage < 1) or (leverage > 20):
-            raise BadRequest(self.id + ' leverage should be between 1 and 20')
+            raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 20')
         request = {
             'leverage': leverage,
         }

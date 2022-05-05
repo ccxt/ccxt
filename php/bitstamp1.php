@@ -8,7 +8,6 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\BadSymbol;
-use \ccxt\NotSupported;
 
 class bitstamp1 extends Exchange {
 
@@ -44,7 +43,7 @@ class bitstamp1 extends Exchange {
                 'fetchLeverage' => false,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
-                'fetchOrder' => true,
+                'fetchOrder' => null,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
                 'fetchPositions' => false,
@@ -307,10 +306,6 @@ class bitstamp1 extends Exchange {
         );
         $response = $this->privatePostOpenOrdersId (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
-    }
-
-    public function fetch_order($id, $symbol = null, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchOrder is not implemented yet');
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

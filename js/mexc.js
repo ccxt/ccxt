@@ -301,6 +301,7 @@ module.exports = class mexc extends Exchange {
                 'exact': {
                     '400': BadRequest, // Invalid parameter
                     '401': AuthenticationError, // Invalid signature, fail to pass the validation
+                    '402': AuthenticationError, // {"success":false,"code":402,"message":"API key expired!"}
                     '403': PermissionDenied, // {"msg":"no permission to access the endpoint","code":403}
                     '429': RateLimitExceeded, // too many requests, rate limit rule is violated
                     '703': PermissionDenied, // Require trade read permission!
@@ -369,6 +370,7 @@ module.exports = class mexc extends Exchange {
             'status': status,
             'updated': this.milliseconds (),
             'eta': undefined,
+            'url': undefined,
             'info': response,
         };
     }
@@ -2267,7 +2269,7 @@ module.exports = class mexc extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

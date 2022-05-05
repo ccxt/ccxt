@@ -485,7 +485,7 @@ class xena(Exchange):
         tickers = await self.fetch_tickers(None, params)
         if symbol in tickers:
             return tickers[symbol]
-        raise BadSymbol(self.id + ' fetchTicker could not find a ticker with symbol ' + symbol)
+        raise BadSymbol(self.id + ' fetchTicker() could not find a ticker with symbol ' + symbol)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -995,14 +995,14 @@ class xena(Exchange):
         }
         orderType = self.safe_string(orderTypes, type)
         if orderType is None:
-            raise InvalidOrder(self.id + ' createOrder does not support order type ' + type + ', supported order types are market, limit, stop, stop-limit')
+            raise InvalidOrder(self.id + ' createOrder() does not support order type ' + type + ', supported order types are market, limit, stop, stop-limit')
         orderSides = {
             'buy': '1',
             'sell': '2',
         }
         orderSide = self.safe_string(orderSides, side)
         if orderSide is None:
-            raise InvalidOrder(self.id + ' createOrder does not support order side ' + side + ', supported order sides are buy, sell')
+            raise InvalidOrder(self.id + ' createOrder() does not support order side ' + side + ', supported order sides are buy, sell')
         market = self.market(symbol)
         request = {
             'account': int(accountId),

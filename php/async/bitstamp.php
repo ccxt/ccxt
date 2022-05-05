@@ -689,7 +689,7 @@ class bitstamp extends Exchange {
         $currencyIds = is_array($trade) ? array_keys($trade) : array();
         $numCurrencyIds = is_array($currencyIds) ? count($currencyIds) : 0;
         if ($numCurrencyIds > 2) {
-            throw new ExchangeError($this->id . ' getMarketFromTrade too many keys => ' . $this->json($currencyIds) . ' in the $trade => ' . $this->json($trade));
+            throw new ExchangeError($this->id . ' getMarketFromTrade() too many keys => ' . $this->json($currencyIds) . ' in the $trade => ' . $this->json($trade));
         }
         if ($numCurrencyIds === 2) {
             $marketId = $currencyIds[0] . $currencyIds[1];

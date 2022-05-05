@@ -513,7 +513,7 @@ class cryptocom extends Exchange {
         );
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTicker', $market, $params);
         if ($marketType !== 'spot') {
-            throw new NotSupported($this->id . ' fetchTicker only supports spot markets');
+            throw new NotSupported($this->id . ' fetchTicker() only supports spot markets');
         }
         $response = $this->spotPublicGetPublicGetTicker (array_merge($request, $query));
         // {
@@ -1178,7 +1178,7 @@ class cryptocom extends Exchange {
         $data = $this->safe_value($response, 'result', array());
         $addresses = $this->safe_value($data, 'deposit_address_list', array());
         if (strlen($addresses) === 0) {
-            throw new ExchangeError($this->id . ' generating $address->..');
+            throw new ExchangeError($this->id . ' fetchDepositAddressesByNetwork() generating $address->..');
         }
         $result = array();
         for ($i = 0; $i < count($addresses); $i++) {
@@ -1330,7 +1330,7 @@ class cryptocom extends Exchange {
 
     public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
         if (!(is_array($params) && array_key_exists('direction', $params))) {
-            throw new ArgumentsRequired($this->id . ' fetchTransfers requires a direction param to be either "IN" or "OUT"');
+            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a direction param to be either "IN" or "OUT"');
         }
         $this->load_markets();
         $currency = null;

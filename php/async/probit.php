@@ -1151,7 +1151,7 @@ class probit extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $firstAddress = $this->safe_value($data, 0);
         if ($firstAddress === null) {
-            throw new InvalidAddress($this->id . ' fetchDepositAddress returned an empty response');
+            throw new InvalidAddress($this->id . ' fetchDepositAddress() returned an empty response');
         }
         return $this->parse_deposit_address($firstAddress, $currency);
     }

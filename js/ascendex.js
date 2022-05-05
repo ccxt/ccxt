@@ -15,7 +15,9 @@ module.exports = class ascendex extends Exchange {
             'id': 'ascendex',
             'name': 'AscendEX',
             'countries': [ 'SG' ], // Singapore
-            'rateLimit': 500,
+            // 8 requests per minute = 0.13333 per second => rateLimit = 750
+            // testing 400 works
+            'rateLimit': 400,
             'certified': true,
             'pro': true,
             // new metainfo interface
@@ -115,111 +117,111 @@ module.exports = class ascendex extends Exchange {
             'api': {
                 'v1': {
                     'public': {
-                        'get': [
-                            'assets',
-                            'products',
-                            'ticker',
-                            'barhist/info',
-                            'barhist',
-                            'depth',
-                            'trades',
-                            'cash/assets', // not documented
-                            'cash/products', // not documented
-                            'margin/assets', // not documented
-                            'margin/products', // not documented
-                            'futures/collateral',
-                            'futures/contracts',
-                            'futures/ref-px',
-                            'futures/market-data',
-                            'futures/funding-rates',
-                            'risk-limit-info',
-                        ],
+                        'get': {
+                            'assets': 1,
+                            'products': 1,
+                            'ticker': 1,
+                            'barhist/info': 1,
+                            'barhist': 1,
+                            'depth': 1,
+                            'trades': 1,
+                            'cash/assets': 1, // not documented
+                            'cash/products': 1, // not documented
+                            'margin/assets': 1, // not documented
+                            'margin/products': 1, // not documented
+                            'futures/collateral': 1,
+                            'futures/contracts': 1,
+                            'futures/ref-px': 1,
+                            'futures/market-data': 1,
+                            'futures/funding-rates': 1,
+                            'risk-limit-info': 1,
+                        },
                     },
                     'private': {
-                        'get': [
-                            'info',
-                            'wallet/transactions',
-                            'wallet/deposit/address', // not documented
-                            'data/balance/snapshot',
-                            'data/balance/history',
-                        ],
+                        'get': {
+                            'info': 1,
+                            'wallet/transactions': 1,
+                            'wallet/deposit/address': 1, // not documented
+                            'data/balance/snapshot': 1,
+                            'data/balance/history': 1,
+                        },
                         'accountCategory': {
-                            'get': [
-                                'balance',
-                                'order/open',
-                                'order/status',
-                                'order/hist/current',
-                                'risk',
-                            ],
-                            'post': [
-                                'order',
-                                'order/batch',
-                            ],
-                            'delete': [
-                                'order',
-                                'order/all',
-                                'order/batch',
-                            ],
+                            'get': {
+                                'balance': 1,
+                                'order/open': 1,
+                                'order/status': 1,
+                                'order/hist/current': 1,
+                                'risk': 1,
+                            },
+                            'post': {
+                                'order': 1,
+                                'order/batch': 1,
+                            },
+                            'delete': {
+                                'order': 1,
+                                'order/all': 1,
+                                'order/batch': 1,
+                            },
                         },
                         'accountGroup': {
-                            'get': [
-                                'cash/balance',
-                                'margin/balance',
-                                'margin/risk',
-                                'futures/collateral-balance',
-                                'futures/position',
-                                'futures/risk',
-                                'futures/funding-payments',
-                                'order/hist',
-                                'spot/fee',
-                            ],
-                            'post': [
-                                'transfer',
-                                'futures/transfer/deposit',
-                                'futures/transfer/withdraw',
-                            ],
+                            'get': {
+                                'cash/balance': 1,
+                                'margin/balance': 1,
+                                'margin/risk': 1,
+                                'futures/collateral-balance': 1,
+                                'futures/position': 1,
+                                'futures/risk': 1,
+                                'futures/funding-payments': 1,
+                                'order/hist': 1,
+                                'spot/fee': 1,
+                            },
+                            'post': {
+                                'transfer': 1,
+                                'futures/transfer/deposit': 1,
+                                'futures/transfer/withdraw': 1,
+                            },
                         },
                     },
                 },
                 'v2': {
                     'public': {
-                        'get': [
-                            'assets',
-                            'futures/contract',
-                            'futures/collateral',
-                            'futures/pricing-data',
-                        ],
+                        'get': {
+                            'assets': 1,
+                            'futures/contract': 1,
+                            'futures/collateral': 1,
+                            'futures/pricing-data': 1,
+                        },
                     },
                     'private': {
-                        'get': [
-                            'account/info',
-                        ],
+                        'get': {
+                            'account/info': 1,
+                        },
                         'accountGroup': {
-                            'get': [
-                                'order/hist',
-                                'futures/position',
-                                'futures/free-margin',
-                                'futures/order/hist/current',
-                                'futures/order/open',
-                                'futures/order/status',
-                            ],
-                            'post': [
-                                'futures/isolated-position-margin',
-                                'futures/margin-type',
-                                'futures/leverage',
-                                'futures/transfer/deposit',
-                                'futures/transfer/withdraw',
-                                'futures/order',
-                                'futures/order/batch',
-                                'futures/order/open',
-                                'subuser/subuser-transfer',
-                                'subuser/subuser-transfer-hist',
-                            ],
-                            'delete': [
-                                'futures/order',
-                                'futures/order/batch',
-                                'futures/order/all',
-                            ],
+                            'get': {
+                                'order/hist': 1,
+                                'futures/position': 1,
+                                'futures/free-margin': 1,
+                                'futures/order/hist/current': 1,
+                                'futures/order/open': 1,
+                                'futures/order/status': 1,
+                            },
+                            'post': {
+                                'futures/isolated-position-margin': 1,
+                                'futures/margin-type': 1,
+                                'futures/leverage': 1,
+                                'futures/transfer/deposit': 1,
+                                'futures/transfer/withdraw': 1,
+                                'futures/order': 1,
+                                'futures/order/batch': 1,
+                                'futures/order/open': 1,
+                                'subuser/subuser-transfer': 1,
+                                'subuser/subuser-transfer-hist': 1,
+                            },
+                            'delete': {
+                                'futures/order': 1,
+                                'futures/order/batch': 1,
+                                'futures/order/all': 1,
+                            },
                         },
                     },
                 },
@@ -2030,7 +2032,7 @@ module.exports = class ascendex extends Exchange {
             if (chainName === undefined) {
                 const chainNames = Object.keys (addressesByChainName);
                 const chains = chainNames.join (', ');
-                throw new ArgumentsRequired (this.id + ' fetchDepositAddress returned more than one address, a chainName parameter is required, one of ' + chains);
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() returned more than one address, a chainName parameter is required, one of ' + chains);
             }
             address = this.safeValue (addressesByChainName, chainName, {});
         } else {

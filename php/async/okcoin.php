@@ -1087,7 +1087,7 @@ class okcoin extends Exchange {
             //
             return $this->parse_markets($response);
         } else {
-            throw new NotSupported($this->id . ' fetchMarketsByType does not support market $type ' . $type);
+            throw new NotSupported($this->id . ' fetchMarketsByType() does not support market $type ' . $type);
         }
     }
 
@@ -1539,7 +1539,7 @@ class okcoin extends Exchange {
             }
         } else if ($type === 'HistoryCandles') {
             if ($market['option']) {
-                throw new NotSupported($this->id . ' fetchOHLCV does not have ' . $type . ' for ' . $market['type'] . ' markets');
+                throw new NotSupported($this->id . ' fetchOHLCV() does not have ' . $type . ' for ' . $market['type'] . ' markets');
             }
             if ($since !== null) {
                 if ($limit === null) {
@@ -2587,7 +2587,7 @@ class okcoin extends Exchange {
         $addressesByCode = $this->parse_deposit_addresses($response);
         $address = $this->safe_value($addressesByCode, $code);
         if ($address === null) {
-            throw new InvalidAddress($this->id . ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
+            throw new InvalidAddress($this->id . ' fetchDepositAddress() cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
         }
         return $address;
     }

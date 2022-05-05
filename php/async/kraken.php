@@ -636,7 +636,7 @@ class kraken extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         if ($market['darkpool']) {
-            throw new ExchangeError($this->id . ' does not provide an order book for darkpool $symbol ' . $symbol);
+            throw new ExchangeError($this->id . ' fetchOrderBook() does not provide an order book for darkpool $symbol ' . $symbol);
         }
         $request = array(
             'pair' => $market['id'],
@@ -761,7 +761,7 @@ class kraken extends Exchange {
         yield $this->load_markets();
         $darkpool = mb_strpos($symbol, '.d') !== false;
         if ($darkpool) {
-            throw new ExchangeError($this->id . ' does not provide a $ticker for $darkpool $symbol ' . $symbol);
+            throw new ExchangeError($this->id . ' fetchTicker() does not provide a $ticker for $darkpool $symbol ' . $symbol);
         }
         $market = $this->market($symbol);
         $request = array(

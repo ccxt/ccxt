@@ -538,7 +538,7 @@ class hitbtc(Exchange):
         fetchBalanceAccounts = self.safe_value(self.options, 'fetchBalanceMethod', {})
         typeId = self.safe_string(fetchBalanceAccounts, type)
         if typeId is None:
-            raise ExchangeError(self.id + ' fetchBalance account type must be either main or trading')
+            raise ExchangeError(self.id + ' fetchBalance() account type must be either main or trading')
         method = 'privateGet' + self.capitalize(typeId) + 'Balance'
         query = self.omit(params, 'type')
         response = getattr(self, method)(query)
@@ -1175,7 +1175,7 @@ class hitbtc(Exchange):
         fromNetwork = self.safe_string(networks, fromNetwork, fromNetwork)  # handle ETH>ERC20 alias
         toNetwork = self.safe_string(networks, toNetwork, toNetwork)  # handle ETH>ERC20 alias
         if fromNetwork == toNetwork:
-            raise ExchangeError(self.id + ' fromNetwork cannot be the same as toNetwork')
+            raise ExchangeError(self.id + ' convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork')
         request = {
             'fromCurrency': currency['id'] + fromNetwork,
             'toCurrency': currency['id'] + toNetwork,

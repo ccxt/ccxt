@@ -397,6 +397,7 @@ class bitfinex2(bitfinex):
             'status': self.safe_string({'0': 'maintenance', '1': 'ok'}, statusRaw, statusRaw),
             'updated': self.milliseconds(),
             'eta': None,
+            'url': None,
             'info': response,
         }
 
@@ -642,7 +643,7 @@ class bitfinex2(bitfinex):
         accountType = self.safe_string(accountsByType, requestedType, requestedType)
         if accountType is None:
             keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' fetchBalance type parameter must be one of ' + ', '.join(keys))
+            raise ExchangeError(self.id + ' fetchBalance() type parameter must be one of ' + ', '.join(keys))
         isDerivative = requestedType == 'derivatives'
         query = self.omit(params, 'type')
         response = self.privatePostAuthRWallets(query)
@@ -671,11 +672,11 @@ class bitfinex2(bitfinex):
         fromId = self.safe_string(accountsByType, fromAccount)
         if fromId is None:
             keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' transfer fromAccount must be one of ' + ', '.join(keys))
+            raise ArgumentsRequired(self.id + ' transfer() fromAccount must be one of ' + ', '.join(keys))
         toId = self.safe_string(accountsByType, toAccount)
         if toId is None:
             keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' transfer toAccount must be one of ' + ', '.join(keys))
+            raise ArgumentsRequired(self.id + ' transfer() toAccount must be one of ' + ', '.join(keys))
         currency = self.currency(code)
         fromCurrencyId = self.convert_derivatives_id(currency, fromAccount)
         toCurrencyId = self.convert_derivatives_id(currency, toAccount)
@@ -738,7 +739,7 @@ class bitfinex2(bitfinex):
         return currencyId
 
     def fetch_order(self, id, symbol=None, params={}):
-        raise NotSupported(self.id + ' fetchOrder is not implemented yet')
+        raise NotSupported(self.id + ' fetchOrder() is not supported yet')
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

@@ -731,6 +731,7 @@ module.exports = class okx extends Exchange {
             'updated': timestamp,
             'status': (dataLength === 0) ? 'ok' : 'maintenance',
             'eta': undefined,
+            'url': undefined,
             'info': response,
         };
         for (let i = 0; i < data.length; i++) {
@@ -977,7 +978,7 @@ module.exports = class okx extends Exchange {
             const defaultUnderlying = this.safeValue (this.options, 'defaultUnderlying', 'BTC-USD');
             const currencyId = this.safeString2 (params, 'uly', 'marketId', defaultUnderlying);
             if (currencyId === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchMarketsByType requires an underlying uly or marketId parameter for options markets');
+                throw new ArgumentsRequired (this.id + ' fetchMarketsByType() requires an underlying uly or marketId parameter for options markets');
             } else {
                 request['uly'] = currencyId;
             }
@@ -1286,7 +1287,7 @@ module.exports = class okx extends Exchange {
             const defaultUnderlying = this.safeValue (this.options, 'defaultUnderlying', 'BTC-USD');
             const currencyId = this.safeString2 (params, 'uly', 'marketId', defaultUnderlying);
             if (currencyId === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchTickersByType requires an underlying uly or marketId parameter for options markets');
+                throw new ArgumentsRequired (this.id + ' fetchTickersByType() requires an underlying uly or marketId parameter for options markets');
             } else {
                 request['uly'] = currencyId;
             }
@@ -1659,7 +1660,7 @@ module.exports = class okx extends Exchange {
         } else if (market['swap'] || market['future'] || market['option']) {
             request['uly'] = market['baseId'] + '-' + market['quoteId'];
         } else {
-            throw new NotSupported (this.id + ' fetchTradingFee supports spot, swap, future or option markets only');
+            throw new NotSupported (this.id + ' fetchTradingFee() supports spot, swap, future or option markets only');
         }
         const response = await this.privateGetAccountTradeFee (this.extend (request, params));
         //
@@ -3712,7 +3713,7 @@ module.exports = class okx extends Exchange {
                 result.push (this.parsePosition (positions[i]));
             }
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols, false);
     }
 
     parsePosition (position, market = undefined) {
@@ -4055,7 +4056,7 @@ module.exports = class okx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['swap']) {
-            throw new ExchangeError (this.id + ' fetchFundingRate is only valid for swap markets');
+            throw new ExchangeError (this.id + ' fetchFundingRate() is only valid for swap markets');
         }
         const request = {
             'instId': market['id'],
@@ -4237,14 +4238,14 @@ module.exports = class okx extends Exchange {
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if ((leverage < 1) || (leverage > 125)) {
-            throw new BadRequest (this.id + ' setLeverage leverage should be between 1 and 125');
+            throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 125');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marginMode = this.safeStringLower (params, 'mgnMode');
         params = this.omit (params, [ 'mgnMode' ]);
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
-            throw new BadRequest (this.id + ' setLeverage params["mgnMode"] must be either cross or isolated');
+            throw new BadRequest (this.id + ' setLeverage() params["mgnMode"] must be either cross or isolated');
         }
         const request = {
             'lever': leverage,
@@ -4302,13 +4303,13 @@ module.exports = class okx extends Exchange {
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         marginType = marginType.toLowerCase ();
         if ((marginType !== 'cross') && (marginType !== 'isolated')) {
-            throw new BadRequest (this.id + ' setMarginMode marginType must be either cross or isolated');
+            throw new BadRequest (this.id + ' setMarginMode() marginType must be either cross or isolated');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const lever = this.safeInteger (params, 'lever');
         if ((lever === undefined) || (lever < 1) || (lever > 125)) {
-            throw new BadRequest (this.id + ' setMarginMode params["lever"] should be between 1 and 125');
+            throw new BadRequest (this.id + ' setMarginMode() params["lever"] should be between 1 and 125');
         }
         params = this.omit (params, [ 'lever' ]);
         const request = {

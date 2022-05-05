@@ -597,7 +597,7 @@ class bitfinex extends Exchange {
         $accountType = $this->safe_string($accountsByType, $requestedType, $requestedType);
         if ($accountType === null) {
             $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' fetchBalance $type parameter must be one of ' . implode(', ', $keys));
+            throw new ExchangeError($this->id . ' fetchBalance() $type parameter must be one of ' . implode(', ', $keys));
         }
         $query = $this->omit($params, 'type');
         $response = $this->privatePostBalances ($query);

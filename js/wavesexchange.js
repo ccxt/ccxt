@@ -985,7 +985,7 @@ module.exports = class wavesexchange extends Exchange {
         }
         if (!(code in currencies)) {
             const codes = Object.keys (currencies);
-            throw new ExchangeError (this.id + ' fetch ' + code + ' deposit address not supported. Currency code must be one of ' + codes.join (', '));
+            throw new ExchangeError (this.id + ' fetchDepositAddress() ' + code + ' not supported. Currency code must be one of ' + codes.join (', '));
         }
         let response = undefined;
         if (network === undefined) {
@@ -2034,7 +2034,7 @@ module.exports = class wavesexchange extends Exchange {
             }
             if (!(code in currencies)) {
                 const codes = Object.keys (currencies);
-                throw new ExchangeError (this.id + ' fetch ' + code + ' withdrawals are not supported. Currency code must be one of ' + codes.toString ());
+                throw new ExchangeError (this.id + ' withdraw() ' + code + ' not supported. Currency code must be one of ' + codes.toString ());
             }
         }
         await this.loadMarkets ();

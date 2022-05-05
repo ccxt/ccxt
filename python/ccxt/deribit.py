@@ -423,6 +423,7 @@ class deribit(Exchange):
             'status': 'ok' if (locked == 'false') else 'maintenance',
             'updated': updateTime,
             'eta': None,
+            'url': None,
             'info': response,
         }
 
@@ -1925,7 +1926,7 @@ class deribit(Exchange):
             if isinstance(symbols, list):
                 length = len(symbols)
                 if length != 1:
-                    raise BadRequest(self.id + ' fetchPositions symbols argument cannot contain more than 1 symbol')
+                    raise BadRequest(self.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol')
                 market = self.market(symbols[0])
                 code = market['base']
         currency = self.currency(code)

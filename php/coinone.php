@@ -442,7 +442,7 @@ class coinone extends Exchange {
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type !== 'limit') {
-            throw new ExchangeError($this->id . ' allows limit orders only');
+            throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
         }
         $this->load_markets();
         $request = array(
@@ -621,7 +621,7 @@ class coinone extends Exchange {
         // The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
         // For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
         if ($symbol === null) {
-            throw new ExchangeError($this->id . ' allows fetching closed orders with a specific symbol');
+            throw new ExchangeError($this->id . ' fetchOpenOrders() allows fetching closed orders with a specific symbol');
         }
         $this->load_markets();
         $market = $this->market($symbol);

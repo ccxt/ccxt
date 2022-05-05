@@ -1464,7 +1464,7 @@ class bybit(Exchange):
             elif side == 'Sell':
                 asks.append(self.parse_bid_ask(bidask, priceKey, amountKey))
             else:
-                raise ExchangeError(self.id + ' parseOrderBook encountered an unrecognized bidask format: ' + self.json(bidask))
+                raise ExchangeError(self.id + ' parseOrderBook() encountered an unrecognized bidask format: ' + self.json(bidask))
         return {
             'symbol': symbol,
             'bids': self.sort_by(bids, 0, True),
@@ -2164,7 +2164,17 @@ class bybit(Exchange):
                 defaultMethod = 'v2PrivatePostOrderCancelAll'
         elif market['future']:
             defaultMethod = 'futuresPrivatePostOrderCancelAll'
+        stop = self.safe_value(params, 'stop')
+        if stop:
+            if market['swap']:
+                if market['linear']:
+                    defaultMethod = 'privateLinearPostStopOrderCancelAll'
+                elif market['inverse']:
+                    defaultMethod = 'v2PrivatePostStopOrderCancelAll'
+            elif market['future']:
+                defaultMethod = 'futuresPrivatePostStopOrderCancelAll'
         method = self.safe_string(options, 'method', defaultMethod)
+        params = self.omit(params, 'stop')
         response = getattr(self, method)(self.extend(request, params))
         result = self.safe_value(response, 'result', [])
         return self.parse_orders(result, market)
@@ -2829,7 +2839,7 @@ class bybit(Exchange):
         if isinstance(symbols, list):
             length = len(symbols)
             if length != 1:
-                raise ArgumentsRequired(self.id + ' fetchPositions takes an array with exactly one symbol')
+                raise ArgumentsRequired(self.id + ' fetchPositions() takes an array with exactly one symbol')
             request['symbol'] = self.market_id(symbols[0])
         defaultType = self.safe_string(self.options, 'defaultType', 'linear')
         type = self.safe_string(params, 'type', defaultType)
@@ -2875,7 +2885,7 @@ class bybit(Exchange):
         if marginType == 'CROSSED':  # * Deprecated, use 'CROSS' instead
             marginType = 'CROSS'
         if (marginType != 'ISOLATED') and (marginType != 'CROSS'):
-            raise BadRequest(self.id + ' marginType must be either isolated or cross')
+            raise BadRequest(self.id + ' setMarginMode() marginType must be either isolated or cross')
         self.load_markets()
         market = self.market(symbol)
         method = None
@@ -2945,7 +2955,7 @@ class bybit(Exchange):
             else:
                 raise ArgumentsRequired(self.id + ' setLeverage() requires parameter leverage for inverse and futures contracts')
         if (buy_leverage < 1) or (buy_leverage > 100) or (sell_leverage < 1) or (sell_leverage > 100):
-            raise BadRequest(self.id + ' leverage should be between 1 and 100')
+            raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 100')
         request = {
             'symbol': market['id'],
             'leverage_only': True,

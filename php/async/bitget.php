@@ -2119,7 +2119,7 @@ class bitget extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         if ($market['swap']) {
-            throw new BadSymbol($this->id . ' fetchMyTrades only supports spot markets');
+            throw new BadSymbol($this->id . ' fetchMyTrades() only supports spot markets');
         }
         $request = array(
             'symbol' => $market['id'],

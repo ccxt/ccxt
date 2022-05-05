@@ -48,6 +48,9 @@ class latoken extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
                 'fetchTransactions' => true,
+                'fetchTransfer' => false,
+                'fetchTransfers' => true,
+                'transfer' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg',
@@ -1256,6 +1259,137 @@ class latoken extends Exchange {
             'TRANSACTION_TYPE_WITHDRAWAL' => 'withdrawal',
         );
         return $this->safe_string($types, $type, $type);
+    }
+
+    public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $response = yield $this->privateGetAuthTransfer ($params);
+        //
+        //     {
+        //         "hasNext" => true,
+        //         "content" => array(
+        //             array(
+        //             "id" => "ebd6312f-cb4f-45d1-9409-4b0b3027f21e",
+        //             "status" => "TRANSFER_STATUS_COMPLETED",
+        //             "type" => "TRANSFER_TYPE_WITHDRAW_SPOT",
+        //             "fromAccount" => "c429c551-adbb-4078-b74b-276bea308a36",
+        //             "toAccount" => "631c6203-bd62-4734-a04d-9b2a951f43b9",
+        //             "transferringFunds" => 1259.0321785,
+        //             "usdValue" => 1259.032179,
+        //             "rejectReason" => null,
+        //             "timestamp" => 1633515579530,
+        //             "direction" => "INTERNAL",
+        //             "method" => "TRANSFER_METHOD_UNKNOWN",
+        //             "recipient" => null,
+        //             "sender" => null,
+        //             "currency" => "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             "codeRequired" => false,
+        //             "fromUser" => "ce555f3f-585d-46fb-9ae6-487f66738073",
+        //             "toUser" => "ce555f3f-585d-46fb-9ae6-487f66738073",
+        //             "fee" => 0
+        //             ),
+        //             ...
+        //         ),
+        //         "first" => true,
+        //         "pageSize" => 20,
+        //         "hasContent" => true
+        //     }
+        //
+        $transfers = $this->safe_value($response, 'content', array());
+        return $this->parse_transfers($transfers, $currency, $since, $limit);
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $method = null;
+        if ($toAccount->includes ('@')) {
+            $method = 'privatePostAuthTransferEmail';
+        } else if (strlen($toAccount) === 36) {
+            $method = 'privatePostAuthTransferId';
+        } else {
+            $method = 'privatePostAuthTransferPhone';
+        }
+        $request = array(
+            'currency' => $currency['id'],
+            'recipient' => $toAccount,
+            'value' => $this->currency_to_precision($code, $amount),
+        );
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
+        //         "status" => "TRANSFER_STATUS_COMPLETED",
+        //         "type" => "TRANSFER_TYPE_DEPOSIT_SPOT",
+        //         "fromAccount" => "3bf61015-bf32-47a6-b237-c9f70df772ad",
+        //         "toAccount" => "355eb279-7c7e-4515-814a-575a49dc0325",
+        //         "transferringFunds" => "500000.000000000000000000",
+        //         "usdValue" => "0.000000000000000000",
+        //         "rejectReason" => "",
+        //         "timestamp" => 1576844438402,
+        //         "direction" => "INTERNAL",
+        //         "method" => "TRANSFER_METHOD_UNKNOWN",
+        //         "recipient" => "",
+        //         "sender" => "",
+        //         "currency" => "40af7879-a8cc-4576-a42d-7d2749821b58",
+        //         "codeRequired" => false,
+        //         "fromUser" => "cd555555-666d-46fb-9ae6-487f66738073",
+        //         "toUser" => "cd555555-666d-46fb-9ae6-487f66738073",
+        //         "fee" => 0
+        //     }
+        //
+        return $this->parse_transfer($response);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         "id" => "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
+        //         "status" => "TRANSFER_STATUS_COMPLETED",
+        //         "type" => "TRANSFER_TYPE_DEPOSIT_SPOT",
+        //         "fromAccount" => "3bf61015-bf32-47a6-b237-c9f70df772ad",
+        //         "toAccount" => "355eb279-7c7e-4515-814a-575a49dc0325",
+        //         "transferringFunds" => "500000.000000000000000000",
+        //         "usdValue" => "0.000000000000000000",
+        //         "rejectReason" => "",
+        //         "timestamp" => 1576844438402,
+        //         "direction" => "INTERNAL",
+        //         "method" => "TRANSFER_METHOD_UNKNOWN",
+        //         "recipient" => "",
+        //         "sender" => "",
+        //         "currency" => "40af7879-a8cc-4576-a42d-7d2749821b58",
+        //         "codeRequired" => false,
+        //         "fromUser" => "cd555555-666d-46fb-9ae6-487f66738073",
+        //         "toUser" => "cd555555-666d-46fb-9ae6-487f66738073",
+        //         "fee" => 0
+        //     }
+        //
+        $timestamp = $this->safe_timestamp($transfer, 'timestamp');
+        $currencyId = $this->safe_string($transfer, 'currency');
+        $status = $this->safe_string($transfer, 'status');
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'id'),
+            'timestamp' => $this->safe_number($transfer),
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_number($transfer, 'transferringFunds'),
+            'fromAccount' => $this->safe_string($transfer, 'fromAccount'),
+            'toAccount' => $this->safe_string($transfer, 'toAccount'),
+            'status' => $this->parse_transfer_status($status),
+        );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'TRANSFER_STATUS_COMPLETED' => 'ok',
+            'TRANSFER_STATUS_PENDING' => 'pending',
+            'TRANSFER_STATUS_REJECTED' => 'failed',
+            'TRANSFER_STATUS_UNVERIFIED' => 'pending',
+            'TRANSFER_STATUS_CANCELLED' => 'canceled',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = null, $headers = null, $body = null) {

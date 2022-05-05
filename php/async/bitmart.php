@@ -263,6 +263,9 @@ class bitmart extends Exchange {
                     '50023' => '\\ccxt\\BadSymbol', // 400, This Symbol can't place order by api
                     '50029' => '\\ccxt\\InvalidOrder', // array("message":"param not match : size * price >=1000","code":50029,"trace":"f931f030-b692-401b-a0c5-65edbeadc598","data":array())
                     '50030' => '\\ccxt\\InvalidOrder', // array("message":"Order is already canceled","code":50030,"trace":"8d6f64ee-ad26-45a4-9efd-1080f9fca1fa","data":array())
+                    // below Error codes used interchangeably for both failed postOnly and IOC orders depending on market price and order side
+                    '50035' => '\\ccxt\\InvalidOrder', // array("message":"The price is low and there is no matching depth","code":50035,"trace":"677f01c7-8b88-4346-b097-b4226c75c90e","data":array())
+                    '50034' => '\\ccxt\\InvalidOrder', // array("message":"The price is high and there is no matching depth","code":50034,"trace":"ebfae59a-ba69-4735-86b2-0ed7b9ca14ea","data":array())
                     '53000' => '\\ccxt\\AccountSuspended', // 403, Your account is frozen due to security policies. Please contact customer service
                     '53001' => '\\ccxt\\AccountSuspended', // array("message":"Your kyc country is restricted. Please contact customer service.","code":53001,"trace":"8b445940-c123-4de9-86d7-73c5be2e7a24","data":array())
                     '57001' => '\\ccxt\\BadRequest', // 405, Method Not Allowed
@@ -415,6 +418,7 @@ class bitmart extends Exchange {
             'status' => $status,
             'updated' => $this->milliseconds(),
             'eta' => $eta,
+            'url' => null,
             'info' => $response,
         );
     }
@@ -678,60 +682,70 @@ class bitmart extends Exchange {
         //
         // spot
         //
-        //     {
-        //         "symbol":"ETH_BTC",
-        //         "last_price":"0.036037",
-        //         "quote_volume_24h":"4380.6660000000",
-        //         "base_volume_24h":"159.3582006712",
-        //         "high_24h":"0.036972",
-        //         "low_24h":"0.035524",
-        //         "open_24h":"0.036561",
-        //         "close_24h":"0.036037",
-        //         "best_ask":"0.036077",
-        //         "best_ask_size":"9.9500",
-        //         "best_bid":"0.035983",
-        //         "best_bid_size":"4.2792",
-        //         "fluctuation":"-0.0143",
-        //         "s_t" => "1630981727", // ws only
-        //         "url":"https://www.bitmart.com/trade?$symbol=ETH_BTC"
-        //     }
+        //      {
+        //          "symbol":"DOGE_USDT",
+        //          "last_price":"0.128300",
+        //          "quote_volume_24h":"2296619.060420",
+        //          "base_volume_24h":"17508866.000000000000000000000000000000",
+        //          "high_24h":"0.133900",
+        //          "low_24h":"0.127799",
+        //          "open_24h":"0.133100",
+        //          "close_24h":"0.128300",
+        //          "best_ask":"0.128530",
+        //          "best_ask_size":"15170",
+        //          "best_bid":"0.128200",
+        //          "best_bid_size":"21232",
+        //          "fluctuation":"-0.0361",
+        //          "s_t" => 1610936002, // ws only
+        //          "url":"https://www.bitmart.com/trade?$symbol=DOGE_USDT"
+        //      }
         //
         // contract
         //
-        //     {
-        //         contract_symbol => "DGBUSDT",
-        //         last_price => "0.05759",
-        //         index_price => "0.05757755",
-        //         last_funding_rate => "0.00010000",
-        //         price_change_percent_24h => "0.244",
-        //         volume_24h => "64303817.028126",
-        //         url => "https://futures.bitmart.com/en?$symbol=DGBUSDT"
-        //     }
+        //      {
+        //          "contract_symbol":"DOGEUSDT",
+        //          "last_price":"0.130340",
+        //          "index_price":"0.13048245",
+        //          "last_funding_rate":"0.00002287",
+        //          "price_change_percent_24h":"-2.074",
+        //          "volume_24h":"113705028.59482228",
+        //          "url":"https://futures.bitmart.com/en?$symbol=DOGEUSDT",
+        //          "high_price":"0.134520",
+        //          "low_price":"0.128570",
+        //          "legal_coin_price":"0.1302699"
+        //      }
         //
         $timestamp = $this->safe_timestamp_2($ticker, 'timestamp', 's_t', $this->milliseconds());
-        $marketId = $this->safe_string_2($ticker, 'symbol', 'contract_id');
+        $marketId = $this->safe_string_2($ticker, 'symbol', 'contract_symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $last = $this->safe_string_2($ticker, 'close_24h', 'last_price');
-        $percentage = $this->safe_string_2($ticker, 'fluctuation', 'rise_fall_rate');
-        $percentage = Precise::string_mul($percentage, '100');
+        $percentage = $this->safe_string($ticker, 'price_change_percent_24h');
         if ($percentage === null) {
-            $percentage = $this->safe_string($ticker, 'price_change_percent_24h');
+            $percentageRaw = $this->safe_string($ticker, 'fluctuation');
+            if (($percentageRaw !== null) && ($percentageRaw !== '0')) { // a few tickers show strictly '0' in fluctuation field
+                $direction = $percentageRaw[0];
+                $percentage = $direction . Precise::string_mul(str_replace($direction, '', $percentageRaw), '100');
+            } else if ($percentageRaw === '0') {
+                $percentage = '0';
+            }
         }
-        $baseVolume = $this->safe_string_2($ticker, 'base_coin_volume', 'base_volume_24h');
-        $quoteVolume = $this->safe_string_2($ticker, 'quote_coin_volume', 'quote_volume_24h');
+        $baseVolume = $this->safe_string($ticker, 'base_volume_24h');
+        $quoteVolume = $this->safe_string($ticker, 'quote_volume_24h');
         $quoteVolume = $this->safe_string($ticker, 'volume_24h', $quoteVolume);
-        $average = $this->safe_string($ticker, 'avg_price');
+        $average = $this->safe_string_2($ticker, 'avg_price', 'index_price');
         $price = $this->safe_string($ticker, 'depth_price', $ticker);
+        $high = $this->safe_string_2($ticker, 'high_24h', 'high_price');
+        $low = $this->safe_string_2($ticker, 'low_24h', 'low_price');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_string_2($ticker, 'high', 'high_24h'),
-            'low' => $this->safe_string_2($ticker, 'low', 'low_24h'),
-            'bid' => $this->safe_string_2($price, 'best_bid', 'bid_price'),
+            'high' => $high,
+            'low' => $low,
+            'bid' => $this->safe_string($price, 'best_bid'),
             'bidVolume' => $this->safe_string($ticker, 'best_bid_size'),
-            'ask' => $this->safe_string_2($price, 'best_ask', 'ask_price'),
+            'ask' => $this->safe_string($price, 'best_ask'),
             'askVolume' => $this->safe_string($ticker, 'best_ask_size'),
             'vwap' => null,
             'open' => $this->safe_string($ticker, 'open_24h'),
@@ -754,7 +768,7 @@ class bitmart extends Exchange {
         $method = null;
         if ($market['swap'] || $market['future']) {
             $method = 'publicContractGetTickers';
-            $request['contractID'] = $market['id'];
+            $request['contract_symbol'] = $market['id'];
         } else if ($market['spot']) {
             $method = 'publicSpotGetTicker';
             $request['symbol'] = $market['id'];
@@ -791,28 +805,37 @@ class bitmart extends Exchange {
         //
         // contract
         //
-        //     {
-        //         message => "OK",
-        //         code => "1000",
-        //         trace => "84a0dc44-b395-4bae-a1b7-fe1201defd51",
-        //         $data => array(
-        //             $tickers => array(
-        //                 array(
-        //                     contract_symbol => "DGBUSDT",
-        //                     last_price => "0.05759",
-        //                     index_price => "0.05757755",
-        //                     last_funding_rate => "0.00010000",
-        //                     price_change_percent_24h => "0.244",
-        //                     volume_24h => "64303817.028126",
-        //                     url => "https://futures.bitmart.com/en?$symbol=DGBUSDT"
-        //                 ),
-        //             ),
-        //         ),
-        //     }
+        //      {
+        //          "message":"OK",
+        //          "code":1000,
+        //          "trace":"4a0ebceb-d3f7-45a3-8feb-f61e230e24cd",
+        //          "data":{
+        //              "tickers":array(
+        //                  {
+        //                      "contract_symbol":"DOGEUSDT",
+        //                      "last_price":"0.130180",
+        //                      "index_price":"0.13028635",
+        //                      "last_funding_rate":"0.00002025",
+        //                      "price_change_percent_24h":"-2.326",
+        //                      "volume_24h":"116789313.01797258",
+        //                      "url":"https://futures.bitmart.com/en?$symbol=DOGEUSDT",
+        //                      "high_price":"0.134520",
+        //                      "low_price":"0.128570",
+        //                      "legal_coin_price":"0.13017401"
+        //                  }
+        //              )
+        //          }
+        //      }
         //
         $data = $this->safe_value($response, 'data', array());
         $tickers = $this->safe_value($data, 'tickers', array());
-        $tickersById = $this->index_by($tickers, 'symbol');
+        // fails in naming for contract $tickers 'contract_symbol'
+        $tickersById = null;
+        if ($market['spot']) {
+            $tickersById = $this->index_by($tickers, 'symbol');
+        } else if ($market['swap'] || $market['future']) {
+            $tickersById = $this->index_by($tickers, 'contract_symbol');
+        }
         $ticker = $this->safe_value($tickersById, $market['id']);
         return $this->parse_ticker($ticker, $market);
     }
@@ -1699,6 +1722,27 @@ class bitmart extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
             $request['vol'] = $this->amount_to_precision($symbol, $amount);
         }
+        $timeInForce = $this->safe_string($params, 'timeInForce');
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        if (($timeInForce !== null) || $postOnly || ($type === 'limit_maker') || ($type === 'ioc')) {
+            if ($timeInForce === 'FOK') {
+                throw new InvalidOrder($this->id . ' createOrder() only accepts $timeInForce parameter values of IOC or PO');
+            }
+            $maker = (($timeInForce === 'PO') || $postOnly || ($type === 'limit_maker'));
+            $ioc = (($timeInForce === 'IOC') || ($type === 'ioc'));
+            if ($maker && $ioc) {
+                throw new InvalidOrder($this->id . ' createOrder() does not accept IOC $postOnly orders, the order cannot be both $postOnly and IOC');
+            }
+            if ($type === 'market') {
+                throw new InvalidOrder($this->id . ' createOrder() does not accept $market $postOnly orders or $market IOC orders, only limit $postOnly order or limit IOC orders are allowed');
+            }
+            if ($maker) {
+                $request['type'] = 'limit_maker';
+            } else if ($ioc) {
+                $request['type'] = 'ioc';
+            }
+            $params = $this->omit($params, array( 'timeInForce', 'postOnly' ));
+        }
         $response = yield $this->$method (array_merge($request, $params));
         //
         // spot and contract
@@ -2002,7 +2046,7 @@ class bitmart extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         if (!($market['swap'] || $market['future'])) {
-            throw new NotSupported($this->id . ' fetchOrders does not support ' . $market['type'] . ' markets, only contracts are supported');
+            throw new NotSupported($this->id . ' fetchOrders() does not support ' . $market['type'] . ' markets, only contracts are supported');
         }
         return yield $this->fetch_orders_by_status(0, $symbol, $since, $limit, $params);
     }

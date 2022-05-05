@@ -277,7 +277,7 @@ class coinbase extends Exchange {
             }
         }
         if ($accountId === null) {
-            throw new ExchangeError($this->id . ' createDepositAddress could not find the $account with matching currency $code, specify an `account_id` extra param');
+            throw new ExchangeError($this->id . ' createDepositAddress() could not find the $account with matching currency $code, specify an `account_id` extra param');
         }
         $request = array(
             'account_id' => $accountId,
@@ -1220,7 +1220,7 @@ class coinbase extends Exchange {
     public function prepare_account_request($limit = null, $params = array ()) {
         $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
         if ($accountId === null) {
-            throw new ArgumentsRequired($this->id . ' method requires an account_id (or $accountId) parameter');
+            throw new ArgumentsRequired($this->id . ' prepareAccountRequest() method requires an account_id (or $accountId) parameter');
         }
         $request = array(
             'account_id' => $accountId,
@@ -1235,11 +1235,11 @@ class coinbase extends Exchange {
         $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
         if ($accountId === null) {
             if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' method requires an account_id (or $accountId) parameter OR a currency $code argument');
+                throw new ArgumentsRequired($this->id . ' prepareAccountRequestWithCurrencyCode() method requires an account_id (or $accountId) parameter OR a currency $code argument');
             }
             $accountId = $this->find_account_id($code);
             if ($accountId === null) {
-                throw new ExchangeError($this->id . ' could not find account id for ' . $code);
+                throw new ExchangeError($this->id . ' prepareAccountRequestWithCurrencyCode() could not find account id for ' . $code);
             }
         }
         $request = array(
