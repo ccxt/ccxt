@@ -40,11 +40,30 @@ class okx(Exchange, ccxt.okx):
             },
             'options': {
                 'watchOrderBook': {
-                    # books, 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed every 100 ms when there is change in order book.
-                    # books5, 5 depth levels will be pushed every time. Data will be pushed every 100 ms when there is change in order book.
-                    # books50-l2-tbt, 50 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
-                    # books-l2-tbt, 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
-                    'depth': 'books-l2-tbt',
+                    #
+                    # bbo-tbt
+                    # 1. Newly added channel that sends tick-by-tick Level 1 data
+                    # 2. All API users can subscribe
+                    # 3. Public depth channel, verification not required
+                    #
+                    # books-l2-tbt
+                    # 1. Only users who're VIP5 and above can subscribe
+                    # 2. Identity verification required before subscription
+                    #
+                    # books50-l2-tbt
+                    # 1. Only users who're VIP4 and above can subscribe
+                    # 2. Identity verification required before subscription
+                    #
+                    # books
+                    # 1. All API users can subscribe
+                    # 2. Public depth channel, verification not required
+                    #
+                    # books5
+                    # 1. All API users can subscribe
+                    # 2. Public depth channel, verification not required
+                    # 3. Data feeds will be delivered every 100ms(vs. every 200ms now)
+                    #
+                    'depth': 'books',
                 },
                 'watchBalance': 'spot',  # margin, futures, swap
                 'ws': {
