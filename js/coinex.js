@@ -2713,21 +2713,21 @@ module.exports = class coinex extends Exchange {
             const ladder = response[currencyId];
             const tiers = [];
             const symbol = this.safeSymbol (currencyId);
+            let minNotional = 0;
             for (let j = 0; j < ladder.length; j++) {
                 const bracket = ladder[j];
-                const leverage = this.safeString (bracket, 1);
-                const maxNotional = this.safeString (bracket, 0);
-                const previousBracket = ladder[j - 1];
-                const minNotional = (previousBracket === undefined) ? 0 : this.safeString (previousBracket, 0);
+                const leverage = this.safeInteger (bracket, 1);
+                const maxNotional = this.safeNumber (bracket, 0);
                 tiers.push ({
-                    'tier': this.parseNumber (Precise.stringAdd (j.toString (), '1')),
+                    'tier': j + 1,
                     'currency': undefined,
-                    'minNotional': this.parseNumber (minNotional),
-                    'maxNotional': this.parseNumber (maxNotional),
-                    'maintenanceMarginRate': this.parseNumber (this.safeString (bracket, 2)),
-                    'maxLeverage': this.parseNumber (leverage),
+                    'minNotional': minNotional,
+                    'maxNotional': maxNotional,
+                    'maintenanceMarginRate': this.safeNumber (bracket, 2),
+                    'maxLeverage': leverage,
                     'info': bracket,
                 });
+                minNotional = maxNotional;
             }
             result[symbol] = tiers;
         }
