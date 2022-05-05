@@ -44,7 +44,6 @@ module.exports = class novadax extends Exchange {
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
-                'fetchFundingRateHistories': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
