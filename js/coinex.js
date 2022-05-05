@@ -3125,10 +3125,10 @@ module.exports = class coinex extends Exchange {
     }
 
     parseTransferStatus (status) {
-        if (status === 0) {
-            return 'ok';
-        }
-        return 'failed';
+        const statuses = {
+            '0': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseTransfer (transfer, currency = undefined) {
@@ -3163,7 +3163,7 @@ module.exports = class coinex extends Exchange {
             'amount': this.safeNumber (transfer, 'amount'),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': this.parseTransferStatus (this.safeInteger (transfer, 'code')),
+            'status': this.parseTransferStatus (this.safeString (transfer, 'code')),
         };
     }
 
