@@ -1898,23 +1898,15 @@ module.exports = class gateio extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
         const method = this.getSupportedMapping (type, {
             'spot': 'publicSpotGetTickers',
             'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'future': 'publicDeliveryGetSettleTickers',
         });
-        const request = {};
-        const future = type === 'future';
-        const swap = type === 'swap';
-        const defaultSettle = swap ? 'usdt' : 'btc';
-        const settle = this.safeStringLower (params, 'settle', defaultSettle);
-        if (swap || future) {
-            request['settle'] = settle;
-        }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, requestParams));
         return this.parseTickers (response, symbols);
     }
 
