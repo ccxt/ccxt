@@ -489,36 +489,35 @@ class whitebit extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
+        //
         //  FetchTicker (v1)
         //
-        //      {
-        //          "bid":"0.021979",
-        //          "ask":"0.021996",
-        //          "open":"0.02182",
-        //          "high":"0.022039",
-        //          "low":"0.02161",
-        //          "last":"0.021987",
-        //          "volume":"2810.267",
-        //          "deal":"61.383565474",
-        //          "change":"0.76",
-        //      }
+        //    {
+        //        "bid" => "0.021979",
+        //        "ask" => "0.021996",
+        //        "open" => "0.02182",
+        //        "high" => "0.022039",
+        //        "low" => "0.02161",
+        //        "last" => "0.021987",
+        //        "volume" => "2810.267",
+        //        "deal" => "61.383565474",
+        //        "change" => "0.76",
+        //    }
         //
         // FetchTickers (v4)
         //
-        //      "BCH_RUB":array(
-        //          "base_id":1831,
-        //          "quote_id":0,
-        //          "last_price":"32830.21",
-        //          "quote_volume":"1494659.8024096",
-        //          "base_volume":"46.1083",
-        //          "isFrozen":false,
-        //          "change":"2.12" // in percent
-        //      ),
+        //    "BCH_RUB" => {
+        //        "base_id" => 1831,
+        //        "quote_id" => 0,
+        //        "last_price" => "32830.21",
+        //        "quote_volume" => "1494659.8024096",
+        //        "base_volume" => "46.1083",
+        //        "isFrozen" => false,
+        //        "change" => "2.12" // in percent
+        //    }
         //
         $market = $this->safe_market(null, $market);
         $last = $this->safe_string($ticker, 'last_price');
-        $change = $this->safe_string($ticker, 'change');
-        $percentage = Precise::string_mul($change, '0.01');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => null,
@@ -535,7 +534,7 @@ class whitebit extends Exchange {
             'last' => $last,
             'previousClose' => null,
             'change' => null,
-            'percentage' => $percentage,
+            'percentage' => $this->safe_string($ticker, 'change'),
             'average' => null,
             'baseVolume' => $this->safe_string_2($ticker, 'base_volume', 'volume'),
             'quoteVolume' => $this->safe_string_2($ticker, 'quote_volume', 'deal'),

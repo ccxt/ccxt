@@ -60,6 +60,7 @@ class coinex extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
+                'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
                 'setLeverage' => true,
@@ -3095,6 +3096,88 @@ class coinex extends Exchange {
             'updated' => null,
             'fee' => $fee,
         );
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        // fetchTransfers
+        //
+        //     array(
+        //         "amount" => "10",
+        //         "asset" => "USDT",
+        //         "transfer_type" => "transfer_out", // from swap to spot
+        //         "created_at" => 1651633422
+        //     ),
+        //
+        $timestamp = $this->safe_timestamp($transfer, 'created_at');
+        $transferType = $this->safe_string($transfer, 'transfer_type');
+        $fromAccount = null;
+        $toAccount = null;
+        if ($transferType === 'transfer_out') {
+            $fromAccount = 'swap';
+            $toAccount = 'spot';
+        } else if ($transferType === 'transfer_in') {
+            $fromAccount = 'spot';
+            $toAccount = 'swap';
+        }
+        $currencyId = $this->safe_string($transfer, 'asset');
+        $currencyCode = $this->safe_currency_code($currencyId, $currency);
+        return array(
+            'id' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $currencyCode,
+            'amount' => $this->safe_number($transfer, 'amount'),
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'status' => $this->safe_string($transfer, 'message'),
+        );
+    }
+
+    public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $currency = null;
+        $request = array(
+            'page' => 1,
+            'limit' => $limit,
+            // 'asset' => 'USDT',
+            // 'start_time' => $since,
+            // 'end_time' => 1515806440,
+            // 'transfer_type' => 'transfer_in', // transfer_in => from Spot to Swap Account, transfer_out => from Swap to Spot Account
+        );
+        $page = $this->safe_integer($params, 'page');
+        if ($page !== null) {
+            $request['page'] = $page;
+        }
+        if ($code !== null) {
+            $currency = $this->safe_currency_code($code);
+            $request['asset'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['start_time'] = $since;
+        }
+        $params = $this->omit($params, 'page');
+        $response = $this->privateGetContractTransferHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             "records" => array(
+        //                 array(
+        //                     "amount" => "10",
+        //                     "asset" => "USDT",
+        //                     "transfer_type" => "transfer_out",
+        //                     "created_at" => 1651633422
+        //                 ),
+        //             ),
+        //             "total" => 5
+        //         ),
+        //         "message" => "Success"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $transfers = $this->safe_value($data, 'records', array());
+        return $this->parse_transfers($transfers, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {

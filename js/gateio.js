@@ -651,17 +651,17 @@ module.exports = class gateio extends Exchange {
         //
         //     [
         //         {
-        //             "id":"QTUM_ETH",
-        //             "base":"QTUM",
-        //             "quote":"ETH",
-        //             "fee":"0.2",
-        //             "min_base_amount":"0.01",
-        //             "min_quote_amount":"0.001",
-        //             "amount_precision":3,
-        //             "precision":6,
-        //             "trade_status":"tradable",
-        //             "sell_start":0,
-        //             "buy_start":0
+        //             "id": "QTUM_ETH",
+        //             "base": "QTUM",
+        //             "quote": "ETH",
+        //             "fee": "0.2",
+        //             "min_base_amount": "0.01",
+        //             "min_quote_amount": "0.001",
+        //             "amount_precision": 3,
+        //             "precision": 6,
+        //             "trade_status": "tradable",
+        //             "sell_start": 0,
+        //             "buy_start": 0
         //         }
         //     ]
         //
@@ -781,6 +781,7 @@ module.exports = class gateio extends Exchange {
     parseContractMarket (market, settleId) {
         //
         //  Perpetual swap
+        //
         //    {
         //        "name": "BTC_USDT",
         //        "type": "direct",
@@ -823,6 +824,7 @@ module.exports = class gateio extends Exchange {
         //    }
         //
         //  Delivery Futures
+        //
         //    {
         //        "name": "BTC_USDT_20200814",
         //        "underlying": "BTC_USDT",
@@ -953,40 +955,40 @@ module.exports = class gateio extends Exchange {
             const response = await this.publicOptionsGetContracts (query);
             //
             //    [
-            //      {
-            //          "orders_limit":"50",
-            //          "order_size_max":"100000",
-            //          "mark_price_round":"0.1",
-            //          "order_size_min":"1",
-            //          "position_limit":"1000000",
-            //          "orderbook_id":"575967",
-            //          "order_price_deviate":"0.9",
-            //          "is_call":true, // true means Call false means Put
-            //          "last_price":"93.9",
-            //          "bid1_size":"0",
-            //          "bid1_price":"0",
-            //          "taker_fee_rate":"0.0004",
-            //          "underlying":"BTC_USDT",
-            //          "create_time":"1646381188",
-            //          "price_limit_fee_rate":"0.1",
-            //          "maker_fee_rate":"0.0004",
-            //          "trade_id":"727",
-            //          "order_price_round":"0.1",
-            //          "settle_fee_rate":"0.0001",
-            //          "trade_size":"1982",
-            //          "ref_rebate_rate":"0",
-            //          "name":"BTC_USDT-20220311-44000-C",
-            //          "underlying_price":"39194.26",
-            //          "strike_price":"44000",
-            //          "multiplier":"0.0001",
-            //          "ask1_price":"0",
-            //          "ref_discount_rate":"0",
-            //          "expiration_time":"1646985600",
-            //          "mark_price":"12.15",
-            //          "position_size":"4",
-            //          "ask1_size":"0",
-            //          "tag":"WEEK"
-            //       }
+            //        {
+            //            "orders_limit": "50",
+            //            "order_size_max": "100000",
+            //            "mark_price_round": "0.1",
+            //            "order_size_min": "1",
+            //            "position_limit": "1000000",
+            //            "orderbook_id": "575967",
+            //            "order_price_deviate": "0.9",
+            //            "is_call": true, // true means Call false means Put
+            //            "last_price": "93.9",
+            //            "bid1_size": "0",
+            //            "bid1_price": "0",
+            //            "taker_fee_rate": "0.0004",
+            //            "underlying": "BTC_USDT",
+            //            "create_time": "1646381188",
+            //            "price_limit_fee_rate": "0.1",
+            //            "maker_fee_rate": "0.0004",
+            //            "trade_id": "727",
+            //            "order_price_round": "0.1",
+            //            "settle_fee_rate": "0.0001",
+            //            "trade_size": "1982",
+            //            "ref_rebate_rate": "0",
+            //            "name": "BTC_USDT-20220311-44000-C",
+            //            "underlying_price": "39194.26",
+            //            "strike_price": "44000",
+            //            "multiplier": "0.0001",
+            //            "ask1_price": "0",
+            //            "ref_discount_rate": "0",
+            //            "expiration_time": "1646985600",
+            //            "mark_price": "12.15",
+            //            "position_size": "4",
+            //            "ask1_size": "0",
+            //            "tag": "WEEK"
+            //        }
             //    ]
             //
             for (let i = 0; i < response.length; i++) {
@@ -1072,9 +1074,9 @@ module.exports = class gateio extends Exchange {
         //
         //    [
         //        {
-        //           "index_time":"1646915796",
-        //           "name":"BTC_USDT",
-        //           "index_price":"39142.73"
+        //            "index_time": "1646915796",
+        //            "name": "BTC_USDT",
+        //            "index_price": "39142.73"
         //        }
         //    ]
         //
@@ -1151,14 +1153,14 @@ module.exports = class gateio extends Exchange {
         }
         const response = await this.publicSpotGetCurrencies (params);
         //
-        //     {
-        //       "currency": "BCN",
-        //       "delisted": false,
-        //       "withdraw_disabled": true,
-        //       "withdraw_delayed": false,
-        //       "deposit_disabled": true,
-        //       "trade_disabled": false
-        //     }
+        //    {
+        //        "currency": "BCN",
+        //        "delisted": false,
+        //        "withdraw_disabled": true,
+        //        "withdraw_delayed": false,
+        //        "deposit_disabled": true,
+        //        "trade_disabled": false
+        //    }
         //
         const result = {};
         // TODO: remove magic constants
@@ -1391,13 +1393,13 @@ module.exports = class gateio extends Exchange {
         for (let i = 0; i < addresses.length; i++) {
             const entry = addresses[i];
             //
-            //     {
-            //       "chain": "ETH",
-            //       "address": "0x359a697945E79C7e17b634675BD73B33324E9408",
-            //       "payment_id": "",
-            //       "payment_name": "",
-            //       "obtain_failed": "0"
-            //     }
+            //    {
+            //        "chain": "ETH",
+            //        "address": "0x359a697945E79C7e17b634675BD73B33324E9408",
+            //        "payment_id": "",
+            //        "payment_name": "",
+            //        "obtain_failed": "0"
+            //    }
             //
             const obtainFailed = this.safeInteger (entry, 'obtain_failed');
             if (obtainFailed) {
@@ -1469,18 +1471,18 @@ module.exports = class gateio extends Exchange {
         };
         const response = await this.privateWalletGetFee (this.extend (request, params));
         //
-        //     {
-        //       "user_id": 1486602,
-        //       "taker_fee": "0.002",
-        //       "maker_fee": "0.002",
-        //       "gt_discount": true,
-        //       "gt_taker_fee": "0.0015",
-        //       "gt_maker_fee": "0.0015",
-        //       "loan_fee": "0.18",
-        //       "point_type": "0",
-        //       "futures_taker_fee": "0.0005",
-        //       "futures_maker_fee": "0"
-        //     }
+        //    {
+        //        "user_id": 1486602,
+        //        "taker_fee": "0.002",
+        //        "maker_fee": "0.002",
+        //        "gt_discount": true,
+        //        "gt_taker_fee": "0.0015",
+        //        "gt_maker_fee": "0.0015",
+        //        "loan_fee": "0.18",
+        //        "point_type": "0",
+        //        "futures_taker_fee": "0.0005",
+        //        "futures_maker_fee": "0"
+        //    }
         //
         return this.parseTradingFee (response, market);
     }
@@ -1489,18 +1491,18 @@ module.exports = class gateio extends Exchange {
         await this.loadMarkets ();
         const response = await this.privateWalletGetFee (params);
         //
-        //     {
-        //       "user_id": 1486602,
-        //       "taker_fee": "0.002",
-        //       "maker_fee": "0.002",
-        //       "gt_discount": true,
-        //       "gt_taker_fee": "0.0015",
-        //       "gt_maker_fee": "0.0015",
-        //       "loan_fee": "0.18",
-        //       "point_type": "0",
-        //       "futures_taker_fee": "0.0005",
-        //       "futures_maker_fee": "0"
-        //     }
+        //    {
+        //        "user_id": 1486602,
+        //        "taker_fee": "0.002",
+        //        "maker_fee": "0.002",
+        //        "gt_discount": true,
+        //        "gt_taker_fee": "0.0015",
+        //        "gt_maker_fee": "0.0015",
+        //        "loan_fee": "0.18",
+        //        "point_type": "0",
+        //        "futures_taker_fee": "0.0005",
+        //        "futures_maker_fee": "0"
+        //    }
         //
         return this.parseTradingFees (response);
     }
@@ -1782,7 +1784,7 @@ module.exports = class gateio extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        //  SPOT
+        // SPOT
         //
         //     {
         //         "currency_pair": "KFC_USDT",
@@ -1796,7 +1798,7 @@ module.exports = class gateio extends Exchange {
         //         "low_24h": "7.095"
         //     }
         //
-        //  LINEAR/DELIVERY
+        // LINEAR/DELIVERY
         //
         //     {
         //         "contract": "BTC_USDT",
@@ -1931,6 +1933,7 @@ module.exports = class gateio extends Exchange {
         if (contract) {
             response = [ response ];
         }
+        //
         // Spot / margin funding
         //
         //     [
@@ -1970,21 +1973,22 @@ module.exports = class gateio extends Exchange {
         //    ]
         //
         // Cross margin
-        //   {
-        //       "user_id": 10406147,
-        //       "locked": false,
-        //       "balances": {
+        //
+        //    {
+        //        "user_id": 10406147,
+        //        "locked": false,
+        //        "balances": {
         //            "USDT": {
         //                "available": "1",
         //                "freeze": "0",
         //                "borrowed": "0",
         //                "interest": "0"
         //            }
-        //       },
-        //       "total": "1",
-        //       "borrowed": "0",
-        //       "interest": "0",
-        //       "risk": "9999.99"
+        //        },
+        //        "total": "1",
+        //        "borrowed": "0",
+        //        "interest": "0",
+        //        "risk": "9999.99"
         //    }
         //
         //  Perpetual Swap
@@ -2014,7 +2018,7 @@ module.exports = class gateio extends Exchange {
         //        user: "6333333",
         //    }
         //
-        //   Delivery Future
+        // Delivery Future
         //
         //    {
         //        order_margin: "0",
@@ -2186,9 +2190,9 @@ module.exports = class gateio extends Exchange {
         //     {
         //          "t":1632873600,         // Unix timestamp in seconds
         //          "o": "41025",           // Open price
-        //          "h": "41882.17",         // Highest price
-        //          "c": "41776.92",         // Close price
-        //          "l": "40783.94"          // Lowest price
+        //          "h": "41882.17",        // Highest price
+        //          "c": "41776.92",        // Close price
+        //          "l": "40783.94"         // Lowest price
         //     }
         //
         if (Array.isArray (ohlcv)) {
@@ -2422,13 +2426,13 @@ module.exports = class gateio extends Exchange {
         // perpetual swap rest
         //
         //     {
-        //         "size":-5,
-        //         "order_id":"130264979823",
-        //         "id":26884791,
-        //         "role":"taker",
-        //         "create_time":1645465199.5472,
-        //         "contract":"DOGE_USDT",
-        //         "price":"0.136888"
+        //         "size": -5,
+        //         "order_id": "130264979823",
+        //         "id": 26884791,
+        //         "role": "taker",
+        //         "create_time": 1645465199.5472,
+        //         "contract": "DOGE_USDT",
+        //         "price": "0.136888"
         //     }
         //
         // future rest
@@ -2593,8 +2597,6 @@ module.exports = class gateio extends Exchange {
         //        "status": "DONE",
         //        "memo": ""
         //    }
-        //
-        // withdrawals
         //
         // withdraw
         //
@@ -2867,7 +2869,7 @@ module.exports = class gateio extends Exchange {
         //
         // spot conditional
         //
-        //     {"id":5891843}
+        //     {"id": 5891843}
         //
         // future and perpetual swaps
         //
@@ -2895,7 +2897,7 @@ module.exports = class gateio extends Exchange {
         //
         // futures and perpetual swaps conditionals
         //
-        //     {"id":7615567}
+        //     {"id": 7615567}
         //
         return this.parseOrder (response, market);
     }
@@ -2945,11 +2947,13 @@ module.exports = class gateio extends Exchange {
         //
         // SPOT TRIGGER ORDERS
         // createOrder
+        //
         //    {
-        //        "id":12604556
+        //        "id": 12604556
         //    }
         //
         // fetchOrder/cancelOrder
+        //
         //    {
         //        "market": "ADA_USDT",
         //        "user": 6392049,
@@ -2999,13 +3003,14 @@ module.exports = class gateio extends Exchange {
         //    }
         //
         // TRIGGER ORDERS (FUTURE AND SWAP)
-        //
         // createOrder
+        //
         //    {
-        //        "id":12604556
+        //        "id": 12604556
         //    }
         //
         // fetchOrder/cancelOrder
+        //
         //    {
         //        "user": 6320300,
         //        "trigger": {
@@ -3156,15 +3161,14 @@ module.exports = class gateio extends Exchange {
          * @param {str} symbol Unified market symbol
          * @param {dict} params Parameters specified by the exchange api
          * @param {bool} params.stop True if the order being fetched is a trigger order
+         * @param {str} params.marginType 'cross' or 'isolated' - marginType for margin trading if not provided this.options['defaultMarginType'] is used
+         * @param {str} params.type 'spot', 'swap', or 'future', if not provided this.options['defaultMarginType'] is used
+         * @param {str} params.settle 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future
          * @returns An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const stop = this.safeValue2 (params, 'is_stop_order', 'stop', false);
         params = this.omit (params, [ 'is_stop_order', 'stop' ]);
-        const market = this.market (symbol);
         let clientOrderId = this.safeString2 (params, 'text', 'clientOrderId');
         let orderId = id;
         if (clientOrderId !== undefined) {
@@ -3177,21 +3181,45 @@ module.exports = class gateio extends Exchange {
         const request = {
             'order_id': orderId,
         };
-        if (market['spot'] || market['margin']) {
-            request['currency_pair'] = market['id'];
+        let market = undefined;
+        let settle = undefined;
+        let type = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            if (market['spot']) {
+                request['currency_pair'] = market['id'];
+            } else {
+                settle = market['settle'];
+            }
+        }
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        if (!stop && type === 'spot' && symbol === undefined) {
+            // Symbol not required for stop orders
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument for spot orders');
+        }
+        const swap = type === 'swap';
+        if (swap || type === 'future') {
+            if (settle === undefined) {
+                const defaultSettle = swap ? 'usdt' : 'btc';
+                settle = this.safeStringLower (params, 'settle', defaultSettle);
+                params = this.omit (params, 'settle');
+            }
+            request['settle'] = settle;
         } else {
-            request['settle'] = market['settleId'];
+            let marginType = undefined;
+            [ marginType, params ] = this.getMarginType (stop, params);
+            request['account'] = marginType;
         }
         let method = undefined;
         if (stop) {
-            method = this.getSupportedMapping (market['type'], {
+            method = this.getSupportedMapping (type, {
                 'spot': 'privateSpotGetPriceOrdersOrderId',
                 'margin': 'privateSpotGetPriceOrdersOrderId',
                 'swap': 'privateFuturesGetSettlePriceOrdersOrderId',
                 'future': 'privateDeliveryGetSettlePriceOrdersOrderId',
             });
         } else {
-            method = this.getSupportedMapping (market['type'], {
+            method = this.getSupportedMapping (type, {
                 'spot': 'privateSpotGetOrdersOrderId',
                 'margin': 'privateSpotGetOrdersOrderId',
                 'swap': 'privateFuturesGetSettleOrdersOrderId',
@@ -3261,6 +3289,7 @@ module.exports = class gateio extends Exchange {
             //     ]
             //
             // price_orders
+            //
             //    [
             //        {
             //            "market": "ADA_USDT",
@@ -3326,6 +3355,7 @@ module.exports = class gateio extends Exchange {
         const response = await this[method] (this.extend (request, params));
         //
         // SPOT
+        //
         //    {
         //        "id": "8834234273",
         //        "text": "3",
@@ -3354,6 +3384,7 @@ module.exports = class gateio extends Exchange {
         //    }
         //
         // Perpetual Swap
+        //
         //    {
         //        "status": "finished",
         //        "size": -1,
@@ -3549,6 +3580,18 @@ module.exports = class gateio extends Exchange {
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name gateio#transfer
+         * @description makes internal transfers of funds between accounts on the same exchange
+         * @param {str} code unified currency code for currency being transferred
+         * @param {float} amount the amount of currency to transfer
+         * @param {str} fromAccount the account to transfer currency from
+         * @param {str} toAccount the account to transfer currency to
+         * @param {dict} params Exchange specific parameters
+         * @param {dict} params.symbol Unified market symbol *required for type == margin*
+         * @returns A [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
@@ -3569,6 +3612,15 @@ module.exports = class gateio extends Exchange {
             'to': toId,
             'amount': truncated,
         };
+        if (fromAccount === 'margin' || toAccount === 'margin') {
+            const symbol = this.safeString2 (params, 'symbol', 'currency_pair');
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' transfer() requires params.symbol for isolated margin transfers');
+            }
+            const market = this.market (symbol);
+            request['currency_pair'] = market['id'];
+            params = this.omit (params, 'symbol');
+        }
         if ((toId === 'futures') || (toId === 'delivery') || (fromId === 'futures') || (fromId === 'delivery')) {
             request['settle'] = currency['lowerCaseId'];
         }
@@ -3576,13 +3628,13 @@ module.exports = class gateio extends Exchange {
         //
         // according to the docs (however actual response seems to be an empty string '')
         //
-        //     {
-        //       "currency": "BTC",
-        //       "from": "spot",
-        //       "to": "margin",
-        //       "amount": "1",
-        //       "currency_pair": "BTC_USDT"
-        //     }
+        //    {
+        //        "currency": "BTC",
+        //        "from": "spot",
+        //        "to": "margin",
+        //        "amount": "1",
+        //        "currency_pair": "BTC_USDT"
+        //    }
         //
         const transfer = this.parseTransfer (response, currency);
         return this.extend (transfer, {
@@ -3832,53 +3884,56 @@ module.exports = class gateio extends Exchange {
             'future': 'publicDeliveryGetSettleContracts',
         });
         const response = await this[method] (query);
-        //  Perpetual swap
-        //      [
-        //          {
-        //              "name": "BTC_USDT",
-        //              "type": "direct",
-        //              "quanto_multiplier": "0.0001",
-        //              "ref_discount_rate": "0",
-        //              "order_price_deviate": "0.5",
-        //              "maintenance_rate": "0.005",
-        //              "mark_type": "index",
-        //              "last_price": "38026",
-        //              "mark_price": "37985.6",
-        //              "index_price": "37954.92",
-        //              "funding_rate_indicative": "0.000219",
-        //              "mark_price_round": "0.01",
-        //              "funding_offset": 0,
-        //              "in_delisting": false,
-        //              "risk_limit_base": "1000000",
-        //              "interest_rate": "0.0003",
-        //              "order_price_round": "0.1",
-        //              "order_size_min": 1,
-        //              "ref_rebate_rate": "0.2",
-        //              "funding_interval": 28800,
-        //              "risk_limit_step": "1000000",
-        //              "leverage_min": "1",
-        //              "leverage_max": "100",
-        //              "risk_limit_max": "8000000",
-        //              "maker_fee_rate": "-0.00025",
-        //              "taker_fee_rate": "0.00075",
-        //              "funding_rate": "0.002053",
-        //              "order_size_max": 1000000,
-        //              "funding_next_apply": 1610035200,
-        //              "short_users": 977,
-        //              "config_change_time": 1609899548,
-        //              "trade_size": 28530850594,
-        //              "position_size": 5223816,
-        //              "long_users": 455,
-        //              "funding_impact_value": "60000",
-        //              "orders_limit": 50,
-        //              "trade_id": 10851092,
-        //              "orderbook_id": 2129638396
-        //          }
-        //      ]
         //
-        //  Delivery Futures
-        //      [
-        //          {
+        // Perpetual swap
+        //
+        //    [
+        //        {
+        //            "name": "BTC_USDT",
+        //            "type": "direct",
+        //            "quanto_multiplier": "0.0001",
+        //            "ref_discount_rate": "0",
+        //            "order_price_deviate": "0.5",
+        //            "maintenance_rate": "0.005",
+        //            "mark_type": "index",
+        //            "last_price": "38026",
+        //            "mark_price": "37985.6",
+        //            "index_price": "37954.92",
+        //            "funding_rate_indicative": "0.000219",
+        //            "mark_price_round": "0.01",
+        //            "funding_offset": 0,
+        //            "in_delisting": false,
+        //            "risk_limit_base": "1000000",
+        //            "interest_rate": "0.0003",
+        //            "order_price_round": "0.1",
+        //            "order_size_min": 1,
+        //            "ref_rebate_rate": "0.2",
+        //            "funding_interval": 28800,
+        //            "risk_limit_step": "1000000",
+        //            "leverage_min": "1",
+        //            "leverage_max": "100",
+        //            "risk_limit_max": "8000000",
+        //            "maker_fee_rate": "-0.00025",
+        //            "taker_fee_rate": "0.00075",
+        //            "funding_rate": "0.002053",
+        //            "order_size_max": 1000000,
+        //            "funding_next_apply": 1610035200,
+        //            "short_users": 977,
+        //            "config_change_time": 1609899548,
+        //            "trade_size": 28530850594,
+        //            "position_size": 5223816,
+        //            "long_users": 455,
+        //            "funding_impact_value": "60000",
+        //            "orders_limit": 50,
+        //            "trade_id": 10851092,
+        //            "orderbook_id": 2129638396
+        //        }
+        //    ]
+        //
+        // Delivery Futures
+        //
+        //    [
+        //        {
         //            "name": "BTC_USDT_20200814",
         //            "underlying": "BTC_USDT",
         //            "cycle": "WEEKLY",
@@ -3918,8 +3973,8 @@ module.exports = class gateio extends Exchange {
         //            "position_size": 130,
         //            "config_change_time": 1593158867,
         //            "in_delisting": false
-        //          }
-        //        ]
+        //        }
+        //    ]
         //
         return this.parseLeverageTiers (response, symbols, 'name');
     }
@@ -3933,7 +3988,8 @@ module.exports = class gateio extends Exchange {
          * @param {dict} market CCXT market
          */
         //
-        //    Perpetual swap
+        // Perpetual swap
+        //
         //    {
         //        "name": "BTC_USDT",
         //        "type": "direct",
@@ -3975,7 +4031,8 @@ module.exports = class gateio extends Exchange {
         //        "orderbook_id": 2129638396
         //    }
         //
-        //    Delivery Futures
+        // Delivery Futures
+        //
         //    {
         //        "name": "BTC_USDT_20200814",
         //        "underlying": "BTC_USDT",
@@ -4101,11 +4158,11 @@ module.exports = class gateio extends Exchange {
             return;
         }
         //
-        //     {"label": "ORDER_NOT_FOUND", "message": "Order not found"}
-        //     {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: status"}
-        //     {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: Trigger.rule"}
-        //     {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: trigger.expiration invalid range"}
-        //     {"label": "INVALID_ARGUMENT", "detail": "invalid size"}
+        //    {"label": "ORDER_NOT_FOUND", "message": "Order not found"}
+        //    {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: status"}
+        //    {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: Trigger.rule"}
+        //    {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: trigger.expiration invalid range"}
+        //    {"label": "INVALID_ARGUMENT", "detail": "invalid size"}
         //
         const label = this.safeString (response, 'label');
         if (label !== undefined) {

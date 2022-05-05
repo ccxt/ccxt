@@ -55,6 +55,7 @@ module.exports = class coinex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
+                'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'setLeverage': true,
@@ -3123,24 +3124,93 @@ module.exports = class coinex extends Exchange {
         });
     }
 
-    parseTransfer (transfer, currency = undefined) {
-        return {
-            'id': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'currency': currency,
-            'amount': undefined,
-            'fromAccount': undefined,
-            'toAccount': undefined,
-            'status': this.parseTransferStatus (transfer, 'code'),
-        };
-    }
-
     parseTransferStatus (status) {
         if (status === 0) {
             return 'ok';
         }
         return 'failed';
+    }
+  
+    parseTransfer (transfer, currency = undefined) {
+        //
+        // fetchTransfers
+        //
+        //     {
+        //         "amount": "10",
+        //         "asset": "USDT",
+        //         "transfer_type": "transfer_out", // from swap to spot
+        //         "created_at": 1651633422
+        //     },
+        //
+        const timestamp = this.safeTimestamp (transfer, 'created_at');
+        const transferType = this.safeString (transfer, 'transfer_type');
+        let fromAccount = undefined;
+        let toAccount = undefined;
+        if (transferType === 'transfer_out') {
+            fromAccount = 'swap';
+            toAccount = 'spot';
+        } else if (transferType === 'transfer_in') {
+            fromAccount = 'spot';
+            toAccount = 'swap';
+        }
+        const currencyId = this.safeString (transfer, 'asset');
+        const currencyCode = this.safeCurrencyCode (currencyId, currency);
+        return {
+            'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': currencyCode,
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': this.parseTransferStatus (transfer, 'code'),
+        };
+    }
+
+    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {
+            'page': 1,
+            'limit': limit,
+            // 'asset': 'USDT',
+            // 'start_time': since,
+            // 'end_time': 1515806440,
+            // 'transfer_type': 'transfer_in', // transfer_in: from Spot to Swap Account, transfer_out: from Swap to Spot Account
+        };
+        const page = this.safeInteger (params, 'page');
+        if (page !== undefined) {
+            request['page'] = page;
+        }
+        if (code !== undefined) {
+            currency = this.safeCurrencyCode (code);
+            request['asset'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        params = this.omit (params, 'page');
+        const response = await this.privateGetContractTransferHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "records": [
+        //                 {
+        //                     "amount": "10",
+        //                     "asset": "USDT",
+        //                     "transfer_type": "transfer_out",
+        //                     "created_at": 1651633422
+        //                 },
+        //             ],
+        //             "total": 5
+        //         },
+        //         "message": "Success"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const transfers = this.safeValue (data, 'records', []);
+        return this.parseTransfers (transfers, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
