@@ -181,6 +181,15 @@ module.exports = class hollaex extends Exchange {
             'options': {
                 // how many seconds before the authenticated request expires
                 'api-expires': parseInt (this.timeout / 1000),
+                'networks': {
+                    'BTC': 'btc',
+                    'ETH': 'eth',
+                    'ERC20': 'eth',
+                    'TRX': 'trx',
+                    'TRC20': 'trx',
+                    'XRP': 'xrp',
+                    'XLM': 'xlm',
+                },
             },
         });
     }
@@ -1415,10 +1424,14 @@ module.exports = class hollaex extends Exchange {
         }
         const feeCurrencyId = this.safeString (transaction, 'fee_coin');
         const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId, currency);
-        const fee = {
-            'currency': feeCurrencyCode,
-            'cost': this.safeNumber (transaction, 'fee'),
-        };
+        const feeCost = this.safeNumber (transaction, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': feeCurrencyCode,
+                'cost': feeCost,
+            };
+        }
         return {
             'info': transaction,
             'id': id,
@@ -1449,15 +1462,19 @@ module.exports = class hollaex extends Exchange {
         if (tag !== undefined) {
             address += ':' + tag;
         }
+        const network = this.safeString (params, 'network');
+        if (network === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a network parameter');
+        }
+        params = this.omit (params, 'network');
+        const networks = this.safeValue (this.options, 'networks', {});
+        const networkId = this.safeStringLower2 (networks, network, code, network);
         const request = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
+            'network': networkId,
         };
-        const network = this.safeString (params, 'network');
-        if (network !== undefined) {
-            request['network'] = network;
-        }
         const response = await this.privatePostUserWithdrawal (this.extend (request, params));
         //
         //     {
