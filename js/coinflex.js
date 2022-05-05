@@ -1423,7 +1423,7 @@ module.exports = class coinflex extends Exchange {
         //
         const marketId = this.safeString (order, 'marketCode');
         market = this.safeMarket (marketId, market);
-        const isCreateOrder = 'timestamp' in order;
+        const isCreateOrder = ('timestamp' in order);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger2 (order, 'timestamp', 'orderCreated');
         const orderId = this.safeString (order, 'orderId');
@@ -2182,24 +2182,43 @@ module.exports = class coinflex extends Exchange {
             request['tfaType'] = 'GOOGLE';
             request['code'] = this.oath ();
         }
-        const response = await this.privatePostV3Withdrawal (this.extend (request, params));
-        //
-        //     {
-        //         "success": true,
-        //         "data": {
-        //             "id": "759031388269150209",
-        //             "asset": "USDT",
-        //             "network": "ERC20",
-        //             "address": "0xe8c2d73e0312e32f98e541b813D8EC3148A4BAd5",
-        //             "quantity": "18",
-        //             "externalFee": false,
-        //             "fee": "8.7996",
-        //             "status": "PENDING",
-        //             "requestedAt": "1651708397366"
-        //         }
-        //     }
-        //
-        const data = this.safeValue (response, 'data');
+        let data = [];
+        try {
+            const response = await this.privatePostV3Withdrawal (this.extend (request, params));
+            //
+            //     {
+            //         "success": true,
+            //         "data": {
+            //             "id": "759031388269150209",
+            //             "asset": "USDT",
+            //             "network": "ERC20",
+            //             "address": "0xe8c2d73e0312e32f98e541b813D8EC3148A4BAd5",
+            //             "quantity": "18",
+            //             "externalFee": false,
+            //             "fee": "8.7996",
+            //             "status": "PENDING",
+            //             "requestedAt": "1651708397366"
+            //         }
+            //     }
+            //
+            data = this.safeValue (response, 'data');
+        } catch (e) {
+            //
+            // sometimes, if user hasn't made any withdrawals yet, it throws exception
+            //
+            //     {
+            //         "success":false,
+            //         "code":"20001",
+            //         "message":"result not found, please check your parameters"
+            //     }
+            //
+            if (this.last_json_response) {
+                const code = this.safeString (this.last_json_response, 'code');
+                if (code === '20001') {
+                    data = [];
+                }
+            }
+        }
         return this.parseTransaction (data, currency);
     }
 
