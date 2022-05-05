@@ -4,6 +4,11 @@ const Precise = require ('./base/Precise');
 const { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired, NotSupported } = require ('./base/errors');
 
 module.exports = class hitbtc3 extends Exchange {
+    /**
+     * @class
+     * @name hitbtc3
+     * @description exchange class for hitbtc3 api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'hitbtc3',

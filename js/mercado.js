@@ -9,6 +9,11 @@ const { TICK_SIZE } = require ('./base/functions/number');
 //  ---------------------------------------------------------------------------
 
 module.exports = class mercado extends Exchange {
+    /**
+     * @class
+     * @name mercado
+     * @description exchange class for mercado api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'mercado',

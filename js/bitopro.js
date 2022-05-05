@@ -10,6 +10,11 @@ const Precise = require ('./base/Precise');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitopro extends Exchange {
+    /**
+     * @class
+     * @name bitopro
+     * @description exchange class for bitopro api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitopro',

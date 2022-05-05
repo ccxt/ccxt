@@ -8,6 +8,11 @@ const { TICK_SIZE } = require ('./base/functions/number');
 const { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable } = require ('./base/errors');
 
 module.exports = class gate extends Exchange {
+    /**
+     * @class
+     * @name gateio
+     * @description exchange class for gate.io api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'gate',

@@ -7,6 +7,11 @@ const binance = require ('./binance.js');
 //  ---------------------------------------------------------------------------
 
 module.exports = class binanceusdm extends binance {
+    /**
+     * @class
+     * @name binanceusdm
+     * @description exchange class for binanceusdm api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'binanceusdm',

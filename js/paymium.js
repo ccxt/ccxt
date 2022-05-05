@@ -10,6 +10,11 @@ const Precise = require ('./base/Precise');
 //  ---------------------------------------------------------------------------
 
 module.exports = class paymium extends Exchange {
+    /**
+     * @class
+     * @name paymium
+     * @description exchange class for paymium api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'paymium',

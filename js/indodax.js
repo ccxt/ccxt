@@ -9,6 +9,11 @@ const { TICK_SIZE } = require ('./base/functions/number');
 //  ---------------------------------------------------------------------------
 
 module.exports = class indodax extends Exchange {
+    /**
+     * @class
+     * @name indodax
+     * @description exchange class for indodax api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'indodax',

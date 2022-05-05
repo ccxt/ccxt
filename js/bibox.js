@@ -9,6 +9,11 @@ const Precise = require ('./base/Precise');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bibox extends Exchange {
+    /**
+     * @class
+     * @name bibox
+     * @description exchange class for bibox api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bibox',

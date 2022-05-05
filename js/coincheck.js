@@ -9,6 +9,11 @@ const { TICK_SIZE } = require ('./base/functions/number');
 //  ---------------------------------------------------------------------------
 
 module.exports = class coincheck extends Exchange {
+    /**
+     * @class
+     * @name coincheck
+     * @description exchange class for coincheck api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coincheck',

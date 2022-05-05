@@ -10,6 +10,11 @@ const Precise = require ('./base/Precise');
 //  ---------------------------------------------------------------------------
 
 module.exports = class liquid extends Exchange {
+    /**
+     * @class
+     * @name liquid
+     * @description exchange class for liquid api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'liquid',

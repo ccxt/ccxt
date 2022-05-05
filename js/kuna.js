@@ -9,6 +9,11 @@ const { TICK_SIZE } = require ('./base/functions/number');
 // ---------------------------------------------------------------------------
 
 module.exports = class kuna extends Exchange {
+    /**
+     * @class
+     * @name kuna
+     * @description exchange class for kuna api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'kuna',

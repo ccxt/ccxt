@@ -9,6 +9,11 @@ const { TRUNCATE, TICK_SIZE } = require ('./base/functions/number');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bittrex extends Exchange {
+    /**
+     * @class
+     * @name bittrex
+     * @description exchange class for bittrex api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bittrex',

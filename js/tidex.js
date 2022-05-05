@@ -6,6 +6,11 @@ const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 module.exports = class tidex extends Exchange {
+    /**
+     * @class
+     * @name tidex
+     * @description exchange class for tidex api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'tidex',

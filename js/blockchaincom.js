@@ -9,6 +9,11 @@ const Precise = require ('./base/Precise');
 // ---------------------------------------------------------------------------
 
 module.exports = class blockchaincom extends Exchange {
+    /**
+     * @class
+     * @name blockchaincom
+     * @description exchange class for blockchaincom api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'blockchaincom',

@@ -10,6 +10,11 @@ const { TICK_SIZE } = require ('./base/functions/number');
 //  ---------------------------------------------------------------------------
 
 module.exports = class kucoinfutures extends kucoin {
+    /**
+     * @class
+     * @name kucoinfutures
+     * @description exchange class for kucoinfutures api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'kucoinfutures',

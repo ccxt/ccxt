@@ -9,6 +9,11 @@ const { TICK_SIZE } = require ('./base/functions/number');
 //  ---------------------------------------------------------------------------
 
 module.exports = class ripio extends Exchange {
+    /**
+     * @class
+     * @name ripio
+     * @description exchange class for ripio api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'ripio',

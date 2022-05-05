@@ -10,6 +10,11 @@ const Precise = require ('./base/Precise');
 //  ---------------------------------------------------------------------------
 
 module.exports = class huobi extends Exchange {
+    /**
+     * @class
+     * @name huobi
+     * @description exchange class for huobi api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'huobi',

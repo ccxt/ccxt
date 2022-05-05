@@ -9,6 +9,11 @@ const Precise = require ('./base/Precise');
 //  ---------------------------------------------------------------------------
 
 module.exports = class wavesexchange extends Exchange {
+    /**
+     * @class
+     * @name wavesexchange
+     * @description exchange class for wavesexchange api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'wavesexchange',

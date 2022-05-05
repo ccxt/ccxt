@@ -7,6 +7,11 @@ const ndax = require ('./ndax.js');
 //  ---------------------------------------------------------------------------
 
 module.exports = class flowbtc extends ndax {
+    /**
+     * @class
+     * @name flowbtc
+     * @description exchange class for flowbtc api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'flowbtc',
