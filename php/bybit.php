@@ -2246,7 +2246,20 @@ class bybit extends Exchange {
         } else if ($market['future']) {
             $defaultMethod = 'futuresPrivatePostOrderCancelAll';
         }
+        $stop = $this->safe_value($params, 'stop');
+        if ($stop) {
+            if ($market['swap']) {
+                if ($market['linear']) {
+                    $defaultMethod = 'privateLinearPostStopOrderCancelAll';
+                } else if ($market['inverse']) {
+                    $defaultMethod = 'v2PrivatePostStopOrderCancelAll';
+                }
+            } else if ($market['future']) {
+                $defaultMethod = 'futuresPrivatePostStopOrderCancelAll';
+            }
+        }
         $method = $this->safe_string($options, 'method', $defaultMethod);
+        $params = $this->omit($params, 'stop');
         $response = $this->$method (array_merge($request, $params));
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_orders($result, $market);

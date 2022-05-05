@@ -484,36 +484,35 @@ module.exports = class whitebit extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
         //  FetchTicker (v1)
         //
-        //      {
-        //          "bid":"0.021979",
-        //          "ask":"0.021996",
-        //          "open":"0.02182",
-        //          "high":"0.022039",
-        //          "low":"0.02161",
-        //          "last":"0.021987",
-        //          "volume":"2810.267",
-        //          "deal":"61.383565474",
-        //          "change":"0.76",
-        //      }
+        //    {
+        //        "bid": "0.021979",
+        //        "ask": "0.021996",
+        //        "open": "0.02182",
+        //        "high": "0.022039",
+        //        "low": "0.02161",
+        //        "last": "0.021987",
+        //        "volume": "2810.267",
+        //        "deal": "61.383565474",
+        //        "change": "0.76",
+        //    }
         //
         // FetchTickers (v4)
         //
-        //      "BCH_RUB":{
-        //          "base_id":1831,
-        //          "quote_id":0,
-        //          "last_price":"32830.21",
-        //          "quote_volume":"1494659.8024096",
-        //          "base_volume":"46.1083",
-        //          "isFrozen":false,
-        //          "change":"2.12" // in percent
-        //      },
+        //    "BCH_RUB": {
+        //        "base_id": 1831,
+        //        "quote_id": 0,
+        //        "last_price": "32830.21",
+        //        "quote_volume": "1494659.8024096",
+        //        "base_volume": "46.1083",
+        //        "isFrozen": false,
+        //        "change": "2.12" // in percent
+        //    }
         //
         market = this.safeMarket (undefined, market);
         const last = this.safeString (ticker, 'last_price');
-        const change = this.safeString (ticker, 'change');
-        const percentage = Precise.stringMul (change, '0.01');
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': undefined,
@@ -530,7 +529,7 @@ module.exports = class whitebit extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': percentage,
+            'percentage': this.safeString (ticker, 'change'),
             'average': undefined,
             'baseVolume': this.safeString2 (ticker, 'base_volume', 'volume'),
             'quoteVolume': this.safeString2 (ticker, 'quote_volume', 'deal'),

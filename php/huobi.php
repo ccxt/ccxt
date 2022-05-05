@@ -1543,16 +1543,18 @@ class huobi extends Exchange {
         $swap = ($type === 'swap');
         $linear = ($subType === 'linear');
         $inverse = ($subType === 'inverse');
-        if ($linear) {
-            $method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
-            if ($future) {
-                $request['business_type'] = 'futures';
-            }
-        } else if ($inverse) {
-            if ($future) {
-                $method = 'contractPublicGetMarketDetailBatchMerged';
-            } else if ($swap) {
-                $method = 'contractPublicGetSwapExMarketDetailBatchMerged';
+        if ($future || $swap) {
+            if ($linear) {
+                $method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
+                if ($future) {
+                    $request['business_type'] = 'futures';
+                }
+            } else if ($inverse) {
+                if ($future) {
+                    $method = 'contractPublicGetMarketDetailBatchMerged';
+                } else if ($swap) {
+                    $method = 'contractPublicGetSwapExMarketDetailBatchMerged';
+                }
             }
         }
         $params = $this->omit($params, array( 'type', 'subType' ));

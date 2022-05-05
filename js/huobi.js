@@ -1537,16 +1537,18 @@ module.exports = class huobi extends Exchange {
         const swap = (type === 'swap');
         const linear = (subType === 'linear');
         const inverse = (subType === 'inverse');
-        if (linear) {
-            method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
-            if (future) {
-                request['business_type'] = 'futures';
-            }
-        } else if (inverse) {
-            if (future) {
-                method = 'contractPublicGetMarketDetailBatchMerged';
-            } else if (swap) {
-                method = 'contractPublicGetSwapExMarketDetailBatchMerged';
+        if (future || swap) {
+            if (linear) {
+                method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
+                if (future) {
+                    request['business_type'] = 'futures';
+                }
+            } else if (inverse) {
+                if (future) {
+                    method = 'contractPublicGetMarketDetailBatchMerged';
+                } else if (swap) {
+                    method = 'contractPublicGetSwapExMarketDetailBatchMerged';
+                }
             }
         }
         params = this.omit (params, [ 'type', 'subType' ]);

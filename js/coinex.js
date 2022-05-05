@@ -55,11 +55,13 @@ module.exports = class coinex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
+                'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -3090,6 +3092,125 @@ module.exports = class coinex extends Exchange {
             'updated': undefined,
             'fee': fee,
         };
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('transfer', undefined, params);
+        if (marketType !== 'spot') {
+            throw new BadRequest (this.id + ' transfer() requires defaultType to be spot');
+        }
+        const currency = this.safeCurrencyCode (code);
+        const amountToPrecision = this.currencyToPrecision (code, amount);
+        let transfer = undefined;
+        if ((fromAccount === 'spot') && (toAccount === 'swap')) {
+            transfer = 'in';
+        } else if ((fromAccount === 'swap') && (toAccount === 'spot')) {
+            transfer = 'out';
+        }
+        const request = {
+            'amount': amountToPrecision,
+            'coin_type': currency,
+            'transfer_side': transfer, // 'in': spot to swap, 'out': swap to spot
+        };
+        const response = await this.privatePostContractBalanceTransfer (this.extend (request, query));
+        //
+        //     {"code": 0, "data": null, "message": "Success"}
+        //
+        return this.extend (this.parseTransfer (response, currency), {
+            'amount': this.parseNumber (amountToPrecision),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        });
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            '0': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        // fetchTransfers
+        //
+        //     {
+        //         "amount": "10",
+        //         "asset": "USDT",
+        //         "transfer_type": "transfer_out", // from swap to spot
+        //         "created_at": 1651633422
+        //     },
+        //
+        const timestamp = this.safeTimestamp (transfer, 'created_at');
+        const transferType = this.safeString (transfer, 'transfer_type');
+        let fromAccount = undefined;
+        let toAccount = undefined;
+        if (transferType === 'transfer_out') {
+            fromAccount = 'swap';
+            toAccount = 'spot';
+        } else if (transferType === 'transfer_in') {
+            fromAccount = 'spot';
+            toAccount = 'swap';
+        }
+        const currencyId = this.safeString (transfer, 'asset');
+        const currencyCode = this.safeCurrencyCode (currencyId, currency);
+        return {
+            'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': currencyCode,
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': this.parseTransferStatus (this.safeString (transfer, 'code')),
+        };
+    }
+
+    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {
+            'page': 1,
+            'limit': limit,
+            // 'asset': 'USDT',
+            // 'start_time': since,
+            // 'end_time': 1515806440,
+            // 'transfer_type': 'transfer_in', // transfer_in: from Spot to Swap Account, transfer_out: from Swap to Spot Account
+        };
+        const page = this.safeInteger (params, 'page');
+        if (page !== undefined) {
+            request['page'] = page;
+        }
+        if (code !== undefined) {
+            currency = this.safeCurrencyCode (code);
+            request['asset'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        params = this.omit (params, 'page');
+        const response = await this.privateGetContractTransferHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "records": [
+        //                 {
+        //                     "amount": "10",
+        //                     "asset": "USDT",
+        //                     "transfer_type": "transfer_out",
+        //                     "created_at": 1651633422
+        //                 },
+        //             ],
+        //             "total": 5
+        //         },
+        //         "message": "Success"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const transfers = this.safeValue (data, 'records', []);
+        return this.parseTransfers (transfers, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {

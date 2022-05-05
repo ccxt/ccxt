@@ -1514,15 +1514,16 @@ class huobi(Exchange):
         swap = (type == 'swap')
         linear = (subType == 'linear')
         inverse = (subType == 'inverse')
-        if linear:
-            method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged'
-            if future:
-                request['business_type'] = 'futures'
-        elif inverse:
-            if future:
-                method = 'contractPublicGetMarketDetailBatchMerged'
-            elif swap:
-                method = 'contractPublicGetSwapExMarketDetailBatchMerged'
+        if future or swap:
+            if linear:
+                method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged'
+                if future:
+                    request['business_type'] = 'futures'
+            elif inverse:
+                if future:
+                    method = 'contractPublicGetMarketDetailBatchMerged'
+                elif swap:
+                    method = 'contractPublicGetSwapExMarketDetailBatchMerged'
         params = self.omit(params, ['type', 'subType'])
         response = getattr(self, method)(self.extend(request, params))
         #
