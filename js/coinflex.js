@@ -56,8 +56,8 @@ module.exports = class coinflex extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
-                'fetchFundingFee': undefined,
-                'fetchFundingFees': undefined,
+                'fetchFundingFee': true,
+                'fetchFundingFees': false,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': 'emulated',
@@ -190,7 +190,7 @@ module.exports = class coinflex extends Exchange {
                         'v3/deposit': 1,
                         'v3/withdrawal-addresses': 1,
                         'v3/withdrawal': 1,
-                        'v3/withdrawal-fee': 1, // TO_DO
+                        'v3/withdrawal-fee': 1,
                         'v3/transfer': 1,
                         'v3/flexasset/mint': 1,
                         'v3/flexasset/redeem': 1,
@@ -211,9 +211,9 @@ module.exports = class coinflex extends Exchange {
                         'v2/orders/modify': 1,
                         'v2/mint': 1,
                         'v2/redeem': 1,
-                        'v2/borrow': 1,
-                        'v2/repay': 1,
-                        'v2/borrow/close': 1,
+                        'v2/borrow': 1, // TO_DO
+                        'v2/repay': 1, // TO_DO
+                        'v2/borrow/close': 1, // TO_DO
                         'v2/AMM/create': 1,
                         'v2/AMM/redeem': 1,
                         'v3/withdrawal': 1,
@@ -264,6 +264,7 @@ module.exports = class coinflex extends Exchange {
                     '710006': InsufficientFunds,
                     '20001': BadRequest,
                     '25030': BadRequest,
+                    '35034': BadRequest,
                 },
                 'broad': {
                     'sanity bound check as price': InvalidOrder,
@@ -272,6 +273,7 @@ module.exports = class coinflex extends Exchange {
                     'result not found, please check your parameters': BadRequest, // 20001
                     '2FA is not turned on': PermissionDenied, // 25009
                     'Invalid Code': BadRequest, // 25030
+                    'Wallet API is abnormal, please try again or contact customer service': BadRequest, // 35034
                 },
             },
         });
@@ -2211,6 +2213,53 @@ module.exports = class coinflex extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         return this.parseTransaction (data, currency);
+    }
+
+    async fetchFundingFee (code, params = {}) {
+        const networkName = this.safeStringUpper (params, 'network');
+        if (networkName === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingFee() requires "network"  parameter');
+        }
+        const address = this.safeString (params, 'address');
+        if (address === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingFee() requires recipient "address"  param to calculate fee');
+        }
+        const amount = this.safeNumber (params, 'quantity');
+        params = this.omit (params, 'quantity');
+        if (address === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingFee() requires "quantity"  param to calculate fee');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const networks = this.safeValue (this.options, 'networks', {});
+        const networkId = this.safeStringUpper (networks, networkName, networkName);
+        const request = {
+            'asset': currency['id'],
+            'network': networkId,
+            'quantity': this.currencyToPrecision (code, amount),
+        };
+        const response = await this.privateGetV3WithdrawalFee (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "asset": "USDT",
+        //             "network": "ERC20",
+        //             "address": "0x811bFBd9CfBB503c592842c11b89D2b1D65db32F",
+        //             "quantity": "30",
+        //             "externalFee": false,
+        //             "estimatedFee": "9.2985"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const withdrawFees = {};
+        withdrawFees[code] = this.safeNumber (data, 'withdraw_fee');
+        return {
+            'withdraw': withdrawFees,
+            'deposit': {},
+            'info': response,
+        };
     }
 
     nonce () {
