@@ -36,9 +36,9 @@ module.exports = class coinex extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchLeverage': undefined,
-                'fetchLeverageTiers': undefined,
-                'fetchMarketLeverageTiers': undefined,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': true,
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -2637,6 +2637,101 @@ module.exports = class coinex extends Exchange {
             'position_type': positionType, // 1: isolated, 2: cross
         };
         return await this.perpetualPrivatePostMarketAdjustLeverage (this.extend (request, params));
+    }
+
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.perpetualPublicGetMarketLimitConfig (params);
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "BTCUSD": [
+        //                 ["500001", "100", "0.005"],
+        //                 ["1000001", "50", "0.01"],
+        //                 ["2000001", "30", "0.015"],
+        //                 ["5000001", "20", "0.02"],
+        //                 ["10000001", "15", "0.025"],
+        //                 ["20000001", "10", "0.03"]
+        //             ],
+        //             ...
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseLeverageTiers (data, symbols, undefined);
+    }
+
+    async fetchMarketLeverageTiers (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchMarketLeverageTiers() symbol supports contract markets only');
+        }
+        const response = await this.perpetualPublicGetMarketLimitConfig (params);
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "BTCUSD": [
+        //                 ["500001", "100", "0.005"],
+        //                 ["1000001", "50", "0.01"],
+        //                 ["2000001", "30", "0.015"],
+        //                 ["5000001", "20", "0.02"],
+        //                 ["10000001", "15", "0.025"],
+        //                 ["20000001", "10", "0.03"]
+        //             ],
+        //             ...
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const tiers = this.parseLeverageTiers (data, [ symbol ], market['id']);
+        return this.safeValue (tiers, symbol);
+    }
+
+    parseLeverageTiers (response, symbols, marketIdKey) {
+        //
+        //     {
+        //         "BTCUSD": [
+        //             ["500001", "100", "0.005"],
+        //             ["1000001", "50", "0.01"],
+        //             ["2000001", "30", "0.015"],
+        //             ["5000001", "20", "0.02"],
+        //             ["10000001", "15", "0.025"],
+        //             ["20000001", "10", "0.03"]
+        //         ],
+        //         ...
+        //     }
+        //
+        const result = {};
+        const currencyIds = Object.keys (response);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const ladder = response[currencyId];
+            const tiers = [];
+            const symbol = this.safeSymbol (currencyId);
+            for (let j = 0; j < ladder.length; j++) {
+                const bracket = ladder[j];
+                const leverage = this.safeString (bracket, 1);
+                const maxNotional = this.safeString (bracket, 0);
+                const previousBracket = ladder[j - 1];
+                const minNotional = (previousBracket === undefined) ? 0 : this.safeString (previousBracket, 0);
+                tiers.push ({
+                    'tier': this.parseNumber (Precise.stringAdd (j.toString (), '1')),
+                    'currency': undefined,
+                    'minNotional': this.parseNumber (minNotional),
+                    'maxNotional': this.parseNumber (maxNotional),
+                    'maintenanceMarginRate': this.parseNumber (this.safeString (bracket, 2)),
+                    'maxLeverage': this.parseNumber (leverage),
+                    'info': bracket,
+                });
+            }
+            result[symbol] = tiers;
+        }
+        return result;
     }
 
     async modifyMarginHelper (symbol, amount, addOrReduce, params = {}) {
