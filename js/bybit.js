@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -621,15 +621,9 @@ module.exports = class bybit extends Exchange {
                     'EOS/USD': 'inverse',
                     'XRP/USD': 'inverse',
                 },
-                'defaultType': 'linear',  // linear, inverse, futures
-                //
-                // ^
-                // |
-                // | this will be replaced with the following soon |
-                //                                                 |
-                //                                                 v
-                //
-                // 'defaultType': 'swap', // swap, spot, future, option
+                'defaultType': 'spot',  // linear, inverse, futures
+                'defaultSubType': 'linear',
+                'isUsdcSettled': false,
                 'code': 'BTC',
                 'cancelAllOrders': {
                     // 'method': 'v2PrivatePostOrderCancelAll', // v2PrivatePostStopOrderCancelAll
@@ -1214,13 +1208,13 @@ module.exports = class bybit extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeString (ticker, 'last_price', 'lastPrice');
         const open = this.safeString2 (ticker, 'prev_price_24h', 'openPrice');
-        let percentage = this.safeString (ticker, 'price_24h_pcnt');
+        let percentage = this.safeString2 (ticker, 'price_24h_pcnt', 'change24h');
         percentage = Precise.stringMul (percentage, '100');
         let baseVolume = this.safeString2 (ticker, 'turnover_24h', 'turnover24h');
         if (baseVolume === undefined) {
             baseVolume = this.safeString (ticker, 'volume');
         }
-        let quoteVolume = this.safeString (ticker, 'volume_24h', 'volume24h');
+        let quoteVolume = this.safeString2 (ticker, 'volume_24h', 'volume24h');
         if (quoteVolume === undefined) {
             quoteVolume = this.safeString (ticker, 'quoteVolume');
         }
@@ -1240,7 +1234,6 @@ module.exports = class bybit extends Exchange {
         if (low === undefined) {
             low = this.safeString (ticker, 'lowPrice');
         }
-        const change = this.safeString (ticker, 'change24h');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1256,7 +1249,7 @@ module.exports = class bybit extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
+            'change': undefined,
             'percentage': percentage,
             'average': undefined,
             'baseVolume': baseVolume,
@@ -1366,43 +1359,32 @@ module.exports = class bybit extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicGetV2PublicTickers (params);
-        //
-        //     {
-        //         ret_code: 0,
-        //         ret_msg: 'OK',
-        //         ext_code: '',
-        //         ext_info: '',
-        //         result: [
-        //             {
-        //                 symbol: 'BTCUSD',
-        //                 bid_price: '7680',
-        //                 ask_price: '7680.5',
-        //                 last_price: '7680.00',
-        //                 last_tick_direction: 'MinusTick',
-        //                 prev_price_24h: '7870.50',
-        //                 price_24h_pcnt: '-0.024204',
-        //                 high_price_24h: '8035.00',
-        //                 low_price_24h: '7671.00',
-        //                 prev_price_1h: '7780.00',
-        //                 price_1h_pcnt: '-0.012853',
-        //                 mark_price: '7683.27',
-        //                 index_price: '7682.74',
-        //                 open_interest: 188829147,
-        //                 open_value: '23670.06',
-        //                 total_turnover: '25744224.90',
-        //                 turnover_24h: '102997.83',
-        //                 total_volume: 225448878806,
-        //                 volume_24h: 809919408,
-        //                 funding_rate: '0.0001',
-        //                 predicted_funding_rate: '0.0001',
-        //                 next_funding_time: '2020-03-12T00:00:00Z',
-        //                 countdown_hour: 7
-        //             }
-        //         ],
-        //         time_now: '1583948195.818255'
-        //     }
-        //
+        let type = undefined;
+        let market = undefined;
+        let isUsdcSettled = undefined;
+        if (symbols !== undefined) {
+            const symbol = this.safeValue (symbols, 0);
+            market = this.market (symbol);
+            type = market['type'];
+            isUsdcSettled = market['settle'] === 'USD';
+        } else {
+            [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+            if (type !== 'spot') {
+                isUsdcSettled = this.safeValue (this.options, 'isUsdcSettled', false);
+                isUsdcSettled = this.safeValue (params, 'isUsdcSettled', isUsdcSettled);
+                params = this.omit (params, 'isUsdcSettled');
+            }
+        }
+        let method = undefined;
+        if (type === 'spot') {
+            method = 'publicGetSpotQuoteV1Ticker24hr';
+        } else if (type === 'swap' && !isUsdcSettled) {
+            // inverse perpetual // usdt linear // inverse futures
+            method = 'publicGetV2PublicTickers';
+        } else {
+            throw new NotSupported (this.id + ' fetchTickers() is not supported for USDC options/swap markets');
+        }
+        const response = await this[method] (params);
         const result = this.safeValue (response, 'result', []);
         const tickers = {};
         for (let i = 0; i < result.length; i++) {
