@@ -1102,19 +1102,14 @@ module.exports = class gateio extends Exchange {
          * @param {dict} params request parameters
          * @returns the api request object, and the new params object with non-needed parameters removed
          */
-        let request = {};
+        const request = {};
         if (market !== undefined) {
             if (market['contract']) {
-                request = {
-                    'contract': market['id'],
-                    'settle': market['settleId'],
-                };
+                request['contract'] = market['id'];
+                request['settle'] = market['settleId'];
             } else {
-                request = {
-                    'currency_pair': market['id'],
-                };
+                request['currency_pair'] = market['id'];
             }
-            type = market['type'];
         } else {
             const swap = type === 'swap';
             const future = type === 'future';
@@ -1122,21 +1117,17 @@ module.exports = class gateio extends Exchange {
                 const defaultSettle = swap ? 'usdt' : 'btc';
                 const settle = this.safeStringLower (params, 'settle', defaultSettle);
                 params = this.omit (params, 'settle');
-                request = {
-                    'settle': settle,
-                };
-            } else {
-                request = {};
+                request['settle'] = settle;
             }
         }
         return [ request, params ];
     }
 
-    multiOrderSpotSetMarginType (market = undefined, stop = false, params = {}) {
+    multiOrderSpotPrepareRequest (market = undefined, stop = false, params = {}) {
         /**
          * @ignore
          * @method
-         * @name gateio#multiOrderSpotSetMarginType
+         * @name gateio#multiOrderSpotPrepareRequest
          * @description Fills request params currency_pair, market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
          * @param {dict} market CCXT market
          * @param {bool} stop true if for a stop order
