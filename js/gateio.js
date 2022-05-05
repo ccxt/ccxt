@@ -1134,7 +1134,6 @@ module.exports = class gateio extends Exchange {
          * @param {dict} params request parameters
          * @returns the api request object, and the new params object with non-needed parameters removed
          */
-
         const [ marginType, query ] = this.getMarginType (stop, params);
         const request = {
             'account': marginType,
