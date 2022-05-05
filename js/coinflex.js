@@ -1674,36 +1674,46 @@ module.exports = class coinflex extends Exchange {
             request['limit'] = limit;
         }
         request = this.setStartEndTimes (request, since);
-        const response = await this.privateGetV3Withdrawal (this.extend (request, params));
-        //
-        //     {
-        //         "success": true,
-        //         "data": [
-        //             {
-        //                 "id": "759031388269150209",
-        //                 "asset": "USDT",
-        //                 "network": "ERC20",
-        //                 "address": "0xe8c2d75e0392e32f36e541b868D8AC3148A4DDf8",
-        //                 "quantity": "18",
-        //                 "fee": "8.799600000",
-        //                 "status": "COMPLETED",
-        //                 "txId": "0xc071cd34cb2f60135e709c26219b39523addbb3599818d98dcd5db2bf0115c17",
-        //                 "requestedAt": "1651708397398",
-        //                 "completedAt": "1651708835000"
-        //             }
-        //         ]
-        //     }
-        //
-        //
-        // Note, when there are no withdrawal records, you might get:
-        //
-        //     {
-        //         "success": false,
-        //         "code": "20001",
-        //         "message": "result not found, please check your parameters"
-        //     }
-        //
-        const data = this.safeValue (response, 'data', []);
+        let data = undefined;
+        try {
+            const response = await this.privateGetV3Withdrawal (this.extend (request, params));
+            //
+            //     {
+            //         "success": true,
+            //         "data": [
+            //             {
+            //                 "id": "759031388269150209",
+            //                 "asset": "USDT",
+            //                 "network": "ERC20",
+            //                 "address": "0xe8c2d75e0392e32f36e541b868D8AC3148A4DDf8",
+            //                 "quantity": "18",
+            //                 "fee": "8.799600000",
+            //                 "status": "COMPLETED",
+            //                 "txId": "0xc071cd34cb2f60135e709c26219b39523addbb3599818d98dcd5db2bf0115c17",
+            //                 "requestedAt": "1651708397398",
+            //                 "completedAt": "1651708835000"
+            //             }
+            //         ]
+            //     }
+            //
+            data = this.safeValue (response, 'data', []);
+        } catch (e) {
+            //
+            // Note, when there are no withdrawal records, you might get:
+            //
+            //     {
+            //         "success": false,
+            //         "code": "20001",
+            //         "message": "result not found, please check your parameters"
+            //     }
+            //
+            if (this.last_json_response) {
+                const code = this.safeString (this.last_json_response, 'code');
+                if (code === '20001') {
+                    data = [];
+                }
+            }
+        }
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
@@ -2182,43 +2192,24 @@ module.exports = class coinflex extends Exchange {
             request['tfaType'] = 'GOOGLE';
             request['code'] = this.oath ();
         }
-        let data = [];
-        try {
-            const response = await this.privatePostV3Withdrawal (this.extend (request, params));
-            //
-            //     {
-            //         "success": true,
-            //         "data": {
-            //             "id": "759031388269150209",
-            //             "asset": "USDT",
-            //             "network": "ERC20",
-            //             "address": "0xe8c2d73e0312e32f98e541b813D8EC3148A4BAd5",
-            //             "quantity": "18",
-            //             "externalFee": false,
-            //             "fee": "8.7996",
-            //             "status": "PENDING",
-            //             "requestedAt": "1651708397366"
-            //         }
-            //     }
-            //
-            data = this.safeValue (response, 'data');
-        } catch (e) {
-            //
-            // sometimes, if user hasn't made any withdrawals yet, it throws exception
-            //
-            //     {
-            //         "success":false,
-            //         "code":"20001",
-            //         "message":"result not found, please check your parameters"
-            //     }
-            //
-            if (this.last_json_response) {
-                const code = this.safeString (this.last_json_response, 'code');
-                if (code === '20001') {
-                    data = [];
-                }
-            }
-        }
+        const response = await this.privatePostV3Withdrawal (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "id": "759031388269150209",
+        //             "asset": "USDT",
+        //             "network": "ERC20",
+        //             "address": "0xe8c2d73e0312e32f98e541b813D8EC3148A4BAd5",
+        //             "quantity": "18",
+        //             "externalFee": false,
+        //             "fee": "8.7996",
+        //             "status": "PENDING",
+        //             "requestedAt": "1651708397366"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
         return this.parseTransaction (data, currency);
     }
 
