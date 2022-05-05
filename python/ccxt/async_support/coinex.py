@@ -72,6 +72,7 @@ class coinex(Exchange):
                 'setLeverage': True,
                 'setMarginMode': True,
                 'setPositionMode': False,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -2958,6 +2959,39 @@ class coinex(Exchange):
             'fee': fee,
         }
 
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        await self.load_markets()
+        marketType, query = self.handle_market_type_and_params('transfer', None, params)
+        if marketType != 'spot':
+            raise BadRequest(self.id + ' transfer() requires defaultType to be spot')
+        currency = self.safe_currency_code(code)
+        amountToPrecision = self.currency_to_precision(code, amount)
+        transfer = None
+        if (fromAccount == 'spot') and (toAccount == 'swap'):
+            transfer = 'in'
+        elif (fromAccount == 'swap') and (toAccount == 'spot'):
+            transfer = 'out'
+        request = {
+            'amount': amountToPrecision,
+            'coin_type': currency,
+            'transfer_side': transfer,  # 'in': spot to swap, 'out': swap to spot
+        }
+        response = await self.privatePostContractBalanceTransfer(self.extend(request, query))
+        #
+        #     {"code": 0, "data": null, "message": "Success"}
+        #
+        return self.extend(self.parse_transfer(response, currency), {
+            'amount': self.parse_number(amountToPrecision),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        })
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            '0': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
     def parse_transfer(self, transfer, currency=None):
         #
         # fetchTransfers
@@ -2989,7 +3023,7 @@ class coinex(Exchange):
             'amount': self.safe_number(transfer, 'amount'),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': self.safe_string(transfer, 'message'),
+            'status': self.parse_transfer_status(self.safe_string(transfer, 'code')),
         }
 
     async def fetch_transfers(self, code=None, since=None, limit=None, params={}):

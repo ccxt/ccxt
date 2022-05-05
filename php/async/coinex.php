@@ -67,6 +67,7 @@ class coinex extends Exchange {
                 'setLeverage' => true,
                 'setMarginMode' => true,
                 'setPositionMode' => false,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -3099,6 +3100,43 @@ class coinex extends Exchange {
         );
     }
 
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        yield $this->load_markets();
+        list($marketType, $query) = $this->handle_market_type_and_params('transfer', null, $params);
+        if ($marketType !== 'spot') {
+            throw new BadRequest($this->id . ' $transfer() requires defaultType to be spot');
+        }
+        $currency = $this->safe_currency_code($code);
+        $amountToPrecision = $this->currency_to_precision($code, $amount);
+        $transfer = null;
+        if (($fromAccount === 'spot') && ($toAccount === 'swap')) {
+            $transfer = 'in';
+        } else if (($fromAccount === 'swap') && ($toAccount === 'spot')) {
+            $transfer = 'out';
+        }
+        $request = array(
+            'amount' => $amountToPrecision,
+            'coin_type' => $currency,
+            'transfer_side' => $transfer, // 'in' => spot to swap, 'out' => swap to spot
+        );
+        $response = yield $this->privatePostContractBalanceTransfer (array_merge($request, $query));
+        //
+        //     array("code" => 0, "data" => null, "message" => "Success")
+        //
+        return array_merge($this->parse_transfer($response, $currency), array(
+            'amount' => $this->parse_number($amountToPrecision),
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+        ));
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            '0' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function parse_transfer($transfer, $currency = null) {
         //
         // fetchTransfers
@@ -3131,7 +3169,7 @@ class coinex extends Exchange {
             'amount' => $this->safe_number($transfer, 'amount'),
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
-            'status' => $this->safe_string($transfer, 'message'),
+            'status' => $this->parse_transfer_status($this->safe_string($transfer, 'code')),
         );
     }
 
