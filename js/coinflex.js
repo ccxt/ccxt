@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, PermissionDenied, InvalidOrder, OrderNotFound, ArgumentsRequired, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, NotSupported, BadRequest, PermissionDenied, InvalidOrder, OrderNotFound, ArgumentsRequired, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -58,10 +58,11 @@ module.exports = class coinflex extends Exchange {
                 'fetchDeposits': true,
                 'fetchFundingFee': undefined,
                 'fetchFundingFees': undefined,
-                'fetchFundingHistory': undefined,
-                'fetchFundingRate': undefined,
-                'fetchFundingRateHistory': true,
-                'fetchFundingRates': undefined,
+                'fetchFundingHistory': true,
+                'fetchFundingRate': 'emulated',
+                'fetchFundingRateHistory': 'emulated',
+                'fetchFundingRates': true,
+                'fetchFundingRatesHistory': true,
                 'fetchIndexOHLCV': undefined,
                 'fetchL2OrderBook': undefined,
                 'fetchLedger': undefined,
@@ -138,15 +139,15 @@ module.exports = class coinflex extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'v2/all/markets': 1, // superceded by v3
-                        'v2/all/assets': 1, // superceded by v3
+                        'v2/all/markets': 1, // superceded by v3/markets
+                        'v2/all/assets': 1, // superceded by v3/assets
                         'v2/publictrades/{marketCode}': 1,
-                        'v2/ticker': 1, // superceded by v3
-                        'v2/delivery/public/funding': 1, // superceded by v3
-                        'v2.1/deliver-auction/{instrumentId}': 1, // superceded by v3
-                        'v2/candles/{marketCode}': 1, // superceded by v3
-                        'v2/funding-rates/{marketCode}': 1, // meant for only: BTC-USD-REPO-LIN, ETH-USD-REPO-LIN
-                        'v2/depth/{marketCode}/{level}': 1, // superceded by v3
+                        'v2/ticker': 1, // superceded by v3/tickers
+                        'v2/delivery/public/funding': 1, // superceded by v3/funding-rates
+                        'v2.1/deliver-auction/{instrumentId}': 1,
+                        'v2/candles/{marketCode}': 1, // superceded by v3/candles
+                        'v2/funding-rates/{marketCode}': 1, // historical funding rates only for 'REPO' symbols (i.e. BTC-USD-REPO-LIN )
+                        'v2/depth/{marketCode}/{level}': 1, // superceded by v3/depth
                         'v2/ping': 1,
                         'v2/flex-protocol/balances/{flexProtocol}': 1,
                         'v2/flex-protocol/positions/{flexProtocol}': 1,
@@ -171,9 +172,9 @@ module.exports = class coinflex extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'v2/accountinfo': 1, // superceded by v3
-                        'v2/balances': 1, // superceded by v3
-                        'v2/balances/{instrumentId}': 1, // superceded by v3
+                        'v2/accountinfo': 1, // superceded by v3/account
+                        'v2/balances': 1, // superceded by v3/account
+                        'v2/balances/{instrumentId}': 1, // superceded by v3/account
                         'v2/positions': 1,
                         'v2/positions/{instrumentId}': 1,
                         'v2/trades/{marketCode}': 1,
@@ -182,7 +183,7 @@ module.exports = class coinflex extends Exchange {
                         'v2.1/delivery/orders': 1,
                         'v2/mint/{asset}': 1,
                         'v2/redeem/{asset}': 1,
-                        'v2/funding-payments': 1, // TO_DO ?
+                        'v2/funding-payments': 1,
                         'v2/AMM': 1,
                         'v3/account': 1,
                         'v3/deposit-addresses': 1,
@@ -539,12 +540,13 @@ module.exports = class coinflex extends Exchange {
         // exchange has 7 days maximum allowed distance between start/end times across its api endpoints
         const distance = 7 * 24 * 60 * 60 * 1000; // 7 days
         if (since === undefined) {
-            since = this.milliseconds () - distance + this.timeout; // don't directly set 7 days ago from this moment, as when request arrives at exchange, it will be more than 7 days from 'current time'. so, add timeout seconds to make sure we have enough time to reach exchange.
+            since = this.sum (this.milliseconds (), this.timeout) - distance; // don't directly set 7 days ago from this moment, as when request arrives at exchange, it will be more than 7 days from 'current time'. so, add timeout seconds to make sure we have enough time to reach exchange.
         }
         request['startTime'] = since;
         const currentTs = this.milliseconds ();
-        if (since + distance < currentTs) {
-            request['endTime'] = since + distance;
+        const sinceWithAddedDistance = this.sum (since, distance);
+        if (sinceWithAddedDistance < currentTs) {
+            request['endTime'] = sinceWithAddedDistance;
         }
         return request;
     }
@@ -685,8 +687,7 @@ module.exports = class coinflex extends Exchange {
             timestamp = this.safeInteger (trade, 'matchTimestamp');
             priceString = this.safeString (trade, 'matchPrice');
             amountString = this.safeString (trade, 'matchQuantity');
-            const sideRaw = this.safeString (trade, 'side');
-            side = this.parseOrderSide (sideRaw);
+            side = this.safeStringLower (trade, 'side');
             takerOrMakerRaw = this.safeString (trade, 'orderMatchType');
             cost = this.safeNumber (trade, 'total');
             const feeAmount = this.safeString (trade, 'fees');
@@ -714,14 +715,6 @@ module.exports = class coinflex extends Exchange {
             'fee': fee,
             'info': trade,
         }, market);
-    }
-
-    parseOrderSide (side) {
-        const sides = {
-            'BUY': 'buy',
-            'SELL': 'sell',
-        };
-        return this.safeString (sides, side, side);
     }
 
     convertOrderSide (side) {
@@ -879,7 +872,7 @@ module.exports = class coinflex extends Exchange {
         }, market, false);
     }
 
-    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
@@ -890,6 +883,65 @@ module.exports = class coinflex extends Exchange {
         request = this.setStartEndTimes (request, since);
         if (limit !== undefined) {
             request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const response = await this.privateGetV2FundingPayments (this.extend (request, params));
+        //
+        //     {
+        //         "event": "fundingPayments",
+        //         "timestamp": "1651750925903",
+        //         "accountId": "38422",
+        //         "data": [
+        //             {
+        //                 "marketCode": "SHIB-USD-SWAP-LIN",
+        //                 "payment": "-0.00007112",
+        //                 "rate": "0.000005",
+        //                 "position": "661287",
+        //                 "markPrice": "0.00002151",
+        //                 "timestamp": "1651420807679"
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString (entry, 'marketCode');
+            const timestamp = this.safeString (entry, 'timestamp');
+            result.push ({
+                'symbol': this.safeSymbol (marketId, market),
+                'code': undefined,
+                'timestamp': this.parse8601 (timestamp),
+                'datetime': timestamp,
+                'id': undefined,
+                'amount': this.safeNumber (entry, 'payment'),
+                'info': entry,
+            });
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        // TODO: this can be moved as emulated into base
+        if (this.has['fetchFundingRates']) {
+            const response = await this.fetchFundingRates ([ symbol ], params);
+            return this.safeValue (response, symbol);
+        } else {
+            throw new NotSupported (this.id + ' fetchFundingRate() not supported yet');
+        }
+    }
+
+    async fetchFundingRates (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (Array.isArray (symbols) && symbols.length === 1) {
+            market = this.market (symbols[0]);
+            request['marketCode'] = market['id'];
         }
         const response = await this.publicGetV3FundingRates (this.extend (request, params));
         //
@@ -902,25 +954,100 @@ module.exports = class coinflex extends Exchange {
         //                 "netDelivered": "-18.676",
         //                 "createdAt": "1651312802926"
         //             },
+        //             {
+        //                 "marketCode": "BTC-USD-SWAP-LIN",
+        //                 "fundingRate": "0.000005000",
+        //                 "netDelivered": "-19.402",
+        //                 "createdAt": "1651309202926"
+        //             },
         //          ]
         //      }
         //
         const data = this.safeValue (response, 'data', []);
-        const rates = [];
+        const latestRates = {};
+        const resultedArray = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
-            const timestamp = this.safeInteger (entry, 'createdAt');
             const marketId = this.safeString (entry, 'marketCode');
-            rates.push ({
-                'symbol': this.safeSymbol (marketId, market),
-                'fundingRate': this.safeNumber (entry, 'fundingRate'),
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'info': entry,
-            });
+            if (!(marketId in latestRates)) {
+                latestRates[marketId] = true;
+                resultedArray.push (entry);
+            }
+        }
+        return this.parseFundingRates (resultedArray, market);
+    }
+
+    async fetchFundingRateHistory (symbol, since = undefined, limit = undefined, params = {}) {
+        // TODO: this can be moved as emulated into base
+        if (this.has['fetchFundingRatesHistory']) {
+            const response = await this.fetchFundingRatesHistory ([ symbol ], since, limit, params);
+            return this.filterBySymbolSinceLimit (response, symbol, since, limit);
+        } else {
+            throw new NotSupported (this.id + ' fetchFundingRateHistory() not supported yet');
+        }
+    }
+
+    async fetchFundingRatesHistory (symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        let market = undefined;
+        if (Array.isArray (symbols) && symbols.length === 1) {
+            market = this.market (symbols[0]);
+            request['marketCode'] = market['id'];
+        }
+        request = this.setStartEndTimes (request, since);
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetV3FundingRates (this.extend (request, params));
+        // same response/endtpoint as in fetchFundingRates
+        const data = this.safeValue (response, 'data', []);
+        return this.parseFundingRateHistories (data, market, since, limit);
+    }
+
+    parseFundingRateHistories (response, market = undefined, since = undefined, limit = undefined) {
+        const rates = [];
+        for (let i = 0; i < response.length; i++) {
+            const parsed = this.parseFundingRate (response[i], market);
+            rates.push (parsed);
         }
         const sorted = this.sortBy (rates, 'timestamp');
+        const symbol = this.safeString (market, 'symbol');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    parseFundingRate (contract, market = undefined) {
+        //
+        // fetchFundingRate, fetchFundingRates, fetchFundingRateHistory
+        //
+        //     {
+        //         "marketCode": "BTC-USD-SWAP-LIN",
+        //         "fundingRate": "0.000005000",
+        //         "netDelivered": "-18.676",
+        //         "createdAt": "1651312802926"
+        //     }
+        //
+        const marketId = this.safeString (contract, 'marketCode');
+        const fundingDatetime = this.safeString (contract, 'createdAt');
+        return {
+            'symbol': this.safeSymbol (marketId, market),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber (contract, 'fundingRate'),
+            'fundingTimestamp': fundingDatetime,
+            'fundingDatetime': this.iso8601 (fundingDatetime),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'info': contract,
+        };
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1303,8 +1430,6 @@ module.exports = class coinflex extends Exchange {
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const statusRaw = this.safeString (order, 'status');
         const status = this.parseOrderStatus (statusRaw);
-        const sideRaw = this.safeString (order, 'side');
-        const side = this.parseOrderSide (sideRaw);
         const orderTypeRaw = this.safeString (order, 'orderType');
         const orderType = this.parseOrderType (orderTypeRaw);
         let filledQuantityRaw = this.safeString (order, 'filledQuantity');
@@ -1359,7 +1484,7 @@ module.exports = class coinflex extends Exchange {
             'timeInForce': timeInForce,
             'postOnly': timeInForce === 'PO',
             'status': status,
-            'side': side,
+            'side': this.safeStringLower (order, 'side'),
             'price': finalLimitPrice,
             'type': orderType,
             'stopPrice': this.safeNumber (order, 'stopPrice'),
@@ -1733,7 +1858,7 @@ module.exports = class coinflex extends Exchange {
         //     {
         //         "asset": "USDT",
         //         "quantity": "5",
-        //         "fromAccount": "38420",
+        //         "fromAccount": "38422",
         //         "toAccount": "38776",
         //         "transferredAt": "1651704762775"
         //     }
@@ -1826,7 +1951,7 @@ module.exports = class coinflex extends Exchange {
         //     {
         //         "event": "placeOrder",
         //         "timestamp": "1651619029297",
-        //         "accountId": "38420",
+        //         "accountId": "38422",
         //         "data": [
         //           {
         //             "success": "true",
@@ -1884,7 +2009,7 @@ module.exports = class coinflex extends Exchange {
         //     {
         //         "event": "modifyOrder",
         //         "timestamp": "1651695117070",
-        //         "accountId": "38420",
+        //         "accountId": "38422",
         //         "data": [
         //             {
         //                 "success": "true",
@@ -1944,7 +2069,7 @@ module.exports = class coinflex extends Exchange {
         //     {
         //         "event": "cancelOrder",
         //         "timestamp": "1651697925019",
-        //         "accountId": "38420",
+        //         "accountId": "38422",
         //         "data": [
         //             {
         //                 "success": "true",
@@ -1996,7 +2121,7 @@ module.exports = class coinflex extends Exchange {
         //     {
         //         "event": "orders",
         //         "timestamp": "1651651758625",
-        //         "accountId": "38420",
+        //         "accountId": "38422",
         //         "data": {
         //             "marketCode": "XRP-USD",
         //             "msg": "All open orders for the specified market have been queued for cancellation"
@@ -2025,7 +2150,7 @@ module.exports = class coinflex extends Exchange {
         //         "data": {
         //             "asset": "USDT",
         //             "quantity": "5",
-        //             "fromAccount": "38420",
+        //             "fromAccount": "38422",
         //             "toAccount": "38776",
         //             "transferredAt": "1651704762775"
         //         }
@@ -2052,9 +2177,11 @@ module.exports = class coinflex extends Exchange {
             'address': address,
             // below are required params by this time
             'externalFee': false,
-            'tfaType': 'GOOGLE',
-            'code': twoFaCode,
         };
+        if (this.twofa !== undefined) {
+            request['tfaType'] = 'GOOGLE';
+            request['code'] = this.oath ();
+        }
         const response = await this.privatePostV3Withdrawal (this.extend (request, params));
         //
         //     {
