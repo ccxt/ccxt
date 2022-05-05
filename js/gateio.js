@@ -1247,7 +1247,7 @@ module.exports = class gateio extends Exchange {
         if (!market['swap']) {
             throw new BadRequest ('Funding rates only exist for swap contracts');
         }
-        const [ request, query ] = this.prepareRequest (market, undefined, false, false, false, params);
+        const [ request, query ] = this.prepareRequest (market, undefined, params);
         const response = await this.publicFuturesGetSettleContractsContract (this.extend (request, query));
         //
         //    [
@@ -1639,7 +1639,7 @@ module.exports = class gateio extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
-            [ request, params ] = this.prepareRequest (market, undefined, false, false, false, params);
+            [ request, params ] = this.prepareRequest (market, undefined, params);
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchFundingHistory', market, params);
@@ -1722,7 +1722,7 @@ module.exports = class gateio extends Exchange {
         //         'with_id': true, // return order book ID
         //     };
         //
-        const [ request, query ] = this.prepareRequest (market, undefined, false, false, false, params);
+        const [ request, query ] = this.prepareRequest (market, undefined, params);
         const spotOrMargin = market['spot'] || market['margin'];
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetOrderBook',
@@ -1814,7 +1814,7 @@ module.exports = class gateio extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ request, query ] = this.prepareRequest (market, undefined, false, false, false, params);
+        const [ request, query ] = this.prepareRequest (market, undefined, params);
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetTickers',
             'margin': 'publicSpotGetTickers',
@@ -2130,7 +2130,7 @@ module.exports = class gateio extends Exchange {
         const market = this.market (symbol);
         const price = this.safeString (params, 'price');
         let request = {};
-        [ request, params ] = this.prepareRequest (market, undefined, false, false, false, params);
+        [ request, params ] = this.prepareRequest (market, undefined, params);
         request['interval'] = this.timeframes[timeframe];
         let method = 'publicSpotGetCandlesticks';
         if (market['contract']) {
@@ -2286,7 +2286,7 @@ module.exports = class gateio extends Exchange {
         //         'to': this.seconds (), // end time in seconds, default to current time
         //     };
         //
-        const [ request, query ] = this.prepareRequest (market, undefined, false, false, false, params);
+        const [ request, query ] = this.prepareRequest (market, undefined, params);
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetTrades',
             'margin': 'publicSpotGetTrades',
@@ -2339,7 +2339,7 @@ module.exports = class gateio extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', undefined, params);
         if (symbol) {
             market = this.market (symbol);
-            [ request, params ] = this.prepareRequest (market, undefined, false, false, false, params);
+            [ request, params ] = this.prepareRequest (market, undefined, params);
             type = market['type'];
         } else {
             if (type === 'swap' || type === 'future') {
@@ -3380,7 +3380,7 @@ module.exports = class gateio extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ request, query ] = this.prepareRequest (market, undefined, false, false, false, params);
+        const [ request, query ] = this.prepareRequest (market, undefined, params);
         request['status'] = status;
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -3576,7 +3576,7 @@ module.exports = class gateio extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            [ request, params ] = this.prepareRequest (market, undefined, false, false, false, params);
+            [ request, params ] = this.prepareRequest (market, undefined, params);
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         const swap = type === 'swap';
@@ -3719,7 +3719,7 @@ module.exports = class gateio extends Exchange {
             'swap': 'privateFuturesPostSettlePositionsContractLeverage',
             'future': 'privateDeliveryPostSettlePositionsContractLeverage',
         });
-        const [ request, query ] = this.prepareRequest (market, undefined, false, false, false, params);
+        const [ request, query ] = this.prepareRequest (market, undefined, params);
         const defaultMarginType = this.safeString2 (this.options, 'marginType', 'defaultMarginType');
         const crossLeverageLimit = this.safeString (query, 'cross_leverage_limit');
         let marginType = this.safeString (query, 'marginType', defaultMarginType);
