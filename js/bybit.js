@@ -1784,7 +1784,7 @@ module.exports = class bybit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'Buy', asksKey = 'Sell', priceKey = 'price', amountKey = 'size') {
+    parseCustomOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'Buy', asksKey = 'Sell', priceKey = 'price', amountKey = 'size') {
         const bids = [];
         const asks = [];
         for (let i = 0; i < orderbook.length; i++) {
@@ -1814,7 +1814,40 @@ module.exports = class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetV2PublicOrderBookL2 (this.extend (request, params));
+        const isUsdcSettled = (market['option']) || (market['settle'] === 'USD');
+        let method = undefined;
+        if (market['spot']) {
+            method = 'publicGetSpotQuoteV1Depth';
+        } else if (!isUsdcSettled) {
+            // inverse perpetual // usdt linear // inverse futures
+            method = 'publicGetV2PublicOrderBookL2';
+        } else {
+            // usdc option/ swap
+            method = market['option'] ? 'publicGetOptionUsdcOpenapiPublicV1OrderBook' : 'publicGetPerpetualUsdcOpenapiPublicV1OrderBook';
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //     {
+        //         "ret_code": 0,
+        //         "ret_msg": null,
+        //         "result": {
+        //             "time": 1620886105740,
+        //             "bids": [
+        //                 ["50005.12","403.0416"]
+        //             ],
+        //             "asks": [
+        //                 ["50006.34", "0.2297" ]
+        //             ]
+        //         },
+        //         "ext_code": null,
+        //         "ext_info": null
+        //     }
+        //
+        // linear/inverse swap/futures
         //
         //     {
         //         ret_code: 0,
@@ -1825,16 +1858,36 @@ module.exports = class bybit extends Exchange {
         //             { symbol: 'BTCUSD', price: '7767.5', size: 677956, side: 'Buy' },
         //             { symbol: 'BTCUSD', price: '7767', size: 580690, side: 'Buy' },
         //             { symbol: 'BTCUSD', price: '7766.5', size: 475252, side: 'Buy' },
-        //             { symbol: 'BTCUSD', price: '7768', size: 330847, side: 'Sell' },
-        //             { symbol: 'BTCUSD', price: '7768.5', size: 97159, side: 'Sell' },
-        //             { symbol: 'BTCUSD', price: '7769', size: 6508, side: 'Sell' },
         //         ],
         //         time_now: '1583954829.874823'
         //     }
         //
+        // usdc markets
+        //
+        //     {
+        //         "retCode": 0,
+        //           "retMsg": "SUCCESS",
+        //           "result": [
+        //           {
+        //             "price": "5000.00000000",
+        //             "size": "2.0000",
+        //             "side": "Buy" // bids
+        //           },
+        //           {
+        //             "price": "5900.00000000",
+        //             "size": "0.9000",
+        //             "side": "Sell" // asks
+        //           }
+        //         ]
+        //    }
+        //
         const result = this.safeValue (response, 'result', []);
+        if (market['spot']) {
+            const timestamp = this.safeTimestamp (result, 'time');
+            return this.parseOrderBook (result, symbol, timestamp, 'bids', 'asks');
+        }
         const timestamp = this.safeTimestamp (response, 'time_now');
-        return this.parseOrderBook (result, symbol, timestamp, 'Buy', 'Sell', 'price', 'size');
+        return this.parseCustomOrderBook (result, symbol, timestamp, 'Buy', 'Sell', 'price', 'size');
     }
 
     parseBalance (response) {
