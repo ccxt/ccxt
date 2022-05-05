@@ -1500,15 +1500,15 @@ module.exports = class ftx extends Exchange {
                 }
             }
             const maker = ((timeInForce === 'PO') || postOnly);
+            if ((type === 'market') && maker) {
+                throw new InvalidOrder (this.id + ' createOrder () does not accept postOnly: true or timeInForce: PO for market orders');
+            }
             const ioc = (timeInForce === 'IOC');
             if (maker) {
-                request['postOnly'] = 'true';
+                request['postOnly'] = true;
             }
-            // TODO ioc and postOnly both throw "Invalid Parameter X" errors await support response
-            // ftx throw error when ioc is passed to market orders
-            // ftx also throws errors when passed ioc limit orders
             if (ioc) {
-                request['ioc'] = 'true';
+                request['ioc'] = true;
             }
         } else if ((type === 'stop') || (type === 'takeProfit') || (stopPrice !== undefined)) {
             method = 'privatePostConditionalOrders';
@@ -1522,6 +1522,10 @@ module.exports = class ftx extends Exchange {
             }
             if (price !== undefined) {
                 request['orderPrice'] = parseFloat (this.priceToPrecision (symbol, price)); // optional, order type is limit if this is specified, otherwise market
+            }
+            if ((type === 'limit') || (type === 'market')) {
+                // default to stop orders for main argument
+                request['type'] = 'stop';
             }
         } else if (type === 'trailingStop') {
             const trailValue = this.safeNumber (params, 'trailValue', price);
@@ -2441,7 +2445,7 @@ module.exports = class ftx extends Exchange {
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if ((leverage < 1) || (leverage > 20)) {
-            throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 20');
+            throw new BadRequest (this.id + ' setLeverage () leverage should be between 1 and 20');
         }
         const request = {
             'leverage': leverage,
@@ -2608,20 +2612,20 @@ module.exports = class ftx extends Exchange {
         if (numCodes === 1) {
             const millisecondsPer5000Hours = 18000000000;
             if ((limit !== undefined) && (limit > 5000)) {
-                throw new BadRequest (this.id + ' fetchBorrowRateHistories() limit cannot exceed 5000 for a single currency');
+                throw new BadRequest (this.id + ' fetchBorrowRateHistories () limit cannot exceed 5000 for a single currency');
             }
             if ((endTime !== undefined) && (since !== undefined) && ((endTime - since) > millisecondsPer5000Hours)) {
-                throw new BadRequest (this.id + ' fetchBorrowRateHistories() requires the time range between the since time and the end time to be less than 5000 hours for a single currency');
+                throw new BadRequest (this.id + ' fetchBorrowRateHistories () requires the time range between the since time and the end time to be less than 5000 hours for a single currency');
             }
             const currency = this.currency (codes[0]);
             request['coin'] = currency['id'];
         } else {
             const millisecondsPer2Days = 172800000;
             if ((limit !== undefined) && (limit > 48)) {
-                throw new BadRequest (this.id + ' fetchBorrowRateHistories() limit cannot exceed 48 for multiple currencies');
+                throw new BadRequest (this.id + ' fetchBorrowRateHistories () limit cannot exceed 48 for multiple currencies');
             }
             if ((endTime !== undefined) && (since !== undefined) && ((endTime - since) > millisecondsPer2Days)) {
-                throw new BadRequest (this.id + ' fetchBorrowRateHistories() requires the time range between the since time and the end time to be less than 48 hours for multiple currencies');
+                throw new BadRequest (this.id + ' fetchBorrowRateHistories () requires the time range between the since time and the end time to be less than 48 hours for multiple currencies');
             }
         }
         const millisecondsPerHour = 3600000;
@@ -2679,7 +2683,7 @@ module.exports = class ftx extends Exchange {
         const histories = await this.fetchBorrowRateHistories ([ code ], since, limit, params);
         const borrowRateHistory = this.safeValue (histories, code);
         if (borrowRateHistory === undefined) {
-            throw new BadRequest (this.id + ' fetchBorrowRateHistory() returned no data for ' + code);
+            throw new BadRequest (this.id + ' fetchBorrowRateHistory () returned no data for ' + code);
         }
         return borrowRateHistory;
     }
