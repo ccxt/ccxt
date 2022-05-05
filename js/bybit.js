@@ -678,11 +678,15 @@ module.exports = class bybit extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        const spotMarkets = await this.fetchSpotMarkets (params);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
+        if (type === 'spot') {
+            const spotMarkets = await this.fetchSpotMarkets (params);
+            return spotMarkets;
+        }
         const contractMarkets = await this.fetchSwapAndFutureMarkets (params);
         const usdcMarkets = await this.fetchUSDCMarkets (params);
-        let markets = spotMarkets;
-        markets = this.arrayConcat (markets, contractMarkets);
+        let markets = contractMarkets;
         markets = this.arrayConcat (markets, usdcMarkets);
         return markets;
     }
@@ -1131,60 +1135,128 @@ module.exports = class bybit extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        // spot
         //
-        // fetchTicker
+        //    {
+        //        "time": "1651743420061",
+        //        "symbol": "BTCUSDT",
+        //        "bestBidPrice": "39466.75",
+        //        "bestAskPrice": "39466.83",
+        //        "volume": "4396.082921",
+        //        "quoteVolume": "172664909.03216557",
+        //        "lastPrice": "39466.71",
+        //        "highPrice": "40032.79",
+        //        "lowPrice": "38602.39",
+        //        "openPrice": "39031.53"
+        //    }
         //
+        // linear usdt/ inverse swap and future
         //     {
-        //         symbol: 'BTCUSD',
-        //         bid_price: '7680',
-        //         ask_price: '7680.5',
-        //         last_price: '7680.00',
-        //         last_tick_direction: 'MinusTick',
-        //         prev_price_24h: '7870.50',
-        //         price_24h_pcnt: '-0.024204',
-        //         high_price_24h: '8035.00',
-        //         low_price_24h: '7671.00',
-        //         prev_price_1h: '7780.00',
-        //         price_1h_pcnt: '-0.012853',
-        //         mark_price: '7683.27',
-        //         index_price: '7682.74',
-        //         open_interest: 188829147,
-        //         open_value: '23670.06',
-        //         total_turnover: '25744224.90',
-        //         turnover_24h: '102997.83',
-        //         total_volume: 225448878806,
-        //         volume_24h: 809919408,
-        //         funding_rate: '0.0001',
-        //         predicted_funding_rate: '0.0001',
-        //         next_funding_time: '2020-03-12T00:00:00Z',
-        //         countdown_hour: 7
+        //         "symbol": "BTCUSDT",
+        //         "bid_price": "39458",
+        //         "ask_price": "39458.5",
+        //         "last_price": "39458.00",
+        //         "last_tick_direction": "ZeroMinusTick",
+        //         "prev_price_24h": "39059.50",
+        //         "price_24h_pcnt": "0.010202",
+        //         "high_price_24h": "40058.50",
+        //         "low_price_24h": "38575.50",
+        //         "prev_price_1h": "39534.00",
+        //         "price_1h_pcnt": "-0.001922",
+        //         "mark_price": "39472.49",
+        //         "index_price": "39469.81",
+        //         "open_interest": "28343.61",
+        //         "open_value": "0.00",
+        //         "total_turnover": "85303326477.54",
+        //         "turnover_24h": "4221589085.06",
+        //         "total_volume": "30628792.45",
+        //         "volume_24h": "107569.75",
+        //         "funding_rate": "0.0001",
+        //         "predicted_funding_rate": "0.0001",
+        //         "next_funding_time": "2022-05-05T16:00:00Z",
+        //         "countdown_hour": "7",
+        //         "delivery_fee_rate": "",
+        //         "predicted_delivery_price": "",
+        //         "delivery_time": ""
         //     }
+        //
+        // usdc option/ swap
+        //     {
+        //          "symbol": "BTC-30SEP22-400000-C",
+        //          "bid": "0",
+        //          "bidIv": "0",
+        //          "bidSize": "0",
+        //          "ask": "15",
+        //          "askIv": "1.1234",
+        //          "askSize": "0.01",
+        //          "lastPrice": "5",
+        //          "openInterest": "0.03",
+        //          "indexPrice": "39458.6",
+        //          "markPrice": "0.51901394",
+        //          "markPriceIv": "0.9047",
+        //          "change24h": "0",
+        //          "high24h": "0",
+        //          "low24h": "0",
+        //          "volume24h": "0",
+        //          "turnover24h": "0",
+        //          "totalVolume": "1",
+        //          "totalTurnover": "4",
+        //          "predictedDeliveryPrice": "0",
+        //          "underlyingPrice": "40129.73",
+        //          "delta": "0.00010589",
+        //          "gamma": "0.00000002",
+        //          "vega": "0.10670892",
+        //          "theta": "-0.03262827"
+        //      }
         //
         const timestamp = undefined;
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeString (ticker, 'last_price');
-        const open = this.safeString (ticker, 'prev_price_24h');
+        const last = this.safeString (ticker, 'last_price', 'lastPrice');
+        const open = this.safeString2 (ticker, 'prev_price_24h', 'openPrice');
         let percentage = this.safeString (ticker, 'price_24h_pcnt');
         percentage = Precise.stringMul (percentage, '100');
-        const baseVolume = this.safeString (ticker, 'turnover_24h');
-        const quoteVolume = this.safeString (ticker, 'volume_24h');
+        let baseVolume = this.safeString2 (ticker, 'turnover_24h', 'turnover24h');
+        if (baseVolume === undefined) {
+            baseVolume = this.safeString (ticker, 'volume');
+        }
+        let quoteVolume = this.safeString (ticker, 'volume_24h', 'volume24h');
+        if (quoteVolume === undefined) {
+            quoteVolume = this.safeString (ticker, 'quoteVolume');
+        }
+        let bid = this.safeString2 (ticker, 'bid_price', 'bid');
+        if (bid === undefined) {
+            bid = this.safeString (ticker, 'bestBidPrice');
+        }
+        let ask = this.safeString2 (ticker, 'ask_price', 'ask');
+        if (ask === undefined) {
+            ask = this.safeString (ticker, 'bestAskPrice');
+        }
+        let high = this.safeString2 (ticker, 'high_price_24h', 'high24h');
+        if (high === undefined) {
+            high = this.safeString (ticker, 'highPrice');
+        }
+        let low = this.safeString2 (ticker, 'low_price_24h', 'low24h');
+        if (low === undefined) {
+            low = this.safeString (ticker, 'lowPrice');
+        }
+        const change = this.safeString (ticker, 'change24h');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (ticker, 'high_price_24h'),
-            'low': this.safeString (ticker, 'low_price_24h'),
-            'bid': this.safeString (ticker, 'bid_price'),
-            'bidVolume': undefined,
-            'ask': this.safeString (ticker, 'ask_price'),
-            'askVolume': undefined,
+            'high': high,
+            'low': low,
+            'bid': bid,
+            'bidVolume': this.safeString (ticker, 'bidSize'),
+            'ask': ask,
+            'askVolume': this.safeString (ticker, 'askSize'),
             'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
+            'change': change,
             'percentage': percentage,
             'average': undefined,
             'baseVolume': baseVolume,
@@ -1196,10 +1268,23 @@ module.exports = class bybit extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        let method = undefined;
+        if (market['type'] === 'spot') {
+            method = 'publicGetSpotQuoteV1Ticker24hr';
+        } else if (market['type'] === 'swap' && market['settle'] !== 'USD') {
+            // inverse perpetual // usdt linear // inverse futures
+            method = 'publicGetV2PublicTickers';
+        } else if (market['type'] === 'option') {
+            // usdc option
+            method = 'publicGetOptionUsdcOpenapiPublicV1Tick';
+        } else {
+            // usdc swap
+            method = 'publicGetPerpetualUsdcOpenapiPublicV1Tick';
+        }
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetV2PublicTickers (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         ret_code: 0,
@@ -1235,13 +1320,47 @@ module.exports = class bybit extends Exchange {
         //         ],
         //         time_now: '1583948195.818255'
         //     }
+        //  usdc ticker
+        //     {
+        //         "retCode": 0,
+        //           "retMsg": "SUCCESS",
+        //           "result": {
+        //                  "symbol": "BTC-28JAN22-250000-C",
+        //                    "bid": "0",
+        //                    "bidIv": "0",
+        //                    "bidSize": "0",
+        //                    "ask": "0",
+        //                    "askIv": "0",
+        //                    "askSize": "0",
+        //                    "lastPrice": "0",
+        //                    "openInterest": "0",
+        //                    "indexPrice": "56171.79000000",
+        //                    "markPrice": "12.72021285",
+        //                    "markPriceIv": "1.1701",
+        //                    "change24h": "0",
+        //                    "high24h": "0",
+        //                    "low24h": "0",
+        //                    "volume24h": "0",
+        //                    "turnover24h": "0",
+        //                    "totalVolume": "0",
+        //                    "totalTurnover": "0",
+        //                    "predictedDeliveryPrice": "0",
+        //                    "underlyingPrice": "57039.61000000",
+        //                    "delta": "0.00184380",
+        //                    "gamma": "0.00000022",
+        //                    "vega": "1.35132531",
+        //                    "theta": "-1.33819821"
+        //          }
+        //     }
         //
         const result = this.safeValue (response, 'result', []);
-        const first = this.safeValue (result, 0);
-        const timestamp = this.safeTimestamp (response, 'time_now');
-        const ticker = this.parseTicker (first, market);
-        ticker['timestamp'] = timestamp;
-        ticker['datetime'] = this.iso8601 (timestamp);
+        let rawTicker = undefined;
+        if (Array.isArray (result)) {
+            rawTicker = this.safeValue (result, 0);
+        } else {
+            rawTicker = result;
+        }
+        const ticker = this.parseTicker (rawTicker, market);
         return ticker;
     }
 
