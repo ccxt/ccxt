@@ -1089,7 +1089,7 @@ module.exports = class gateio extends Exchange {
         return underlyings;
     }
 
-    prepareRequest (market = undefined, type = undefined, setMarginType = false, stop = false, multiOrder = false, params = {}) {
+    prepareRequest (market = undefined, type = undefined, params = {}) {
         /**
          * @ignore
          * @method
@@ -1097,9 +1097,6 @@ module.exports = class gateio extends Exchange {
          * @description Fills request params contract, settle, currency_pair, market and account where applicable
          * @param {dict} market CCXT market, required when type is undefined
          * @param {str} type 'spot', 'swap', or 'future', required when market is undefined
-         * @param {bool} setMarginType true if setting 'account' param for margin trading
-         * @param {bool} stop true if for a stop order
-         * @param {bool} multiOrder methods like fetchOpenOrders, cancelAllOrders, etc. Only needed for stop orders
          * @param {dict} params request parameters
          * @returns the api request object, and the new params object with non-needed parameters removed
          */
@@ -1130,24 +1127,34 @@ module.exports = class gateio extends Exchange {
                 request = {};
             }
         }
-        if (setMarginType && (type === 'spot' || type === 'margin')) {
-            let marginType = undefined;
-            [ marginType, params ] = this.getMarginType (stop, params);
+        return [ request, params ];
+    }
+
+    multiOrderSpotSetMarginType (market = undefined, stop = false, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @name gateio#multiOrderSpotSetMarginType
+         * @description Fills request params currency_pair, market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
+         * @param {dict} market CCXT market
+         * @param {bool} stop true if for a stop order
+         * @param {dict} params request parameters
+         * @returns the api request object, and the new params object with non-needed parameters removed
+         */
+
+        const [ marginType, query ] = this.getMarginType (stop, params);
+        const request = {
+            'account': marginType,
+        };
+        if (market !== undefined) {
             if (stop) {
                 // gateio spot and margin stop orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single stop order, but createOrder does not call this method
-                if (multiOrder) {
-                    if (market !== undefined) {
-                        request = {
-                            'market': market['id'],
-                        };
-                    }
-                    request['account'] = marginType;
-                }
+                request['market'] = market['id'];
             } else {
-                request['account'] = marginType;
+                request['currency_pair'] = market['id'];
             }
         }
-        return [ request, params ];
+        return [ request, query ];
     }
 
     getMarginType (stop, params) {
