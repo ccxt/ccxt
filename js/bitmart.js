@@ -10,6 +10,11 @@ const Precise = require ('./base/Precise');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitmart extends Exchange {
+    /**
+     * @class
+     * @name bitmart
+     * @description exchange class for bitmart api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitmart',

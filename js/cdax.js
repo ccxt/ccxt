@@ -9,6 +9,11 @@ const { TRUNCATE, TICK_SIZE } = require ('./base/functions/number');
 // ---------------------------------------------------------------------------
 
 module.exports = class cdax extends Exchange {
+    /**
+     * @class
+     * @name cdax
+     * @description exchange class for cdax api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'cdax',

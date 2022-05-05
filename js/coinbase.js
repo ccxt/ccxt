@@ -10,6 +10,11 @@ const Precise = require ('./base/Precise');
 // ----------------------------------------------------------------------------
 
 module.exports = class coinbase extends Exchange {
+    /**
+     * @class
+     * @name coinbase
+     * @description exchange class for coinbase api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinbase',

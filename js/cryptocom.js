@@ -8,6 +8,11 @@ const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 module.exports = class cryptocom extends Exchange {
+    /**
+     * @class
+     * @name cryptocom
+     * @description exchange class for cryptocom api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'cryptocom',

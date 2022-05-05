@@ -10,6 +10,11 @@ const Precise = require ('./base/Precise');
 //  ---------------------------------------------------------------------------
 
 module.exports = class qtrade extends Exchange {
+    /**
+     * @class
+     * @name qtrade
+     * @description exchange class for qtrade api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'qtrade',

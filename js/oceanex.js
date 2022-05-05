@@ -9,6 +9,11 @@ const { TICK_SIZE } = require ('./base/functions/number');
 //  ---------------------------------------------------------------------------
 
 module.exports = class oceanex extends Exchange {
+    /**
+     * @class
+     * @name oceanex
+     * @description exchange class for oceanex api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'oceanex',

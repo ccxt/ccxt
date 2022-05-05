@@ -7,6 +7,11 @@ const ndax = require ('./ndax.js');
 //  ---------------------------------------------------------------------------
 
 module.exports = class zipmex extends ndax {
+    /**
+     * @class
+     * @name zipmex
+     * @description exchange class for zipmex api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'zipmex',

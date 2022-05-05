@@ -9,6 +9,11 @@ const { TICK_SIZE } = require ('./base/functions/number');
 //  ---------------------------------------------------------------------------
 
 module.exports = class crex24 extends Exchange {
+    /**
+     * @class
+     * @name crex24
+     * @description exchange class for crex24 api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'crex24',

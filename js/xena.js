@@ -6,6 +6,11 @@ const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 module.exports = class xena extends Exchange {
+    /**
+     * @class
+     * @name xena
+     * @description exchange class for xena api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'xena',

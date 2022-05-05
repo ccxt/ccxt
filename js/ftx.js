@@ -10,6 +10,11 @@ const Precise = require ('./base/Precise');
 //  ---------------------------------------------------------------------------
 
 module.exports = class ftx extends Exchange {
+    /**
+     * @class
+     * @name ftx
+     * @description exchange class for ftx api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'ftx',

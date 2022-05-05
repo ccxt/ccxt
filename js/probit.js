@@ -10,6 +10,11 @@ const Precise = require ('./base/Precise');
 //  ---------------------------------------------------------------------------
 
 module.exports = class probit extends Exchange {
+    /**
+     * @class
+     * @name probit
+     * @description exchange class for probit api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'probit',

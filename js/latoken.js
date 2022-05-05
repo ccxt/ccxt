@@ -9,6 +9,11 @@ const { TICK_SIZE } = require ('./base/functions/number');
 //  ---------------------------------------------------------------------------
 
 module.exports = class latoken extends Exchange {
+    /**
+     * @class
+     * @name latoken
+     * @description exchange class for latoken api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'latoken',

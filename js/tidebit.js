@@ -9,6 +9,11 @@ const { TICK_SIZE } = require ('./base/functions/number');
 //  ---------------------------------------------------------------------------
 
 module.exports = class tidebit extends Exchange {
+    /**
+     * @class
+     * @name tidebit
+     * @description exchange class for tidebit api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'tidebit',

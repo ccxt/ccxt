@@ -10,6 +10,11 @@ const Precise = require ('./base/Precise');
 // ---------------------------------------------------------------------------
 
 module.exports = class vcc extends Exchange {
+    /**
+     * @class
+     * @name vcc
+     * @description exchange class for vcc api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'vcc',

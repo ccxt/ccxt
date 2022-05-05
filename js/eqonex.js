@@ -10,6 +10,11 @@ const Precise = require ('./base/Precise');
 // ----------------------------------------------------------------------------
 
 module.exports = class eqonex extends Exchange {
+    /**
+     * @class
+     * @name eqonex
+     * @description exchange class for eqonex api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'eqonex',

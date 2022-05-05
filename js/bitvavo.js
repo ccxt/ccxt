@@ -9,6 +9,11 @@ const { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } = require ('./base
 // ----------------------------------------------------------------------------
 
 module.exports = class bitvavo extends Exchange {
+    /**
+     * @class
+     * @name bitvavo
+     * @description exchange class for bitvavo api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitvavo',

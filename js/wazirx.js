@@ -6,6 +6,11 @@ const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 module.exports = class wazirx extends Exchange {
+    /**
+     * @class
+     * @name wazirx
+     * @description exchange class for wazirx api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'wazirx',
