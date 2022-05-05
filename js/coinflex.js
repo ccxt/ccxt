@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, PermissionDenied, InvalidOrder, OrderNotFound, ArgumentsRequired, InsufficientFunds } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
+const { TICK_SIZE, SIGNIFICANT_DIGITS } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -105,7 +105,7 @@ module.exports = class coinflex extends Exchange {
                 'setPositionMode': undefined,
                 'signIn': undefined,
                 'transfer': true,
-                'withdraw': undefined,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '60s',
@@ -117,6 +117,7 @@ module.exports = class coinflex extends Exchange {
                 '4h': '14400s',
                 '1d': '86400s',
             },
+            'precisionMode': TICK_SIZE,
             'urls': {
                 'logo': '',
                 'api': {
@@ -1614,6 +1615,20 @@ module.exports = class coinflex extends Exchange {
         //         "completedAt": "1617940921123"
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "id": "759031388269150209",
+        //         "asset": "USDT",
+        //         "network": "ERC20",
+        //         "address": "0xe8c2d73e0312e32f98e541b813D8EC3148A4BAf5",
+        //         "quantity": "18",
+        //         "externalFee": false,
+        //         "fee": "8.7996",
+        //         "status": "PENDING",
+        //         "requestedAt": "1651708397366"
+        //     }
+        //
         const isDeposit = ('creditedAt' in transaction);
         const id = this.safeString (transaction, 'id');
         const txId = this.safeString (transaction, 'txId');
@@ -2040,15 +2055,15 @@ module.exports = class coinflex extends Exchange {
         //     {
         //         "success": true,
         //         "data": {
-        //             "id": "752907053614432259",
+        //             "id": "759031388269150209",
         //             "asset": "USDT",
-        //             "network": "SLP",
-        //             "address": "simpleledger:qzlg6uvceehgzgtz6phmvy8gtdqyt6vf35fxqwx3p7",
-        //             "quantity": "1000.0",
-        //             "externalFee": true,
-        //             "fee": "0",
+        //             "network": "ERC20",
+        //             "address": "0xe8c2d73e0312e32f98e541b813D8EC3148A4BAf5",
+        //             "quantity": "18",
+        //             "externalFee": false,
+        //             "fee": "8.7996",
         //             "status": "PENDING",
-        //             "requestedAt": "1617940800000"
+        //             "requestedAt": "1651708397366"
         //         }
         //     }
         //
