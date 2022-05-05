@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, PermissionDenied, InvalidOrder, OrderNotFound, ArgumentsRequired, InsufficientFunds } = require ('./base/errors');
-const { TICK_SIZE, SIGNIFICANT_DIGITS } = require ('./base/functions/number');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -95,7 +95,7 @@ module.exports = class coinflex extends Exchange {
                 'fetchTransactions': undefined,
                 'fetchTransfers': true,
                 'fetchWithdrawal': true,
-                'fetchWithdrawals': undefined,
+                'fetchWithdrawals': true,
                 'loadMarkets': true,
                 'privateAPI': true,
                 'publicAPI': true,
@@ -117,7 +117,6 @@ module.exports = class coinflex extends Exchange {
                 '4h': '14400s',
                 '1d': '86400s',
             },
-            'precisionMode': TICK_SIZE,
             'urls': {
                 'logo': '',
                 'api': {
@@ -490,7 +489,8 @@ module.exports = class coinflex extends Exchange {
                 isDepositEnabled = isDepositEnabled || depositEnable;
                 isWithdrawEnabled = isWithdrawEnabled || withdrawEnable;
                 fees[networkId] = undefined;
-                precision = this.safeInteger (networkItem, 'transactionPrecision');
+                precision = this.safeString (networkItem, 'transactionPrecision');
+                precision = this.parseNumber (this.parsePrecision (precision));
                 networks[networkId] = {
                     'id': networkId,
                     'network': networkId,
@@ -1479,7 +1479,7 @@ module.exports = class coinflex extends Exchange {
         //     {
         //         "success": true,
         //         "data": {
-        //             "address": "0x5D561479d9665E490894822896c9c45Ea63007Eb"
+        //             "address": "0x5D561479d9665E490894822896c9c45Ea63007EE"
         //         }
         //     }
         //
@@ -1516,7 +1516,7 @@ module.exports = class coinflex extends Exchange {
         //                 "id": "757475245433389059",
         //                 "asset": "USDT",
         //                 "network": "ERC20",
-        //                 "address": "0x5D561479d9665E490894822896c9c45Ea63007Eb",
+        //                 "address": "0x5D561479d9665E490894822896c9c45Ea63007EE",
         //                 "quantity": "28.33",
         //                 "status": "COMPLETED",
         //                 "txId": "0x6a92c8190b4b56a56fed2f9a8d0d7afd01843c28d0c0a8a5607b974b2fab8b4a",
@@ -1525,7 +1525,7 @@ module.exports = class coinflex extends Exchange {
         //         ]
         //     }
         //
-        // Note, when there are no withdrawal records, you might get:
+        // Note, when there are no deposit records, you might get:
         //
         //     {
         //         "success": false,
@@ -1533,10 +1533,6 @@ module.exports = class coinflex extends Exchange {
         //         "message": "result not found, please check your parameters"
         //     }
         //
-        const statusCode = this.safeValue (response, 'code');
-        if (statusCode === '20001') {
-            return [];
-        }
         const data = this.safeValue (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit, params);
     }
@@ -1559,18 +1555,27 @@ module.exports = class coinflex extends Exchange {
         //         "success": true,
         //         "data": [
         //             {
-        //                 "id": "651573911056351237",
+        //                 "id": "759031388269150209",
         //                 "asset": "USDT",
         //                 "network": "ERC20",
-        //                 "address": "0x5D561479d9665E490899382896c9c45Ea63007AE",
-        //                 "quantity": "36",
-        //                 "fee": "5.2324",
+        //                 "address": "0xe8c2d75e0392e32f36e541b868D8AC3148A4DDf8",
+        //                 "quantity": "18",
+        //                 "fee": "8.799600000",
         //                 "status": "COMPLETED",
-        //                 "txId": "38c09755bff75d33304a3cb6ee839fcb78bbb38b6e3e16586f20852cdec4886d",
-        //                 "requestedAt": "1617940893000",
-        //                 "completedAt": "1617940921123"
+        //                 "txId": "0xc071cd34cb2f60135e709c26219b39523addbb3599818d98dcd5db2bf0115c17",
+        //                 "requestedAt": "1651708397398",
+        //                 "completedAt": "1651708835000"
         //             }
         //         ]
+        //     }
+        //
+        //
+        // Note, when there are no withdrawal records, you might get:
+        //
+        //     {
+        //         "success": false,
+        //         "code": "20001",
+        //         "message": "result not found, please check your parameters"
         //     }
         //
         const data = this.safeValue (response, 'data', []);
@@ -1591,10 +1596,10 @@ module.exports = class coinflex extends Exchange {
         //
         //     {
         //         "id": "757475245433389059",
-        //         "txId": "0x6a92c8190b4b56a56fed2f9a8d0d7afd01843c28d0c0a8a5607b974b2fab8b4a",
+        //         "txId": "0x6a92c8190b4b56a56fed2f9a8d0d7afd01843c28d0c0a8a5607b974b2fab8b5a",
         //         "asset": "USDT",
         //         "network": "ERC20",
-        //         "address": "0x5D561479d9665E490894822896c9c45Ea63007Eb",
+        //         "address": "0x5D561479d9665E490894822896c9c45Ea63007EE",
         //         "quantity": "28.33",
         //         "status": "COMPLETED",
         //         "creditedAt": "1651233499800"
@@ -1604,10 +1609,10 @@ module.exports = class coinflex extends Exchange {
         //
         //     {
         //         "id": "651573911056351237",
-        //         "txId": "38c09755bff75d33304a3cb6ee839fcb78bbb38b6e3e16586f20852cdec4886d",
+        //         "txId": "38c09755bff75d33304a3cb6ee839fcb78bbb38b6e3e16586f20852cdec4883d",
         //         "asset": "USDT",
         //         "network": "ERC20",
-        //         "address": "0x5D561479d9665E490899382896c9c45Ea63007AE",
+        //         "address": "0x5D561479d9665E490899382896c9c45Ea63007EE",
         //         "quantity": "36",
         //         "fee": "5.2324",
         //         "status": "COMPLETED",
@@ -1621,7 +1626,7 @@ module.exports = class coinflex extends Exchange {
         //         "id": "759031388269150209",
         //         "asset": "USDT",
         //         "network": "ERC20",
-        //         "address": "0xe8c2d73e0312e32f98e541b813D8EC3148A4BAf5",
+        //         "address": "0xe8c2d73e0312e32f98e541b813D8EC3148A4BAd5",
         //         "quantity": "18",
         //         "externalFee": false,
         //         "fee": "8.7996",
@@ -2058,7 +2063,7 @@ module.exports = class coinflex extends Exchange {
         //             "id": "759031388269150209",
         //             "asset": "USDT",
         //             "network": "ERC20",
-        //             "address": "0xe8c2d73e0312e32f98e541b813D8EC3148A4BAf5",
+        //             "address": "0xe8c2d73e0312e32f98e541b813D8EC3148A4BAd5",
         //             "quantity": "18",
         //             "externalFee": false,
         //             "fee": "8.7996",
