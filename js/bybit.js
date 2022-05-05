@@ -2244,7 +2244,20 @@ module.exports = class bybit extends Exchange {
         } else if (market['future']) {
             defaultMethod = 'futuresPrivatePostOrderCancelAll';
         }
+        const stop = this.safeValue (params, 'stop');
+        if (stop) {
+            if (market['swap']) {
+                if (market['linear']) {
+                    defaultMethod = 'privateLinearPostStopOrderCancelAll';
+                } else if (market['inverse']) {
+                    defaultMethod = 'v2PrivatePostStopOrderCancelAll';
+                }
+            } else if (market['future']) {
+                defaultMethod = 'futuresPrivatePostStopOrderCancelAll';
+            }
+        }
         const method = this.safeString (options, 'method', defaultMethod);
+        params = this.omit (params, 'stop');
         const response = await this[method] (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
         return this.parseOrders (result, market);
