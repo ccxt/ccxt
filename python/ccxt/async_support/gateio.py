@@ -1670,7 +1670,6 @@ class gateio(Exchange):
         #     }
         #
         request, query = self.prepare_request(market, None, params)
-        spotOrMargin = market['spot'] or market['margin']
         method = self.get_supported_mapping(market['type'], {
             'spot': 'publicSpotGetOrderBook',
             'margin': 'publicSpotGetOrderBook',
@@ -1746,10 +1745,10 @@ class gateio(Exchange):
         #     }
         #
         timestamp = self.safe_integer(response, 'current')
-        if not spotOrMargin:
+        if not market['spot']:
             timestamp = timestamp * 1000
-        priceKey = 0 if spotOrMargin else 'p'
-        amountKey = 1 if spotOrMargin else 's'
+        priceKey = 0 if market['spot'] else 'p'
+        amountKey = 1 if market['spot'] else 's'
         nonce = self.safe_integer(response, 'id')
         result = self.parse_order_book(response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey)
         result['nonce'] = nonce

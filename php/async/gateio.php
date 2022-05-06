@@ -1723,7 +1723,6 @@ class gateio extends Exchange {
         //     );
         //
         list($request, $query) = $this->prepare_request($market, null, $params);
-        $spotOrMargin = $market['spot'] || $market['margin'];
         $method = $this->get_supported_mapping($market['type'], array(
             'spot' => 'publicSpotGetOrderBook',
             'margin' => 'publicSpotGetOrderBook',
@@ -1800,11 +1799,11 @@ class gateio extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($response, 'current');
-        if (!$spotOrMargin) {
+        if (!$market['spot']) {
             $timestamp = $timestamp * 1000;
         }
-        $priceKey = $spotOrMargin ? 0 : 'p';
-        $amountKey = $spotOrMargin ? 1 : 's';
+        $priceKey = $market['spot'] ? 0 : 'p';
+        $amountKey = $market['spot'] ? 1 : 's';
         $nonce = $this->safe_integer($response, 'id');
         $result = $this->parse_order_book($response, $symbol, $timestamp, 'bids', 'asks', $priceKey, $amountKey);
         $result['nonce'] = $nonce;
