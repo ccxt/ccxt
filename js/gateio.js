@@ -3193,7 +3193,7 @@ module.exports = class gateio extends Exchange {
             if (market['spot']) {
                 request['currency_pair'] = market['id'];
             } else {
-                settle = market['settle'];
+                settle = market['settleId'];
             }
         }
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
