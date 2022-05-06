@@ -3451,14 +3451,7 @@ module.exports = class gateio extends Exchange {
         const stop = this.safeValue2 (params, 'is_stop_order', 'stop', false);
         params = this.omit (params, [ 'is_stop_order', 'stop' ]);
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        const [ request, requestParams ] = this.prepareRequest (market, type, query);
-        const [ marginType, queryParams ] = this.getMarginType (stop, requestParams);
-        if (type === 'spot' || type === 'margin') {
-            if (!stop && (symbol === undefined)) {
-                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument for spot and margin');
-            }
-            request['account'] = marginType;
-        }
+        const [ request, requestParams ] = (type === 'spot' || type === 'margin') ? this.spotOrderPrepareRequest (market, stop, query) : this.prepareRequest (market, type, query);
         request['order_id'] = id;
         const pathMiddle = stop ? 'Price' : '';
         const method = this.getSupportedMapping (type, {
@@ -3467,7 +3460,7 @@ module.exports = class gateio extends Exchange {
             'swap': 'privateFuturesDeleteSettle' + pathMiddle + 'OrdersOrderId',
             'future': 'privateDeliveryDeleteSettle' + pathMiddle + 'OrdersOrderId',
         });
-        const response = await this[method] (this.extend (request, queryParams));
+        const response = await this[method] (this.extend (request, requestParams));
         //
         // spot
         //
