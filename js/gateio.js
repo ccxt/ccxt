@@ -1171,8 +1171,8 @@ module.exports = class gateio extends Exchange {
         }
         if (stop) {
             if (marginType === 'spot') {
+                // gateio spot stop orders use the term normal instead of spot
                 marginType = 'normal';
-                // gateio spot and margin stop orders use the term normal instead of spot
             }
             if (marginType === 'cross_margin') {
                 throw new BadRequest (this.id + ' getMarginType() does not support stop orders for cross margin');
