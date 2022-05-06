@@ -2692,7 +2692,7 @@ module.exports = class coinex extends Exchange {
         return this.safeValue (tiers, symbol);
     }
 
-    parseLeverageTiers (response, symbols, marketIdKey) {
+    parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
         //
         //     {
         //         "BTCUSD": [
@@ -2706,32 +2706,42 @@ module.exports = class coinex extends Exchange {
         //         ...
         //     }
         //
-        const result = {};
-        const currencyIds = Object.keys (response);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const ladder = response[currencyId];
-            const tiers = [];
-            const symbol = this.safeSymbol (currencyId);
-            let minNotional = 0;
-            for (let j = 0; j < ladder.length; j++) {
-                const bracket = ladder[j];
-                const leverage = this.safeInteger (bracket, 1);
-                const maxNotional = this.safeNumber (bracket, 0);
-                tiers.push ({
-                    'tier': j + 1,
-                    'currency': undefined,
-                    'minNotional': minNotional,
-                    'maxNotional': maxNotional,
-                    'maintenanceMarginRate': this.safeNumber (bracket, 2),
-                    'maxLeverage': leverage,
-                    'info': bracket,
-                });
-                minNotional = maxNotional;
+        const tiers = {};
+        const marketIds = Object.keys (response);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const market = this.safeMarket (marketId);
+            const symbol = this.safeString (market, 'symbol');
+            let symbolsLength = 0;
+            if (symbols !== undefined) {
+                symbolsLength = symbols.length;
             }
-            result[symbol] = tiers;
+            if (symbol !== undefined && (symbolsLength === 0 || symbols.includes (symbol))) {
+                tiers[marketId] = this.parseMarketLeverageTiers (response[marketId], market);
+            }
         }
-        return result;
+        return tiers;
+    }
+
+    parseMarketLeverageTiers (item, market = undefined) {
+        const tiers = [];
+        let minNotional = 0;
+        for (let j = 0; j < item.length; j++) {
+            const bracket = item[j];
+            const leverage = this.safeInteger (bracket, 1);
+            const maxNotional = this.safeNumber (bracket, 0);
+            tiers.push ({
+                'tier': j + 1,
+                'currency': undefined,
+                'minNotional': minNotional,
+                'maxNotional': maxNotional,
+                'maintenanceMarginRate': this.safeNumber (bracket, 2),
+                'maxLeverage': leverage,
+                'info': bracket,
+            });
+            minNotional = maxNotional;
+        }
+        return tiers;
     }
 
     async modifyMarginHelper (symbol, amount, addOrReduce, params = {}) {
