@@ -495,6 +495,7 @@ module.exports = class bybit extends Exchange {
             'exceptions': {
                 'exact': {
                     '-2015': AuthenticationError, // Invalid API-key, IP, or permissions for action.
+                    '-10009': BadRequest, // {"ret_code":-10009,"ret_msg":"Invalid period!","result":null,"token":null}
                     '10001': BadRequest, // parameter error
                     '10002': InvalidNonce, // request expired, check your timestamp and recv_window
                     '10003': AuthenticationError, // Invalid apikey
@@ -1337,8 +1338,50 @@ module.exports = class bybit extends Exchange {
         //         "close":7541
         //     }
         //
+        // usdc perpetual
+        //     {
+        //         "symbol":"BTCPERP",
+        //         "volume":"0.01",
+        //         "period":"1",
+        //         "openTime":"1636358160",
+        //         "open":"66001.50",
+        //         "high":"66001.50",
+        //         "low":"66001.50",
+        //         "close":"66001.50",
+        //         "turnover":"1188.02"
+        //     }
+        //
+        // spot
+        //     [
+        //         1651837620000, // start tame
+        //         "35831.5", // open
+        //         "35831.5", // high
+        //         "35801.93", // low
+        //         "35817.11", // close
+        //         "1.23453", // volume
+        //         0, // end time
+        //         "44213.97591627", // quote asset volume
+        //         24, // number of trades
+        //         "0", // taker base volume
+        //         "0" // taker quote volume
+        //     ]
+        //
+        if (Array.isArray (ohlcv)) {
+            return [
+                this.safeNumber (ohlcv, 0),
+                this.safeNumber (ohlcv, 1),
+                this.safeNumber (ohlcv, 2),
+                this.safeNumber (ohlcv, 3),
+                this.safeNumber (ohlcv, 4),
+                this.safeNumber (ohlcv, 5),
+            ];
+        }
+        let timestamp = this.safeTimestamp2 (ohlcv, 'open_time', 'openTime');
+        if (timestamp === undefined) {
+            timestamp = this.safeTimestamp (ohlcv, 'start_at');
+        }
         return [
-            this.safeTimestamp2 (ohlcv, 'open_time', 'start_at'),
+            timestamp,
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
@@ -1373,7 +1416,7 @@ module.exports = class bybit extends Exchange {
         let method = undefined;
         let intervalKey = 'interval';
         let sinceKey = 'from';
-        const isUsdcSettled = (market['option']) || (market['settle'] !== undefined) && (market['settle'] === 'USD');
+        const isUsdcSettled = (market['option']) || (market['settle'] === 'USD');
         if (market['spot']) {
             method = 'publicGetSpotQuoteV1Kline';
         } else if (market['contract'] && !isUsdcSettled) {
@@ -1408,7 +1451,9 @@ module.exports = class bybit extends Exchange {
             };
             method = this.safeValue (methods, price, 'publicGetPerpetualUsdcOpenapiPublicV1KlineList');
         }
-        request[intervalKey] = this.timeframes[timeframe];
+        // spot markets use the same interval format as ccxt
+        // so we don't need  to convert it
+        request[intervalKey] = market['spot'] ? timeframe : this.timeframes[timeframe];
         request[sinceKey] = sinceTimestamp;
         const response = await this[method] (this.extend (request, params));
         //
@@ -1457,6 +1502,28 @@ module.exports = class bybit extends Exchange {
         //         ],
         //         "time_now":"1587884120.168077"
         //     }
+        // spot
+        //     {
+        //    "ret_code": "0",
+        //    "ret_msg": null,
+        //     "result": [
+        //         [
+        //             1651837620000,
+        //             "35831.5",
+        //             "35831.5",
+        //             "35801.93",
+        //             "35817.11",
+        //             "1.23453",
+        //             0,
+        //             "44213.97591627",
+        //             24,
+        //             "0",
+        //             "0"
+        //         ]
+        //     ],
+        //     "ext_code": null,
+        //     "ext_info": null
+        // }
         //
         const result = this.safeValue (response, 'result', {});
         return this.parseOHLCVs (result, market, timeframe, since, limit);
