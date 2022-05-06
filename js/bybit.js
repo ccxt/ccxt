@@ -678,11 +678,114 @@ module.exports = class bybit extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
+        if (type === 'spot') {
+            // spot and swap ids are equal
+            // so they can't be loaded together
+            const spotMarkets = await this.fetchSpotMarkets (params);
+            return spotMarkets;
+        }
+        const contractMarkets = await this.fetchSwapAndFutureMarkets (params);
+        const usdcMarkets = await this.fetchUSDCMarkets (params);
+        let markets = contractMarkets;
+        markets = this.arrayConcat (markets, usdcMarkets);
+        return markets;
+    }
+
+    async fetchSpotMarkets (params) {
+        const response = await this.publicGetSpotV1Symbols (params);
+        //
+        //     {
+        //         "ret_code":0,
+        //         "ret_msg":"",
+        //         "ext_code":null,
+        //         "ext_info":null,
+        //         "result":[
+        //             {
+        //                 "name":"BTCUSDT",
+        //                 "alias":"BTCUSDT",
+        //                 "baseCurrency":"BTC",
+        //                 "quoteCurrency":"USDT",
+        //                 "basePrecision":"0.000001",
+        //                 "quotePrecision":"0.00000001",
+        //                 "minTradeQuantity":"0.000158",
+        //                 "minTradeAmount":"10",
+        //                 "maxTradeQuantity":"4",
+        //                 "maxTradeAmount":"100000",
+        //                 "minPricePrecision":"0.01",
+        //                 "category":1,
+        //                 "showStatus":true
+        //             },
+        //         ]
+        //     }
+        const markets = this.safeValue (response, 'result', []);
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = this.safeString (market, 'name');
+            const baseId = this.safeString (market, 'baseCurrency');
+            const quoteId = this.safeString2 (market, 'quoteCurrency');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const active = this.safeValue (market, 'showStatus');
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': active,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': undefined,
+                'maker': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeNumber (market, 'basePrecision'),
+                    'price': this.safeNumber (market, 'quotePrecision'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': this.parseNumber ('1'),
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'minTradeQuantity'),
+                        'max': this.safeNumber (market, 'maxTradeQuantity'),
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'minTradeAmount'),
+                        'max': this.safeNumber (market, 'maxTradeAmount'),
+                    },
+                },
+                'info': market,
+            });
+        }
+        return result;
+    }
+
+    async fetchSwapAndFutureMarkets (params) {
         const response = await this.publicGetV2PublicSymbols (params);
-        //
-        // linear swaps and inverse swaps and futures
-        // const swapsResponse = await this.publicGetV2PublicSymbols (params);
-        //
         //     {
         //         "ret_code":0,
         //         "ret_msg":"OK",
@@ -717,67 +820,145 @@ module.exports = class bybit extends Exchange {
         //                 "price_filter":{"min_price":"0.5","max_price":"999999","tick_size":"0.5"},
         //                 "lot_size_filter":{"max_trading_qty":100,"min_trading_qty":0.001, "qty_step":0.001}
         //             },
-        //             // inverse futures
-        //             {
-        //                 "name":"BTCUSDM22",
-        //                 "alias":"BTCUSD0624",
-        //                 "status":"Trading",
-        //                 "base_currency":"BTC",
-        //                 "quote_currency":"USD",
-        //                 "price_scale":2,
-        //                 "taker_fee":"0.00075",
-        //                 "maker_fee":"-0.00025",
-        //                 "leverage_filter":{"min_leverage":1,"max_leverage":100,"leverage_step":"0.01"},
-        //                 "price_filter":{"min_price":"0.5","max_price":"999999","tick_size":"0.5"},
-        //                 "lot_size_filter":{"max_trading_qty":1000000,"min_trading_qty":1,"qty_step":1}
-        //             },
-        //             {
-        //                 "name":"BTCUSDH22",
-        //                 "alias":"BTCUSD0325",
-        //                 "status":"Trading",
-        //                 "base_currency":"BTC",
-        //                 "quote_currency":"USD",
-        //                 "price_scale":2,
-        //                 "taker_fee":"0.00075",
-        //                 "maker_fee":"-0.00025",
-        //                 "leverage_filter":{"min_leverage":1,"max_leverage":100,"leverage_step":"0.01"}
-        //                 "price_filter":{"min_price":"0.5","max_price":"999999","tick_size":"0.5"},
-        //                 "lot_size_filter":{"max_trading_qty":1000000,"min_trading_qty":1,"qty_step":1}
-        //             }
+        //  inverse futures
+        //            {
+        //                "name": "BTCUSDU22",
+        //                "alias": "BTCUSD0930",
+        //                "status": "Trading",
+        //                "base_currency": "BTC",
+        //                "quote_currency": "USD",
+        //                "price_scale": "2",
+        //                "taker_fee": "0.0006",
+        //                "maker_fee": "0.0001",
+        //                "funding_interval": "480",
+        //                "leverage_filter": {
+        //                    "min_leverage": "1",
+        //                    "max_leverage": "100",
+        //                    "leverage_step": "0.01"
+        //                },
+        //                "price_filter": {
+        //                    "min_price": "0.5",
+        //                    "max_price": "999999",
+        //                    "tick_size": "0.5"
+        //                },
+        //                "lot_size_filter": {
+        //                    "max_trading_qty": "1000000",
+        //                    "min_trading_qty": "1",
+        //                    "qty_step": "1",
+        //                    "post_only_max_trading_qty": "5000000"
+        //                }
+        //            }
         //         ],
         //         "time_now":"1642369942.072113"
         //     }
         //
-        // spot markets
-        // const spotResponse = await this.publicGetSpotV1Symbols (params);
+        const markets = this.safeValue (response, 'result', []);
+        const result = [];
+        const options = this.safeValue (this.options, 'fetchMarkets', {});
+        const linearQuoteCurrencies = this.safeValue (options, 'linear', { 'USDT': true });
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = this.safeString (market, 'name');
+            const baseId = this.safeString (market, 'base_currency');
+            const quoteId = this.safeString (market, 'quote_currency');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const linear = (quote in linearQuoteCurrencies);
+            let symbol = base + '/' + quote;
+            const baseQuote = base + quote;
+            let type = 'swap';
+            if (baseQuote !== id) {
+                type = 'future';
+            }
+            const lotSizeFilter = this.safeValue (market, 'lot_size_filter', {});
+            const priceFilter = this.safeValue (market, 'price_filter', {});
+            const leverage = this.safeValue (market, 'leverage_filter', {});
+            const status = this.safeString (market, 'status');
+            let active = undefined;
+            if (status !== undefined) {
+                active = (status === 'Trading');
+            }
+            const swap = (type === 'swap');
+            const future = (type === 'future');
+            let expiry = undefined;
+            let expiryDatetime = undefined;
+            const settleId = linear ? quoteId : baseId;
+            const settle = this.safeCurrencyCode (settleId);
+            symbol = symbol + ':' + settle;
+            if (future) {
+                // we have to do some gymnastics here because bybit
+                // only provides the day and month regarding the contract expiration
+                const alias = this.safeString (market, 'alias'); // BTCUSD0930
+                const aliasDate = alias.slice (-4); // 0930
+                const aliasMonth = aliasDate.slice (0, 2); // 09
+                const aliasDay = aliasDate.slice (2, 4); // 30
+                const dateNow = this.yyyymmdd (this.milliseconds ());
+                const dateParts = dateNow.split ('-');
+                const year = this.safeValue (dateParts, 0);
+                const artificial8601Date = year + '-' + aliasMonth + '-' + aliasDay + 'T00:00:00.000Z';
+                expiryDatetime = artificial8601Date;
+                expiry = this.parse8601 (expiryDatetime);
+                symbol = symbol + '-' + this.yymmdd (expiry);
+            }
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': type,
+                'spot': false,
+                'margin': undefined,
+                'swap': swap,
+                'future': future,
+                'option': false,
+                'active': active,
+                'contract': true,
+                'linear': linear,
+                'inverse': !linear,
+                'taker': this.safeNumber (market, 'taker_fee'),
+                'maker': this.safeNumber (market, 'maker_fee'),
+                'contractSize': undefined, // todo
+                'expiry': expiry,
+                'expiryDatetime': expiryDatetime,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeNumber (lotSizeFilter, 'qty_step'),
+                    'price': this.safeNumber (priceFilter, 'tick_size'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': this.parseNumber ('1'),
+                        'max': this.safeNumber (leverage, 'max_leverage', 1),
+                    },
+                    'amount': {
+                        'min': this.safeNumber (lotSizeFilter, 'min_trading_qty'),
+                        'max': this.safeNumber (lotSizeFilter, 'max_trading_qty'),
+                    },
+                    'price': {
+                        'min': this.safeNumber (priceFilter, 'min_price'),
+                        'max': this.safeNumber (priceFilter, 'max_price'),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': market,
+            });
+        }
+        return result;
+    }
+
+    async fetchUSDCMarkets (params) {
+        const linearOptionsResponse = await this.publicGetOptionUsdcOpenapiPublicV1Symbols (params);
+        const usdcLinearPerpetualSwaps = await this.publicGetPerpetualUsdcOpenapiPublicV1Symbols (params);
         //
-        //     {
-        //         "ret_code":0,
-        //         "ret_msg":"",
-        //         "ext_code":null,
-        //         "ext_info":null,
-        //         "result":[
-        //             {
-        //                 "name":"BTCUSDT",
-        //                 "alias":"BTCUSDT",
-        //                 "baseCurrency":"BTC",
-        //                 "quoteCurrency":"USDT",
-        //                 "basePrecision":"0.000001",
-        //                 "quotePrecision":"0.00000001",
-        //                 "minTradeQuantity":"0.000158",
-        //                 "minTradeAmount":"10",
-        //                 "maxTradeQuantity":"4",
-        //                 "maxTradeAmount":"100000",
-        //                 "minPricePrecision":"0.01",
-        //                 "category":1,
-        //                 "showStatus":true
-        //             },
-        //         ]
-        //     }
-        //
-        // USDC linear options response
-        // const linearOptionsResponse = await this.publicGetOptionUsdcOpenapiPublicV1Symbols (params);
-        //
+        // USDC linear options
         //     {
         //         "retCode":0,
         //         "retMsg":"success",
@@ -830,7 +1011,6 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         // USDC linear perpetual swaps
-        // const usdcLinearPerpetualSwaps = await this.publicGetPerpetualUsdcOpenapiPublicV1Symbols (params);
         //
         //     {
         //         "retCode":0,
@@ -858,71 +1038,55 @@ module.exports = class bybit extends Exchange {
         //         ]
         //     }
         //
-        const markets = this.safeValue (response, 'result', []);
-        const options = this.safeValue (this.options, 'fetchMarkets', {});
-        const linearQuoteCurrencies = this.safeValue (options, 'linear', { 'USDT': true });
+        const optionsResponse = this.safeValue (linearOptionsResponse, 'result', []);
+        const options = this.safeValue (optionsResponse, 'dataList', []);
+        const contractsResponse = this.safeValue (usdcLinearPerpetualSwaps, 'result', []);
+        const markets = this.arrayConcat (options, contractsResponse);
         const result = [];
+        // all markets fetched here are linear
+        const linear = true;
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const id = this.safeString2 (market, 'name', 'symbol');
-            const baseId = this.safeString2 (market, 'base_currency', 'baseCoin');
-            const quoteId = this.safeString2 (market, 'quote_currency', 'quoteCoin');
+            const id = this.safeString (market, 'symbol');
+            const baseId = this.safeString (market, 'baseCoin');
+            const quoteId = this.safeString (market, 'quoteCoin');
             let settleId = this.safeString (market, 'settleCoin');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             let settle = this.safeCurrencyCode (settleId);
-            const linear = (quote in linearQuoteCurrencies);
             let symbol = base + '/' + quote;
-            const baseQuote = base + quote;
             let type = 'swap';
-            if (baseQuote !== id) {
-                type = 'future';
+            if (settleId !== undefined) {
+                type = 'option';
             }
-            const lotSizeFilter = this.safeValue (market, 'lot_size_filter', {});
-            const priceFilter = this.safeValue (market, 'price_filter', {});
+            const swap = (type === 'swap');
+            const option = (type === 'option');
             const leverage = this.safeValue (market, 'leverage_filter', {});
             const status = this.safeString (market, 'status');
             let active = undefined;
             if (status !== undefined) {
-                active = (status === 'Trading');
+                active = (status === 'ONLINE');
             }
-            const swap = (type === 'swap');
-            const future = (type === 'future');
-            const option = (type === 'option');
-            const contract = swap || future || option;
             let expiry = undefined;
             let expiryDatetime = undefined;
             let strike = undefined;
             let optionType = undefined;
-            if (contract) {
-                if (settle === undefined) {
-                    settleId = linear ? quoteId : baseId;
-                    settle = this.safeCurrencyCode (settleId);
-                }
-                symbol = symbol + ':' + settle;
-                if (future) {
-                    const alias = this.safeString (market, 'alias');
-                    const shortDate = alias.slice (-4);
-                    const date = this.iso8601 (this.milliseconds ());
-                    const splitDate = date.split ('-');
-                    const year = splitDate[0];
-                    const expiryMonth = shortDate.slice (0, 2);
-                    const expiryDay = shortDate.slice (2, 4);
-                    expiryDatetime = year + '-' + expiryMonth + '-' + expiryDay + 'T00:00:00Z';
-                    expiry = this.parse8601 (expiryDatetime);
-                    symbol = symbol + '-' + this.yymmdd (expiry);
-                } else if (option) {
-                    expiry = this.safeInteger (market, 'deliveryTime');
-                    expiryDatetime = this.iso8601 (expiry);
-                    const splitId = this.split (id, '-');
-                    strike = this.safeString (splitId, 2);
-                    const optionLetter = this.safeString (splitId, 3);
-                    symbol = symbol + '-' + this.yymmdd (expiry) + ':' + strike + ':' + optionLetter;
-                    if (optionLetter === 'P') {
-                        optionType = 'put';
-                    } else if (optionLetter === 'C') {
-                        optionType = 'call';
-                    }
+            if (settle === undefined) {
+                settleId = quoteId;
+                settle = this.safeCurrencyCode (settleId);
+            }
+            symbol = symbol + ':' + settle;
+            if (option) {
+                expiry = this.safeInteger (market, 'deliveryTime');
+                expiryDatetime = this.iso8601 (expiry);
+                const splitId = id.split ('-');
+                strike = this.safeString (splitId, 2);
+                const optionLetter = this.safeString (splitId, 3);
+                symbol = symbol + '-' + this.yymmdd (expiry) + ':' + strike + ':' + optionLetter;
+                if (optionLetter === 'P') {
+                    optionType = 'put';
+                } else if (optionLetter === 'C') {
+                    optionType = 'call';
                 }
             }
             result.push ({
@@ -935,39 +1099,38 @@ module.exports = class bybit extends Exchange {
                 'quoteId': quoteId,
                 'settleId': settleId,
                 'type': type,
-                'spot': (type === 'spot'),
-                'margin': undefined, // todo
+                'spot': false,
+                'margin': undefined,
                 'swap': swap,
-                'future': future,
-                'futures': future, // Deprecated, use future
+                'future': false,
                 'option': option,
                 'active': active,
-                'contract': contract,
+                'contract': true,
                 'linear': linear,
                 'inverse': !linear,
                 'taker': this.safeNumber (market, 'taker_fee'),
                 'maker': this.safeNumber (market, 'maker_fee'),
-                'contractSize': undefined, // todo
+                'contractSize': undefined,
                 'expiry': expiry,
                 'expiryDatetime': expiryDatetime,
                 'strike': strike,
                 'optionType': optionType,
                 'precision': {
-                    'amount': this.safeNumber (lotSizeFilter, 'qty_step'),
-                    'price': this.safeNumber (priceFilter, 'tick_size'),
+                    'amount': this.safeNumber (market, 'minOrderSizeIncrement'),
+                    'price': this.safeNumber (market, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {
-                        'min': this.parseNumber ('1'),
-                        'max': this.safeNumber (leverage, 'max_leverage', 1),
+                        'min': this.safeNumber (leverage, 'minLeverage', 1),
+                        'max': this.safeNumber (leverage, 'maxLeverage', 1),
                     },
                     'amount': {
-                        'min': this.safeNumber (lotSizeFilter, 'min_trading_qty'),
-                        'max': this.safeNumber (lotSizeFilter, 'max_trading_qty'),
+                        'min': this.safeNumber (market, 'minOrderSize'),
+                        'max': this.safeNumber (market, 'maxOrderSize'),
                     },
                     'price': {
-                        'min': this.safeNumber (priceFilter, 'min_price'),
-                        'max': this.safeNumber (priceFilter, 'max_price'),
+                        'min': this.safeNumber (market, 'minOrderPrice'),
+                        'max': this.safeNumber (market, 'maxOrderPrice'),
                     },
                     'cost': {
                         'min': undefined,
