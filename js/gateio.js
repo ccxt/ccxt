@@ -1297,11 +1297,8 @@ module.exports = class gateio extends Exchange {
 
     async fetchFundingRates (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const settle = this.safeStringLower (params, 'settle');
-        const request = {
-            'settle': settle,
-        };
-        const response = await this.publicFuturesGetSettleContracts (this.extend (request, params));
+        const [ request, query ] = this.prepareRequest (undefined, 'swap', params);
+        const response = await this.publicFuturesGetSettleContracts (this.extend (request, query));
         //
         //    [
         //        {
