@@ -1144,7 +1144,7 @@ class gateio(Exchange):
         """
         defaultMarginType = self.safe_string_lower_2(self.options, 'defaultMarginType', 'marginType', 'spot')  # 'margin' is isolated margin on gateio's api
         marginType = self.safe_string_lower_2(params, 'marginType', 'account', defaultMarginType)
-        params = self.omit(params, ['marginType'])
+        params = self.omit(params, ['marginType', 'account'])
         if marginType == 'cross':
             marginType = 'cross_margin'
         elif marginType == 'isolated':
@@ -2624,7 +2624,6 @@ class gateio(Exchange):
             else:
                 marginType = None
                 marginType, params = self.get_margin_type(False, params)
-                params = self.omit(params, 'account')
                 # spot order
                 request = {
                     # 'text': clientOrderId,  # 't-abcdef1234567890',

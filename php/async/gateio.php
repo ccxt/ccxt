@@ -1163,7 +1163,7 @@ class gateio extends Exchange {
          */
         $defaultMarginType = $this->safe_string_lower_2($this->options, 'defaultMarginType', 'marginType', 'spot'); // 'margin' is isolated margin on gateio's api
         $marginType = $this->safe_string_lower_2($params, 'marginType', 'account', $defaultMarginType);
-        $params = $this->omit($params, array( 'marginType' ));
+        $params = $this->omit($params, array( 'marginType', 'account' ));
         if ($marginType === 'cross') {
             $marginType = 'cross_margin';
         } else if ($marginType === 'isolated') {
@@ -2738,7 +2738,6 @@ class gateio extends Exchange {
             } else {
                 $marginType = null;
                 list($marginType, $params) = $this->get_margin_type(false, $params);
-                $params = $this->omit($params, 'account');
                 // spot order
                 $request = array(
                     // 'text' => $clientOrderId, // 't-abcdef1234567890',
