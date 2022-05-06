@@ -1722,7 +1722,6 @@ module.exports = class gateio extends Exchange {
         //     };
         //
         const [ request, query ] = this.prepareRequest (market, undefined, params);
-        const spotOrMargin = market['spot'] || market['margin'];
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetOrderBook',
             'margin': 'publicSpotGetOrderBook',
@@ -1799,11 +1798,11 @@ module.exports = class gateio extends Exchange {
         //     }
         //
         let timestamp = this.safeInteger (response, 'current');
-        if (!spotOrMargin) {
+        if (!market['spot']) {
             timestamp = timestamp * 1000;
         }
-        const priceKey = spotOrMargin ? 0 : 'p';
-        const amountKey = spotOrMargin ? 1 : 's';
+        const priceKey = market['spot'] ? 0 : 'p';
+        const amountKey = market['spot'] ? 1 : 's';
         const nonce = this.safeInteger (response, 'id');
         const result = this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey);
         result['nonce'] = nonce;
