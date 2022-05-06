@@ -3705,7 +3705,7 @@ module.exports = class gateio extends Exchange {
             marginType = 'cross';
             leverage = crossLeverageLimit;
         }
-        if (marginType === 'cross') {
+        if (marginType === 'cross' || marginType === 'cross_margin') {
             request['query'] = {
                 'cross_leverage_limit': leverage.toString (),
                 'leverage': '0',
