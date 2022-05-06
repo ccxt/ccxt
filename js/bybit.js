@@ -725,7 +725,7 @@ module.exports = class bybit extends Exchange {
             const market = markets[i];
             const id = this.safeString (market, 'name');
             const baseId = this.safeString (market, 'baseCurrency');
-            const quoteId = this.safeString2 (market, 'quoteCurrency');
+            const quoteId = this.safeString (market, 'quoteCurrency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
@@ -3445,7 +3445,7 @@ module.exports = class bybit extends Exchange {
                     const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'hex');
                     headers = {
                         'X-BAPI-API-KEY': this.apiKey,
-                        'X-BAPI-TIMESTAMP': timestamp,
+                        'X-BAPI-TIMESTAMP': timestamp.toString (),
                         'X-BAPI-SIGN': signature,
                     };
                 } else {
