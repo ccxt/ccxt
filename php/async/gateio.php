@@ -3853,22 +3853,18 @@ class gateio extends Exchange {
 
     public function fetch_leverage_tiers($symbols = null, $params = array ()) {
         yield $this->load_markets();
-        $methodName = 'fetchLeverageTiers';
-        list($type, $query) = $this->handle_market_type_and_params($methodName, null, $params);
-        $swap = $type === 'swap';
-        $defaultSettle = $swap ? 'usdt' : 'btc';
-        $settle = $this->safe_string_lower($query, 'settle', $defaultSettle);
-        $query['settle'] = $settle;
+        list($type, $query) = $this->handle_market_type_and_params('fetchLeverageTiers', null, $params);
+        list($request, $requestParams) = $this->prepare_request(null, $type, $query);
         if ($type !== 'future' && $type !== 'swap') {
-            throw new BadRequest($this->id . ' ' . $methodName . '() only supports $swap and future');
+            throw new BadRequest($this->id . ' fetchLeverageTiers only supports swap and future');
         }
         $method = $this->get_supported_mapping($type, array(
             'swap' => 'publicFuturesGetSettleContracts',
             'future' => 'publicDeliveryGetSettleContracts',
         ));
-        $response = yield $this->$method ($query);
+        $response = yield $this->$method (array_merge($request, $requestParams));
         //
-        // Perpetual $swap
+        // Perpetual swap
         //
         //    array(
         //        {

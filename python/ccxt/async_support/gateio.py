@@ -3676,19 +3676,15 @@ class gateio(Exchange):
 
     async def fetch_leverage_tiers(self, symbols=None, params={}):
         await self.load_markets()
-        methodName = 'fetchLeverageTiers'
-        type, query = self.handle_market_type_and_params(methodName, None, params)
-        swap = type == 'swap'
-        defaultSettle = 'usdt' if swap else 'btc'
-        settle = self.safe_string_lower(query, 'settle', defaultSettle)
-        query['settle'] = settle
+        type, query = self.handle_market_type_and_params('fetchLeverageTiers', None, params)
+        request, requestParams = self.prepare_request(None, type, query)
         if type != 'future' and type != 'swap':
-            raise BadRequest(self.id + ' ' + methodName + '() only supports swap and future')
+            raise BadRequest(self.id + ' fetchLeverageTiers only supports swap and future')
         method = self.get_supported_mapping(type, {
             'swap': 'publicFuturesGetSettleContracts',
             'future': 'publicDeliveryGetSettleContracts',
         })
-        response = await getattr(self, method)(query)
+        response = await getattr(self, method)(self.extend(request, requestParams))
         #
         # Perpetual swap
         #
