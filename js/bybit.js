@@ -1607,14 +1607,24 @@ module.exports = class bybit extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        let method = undefined;
         const request = {
             'symbol': market['id'],
-            // 'from': 123, // from id
         };
-        if (limit !== undefined) {
-            request['count'] = limit; // default 500, max 1000
+        const isUsdcSettled = (market['option']) || (market['settle'] === 'USD');
+        if (market['type'] === 'spot') {
+            method = 'publicGetSpotQuoteV1Trades';
+        } else if (!isUsdcSettled) {
+            // inverse perpetual // usdt linear // inverse futures
+            method = market['linear'] ? 'publicGetPublicLinearRecentTradingRecords' : 'publicGetV2PublicTradingRecords';
+        } else {
+            // usdc option/ swap
+            method = 'publicGetOptionUsdcOpenapiPublicV1QueryTradeLatest';
+            request['category'] = market['option'] ? 'OPTION' : 'PERPETUAL';
         }
-        const method = market['linear'] ? 'publicGetPublicLinearRecentTradingRecords' : 'publicGetV2PublicTradingRecords';
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 500, max 1000
+        }
         const response = await this[method] (this.extend (request, params));
         //
         //     {
@@ -1635,8 +1645,31 @@ module.exports = class bybit extends Exchange {
         //         time_now: '1583954313.393362'
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
-        return this.parseTrades (result, market, since, limit);
+        // usdc trades
+        //     {
+        //         "retCode": 0,
+        //           "retMsg": "Success.",
+        //           "result": {
+        //           "resultTotalSize": 2,
+        //             "cursor": "",
+        //             "dataList": [
+        //                  {
+        //                    "id": "3caaa0ca",
+        //                    "symbol": "BTCPERP",
+        //                    "orderPrice": "58445.00",
+        //                    "orderQty": "0.010",
+        //                    "side": "Buy",
+        //                    "time": "1638275679673"
+        //                  }
+        //              ]
+        //         }
+        //     }
+        //
+        let trades = this.safeValue (response, 'result', {});
+        if (!Array.isArray (trades)) {
+            trades = this.safeValue (trades, 'dataList', []);
+        }
+        return this.parseTrades (trades, market, since, limit);
     }
 
     parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'Buy', asksKey = 'Sell', priceKey = 'price', amountKey = 'size') {
