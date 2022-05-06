@@ -681,6 +681,8 @@ module.exports = class bybit extends Exchange {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
         if (type === 'spot') {
+            // spot and swap ids are equal
+            // so they can't be loaded together
             const spotMarkets = await this.fetchSpotMarkets (params);
             return spotMarkets;
         }
