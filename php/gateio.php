@@ -1171,8 +1171,8 @@ class gateio extends Exchange {
         }
         if ($stop) {
             if ($marginType === 'spot') {
+                // gateio spot $stop orders use the term normal instead of spot
                 $marginType = 'normal';
-                // gateio spot and margin $stop orders use the term normal instead of spot
             }
             if ($marginType === 'cross_margin') {
                 throw new BadRequest($this->id . ' getMarginType() does not support $stop orders for cross margin');
@@ -1908,50 +1908,33 @@ class gateio extends Exchange {
     public function fetch_balance($params = array ()) {
         /**
          * @param {dict} $params exchange specific parameters
-         * @param {str} $params->type $spot, $margin, $swap or $future, if not provided $this->options['defaultType'] is used
-         * @param {str} $params->settle 'btc' or 'usdt' - $settle currency for perpetual $swap and $future - default="usdt" for $swap and "btc" for $future
+         * @param {str} $params->type spot, $margin, swap or future, if not provided $this->options['defaultType'] is used
+         * @param {str} $params->settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
          * @param {str} $params->marginType 'cross' or 'isolated' - $marginType for $margin trading if not provided $this->options['defaultMarginType'] is used
          * @param {str} $params->symbol $margin only - unified ccxt $symbol
          */
         $this->load_markets();
-        $type = null;
-        $marginType = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-        $spot = $type === 'spot';
-        $swap = $type === 'swap';
-        $future = $type === 'future';
-        $contract = $swap || $future;
-        $request = array();
-        if ($contract) {
-            $defaultSettle = $swap ? 'usdt' : 'btc';
-            $settle = $this->safe_string_lower($params, 'settle', $defaultSettle);
-            $params = $this->omit($params, 'settle');
-            $request['settle'] = $settle;
-        } else {
-            list($marginType, $params) = $this->get_margin_type(false, $params);
-            $symbol = $this->safe_string($params, 'symbol');
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['currency_pair'] = $market['id'];
-            }
+        $symbol = $this->safe_string($params, 'symbol');
+        $params = $this->omit($params, 'symbol');
+        list($type, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        list($request, $requestParams) = $this->prepare_request(null, $type, $query);
+        list($marginType, $requestQuery) = $this->get_margin_type(false, $requestParams);
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['currency_pair'] = $market['id'];
         }
-        $crossMargin = $marginType === 'cross_margin';
-        $margin = $marginType === 'margin';
-        $spotMethod = 'privateSpotGetAccounts';
-        if ($spot) {
-            $spotMethod = $this->get_supported_mapping($marginType, array(
+        $method = $this->get_supported_mapping($type, array(
+            'spot' => $this->get_supported_mapping($marginType, array(
                 'spot' => 'privateSpotGetAccounts',
                 'margin' => 'privateMarginGetAccounts',
                 'cross_margin' => 'privateMarginGetCrossAccounts',
-            ));
-        }
-        $method = $this->get_supported_mapping($type, array(
-            'spot' => $spotMethod,
+            )),
             'funding' => 'privateMarginGetFundingAccounts',
             'swap' => 'privateFuturesGetSettleAccounts',
             'future' => 'privateDeliveryGetSettleAccounts',
         ));
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $requestQuery));
+        $contract = ($type === 'swap' || $type === 'future');
         if ($contract) {
             $response = array( $response );
         }
@@ -2051,7 +2034,7 @@ class gateio extends Exchange {
         //            refr => "0",
         //            point_fee => "0",
         //            point_dnw => "0",
-        //            $settle => "0",
+        //            settle => "0",
         //            settle_fee => "0",
         //            point_refr => "0",
         //            fee => "0",
@@ -2067,6 +2050,8 @@ class gateio extends Exchange {
         $result = array(
             'info' => $response,
         );
+        $crossMargin = $marginType === 'cross_margin';
+        $margin = $marginType === 'margin';
         $data = $response;
         if (is_array($data) && array_key_exists('balances', $data)) { // True for cross_margin
             $flatBalances = array();

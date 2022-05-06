@@ -1153,8 +1153,8 @@ class gateio(Exchange):
             marginType = 'spot'
         if stop:
             if marginType == 'spot':
+                # gateio spot stop orders use the term normal instead of spot
                 marginType = 'normal'
-                # gateio spot and margin stop orders use the term normal instead of spot
             if marginType == 'cross_margin':
                 raise BadRequest(self.id + ' getMarginType() does not support stop orders for cross margin')
         return [marginType, params]
@@ -1856,41 +1856,26 @@ class gateio(Exchange):
         :param str params['symbol']: margin only - unified ccxt symbol
         """
         self.load_markets()
-        type = None
-        marginType = None
-        type, params = self.handle_market_type_and_params('fetchBalance', None, params)
-        spot = type == 'spot'
-        swap = type == 'swap'
-        future = type == 'future'
-        contract = swap or future
-        request = {}
-        if contract:
-            defaultSettle = 'usdt' if swap else 'btc'
-            settle = self.safe_string_lower(params, 'settle', defaultSettle)
-            params = self.omit(params, 'settle')
-            request['settle'] = settle
-        else:
-            marginType, params = self.get_margin_type(False, params)
-            symbol = self.safe_string(params, 'symbol')
-            if symbol is not None:
-                market = self.market(symbol)
-                request['currency_pair'] = market['id']
-        crossMargin = marginType == 'cross_margin'
-        margin = marginType == 'margin'
-        spotMethod = 'privateSpotGetAccounts'
-        if spot:
-            spotMethod = self.get_supported_mapping(marginType, {
+        symbol = self.safe_string(params, 'symbol')
+        params = self.omit(params, 'symbol')
+        type, query = self.handle_market_type_and_params('fetchBalance', None, params)
+        request, requestParams = self.prepare_request(None, type, query)
+        marginType, requestQuery = self.get_margin_type(False, requestParams)
+        if symbol is not None:
+            market = self.market(symbol)
+            request['currency_pair'] = market['id']
+        method = self.get_supported_mapping(type, {
+            'spot': self.get_supported_mapping(marginType, {
                 'spot': 'privateSpotGetAccounts',
                 'margin': 'privateMarginGetAccounts',
                 'cross_margin': 'privateMarginGetCrossAccounts',
-            })
-        method = self.get_supported_mapping(type, {
-            'spot': spotMethod,
+            }),
             'funding': 'privateMarginGetFundingAccounts',
             'swap': 'privateFuturesGetSettleAccounts',
             'future': 'privateDeliveryGetSettleAccounts',
         })
-        response = getattr(self, method)(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, requestQuery))
+        contract = (type == 'swap' or type == 'future')
         if contract:
             response = [response]
         #
@@ -2005,6 +1990,8 @@ class gateio(Exchange):
         result = {
             'info': response,
         }
+        crossMargin = marginType == 'cross_margin'
+        margin = marginType == 'margin'
         data = response
         if 'balances' in data:  # True for cross_margin
             flatBalances = []
