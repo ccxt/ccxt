@@ -1298,11 +1298,8 @@ class gateio extends Exchange {
 
     public function fetch_funding_rates($symbols = null, $params = array ()) {
         yield $this->load_markets();
-        $settle = $this->safe_string_lower($params, 'settle');
-        $request = array(
-            'settle' => $settle,
-        );
-        $response = yield $this->publicFuturesGetSettleContracts (array_merge($request, $params));
+        list($request, $query) = $this->prepare_request(null, 'swap', $params);
+        $response = yield $this->publicFuturesGetSettleContracts (array_merge($request, $query));
         //
         //    array(
         //        {

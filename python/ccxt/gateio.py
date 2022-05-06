@@ -1269,11 +1269,8 @@ class gateio(Exchange):
 
     def fetch_funding_rates(self, symbols=None, params={}):
         self.load_markets()
-        settle = self.safe_string_lower(params, 'settle')
-        request = {
-            'settle': settle,
-        }
-        response = self.publicFuturesGetSettleContracts(self.extend(request, params))
+        request, query = self.prepare_request(None, 'swap', params)
+        response = self.publicFuturesGetSettleContracts(self.extend(request, query))
         #
         #    [
         #        {
