@@ -3369,25 +3369,19 @@ class gateio(Exchange):
 
     async def cancel_all_orders(self, symbol=None, params={}):
         await self.load_markets()
-        request = {}
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            request, params = self.prepare_request(market, None, params)
+        market = None if (symbol is None) else self.market(symbol)
+        stop = self.safe_value(params, 'stop')
+        params = self.omit(params, 'stop')
         type, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
-        swap = type == 'swap'
-        future = type == 'future'
-        if symbol is None and (swap or future):
-            defaultSettle = 'usdt' if swap else 'btc'
-            settle = self.safe_string_lower(query, 'settle', defaultSettle)
-            request['settle'] = settle
+        request, requestParams = self.multi_order_spot_prepare_request(market, stop, query) if (type == 'spot') else self.prepare_request(market, type, query)
+        methodTail = 'PriceOrders' if stop else 'Orders'
         method = self.get_supported_mapping(type, {
-            'spot': 'privateSpotDeleteOrders',
-            'margin': 'privateSpotDeleteOrders',
-            'swap': 'privateFuturesDeleteSettleOrders',
-            'future': 'privateDeliveryDeleteSettleOrders',
+            'spot': 'privateSpotDelete' + methodTail,
+            'margin': 'privateSpotDelete' + methodTail,
+            'swap': 'privateFuturesDeleteSettle' + methodTail,
+            'future': 'privateDeliveryDeleteSettle' + methodTail,
         })
-        response = await getattr(self, method)(self.extend(request, query))
+        response = await getattr(self, method)(self.extend(request, requestParams))
         #
         #    [
         #        {
@@ -3641,18 +3635,13 @@ class gateio(Exchange):
         :returns: An array of `position structures <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
-        defaultType = self.safe_string_2(self.options, 'fetchPositions', 'defaultType', 'swap')
-        type = self.safe_string(params, 'type', defaultType)
+        type, query = self.handle_market_type_and_params('fetchPositions', None, params)
+        request, requestParams = self.prepare_request(None, type, query)
         method = self.get_supported_mapping(type, {
             'swap': 'privateFuturesGetSettlePositions',
             'future': 'privateDeliveryGetSettlePositions',
         })
-        defaultSettle = 'usdt' if (type == 'swap') else 'btc'
-        settle = self.safe_string_lower(params, 'settle', defaultSettle)
-        request = {
-            'settle': settle,
-        }
-        response = await getattr(self, method)(request)
+        response = await getattr(self, method)(self.extend(request, requestParams))
         #
         #     [
         #         {
@@ -3687,19 +3676,15 @@ class gateio(Exchange):
 
     async def fetch_leverage_tiers(self, symbols=None, params={}):
         await self.load_markets()
-        methodName = 'fetchLeverageTiers'
-        type, query = self.handle_market_type_and_params(methodName, None, params)
-        swap = type == 'swap'
-        defaultSettle = 'usdt' if swap else 'btc'
-        settle = self.safe_string_lower(query, 'settle', defaultSettle)
-        query['settle'] = settle
+        type, query = self.handle_market_type_and_params('fetchLeverageTiers', None, params)
+        request, requestParams = self.prepare_request(None, type, query)
         if type != 'future' and type != 'swap':
-            raise BadRequest(self.id + ' ' + methodName + '() only supports swap and future')
+            raise BadRequest(self.id + ' fetchLeverageTiers only supports swap and future')
         method = self.get_supported_mapping(type, {
             'swap': 'publicFuturesGetSettleContracts',
             'future': 'publicDeliveryGetSettleContracts',
         })
-        response = await getattr(self, method)(query)
+        response = await getattr(self, method)(self.extend(request, requestParams))
         #
         # Perpetual swap
         #

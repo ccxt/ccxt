@@ -3526,27 +3526,19 @@ class gateio extends Exchange {
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            list($request, $params) = $this->prepare_request($market, null, $params);
-        }
+        $market = ($symbol === null) ? null : $this->market($symbol);
+        $stop = $this->safe_value($params, 'stop');
+        $params = $this->omit($params, 'stop');
         list($type, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
-        $swap = $type === 'swap';
-        $future = $type === 'future';
-        if ($symbol === null && ($swap || $future)) {
-            $defaultSettle = $swap ? 'usdt' : 'btc';
-            $settle = $this->safe_string_lower($query, 'settle', $defaultSettle);
-            $request['settle'] = $settle;
-        }
+        list($request, $requestParams) = ($type === 'spot') ? $this->multi_order_spot_prepare_request($market, $stop, $query) : $this->prepare_request($market, $type, $query);
+        $methodTail = $stop ? 'PriceOrders' : 'Orders';
         $method = $this->get_supported_mapping($type, array(
-            'spot' => 'privateSpotDeleteOrders',
-            'margin' => 'privateSpotDeleteOrders',
-            'swap' => 'privateFuturesDeleteSettleOrders',
-            'future' => 'privateDeliveryDeleteSettleOrders',
+            'spot' => 'privateSpotDelete' . $methodTail,
+            'margin' => 'privateSpotDelete' . $methodTail,
+            'swap' => 'privateFuturesDeleteSettle' . $methodTail,
+            'future' => 'privateDeliveryDeleteSettle' . $methodTail,
         ));
-        $response = $this->$method (array_merge($request, $query));
+        $response = $this->$method (array_merge($request, $requestParams));
         //
         //    array(
         //        {
@@ -3813,23 +3805,18 @@ class gateio extends Exchange {
          * Fetch trades positions
          * @param array([str]) $symbols Not used by Gateio, but parsed internally by CCXT
          * @param {dict} $params exchange specific parameters
-         * @param {str} $params->settle 'btc' or 'usdt' - $settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
+         * @param {str} $params->settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
          * @param {str} $params->type swap or future, if not provided $this->options['defaultType'] is used
          * @return An array of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structures}
          */
         $this->load_markets();
-        $defaultType = $this->safe_string_2($this->options, 'fetchPositions', 'defaultType', 'swap');
-        $type = $this->safe_string($params, 'type', $defaultType);
+        list($type, $query) = $this->handle_market_type_and_params('fetchPositions', null, $params);
+        list($request, $requestParams) = $this->prepare_request(null, $type, $query);
         $method = $this->get_supported_mapping($type, array(
             'swap' => 'privateFuturesGetSettlePositions',
             'future' => 'privateDeliveryGetSettlePositions',
         ));
-        $defaultSettle = ($type === 'swap') ? 'usdt' : 'btc';
-        $settle = $this->safe_string_lower($params, 'settle', $defaultSettle);
-        $request = array(
-            'settle' => $settle,
-        );
-        $response = $this->$method ($request);
+        $response = $this->$method (array_merge($request, $requestParams));
         //
         //     array(
         //         {
@@ -3865,22 +3852,18 @@ class gateio extends Exchange {
 
     public function fetch_leverage_tiers($symbols = null, $params = array ()) {
         $this->load_markets();
-        $methodName = 'fetchLeverageTiers';
-        list($type, $query) = $this->handle_market_type_and_params($methodName, null, $params);
-        $swap = $type === 'swap';
-        $defaultSettle = $swap ? 'usdt' : 'btc';
-        $settle = $this->safe_string_lower($query, 'settle', $defaultSettle);
-        $query['settle'] = $settle;
+        list($type, $query) = $this->handle_market_type_and_params('fetchLeverageTiers', null, $params);
+        list($request, $requestParams) = $this->prepare_request(null, $type, $query);
         if ($type !== 'future' && $type !== 'swap') {
-            throw new BadRequest($this->id . ' ' . $methodName . '() only supports $swap and future');
+            throw new BadRequest($this->id . ' fetchLeverageTiers only supports swap and future');
         }
         $method = $this->get_supported_mapping($type, array(
             'swap' => 'publicFuturesGetSettleContracts',
             'future' => 'publicDeliveryGetSettleContracts',
         ));
-        $response = $this->$method ($query);
+        $response = $this->$method (array_merge($request, $requestParams));
         //
-        // Perpetual $swap
+        // Perpetual swap
         //
         //    array(
         //        {
