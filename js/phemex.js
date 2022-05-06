@@ -33,6 +33,7 @@ module.exports = class phemex extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
@@ -1850,6 +1851,7 @@ module.exports = class phemex extends Exchange {
         const market = this.market (symbol);
         side = this.capitalize (side);
         type = this.capitalize (type);
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
         const request = {
             // common
             'symbol': market['id'],
@@ -1918,6 +1920,9 @@ module.exports = class phemex extends Exchange {
                 request['baseQtyEv'] = this.toEv (amountString, market);
             }
         } else if (market['swap']) {
+            if (reduceOnly !== undefined) {
+                request['reduceOnly'] = reduceOnly;
+            }
             request['orderQty'] = parseInt (amount);
             if (stopPrice !== undefined) {
                 const triggerType = this.safeString (params, 'triggerType', 'ByMarkPrice');
@@ -1939,6 +1944,7 @@ module.exports = class phemex extends Exchange {
             params = this.omit (params, 'stopLossPrice');
         }
         const method = market['spot'] ? 'privatePostSpotOrders' : 'privatePostOrders';
+        params = this.omit (params, 'reduceOnly');
         const response = await this[method] (this.extend (request, params));
         //
         // spot
@@ -2018,6 +2024,13 @@ module.exports = class phemex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
+    }
+
+    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        const request = {
+            'reduceOnly': true,
+        };
+        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
     async editOrder (id, symbol, type = undefined, side = undefined, amount = undefined, price = undefined, params = {}) {
