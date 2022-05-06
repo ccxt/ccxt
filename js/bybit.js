@@ -1639,7 +1639,7 @@ module.exports = class bybit extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
-    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'Buy', asksKey = 'Sell', priceKey = 'price', amountKey = 'size') {
+    parseCustomOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'Buy', asksKey = 'Sell', priceKey = 'price', amountKey = 'size') {
         const bids = [];
         const asks = [];
         for (let i = 0; i < orderbook.length; i++) {
@@ -1738,7 +1738,7 @@ module.exports = class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         if (market['spot']) {
-            const timestamp = this.safeTimestamp (result, 'time');
+            const timestamp = this.safeInteger (result, 'time');
             return this.parseOrderBook (result, symbol, timestamp, 'bids', 'asks');
         }
         const timestamp = this.safeTimestamp (response, 'time_now');
