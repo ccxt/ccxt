@@ -3190,7 +3190,7 @@ class gateio extends Exchange {
             if ($market['spot']) {
                 $request['currency_pair'] = $market['id'];
             } else {
-                $settle = $market['settle'];
+                $settle = $market['settleId'];
             }
         }
         list($type, $params) = $this->handle_market_type_and_params('fetchOrder', $market, $params);

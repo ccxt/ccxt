@@ -730,7 +730,7 @@ class bybit(Exchange):
             market = markets[i]
             id = self.safe_string(market, 'name')
             baseId = self.safe_string(market, 'baseCurrency')
-            quoteId = self.safe_string_2(market, 'quoteCurrency')
+            quoteId = self.safe_string(market, 'quoteCurrency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
@@ -1500,19 +1500,37 @@ class bybit(Exchange):
 
     def parse_trade(self, trade, market=None):
         #
-        # fetchTrades(public)
+        #  public spot
         #
-        #      {
-        #          "id": "44275042152",
-        #          "symbol": "AAVEUSDT",
-        #          "price": "256.35",
-        #          "qty": "0.1",
-        #          "side": "Buy",
-        #          "time": "2021-11-30T12:46:14.000Z",
-        #          "trade_time_ms": "1638276374312"
-        #      }
+        #    {
+        #        "price": "39548.68",
+        #        "time": "1651748717850",
+        #        "qty": "0.166872",
+        #        "isBuyerMaker": True
+        #    }
         #
-        # fetchMyTrades, fetchOrderTrades(private)
+        # public linear/inverse swap/future
+        #
+        #     {
+        #         "id": "112348766532",
+        #         "symbol": "BTCUSDT",
+        #         "price": "39536",
+        #         "qty": "0.011",
+        #         "side": "Buy",
+        #         "time": "2022-05-05T11:16:02.000Z",
+        #         "trade_time_ms": "1651749362196"
+        #     }
+        #
+        # public usdc market
+        #
+        #     {
+        #         "symbol": "BTC-30SEP22-400000-C",
+        #         "orderQty": "0.010",
+        #         "orderPrice": "5.00",
+        #         "time": "1651104300208"
+        #     }
+        #
+        # private futures/swap
         #
         #      {
         #          "order_id": "b020b4bc-6fe2-45b5-adbc-dd07794f9746",
@@ -1537,19 +1555,57 @@ class bybit(Exchange):
         #          "trade_time_ms": "1638276374312"
         #      }
         #
+        # spot
+        #    {
+        #         "id": "1149467000412631552",
+        #         "symbol": "LTCUSDT",
+        #         "symbolName": "LTCUSDT",
+        #         "orderId": "1149467000244912384",
+        #         "ticketId": "2200000000002601358",
+        #         "matchOrderId": "1149465793552007078",
+        #         "price": "100.19",
+        #         "qty": "0.09973",
+        #         "commission": "0.0099919487",
+        #         "commissionAsset": "USDT",
+        #         "time": "1651763144465",
+        #         "isBuyer": False,
+        #         "isMaker": False,
+        #         "fee": {
+        #             "feeTokenId": "USDT",
+        #             "feeTokenName": "USDT",
+        #             "fee": "0.0099919487"
+        #         },
+        #         "feeTokenId": "USDT",
+        #         "feeAmount": "0.0099919487",
+        #         "makerRebate": "0"
+        #     }
+        #
         id = self.safe_string_2(trade, 'id', 'exec_id')
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         amountString = self.safe_string_2(trade, 'qty', 'exec_qty')
+        if amountString is None:
+            amountString = self.safe_string(trade, 'orderQty')
         priceString = self.safe_string_2(trade, 'exec_price', 'price')
+        if priceString is None:
+            priceString = self.safe_string(trade, 'orderPrice')
         costString = self.safe_string(trade, 'exec_value')
         timestamp = self.parse8601(self.safe_string(trade, 'time'))
         if timestamp is None:
-            timestamp = self.safe_integer(trade, 'trade_time_ms')
+            timestamp = self.safe_number_2(trade, 'trade_time_ms', 'time')
         side = self.safe_string_lower(trade, 'side')
-        lastLiquidityInd = self.safe_string(trade, 'last_liquidity_ind')
-        takerOrMaker = 'maker' if (lastLiquidityInd == 'AddedLiquidity') else 'taker'
+        if side is None:
+            isBuyer = self.safe_value(trade, 'isBuyer')
+            if isBuyer is not None:
+                side = 'buy' if isBuyer else 'sell'
+        isMaker = self.safe_value(trade, 'isMaker')
+        takerOrMaker = None
+        if isMaker is not None:
+            takerOrMaker = 'maker' if isMaker else 'taker'
+        else:
+            lastLiquidityInd = self.safe_string(trade, 'last_liquidity_ind')
+            takerOrMaker = 'maker' if (lastLiquidityInd == 'AddedLiquidity') else 'taker'
         feeCostString = self.safe_string(trade, 'exec_fee')
         fee = None
         if feeCostString is not None:
@@ -1565,7 +1621,7 @@ class bybit(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'order': self.safe_string(trade, 'order_id'),
+            'order': self.safe_string_2(trade, 'order_id', 'orderId'),
             'type': self.safe_string_lower(trade, 'order_type'),
             'side': side,
             'takerOrMaker': takerOrMaker,
@@ -1578,13 +1634,22 @@ class bybit(Exchange):
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        method = None
         request = {
             'symbol': market['id'],
-            # 'from': 123,  # from id
         }
+        isUsdcSettled = (market['option']) or (market['settle'] == 'USD')
+        if market['type'] == 'spot':
+            method = 'publicGetSpotQuoteV1Trades'
+        elif not isUsdcSettled:
+            # inverse perpetual  # usdt linear  # inverse futures
+            method = 'publicGetPublicLinearRecentTradingRecords' if market['linear'] else 'publicGetV2PublicTradingRecords'
+        else:
+            # usdc option/ swap
+            method = 'publicGetOptionUsdcOpenapiPublicV1QueryTradeLatest'
+            request['category'] = 'OPTION' if market['option'] else 'PERPETUAL'
         if limit is not None:
-            request['count'] = limit  # default 500, max 1000
-        method = 'publicGetPublicLinearRecentTradingRecords' if market['linear'] else 'publicGetV2PublicTradingRecords'
+            request['limit'] = limit  # default 500, max 1000
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -1605,8 +1670,30 @@ class bybit(Exchange):
         #         time_now: '1583954313.393362'
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        return self.parse_trades(result, market, since, limit)
+        # usdc trades
+        #     {
+        #         "retCode": 0,
+        #           "retMsg": "Success.",
+        #           "result": {
+        #           "resultTotalSize": 2,
+        #             "cursor": "",
+        #             "dataList": [
+        #                  {
+        #                    "id": "3caaa0ca",
+        #                    "symbol": "BTCPERP",
+        #                    "orderPrice": "58445.00",
+        #                    "orderQty": "0.010",
+        #                    "side": "Buy",
+        #                    "time": "1638275679673"
+        #                  }
+        #              ]
+        #         }
+        #     }
+        #
+        trades = self.safe_value(response, 'result', {})
+        if not isinstance(trades, list):
+            trades = self.safe_value(trades, 'dataList', [])
+        return self.parse_trades(trades, market, since, limit)
 
     def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='Buy', asksKey='Sell', priceKey='price', amountKey='size'):
         bids = []
