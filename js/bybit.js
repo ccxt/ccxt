@@ -1693,6 +1693,55 @@ module.exports = class bybit extends Exchange {
     }
 
     parseBalance (response) {
+        //
+        // spot balance
+        // {
+        //     "ret_code": "0",
+        //     "ret_msg": "",
+        //     "ext_code": null,
+        //     "ext_info": null,
+        //     "result": {
+        //         "balances": [
+        //             {
+        //                 "coin": "LTC",
+        //                 "coinId": "LTC",
+        //                 "coinName": "LTC",
+        //                 "total": "0.00000783",
+        //                 "free": "0.00000783",
+        //                 "locked": "0"
+        //             }
+        //         ]
+        //     }
+        // }
+        // linear/inverse swap/futures
+        // {
+        //     "ret_code": "0",
+        //     "ret_msg": "OK",
+        //     "ext_code": "",
+        //     "ext_info": "",
+        //     "result": {
+        //         "ADA": {
+        //             "equity": "0",
+        //             "available_balance": "0",
+        //             "used_margin": "0",
+        //             "order_margin": "0",
+        //             "position_margin": "0",
+        //             "occ_closing_fee": "0",
+        //             "occ_funding_fee": "0",
+        //             "wallet_balance": "0",
+        //             "realised_pnl": "0",
+        //             "unrealised_pnl": "0",
+        //             "cum_realised_pnl": "0",
+        //             "given_cash": "0",
+        //             "service_cash": "0"
+        //         },
+        //     },
+        //     "time_now": "1651772170.050566",
+        //     "rate_limit_status": "119",
+        //     "rate_limit_reset_ms": "1651772170042",
+        //     "rate_limit": "120"
+        // }
+        //
         const result = {
             'info': response,
         };
@@ -3341,24 +3390,40 @@ module.exports = class bybit extends Exchange {
                 }
             } else if (api === 'private') {
                 this.checkRequiredCredentials ();
+                const isOpenapi = url.indexOf ('openapi') !== -1;
                 const timestamp = this.nonce ();
-                const query = this.extend (params, {
-                    'api_key': this.apiKey,
-                    'recv_window': this.options['recvWindow'],
-                    'timestamp': timestamp,
-                });
-                const sortedQuery = this.keysort (query);
-                const auth = this.rawencode (sortedQuery);
-                const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-                if (method === 'POST') {
-                    body = this.json (this.extend (query, {
-                        'sign': signature,
-                    }));
+                if (isOpenapi) {
+                    let query = this.extend (params, {
+                        'recv_window': this.options['recvWindow'],
+                    });
+                    query = this.json (params);
+                    body = query;
+                    const payload = timestamp.toString () + this.apiKey + query;
+                    const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'hex');
                     headers = {
-                        'Content-Type': 'application/json',
+                        'X-BAPI-API-KEY': this.apiKey,
+                        'X-BAPI-TIMESTAMP': timestamp,
+                        'X-BAPI-SIGN': signature,
                     };
                 } else {
-                    url += '?' + this.urlencode (sortedQuery) + '&sign=' + signature;
+                    const query = this.extend (params, {
+                        'api_key': this.apiKey,
+                        'recv_window': this.options['recvWindow'],
+                        'timestamp': timestamp,
+                    });
+                    const sortedQuery = this.keysort (query);
+                    const auth = this.rawencode (sortedQuery);
+                    const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+                    if (method === 'POST') {
+                        body = this.json (this.extend (query, {
+                            'sign': signature,
+                        }));
+                        headers = {
+                            'Content-Type': 'application/json',
+                        };
+                    } else {
+                        url += '?' + this.urlencode (sortedQuery) + '&sign=' + signature;
+                    }
                 }
             }
         }
