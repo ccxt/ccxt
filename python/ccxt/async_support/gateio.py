@@ -3053,7 +3053,7 @@ class gateio(Exchange):
             if market['spot']:
                 request['currency_pair'] = market['id']
             else:
-                settle = market['settle']
+                settle = market['settleId']
         type, params = self.handle_market_type_and_params('fetchOrder', market, params)
         if not stop and type == 'spot' and symbol is None:
             # Symbol not required for stop orders
