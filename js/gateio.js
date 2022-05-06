@@ -1102,6 +1102,7 @@ module.exports = class gateio extends Exchange {
          * @param {dict} params request parameters
          * @returns the api request object, and the new params object with non-needed parameters removed
          */
+        // * Do not call for multi spot order methods like cancelAllOrders and fetchOpenOrders. Use multiOrderSpotPrepareRequest instead
         const request = {};
         if (market !== undefined) {
             if (market['contract']) {
@@ -3422,29 +3423,28 @@ module.exports = class gateio extends Exchange {
          * @param {bool} params.stop True if the order to be cancelled is a trigger order
          * @returns An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'order_id': id,
-        };
-        if (market['contract']) {
-            request['settle'] = market['settleId'];
-        } else {
-            request['currency_pair'] = market['id'];
-        }
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
         const stop = this.safeValue2 (params, 'is_stop_order', 'stop', false);
         params = this.omit (params, [ 'is_stop_order', 'stop' ]);
+        const [ type, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        const [ request, requestParams ] = this.prepareRequest (market, type, query);
+        const [ marginType, queryParams ] = this.getMarginType (stop, requestParams);
+        if (type === 'spot' || type === 'margin') {
+            if (!stop && (symbol === undefined)) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument for spot and margin');
+            }
+            request['account'] = marginType;
+        }
+        request['order_id'] = id;
         const pathMiddle = stop ? 'Price' : '';
-        const method = this.getSupportedMapping (market['type'], {
+        const method = this.getSupportedMapping (type, {
             'spot': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
             'margin': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
             'swap': 'privateFuturesDeleteSettle' + pathMiddle + 'OrdersOrderId',
             'future': 'privateDeliveryDeleteSettle' + pathMiddle + 'OrdersOrderId',
         });
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, queryParams));
         //
         // spot
         //
