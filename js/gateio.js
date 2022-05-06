@@ -1171,8 +1171,8 @@ module.exports = class gateio extends Exchange {
         }
         if (stop) {
             if (marginType === 'spot') {
+                // gateio spot stop orders use the term normal instead of spot
                 marginType = 'normal';
-                // gateio spot and margin stop orders use the term normal instead of spot
             }
             if (marginType === 'cross_margin') {
                 throw new BadRequest (this.id + ' getMarginType() does not support stop orders for cross margin');
@@ -1914,44 +1914,27 @@ module.exports = class gateio extends Exchange {
          * @param {str} params.symbol margin only - unified ccxt symbol
          */
         await this.loadMarkets ();
-        let type = undefined;
-        let marginType = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        const spot = type === 'spot';
-        const swap = type === 'swap';
-        const future = type === 'future';
-        const contract = swap || future;
-        const request = {};
-        if (contract) {
-            const defaultSettle = swap ? 'usdt' : 'btc';
-            const settle = this.safeStringLower (params, 'settle', defaultSettle);
-            params = this.omit (params, 'settle');
-            request['settle'] = settle;
-        } else {
-            [ marginType, params ] = this.getMarginType (false, params);
-            const symbol = this.safeString (params, 'symbol');
-            if (symbol !== undefined) {
-                const market = this.market (symbol);
-                request['currency_pair'] = market['id'];
-            }
+        const symbol = this.safeString (params, 'symbol');
+        params = this.omit (params, 'symbol');
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
+        const [ marginType, requestQuery ] = this.getMarginType (false, requestParams);
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['currency_pair'] = market['id'];
         }
-        const crossMargin = marginType === 'cross_margin';
-        const margin = marginType === 'margin';
-        let spotMethod = 'privateSpotGetAccounts';
-        if (spot) {
-            spotMethod = this.getSupportedMapping (marginType, {
+        const method = this.getSupportedMapping (type, {
+            'spot': this.getSupportedMapping (marginType, {
                 'spot': 'privateSpotGetAccounts',
                 'margin': 'privateMarginGetAccounts',
                 'cross_margin': 'privateMarginGetCrossAccounts',
-            });
-        }
-        const method = this.getSupportedMapping (type, {
-            'spot': spotMethod,
+            }),
             'funding': 'privateMarginGetFundingAccounts',
             'swap': 'privateFuturesGetSettleAccounts',
             'future': 'privateDeliveryGetSettleAccounts',
         });
-        let response = await this[method] (this.extend (request, params));
+        let response = await this[method] (this.extend (request, requestQuery));
+        const contract = (type === 'swap' || type === 'future');
         if (contract) {
             response = [ response ];
         }
@@ -2067,6 +2050,8 @@ module.exports = class gateio extends Exchange {
         const result = {
             'info': response,
         };
+        const crossMargin = marginType === 'cross_margin';
+        const margin = marginType === 'margin';
         let data = response;
         if ('balances' in data) { // True for cross_margin
             const flatBalances = [];
