@@ -44,6 +44,7 @@ module.exports = class phemex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingRate': true,
                 'fetchIndexOHLCV': false,
                 'fetchLeverageTiers': false,
                 'fetchMarkets': true,
@@ -2766,6 +2767,87 @@ module.exports = class phemex extends Exchange {
             'side': side,
             'hedged': false,
             'percentage': this.parseNumber (percentage),
+        };
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest ('Funding rates only exist for swap contracts');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.v1GetMdTicker24hr (this.extend (request, params));
+        //
+        //     {
+        //         "error": null,
+        //         "id": 0,
+        //         "result": {
+        //             "askEp": 2332500,
+        //             "bidEp": 2331000,
+        //             "fundingRateEr": 10000,
+        //             "highEp": 2380000,
+        //             "indexEp": 2329057,
+        //             "lastEp": 2331500,
+        //             "lowEp": 2274000,
+        //             "markEp": 2329232,
+        //             "openEp": 2337500,
+        //             "openInterest": 1298050,
+        //             "predFundingRateEr": 19921,
+        //             "symbol": "ETHUSD",
+        //             "timestamp": 1592474241582701416,
+        //             "turnoverEv": 47228362330,
+        //             "volume": 4053863
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseFundingRate (result, market);
+    }
+
+    parseFundingRate (contract, market = undefined) {
+        //
+        //     {
+        //         "askEp": 2332500,
+        //         "bidEp": 2331000,
+        //         "fundingRateEr": 10000,
+        //         "highEp": 2380000,
+        //         "indexEp": 2329057,
+        //         "lastEp": 2331500,
+        //         "lowEp": 2274000,
+        //         "markEp": 2329232,
+        //         "openEp": 2337500,
+        //         "openInterest": 1298050,
+        //         "predFundingRateEr": 19921,
+        //         "symbol": "ETHUSD",
+        //         "timestamp": 1592474241582701416,
+        //         "turnoverEv": 47228362330,
+        //         "volume": 4053863
+        //     }
+        //
+        const marketId = this.safeString (contract, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const timestamp = this.safeIntegerProduct (contract, 'timestamp', 0.000001);
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': this.fromEp (this.safeString (contract, 'markEp'), market),
+            'indexPrice': this.fromEp (this.safeString (contract, 'indexEp'), market),
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fundingRate': this.fromEr (this.safeString (contract, 'fundingRateEr'), market),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': this.fromEr (this.safeString (contract, 'predFundingRateEr'), market),
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
         };
     }
 
