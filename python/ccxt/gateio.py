@@ -1590,18 +1590,10 @@ class gateio(Exchange):
         self.load_markets()
         # defaultType = 'future'
         market = None
-        request = {}
         if symbol is not None:
             market = self.market(symbol)
-            symbol = market['symbol']
-            request, params = self.prepare_request(market, None, params)
-        type = None
-        type, params = self.handle_market_type_and_params('fetchFundingHistory', market, params)
-        if market is None:
-            defaultSettle = 'usdt' if (type == 'swap') else 'btc'
-            settle = self.safe_string(params, 'settle', defaultSettle)
-            request['settle'] = settle
-            params = self.omit(params, 'settle')
+        type, query = self.handle_market_type_and_params('fetchFundingHistory', market, params)
+        request, requestParams = self.prepare_request(market, type, query)
         request['type'] = 'fund'  # 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
         if since is not None:
             request['from'] = since / 1000
@@ -1611,7 +1603,7 @@ class gateio(Exchange):
             'swap': 'privateFuturesGetSettleAccountBook',
             'future': 'privateDeliveryGetSettleAccountBook',
         })
-        response = getattr(self, method)(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, requestParams))
         #
         #    [
         #        {

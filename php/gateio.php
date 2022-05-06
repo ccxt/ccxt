@@ -1634,20 +1634,11 @@ class gateio extends Exchange {
         $this->load_markets();
         // $defaultType = 'future';
         $market = null;
-        $request = array();
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            list($request, $params) = $this->prepare_request($market, null, $params);
         }
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchFundingHistory', $market, $params);
-        if ($market === null) {
-            $defaultSettle = ($type === 'swap') ? 'usdt' : 'btc';
-            $settle = $this->safe_string($params, 'settle', $defaultSettle);
-            $request['settle'] = $settle;
-            $params = $this->omit($params, 'settle');
-        }
+        list($type, $query) = $this->handle_market_type_and_params('fetchFundingHistory', $market, $params);
+        list($request, $requestParams) = $this->prepare_request($market, $type, $query);
         $request['type'] = 'fund';  // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
         if ($since !== null) {
             $request['from'] = $since / 1000;
@@ -1659,7 +1650,7 @@ class gateio extends Exchange {
             'swap' => 'privateFuturesGetSettleAccountBook',
             'future' => 'privateDeliveryGetSettleAccountBook',
         ));
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $requestParams));
         //
         //    array(
         //        array(
