@@ -1161,7 +1161,7 @@ module.exports = class gateio extends Exchange {
          */
         const defaultMarginType = this.safeStringLower2 (this.options, 'defaultMarginType', 'marginType', 'spot'); // 'margin' is isolated margin on gateio's api
         let marginType = this.safeStringLower2 (params, 'marginType', 'account', defaultMarginType);
-        params = this.omit (params, [ 'marginType' ]);
+        params = this.omit (params, [ 'marginType', 'account' ]);
         if (marginType === 'cross') {
             marginType = 'cross_margin';
         } else if (marginType === 'isolated') {
@@ -2829,6 +2829,8 @@ module.exports = class gateio extends Exchange {
                 const options = this.safeValue (this.options, 'createOrder', {});
                 let marginType = undefined;
                 [ marginType, params ] = this.getMarginType (true, params);
+                                params = this.omit (params, 'account');
+
                 const defaultExpiration = this.safeInteger (options, 'expiration');
                 const expiration = this.safeInteger (params, 'expiration', defaultExpiration);
                 const rule = (side === 'buy') ? '>=' : '<=';
