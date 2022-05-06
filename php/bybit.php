@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
+use \ccxt\NotSupported;
 
 class bybit extends Exchange {
 
@@ -497,6 +498,7 @@ class bybit extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     '-2015' => '\\ccxt\\AuthenticationError', // Invalid API-key, IP, or permissions for action.
+                    '-10009' => '\\ccxt\\BadRequest', // array("ret_code":-10009,"ret_msg":"Invalid period!","result":null,"token":null)
                     '10001' => '\\ccxt\\BadRequest', // parameter error
                     '10002' => '\\ccxt\\InvalidNonce', // request expired, check your timestamp and recv_window
                     '10003' => '\\ccxt\\AuthenticationError', // Invalid apikey
@@ -1339,8 +1341,50 @@ class bybit extends Exchange {
         //         "close":7541
         //     }
         //
+        // usdc perpetual
+        //     {
+        //         "symbol":"BTCPERP",
+        //         "volume":"0.01",
+        //         "period":"1",
+        //         "openTime":"1636358160",
+        //         "open":"66001.50",
+        //         "high":"66001.50",
+        //         "low":"66001.50",
+        //         "close":"66001.50",
+        //         "turnover":"1188.02"
+        //     }
+        //
+        // spot
+        //     array(
+        //         1651837620000, // start tame
+        //         "35831.5", // open
+        //         "35831.5", // high
+        //         "35801.93", // low
+        //         "35817.11", // close
+        //         "1.23453", // volume
+        //         0, // end time
+        //         "44213.97591627", // quote asset volume
+        //         24, // number of trades
+        //         "0", // taker base volume
+        //         "0" // taker quote volume
+        //     )
+        //
+        if (gettype($ohlcv) === 'array' && count(array_filter(array_keys($ohlcv), 'is_string')) == 0) {
+            return array(
+                $this->safe_number($ohlcv, 0),
+                $this->safe_number($ohlcv, 1),
+                $this->safe_number($ohlcv, 2),
+                $this->safe_number($ohlcv, 3),
+                $this->safe_number($ohlcv, 4),
+                $this->safe_number($ohlcv, 5),
+            );
+        }
+        $timestamp = $this->safe_timestamp_2($ohlcv, 'open_time', 'openTime');
+        if ($timestamp === null) {
+            $timestamp = $this->safe_timestamp($ohlcv, 'start_at');
+        }
         return array(
-            $this->safe_timestamp_2($ohlcv, 'open_time', 'start_at'),
+            $timestamp,
             $this->safe_number($ohlcv, 'open'),
             $this->safe_number($ohlcv, 'high'),
             $this->safe_number($ohlcv, 'low'),
@@ -1356,32 +1400,64 @@ class bybit extends Exchange {
         $params = $this->omit($params, 'price');
         $request = array(
             'symbol' => $market['id'],
-            'interval' => $this->timeframes[$timeframe],
         );
         $duration = $this->parse_timeframe($timeframe);
         $now = $this->seconds();
+        $sinceTimestamp = null;
         if ($since === null) {
             if ($limit === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument or a $limit argument');
             } else {
-                $request['from'] = $now - $limit * $duration;
+                $sinceTimestamp = $now - $limit * $duration;
             }
         } else {
-            $request['from'] = intval($since / 1000);
+            $sinceTimestamp = intval($since / 1000);
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // max 200, default 200
         }
-        $method = 'publicGetV2PublicKlineList';
-        if ($price === 'mark') {
-            $method = 'publicGetV2PublicMarkPriceKline';
-        } else if ($price === 'index') {
-            $method = 'publicGetV2PublicIndexPriceKline';
-        } else if ($price === 'premiumIndex') {
-            $method = 'publicGetV2PublicPremiumIndexKline';
-        } else if ($market['linear']) {
-            $method = 'publicGetPublicLinearKline';
+        $method = null;
+        $intervalKey = 'interval';
+        $sinceKey = 'from';
+        $isUsdcSettled = ($market['option']) || ($market['settle'] === 'USD');
+        if ($market['spot']) {
+            $method = 'publicGetSpotQuoteV1Kline';
+        } else if ($market['contract'] && !$isUsdcSettled) {
+            if ($market['linear']) {
+                // linear swaps/futures
+                $methods = array(
+                    'mark' => 'publicGetPublicLinearMarkPriceKline',
+                    'index' => 'publicGetPublicLinearIndexPriceKline',
+                    'premium' => 'publicGetPublicLinearPremiumIndexKline',
+                );
+                $method = $this->safe_value($methods, $price, 'publicGetPublicLinearKline');
+            } else {
+                // inverse swaps/ futures
+                $methods = array(
+                    'mark' => 'publicGetV2PublicMarkPriceKline',
+                    'index' => 'publicGetV2PublicIndexPriceKline',
+                    'premium' => 'publicGetV2PublicPremiumPriceKline',
+                );
+                $method = $this->safe_value($methods, $price, 'publicGetV2PublicKlineList');
+            }
+        } else {
+            // usdc markets
+            if ($market['option']) {
+                throw new NotSupported($this->id . ' fetchOHLCV() is not supported for USDC options markets');
+            }
+            $intervalKey = 'period';
+            $sinceKey = 'startTime';
+            $methods = array(
+                'mark' => 'publicGetPerpetualUsdcOpenapiPublicV1MarkPriceKline',
+                'index' => 'publicGetPerpetualUsdcOpenapiPublicV1IndexPriceKline',
+                'premium' => 'publicGetPerpetualUsdcOpenapiPublicV1PremiumPriceKline',
+            );
+            $method = $this->safe_value($methods, $price, 'publicGetPerpetualUsdcOpenapiPublicV1KlineList');
         }
+        // spot markets use the same interval format as ccxt
+        // so we don't need  to convert it
+        $request[$intervalKey] = $market['spot'] ? $timeframe : $this->timeframes[$timeframe];
+        $request[$sinceKey] = $sinceTimestamp;
         $response = $this->$method (array_merge($request, $params));
         //
         // inverse perpetual BTC/USD
@@ -1429,6 +1505,28 @@ class bybit extends Exchange {
         //         ),
         //         "time_now":"1587884120.168077"
         //     }
+        // spot
+        //     {
+        //    "ret_code" => "0",
+        //    "ret_msg" => null,
+        //     "result" => array(
+        //         array(
+        //             1651837620000,
+        //             "35831.5",
+        //             "35831.5",
+        //             "35801.93",
+        //             "35817.11",
+        //             "1.23453",
+        //             0,
+        //             "44213.97591627",
+        //             24,
+        //             "0",
+        //             "0"
+        //         )
+        //     ),
+        //     "ext_code" => null,
+        //     "ext_info" => null
+        // }
         //
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
