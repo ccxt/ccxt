@@ -1124,6 +1124,29 @@ module.exports = class gateio extends Exchange {
         return [ request, params ];
     }
 
+    spotOrderPrepareRequest (market = undefined, stop = false, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @name gateio#multiOrderSpotPrepareRequest
+         * @description Fills request params currency_pair, market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
+         * @param {dict} market CCXT market
+         * @param {bool} stop true if for a stop order
+         * @param {dict} params request parameters
+         * @returns the api request object, and the new params object with non-needed parameters removed
+         */
+        const [ marginType, query ] = this.getMarginType (stop, params);
+        const request = {};
+        if (!stop) {
+            if (market === undefined) {
+                throw new ArgumentsRequired (this.id + ' spotOrderPrepareRequest() requires a market argument for non-stop orders');
+            }
+            request['account'] = marginType;
+            request['currency_pair'] = market['id']; // Should always be set for non-stop
+        }
+        return [ request, query ];
+    }
+
     multiOrderSpotPrepareRequest (market = undefined, stop = false, params = {}) {
         /**
          * @ignore
