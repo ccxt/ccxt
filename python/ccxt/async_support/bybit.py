@@ -730,7 +730,7 @@ class bybit(Exchange):
             market = markets[i]
             id = self.safe_string(market, 'name')
             baseId = self.safe_string(market, 'baseCurrency')
-            quoteId = self.safe_string_2(market, 'quoteCurrency')
+            quoteId = self.safe_string(market, 'quoteCurrency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote

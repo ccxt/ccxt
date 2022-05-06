@@ -728,7 +728,7 @@ class bybit extends Exchange {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'name');
             $baseId = $this->safe_string($market, 'baseCurrency');
-            $quoteId = $this->safe_string_2($market, 'quoteCurrency');
+            $quoteId = $this->safe_string($market, 'quoteCurrency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
