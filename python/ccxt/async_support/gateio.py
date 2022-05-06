@@ -3041,7 +3041,7 @@ class gateio(Exchange):
         """
         Retrieves information on an order
         :param str id: Order id
-        :param str symbol: Unified market symbol
+        :param str symbol: Unified market symbol, *required for spot and margin*
         :param dict params: Parameters specified by the exchange api
         :param bool params['stop']: True if the order being fetched is a trigger order
         :param str params['marginType']: 'cross' or 'isolated' - marginType for margin trading if not provided self.options['defaultMarginType'] is used
