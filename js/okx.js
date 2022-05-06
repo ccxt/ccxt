@@ -383,6 +383,22 @@ module.exports = class okx extends ccxt.okx {
         //         ]
         //     }
         //
+        // bbo-tbt
+        //
+        //     {
+        //         "arg":{
+        //             "channel":"bbo-tbt",
+        //             "instId":"BTC-USDT"
+        //         },
+        //         "data":[
+        //             {
+        //                 "asks":[["36232.2","1.8826134","0","17"]],
+        //                 "bids":[["36232.1","0.00572212","0","2"]],
+        //                 "ts":"1651826598363"
+        //             }
+        //         ]
+        //     }
+        //
         const arg = this.safeValue (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const action = this.safeString (message, 'action');
@@ -391,6 +407,7 @@ module.exports = class okx extends ccxt.okx {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const depths = {
+            'bbo-tbt': 1,
             'books': 400,
             'books5': 5,
             'books-l2-tbt': 400,
@@ -416,7 +433,7 @@ module.exports = class okx extends ccxt.okx {
                     client.resolve (orderbook, messageHash);
                 }
             }
-        } else if (channel === 'books5') {
+        } else if ((channel === 'books5') || (channel === 'bbo-tbt')) {
             let orderbook = this.safeValue (this.orderbooks, symbol);
             if (orderbook === undefined) {
                 orderbook = this.orderBook ({}, limit);
@@ -425,7 +442,7 @@ module.exports = class okx extends ccxt.okx {
             for (let i = 0; i < data.length; i++) {
                 const update = data[i];
                 const timestamp = this.safeInteger (update, 'ts');
-                const snapshot = this.parseOrderBook (update, symbol, timestamp, 'bids', 'asks', 0, 1, market);
+                const snapshot = this.parseOrderBook (update, symbol, timestamp, 'bids', 'asks', 0, 1);
                 orderbook.reset (snapshot);
                 const messageHash = channel + ':' + marketId;
                 client.resolve (orderbook, messageHash);
@@ -764,10 +781,11 @@ module.exports = class okx extends ccxt.okx {
             const arg = this.safeValue (message, 'arg', {});
             const channel = this.safeString (arg, 'channel');
             const methods = {
-                'books': this.handleOrderBook, // 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed every 100 ms when there is change in order book.
-                'books5': this.handleOrderBook, // 5 depth levels will be pushed every time. Data will be pushed every 100 ms when there is change in order book.
-                'books50-l2-tbt': this.handleOrderBook, // 50 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
-                'books-l2-tbt': this.handleOrderBook, // 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
+                'bbo-tbt': this.handleOrderBook, // newly added channel that sends tick-by-tick Level 1 data, all API users can subscribe, public depth channel, verification not required
+                'books': this.handleOrderBook, // all API users can subscribe, public depth channel, verification not required
+                'books5': this.handleOrderBook, // all API users can subscribe, public depth channel, verification not required, data feeds will be delivered every 100ms (vs. every 200ms now)
+                'books50-l2-tbt': this.handleOrderBook, // only users who're VIP4 and above can subscribe, identity verification required before subscription
+                'books-l2-tbt': this.handleOrderBook, // only users who're VIP5 and above can subscribe, identity verification required before subscription
                 'tickers': this.handleTicker,
                 'trades': this.handleTrades,
                 'account': this.handleBalance,
