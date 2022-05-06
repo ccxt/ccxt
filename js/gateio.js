@@ -2158,7 +2158,7 @@ module.exports = class gateio extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['swap']) {
-            throw new BadRequest ('Funding rates only exist for swap contracts');
+            throw new BadRequest (this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const [ request, query ] = this.prepareRequest (market, undefined, params);
         if (limit !== undefined) {
