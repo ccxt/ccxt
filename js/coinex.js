@@ -2699,16 +2699,14 @@ module.exports = class coinex extends Exchange {
         let minNotional = 0;
         for (let j = 0; j < item.length; j++) {
             const bracket = item[j];
-            const leverage = this.safeInteger (bracket, 1);
             const maxNotional = this.safeNumber (bracket, 0);
-            const currency = (market['linear']) ? market['base'] : market['quote'];
             tiers.push ({
                 'tier': j + 1,
-                'currency': currency,
+                'currency': market['linear'] ? market['base'] : market['quote'],
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
                 'maintenanceMarginRate': this.safeNumber (bracket, 2),
-                'maxLeverage': leverage,
+                'maxLeverage': this.safeInteger (bracket, 1),
                 'info': bracket,
             });
             minNotional = maxNotional;
