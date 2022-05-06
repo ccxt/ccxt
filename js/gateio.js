@@ -3827,18 +3827,13 @@ module.exports = class gateio extends Exchange {
          * @returns An array of [position structures]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType', 'swap');
-        const type = this.safeString (params, 'type', defaultType);
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
+        const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
         const method = this.getSupportedMapping (type, {
             'swap': 'privateFuturesGetSettlePositions',
             'future': 'privateDeliveryGetSettlePositions',
         });
-        const defaultSettle = (type === 'swap') ? 'usdt' : 'btc';
-        const settle = this.safeStringLower (params, 'settle', defaultSettle);
-        const request = {
-            'settle': settle,
-        };
-        const response = await this[method] (request);
+        const response = await this[method] (this.extend (request, requestParams));
         //
         //     [
         //         {
