@@ -1218,10 +1218,10 @@ module.exports = class bybit extends Exchange {
         //          "theta": "-0.03262827"
         //      }
         //
-        const timestamp = undefined;
+        const timestamp = this.safeInteger (ticker, 'time');
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeString (ticker, 'last_price', 'lastPrice');
+        const last = this.safeString2 (ticker, 'last_price', 'lastPrice');
         const open = this.safeString2 (ticker, 'prev_price_24h', 'openPrice');
         let percentage = this.safeString2 (ticker, 'price_24h_pcnt', 'change24h');
         percentage = Precise.stringMul (percentage, '100');
@@ -1277,9 +1277,10 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let method = undefined;
+        const isUsdcSettled = (market['option']) || (market['settle'] === 'USD');
         if (market['spot']) {
             method = 'publicGetSpotQuoteV1Ticker24hr';
-        } else if (market['contract'] && market['settle'] !== 'USD') {
+        } else if (!isUsdcSettled) {
             // inverse perpetual // usdt linear // inverse futures
             method = 'publicGetV2PublicTickers';
         } else if (market['option']) {
