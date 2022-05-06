@@ -32,9 +32,9 @@ module.exports = class woo extends Exchange {
                 'cancelWithdraw': false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
                 'createMarketOrder': false,
                 'createOrder': true,
-                'createStopOrder': false,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
+                'createStopOrder': false,
                 'fetchBalance': true,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
