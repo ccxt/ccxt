@@ -3861,20 +3861,16 @@ module.exports = class gateio extends Exchange {
 
     async fetchLeverageTiers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const methodName = 'fetchLeverageTiers';
-        const [ type, query ] = this.handleMarketTypeAndParams (methodName, undefined, params);
-        const swap = type === 'swap';
-        const defaultSettle = swap ? 'usdt' : 'btc';
-        const settle = this.safeStringLower (query, 'settle', defaultSettle);
-        query['settle'] = settle;
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
+        const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
         if (type !== 'future' && type !== 'swap') {
-            throw new BadRequest (this.id + ' ' + methodName + '() only supports swap and future');
+            throw new BadRequest (this.id + ' fetchLeverageTiers only supports swap and future');
         }
         const method = this.getSupportedMapping (type, {
             'swap': 'publicFuturesGetSettleContracts',
             'future': 'publicDeliveryGetSettleContracts',
         });
-        const response = await this[method] (query);
+        const response = await this[method] (this.extend (request, requestParams));
         //
         // Perpetual swap
         //
