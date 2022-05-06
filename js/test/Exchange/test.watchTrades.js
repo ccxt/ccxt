@@ -53,7 +53,7 @@ module.exports = async (exchange, symbol) => {
 
             assert (response instanceof Array)
 
-            log (exchange.iso8601 (now), exchange.id, symbol.green, method, Object.values (response).length.toString ().green, 'trades')
+            log (exchange.iso8601 (now), exchange.id, symbol, method, Object.values (response).length, 'trades')
 
             // log.noLocate (asTable (response))
 

@@ -62,7 +62,7 @@ class ndax extends \ccxt\async\ndax {
             'o' => $this->json($payload), // JSON-formatted string containing the data being sent with the $message
         );
         $message = array_merge($request, $params);
-        return yield $this->watch($url, $messageHash, $message);
+        return yield $this->watch($url, $messageHash, $message, $messageHash);
     }
 
     public function handle_ticker($client, $message) {
@@ -105,6 +105,7 @@ class ndax extends \ccxt\async\ndax {
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         $name = 'SubscribeTrades';
         $messageHash = $name . ':' . $market['id'];
         $url = $this->urls['api']['ws'];
@@ -121,7 +122,7 @@ class ndax extends \ccxt\async\ndax {
             'o' => $this->json($payload), // JSON-formatted string containing the data being sent with the $message
         );
         $message = array_merge($request, $params);
-        $trades = yield $this->watch($url, $messageHash, $message);
+        $trades = yield $this->watch($url, $messageHash, $message, $messageHash);
         if ($this->newUpdates) {
             $limit = $trades->getLimit ($symbol, $limit);
         }
@@ -177,6 +178,7 @@ class ndax extends \ccxt\async\ndax {
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         $name = 'SubscribeTicker';
         $messageHash = $name . ':' . $timeframe . ':' . $market['id'];
         $url = $this->urls['api']['ws'];
@@ -194,7 +196,7 @@ class ndax extends \ccxt\async\ndax {
             'o' => $this->json($payload), // JSON-formatted string containing the data being sent with the $message
         );
         $message = array_merge($request, $params);
-        $ohlcv = yield $this->watch($url, $messageHash, $message);
+        $ohlcv = yield $this->watch($url, $messageHash, $message, $messageHash);
         if ($this->newUpdates) {
             $limit = $ohlcv->getLimit ($symbol, $limit);
         }
@@ -297,6 +299,7 @@ class ndax extends \ccxt\async\ndax {
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         $name = 'SubscribeLevel2';
         $messageHash = $name . ':' . $market['id'];
         $url = $this->urls['api']['ws'];

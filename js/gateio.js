@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError, AuthenticationError, BadRequest, ArgumentsRequired, NotSupported } = require ('ccxt/js/base/errors');
+const { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -54,6 +54,9 @@ module.exports = class gateio extends ccxt.gateio {
                 'watchTradesSubscriptions': {},
                 'watchTickerSubscriptions': {},
                 'watchOrderBookSubscriptions': {},
+                'watchOrderBook': {
+                    'interval': '100ms',
+                },
             },
             'exceptions': {
                 'ws': {
@@ -71,40 +74,254 @@ module.exports = class gateio extends ccxt.gateio {
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const marketId = market['id'];
-        const uppercaseId = marketId.toUpperCase ();
-        const requestId = this.nonce ();
-        const url = this.urls['api']['ws'];
         const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const defaultLimit = this.safeInteger (options, 'limit', 30);
+        const defaultLimit = this.safeInteger (options, 'limit', 20);
         if (!limit) {
             limit = defaultLimit;
-        } else if (limit !== 1 && limit !== 5 && limit !== 10 && limit !== 20 && limit !== 30) {
-            throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 1, 5, 10, 20, or 30');
         }
-        const interval = this.safeString (params, 'interval', '100ms');
-        const parameters = [ uppercaseId, limit, interval ];
-        const subscriptions = this.safeValue (options, 'subscriptions', {});
-        subscriptions[symbol] = parameters;
-        options['subscriptions'] = subscriptions;
-        this.options['watchOrderBook'] = options;
-        const toSend = Object.values (subscriptions);
-        const messageHash = 'depth.update' + ':' + marketId;
-        const subscribeMessage = {
-            'id': requestId,
-            'method': 'depth.subscribe',
-            'params': toSend,
+        const defaultInterval = this.safeString (options, 'interval', '100ms');
+        const interval = this.safeString (params, 'interval', defaultInterval);
+        const type = market['type'];
+        const messageType = this.getUniformType (type);
+        const method = messageType + '.' + 'order_book_update';
+        const messageHash = method + ':' + market['symbol'];
+        const url = this.getUrlByMarketType (type, market['inverse']);
+        const payload = [ marketId, interval ];
+        if (type !== 'spot') {
+            // contract pairs require limit in the payload
+            const stringLimit = limit.toString ();
+            payload.push (stringLimit);
+        }
+        const subscriptionParams = {
+            'method': this.handleOrderBookSubscription,
+            'symbol': symbol,
+            'limit': limit,
         };
-        const subscription = {
-            'id': requestId,
-        };
-        const orderbook = await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
+        const orderbook = await this.subscribePublic (url, method, messageHash, payload, subscriptionParams);
         return orderbook.limit (limit);
     }
 
+    handleOrderBookSubscription (client, message, subscription) {
+        const symbol = this.safeString (subscription, 'symbol');
+        const limit = this.safeInteger (subscription, 'limit');
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
+        }
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        const options = this.safeValue (this.options, 'handleOrderBookSubscription', {});
+        const fetchOrderBookSnapshot = this.safeValue (options, 'fetchOrderBookSnapshot', false);
+        if (fetchOrderBookSnapshot) {
+            const fetchingOrderBookSnapshot = 'fetchingOrderBookSnapshot';
+            subscription[fetchingOrderBookSnapshot] = true;
+            const messageHash = subscription['messageHash'];
+            client.subscriptions[messageHash] = subscription;
+            this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+        }
+    }
+
+    async fetchOrderBookSnapshot (client, message, subscription) {
+        const symbol = this.safeString (subscription, 'symbol');
+        const limit = this.safeInteger (subscription, 'limit');
+        const messageHash = this.safeString (subscription, 'messageHash');
+        try {
+            const snapshot = await this.fetchOrderBook (symbol, limit);
+            const orderbook = this.orderbooks[symbol];
+            const messages = orderbook.cache;
+            const firstMessage = this.safeValue (messages, 0, {});
+            const result = this.safeValue (firstMessage, 'result');
+            const seqNum = this.safeInteger (result, 'U');
+            const nonce = this.safeInteger (snapshot, 'nonce');
+            // if the received snapshot is earlier than the first cached delta
+            // then we cannot align it with the cached deltas and we need to
+            // retry synchronizing in maxAttempts
+            if ((seqNum === undefined) || (nonce < seqNum)) {
+                const maxAttempts = this.safeInteger (this.options, 'maxOrderBookSyncAttempts', 3);
+                let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
+                // retry to synchronize if we haven't reached maxAttempts yet
+                if (numAttempts < maxAttempts) {
+                    // safety guard
+                    if (messageHash in client.subscriptions) {
+                        numAttempts = this.sum (numAttempts, 1);
+                        subscription['numAttempts'] = numAttempts;
+                        client.subscriptions[messageHash] = subscription;
+                        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+                    }
+                } else {
+                    // throw upon failing to synchronize in maxAttempts
+                    throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
+                }
+            } else {
+                orderbook.reset (snapshot);
+                // unroll the accumulated deltas
+                for (let i = 0; i < messages.length; i++) {
+                    const message = messages[i];
+                    this.handleOrderBookMessage (client, message, orderbook);
+                }
+                this.orderbooks[symbol] = orderbook;
+                client.resolve (orderbook, messageHash);
+            }
+        } catch (e) {
+            client.reject (e, messageHash);
+        }
+    }
+
+    handleOrderBook (client, message) {
+        //
+        //     {
+        //         "time":1649770575,
+        //         "channel":"spot.order_book_update",
+        //         "event":"update",
+        //         "result":{
+        //             "t":1649770575537,
+        //             "e":"depthUpdate",
+        //             "E":1649770575,
+        //             "s":"LTC_USDT",
+        //             "U":2622528153,
+        //             "u":2622528265,
+        //             "b":[
+        //                 ["104.18","3.9398"],
+        //                 ["104.56","19.0603"],
+        //                 ["104.94","0"],
+        //                 ["103.72","0"],
+        //                 ["105.01","52.6186"],
+        //                 ["104.76","0"],
+        //                 ["104.97","0"],
+        //                 ["104.71","0"],
+        //                 ["104.84","25.8604"],
+        //                 ["104.51","47.6508"],
+        //             ],
+        //             "a":[
+        //                 ["105.26","40.5519"],
+        //                 ["106.08","35.4396"],
+        //                 ["105.2","0"],
+        //                 ["105.45","8.5834"],
+        //                 ["105.5","20.17"],
+        //                 ["105.11","54.8359"],
+        //                 ["105.52","28.5605"],
+        //                 ["105.27","6.6325"],
+        //                 ["105.3","4.291446"],
+        //                 ["106.03","9.712"],
+        //             ]
+        //         }
+        //     }
+        //
+        const channel = this.safeString (message, 'channel');
+        const result = this.safeValue (message, 'result');
+        const marketId = this.safeString (result, 's');
+        const symbol = this.safeSymbol (marketId);
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook ({});
+            this.orderbooks[symbol] = orderbook;
+        }
+        const messageHash = channel + ':' + symbol;
+        const subscription = this.safeValue (client.subscriptions, messageHash, {});
+        const fetchingOrderBookSnapshot = 'fetchingOrderBookSnapshot';
+        const isFetchingOrderBookSnapshot = this.safeValue (subscription, fetchingOrderBookSnapshot, false);
+        if (!isFetchingOrderBookSnapshot) {
+            subscription[fetchingOrderBookSnapshot] = true;
+            client.subscriptions[messageHash] = subscription;
+            this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+        }
+        if (orderbook['nonce'] === undefined) {
+            orderbook.cache.push (message);
+        } else {
+            const messageHash = channel + ':' + symbol;
+            this.handleOrderBookMessage (client, message, orderbook, messageHash);
+        }
+    }
+
+    handleOrderBookMessage (client, message, orderbook, messageHash = undefined) {
+        //
+        // spot
+        //
+        //     {
+        //         time: 1650189272,
+        //         channel: 'spot.order_book_update',
+        //         event: 'update',
+        //         result: {
+        //             t: 1650189272515,
+        //             e: 'depthUpdate',
+        //             E: 1650189272,
+        //             s: 'GMT_USDT',
+        //             U: 140595902,
+        //             u: 140595902,
+        //             b: [
+        //                 [ '2.51518', '228.119' ],
+        //                 [ '2.50587', '1510.11' ],
+        //                 [ '2.49944', '67.6' ],
+        //             ],
+        //             a: [
+        //                 [ '2.5182', '4.199' ],
+        //                 [ '2.51926', '1874' ],
+        //                 [ '2.53528', '96.529' ],
+        //             ]
+        //         }
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         id: null,
+        //         time: 1650188898,
+        //         channel: 'futures.order_book_update',
+        //         event: 'update',
+        //         error: null,
+        //         result: {
+        //             t: 1650188898938,
+        //             s: 'GMT_USDT',
+        //             U: 1577718307,
+        //             u: 1577719254,
+        //             b: [
+        //                 { p: '2.5178', s: 0 },
+        //                 { p: '2.5179', s: 0 },
+        //                 { p: '2.518', s: 0 },
+        //             ],
+        //             a: [
+        //                 { p: '2.52', s: 0 },
+        //                 { p: '2.5201', s: 0 },
+        //                 { p: '2.5203', s: 0 },
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeValue (message, 'result');
+        const prevSeqNum = this.safeInteger (result, 'U');
+        const seqNum = this.safeInteger (result, 'u');
+        const nonce = orderbook['nonce'];
+        // we have to add +1 because if the current seqNumber on iteration X is 5
+        // on the iteration X+1, prevSeqNum will be (5+1)
+        const nextNonce = this.sum (nonce, 1);
+        if ((prevSeqNum <= nextNonce) && (seqNum >= nextNonce)) {
+            const asks = this.safeValue (result, 'a', []);
+            const bids = this.safeValue (result, 'b', []);
+            this.handleDeltas (orderbook['asks'], asks);
+            this.handleDeltas (orderbook['bids'], bids);
+            orderbook['nonce'] = seqNum;
+            const timestamp = this.safeInteger (result, 't');
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
+            if (messageHash !== undefined) {
+                client.resolve (orderbook, messageHash);
+            }
+        }
+        return orderbook;
+    }
+
     handleDelta (bookside, delta) {
-        const price = this.safeFloat (delta, 0);
-        const amount = this.safeFloat (delta, 1);
+        let price = undefined;
+        let amount = undefined;
+        if (Array.isArray (delta)) {
+            // spot
+            price = this.safeFloat (delta, 0);
+            amount = this.safeFloat (delta, 1);
+        } else {
+            // swap
+            price = this.safeFloat (delta, 'p');
+            amount = this.safeFloat (delta, 's');
+        }
         bookside.store (price, amount);
     }
 
@@ -114,131 +331,68 @@ module.exports = class gateio extends ccxt.gateio {
         }
     }
 
-    handleOrderBook (client, message) {
-        //
-        //     {
-        //         "method":"depth.update",
-        //         "params":[
-        //             true, // snapshot or not
-        //             {
-        //                 "asks":[
-        //                     ["7449.62","0.3933"],
-        //                     ["7450","3.58662932"],
-        //                     ["7450.44","0.15"],
-        //                 "bids":[
-        //                     ["7448.31","0.69984534"],
-        //                     ["7447.08","0.7506"],
-        //                     ["7445.74","0.4433"],
-        //                 ]
-        //             },
-        //             "BTC_USDT"
-        //         ],
-        //         "id":null
-        //     }
-        //
-        const params = this.safeValue (message, 'params', []);
-        const clean = this.safeValue (params, 0);
-        const book = this.safeValue (params, 1);
-        const marketId = this.safeString (params, 2);
-        const symbol = this.safeSymbol (marketId);
-        const method = this.safeString (message, 'method');
-        const messageHash = method + ':' + marketId;
-        let orderBook = undefined;
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const subscriptions = this.safeValue (options, 'subscriptions', {});
-        const subscription = this.safeValue (subscriptions, symbol, []);
-        const defaultLimit = this.safeInteger (options, 'limit', 30);
-        const limit = this.safeValue (subscription, 1, defaultLimit);
-        if (clean) {
-            orderBook = this.orderBook ({}, limit);
-            this.orderbooks[symbol] = orderBook;
-        } else {
-            orderBook = this.orderbooks[symbol];
-        }
-        this.handleDeltas (orderBook['asks'], this.safeValue (book, 'asks', []));
-        this.handleDeltas (orderBook['bids'], this.safeValue (book, 'bids', []));
-        client.resolve (orderBook, messageHash);
-    }
-
     async watchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const uppercaseId = marketId.toUpperCase ();
-        const requestId = this.nonce ();
-        const url = this.urls['api']['ws'];
-        const options = this.safeValue (this.options, 'watchTicker', {});
-        const subscriptions = this.safeValue (options, 'subscriptions', {});
-        subscriptions[uppercaseId] = true;
-        options['subscriptions'] = subscriptions;
-        this.options['watchTicker'] = options;
-        const subscribeMessage = {
-            'id': requestId,
-            'method': 'ticker.subscribe',
-            'params': Object.keys (subscriptions),
-        };
-        const subscription = {
-            'id': requestId,
-        };
-        const messageHash = 'ticker.update' + ':' + marketId;
-        return await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
+        const type = market['type'];
+        const messageType = this.getUniformType (type);
+        const channel = messageType + '.' + 'tickers';
+        const messageHash = channel + '.' + market['symbol'];
+        const payload = [ marketId ];
+        const url = this.getUrlByMarketType (type, market['inverse']);
+        return await this.subscribePublic (url, channel, messageHash, payload);
     }
 
     handleTicker (client, message) {
         //
-        //     {
-        //         'method': 'ticker.update',
-        //         'params': [
-        //             'BTC_USDT',
-        //             {
-        //                 'period': 86400, // 24 hours = 86400 seconds
-        //                 'open': '9027.96',
-        //                 'close': '9282.93',
-        //                 'high': '9428.57',
-        //                 'low': '8900',
-        //                 'last': '9282.93',
-        //                 'change': '2.8',
-        //                 'quoteVolume': '1838.9950613035',
-        //                 'baseVolume': '17032535.24172142379566994715'
-        //             }
-        //         ],
-        //         'id': null
-        //     }
+        //    {
+        //        time: 1649326221,
+        //        channel: 'spot.tickers',
+        //        event: 'update',
+        //        result: {
+        //          currency_pair: 'BTC_USDT',
+        //          last: '43444.82',
+        //          lowest_ask: '43444.82',
+        //          highest_bid: '43444.81',
+        //          change_percentage: '-4.0036',
+        //          base_volume: '5182.5412425462',
+        //          quote_volume: '227267634.93123952',
+        //          high_24h: '47698',
+        //          low_24h: '42721.03'
+        //        }
+        //    }
         //
-        const params = this.safeValue (message, 'params', []);
-        const marketId = this.safeString (params, 0);
-        const market = this.safeMarket (marketId, undefined, '_');
-        const symbol = market['symbol'];
-        const ticker = this.safeValue (params, 1, {});
-        const result = this.parseTicker (ticker, market);
-        const methodType = message['method'];
-        const messageHash = methodType + ':' + marketId;
-        this.tickers[symbol] = result;
-        client.resolve (result, messageHash);
+        const channel = this.safeString (message, 'channel');
+        let result = this.safeValue (message, 'result');
+        if (!Array.isArray (result)) {
+            result = [ result ];
+        }
+        for (let i = 0; i < result.length; i++) {
+            const ticker = result[i];
+            const parsed = this.parseTicker (ticker);
+            const symbol = parsed['symbol'];
+            this.tickers[symbol] = parsed;
+            const messageHash = channel + '.' + symbol;
+            client.resolve (this.tickers[symbol], messageHash);
+        }
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const marketId = market['id'];
-        const uppercaseId = marketId.toUpperCase ();
-        const requestId = this.nonce ();
-        const url = this.urls['api']['ws'];
-        const options = this.safeValue (this.options, 'watchTrades', {});
-        const subscriptions = this.safeValue (options, 'subscriptions', {});
-        subscriptions[uppercaseId] = true;
-        options['subscriptions'] = subscriptions;
-        this.options['watchTrades'] = options;
-        const subscribeMessage = {
-            'id': requestId,
-            'method': 'trades.subscribe',
-            'params': Object.keys (subscriptions),
-        };
-        const subscription = {
-            'id': requestId,
-        };
-        const messageHash = 'trades.update' + ':' + marketId;
-        const trades = await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
+        const type = market['type'];
+        const messageType = this.getUniformType (type);
+        const method = messageType + '.trades';
+        let messageHash = method;
+        if (symbol !== undefined) {
+            messageHash += ':' + market['symbol'];
+        }
+        const url = this.getUrlByMarketType (type, market['inverse']);
+        const payload = [marketId];
+        const trades = await this.subscribePublic (url, method, messageHash, payload);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -247,68 +401,63 @@ module.exports = class gateio extends ccxt.gateio {
 
     handleTrades (client, message) {
         //
-        //     [
-        //         'BTC_USDT',
-        //         [
-        //             {
-        //                 id: 221994511,
-        //                 time: 1580311438.618647,
-        //                 price: '9309',
-        //                 amount: '0.0019',
-        //                 type: 'sell'
-        //             },
-        //             {
-        //                 id: 221994501,
-        //                 time: 1580311433.842509,
-        //                 price: '9311.31',
-        //                 amount: '0.01',
-        //                 type: 'buy'
-        //             },
-        //         ]
-        //     ]
+        // {
+        //     time: 1648725035,
+        //     channel: 'spot.trades',
+        //     event: 'update',
+        //     result: [{
+        //       id: 3130257995,
+        //       create_time: 1648725035,
+        //       create_time_ms: '1648725035923.0',
+        //       side: 'sell',
+        //       currency_pair: 'LTC_USDT',
+        //       amount: '0.0116',
+        //       price: '130.11'
+        //     }]
+        // }
         //
-        const params = this.safeValue (message, 'params', []);
-        const marketId = this.safeString (params, 0);
-        const market = this.safeMarket (marketId, undefined, '_');
-        const symbol = market['symbol'];
-        let stored = this.safeValue (this.trades, symbol);
-        if (stored === undefined) {
-            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCache (limit);
-            this.trades[symbol] = stored;
+        const channel = this.safeString (message, 'channel');
+        let result = this.safeValue (message, 'result');
+        if (!Array.isArray (result)) {
+            result = [ result ];
         }
-        const trades = this.safeValue (params, 1, []);
-        const parsed = this.parseTrades (trades, market);
-        for (let i = 0; i < parsed.length; i++) {
-            stored.append (parsed[i]);
+        const parsedTrades = this.parseTrades (result);
+        const marketIds = {};
+        for (let i = 0; i < parsedTrades.length; i++) {
+            const trade = parsedTrades[i];
+            const symbol = trade['symbol'];
+            let cachedTrades = this.safeValue (this.trades, symbol);
+            if (cachedTrades === undefined) {
+                const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                cachedTrades = new ArrayCache (limit);
+                this.trades[symbol] = cachedTrades;
+            }
+            cachedTrades.append (trade);
+            marketIds[symbol] = true;
         }
-        const methodType = message['method'];
-        const messageHash = methodType + ':' + marketId;
-        client.resolve (stored, messageHash);
+        const keys = Object.keys (marketIds);
+        for (let i = 0; i < keys.length; i++) {
+            const symbol = keys[i];
+            const hash = channel + ':' + symbol;
+            const stored = this.safeValue (this.trades, symbol);
+            client.resolve (stored, hash);
+        }
+        client.resolve (this.trades, channel);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const marketId = market['id'];
-        const uppercaseId = marketId.toUpperCase ();
-        const requestId = this.nonce ();
-        const url = this.urls['api']['ws'];
-        const interval = this.parseTimeframe (timeframe);
-        const subscribeMessage = {
-            'id': requestId,
-            'method': 'kline.subscribe',
-            'params': [ uppercaseId, interval ],
-        };
-        const subscription = {
-            'id': requestId,
-        };
-        // gateio sends candles without a timeframe identifier
-        // making it impossible to differentiate candles from
-        // two or more different timeframes within the same symbol
-        // thus the exchange API is limited to one timeframe per symbol
-        const messageHash = 'kline.update' + ':' + marketId;
-        const ohlcv = await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
+        const type = market['type'];
+        const interval = this.timeframes[timeframe];
+        const messageType = this.getUniformType (type);
+        const method = messageType + '.candlesticks';
+        const messageHash = method + ':' + interval + ':' + market['symbol'];
+        const url = this.getUrlByMarketType (type, market['inverse']);
+        const payload = [interval, marketId];
+        const ohlcv = await this.subscribePublic (url, method, messageHash, payload);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -317,56 +466,55 @@ module.exports = class gateio extends ccxt.gateio {
 
     handleOHLCV (client, message) {
         //
-        //     {
-        //         method: 'kline.update',
-        //         params: [
-        //             [
-        //                 1580661060,
-        //                 '9432.37',
-        //                 '9435.77',
-        //                 '9435.77',
-        //                 '9429.93',
-        //                 '0.0879',
-        //                 '829.1875889352',
-        //                 'BTC_USDT'
-        //             ]
-        //         ],
-        //         id: null
+        // {
+        //     "time": 1606292600,
+        //     "channel": "spot.candlesticks",
+        //     "event": "update",
+        //     "result": {
+        //       "t": "1606292580", // total volume
+        //       "v": "2362.32035", // volume
+        //       "c": "19128.1", // close
+        //       "h": "19128.1", // high
+        //       "l": "19128.1", // low
+        //       "o": "19128.1", // open
+        //       "n": "1m_BTC_USDT" // sub
         //     }
+        //   }
         //
-        const params = this.safeValue (message, 'params', []);
-        const ohlcv = this.safeValue (params, 0, []);
-        const marketId = this.safeString (ohlcv, 7);
-        const parsed = [
-            this.safeTimestamp (ohlcv, 0), // t
-            this.safeNumber (ohlcv, 1), // o
-            this.safeNumber (ohlcv, 3), // h
-            this.safeNumber (ohlcv, 4), // l
-            this.safeNumber (ohlcv, 2), // c
-            this.safeNumber (ohlcv, 5), // v
-        ];
-        const symbol = this.safeSymbol (marketId, undefined, '_');
-        // gateio sends candles without a timeframe identifier
-        // making it impossible to differentiate candles from
-        // two or more different timeframes within the same symbol
-        // thus the exchange API is limited to one timeframe per symbol
-        // --------------------------------------------------------------------
-        // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        // const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
-        // --------------------------------------------------------------------
-        let stored = this.safeValue (this.ohlcvs, symbol);
-        if (stored === undefined) {
-            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol] = stored;
+        const channel = this.safeString (message, 'channel');
+        let result = this.safeValue (message, 'result');
+        const isArray = Array.isArray (result);
+        if (!isArray) {
+            result = [result];
         }
-        stored.append (parsed);
-        // --------------------------------------------------------------------
-        // this.ohlcvs[symbol][timeframe] = stored;
-        // --------------------------------------------------------------------
-        const methodType = message['method'];
-        const messageHash = methodType + ':' + marketId;
-        client.resolve (stored, messageHash);
+        const marketIds = {};
+        for (let i = 0; i < result.length; i++) {
+            const ohlcv = result[i];
+            const subscription = this.safeString (ohlcv, 'n', '');
+            const parts = subscription.split ('_');
+            const timeframe = this.safeString (parts, 0);
+            const prefix = timeframe + '_';
+            const marketId = subscription.replace (prefix, '');
+            const symbol = this.safeSymbol (marketId, undefined, '_');
+            const parsed = this.parseOHLCV (ohlcv);
+            let stored = this.safeValue (this.ohlcvs, symbol);
+            if (stored === undefined) {
+                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                stored = new ArrayCacheByTimestamp (limit);
+                this.ohlcvs[symbol] = stored;
+            }
+            stored.append (parsed);
+            marketIds[symbol] = timeframe;
+        }
+        const keys = Object.keys (marketIds);
+        for (let i = 0; i < keys.length; i++) {
+            const symbol = keys[i];
+            const timeframe = marketIds[symbol];
+            const interval = this.timeframes[timeframe];
+            const hash = channel + ':' + interval + ':' + symbol;
+            const stored = this.safeValue (this.ohlcvs, symbol);
+            client.resolve (stored, hash);
+        }
     }
 
     async authenticate (params = {}) {
@@ -395,28 +543,35 @@ module.exports = class gateio extends ccxt.gateio {
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        this.checkRequiredCredentials ();
-        let type = 'spot';
-        let marketId = undefined;
-        let marketSymbol = undefined;
+        let subType = undefined;
+        let type = undefined;
+        let marketId = '!all';
         if (symbol !== undefined) {
             const market = this.market (symbol);
+            symbol = market['symbol'];
             type = market['type'];
             marketId = market['id'];
-            marketSymbol = market['symbol'];
+        } else {
+            [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', undefined, params);
+            if (type !== 'spot') {
+                const options = this.safeValue (this.options, 'watchMyTrades', {});
+                subType = this.safeValue (options, 'subType', 'linear');
+                subType = this.safeValue (params, 'subType', subType);
+                params = this.omit (params, 'subType');
+            }
         }
-        if (type !== 'spot') {
-            throw new BadRequest (this.id + ' watchMyTrades symbol supports spot markets only');
+        const messageType = this.getUniformType (type);
+        const method = messageType + '.usertrades';
+        let messageHash = method;
+        if (symbol !== undefined) {
+            messageHash += ':' + symbol;
         }
-        const url = this.getUrlByMarketType (type);
-        const channel = 'spot.usertrades';
-        let messageHash = channel;
-        let payload = [];
-        if (marketId !== undefined) {
-            payload = [marketId];
-            messageHash += ':' + marketSymbol;
-        }
-        const trades = await this.subscribePrivate (url, channel, messageHash, payload, undefined);
+        const isInverse = (subType === 'inverse');
+        const url = this.getUrlByMarketType (type, isInverse);
+        const payload = [ marketId ];
+        // uid required for non spot markets
+        const requiresUid = (type !== 'spot');
+        const trades = await this.subscribePrivate (url, method, messageHash, payload, requiresUid);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -426,47 +581,50 @@ module.exports = class gateio extends ccxt.gateio {
     handleMyTrades (client, message) {
         //
         // {
-        //     "time": 1605176741,
-        //     "channel": "spot.usertrades",
+        //     "time": 1543205083,
+        //     "channel": "futures.usertrades",
         //     "event": "update",
+        //     "error": null,
         //     "result": [
         //       {
-        //         "id": 5736713,
-        //         "user_id": 1000001,
-        //         "order_id": "30784428",
-        //         "currency_pair": "BTC_USDT",
-        //         "create_time": 1605176741,
-        //         "create_time_ms": "1605176741123.456",
-        //         "side": "sell",
-        //         "amount": "1.00000000",
-        //         "role": "taker",
-        //         "price": "10000.00000000",
-        //         "fee": "0.00200000000000",
-        //         "point_fee": "0",
-        //         "gt_fee": "0",
-        //         "text": "apiv4"
+        //         "id": "3335259",
+        //         "create_time": 1628736848,
+        //         "create_time_ms": 1628736848321,
+        //         "contract": "BTC_USD",
+        //         "order_id": "4872460",
+        //         "size": 1,
+        //         "price": "40000.4",
+        //         "role": "maker"
         //       }
         //     ]
-        //   }
+        // }
         //
+        const result = this.safeValue (message, 'result', []);
         const channel = this.safeString (message, 'channel');
-        const trades = this.safeValue (message, 'result', []);
-        if (trades.length > 0) {
-            if (this.myTrades === undefined) {
-                const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                this.myTrades = new ArrayCache (limit);
-            }
-            const stored = this.myTrades;
-            const parsedTrades = this.parseTrades (trades);
-            for (let i = 0; i < parsedTrades.length; i++) {
-                stored.append (parsedTrades[i]);
-            }
-            client.resolve (this.myTrades, channel);
-            for (let i = 0; i < parsedTrades.length; i++) {
-                const messageHash = channel + ':' + parsedTrades[i]['symbol'];
-                client.resolve (this.myTrades, messageHash);
-            }
+        const tradesLength = result.length;
+        if (tradesLength === 0) {
+            return;
         }
+        let cachedTrades = this.myTrades;
+        if (cachedTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            cachedTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const parsed = this.parseTrades (result);
+        const marketIds = {};
+        for (let i = 0; i < parsed.length; i++) {
+            const trade = parsed[i];
+            cachedTrades.append (trade);
+            const symbol = trade['symbol'];
+            marketIds[symbol] = true;
+        }
+        const keys = Object.keys (marketIds);
+        for (let i = 0; i < keys.length; i++) {
+            const market = keys[i];
+            const hash = channel + ':' + market;
+            client.resolve (cachedTrades, hash);
+        }
+        client.resolve (cachedTrades, channel);
     }
 
     async watchBalance (params = {}) {
@@ -544,6 +702,7 @@ module.exports = class gateio extends ccxt.gateio {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         let type = 'spot';
         if (market['future'] || market['swap']) {
             type = 'futures';
@@ -553,9 +712,7 @@ module.exports = class gateio extends ccxt.gateio {
         const method = type + '.orders';
         let messageHash = method;
         messageHash = method + ':' + market['id'];
-        const isSettleBtc = market['settleId'] === 'btc';
-        const isBtcContract = (market['contract'] && isSettleBtc) ? true : false;
-        const url = this.getUrlByMarketType (market['type'], isBtcContract);
+        const url = this.getUrlByMarketType (market['type'], market['inverse']);
         const payload = [market['id']];
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
@@ -615,6 +772,14 @@ module.exports = class gateio extends ccxt.gateio {
             const parsedOrders = this.parseOrders (orders);
             for (let i = 0; i < parsedOrders.length; i++) {
                 const parsed = parsedOrders[i];
+                // inject order status
+                const info = this.safeValue (parsed, 'info');
+                const event = this.safeString (info, 'event');
+                if (event === 'put') {
+                    parsed['status'] = 'open';
+                } else if (event === 'finish') {
+                    parsed['status'] = 'closed';
+                }
                 stored.append (parsed);
                 const symbol = parsed['symbol'];
                 const market = this.market (symbol);
@@ -706,6 +871,31 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     handleMessage (client, message) {
+        //
+        // subscribe
+        // {
+        //     time: 1649062304,
+        //     id: 1649062303,
+        //     channel: 'spot.candlesticks',
+        //     event: 'subscribe',
+        //     result: { status: 'success' }
+        // }
+        // candlestick
+        // {
+        //     time: 1649063328,
+        //     channel: 'spot.candlesticks',
+        //     event: 'update',
+        //     result: {
+        //       t: '1649063280',
+        //       v: '58932.23174896',
+        //       c: '45966.47',
+        //       h: '45997.24',
+        //       l: '45966.47',
+        //       o: '45975.18',
+        //       n: '1m_BTC_USDT',
+        //       a: '1.281699'
+        //     }
+        //  }
         // orders
         // {
         //     "time": 1630654851,
@@ -718,22 +908,44 @@ module.exports = class gateio extends ccxt.gateio {
         //             (...)
         //     ]
         // }
+        // orderbook
+        // {
+        //     time: 1649770525,
+        //     channel: 'spot.order_book_update',
+        //     event: 'update',
+        //     result: {
+        //       t: 1649770525653,
+        //       e: 'depthUpdate',
+        //       E: 1649770525,
+        //       s: 'LTC_USDT',
+        //       U: 2622525645,
+        //       u: 2622525665,
+        //       b: [
+        //         [Array], [Array],
+        //         [Array], [Array],
+        //         [Array], [Array],
+        //         [Array], [Array],
+        //         [Array], [Array],
+        //         [Array]
+        //       ],
+        //       a: [
+        //         [Array], [Array],
+        //         [Array], [Array],
+        //         [Array], [Array],
+        //         [Array], [Array],
+        //         [Array], [Array],
+        //         [Array]
+        //       ]
+        //     }
+        //   }
         this.handleErrorMessage (client, message);
         const methods = {
-            'depth.update': this.handleOrderBook,
-            'ticker.update': this.handleTicker,
-            'trades.update': this.handleTrades,
-            'kline.update': this.handleOHLCV,
+            // missing migration to v4
             'balance.update': this.handleBalance,
         };
         const methodType = this.safeString (message, 'method');
-        const method = this.safeValue (methods, methodType);
+        let method = this.safeValue (methods, methodType);
         if (method === undefined) {
-            const messageId = this.safeInteger (message, 'id');
-            if (messageId !== undefined) {
-                this.handleSubscriptionStatus (client, message);
-                return;
-            }
             const event = this.safeString (message, 'event');
             if (event === 'subscribe') {
                 this.handleSubscriptionStatus (client, message);
@@ -742,19 +954,32 @@ module.exports = class gateio extends ccxt.gateio {
             const channel = this.safeString (message, 'channel', '');
             const channelParts = channel.split ('.');
             const channelType = this.safeValue (channelParts, 1);
-            if (channelType === 'usertrades') {
-                this.handleMyTrades (client, message);
-                return;
-            }
-            if (channelType === 'orders') {
-                this.handleOrder (client, message);
-            }
-        } else {
+            const v4Methods = {
+                'usertrades': this.handleMyTrades,
+                'candlesticks': this.handleOHLCV,
+                'orders': this.handleOrder,
+                'tickers': this.handleTicker,
+                'trades': this.handleTrades,
+                'order_book_update': this.handleOrderBook,
+            };
+            method = this.safeValue (v4Methods, channelType);
+        }
+        if (method !== undefined) {
             method.call (this, client, message);
         }
     }
 
-    getUrlByMarketType (type, isBtcContract = false) {
+    getUniformType (type) {
+        let uniformType = 'spot';
+        if (type === 'future' || type === 'swap') {
+            uniformType = 'futures';
+        } else if (type === 'option') {
+            uniformType = 'options';
+        }
+        return uniformType;
+    }
+
+    getUrlByMarketType (type, isInverse = false) {
         if (type === 'spot') {
             const spotUrl = this.urls['api']['spot'];
             if (spotUrl === undefined) {
@@ -764,15 +989,40 @@ module.exports = class gateio extends ccxt.gateio {
         }
         if (type === 'swap') {
             const baseUrl = this.urls['api']['swap'];
-            return isBtcContract ? baseUrl['btc'] : baseUrl['usdt'];
+            return isInverse ? baseUrl['btc'] : baseUrl['usdt'];
         }
         if (type === 'future') {
             const baseUrl = this.urls['api']['future'];
-            return isBtcContract ? baseUrl['btc'] : baseUrl['usdt'];
+            return isInverse ? baseUrl['btc'] : baseUrl['usdt'];
         }
         if (type === 'option') {
             return this.urls['api']['option'];
         }
+    }
+
+    requestId () {
+        // their support said that reqid must be an int32, not documented
+        const reqid = this.sum (this.safeInteger (this.options, 'reqid', 0), 1);
+        this.options['reqid'] = reqid;
+        return reqid;
+    }
+
+    async subscribePublic (url, channel, messageHash, payload, subscriptionParams = {}) {
+        const requestId = this.requestId ();
+        const time = this.seconds ();
+        const request = {
+            'id': requestId,
+            'time': time,
+            'channel': channel,
+            'event': 'subscribe',
+            'payload': payload,
+        };
+        let subscription = {
+            'id': requestId,
+            'messageHash': messageHash,
+        };
+        subscription = this.extend (subscription, subscriptionParams);
+        return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
     async subscribePrivate (url, channel, messageHash, payload, requiresUid = false) {
@@ -787,14 +1037,14 @@ module.exports = class gateio extends ccxt.gateio {
         }
         const time = this.seconds ();
         const event = 'subscribe';
-        const signaturePayload = 'channel=' + channel + '&event=' + event + '&time=' + time.toString ();
+        const signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + time.toString ();
         const signature = this.hmac (this.encode (signaturePayload), this.encode (this.secret), 'sha512', 'hex');
         const auth = {
             'method': 'api_key',
             'KEY': this.apiKey,
             'SIGN': signature,
         };
-        const requestId = this.nonce ();
+        const requestId = this.requestId ();
         const request = {
             'id': requestId,
             'time': time,

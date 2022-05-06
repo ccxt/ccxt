@@ -8,7 +8,10 @@ import ccxt.async_support as ccxt
 from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InvalidNonce
 
 
@@ -19,11 +22,12 @@ class huobi(Exchange, ccxt.huobi):
             'has': {
                 'ws': True,
                 'watchOrderBook': True,
+                'watchOrders': True,
                 'watchTickers': False,  # for now
                 'watchTicker': True,
                 'watchTrades': True,
                 'watchMyTrades': True,
-                'watchBalance': False,  # for now
+                'watchBalance': True,  # for now
                 'watchOHLCV': True,
             },
             'urls': {
@@ -94,6 +98,18 @@ class huobi(Exchange, ccxt.huobi):
                     'gunzip': True,
                 },
             },
+            'exceptions': {
+                'ws': {
+                    'exact': {
+                        'bad-request': BadRequest,  # { ts: 1586323747018,  status: 'error',    'err-code': 'bad-request',  err-msg': 'invalid mbp.150.symbol linkusdt', id: '2'}
+                        '2002': AuthenticationError,  # {action: 'sub', code: 2002, ch: 'accounts.update#2', message: 'invalid.auth.state'}
+                        '2021': BadRequest,
+                        '2001': BadSymbol,  # {action: 'sub', code: 2001, ch: 'orders#2ltcusdt', message: 'invalid.symbol'}
+                        '2011': BadSymbol,  # {op: 'sub', cid: '1649149285', topic: 'orders_cross.hereltc-usdt', 'err-code': 2011, 'err-msg': "Contract doesn't exist.", ts: 1649149287637}
+                        '2040': BadRequest,  # {op: 'sub', cid: '1649152947', 'err-code': 2040, 'err-msg': 'Missing required parameter.', ts: 1649152948684}
+                    },
+                },
+            },
         })
 
     def request_id(self):
@@ -104,6 +120,7 @@ class huobi(Exchange, ccxt.huobi):
     async def watch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         messageHash = 'market.' + market['id'] + '.detail'
         url = self.get_url_by_market_type(market['type'], market['linear'])
         return await self.subscribe_public(url, symbol, messageHash, None, params)
@@ -143,6 +160,7 @@ class huobi(Exchange, ccxt.huobi):
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         messageHash = 'market.' + market['id'] + '.trade.detail'
         url = self.get_url_by_market_type(market['type'], market['linear'])
         trades = await self.subscribe_public(url, symbol, messageHash, None, params)
@@ -192,6 +210,7 @@ class huobi(Exchange, ccxt.huobi):
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         interval = self.timeframes[timeframe]
         messageHash = 'market.' + market['id'] + '.kline.' + interval
         url = self.get_url_by_market_type(market['type'], market['linear'])
@@ -240,6 +259,7 @@ class huobi(Exchange, ccxt.huobi):
             raise ExchangeError(self.id + ' watchOrderBook accepts limit = 150 only')
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         # only supports a limit of 150 at self time
         limit = 150 if (limit is None) else limit
         messageHash = None
@@ -389,6 +409,7 @@ class huobi(Exchange, ccxt.huobi):
 
     def handle_order_book_message(self, client, message, orderbook):
         # spot markets
+        #
         #     {
         #         ch: "market.btcusdt.mbp.150",
         #         ts: 1583472025885,
@@ -407,26 +428,28 @@ class huobi(Exchange, ccxt.huobi):
         #             ]
         #         }
         #     }
+        #
         # non-spot market
+        #
         #     {
         #         "ch":"market.BTC220218.depth.size_150.high_freq",
         #         "tick":{
-        #            "asks":[
-        #            ],
-        #            "bids":[
-        #               [43445.74,1],
-        #               [43444.48,0],
-        #               [40593.92,9]
+        #             "asks":[],
+        #             "bids":[
+        #                 [43445.74,1],
+        #                 [43444.48,0],
+        #                 [40593.92,9]
         #             ],
-        #            "ch":"market.BTC220218.depth.size_150.high_freq",
-        #            "event":"update",
-        #            "id":152727500274,
-        #            "mrid":152727500274,
-        #            "ts":1645023376098,
-        #            "version":37536690
+        #             "ch":"market.BTC220218.depth.size_150.high_freq",
+        #             "event":"update",
+        #             "id":152727500274,
+        #             "mrid":152727500274,
+        #             "ts":1645023376098,
+        #             "version":37536690
         #         },
         #         "ts":1645023376098
-        #      }
+        #     }
+        #
         tick = self.safe_value(message, 'tick', {})
         seqNum = self.safe_integer_2(tick, 'seqNum', 'id')
         prevSeqNum = self.safe_integer(tick, 'prevSeqNum')
@@ -446,6 +469,7 @@ class huobi(Exchange, ccxt.huobi):
         # deltas
         #
         # spot markets
+        #
         #     {
         #         ch: "market.btcusdt.mbp.150",
         #         ts: 1583472025885,
@@ -466,25 +490,26 @@ class huobi(Exchange, ccxt.huobi):
         #     }
         #
         # non spot markets
+        #
         #     {
         #         "ch":"market.BTC220218.depth.size_150.high_freq",
         #         "tick":{
-        #            "asks":[
-        #            ],
-        #            "bids":[
-        #               [43445.74,1],
-        #               [43444.48,0],
-        #               [40593.92,9]
+        #             "asks":[],
+        #             "bids":[
+        #                 [43445.74,1],
+        #                 [43444.48,0],
+        #                 [40593.92,9]
         #             ],
-        #            "ch":"market.BTC220218.depth.size_150.high_freq",
-        #            "event":"update",
-        #            "id":152727500274,
-        #            "mrid":152727500274,
-        #            "ts":1645023376098,
-        #            "version":37536690
+        #             "ch":"market.BTC220218.depth.size_150.high_freq",
+        #             "event":"update",
+        #             "id":152727500274,
+        #             "mrid":152727500274,
+        #             "ts":1645023376098,
+        #             "version":37536690
         #         },
         #         "ts":1645023376098
-        #      }
+        #     }
+        #
         messageHash = self.safe_string(message, 'ch')
         ch = self.safe_value(message, 'ch')
         parts = ch.split('.')
@@ -517,24 +542,763 @@ class huobi(Exchange, ccxt.huobi):
         self.check_required_credentials()
         type = None
         marketId = '*'  # wildcard
+        market = None
+        messageHash = None
+        channel = None
+        trades = None
+        subType = None
         if symbol is not None:
             await self.load_markets()
             market = self.market(symbol)
+            symbol = market['symbol']
             type = market['type']
-            marketId = market['id'].lower()
+            subType = 'linear' if market['linear'] else 'inverse'
+            marketId = market['lowercaseId']
         else:
-            type, params = self.handle_market_type_and_params('watchMyTrades', None, params)
-        if type != 'spot':
-            raise ArgumentsRequired(self.id + ' watchMyTrades supports spot markets only')
-        mode = None
-        if mode is None:
-            mode = self.safe_string_2(self.options, 'watchMyTrades', 'mode', 0)
-            mode = self.safe_string(params, 'mode', mode)
-        messageHash = 'trade.clearing' + '#' + marketId + '#' + mode
-        trades = await self.subscribe_private(messageHash, type, 'linear', params)
+            type = self.safe_string(self.options, 'defaultType', 'spot')
+            type = self.safe_string(params, 'type', type)
+            subType = self.safe_string_2(self.options, 'subType', 'defaultSubType', 'linear')
+            subType = self.safe_string(params, 'subType', subType)
+            params = self.omit(params, ['type', 'subType'])
+        if type == 'spot':
+            mode = None
+            if mode is None:
+                mode = self.safe_string_2(self.options, 'watchMyTrades', 'mode', 0)
+                mode = self.safe_string(params, 'mode', mode)
+                params = self.omit(params, 'mode')
+            messageHash = 'trade.clearing' + '#' + marketId + '#' + mode
+            channel = messageHash
+        else:
+            channelAndMessageHash = self.get_order_channel_and_message_hash(type, subType, market, params)
+            channel = self.safe_string(channelAndMessageHash, 0)
+            orderMessageHash = self.safe_string(channelAndMessageHash, 1)
+            # we will take advantage of the order messageHash because already handles stuff
+            # like symbol/margin/subtype/type variations
+            messageHash = orderMessageHash + ':' + 'trade'
+        trades = await self.subscribe_private(channel, messageHash, type, subType, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+
+    def get_order_channel_and_message_hash(self, type, subType, market=None, params={}):
+        messageHash = None
+        channel = None
+        orderType = self.safe_string(self.options, 'orderType', 'orders')  # orders or matchOrders
+        orderType = self.safe_string(params, 'orderType', orderType)
+        params = self.omit(params, 'orderType')
+        marketCode = market['lowercaseId'] if (market is not None) else None
+        baseId = market['lowercaseBaseId'] if (market is not None) else None
+        prefix = orderType
+        messageHash = prefix
+        if subType == 'linear':
+            # USDT Margined Contracts Example: LTC/USDT:USDT
+            marginMode = self.safe_string(params, 'margin', 'cross')
+            marginPrefix = prefix + '_cross' if (marginMode == 'cross') else prefix
+            messageHash = marginPrefix
+            if marketCode is not None:
+                messageHash += '.' + marketCode
+                channel = messageHash
+            else:
+                channel = marginPrefix + '.' + '*'
+        elif type == 'future':
+            # inverse futures Example: BCH/USD:BCH-220408
+            if baseId is not None:
+                channel = prefix + '.' + baseId
+                messageHash = channel
+            else:
+                channel = prefix + '.' + '*'
+        else:
+            # inverse swaps: Example: BTC/USD:BTC
+            if marketCode is not None:
+                channel = prefix + '.' + marketCode
+                messageHash = channel
+            else:
+                channel = prefix + '.' + '*'
+        return [channel, messageHash]
+
+    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        type = None
+        subType = None
+        market = None
+        suffix = '*'  # wildcard
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
+            type = market['type']
+            suffix = market['lowercaseId']
+            subType = 'linear' if market['linear'] else 'inverse'
+        else:
+            type = self.safe_string(self.options, 'defaultType', 'spot')
+            type = self.safe_string(params, 'type', type)
+            subType = self.safe_string_2(self.options, 'subType', 'defaultSubType', 'linear')
+            subType = self.safe_string(params, 'subType', subType)
+            params = self.omit(params, ['type', 'subType'])
+        messageHash = None
+        channel = None
+        if type == 'spot':
+            messageHash = 'orders' + '#' + suffix
+            channel = messageHash
+        else:
+            channelAndMessageHash = self.get_order_channel_and_message_hash(type, subType, market, params)
+            channel = self.safe_string(channelAndMessageHash, 0)
+            messageHash = self.safe_string(channelAndMessageHash, 1)
+        orders = await self.subscribe_private(channel, messageHash, type, subType, params)
+        if self.newUpdates:
+            limit = orders.getLimit(symbol, limit)
+        return self.filter_by_since_limit(orders, since, limit)
+
+    def handle_order(self, client, message):
+        #
+        # spot
+        #
+        #     {
+        #         "action":"push",
+        #         "ch":"orders#btcusdt",  # or 'orders#*' for global subscriptions
+        #         "data": {
+        #             orderSource: 'spot-web',
+        #             orderCreateTime: 1645116048355,
+        #             accountId: 44234548,
+        #             orderPrice: '100',
+        #             orderSize: '0.05',
+        #             symbol: 'ethusdt',
+        #             type: 'buy-limit',
+        #             orderId: '478861479986886',
+        #             eventType: 'creation',
+        #             clientOrderId: '',
+        #             orderStatus: 'submitted'
+        #         }
+        #     }
+        #
+        # spot wrapped trade
+        #
+        #     {
+        #         action: 'push',
+        #         ch: 'orders#ltcusdt',
+        #         data: {
+        #             tradePrice: '130.01',
+        #             tradeVolume: '0.0385',
+        #             tradeTime: 1648714741525,
+        #             aggressor: True,
+        #             execAmt: '0.0385',
+        #             orderSource: 'spot-web',
+        #             orderSize: '0.0385',
+        #             remainAmt: '0',
+        #             tradeId: 101541578884,
+        #             symbol: 'ltcusdt',
+        #             type: 'sell-market',
+        #             eventType: 'trade',
+        #             clientOrderId: '',
+        #             orderStatus: 'filled',
+        #             orderId: 509835753860328
+        #         }
+        #     }
+        #
+        # non spot order
+        #
+        # {
+        #     contract_type: 'swap',
+        #     pair: 'LTC-USDT',
+        #     business_type: 'swap',
+        #     op: 'notify',
+        #     topic: 'orders_cross.ltc-usdt',
+        #     ts: 1650354508696,
+        #     symbol: 'LTC',
+        #     contract_code: 'LTC-USDT',
+        #     volume: 1,
+        #     price: 110.34,
+        #     order_price_type: 'lightning',
+        #     direction: 'sell',
+        #     offset: 'close',
+        #     status: 6,
+        #     lever_rate: 1,
+        #     order_id: '966002354015051776',
+        #     order_id_str: '966002354015051776',
+        #     client_order_id: null,
+        #     order_source: 'web',
+        #     order_type: 1,
+        #     created_at: 1650354508649,
+        #     trade_volume: 1,
+        #     trade_turnover: 11.072,
+        #     fee: -0.005536,
+        #     trade_avg_price: 110.72,
+        #     margin_frozen: 0,
+        #     profit: -0.045,
+        #     trade: [
+        #       {
+        #         trade_fee: -0.005536,
+        #         fee_asset: 'USDT',
+        #         real_profit: 0.473,
+        #         profit: -0.045,
+        #         trade_id: 86678766507,
+        #         id: '86678766507-966002354015051776-1',
+        #         trade_volume: 1,
+        #         trade_price: 110.72,
+        #         trade_turnover: 11.072,
+        #         created_at: 1650354508656,
+        #         role: 'taker'
+        #       }
+        #     ],
+        #     canceled_at: 0,
+        #     fee_asset: 'USDT',
+        #     margin_asset: 'USDT',
+        #     uid: '359305390',
+        #     liquidation_type: '0',
+        #     margin_mode: 'cross',
+        #     margin_account: 'USDT',
+        #     is_tpsl: 0,
+        #     real_profit: 0.473,
+        #     trade_partition: 'USDT',
+        #     reduce_only: 1
+        #   }
+        #
+        #
+        messageHash = self.safe_string_2(message, 'ch', 'topic')
+        data = self.safe_value(message, 'data')
+        marketId = self.safe_string(message, 'contract_code')
+        if marketId is None:
+            marketId = self.safe_string(data, 'symbol')
+        market = self.safe_market(marketId)
+        parsedOrder = None
+        if data is not None:
+            # spot updates
+            eventType = self.safe_string(data, 'eventType')
+            if eventType == 'trade':
+                # when a spot order is filled we get an update message
+                # with the trade info
+                parsedTrade = self.parse_order_trade(data, market)
+                # inject trade in existing order by faking an order object
+                orderId = self.safe_string(parsedTrade, 'order')
+                trades = [parsedTrade]
+                order = {
+                    'id': orderId,
+                    'trades': trades,
+                    'status': 'closed',
+                    'symbol': market['symbol'],
+                }
+                parsedOrder = order
+            else:
+                parsedOrder = self.parse_ws_order(data, market)
+        else:
+            # contract branch
+            parsedOrder = self.parse_ws_order(message, market)
+            rawTrades = self.safe_value(message, 'trade', [])
+            tradesLength = len(rawTrades)
+            if tradesLength > 0:
+                tradesObject = {
+                    'trades': rawTrades,
+                    'ch': messageHash,
+                    'symbol': marketId,
+                }
+                # inject order params in every trade
+                extendTradeParams = {
+                    'order': self.safe_string(parsedOrder, 'id'),
+                    'type': self.safe_string(parsedOrder, 'type'),
+                    'side': self.safe_string(parsedOrder, 'side'),
+                }
+                # trades arrive inside an order update
+                # we're forwarding them to handleMyTrade
+                # so they can be properly resolved
+                self.handle_my_trade(client, tradesObject, extendTradeParams)
+        if self.orders is None:
+            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+            self.orders = ArrayCacheBySymbolById(limit)
+        cachedOrders = self.orders
+        cachedOrders.append(parsedOrder)
+        client.resolve(self.orders, messageHash)
+        # when we make a global subscription(for contracts only) our message hash can't have a symbol/currency attached
+        # so we're removing it here
+        genericMessageHash = messageHash.replace('.' + market['lowercaseId'], '')
+        genericMessageHash = genericMessageHash.replace('.' + market['lowercaseBaseId'], '')
+        client.resolve(self.orders, genericMessageHash)
+
+    def parse_ws_order(self, order, market=None):
+        #
+        # spot
+        #
+        #     {
+        #         orderSource: 'spot-web',
+        #         orderCreateTime: 1645116048355,  # creating only
+        #         accountId: 44234548,
+        #         orderPrice: '100',
+        #         orderSize: '0.05',
+        #         symbol: 'ethusdt',
+        #         type: 'buy-limit',
+        #         orderId: '478861479986886',
+        #         eventType: 'creation',
+        #         clientOrderId: '',
+        #         orderStatus: 'submitted'
+        #         lastActTime:1645118621810  # except creating
+        #         execAmt:'0'
+        #     }
+        #
+        # swap order
+        #
+        #     {
+        #         contract_type: 'swap',
+        #         pair: 'LTC-USDT',
+        #         business_type: 'swap',
+        #         op: 'notify',
+        #         topic: 'orders_cross.ltc-usdt',
+        #         ts: 1648717911384,
+        #         symbol: 'LTC',
+        #         contract_code: 'LTC-USDT',
+        #         volume: 1,
+        #         price: 129.13,
+        #         order_price_type: 'lightning',
+        #         direction: 'sell',
+        #         offset: 'close',
+        #         status: 6,
+        #         lever_rate: 5,
+        #         order_id: '959137967397068800',
+        #         order_id_str: '959137967397068800',
+        #         client_order_id: null,
+        #         order_source: 'web',
+        #         order_type: 1,
+        #         created_at: 1648717911344,
+        #         trade_volume: 1,
+        #         trade_turnover: 12.952,
+        #         fee: -0.006476,
+        #         trade_avg_price: 129.52,
+        #         margin_frozen: 0,
+        #         profit: -0.005,
+        #         trade: [
+        #             {
+        #                 trade_fee: -0.006476,
+        #                 fee_asset: 'USDT',
+        #                 real_profit: -0.005,
+        #                 profit: -0.005,
+        #                 trade_id: 83619995370,
+        #                 id: '83619995370-959137967397068800-1',
+        #                 trade_volume: 1,
+        #                 trade_price: 129.52,
+        #                 trade_turnover: 12.952,
+        #                 created_at: 1648717911352,
+        #                 role: 'taker'
+        #             }
+        #         ],
+        #         canceled_at: 0,
+        #         fee_asset: 'USDT',
+        #         margin_asset: 'USDT',
+        #         uid: '359305390',
+        #         liquidation_type: '0',
+        #         margin_mode: 'cross',
+        #         margin_account: 'USDT',
+        #         is_tpsl: 0,
+        #         real_profit: -0.005,
+        #         trade_partition: 'USDT',
+        #         reduce_only: 1
+        #     }
+        #
+        #     {
+        #         "op":"notify",
+        #         "topic":"orders.ada",
+        #         "ts":1604388667226,
+        #         "symbol":"ADA",
+        #         "contract_type":"quarter",
+        #         "contract_code":"ADA201225",
+        #         "volume":1,
+        #         "price":0.0905,
+        #         "order_price_type":"post_only",
+        #         "direction":"sell",
+        #         "offset":"open",
+        #         "status":6,
+        #         "lever_rate":20,
+        #         "order_id":773207641127878656,
+        #         "order_id_str":"773207641127878656",
+        #         "client_order_id":null,
+        #         "order_source":"web",
+        #         "order_type":1,
+        #         "created_at":1604388667146,
+        #         "trade_volume":1,
+        #         "trade_turnover":10,
+        #         "fee":-0.022099447513812154,
+        #         "trade_avg_price":0.0905,
+        #         "margin_frozen":0,
+        #         "profit":0,
+        #         "trade":[],
+        #         "canceled_at":0,
+        #         "fee_asset":"ADA",
+        #         "uid":"123456789",
+        #         "liquidation_type":"0",
+        #         "is_tpsl": 0,
+        #         "real_profit": 0
+        #     }
+        #
+        lastTradeTimestamp = self.safe_integer_2(order, 'lastActTime', 'ts')
+        created = self.safe_integer(order, 'orderCreateTime')
+        marketId = self.safe_string_2(order, 'contract_code', 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = self.safe_symbol(marketId, market)
+        amount = self.safe_string_2(order, 'orderSize', 'volume')
+        status = self.parse_order_status(self.safe_string_2(order, 'orderStatus', 'status'))
+        id = self.safe_string_2(order, 'orderId', 'order_id')
+        clientOrderId = self.safe_string_2(order, 'clientOrderId', 'client_order_id')
+        price = self.safe_string_2(order, 'orderPrice', 'price')
+        filled = self.safe_string(order, 'execAmt')
+        typeSide = self.safe_string(order, 'type')
+        feeCost = self.safe_string(order, 'fee')
+        fee = None
+        if feeCost is not None:
+            feeCurrencyId = self.safe_string(order, 'fee_asset')
+            fee = {
+                'cost': feeCost,
+                'currency': self.safe_currency_code(feeCurrencyId),
+            }
+        avgPrice = self.safe_string(order, 'trade_avg_price')
+        rawTrades = self.safe_value(order, 'trade')
+        if typeSide is not None:
+            typeSide = typeSide.split('-')
+        type = self.safe_string_lower(typeSide, 1)
+        if type is None:
+            type = self.safe_string(order, 'order_price_type')
+        side = self.safe_string_lower(typeSide, 0)
+        if side is None:
+            side = self.safe_string(order, 'direction')
+        return self.safe_order({
+            'info': order,
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': created,
+            'datetime': self.iso8601(created),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': None,
+            'postOnly': None,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': filled,
+            'remaining': None,
+            'cost': None,
+            'fee': fee,
+            'average': avgPrice,
+            'trades': rawTrades,
+        }, market)
+
+    def parse_order_trade(self, trade, market=None):
+        # spot private wrapped trade
+        #
+        #     {
+        #         tradePrice: '130.01',
+        #         tradeVolume: '0.0385',
+        #         tradeTime: 1648714741525,
+        #         aggressor: True,
+        #         execAmt: '0.0385',
+        #         orderSource: 'spot-web',
+        #         orderSize: '0.0385',
+        #         remainAmt: '0',
+        #         tradeId: 101541578884,
+        #         symbol: 'ltcusdt',
+        #         type: 'sell-market',
+        #         eventType: 'trade',
+        #         clientOrderId: '',
+        #         orderStatus: 'filled',
+        #         orderId: 509835753860328
+        #     }
+        #
+        market = self.safe_market(None, market)
+        symbol = market['symbol']
+        tradeId = self.safe_string(trade, 'tradeId')
+        price = self.safe_string(trade, 'tradePrice')
+        amount = self.safe_string(trade, 'tradeVolume')
+        order = self.safe_string(trade, 'orderId')
+        timestamp = self.safe_integer(trade, 'tradeTime')
+        type = self.safe_string(trade, 'type')
+        side = None
+        if type is not None:
+            typeParts = type.split('-')
+            side = typeParts[0]
+            type = typeParts[1]
+        aggressor = self.safe_value(trade, 'aggressor')
+        takerOrMaker = None
+        if aggressor is not None:
+            takerOrMaker = 'taker' if aggressor else 'maker'
+        return self.safe_trade({
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'id': tradeId,
+            'order': order,
+            'type': type,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': None,
+            'fee': None,
+        }, market)
+
+    async def watch_balance(self, params={}):
+        type = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'spot')
+        type = self.safe_string(params, 'type', type)
+        subType = self.safe_string_2(self.options, 'watchBalance', 'subType', 'linear')
+        subType = self.safe_string(params, 'subType', subType)
+        params = self.omit(params, ['type', 'subType'])
+        params = self.omit(params, 'type')
+        await self.load_markets()
+        messageHash = None
+        channel = None
+        marginMode = None
+        if type == 'spot':
+            mode = self.safe_string_2(self.options, 'watchBalance', 'mode', '2')
+            mode = self.safe_string(params, 'mode', mode)
+            messageHash = 'accounts.update' + '#' + mode
+            channel = messageHash
+        else:
+            symbol = self.safe_string(params, 'symbol')
+            currency = self.safe_string(params, 'currency')
+            market = self.market(symbol) if (symbol is not None) else None
+            currencyCode = self.currency(currency) if (currency is not None) else None
+            marginMode = self.safe_string(params, 'margin', 'cross')
+            params = self.omit(params, ['currency', 'symbol', 'margin'])
+            prefix = 'accounts'
+            messageHash = prefix
+            if subType == 'linear':
+                # usdt contracts account
+                prefix = prefix + '_cross' if (marginMode == 'cross') else prefix
+                messageHash = prefix
+                if marginMode == 'isolated':
+                    # isolated margin only allows filtering by symbol3
+                    if symbol is not None:
+                        messageHash += '.' + market['id']
+                        channel = messageHash
+                    else:
+                        # subscribe to all
+                        channel = prefix + '.' + '*'
+                else:
+                    # cross margin
+                    if currencyCode is not None:
+                        channel = prefix + '.' + currencyCode['id']
+                        messageHash = channel
+                    else:
+                        # subscribe to all
+                        channel = prefix + '.' + '*'
+            elif type == 'future':
+                # inverse futures account
+                if currencyCode is not None:
+                    messageHash += '.' + currencyCode['id']
+                    channel = messageHash
+                else:
+                    # subscribe to all
+                    channel = prefix + '.' + '*'
+            else:
+                # inverse swaps account
+                if market is not None:
+                    messageHash += '.' + market['id']
+                    channel = messageHash
+                else:
+                    # subscribe to all
+                    channel = prefix + '.' + '*'
+        subscriptionParams = {
+            'type': type,
+            'subType': subType,
+            'margin': marginMode,
+        }
+        # we are differentiating the channel from the messageHash for global subscriptions(*)
+        # because huobi returns a different topic than the topic sent. Example: we send
+        # "accounts.*" and "accounts" is returned so we're setting channel = "accounts.*" and
+        # messageHash = "accounts" allowing handleBalance to freely resolve the topic in the message
+        return await self.subscribe_private(channel, messageHash, type, subType, params, subscriptionParams)
+
+    def handle_balance(self, client, message):
+        # spot
+        #
+        #     {
+        #         "action": "push",
+        #         "ch": "accounts.update#0",
+        #         "data": {
+        #             "currency": "btc",
+        #             "accountId": 123456,
+        #             "balance": "23.111",
+        #             "available": "2028.699426619837209087",
+        #             "changeType": "transfer",
+        #             "accountType":"trade",
+        #             "seqNum": "86872993928",
+        #             "changeTime": 1568601800000
+        #         }
+        #     }
+        #
+        # inverse future
+        #
+        #     {
+        #         "op":"notify",
+        #         "topic":"accounts.ada",
+        #         "ts":1604388667226,
+        #         "event":"order.match",
+        #         "data":[
+        #             {
+        #                 "symbol":"ADA",
+        #                 "margin_balance":446.417641681222726716,
+        #                 "margin_static":445.554085945257745136,
+        #                 "margin_position":11.049723756906077348,
+        #                 "margin_frozen":0,
+        #                 "margin_available":435.367917924316649368,
+        #                 "profit_real":21.627049781983019459,
+        #                 "profit_unreal":0.86355573596498158,
+        #                 "risk_rate":40.000796572150656768,
+        #                 "liquidation_price":0.018674308027108984,
+        #                 "withdraw_available":423.927036163274725677,
+        #                 "lever_rate":20,
+        #                 "adjust_factor":0.4
+        #             }
+        #         ],
+        #         "uid":"123456789"
+        #     }
+        #
+        # usdt / linear future, swap
+        #
+        #     {
+        #         "op":"notify",
+        #         "topic":"accounts.btc-usdt",  # or 'accounts' for global subscriptions
+        #         "ts":1603711370689,
+        #         "event":"order.open",
+        #         "data":[
+        #             {
+        #                 "margin_mode":"cross",
+        #                 "margin_account":"USDT",
+        #                 "margin_asset":"USDT",
+        #                 "margin_balance":30.959342395,
+        #                 "margin_static":30.959342395,
+        #                 "margin_position":0,
+        #                 "margin_frozen":10,
+        #                 "profit_real":0,
+        #                 "profit_unreal":0,
+        #                 "withdraw_available":20.959342395,
+        #                 "risk_rate":153.796711975,
+        #                 "position_mode":"dual_side",
+        #                 "contract_detail":[
+        #                     {
+        #                         "symbol":"LTC",
+        #                         "contract_code":"LTC-USDT",
+        #                         "margin_position":0,
+        #                         "margin_frozen":0,
+        #                         "margin_available":20.959342395,
+        #                         "profit_unreal":0,
+        #                         "liquidation_price":null,
+        #                         "lever_rate":1,
+        #                         "adjust_factor":0.01,
+        #                         "contract_type":"swap",
+        #                         "pair":"LTC-USDT",
+        #                         "business_type":"swap",
+        #                         "trade_partition":"USDT"
+        #                     },
+        #                 ],
+        #                 "futures_contract_detail":[],
+        #             }
+        #         ]
+        #     }
+        #
+        # inverse future
+        #
+        #     {
+        #         "op":"notify",
+        #         "topic":"accounts.ada",
+        #         "ts":1604388667226,
+        #         "event":"order.match",
+        #         "data":[
+        #             {
+        #                 "symbol":"ADA",
+        #                 "margin_balance":446.417641681222726716,
+        #                 "margin_static":445.554085945257745136,
+        #                 "margin_position":11.049723756906077348,
+        #                 "margin_frozen":0,
+        #                 "margin_available":435.367917924316649368,
+        #                 "profit_real":21.627049781983019459,
+        #                 "profit_unreal":0.86355573596498158,
+        #                 "risk_rate":40.000796572150656768,
+        #                 "liquidation_price":0.018674308027108984,
+        #                 "withdraw_available":423.927036163274725677,
+        #                 "lever_rate":20,
+        #                 "adjust_factor":0.4
+        #             }
+        #         ],
+        #         "uid":"123456789"
+        #     }
+        #
+        channel = self.safe_string(message, 'ch')
+        if channel is not None:
+            # spot balance
+            data = self.safe_value(message, 'data', {})
+            currencyId = self.safe_string(data, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(data, 'available')
+            account['total'] = self.safe_string(data, 'balance')
+            self.balance[code] = account
+            self.balance = self.safe_balance(self.balance)
+            client.resolve(self.balance, channel)
+        else:
+            # contract balance
+            data = self.safe_value(message, 'data', [])
+            dataLength = len(data)
+            if dataLength == 0:
+                return
+            first = self.safe_value(data, 0, {})
+            messageHash = self.safe_string(message, 'topic')
+            subscription = self.safe_value(client.subscriptions, messageHash)
+            if subscription is None:
+                # if subscription not found means that we subscribed to a specific currency/symbol
+                # and we use the first data entry to find it
+                # Example: topic = 'accounts'
+                # client.subscription hash = 'accounts.usdt'
+                # we do 'accounts' + '.' + data[0]]['margin_asset'] to get it
+                marginAsset = self.safe_string(first, 'margin_asset')
+                messageHash += '.' + marginAsset.lower()
+                subscription = self.safe_value(client.subscriptions, messageHash)
+            type = self.safe_string(subscription, 'type')
+            subType = self.safe_string(subscription, 'subType')
+            if subType == 'linear':
+                margin = self.safe_string(subscription, 'margin')
+                if margin == 'cross':
+                    fieldName = 'futures_contract_detail' if (type == 'future') else 'contract_detail'
+                    balances = self.safe_value(first, fieldName, [])
+                    balancesLength = len(balances)
+                    if balancesLength > 0:
+                        for i in range(0, len(balances)):
+                            balance = balances[i]
+                            marketId = self.safe_string_2(balance, 'contract_code', 'margin_account')
+                            market = self.safe_market(marketId)
+                            currencyId = self.safe_string(balance, 'margin_asset')
+                            currency = self.safe_currency(currencyId)
+                            code = self.safe_string(market, 'settle', currency['code'])
+                            # the exchange outputs positions for delisted markets
+                            # https://www.huobi.com/support/en-us/detail/74882968522337
+                            # we skip it if the market was delisted
+                            if code is not None:
+                                account = self.account()
+                                account['free'] = self.safe_string(balance, 'margin_balance')
+                                account['used'] = self.safe_string(balance, 'margin_frozen')
+                                accountsByCode = {}
+                                accountsByCode[code] = account
+                                symbol = market['symbol']
+                                self.balance[symbol] = self.safe_balance(accountsByCode)
+                else:
+                    # isolated margin
+                    for i in range(0, len(data)):
+                        isolatedBalance = data[i]
+                        account = self.account()
+                        account['free'] = self.safe_string(isolatedBalance, 'margin_balance', 'margin_available')
+                        account['used'] = self.safe_string(isolatedBalance, 'margin_frozen')
+                        currencyId = self.safe_string_2(isolatedBalance, 'margin_asset', 'symbol')
+                        code = self.safe_currency_code(currencyId)
+                        self.balance[code] = account
+                        self.balance = self.safe_balance(self.balance)
+            else:
+                # inverse branch
+                for i in range(0, len(data)):
+                    balance = data[i]
+                    currencyId = self.safe_string(balance, 'symbol')
+                    code = self.safe_currency_code(currencyId)
+                    account = self.account()
+                    account['free'] = self.safe_string(balance, 'margin_available')
+                    account['used'] = self.safe_string(balance, 'margin_frozen')
+                    self.balance[code] = account
+                    self.balance = self.safe_balance(self.balance)
+            client.resolve(self.balance, messageHash)
 
     def handle_subscription_status(self, client, message):
         #
@@ -591,37 +1355,65 @@ class huobi(Exchange, ccxt.huobi):
         #         }
         #     }
         # non spot
+        #
         #     {
         #         "ch":"market.BTC220218.depth.size_150.high_freq",
         #         "tick":{
-        #            "asks":[
-        #            ],
-        #            "bids":[
-        #               [43445.74,1],
-        #               [43444.48,0],
-        #               [40593.92,9]
+        #             "asks":[],
+        #             "bids":[
+        #                 [43445.74,1],
+        #                 [43444.48,0],
+        #                 [40593.92,9]
         #             ],
-        #            "ch":"market.BTC220218.depth.size_150.high_freq",
-        #            "event":"update",
-        #            "id":152727500274,
-        #            "mrid":152727500274,
-        #            "ts":1645023376098,
-        #            "version":37536690
+        #             "ch":"market.BTC220218.depth.size_150.high_freq",
+        #             "event":"update",
+        #             "id":152727500274,
+        #             "mrid":152727500274,
+        #             "ts":1645023376098,
+        #             "version":37536690
         #         },
         #         "ts":1645023376098
-        #      }
+        #     }
+        #
         # spot private trade
         #
-        #  {
-        #      "action":"push",
-        #      "ch":"trade.clearing#ltcusdt#1",
-        #      "data":{
-        #         "eventType":"trade",
-        #         "symbol":"ltcusdt",
-        #           (...)
-        #  }
+        #     {
+        #         "action":"push",
+        #         "ch":"trade.clearing#ltcusdt#1",
+        #         "data":{
+        #             "eventType":"trade",
+        #             "symbol":"ltcusdt",
+        #             # ...
+        #         },
+        #     }
         #
-        ch = self.safe_value(message, 'ch')
+        # spot order
+        #
+        #     {
+        #         "action":"push",
+        #         "ch":"orders#btcusdt",
+        #         "data": {
+        #             "orderSide":"buy",
+        #             "lastActTime":1583853365586,
+        #             "clientOrderId":"abc123",
+        #             "orderStatus":"rejected",
+        #             "symbol":"btcusdt",
+        #             "eventType":"trigger",
+        #             "errCode": 2002,
+        #             "errMessage":"invalid.client.order.id(NT)"
+        #         }
+        #     }
+        #
+        # contract order
+        #
+        #     {
+        #         "op":"notify",
+        #         "topic":"orders.ada",
+        #         "ts":1604388667226,
+        #         # ?
+        #     }
+        #
+        ch = self.safe_value(message, 'ch', '')
         parts = ch.split('.')
         type = self.safe_string(parts, 0)
         if type == 'market':
@@ -632,27 +1424,37 @@ class huobi(Exchange, ccxt.huobi):
                 'detail': self.handle_ticker,
                 'trade': self.handle_trades,
                 'kline': self.handle_ohlcv,
-                # ...
             }
             method = self.safe_value(methods, methodName)
             if method is None:
                 return message
             else:
                 return method(client, message)
-        # private subjects
+        # private spot subjects
         privateParts = ch.split('#')
         privateType = self.safe_string(privateParts, 0)
         if privateType == 'trade.clearing':
             self.handle_my_trade(client, message)
+            return
+        if privateType.find('accounts.update') != -1:
+            self.handle_balance(client, message)
+            return
+        if privateType == 'orders':
+            self.handle_order(client, message)
+            return
+        # private contract subjects
+        op = self.safe_string(message, 'op')
+        if op == 'notify':
+            topic = self.safe_string(message, 'topic', '')
+            if topic.find('orders') != -1:
+                self.handle_order(client, message)
+            if topic.find('account') != -1:
+                self.handle_balance(client, message)
 
     async def pong(self, client, message):
         #
         #     {ping: 1583491673714}
-        #
-        # or
         #     {action: 'ping', data: {ts: 1645108204665}}
-        #
-        # or
         #     {op: 'ping', ts: '1645202800015'}
         #
         ping = self.safe_integer(message, 'ping')
@@ -674,14 +1476,18 @@ class huobi(Exchange, ccxt.huobi):
         self.spawn(self.pong, client, message)
 
     def handle_authenticate(self, client, message):
+        #
         # spot
-        # {
-        #     "action": "req",
-        #     "code": 200,
-        #     "ch": "auth",
-        #     "data": {}
-        # }
+        #
+        #     {
+        #         "action": "req",
+        #         "code": 200,
+        #         "ch": "auth",
+        #         "data": {}
+        #     }
+        #
         # non spot
+        #
         #    {
         #        op: 'auth',
         #        type: 'api',
@@ -694,6 +1500,13 @@ class huobi(Exchange, ccxt.huobi):
         return message
 
     def handle_error_message(self, client, message):
+        #
+        #     {
+        #         action: 'sub',
+        #         code: 2002,
+        #         ch: 'accounts.update#2',
+        #         message: 'invalid.auth.state'
+        #      }
         #
         #     {
         #         ts: 1586323747018,
@@ -711,7 +1524,7 @@ class huobi(Exchange, ccxt.huobi):
             if subscription is not None:
                 errorCode = self.safe_string(message, 'err-code')
                 try:
-                    self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, self.json(message))
+                    self.throw_exactly_matched_exception(self.exceptions['ws']['exact'], errorCode, self.json(message))
                 except Exception as e:
                     messageHash = self.safe_string(subscription, 'messageHash')
                     client.reject(e, messageHash)
@@ -719,6 +1532,20 @@ class huobi(Exchange, ccxt.huobi):
                     if id in client.subscriptions:
                         del client.subscriptions[id]
             return False
+        code = self.safe_integer(message, 'code')
+        if code is not None and code != 200:
+            feedback = self.id + ' ' + self.json(message)
+            try:
+                self.throw_exactly_matched_exception(self.exceptions['ws']['exact'], code, feedback)
+            except Exception as e:
+                if isinstance(e, AuthenticationError):
+                    client.reject(e, 'auth')
+                    method = 'auth'
+                    if method in client.subscriptions:
+                        del client.subscriptions[method]
+                    return False
+                else:
+                    client.reject(e)
         return message
 
     def handle_message(self, client, message):
@@ -738,13 +1565,16 @@ class huobi(Exchange, ccxt.huobi):
             #
             #
             # auth spot
+            #
             #     {
             #         "action": "req",
             #         "code": 200,
             #         "ch": "auth",
             #         "data": {}
             #     }
+            #
             # auth non spot
+            #
             #    {
             #        op: 'auth',
             #        type: 'api',
@@ -752,15 +1582,17 @@ class huobi(Exchange, ccxt.huobi):
             #        ts: 1645200307319,
             #        data: {'user-id': '35930539'}
             #    }
+            #
             # trade
-            # {
-            #     "action":"push",
-            #     "ch":"trade.clearing#ltcusdt#1",
-            #     "data":{
-            #        "eventType":"trade",
-            #          (...)
+            #
+            #     {
+            #         "action":"push",
+            #         "ch":"trade.clearing#ltcusdt#1",
+            #         "data":{
+            #             "eventType":"trade",
+            #             # ?
+            #         }
             #     }
-            #  }
             #
             if 'id' in message:
                 self.handle_subscription_status(client, message)
@@ -781,38 +1613,74 @@ class huobi(Exchange, ccxt.huobi):
                     # route by channel aka topic aka subject
                     self.handle_subject(client, message)
                     return
+            if 'op' in message:
+                op = self.safe_string(message, 'op')
+                if op == 'ping':
+                    self.handle_ping(client, message)
+                    return
+                if op == 'auth':
+                    self.handle_authenticate(client, message)
+                    return
+                if op == 'sub':
+                    self.handle_subscription_status(client, message)
+                    return
+                if op == 'notify':
+                    self.handle_subject(client, message)
+                    return
             if 'ping' in message:
                 self.handle_ping(client, message)
 
-    def handle_my_trade(self, client, message):
+    def handle_my_trade(self, client, message, extendParams={}):
         #
         # spot
         #
-        # {
-        #     "action":"push",
-        #     "ch":"trade.clearing#ltcusdt#1",
-        #     "data":{
-        #        "eventType":"trade",
-        #        "symbol":"ltcusdt",
-        #        "orderId":"478862728954426",
-        #        "orderSide":"buy",
-        #        "orderType":"buy-market",
-        #        "accountId":44234548,
-        #        "source":"spot-web",
-        #        "orderValue":"5.01724137",
-        #        "orderCreateTime":1645124660365,
-        #        "orderStatus":"filled",
-        #        "feeCurrency":"ltc",
-        #        "tradePrice":"118.89",
-        #        "tradeVolume":"0.042200701236437042",
-        #        "aggressor":true,
-        #        "tradeId":101539740584,
-        #        "tradeTime":1645124660368,
-        #        "transactFee":"0.000041778694224073",
-        #        "feeDeduct":"0",
-        #        "feeDeductType":""
+        #     {
+        #         "action":"push",
+        #         "ch":"trade.clearing#ltcusdt#1",
+        #         "data":{
+        #             "eventType":"trade",
+        #             "symbol":"ltcusdt",
+        #             "orderId":"478862728954426",
+        #             "orderSide":"buy",
+        #             "orderType":"buy-market",
+        #             "accountId":44234548,
+        #             "source":"spot-web",
+        #             "orderValue":"5.01724137",
+        #             "orderCreateTime":1645124660365,
+        #             "orderStatus":"filled",
+        #             "feeCurrency":"ltc",
+        #             "tradePrice":"118.89",
+        #             "tradeVolume":"0.042200701236437042",
+        #             "aggressor":true,
+        #             "tradeId":101539740584,
+        #             "tradeTime":1645124660368,
+        #             "transactFee":"0.000041778694224073",
+        #             "feeDeduct":"0",
+        #             "feeDeductType":""
+        #         }
         #     }
-        #  }
+        #
+        # contract
+        #
+        #     {
+        #         "symbol": "ADA/USDT:USDT"
+        #         "ch": "orders_cross.ada-usdt"
+        #         "trades": [
+        #             {
+        #                 "trade_fee":-0.022099447513812154,
+        #                 "fee_asset":"ADA",
+        #                 "trade_id":113913755890,
+        #                 "id":"113913755890-773207641127878656-1",
+        #                 "trade_volume":1,
+        #                 "trade_price":0.0905,
+        #                 "trade_turnover":10,
+        #                 "created_at":1604388667194,
+        #                 "profit":0,
+        #                 "real_profit": 0,
+        #                 "role":"maker"
+        #             }
+        #         ],
+        #     }
         #
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -821,36 +1689,63 @@ class huobi(Exchange, ccxt.huobi):
         messageHash = self.safe_string(message, 'ch')
         if messageHash is not None:
             data = self.safe_value(message, 'data')
-            parsed = self.parse_ws_trade(data)
-            symbol = self.safe_string(parsed, 'symbol')
-            if symbol is not None:
-                cachedTrades.append(parsed)
-            client.resolve(self.myTrades, messageHash)
+            if data is not None:
+                parsed = self.parse_ws_trade(data)
+                symbol = self.safe_string(parsed, 'symbol')
+                if symbol is not None:
+                    cachedTrades.append(parsed)
+                    client.resolve(self.myTrades, messageHash)
+            else:
+                # self trades object is artificially created
+                # in handleOrder
+                rawTrades = self.safe_value(message, 'trades', [])
+                marketId = self.safe_value(message, 'symbol')
+                market = self.market(marketId)
+                for i in range(0, len(rawTrades)):
+                    trade = rawTrades[i]
+                    parsedTrade = self.parse_trade(trade, market)
+                    # add extra params(side, type, ...) coming from the order
+                    parsedTrade = self.extend(parsedTrade, extendParams)
+                    cachedTrades.append(parsedTrade)
+                # messageHash here is the orders one, so
+                # we have to recreate the trades messageHash = orderMessageHash + ':' + 'trade'
+                tradesHash = messageHash + ':' + 'trade'
+                client.resolve(self.myTrades, tradesHash)
+                # when we make an global order sub we have to send the channel like self
+                # ch = orders_cross.* and we store messageHash = 'orders_cross'
+                # however it is returned with the specific order update symbol: ch = orders_cross.btc-usd
+                # since self is a global sub, our messageHash does not specify any symbol(ex: orders_cross:trade)
+                # so we must remove it
+                genericOrderHash = messageHash.replace('.' + market['lowercaseId'], '')
+                genericOrderHash = genericOrderHash.replace('.' + market['lowercaseBaseId'], '')
+                genericTradesHash = genericOrderHash + ':' + 'trade'
+                client.resolve(self.myTrades, genericTradesHash)
 
     def parse_ws_trade(self, trade):
         # spot private
         #
-        #   {
-        #        "eventType":"trade",
-        #        "symbol":"ltcusdt",
-        #        "orderId":"478862728954426",
-        #        "orderSide":"buy",
-        #        "orderType":"buy-market",
-        #        "accountId":44234548,
-        #        "source":"spot-web",
-        #        "orderValue":"5.01724137",
-        #        "orderCreateTime":1645124660365,
-        #        "orderStatus":"filled",
-        #        "feeCurrency":"ltc",
-        #        "tradePrice":"118.89",
-        #        "tradeVolume":"0.042200701236437042",
-        #        "aggressor":true,
-        #        "tradeId":101539740584,
-        #        "tradeTime":1645124660368,
-        #        "transactFee":"0.000041778694224073",
-        #        "feeDeduct":"0",
-        #        "feeDeductType":""
-        #  }
+        #     {
+        #         "eventType":"trade",
+        #         "symbol":"ltcusdt",
+        #         "orderId":"478862728954426",
+        #         "orderSide":"buy",
+        #         "orderType":"buy-market",
+        #         "accountId":44234548,
+        #         "source":"spot-web",
+        #         "orderValue":"5.01724137",
+        #         "orderCreateTime":1645124660365,
+        #         "orderStatus":"filled",
+        #         "feeCurrency":"ltc",
+        #         "tradePrice":"118.89",
+        #         "tradeVolume":"0.042200701236437042",
+        #         "aggressor":true,
+        #         "tradeId":101539740584,
+        #         "tradeTime":1645124660368,
+        #         "transactFee":"0.000041778694224073",
+        #         "feeDeduct":"0",
+        #         "feeDeductType":""
+        #     }
+        #
         symbol = self.safe_symbol(self.safe_string(trade, 'symbol'))
         side = self.safe_string_2(trade, 'side', 'orderSide')
         tradeId = self.safe_string(trade, 'tradeId')
@@ -924,23 +1819,24 @@ class huobi(Exchange, ccxt.huobi):
             subscription['method'] = method
         return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
 
-    async def subscribe_private(self, messageHash, type, subtype, params={}):
+    async def subscribe_private(self, channel, messageHash, type, subtype, params={}, subscriptionParams={}):
         requestId = self.nonce()
         subscription = {
             'id': requestId,
             'messageHash': messageHash,
             'params': params,
         }
+        extendedSubsription = self.extend(subscription, subscriptionParams)
         request = None
         if type == 'spot':
             request = {
                 'action': 'sub',
-                'ch': messageHash,
+                'ch': channel,
             }
         else:
             request = {
                 'op': 'sub',
-                'topic': messageHash,
+                'topic': channel,
                 'cid': requestId,
             }
         isLinear = subtype == 'linear'
@@ -954,7 +1850,7 @@ class huobi(Exchange, ccxt.huobi):
         if type == 'spot':
             self.options['ws']['gunzip'] = False
         await self.authenticate(authParams)
-        return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
+        return await self.watch(url, messageHash, self.extend(request, params), channel, extendedSubsription)
 
     async def authenticate(self, params={}):
         url = self.safe_string(params, 'url')
