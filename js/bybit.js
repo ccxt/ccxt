@@ -1526,19 +1526,37 @@ module.exports = class bybit extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // fetchTrades (public)
+        //  public spot
         //
-        //      {
-        //          "id": "44275042152",
-        //          "symbol": "AAVEUSDT",
-        //          "price": "256.35",
-        //          "qty": "0.1",
-        //          "side": "Buy",
-        //          "time": "2021-11-30T12:46:14.000Z",
-        //          "trade_time_ms": "1638276374312"
-        //      }
+        //    {
+        //        "price": "39548.68",
+        //        "time": "1651748717850",
+        //        "qty": "0.166872",
+        //        "isBuyerMaker": true
+        //    }
         //
-        // fetchMyTrades, fetchOrderTrades (private)
+        // public linear/inverse swap/future
+        //
+        //     {
+        //         "id": "112348766532",
+        //         "symbol": "BTCUSDT",
+        //         "price": "39536",
+        //         "qty": "0.011",
+        //         "side": "Buy",
+        //         "time": "2022-05-05T11:16:02.000Z",
+        //         "trade_time_ms": "1651749362196"
+        //     }
+        //
+        // public usdc market
+        //
+        //     {
+        //         "symbol": "BTC-30SEP22-400000-C",
+        //         "orderQty": "0.010",
+        //         "orderPrice": "5.00",
+        //         "time": "1651104300208"
+        //     }
+        //
+        // private futures/swap
         //
         //      {
         //          "order_id": "b020b4bc-6fe2-45b5-adbc-dd07794f9746",
@@ -1563,20 +1581,63 @@ module.exports = class bybit extends Exchange {
         //          "trade_time_ms": "1638276374312"
         //      }
         //
+        // spot
+        //    {
+        //         "id": "1149467000412631552",
+        //         "symbol": "LTCUSDT",
+        //         "symbolName": "LTCUSDT",
+        //         "orderId": "1149467000244912384",
+        //         "ticketId": "2200000000002601358",
+        //         "matchOrderId": "1149465793552007078",
+        //         "price": "100.19",
+        //         "qty": "0.09973",
+        //         "commission": "0.0099919487",
+        //         "commissionAsset": "USDT",
+        //         "time": "1651763144465",
+        //         "isBuyer": false,
+        //         "isMaker": false,
+        //         "fee": {
+        //             "feeTokenId": "USDT",
+        //             "feeTokenName": "USDT",
+        //             "fee": "0.0099919487"
+        //         },
+        //         "feeTokenId": "USDT",
+        //         "feeAmount": "0.0099919487",
+        //         "makerRebate": "0"
+        //     }
+        //
         const id = this.safeString2 (trade, 'id', 'exec_id');
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const amountString = this.safeString2 (trade, 'qty', 'exec_qty');
-        const priceString = this.safeString2 (trade, 'exec_price', 'price');
+        let amountString = this.safeString2 (trade, 'qty', 'exec_qty');
+        if (amountString === undefined) {
+            amountString = this.safeString (trade, 'orderQty');
+        }
+        let priceString = this.safeString2 (trade, 'exec_price', 'price');
+        if (priceString === undefined) {
+            priceString = this.safeString (trade, 'orderPrice');
+        }
         const costString = this.safeString (trade, 'exec_value');
         let timestamp = this.parse8601 (this.safeString (trade, 'time'));
         if (timestamp === undefined) {
-            timestamp = this.safeInteger (trade, 'trade_time_ms');
+            timestamp = this.safeNumber2 (trade, 'trade_time_ms', 'time');
         }
-        const side = this.safeStringLower (trade, 'side');
-        const lastLiquidityInd = this.safeString (trade, 'last_liquidity_ind');
-        const takerOrMaker = (lastLiquidityInd === 'AddedLiquidity') ? 'maker' : 'taker';
+        let side = this.safeStringLower (trade, 'side');
+        if (side === undefined) {
+            const isBuyer = this.safeValue (trade, 'isBuyer');
+            if (isBuyer !== undefined) {
+                side = isBuyer ? 'buy' : 'sell';
+            }
+        }
+        const isMaker = this.safeValue (trade, 'isMaker');
+        let takerOrMaker = undefined;
+        if (isMaker !== undefined) {
+            takerOrMaker = isMaker ? 'maker' : 'taker';
+        } else {
+            const lastLiquidityInd = this.safeString (trade, 'last_liquidity_ind');
+            takerOrMaker = (lastLiquidityInd === 'AddedLiquidity') ? 'maker' : 'taker';
+        }
         const feeCostString = this.safeString (trade, 'exec_fee');
         let fee = undefined;
         if (feeCostString !== undefined) {
@@ -1593,7 +1654,7 @@ module.exports = class bybit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'order': this.safeString (trade, 'order_id'),
+            'order': this.safeString2 (trade, 'order_id', 'orderId'),
             'type': this.safeStringLower (trade, 'order_type'),
             'side': side,
             'takerOrMaker': takerOrMaker,
