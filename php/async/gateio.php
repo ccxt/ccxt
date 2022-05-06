@@ -3527,27 +3527,19 @@ class gateio extends Exchange {
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
         yield $this->load_markets();
-        $request = array();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            list($request, $params) = $this->prepare_request($market, null, $params);
-        }
+        $market = ($symbol === null) ? null : $this->market($symbol);
+        $stop = $this->safe_value($params, 'stop');
+        $params = $this->omit($params, 'stop');
         list($type, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
-        $swap = $type === 'swap';
-        $future = $type === 'future';
-        if ($symbol === null && ($swap || $future)) {
-            $defaultSettle = $swap ? 'usdt' : 'btc';
-            $settle = $this->safe_string_lower($query, 'settle', $defaultSettle);
-            $request['settle'] = $settle;
-        }
+        list($request, $requestParams) = ($type === 'spot') ? $this->multi_order_spot_prepare_request($market, $stop, $query) : $this->prepare_request($market, $type, $query);
+        $methodTail = $stop ? 'PriceOrders' : 'Orders';
         $method = $this->get_supported_mapping($type, array(
-            'spot' => 'privateSpotDeleteOrders',
-            'margin' => 'privateSpotDeleteOrders',
-            'swap' => 'privateFuturesDeleteSettleOrders',
-            'future' => 'privateDeliveryDeleteSettleOrders',
+            'spot' => 'privateSpotDelete' . $methodTail,
+            'margin' => 'privateSpotDelete' . $methodTail,
+            'swap' => 'privateFuturesDeleteSettle' . $methodTail,
+            'future' => 'privateDeliveryDeleteSettle' . $methodTail,
         ));
-        $response = yield $this->$method (array_merge($request, $query));
+        $response = yield $this->$method (array_merge($request, $requestParams));
         //
         //    array(
         //        {

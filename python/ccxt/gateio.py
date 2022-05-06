@@ -3369,25 +3369,19 @@ class gateio(Exchange):
 
     def cancel_all_orders(self, symbol=None, params={}):
         self.load_markets()
-        request = {}
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            request, params = self.prepare_request(market, None, params)
+        market = None if (symbol is None) else self.market(symbol)
+        stop = self.safe_value(params, 'stop')
+        params = self.omit(params, 'stop')
         type, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
-        swap = type == 'swap'
-        future = type == 'future'
-        if symbol is None and (swap or future):
-            defaultSettle = 'usdt' if swap else 'btc'
-            settle = self.safe_string_lower(query, 'settle', defaultSettle)
-            request['settle'] = settle
+        request, requestParams = self.multi_order_spot_prepare_request(market, stop, query) if (type == 'spot') else self.prepare_request(market, type, query)
+        methodTail = 'PriceOrders' if stop else 'Orders'
         method = self.get_supported_mapping(type, {
-            'spot': 'privateSpotDeleteOrders',
-            'margin': 'privateSpotDeleteOrders',
-            'swap': 'privateFuturesDeleteSettleOrders',
-            'future': 'privateDeliveryDeleteSettleOrders',
+            'spot': 'privateSpotDelete' + methodTail,
+            'margin': 'privateSpotDelete' + methodTail,
+            'swap': 'privateFuturesDeleteSettle' + methodTail,
+            'future': 'privateDeliveryDeleteSettle' + methodTail,
         })
-        response = getattr(self, method)(self.extend(request, query))
+        response = getattr(self, method)(self.extend(request, requestParams))
         #
         #    [
         #        {
