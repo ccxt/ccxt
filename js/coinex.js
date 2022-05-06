@@ -38,7 +38,7 @@ module.exports = class coinex extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
-                'fetchMarketLeverageTiers': true,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -2661,35 +2661,6 @@ module.exports = class coinex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseLeverageTiers (data, symbols, undefined);
-    }
-
-    async fetchMarketLeverageTiers (symbol, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (!market['contract']) {
-            throw new BadRequest (this.id + ' fetchMarketLeverageTiers() symbol supports contract markets only');
-        }
-        const response = await this.perpetualPublicGetMarketLimitConfig (params);
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "BTCUSD": [
-        //                 ["500001", "100", "0.005"],
-        //                 ["1000001", "50", "0.01"],
-        //                 ["2000001", "30", "0.015"],
-        //                 ["5000001", "20", "0.02"],
-        //                 ["10000001", "15", "0.025"],
-        //                 ["20000001", "10", "0.03"]
-        //             ],
-        //             ...
-        //         },
-        //         "message": "OK"
-        //     }
-        //
-        const data = this.safeValue (response, 'data', {});
-        const tiers = this.parseLeverageTiers (data, [ symbol ], market['id']);
-        return this.safeValue (tiers, symbol);
     }
 
     parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
