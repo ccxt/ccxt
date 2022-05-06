@@ -3206,55 +3206,19 @@ module.exports = class gateio extends Exchange {
             }
             orderId = clientOrderId;
         }
-        const request = {
-            'order_id': orderId,
-        };
-        let market = undefined;
-        let settle = undefined;
-        let type = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            if (market['spot']) {
-                request['currency_pair'] = market['id'];
-            } else {
-                settle = market['settleId'];
-            }
-        }
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        if (!stop && type === 'spot' && symbol === undefined) {
-            // Symbol not required for stop orders
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument for spot orders');
-        }
-        const swap = type === 'swap';
-        if (swap || type === 'future') {
-            if (settle === undefined) {
-                const defaultSettle = swap ? 'usdt' : 'btc';
-                settle = this.safeStringLower (params, 'settle', defaultSettle);
-                params = this.omit (params, 'settle');
-            }
-            request['settle'] = settle;
-        } else {
-            let marginType = undefined;
-            [ marginType, params ] = this.getMarginType (stop, params);
-            request['account'] = marginType;
-        }
-        let method = undefined;
-        if (stop) {
-            method = this.getSupportedMapping (type, {
-                'spot': 'privateSpotGetPriceOrdersOrderId',
-                'margin': 'privateSpotGetPriceOrdersOrderId',
-                'swap': 'privateFuturesGetSettlePriceOrdersOrderId',
-                'future': 'privateDeliveryGetSettlePriceOrdersOrderId',
-            });
-        } else {
-            method = this.getSupportedMapping (type, {
-                'spot': 'privateSpotGetOrdersOrderId',
-                'margin': 'privateSpotGetOrdersOrderId',
-                'swap': 'privateFuturesGetSettleOrdersOrderId',
-                'future': 'privateDeliveryGetSettleOrdersOrderId',
-            });
-        }
-        const response = await this[method] (this.extend (request, params));
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const contract = (type === 'swap') || (type === 'future');
+        const [ request, requestParams ] = contract ? this.prepareRequest (market, type, query) : this.spotOrderPrepareRequest (market, stop, query);
+        request['order_id'] = orderId;
+        const methodMiddle = stop ? 'PriceOrders' : 'Orders';
+        const method = this.getSupportedMapping (type, {
+            'spot': 'privateSpotGet' + methodMiddle + 'OrderId',
+            'margin': 'privateSpotGet' + methodMiddle + 'OrderId',
+            'swap': 'privateFuturesGetSettle' + methodMiddle + 'OrderId',
+            'future': 'privateDeliveryGetSettle' + methodMiddle + 'OrderId',
+        });
+        const response = await this[method] (this.extend (request, requestParams));
         return this.parseOrder (response, market);
     }
 
