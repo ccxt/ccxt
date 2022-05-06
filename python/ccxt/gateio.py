@@ -1087,17 +1087,52 @@ class gateio(Exchange):
                 underlyings.append(name)
         return underlyings
 
-    def prepare_request(self, market):
+    def prepare_request(self, market=None, type=None, params={}):
+        """
+         * @ignore
+        Fills request params contract, settle, currency_pair, market and account where applicable
+        :param dict market: CCXT market, required when type is None
+        :param str type: 'spot', 'swap', or 'future', required when market is None
+        :param dict params: request parameters
+        :returns: the api request object, and the new params object with non-needed parameters removed
+        """
+        request = {}
         if market is not None:
             if market['contract']:
-                return {
-                    'contract': market['id'],
-                    'settle': market['settleId'],
-                }
+                request['contract'] = market['id']
+                request['settle'] = market['settleId']
             else:
-                return {
-                    'currency_pair': market['id'],
-                }
+                request['currency_pair'] = market['id']
+        else:
+            swap = type == 'swap'
+            future = type == 'future'
+            if swap or future:
+                defaultSettle = 'usdt' if swap else 'btc'
+                settle = self.safe_string_lower(params, 'settle', defaultSettle)
+                params = self.omit(params, 'settle')
+                request['settle'] = settle
+        return [request, params]
+
+    def multi_order_spot_prepare_request(self, market=None, stop=False, params={}):
+        """
+         * @ignore
+        Fills request params currency_pair, market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
+        :param dict market: CCXT market
+        :param bool stop: True if for a stop order
+        :param dict params: request parameters
+        :returns: the api request object, and the new params object with non-needed parameters removed
+        """
+        marginType, query = self.get_margin_type(stop, params)
+        request = {
+            'account': marginType,
+        }
+        if market is not None:
+            if stop:
+                # gateio spot and margin stop orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single stop order, but createOrder does not call self method
+                request['market'] = market['id']
+            else:
+                request['currency_pair'] = market['id']
+        return [request, query]
 
     def get_margin_type(self, stop, params):
         """
@@ -1184,8 +1219,8 @@ class gateio(Exchange):
         market = self.market(symbol)
         if not market['swap']:
             raise BadRequest('Funding rates only exist for swap contracts')
-        request = self.prepare_request(market)
-        response = self.publicFuturesGetSettleContractsContract(self.extend(request, params))
+        request, query = self.prepare_request(market, None, params)
+        response = self.publicFuturesGetSettleContractsContract(self.extend(request, query))
         #
         #    [
         #        {
@@ -1559,7 +1594,7 @@ class gateio(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-            request = self.prepare_request(market)
+            request, params = self.prepare_request(market, None, params)
         type = None
         type, params = self.handle_market_type_and_params('fetchFundingHistory', market, params)
         if market is None:
@@ -1634,7 +1669,7 @@ class gateio(Exchange):
         #         'with_id': True,  # return order book ID
         #     }
         #
-        request = self.prepare_request(market)
+        request, query = self.prepare_request(market, None, params)
         spotOrMargin = market['spot'] or market['margin']
         method = self.get_supported_mapping(market['type'], {
             'spot': 'publicSpotGetOrderBook',
@@ -1645,7 +1680,7 @@ class gateio(Exchange):
         if limit is not None:
             request['limit'] = limit  # default 10, max 100
         request['with_id'] = True
-        response = getattr(self, method)(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, query))
         #
         # SPOT
         #
@@ -1723,14 +1758,14 @@ class gateio(Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        request = self.prepare_request(market)
+        request, query = self.prepare_request(market, None, params)
         method = self.get_supported_mapping(market['type'], {
             'spot': 'publicSpotGetTickers',
             'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'future': 'publicDeliveryGetSettleTickers',
         })
-        response = getattr(self, method)(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, query))
         ticker = self.safe_value(response, 0)
         return self.parse_ticker(ticker, market)
 
@@ -1806,22 +1841,15 @@ class gateio(Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        type = None
-        type, params = self.handle_market_type_and_params('fetchTickers', None, params)
+        type, query = self.handle_market_type_and_params('fetchTickers', None, params)
+        request, requestParams = self.prepare_request(None, type, query)
         method = self.get_supported_mapping(type, {
             'spot': 'publicSpotGetTickers',
             'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'future': 'publicDeliveryGetSettleTickers',
         })
-        request = {}
-        future = type == 'future'
-        swap = type == 'swap'
-        defaultSettle = 'usdt' if swap else 'btc'
-        settle = self.safe_string_lower(params, 'settle', defaultSettle)
-        if swap or future:
-            request['settle'] = settle
-        response = getattr(self, method)(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, requestParams))
         return self.parse_tickers(response, symbols)
 
     def fetch_balance_helper(self, entry):
@@ -2024,7 +2052,8 @@ class gateio(Exchange):
         self.load_markets()
         market = self.market(symbol)
         price = self.safe_string(params, 'price')
-        request = self.prepare_request(market)
+        request = {}
+        request, params = self.prepare_request(market, None, params)
         request['interval'] = self.timeframes[timeframe]
         method = 'publicSpotGetCandlesticks'
         if market['contract']:
@@ -2166,7 +2195,7 @@ class gateio(Exchange):
         #         'to': self.seconds(),  # end time in seconds, default to current time
         #     }
         #
-        request = self.prepare_request(market)
+        request, query = self.prepare_request(market, None, params)
         method = self.get_supported_mapping(market['type'], {
             'spot': 'publicSpotGetTrades',
             'margin': 'publicSpotGetTrades',
@@ -2177,7 +2206,7 @@ class gateio(Exchange):
             request['limit'] = limit  # default 100, max 1000
         if since is not None and (market['contract']):
             request['from'] = int(since / 1000)
-        response = getattr(self, method)(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, query))
         #
         # spot
         #
@@ -2216,7 +2245,7 @@ class gateio(Exchange):
         type, params = self.handle_market_type_and_params('fetchMyTrades', None, params)
         if symbol:
             market = self.market(symbol)
-            request = self.prepare_request(market)
+            request, params = self.prepare_request(market, None, params)
             type = market['type']
         else:
             if type == 'swap' or type == 'future':
@@ -3186,7 +3215,7 @@ class gateio(Exchange):
             raise ArgumentsRequired(self.id + ' fetchOrdersByStatus() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = self.prepare_request(market)
+        request, query = self.prepare_request(market, None, params)
         request['status'] = status
         if limit is not None:
             request['limit'] = limit
@@ -3200,7 +3229,7 @@ class gateio(Exchange):
         })
         if market['type'] == 'margin' or market['type'] == 'cross_margin':
             request['account'] = market['type']
-        response = getattr(self, method)(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, query))
         #
         # SPOT
         #
@@ -3373,13 +3402,13 @@ class gateio(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request = self.prepare_request(market)
+            request, params = self.prepare_request(market, None, params)
         type, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
         swap = type == 'swap'
         future = type == 'future'
         if symbol is None and (swap or future):
             defaultSettle = 'usdt' if swap else 'btc'
-            settle = self.safe_string_lower(params, 'settle', defaultSettle)
+            settle = self.safe_string_lower(query, 'settle', defaultSettle)
             request['settle'] = settle
         method = self.get_supported_mapping(type, {
             'spot': 'privateSpotDeleteOrders',
@@ -3502,10 +3531,10 @@ class gateio(Exchange):
             'swap': 'privateFuturesPostSettlePositionsContractLeverage',
             'future': 'privateDeliveryPostSettlePositionsContractLeverage',
         })
-        request = self.prepare_request(market)
+        request, query = self.prepare_request(market, None, params)
         defaultMarginType = self.safe_string_2(self.options, 'marginType', 'defaultMarginType')
-        crossLeverageLimit = self.safe_string(params, 'cross_leverage_limit')
-        marginType = self.safe_string(params, 'marginType', defaultMarginType)
+        crossLeverageLimit = self.safe_string(query, 'cross_leverage_limit')
+        marginType = self.safe_string(query, 'marginType', defaultMarginType)
         if crossLeverageLimit is not None:
             marginType = 'cross'
             leverage = crossLeverageLimit
@@ -3518,7 +3547,7 @@ class gateio(Exchange):
             request['query'] = {
                 'leverage': str(leverage),
             }
-        response = getattr(self, method)(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, query))
         #
         #     {
         #         "value": "0",
