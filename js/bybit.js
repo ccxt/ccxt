@@ -1695,67 +1695,110 @@ module.exports = class bybit extends Exchange {
     parseBalance (response) {
         //
         // spot balance
-        // {
-        //     "ret_code": "0",
-        //     "ret_msg": "",
-        //     "ext_code": null,
-        //     "ext_info": null,
-        //     "result": {
-        //         "balances": [
-        //             {
-        //                 "coin": "LTC",
-        //                 "coinId": "LTC",
-        //                 "coinName": "LTC",
-        //                 "total": "0.00000783",
-        //                 "free": "0.00000783",
-        //                 "locked": "0"
-        //             }
-        //         ]
-        //     }
-        // }
+        //    {
+        //        "ret_code": "0",
+        //        "ret_msg": "",
+        //        "ext_code": null,
+        //        "ext_info": null,
+        //        "result": {
+        //            "balances": [
+        //                {
+        //                    "coin": "LTC",
+        //                    "coinId": "LTC",
+        //                    "coinName": "LTC",
+        //                    "total": "0.00000783",
+        //                    "free": "0.00000783",
+        //                    "locked": "0"
+        //                }
+        //            ]
+        //        }
+        //    }
+        //
         // linear/inverse swap/futures
-        // {
-        //     "ret_code": "0",
-        //     "ret_msg": "OK",
-        //     "ext_code": "",
-        //     "ext_info": "",
-        //     "result": {
-        //         "ADA": {
-        //             "equity": "0",
-        //             "available_balance": "0",
-        //             "used_margin": "0",
-        //             "order_margin": "0",
-        //             "position_margin": "0",
-        //             "occ_closing_fee": "0",
-        //             "occ_funding_fee": "0",
-        //             "wallet_balance": "0",
-        //             "realised_pnl": "0",
-        //             "unrealised_pnl": "0",
-        //             "cum_realised_pnl": "0",
-        //             "given_cash": "0",
-        //             "service_cash": "0"
-        //         },
-        //     },
-        //     "time_now": "1651772170.050566",
-        //     "rate_limit_status": "119",
-        //     "rate_limit_reset_ms": "1651772170042",
-        //     "rate_limit": "120"
-        // }
+        //    {
+        //        "ret_code": "0",
+        //        "ret_msg": "OK",
+        //        "ext_code": "",
+        //        "ext_info": "",
+        //        "result": {
+        //            "ADA": {
+        //                "equity": "0",
+        //                "available_balance": "0",
+        //                "used_margin": "0",
+        //                "order_margin": "0",
+        //                "position_margin": "0",
+        //                "occ_closing_fee": "0",
+        //                "occ_funding_fee": "0",
+        //                "wallet_balance": "0",
+        //                "realised_pnl": "0",
+        //                "unrealised_pnl": "0",
+        //                "cum_realised_pnl": "0",
+        //                "given_cash": "0",
+        //                "service_cash": "0"
+        //            },
+        //        },
+        //        "time_now": "1651772170.050566",
+        //        "rate_limit_status": "119",
+        //        "rate_limit_reset_ms": "1651772170042",
+        //        "rate_limit": "120"
+        //    }
+        //
+        // usdc wallet
+        //    {
+        //      "result": {
+        //           "walletBalance": "10.0000",
+        //           "accountMM": "0.0000",
+        //           "bonus": "0.0000",
+        //           "accountIM": "0.0000",
+        //           "totalSessionRPL": "0.0000",
+        //           "equity": "10.0000",
+        //           "totalRPL": "0.0000",
+        //           "marginBalance": "10.0000",
+        //           "availableBalance": "10.0000",
+        //           "totalSessionUPL": "0.0000"
+        //       },
+        //       "retCode": "0",
+        //       "retMsg": "Success."
+        //    }
         //
         const result = {
             'info': response,
         };
-        const balances = this.safeValue (response, 'result', {});
-        const currencyIds = Object.keys (balances);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const balance = balances[currencyId];
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (balance, 'available_balance');
-            account['used'] = this.safeString (balance, 'used_margin');
-            account['total'] = this.safeString (balance, 'equity');
-            result[code] = account;
+        const data = this.safeValue (response, 'result', {});
+        const balances = this.safeValue (data, 'balances');
+        if (Array.isArray (balances)) {
+            // spot balances
+            for (let i = 0; i < balances.length; i++) {
+                const balance = balances[i];
+                const currencyId = this.safeString (balance, 'coin');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'availableBalance');
+                account['used'] = this.safeString (balance, 'locked');
+                account['total'] = this.safeString (balance, 'total');
+                result[code] = account;
+            }
+        } else {
+            if ('walletBalance' in data) {
+                // usdc wallet
+                const code = 'USDC';
+                const account = this.account ();
+                account['free'] = this.safeString (data, 'availableBalance');
+                account['total'] = this.safeString (data, 'walletBalance');
+                result[code] = account;
+            } else {
+                // linear/inverse swap/futures
+                const currencyIds = Object.keys (data);
+                for (let i = 0; i < currencyIds.length; i++) {
+                    const currencyId = currencyIds[i];
+                    const balance = data[currencyId];
+                    const code = this.safeCurrencyCode (currencyId);
+                    const account = this.account ();
+                    account['free'] = this.safeString (balance, 'available_balance');
+                    account['total'] = this.safeString (balance, 'wallet_balance');
+                    result[code] = account;
+                }
+            }
         }
         return this.safeBalance (result);
     }
