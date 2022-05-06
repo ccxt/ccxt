@@ -240,7 +240,7 @@ module.exports = class currencycom extends Exchange {
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'USDT', 'USD', 'EUR', 'GBP', 'RUB', 'BYN'],
-                        'defaultSettle': [ 'USDT' ],
+                        'defaultSettle': 'USDT',
                     },
                 },
                 'accountsList': undefined,
