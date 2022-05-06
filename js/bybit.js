@@ -679,7 +679,7 @@ module.exports = class bybit extends Exchange {
             await this.loadTimeDifference ();
         }
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
         if (type === 'spot') {
             const spotMarkets = await this.fetchSpotMarkets (params);
             return spotMarkets;
@@ -727,11 +727,7 @@ module.exports = class bybit extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const status = this.safeString (market, 'status');
-            let active = undefined;
-            if (status !== undefined) {
-                active = (status === 'Trading');
-            }
+            const active = this.safeValue (market, 'showStatus');
             result.push ({
                 'id': id,
                 'symbol': symbol,
