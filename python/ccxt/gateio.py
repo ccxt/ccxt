@@ -1218,7 +1218,7 @@ class gateio(Exchange):
         self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
-            raise BadRequest('Funding rates only exist for swap contracts')
+            raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
         request, query = self.prepare_request(market, None, params)
         response = self.publicFuturesGetSettleContractsContract(self.extend(request, query))
         #
@@ -2068,15 +2068,12 @@ class gateio(Exchange):
         self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
-            raise BadRequest('Funding rates only exist for swap contracts')
-        request = {
-            'contract': market['id'],
-            'settle': market['settleId'],
-        }
+            raise BadSymbol(self.id + ' fetchFundingRateHistory() supports swap contracts only')
+        request, query = self.prepare_request(market, None, params)
         if limit is not None:
             request['limit'] = limit
         method = 'publicFuturesGetSettleFundingRate'
-        response = getattr(self, method)(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, query))
         #
         #     {
         #         "r": "0.00063521",

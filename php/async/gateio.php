@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
+use \ccxt\BadSymbol;
 use \ccxt\InvalidOrder;
 use \ccxt\NotSupported;
 use \ccxt\Precise;
@@ -1245,7 +1246,7 @@ class gateio extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['swap']) {
-            throw new BadRequest('Funding rates only exist for swap contracts');
+            throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
         }
         list($request, $query) = $this->prepare_request($market, null, $params);
         $response = yield $this->publicFuturesGetSettleContractsContract (array_merge($request, $query));
@@ -2141,17 +2142,14 @@ class gateio extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['swap']) {
-            throw new BadRequest('Funding $rates only exist for swap contracts');
+            throw new BadSymbol($this->id . ' fetchFundingRateHistory() supports swap contracts only');
         }
-        $request = array(
-            'contract' => $market['id'],
-            'settle' => $market['settleId'],
-        );
+        list($request, $query) = $this->prepare_request($market, null, $params);
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
         $method = 'publicFuturesGetSettleFundingRate';
-        $response = yield $this->$method (array_merge($request, $params));
+        $response = yield $this->$method (array_merge($request, $query));
         //
         //     {
         //         "r" => "0.00063521",
