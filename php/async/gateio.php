@@ -3814,23 +3814,18 @@ class gateio extends Exchange {
          * Fetch trades positions
          * @param array([str]) $symbols Not used by Gateio, but parsed internally by CCXT
          * @param {dict} $params exchange specific parameters
-         * @param {str} $params->settle 'btc' or 'usdt' - $settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
+         * @param {str} $params->settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
          * @param {str} $params->type swap or future, if not provided $this->options['defaultType'] is used
          * @return An array of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structures}
          */
         yield $this->load_markets();
-        $defaultType = $this->safe_string_2($this->options, 'fetchPositions', 'defaultType', 'swap');
-        $type = $this->safe_string($params, 'type', $defaultType);
+        list($type, $query) = $this->handle_market_type_and_params('fetchPositions', null, $params);
+        list($request, $requestParams) = $this->prepare_request(null, $type, $query);
         $method = $this->get_supported_mapping($type, array(
             'swap' => 'privateFuturesGetSettlePositions',
             'future' => 'privateDeliveryGetSettlePositions',
         ));
-        $defaultSettle = ($type === 'swap') ? 'usdt' : 'btc';
-        $settle = $this->safe_string_lower($params, 'settle', $defaultSettle);
-        $request = array(
-            'settle' => $settle,
-        );
-        $response = yield $this->$method ($request);
+        $response = yield $this->$method (array_merge($request, $requestParams));
         //
         //     array(
         //         {

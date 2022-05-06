@@ -3641,18 +3641,13 @@ class gateio(Exchange):
         :returns: An array of `position structures <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
-        defaultType = self.safe_string_2(self.options, 'fetchPositions', 'defaultType', 'swap')
-        type = self.safe_string(params, 'type', defaultType)
+        type, query = self.handle_market_type_and_params('fetchPositions', None, params)
+        request, requestParams = self.prepare_request(None, type, query)
         method = self.get_supported_mapping(type, {
             'swap': 'privateFuturesGetSettlePositions',
             'future': 'privateDeliveryGetSettlePositions',
         })
-        defaultSettle = 'usdt' if (type == 'swap') else 'btc'
-        settle = self.safe_string_lower(params, 'settle', defaultSettle)
-        request = {
-            'settle': settle,
-        }
-        response = await getattr(self, method)(request)
+        response = await getattr(self, method)(self.extend(request, requestParams))
         #
         #     [
         #         {
