@@ -1209,10 +1209,23 @@ module.exports = class bybit extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        let method = undefined;
+        if (market['spot']) {
+            method = 'publicGetSpotQuoteV1Ticker24hr';
+        } else if (market['contract'] && market['settle'] !== 'USD') {
+            // inverse perpetual // usdt linear // inverse futures
+            method = 'publicGetV2PublicTickers';
+        } else if (market['option']) {
+            // usdc option
+            method = 'publicGetOptionUsdcOpenapiPublicV1Tick';
+        } else {
+            // usdc swap
+            method = 'publicGetPerpetualUsdcOpenapiPublicV1Tick';
+        }
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetV2PublicTickers (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         ret_code: 0,
@@ -1248,13 +1261,47 @@ module.exports = class bybit extends Exchange {
         //         ],
         //         time_now: '1583948195.818255'
         //     }
+        //  usdc ticker
+        //     {
+        //         "retCode": 0,
+        //           "retMsg": "SUCCESS",
+        //           "result": {
+        //                  "symbol": "BTC-28JAN22-250000-C",
+        //                    "bid": "0",
+        //                    "bidIv": "0",
+        //                    "bidSize": "0",
+        //                    "ask": "0",
+        //                    "askIv": "0",
+        //                    "askSize": "0",
+        //                    "lastPrice": "0",
+        //                    "openInterest": "0",
+        //                    "indexPrice": "56171.79000000",
+        //                    "markPrice": "12.72021285",
+        //                    "markPriceIv": "1.1701",
+        //                    "change24h": "0",
+        //                    "high24h": "0",
+        //                    "low24h": "0",
+        //                    "volume24h": "0",
+        //                    "turnover24h": "0",
+        //                    "totalVolume": "0",
+        //                    "totalTurnover": "0",
+        //                    "predictedDeliveryPrice": "0",
+        //                    "underlyingPrice": "57039.61000000",
+        //                    "delta": "0.00184380",
+        //                    "gamma": "0.00000022",
+        //                    "vega": "1.35132531",
+        //                    "theta": "-1.33819821"
+        //          }
+        //     }
         //
         const result = this.safeValue (response, 'result', []);
-        const first = this.safeValue (result, 0);
-        const timestamp = this.safeTimestamp (response, 'time_now');
-        const ticker = this.parseTicker (first, market);
-        ticker['timestamp'] = timestamp;
-        ticker['datetime'] = this.iso8601 (timestamp);
+        let rawTicker = undefined;
+        if (Array.isArray (result)) {
+            rawTicker = this.safeValue (result, 0);
+        } else {
+            rawTicker = result;
+        }
+        const ticker = this.parseTicker (rawTicker, market);
         return ticker;
     }
 
