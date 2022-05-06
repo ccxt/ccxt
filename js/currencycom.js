@@ -23,7 +23,7 @@ module.exports = class currencycom extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': true,
+                'margin': false,
                 'swap': true,
                 'future': false,
                 'option': false,
@@ -237,7 +237,13 @@ module.exports = class currencycom extends Exchange {
                     'stop': 'RESULT',
                 },
                 'leverage_markets_suffix': '_LEVERAGE',
-                'collateralCurrencies': [ 'USD', 'EUR', 'USDT' ],
+                'swap': {
+                    'fetchMarkets': {
+                        'settlementCurrencies': [ 'USDT', 'USD', 'EUR', 'GBP', 'RUB', 'BYN'],
+                        'defaultSettle': [ 'USDT' ],
+                    },
+                },
+                'accountsList': undefined,
             },
             'exceptions': {
                 'broad': {
@@ -249,6 +255,8 @@ module.exports = class currencycom extends Exchange {
                     'Combination of parameters invalid': BadRequest,
                     'Invalid limit price': BadRequest,
                     'Only leverage symbol allowed here:': BadSymbol, // when you fetchLeverage for non-leverage symbols, like 'BTC/USDT' instead of 'BTC/USDT_LEVERAGE': {"code":"-1128","msg":"Only leverage symbol allowed here: BTC/USDT"}
+                    'Can not find account': BadRequest, // -1128
+                    'You mentioned an invalid value for the price parameter': BadRequest, // -1030
                 },
                 'exact': {
                     '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
@@ -258,12 +266,13 @@ module.exports = class currencycom extends Exchange {
                     '-1100': InvalidOrder, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                     '-1104': ExchangeError, // Not all sent parameters were read, read 8 parameters but was sent 9
                     '-1025': AuthenticationError, // {"code":-1025,"msg":"Invalid API-key, IP, or permissions for action"}
-                    '-1128': BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."} | {"code":"-1128","msg":"Combination of parameters invalid"} | {"code":"-1128","msg":"Invalid limit price"}
+                    '-1128': BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."} | {"code":"-1128","msg":"Combination of parameters invalid"} | {"code":"-1128","msg":"Invalid limit price"} | {"code":"-1128","msg":"Can not find account: null"}
                     '-2010': ExchangeError, // generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
                     '-2011': OrderNotFound, // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
                     '-2013': OrderNotFound, // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
                     '-2014': AuthenticationError, // { "code":-2014, "msg": "API-key format invalid." }
                     '-2015': AuthenticationError, // "Invalid API-key, IP, or permissions for action."
+                    '-1030': BadRequest, // {"code":-1030,"msg":"You mentioned an invalid value for the price parameter."}
                 },
             },
             'commonCurrencies': {
@@ -281,6 +290,13 @@ module.exports = class currencycom extends Exchange {
                 'PLAY': "Dave & Buster's Entertainment",
             },
         });
+    }
+
+    getSettlementCurrencies (type, method) {
+        const options = this.safeValue (this.options, type, {});
+        const swaps = this.safeValue (options, method, {});
+        const defaultSettle = this.safeString (swaps, 'defaultSettle', 'USDT');
+        return this.safeValue (swaps, 'settlementCurrencies', defaultSettle);
     }
 
     nonce () {
@@ -428,16 +444,14 @@ module.exports = class currencycom extends Exchange {
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
+            const baseQuotePair = base + '/' + quote;
+            let symbol = baseQuotePair;
             const type = this.safeString (market, 'marketType');
             const spot = (type === 'SPOT');
             const futures = false;
             const swap = (type === 'LEVERAGE');
-            const margin = swap; // as we decided to set
-            if (swap) {
-                symbol = symbol.replace (this.options['leverage_markets_suffix'], '');
-                symbol += ':' + quote;
-            }
+            const isContract = swap || futures;
+            const margin = false;
             const active = this.safeString (market, 'status') === 'TRADING';
             // to set taker & maker fees, we use one from the below data - pairs either have 'exchangeFee' or 'tradingFee', if none of them (rare cases), then they should have 'takerFee & makerFee'
             const exchangeFee = this.safeString2 (market, 'exchangeFee', 'tradingFee');
@@ -492,8 +506,10 @@ module.exports = class currencycom extends Exchange {
                 const filter = this.safeValue (filtersByType, 'MIN_NOTIONAL', {});
                 costMin = this.safeNumber (filter, 'minNotional');
             }
-            const isContract = swap || futures;
-            result.push ({
+            if (swap) {
+                symbol += ':' + 'SWAP';
+            }
+            const marketObject = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -510,7 +526,7 @@ module.exports = class currencycom extends Exchange {
                 'option': false,
                 'active': active,
                 'contract': isContract,
-                'linear': isContract ? true : undefined,
+                'linear': isContract ? true : undefined, // only linears supported
                 'inverse': undefined,
                 'taker': this.parseNumber (takerFee),
                 'maker': this.parseNumber (makerFee),
@@ -540,7 +556,20 @@ module.exports = class currencycom extends Exchange {
                     },
                 },
                 'info': market,
-            });
+            };
+            result.push (marketObject);
+            // add for settle currencies
+            if (swap) {
+                const settleCurrencies = this.getSettlementCurrencies ('swap', 'fetchMarkets');
+                for (let i = 0; i < settleCurrencies.length; i++) {
+                    const settleCurrency = settleCurrencies[i];
+                    result.push (this.extend (marketObject, {
+                        'settle': settleCurrency,
+                        'settleId': settleCurrency,
+                        'symbol': baseQuotePair + ':' + settleCurrency,
+                    }));
+                }
+            }
         }
         return result;
     }
@@ -582,7 +611,7 @@ module.exports = class currencycom extends Exchange {
         const result = [];
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
-            const accountId = this.safeInteger (account, 'accountId');
+            const accountId = this.safeString (account, 'accountId');
             const currencyId = this.safeString (account, 'asset');
             const currencyCode = this.safeCurrencyCode (currencyId);
             result.push ({
@@ -592,7 +621,21 @@ module.exports = class currencycom extends Exchange {
                 'info': account,
             });
         }
+        this.options['accountsList'] = result;
         return result;
+    }
+
+    async findAccountIdByCurrency (currency) {
+        let accountsList = this.options['accountsList'];
+        if (this.options['accountsList'] === undefined) {
+            accountsList = await this.fetchAccounts ();
+        }
+        for (let i = 0; i < accountsList.length; i++) {
+            const account = accountsList[i];
+            if (account['currency'] === currency) {
+                return account['id'];
+            }
+        }
     }
 
     async fetchTradingFees (params = {}) {
@@ -1175,15 +1218,7 @@ module.exports = class currencycom extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let accountId = undefined;
-        if (market['margin']) {
-            accountId = this.safeString (this.options, 'accountId');
-            accountId = this.safeString (params, 'accountId', accountId);
-            if (accountId === undefined) {
-                throw new ArgumentsRequired (this.id + " createOrder() requires an accountId parameter or an exchange.options['accountId'] option for " + market['type'] + ' markets');
-            }
-        }
-        const newOrderRespType = this.safeValue (this.options['newOrderRespType'], type, 'RESULT');
+        const newOrderRespType = this.safeValue (this.options['newOrderRespType'], type, 'FULL');
         const request = {
             'symbol': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
@@ -1196,6 +1231,14 @@ module.exports = class currencycom extends Exchange {
             // 'stopLoss': '54.321',
             // 'guaranteedStopLoss': '54.321',
         };
+        if (market['swap']) {
+            let accountId = this.safeString (this.options, 'accountId');
+            accountId = this.safeString (params, 'accountId', accountId);
+            if (accountId === undefined) {
+                accountId = await this.findAccountIdByCurrency (market['settle']);
+            }
+            request['accountId'] = accountId;
+        }
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
             request['timeInForce'] = this.options['defaultTimeInForce'];
