@@ -1712,18 +1712,32 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        // note: any funds in the 'spot' account will not be returned or visible from this endpoint
-        await this.loadMarkets ();
         const request = {};
-        const coin = this.safeString (params, 'coin');
-        const code = this.safeString (params, 'code');
-        if (coin !== undefined) {
-            request['coin'] = coin;
-        } else if (code !== undefined) {
-            const currency = this.currency (code);
-            request['coin'] = currency['id'];
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        let method = undefined;
+        if (type === 'spot') {
+            method = 'privateGetSpotV1Account';
+        } else {
+            let isUsdcSettled = this.safeValue (this.options, 'isUsdcSettled', false);
+            isUsdcSettled = this.safeValue (params, 'isUsdcSettled', isUsdcSettled);
+            params = this.omit (params, 'isUsdcSettled');
+            if (!isUsdcSettled) {
+                // linear/inverse future/swap
+                method = 'privateGetV2PrivateWalletBalance';
+                const coin = this.safeString2 (params, 'coin', 'code');
+                params = this.omit (params, [ 'coin', 'code' ]);
+                if (coin !== undefined) {
+                    const currency = this.currency (coin);
+                    request['coin'] = currency['id'];
+                }
+            } else {
+                // usdc account
+                method = 'privatePostOptionUsdcOpenapiPrivateV1QueryWalletBalance';
+            }
         }
-        const response = await this.v2PrivateGetWalletBalance (this.extend (request, params));
+        await this.loadMarkets ();
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         ret_code: 0,
