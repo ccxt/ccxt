@@ -3680,7 +3680,7 @@ class gateio extends Exchange {
             $marginType = 'cross';
             $leverage = $crossLeverageLimit;
         }
-        if ($marginType === 'cross') {
+        if ($marginType === 'cross' || $marginType === 'cross_margin') {
             $request['query'] = array(
                 'cross_leverage_limit' => (string) $leverage,
                 'leverage' => '0',

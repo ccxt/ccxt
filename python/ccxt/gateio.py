@@ -3509,7 +3509,7 @@ class gateio(Exchange):
         if crossLeverageLimit is not None:
             marginType = 'cross'
             leverage = crossLeverageLimit
-        if marginType == 'cross':
+        if marginType == 'cross' or marginType == 'cross_margin':
             request['query'] = {
                 'cross_leverage_limit': str(leverage),
                 'leverage': '0',
