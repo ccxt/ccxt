@@ -2989,6 +2989,10 @@ module.exports = class bybit extends Exchange {
             params = this.omit (params, 'order_id');
         }
         market = this.market (symbol);
+        const isUsdcSettled = market['settle'] === 'USDC';
+        if (isUsdcSettled) {
+            throw new NotSupported (this.id + ' fetchMyTrades() is not supported for market ' + symbol);
+        }
         request['symbol'] = market['id'];
         if (since !== undefined) {
             request['start_time'] = since;
@@ -2996,20 +3000,49 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 20, max 50
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        const marketDefined = (market !== undefined);
-        const linear = (marketDefined && market['linear']) || (marketType === 'linear');
-        const inverse = (marketDefined && market['swap'] && market['inverse']) || (marketType === 'inverse');
-        const future = (marketDefined && market['future']) || ((marketType === 'future') || (marketType === 'futures')); // * (marketType === 'futures') deprecated, use (marketType === 'future')
         let method = undefined;
-        if (linear) {
-            method = 'privateLinearGetTradeExecutionList';
-        } else if (inverse) {
-            method = 'v2PrivateGetExecutionList';
-        } else if (future) {
-            method = 'futuresPrivateGetExecutionList';
+        if (market['spot']) {
+            method = 'privateGetSpotV1MyTrades';
+        } else if (market['future']) {
+            method = 'privateGetFuturesPrivateExecutionList';
+        } else {
+            // linear and inverse swaps
+            method = market['linear'] ? 'privateGetPrivateLinearTradeExecutionList' : 'privateGetV2PrivateExecutionList';
         }
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //     {
+        //         "ret_code": 0,
+        //         "ret_msg": "",
+        //         "ext_code": null,
+        //         "ext_info": null,
+        //         "result": [
+        //            {
+        //                 "id": "931975237315196160",
+        //                 "symbol": "BTCUSDT",
+        //                 "symbolName": "BTCUSDT",
+        //                 "orderId": "931975236946097408",
+        //                 "ticketId": "1057753175328833537",
+        //                 "matchOrderId": "931975113180558592",
+        //                 "price": "20000.00001",
+        //                 "qty": "0.01",
+        //                 "commission": "0.02000000001",
+        //                 "commissionAsset": "USDT",
+        //                 "time": "1625836105890",
+        //                 "isBuyer": false,
+        //                 "isMaker": false,
+        //                 "fee": {
+        //                     "feeTokenId": "USDT",
+        //                     "feeTokenName": "USDT",
+        //                     "fee": "0.02000000001"
+        //                 },
+        //                 "feeTokenId": "USDT",
+        //                 "feeAmount": "0.02000000001",
+        //                 "makerRebate": "0"
+        //            }
+        //         ]
+        //     }
         //
         // inverse
         //
@@ -3092,9 +3125,11 @@ module.exports = class bybit extends Exchange {
         //         "rate_limit":120
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
-        const trades = this.safeValue2 (result, 'trade_list', 'data', []);
-        return this.parseTrades (trades, market, since, limit);
+        let result = this.safeValue (response, 'result', {});
+        if (!Array.isArray (result)) {
+            result = this.safeValue2 (result, 'trade_list', 'data', []);
+        }
+        return this.parseTrades (result, market, since, limit);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
