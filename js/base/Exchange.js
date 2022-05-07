@@ -73,7 +73,7 @@ module.exports = class Exchange {
                 'option': undefined,
                 'addMargin': undefined,
                 'cancelAllOrders': undefined,
-                'cancelOrder': true,
+                'cancelOrder': 'emulated',
                 'cancelOrders': undefined,
                 'createDepositAddress': undefined,
                 'createLimitOrder': true,
@@ -947,8 +947,20 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' createOrder() is not supported yet');
     }
 
-    cancelOrder (id, symbol = undefined, params = {}) {
-        throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (this.has['cancelOrders'] === true) {
+            const tickers = await this.cancelOrders ([ id ], symbol);
+            return this.safeValue (tickers, 0);
+        } else if (this.has['cancelOrders'] === 'emulated') {
+            throw new NotSupported (this.id + ' cancelOrder() can not be emulated from cancelOrders() for this exchange');
+        } else {
+            throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
+        }
+    }
+
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        // if future we might emulate this too, with Promise.all for loop of individual cancelOrder()
+        throw new NotSupported (this.id + ' cancelOrders() is not supported yet');
     }
 
     cancelUnifiedOrder (order, params = {}) {
