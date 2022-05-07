@@ -2934,6 +2934,11 @@ class Exchange(object):
         query = self.extend(params, {'stopPrice': stopPrice})
         return self.create_order(symbol, 'market', side, amount, None, query)
 
+    def check_order_type_and_price(self, type, price):
+        if price == None:
+            if type == 'limit':
+                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for a limit order')
+
     def parse_borrow_interests(self, response, market=None):
         interest = []
         for i in range(len(response)):
