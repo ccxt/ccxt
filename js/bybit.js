@@ -503,6 +503,7 @@ module.exports = class bybit extends Exchange {
                     '10006': RateLimitExceeded, // too many requests
                     '10007': AuthenticationError, // api_key not found in your request parameters
                     '10010': PermissionDenied, // request ip mismatch
+                    '10016': ExchangeError, // {"retCode":10016,"retMsg":"System error. Please try again later."}
                     '10017': BadRequest, // request path not found or request method is invalid
                     '10018': RateLimitExceeded, // exceed ip rate limit
                     '20001': OrderNotFound, // Order not exists
@@ -3433,13 +3434,19 @@ module.exports = class bybit extends Exchange {
                 }
             } else if (api === 'private') {
                 this.checkRequiredCredentials ();
-                const isOpenapi = url.indexOf ('openapi') !== -1;
+                const isOpenapi = url.indexOf ('openapi') >= 0;
                 const timestamp = this.nonce ();
                 if (isOpenapi) {
-                    let query = this.extend (params, {
+                    let query = {
                         'recv_window': this.options['recvWindow'],
-                    });
-                    query = this.json (params);
+                    };
+                    query = this.json (query);
+                    // let query = body;
+                    const paramsLength = params.length;
+                    if (paramsLength > 0) {
+                        query = this.json (params);
+                        body = this.extend (body, query);
+                    }
                     body = query;
                     const payload = timestamp.toString () + this.apiKey + query;
                     const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'hex');
