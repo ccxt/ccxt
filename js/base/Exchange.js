@@ -2361,9 +2361,9 @@ module.exports = class Exchange {
     }
 
     checkOrderTypeAndPrice (type, price) {
-        if (type === 'limit') {
-            if (price === undefined) {
-                  throw new ArgumentRequired (this.id + ' createOrder() requires a price argument for a limit order');
+        if (price === undefined) {
+            if (type === 'limit') {
+                  throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a limit order');
              }
         }
     }
