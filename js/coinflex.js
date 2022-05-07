@@ -1935,7 +1935,6 @@ module.exports = class coinflex extends Exchange {
                 order['price'] = this.priceToPrecision (market['symbol'], price);
             }
         }
-        // order['clientOrderId'] = (clientOrderId !== undefined) ? clientOrderId : this.microseconds ().toString ();
         const request = {
             'responseType': 'FULL', // FULL, ACK
             'orders': [ order ],
@@ -2254,7 +2253,7 @@ module.exports = class coinflex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const withdrawFees = {};
-        withdrawFees[code] = this.safeNumber (data, 'withdraw_fee');
+        withdrawFees[code] = this.safeNumber (data, 'estimatedFee');
         return {
             'withdraw': withdrawFees,
             'deposit': {},
