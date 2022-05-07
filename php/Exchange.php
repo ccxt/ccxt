@@ -3882,7 +3882,7 @@ class Exchange {
         return $this->create_order($symbol, 'market', $side, $amount, null, $query);
     }
     
-    public function checkOrderTypeAndPrice ($type, $price) {
+    public function check_order_type_and_price ($symbol, $type, $price, $amount) {
         if ($price === null) {
             if ($type === 'limit') {
                   throw new ArgumentsRequired ($this->id + ' create_order() requires a price argument for a limit order');
