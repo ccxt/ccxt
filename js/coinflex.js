@@ -1981,6 +1981,7 @@ module.exports = class coinflex extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market (symbol);
+        this.checkOrderTypeAndPrice (market, type, side, amount, price);
         const [ request, query ] = await this.buildOrderRequest (market, type, side, amount, price, params);
         const response = await this.privatePostV2OrdersPlace (this.extend (request, query));
         //
