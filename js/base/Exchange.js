@@ -1642,9 +1642,15 @@ module.exports = class Exchange {
 
     async editOrder (id, symbol, ...args) {
         if (!this.enableRateLimit) {
-            throw new ExchangeError (this.id + ' editOrder() requires enableRateLimit = true')
+            if (!this.safeValue (this.options,'bypassEditOrderRateLimiter', false)) {
+                throw new ExchangeError (this.id + ' editOrder() by default requires enableRateLimit = true. Alternatively, you can set exchange.options["bypassEditOrderRateLimiter"] = true to call this method');
+            }
         }
-        await this.cancelOrder (id, symbol);
+        if (this.has['cancelOrder']) {
+            await this.cancelOrder (id, symbol);
+        } else {
+            throw new NotSupported (this.id + ' editOrder() can not be emulated with this exchange, as it does not have a cancelOrder() method');
+        }
         return this.createOrder (symbol, ...args)
     }
 
