@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
+use \ccxt\BadSymbol;
 use \ccxt\OrderNotFound;
 use \ccxt\Precise;
 
@@ -49,6 +50,7 @@ class phemex extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchFundingRate' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
@@ -2783,6 +2785,87 @@ class phemex extends Exchange {
             'side' => $side,
             'hedged' => false,
             'percentage' => $this->parse_number($percentage),
+        );
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = yield $this->v1GetMdTicker24hr (array_merge($request, $params));
+        //
+        //     {
+        //         "error" => null,
+        //         "id" => 0,
+        //         "result" => {
+        //             "askEp" => 2332500,
+        //             "bidEp" => 2331000,
+        //             "fundingRateEr" => 10000,
+        //             "highEp" => 2380000,
+        //             "indexEp" => 2329057,
+        //             "lastEp" => 2331500,
+        //             "lowEp" => 2274000,
+        //             "markEp" => 2329232,
+        //             "openEp" => 2337500,
+        //             "openInterest" => 1298050,
+        //             "predFundingRateEr" => 19921,
+        //             "symbol" => "ETHUSD",
+        //             "timestamp" => 1592474241582701416,
+        //             "turnoverEv" => 47228362330,
+        //             "volume" => 4053863
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_funding_rate($result, $market);
+    }
+
+    public function parse_funding_rate($contract, $market = null) {
+        //
+        //     {
+        //         "askEp" => 2332500,
+        //         "bidEp" => 2331000,
+        //         "fundingRateEr" => 10000,
+        //         "highEp" => 2380000,
+        //         "indexEp" => 2329057,
+        //         "lastEp" => 2331500,
+        //         "lowEp" => 2274000,
+        //         "markEp" => 2329232,
+        //         "openEp" => 2337500,
+        //         "openInterest" => 1298050,
+        //         "predFundingRateEr" => 19921,
+        //         "symbol" => "ETHUSD",
+        //         "timestamp" => 1592474241582701416,
+        //         "turnoverEv" => 47228362330,
+        //         "volume" => 4053863
+        //     }
+        //
+        $marketId = $this->safe_string($contract, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $timestamp = $this->safe_integer_product($contract, 'timestamp', 0.000001);
+        return array(
+            'info' => $contract,
+            'symbol' => $symbol,
+            'markPrice' => $this->from_ep($this->safe_string($contract, 'markEp'), $market),
+            'indexPrice' => $this->from_ep($this->safe_string($contract, 'indexEp'), $market),
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'fundingRate' => $this->from_er($this->safe_string($contract, 'fundingRateEr'), $market),
+            'fundingTimestamp' => null,
+            'fundingDatetime' => null,
+            'nextFundingRate' => $this->from_er($this->safe_string($contract, 'predFundingRateEr'), $market),
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
         );
     }
 
