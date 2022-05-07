@@ -1137,54 +1137,115 @@ class bybit(Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
+        # spot
         #
-        # fetchTicker
+        #    {
+        #        "time": "1651743420061",
+        #        "symbol": "BTCUSDT",
+        #        "bestBidPrice": "39466.75",
+        #        "bestAskPrice": "39466.83",
+        #        "volume": "4396.082921",
+        #        "quoteVolume": "172664909.03216557",
+        #        "lastPrice": "39466.71",
+        #        "highPrice": "40032.79",
+        #        "lowPrice": "38602.39",
+        #        "openPrice": "39031.53"
+        #    }
         #
+        # linear usdt/ inverse swap and future
         #     {
-        #         symbol: 'BTCUSD',
-        #         bid_price: '7680',
-        #         ask_price: '7680.5',
-        #         last_price: '7680.00',
-        #         last_tick_direction: 'MinusTick',
-        #         prev_price_24h: '7870.50',
-        #         price_24h_pcnt: '-0.024204',
-        #         high_price_24h: '8035.00',
-        #         low_price_24h: '7671.00',
-        #         prev_price_1h: '7780.00',
-        #         price_1h_pcnt: '-0.012853',
-        #         mark_price: '7683.27',
-        #         index_price: '7682.74',
-        #         open_interest: 188829147,
-        #         open_value: '23670.06',
-        #         total_turnover: '25744224.90',
-        #         turnover_24h: '102997.83',
-        #         total_volume: 225448878806,
-        #         volume_24h: 809919408,
-        #         funding_rate: '0.0001',
-        #         predicted_funding_rate: '0.0001',
-        #         next_funding_time: '2020-03-12T00:00:00Z',
-        #         countdown_hour: 7
+        #         "symbol": "BTCUSDT",
+        #         "bid_price": "39458",
+        #         "ask_price": "39458.5",
+        #         "last_price": "39458.00",
+        #         "last_tick_direction": "ZeroMinusTick",
+        #         "prev_price_24h": "39059.50",
+        #         "price_24h_pcnt": "0.010202",
+        #         "high_price_24h": "40058.50",
+        #         "low_price_24h": "38575.50",
+        #         "prev_price_1h": "39534.00",
+        #         "price_1h_pcnt": "-0.001922",
+        #         "mark_price": "39472.49",
+        #         "index_price": "39469.81",
+        #         "open_interest": "28343.61",
+        #         "open_value": "0.00",
+        #         "total_turnover": "85303326477.54",
+        #         "turnover_24h": "4221589085.06",
+        #         "total_volume": "30628792.45",
+        #         "volume_24h": "107569.75",
+        #         "funding_rate": "0.0001",
+        #         "predicted_funding_rate": "0.0001",
+        #         "next_funding_time": "2022-05-05T16:00:00Z",
+        #         "countdown_hour": "7",
+        #         "delivery_fee_rate": "",
+        #         "predicted_delivery_price": "",
+        #         "delivery_time": ""
         #     }
         #
-        timestamp = None
+        # usdc option/ swap
+        #     {
+        #          "symbol": "BTC-30SEP22-400000-C",
+        #          "bid": "0",
+        #          "bidIv": "0",
+        #          "bidSize": "0",
+        #          "ask": "15",
+        #          "askIv": "1.1234",
+        #          "askSize": "0.01",
+        #          "lastPrice": "5",
+        #          "openInterest": "0.03",
+        #          "indexPrice": "39458.6",
+        #          "markPrice": "0.51901394",
+        #          "markPriceIv": "0.9047",
+        #          "change24h": "0",
+        #          "high24h": "0",
+        #          "low24h": "0",
+        #          "volume24h": "0",
+        #          "turnover24h": "0",
+        #          "totalVolume": "1",
+        #          "totalTurnover": "4",
+        #          "predictedDeliveryPrice": "0",
+        #          "underlyingPrice": "40129.73",
+        #          "delta": "0.00010589",
+        #          "gamma": "0.00000002",
+        #          "vega": "0.10670892",
+        #          "theta": "-0.03262827"
+        #      }
+        #
+        timestamp = self.safe_integer(ticker, 'time')
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_string(ticker, 'last_price')
-        open = self.safe_string(ticker, 'prev_price_24h')
-        percentage = self.safe_string(ticker, 'price_24h_pcnt')
+        last = self.safe_string_2(ticker, 'last_price', 'lastPrice')
+        open = self.safe_string_2(ticker, 'prev_price_24h', 'openPrice')
+        percentage = self.safe_string_2(ticker, 'price_24h_pcnt', 'change24h')
         percentage = Precise.string_mul(percentage, '100')
-        baseVolume = self.safe_string(ticker, 'turnover_24h')
-        quoteVolume = self.safe_string(ticker, 'volume_24h')
+        baseVolume = self.safe_string_2(ticker, 'turnover_24h', 'turnover24h')
+        if baseVolume is None:
+            baseVolume = self.safe_string(ticker, 'volume')
+        quoteVolume = self.safe_string_2(ticker, 'volume_24h', 'volume24h')
+        if quoteVolume is None:
+            quoteVolume = self.safe_string(ticker, 'quoteVolume')
+        bid = self.safe_string_2(ticker, 'bid_price', 'bid')
+        if bid is None:
+            bid = self.safe_string(ticker, 'bestBidPrice')
+        ask = self.safe_string_2(ticker, 'ask_price', 'ask')
+        if ask is None:
+            ask = self.safe_string(ticker, 'bestAskPrice')
+        high = self.safe_string_2(ticker, 'high_price_24h', 'high24h')
+        if high is None:
+            high = self.safe_string(ticker, 'highPrice')
+        low = self.safe_string_2(ticker, 'low_price_24h', 'low24h')
+        if low is None:
+            low = self.safe_string(ticker, 'lowPrice')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_string(ticker, 'high_price_24h'),
-            'low': self.safe_string(ticker, 'low_price_24h'),
-            'bid': self.safe_string(ticker, 'bid_price'),
-            'bidVolume': None,
-            'ask': self.safe_string(ticker, 'ask_price'),
-            'askVolume': None,
+            'high': high,
+            'low': low,
+            'bid': bid,
+            'bidVolume': self.safe_string(ticker, 'bidSize'),
+            'ask': ask,
+            'askVolume': self.safe_string(ticker, 'askSize'),
             'vwap': None,
             'open': open,
             'close': last,
@@ -1201,10 +1262,23 @@ class bybit(Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        method = None
+        isUsdcSettled = (market['option']) or (market['settle'] == 'USD')
+        if market['spot']:
+            method = 'publicGetSpotQuoteV1Ticker24hr'
+        elif not isUsdcSettled:
+            # inverse perpetual  # usdt linear  # inverse futures
+            method = 'publicGetV2PublicTickers'
+        elif market['option']:
+            # usdc option
+            method = 'publicGetOptionUsdcOpenapiPublicV1Tick'
+        else:
+            # usdc swap
+            method = 'publicGetPerpetualUsdcOpenapiPublicV1Tick'
         request = {
             'symbol': market['id'],
         }
-        response = await self.publicGetV2PublicTickers(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         ret_code: 0,
@@ -1240,54 +1314,73 @@ class bybit(Exchange):
         #         ],
         #         time_now: '1583948195.818255'
         #     }
+        #  usdc ticker
+        #     {
+        #         "retCode": 0,
+        #           "retMsg": "SUCCESS",
+        #           "result": {
+        #                  "symbol": "BTC-28JAN22-250000-C",
+        #                    "bid": "0",
+        #                    "bidIv": "0",
+        #                    "bidSize": "0",
+        #                    "ask": "0",
+        #                    "askIv": "0",
+        #                    "askSize": "0",
+        #                    "lastPrice": "0",
+        #                    "openInterest": "0",
+        #                    "indexPrice": "56171.79000000",
+        #                    "markPrice": "12.72021285",
+        #                    "markPriceIv": "1.1701",
+        #                    "change24h": "0",
+        #                    "high24h": "0",
+        #                    "low24h": "0",
+        #                    "volume24h": "0",
+        #                    "turnover24h": "0",
+        #                    "totalVolume": "0",
+        #                    "totalTurnover": "0",
+        #                    "predictedDeliveryPrice": "0",
+        #                    "underlyingPrice": "57039.61000000",
+        #                    "delta": "0.00184380",
+        #                    "gamma": "0.00000022",
+        #                    "vega": "1.35132531",
+        #                    "theta": "-1.33819821"
+        #          }
+        #     }
         #
         result = self.safe_value(response, 'result', [])
-        first = self.safe_value(result, 0)
-        timestamp = self.safe_timestamp(response, 'time_now')
-        ticker = self.parse_ticker(first, market)
-        ticker['timestamp'] = timestamp
-        ticker['datetime'] = self.iso8601(timestamp)
+        rawTicker = None
+        if isinstance(result, list):
+            rawTicker = self.safe_value(result, 0)
+        else:
+            rawTicker = result
+        ticker = self.parse_ticker(rawTicker, market)
         return ticker
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        response = await self.publicGetV2PublicTickers(params)
-        #
-        #     {
-        #         ret_code: 0,
-        #         ret_msg: 'OK',
-        #         ext_code: '',
-        #         ext_info: '',
-        #         result: [
-        #             {
-        #                 symbol: 'BTCUSD',
-        #                 bid_price: '7680',
-        #                 ask_price: '7680.5',
-        #                 last_price: '7680.00',
-        #                 last_tick_direction: 'MinusTick',
-        #                 prev_price_24h: '7870.50',
-        #                 price_24h_pcnt: '-0.024204',
-        #                 high_price_24h: '8035.00',
-        #                 low_price_24h: '7671.00',
-        #                 prev_price_1h: '7780.00',
-        #                 price_1h_pcnt: '-0.012853',
-        #                 mark_price: '7683.27',
-        #                 index_price: '7682.74',
-        #                 open_interest: 188829147,
-        #                 open_value: '23670.06',
-        #                 total_turnover: '25744224.90',
-        #                 turnover_24h: '102997.83',
-        #                 total_volume: 225448878806,
-        #                 volume_24h: 809919408,
-        #                 funding_rate: '0.0001',
-        #                 predicted_funding_rate: '0.0001',
-        #                 next_funding_time: '2020-03-12T00:00:00Z',
-        #                 countdown_hour: 7
-        #             }
-        #         ],
-        #         time_now: '1583948195.818255'
-        #     }
-        #
+        type = None
+        market = None
+        isUsdcSettled = None
+        if symbols is not None:
+            symbol = self.safe_value(symbols, 0)
+            market = self.market(symbol)
+            type = market['type']
+            isUsdcSettled = market['option'] or (market['settle'] == 'USD')
+        else:
+            type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+            if type != 'spot':
+                isUsdcSettled = self.safe_value(self.options, 'isUsdcSettled', False)
+                isUsdcSettled = self.safe_value(params, 'isUsdcSettled', isUsdcSettled)
+                params = self.omit(params, 'isUsdcSettled')
+        method = None
+        if type == 'spot':
+            method = 'publicGetSpotQuoteV1Ticker24hr'
+        elif not isUsdcSettled:
+            # inverse perpetual  # usdt linear  # inverse futures
+            method = 'publicGetV2PublicTickers'
+        else:
+            raise NotSupported(self.id + ' fetchTickers() is not supported for USDC markets')
+        response = await getattr(self, method)(params)
         result = self.safe_value(response, 'result', [])
         tickers = {}
         for i in range(0, len(result)):
