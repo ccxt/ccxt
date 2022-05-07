@@ -257,7 +257,7 @@ module.exports = class bit2c extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const method = this.options['fetchTradesMethod'];
+        const method = this.options['fetchTradesMethod']; // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
         const request = {
             'pair': market['id'],
         };
@@ -268,6 +268,13 @@ module.exports = class bit2c extends Exchange {
             request['limit'] = limit; // max 100000
         }
         const response = await this[method] (this.extend (request, params));
+        //
+        //     [
+        //         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
+        //         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
+        //         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
+        //     ]
+        //
         if (typeof response === 'string') {
             throw new ExchangeError (response);
         }
@@ -415,10 +422,79 @@ module.exports = class bit2c extends Exchange {
             request['pair'] = market['id'];
         }
         const response = await this.privateGetOrderOrderHistory (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "ticks":1574767951,
+        //             "created":"26/11/19 13:32",
+        //             "action":1,
+        //             "price":"1000",
+        //             "pair":"EthNis",
+        //             "reference":"EthNis|10867390|10867377",
+        //             "fee":"0.5",
+        //             "feeAmount":"0.08",
+        //             "feeCoin":"₪",
+        //             "firstAmount":"-0.015",
+        //             "firstAmountBalance":"9",
+        //             "secondAmount":"14.93",
+        //             "secondAmountBalance":"130,233.28",
+        //             "firstCoin":"ETH",
+        //             "secondCoin":"₪"
+        //         },
+        //         {
+        //             "ticks":1574767951,
+        //             "created":"26/11/19 13:32",
+        //             "action":0,
+        //             "price":"1000",
+        //             "pair":"EthNis",
+        //             "reference":"EthNis|10867390|10867377",
+        //             "fee":"0.5",
+        //             "feeAmount":"0.08",
+        //             "feeCoin":"₪",
+        //             "firstAmount":"0.015",
+        //             "firstAmountBalance":"9.015",
+        //             "secondAmount":"-15.08",
+        //             "secondAmountBalance":"130,218.35",
+        //             "firstCoin":"ETH",
+        //             "secondCoin":"₪"
+        //         }
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // public fetchTrades
+        //
+        //     {
+        //         "date":1651785980,
+        //         "price":127975.68,
+        //         "amount":0.3750321,
+        //         "isBid":true,
+        //         "tid":1261018
+        //     }
+        //
+        // private fetchMyTrades
+        //
+        //     {
+        //         "ticks":1574767951,
+        //         "created":"26/11/19 13:32",
+        //         "action":1,
+        //         "price":"1000",
+        //         "pair":"EthNis",
+        //         "reference":"EthNis|10867390|10867377",
+        //         "fee":"0.5",
+        //         "feeAmount":"0.08",
+        //         "feeCoin":"₪",
+        //         "firstAmount":"-0.015",
+        //         "firstAmountBalance":"9",
+        //         "secondAmount":"14.93",
+        //         "secondAmountBalance":"130,233.28",
+        //         "firstCoin":"ETH",
+        //         "secondCoin":"₪"
+        //     }
+        //
         let timestamp = undefined;
         let id = undefined;
         let price = undefined;
@@ -432,14 +508,9 @@ module.exports = class bit2c extends Exchange {
             price = this.safeString (trade, 'price');
             amount = this.safeString (trade, 'firstAmount');
             const reference_parts = reference.split ('|'); // reference contains 'pair|orderId|tradeId'
-            if (market === undefined) {
-                const marketId = this.safeString (trade, 'pair');
-                if (marketId in this.markets_by_id[marketId]) {
-                    market = this.markets_by_id[marketId];
-                } else if (reference_parts[0] in this.markets_by_id) {
-                    market = this.markets_by_id[reference_parts[0]];
-                }
-            }
+            const marketId = this.safeString (trade, 'pair');
+            market = this.safeMarket (marketId, market);
+            market = this.safeMarket (reference_parts[0], market);
             orderId = reference_parts[1];
             id = reference_parts[2];
             side = this.safeInteger (trade, 'action');
