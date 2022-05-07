@@ -2144,8 +2144,8 @@ module.exports = class coinflex extends Exchange {
         //         }
         //     }
         //
-        // Note: when fired without symbol, the 'data' object only contains a msg property with '{"msg":"All open orders for the account have been queued for cancellation"}'
-        // if there has been no orders pending, then data property will be null.
+        // Note1: when fired without symbol, the 'data' object only contains a msg property with '{"msg":"All open orders for the account have been queued for cancellation"}'
+        // Note2: if there has been no orders pending, then data property will be null.
         //
         return response;
     }
