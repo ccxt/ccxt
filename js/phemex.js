@@ -2774,7 +2774,7 @@ module.exports = class phemex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['swap']) {
-            throw new BadRequest ('Funding rates only exist for swap contracts');
+            throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request = {
             'symbol': market['id'],
