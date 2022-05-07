@@ -2292,7 +2292,6 @@ module.exports = class Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchMarketLeverageTiers() is not supported yet');
         }
-
     }
 
     isPostOnly (type, timeInForce, exchangeSpecificOption, params = {}) {

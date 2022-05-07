@@ -38,7 +38,7 @@ module.exports = class coinex extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
-                'fetchMarketLeverageTiers': false,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -2688,7 +2688,7 @@ module.exports = class coinex extends Exchange {
                 symbolsLength = symbols.length;
             }
             if (symbol !== undefined && (symbolsLength === 0 || symbols.includes (symbol))) {
-                tiers[marketId] = this.parseMarketLeverageTiers (response[marketId], market);
+                tiers[symbol] = this.parseMarketLeverageTiers (response[marketId], market);
             }
         }
         return tiers;
