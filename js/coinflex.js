@@ -1634,33 +1634,53 @@ module.exports = class coinflex extends Exchange {
             request['limit'] = limit;
         }
         request = this.setStartEndTimes (request, since);
-        const response = await this.privateGetV3Deposit (this.extend (request, params));
-        //
-        //     {
-        //         "success": true,
-        //         "data": [
-        //             {
-        //                 "id": "757475245433389059",
-        //                 "asset": "USDT",
-        //                 "network": "ERC20",
-        //                 "address": "0x5D561479d9665E490894822896c9c45Ea63007EE",
-        //                 "quantity": "28.33",
-        //                 "status": "COMPLETED",
-        //                 "txId": "0x6a92c8190b4b56a56fed2f9a8d0d7afd01843c28d0c0a8a5607b974b2fab8b4a",
-        //                 "creditedAt": "1651233499800"
-        //             }
-        //         ]
-        //     }
-        //
-        // Note, when there are no deposit records, you might get:
-        //
-        //     {
-        //         "success": false,
-        //         "code": "20001",
-        //         "message": "result not found, please check your parameters"
-        //     }
-        //
-        const data = this.safeValue (response, 'data', []);
+        let data = undefined;
+        try {
+            const response = await this.privateGetV3Deposit (this.extend (request, params));
+            //
+            //     {
+            //         "success": true,
+            //         "data": [
+            //             {
+            //                 "id": "757475245433389059",
+            //                 "asset": "USDT",
+            //                 "network": "ERC20",
+            //                 "address": "0x5D561479d9665E490894822896c9c45Ea63007EE",
+            //                 "quantity": "28.33",
+            //                 "status": "COMPLETED",
+            //                 "txId": "0x6a92c8190b4b56a56fed2f9a8d0d7afd01843c28d0c0a8a5607b974b2fab8b4a",
+            //                 "creditedAt": "1651233499800"
+            //             }
+            //         ]
+            //     }
+            //
+            // Note, when there are no deposit records, you might get:
+            //
+            //     {
+            //         "success": false,
+            //         "code": "20001",
+            //         "message": "result not found, please check your parameters"
+            //     }
+            //
+            data = this.safeValue (response, 'data', []);
+        } catch (e) {
+            //
+            // Note, when there are no deposit records, you might get:
+            //
+            //     {
+            //         "success": false,
+            //         "code": "20001", // the code is not documented, so might be different
+            //         "message": "result not found, please check your parameters"
+            //     }
+            //
+            if (this.last_json_response) {
+                const code = this.safeString (this.last_json_response, 'code');
+                const message = this.safeString (this.last_json_response, 'message');
+                if (code === '20001' || message.indexOf ('result not found') >= 0) {
+                    data = [];
+                }
+            }
+        }
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
