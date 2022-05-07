@@ -2117,6 +2117,11 @@ module.exports = class coinflex extends Exchange {
         return this.parseOrders (data, market);
     }
 
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        const orders = await this.cancelOrders ([ id ], symbol, params);
+        return this.safeValue (orders, 0);
+    }
+
     async cancelAllOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
