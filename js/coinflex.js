@@ -757,15 +757,20 @@ module.exports = class coinflex extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
-            // createOrder
-            'OPEN': 'open',
-            'FILLED': 'closed',
             // fetchOrders
             'OrderOpened': 'open',
             'OrderMatched': 'closed',
             'OrderClosed': 'canceled',
             // cancelOrder
             'CANCELED_BY_USER': 'canceled',
+            'CANCELED_ALL_BY_IOC': 'canceled',
+            'CANCELED_BY_MAKER_ONLY': 'canceled',
+            'CANCELED_BY_FOK': 'canceled',
+            'CANCELED_PARTIAL_BY_IOC': 'canceled',
+            'CANCELED_BY_AMEND': 'canceled',
+            // createOrder (during createOrder, cancelation statuses might also happen)
+            'OPEN': 'open',
+            'FILLED': 'closed',
         };
         return this.safeString (statuses, status, status);
     }
