@@ -2937,7 +2937,7 @@ class Exchange(object):
     def check_order_type_and_price(self, type, price):
         if price == None:
             if type == 'limit':
-                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for a limit order')
+                raise ArgumentsRequired(self.id + ' create_order() requires a price argument for a limit order')
 
     def parse_borrow_interests(self, response, market=None):
         interest = []
