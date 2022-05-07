@@ -2934,7 +2934,7 @@ class Exchange(object):
         query = self.extend(params, {'stopPrice': stopPrice})
         return self.create_order(symbol, 'market', side, amount, None, query)
 
-    def check_order_type_and_price(self, symbol, type, price, amount):
+    def check_order_type_and_price(self, market, type, side, amount, price):
         if price == None:
             if type == 'limit':
                 raise ArgumentsRequired(self.id + ' create_order() requires a price argument for a limit order')
