@@ -33,6 +33,7 @@ class phemex extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
@@ -1853,6 +1854,7 @@ class phemex extends Exchange {
         $market = $this->market($symbol);
         $side = $this->capitalize($side);
         $type = $this->capitalize($type);
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
         $request = array(
             // common
             'symbol' => $market['id'],
@@ -1872,7 +1874,7 @@ class phemex extends Exchange {
             // 'clOrdID' => $this->uuid(), // max length 40
             // 'orderQty' => $this->amount_to_precision($amount, $symbol),
             // 'reduceOnly' => false,
-            // 'closeOnTrigger' => false, // implicit reduceOnly and cancel other orders in the same direction
+            // 'closeOnTrigger' => false, // implicit $reduceOnly and cancel other orders in the same direction
             // 'takeProfitEp' => $this->to_ep(takeProfit, $market),
             // 'stopLossEp' => $this->to_ep(stopLossEp, $market),
             // 'triggerType' => 'ByMarkPrice', // ByMarkPrice, ByLastPrice
@@ -1921,6 +1923,9 @@ class phemex extends Exchange {
                 $request['baseQtyEv'] = $this->to_ev($amountString, $market);
             }
         } else if ($market['swap']) {
+            if ($reduceOnly !== null) {
+                $request['reduceOnly'] = $reduceOnly;
+            }
             $request['orderQty'] = intval($amount);
             if ($stopPrice !== null) {
                 $triggerType = $this->safe_string($params, 'triggerType', 'ByMarkPrice');
@@ -1942,6 +1947,7 @@ class phemex extends Exchange {
             $params = $this->omit($params, 'stopLossPrice');
         }
         $method = $market['spot'] ? 'privatePostSpotOrders' : 'privatePostOrders';
+        $params = $this->omit($params, 'reduceOnly');
         $response = $this->$method (array_merge($request, $params));
         //
         // spot
@@ -2021,6 +2027,13 @@ class phemex extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_order($data, $market);
+    }
+
+    public function create_reduce_only_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $request = array(
+            'reduceOnly' => true,
+        );
+        return $this->create_order($symbol, $type, $side, $amount, $price, array_merge($request, $params));
     }
 
     public function edit_order($id, $symbol, $type = null, $side = null, $amount = null, $price = null, $params = array ()) {

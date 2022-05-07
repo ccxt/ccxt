@@ -13,6 +13,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -506,6 +507,7 @@ class bybit(Exchange):
             'exceptions': {
                 'exact': {
                     '-2015': AuthenticationError,  # Invalid API-key, IP, or permissions for action.
+                    '-10009': BadRequest,  # {"ret_code":-10009,"ret_msg":"Invalid period!","result":null,"token":null}
                     '10001': BadRequest,  # parameter error
                     '10002': InvalidNonce,  # request expired, check your timestamp and recv_window
                     '10003': AuthenticationError,  # Invalid apikey
@@ -1324,8 +1326,48 @@ class bybit(Exchange):
         #         "close":7541
         #     }
         #
+        # usdc perpetual
+        #     {
+        #         "symbol":"BTCPERP",
+        #         "volume":"0.01",
+        #         "period":"1",
+        #         "openTime":"1636358160",
+        #         "open":"66001.50",
+        #         "high":"66001.50",
+        #         "low":"66001.50",
+        #         "close":"66001.50",
+        #         "turnover":"1188.02"
+        #     }
+        #
+        # spot
+        #     [
+        #         1651837620000,  # start tame
+        #         "35831.5",  # open
+        #         "35831.5",  # high
+        #         "35801.93",  # low
+        #         "35817.11",  # close
+        #         "1.23453",  # volume
+        #         0,  # end time
+        #         "44213.97591627",  # quote asset volume
+        #         24,  # number of trades
+        #         "0",  # taker base volume
+        #         "0"  # taker quote volume
+        #     ]
+        #
+        if isinstance(ohlcv, list):
+            return [
+                self.safe_number(ohlcv, 0),
+                self.safe_number(ohlcv, 1),
+                self.safe_number(ohlcv, 2),
+                self.safe_number(ohlcv, 3),
+                self.safe_number(ohlcv, 4),
+                self.safe_number(ohlcv, 5),
+            ]
+        timestamp = self.safe_timestamp_2(ohlcv, 'open_time', 'openTime')
+        if timestamp is None:
+            timestamp = self.safe_timestamp(ohlcv, 'start_at')
         return [
-            self.safe_timestamp_2(ohlcv, 'open_time', 'start_at'),
+            timestamp,
             self.safe_number(ohlcv, 'open'),
             self.safe_number(ohlcv, 'high'),
             self.safe_number(ohlcv, 'low'),
@@ -1340,28 +1382,58 @@ class bybit(Exchange):
         params = self.omit(params, 'price')
         request = {
             'symbol': market['id'],
-            'interval': self.timeframes[timeframe],
         }
         duration = self.parse_timeframe(timeframe)
         now = self.seconds()
+        sinceTimestamp = None
         if since is None:
             if limit is None:
                 raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument or a limit argument')
             else:
-                request['from'] = now - limit * duration
+                sinceTimestamp = now - limit * duration
         else:
-            request['from'] = int(since / 1000)
+            sinceTimestamp = int(since / 1000)
         if limit is not None:
             request['limit'] = limit  # max 200, default 200
-        method = 'publicGetV2PublicKlineList'
-        if price == 'mark':
-            method = 'publicGetV2PublicMarkPriceKline'
-        elif price == 'index':
-            method = 'publicGetV2PublicIndexPriceKline'
-        elif price == 'premiumIndex':
-            method = 'publicGetV2PublicPremiumIndexKline'
-        elif market['linear']:
-            method = 'publicGetPublicLinearKline'
+        method = None
+        intervalKey = 'interval'
+        sinceKey = 'from'
+        isUsdcSettled = (market['option']) or (market['settle'] == 'USD')
+        if market['spot']:
+            method = 'publicGetSpotQuoteV1Kline'
+        elif market['contract'] and not isUsdcSettled:
+            if market['linear']:
+                # linear swaps/futures
+                methods = {
+                    'mark': 'publicGetPublicLinearMarkPriceKline',
+                    'index': 'publicGetPublicLinearIndexPriceKline',
+                    'premium': 'publicGetPublicLinearPremiumIndexKline',
+                }
+                method = self.safe_value(methods, price, 'publicGetPublicLinearKline')
+            else:
+                # inverse swaps/ futures
+                methods = {
+                    'mark': 'publicGetV2PublicMarkPriceKline',
+                    'index': 'publicGetV2PublicIndexPriceKline',
+                    'premium': 'publicGetV2PublicPremiumPriceKline',
+                }
+                method = self.safe_value(methods, price, 'publicGetV2PublicKlineList')
+        else:
+            # usdc markets
+            if market['option']:
+                raise NotSupported(self.id + ' fetchOHLCV() is not supported for USDC options markets')
+            intervalKey = 'period'
+            sinceKey = 'startTime'
+            methods = {
+                'mark': 'publicGetPerpetualUsdcOpenapiPublicV1MarkPriceKline',
+                'index': 'publicGetPerpetualUsdcOpenapiPublicV1IndexPriceKline',
+                'premium': 'publicGetPerpetualUsdcOpenapiPublicV1PremiumPriceKline',
+            }
+            method = self.safe_value(methods, price, 'publicGetPerpetualUsdcOpenapiPublicV1KlineList')
+        # spot markets use the same interval format as ccxt
+        # so we don't need  to convert it
+        request[intervalKey] = timeframe if market['spot'] else self.timeframes[timeframe]
+        request[sinceKey] = sinceTimestamp
         response = getattr(self, method)(self.extend(request, params))
         #
         # inverse perpetual BTC/USD
@@ -1409,6 +1481,28 @@ class bybit(Exchange):
         #         ],
         #         "time_now":"1587884120.168077"
         #     }
+        # spot
+        #     {
+        #    "ret_code": "0",
+        #    "ret_msg": null,
+        #     "result": [
+        #         [
+        #             1651837620000,
+        #             "35831.5",
+        #             "35831.5",
+        #             "35801.93",
+        #             "35817.11",
+        #             "1.23453",
+        #             0,
+        #             "44213.97591627",
+        #             24,
+        #             "0",
+        #             "0"
+        #         ]
+        #     ],
+        #     "ext_code": null,
+        #     "ext_info": null
+        # }
         #
         result = self.safe_value(response, 'result', {})
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
