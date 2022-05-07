@@ -1669,7 +1669,7 @@ module.exports = class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const isUsdcSettled = (market['option']) || (market['settle'] === 'USD');
+        const isUsdcSettled = market['settle'] === 'USDC';
         let method = undefined;
         if (market['spot']) {
             method = 'publicGetSpotQuoteV1Depth';
