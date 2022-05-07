@@ -44,6 +44,7 @@ class phemex(Exchange):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
@@ -1797,6 +1798,7 @@ class phemex(Exchange):
         market = self.market(symbol)
         side = self.capitalize(side)
         type = self.capitalize(type)
+        reduceOnly = self.safe_value(params, 'reduceOnly')
         request = {
             # common
             'symbol': market['id'],
@@ -1857,6 +1859,8 @@ class phemex(Exchange):
                 amountString = str(amount)
                 request['baseQtyEv'] = self.to_ev(amountString, market)
         elif market['swap']:
+            if reduceOnly is not None:
+                request['reduceOnly'] = reduceOnly
             request['orderQty'] = int(amount)
             if stopPrice is not None:
                 triggerType = self.safe_string(params, 'triggerType', 'ByMarkPrice')
@@ -1873,6 +1877,7 @@ class phemex(Exchange):
             request['stopLossEp'] = self.to_ep(stopLossPrice, market)
             params = self.omit(params, 'stopLossPrice')
         method = 'privatePostSpotOrders' if market['spot'] else 'privatePostOrders'
+        params = self.omit(params, 'reduceOnly')
         response = getattr(self, method)(self.extend(request, params))
         #
         # spot
@@ -1952,6 +1957,12 @@ class phemex(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
+
+    def create_reduce_only_order(self, symbol, type, side, amount, price=None, params={}):
+        request = {
+            'reduceOnly': True,
+        }
+        return self.create_order(symbol, type, side, amount, price, self.extend(request, params))
 
     def edit_order(self, id, symbol, type=None, side=None, amount=None, price=None, params={}):
         if symbol is None:
