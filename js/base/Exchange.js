@@ -2360,6 +2360,14 @@ module.exports = class Exchange {
         return this.createOrder(symbol, 'market', side, amount, undefined, query);
     }
 
+    checkOrderTypeAndPrice (type, price) {
+        if (type === 'limit') {
+            if (price === undefined) {
+                  throw new ArgumentRequired (this.id + ' createOrder() requires a price argument for a limit order');
+             }
+        }
+    }
+
     parseBorrowInterests (response, market = undefined) {
         const interest = [];
         for (let i = 0; i < response.length; i++) {
