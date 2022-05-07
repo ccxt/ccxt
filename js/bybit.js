@@ -1072,8 +1072,8 @@ module.exports = class bybit extends Exchange {
             let strike = undefined;
             let optionType = undefined;
             if (settle === undefined) {
-                settleId = quoteId;
-                settle = this.safeCurrencyCode (settleId);
+                settleId = 'USDC';
+                settle = 'USDC';
             }
             symbol = symbol + ':' + settle;
             if (option) {
