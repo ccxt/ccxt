@@ -1788,7 +1788,8 @@ module.exports = class phemex extends Exchange {
         //         "pegOffsetValueEp":0,
         //         "execStatus":"PendingNew",
         //         "pegPriceType":"UNSPECIFIED",
-        //         "ordStatus":"Created"
+        //         "ordStatus":"Created",
+        //         "execInst": "ReduceOnly"
         //     }
         //
         const id = this.safeString (order, 'orderID');
