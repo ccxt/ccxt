@@ -24,9 +24,10 @@ module.exports = class phemex extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': undefined, // has but not fully implemented
+                'swap': true,
                 'future': false,
                 'option': false,
+                'addMargin': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -44,8 +45,15 @@ module.exports = class phemex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': true,
+                'fetchFundingRate': undefined,
+                'fetchFundingRates': false,
+                'fetchFundingRateHistories': false,
+                'fetchFundingRateHistory': false,
                 'fetchIndexOHLCV': false,
+                'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -55,13 +63,17 @@ module.exports = class phemex extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPositions': true,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
+                'reduceMargin': undefined,
                 'setLeverage': true,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'transfer': true,
                 'withdraw': undefined,
             },
@@ -134,6 +146,7 @@ module.exports = class phemex extends Exchange {
                         // swap
                         'accounts/accountPositions', // ?currency=<currency>
                         'accounts/positions', // ?currency=<currency>
+                        'api-data/futures/funding-fees', // ?symbol=<symbol>
                         'orders/activeList', // ?symbol=<symbol>
                         'exchange/order/list', // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
                         'exchange/order', // ?symbol=<symbol>&orderID=<orderID1,orderID2>
@@ -2767,6 +2780,65 @@ module.exports = class phemex extends Exchange {
             'hedged': false,
             'percentage': this.parseNumber (percentage),
         };
+    }
+
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            // 'limit': 20, // Page size default 20, max 200
+            // 'offset': 0, // Page start default 0
+        };
+        if (limit > 200) {
+            throw new BadRequest (this.id + ' fetchFundingHistory() limit argument cannot exceed 200');
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetApiDataFuturesFundingFees (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "OK",
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "symbol": "BTCUSD",
+        //                     "currency": "BTC",
+        //                     "execQty": 18,
+        //                     "side": "Buy",
+        //                     "execPriceEp": 360086455,
+        //                     "execValueEv": 49987,
+        //                     "fundingRateEr": 10000,
+        //                     "feeRateEr": 10000,
+        //                     "execFeeEv": 5,
+        //                     "createTime": 1651881600000
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const rows = this.safeValue (data, 'rows', []);
+        const result = [];
+        for (let i = 0; i < rows.length; i++) {
+            const entry = rows[i];
+            const timestamp = this.safeInteger (entry, 'createTime');
+            result.push ({
+                'info': entry,
+                'symbol': this.safeString (entry, 'symbol'),
+                'code': this.safeCurrencyCode (this.safeString (entry, 'currency')),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'id': undefined,
+                'amount': this.fromEv (this.safeString (entry, 'execFeeEv'), market),
+            });
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
