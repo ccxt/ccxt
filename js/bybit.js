@@ -638,7 +638,7 @@ module.exports = class bybit extends Exchange {
                 'recvWindow': 5 * 1000, // 5 sec default
                 'timeDifference': 0, // the difference between system clock and exchange server clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
-                'defaultSettle': 'USDC',
+                'defaultSettle': 'USDT', // USDC for USDC settled markets
             },
             'fees': {
                 'trading': {
@@ -1388,7 +1388,7 @@ module.exports = class bybit extends Exchange {
         } else {
             [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
             if (type !== 'spot') {
-                let defaultSettle = this.safeString (this.options, 'defaultSettle', 'USDC');
+                let defaultSettle = this.safeString (this.options, 'defaultSettle', 'USDT');
                 defaultSettle = this.safeString2 (params, 'settle', 'defaultSettle', isUsdcSettled);
                 params = this.omit (params, [ 'settle', 'defaultSettle' ]);
                 isUsdcSettled = defaultSettle === 'USDC';
