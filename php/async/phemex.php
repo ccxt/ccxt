@@ -29,7 +29,7 @@ class phemex extends Exchange {
                 'CORS' => null,
                 'spot' => true,
                 'margin' => false,
-                'swap' => null, // has but not fully implemented
+                'swap' => true,
                 'future' => false,
                 'option' => false,
                 'cancelAllOrders' => true,
@@ -50,8 +50,13 @@ class phemex extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
+                'fetchFundingRateHistories' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
@@ -62,6 +67,7 @@ class phemex extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPositions' => true,
+                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
@@ -69,6 +75,7 @@ class phemex extends Exchange {
                 'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
+                'setPositionMode' => false,
                 'transfer' => true,
                 'withdraw' => null,
             ),
@@ -141,6 +148,7 @@ class phemex extends Exchange {
                         // swap
                         'accounts/accountPositions', // ?currency=<currency>
                         'accounts/positions', // ?currency=<currency>
+                        'api-data/futures/funding-fees', // ?symbol=<symbol>
                         'orders/activeList', // ?symbol=<symbol>
                         'exchange/order/list', // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
                         'exchange/order', // ?symbol=<symbol>&orderID=<orderID1,orderID2>
@@ -2787,6 +2795,65 @@ class phemex extends Exchange {
             'hedged' => false,
             'percentage' => $this->parse_number($percentage),
         );
+    }
+
+    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            // 'limit' => 20, // Page size default 20, max 200
+            // 'offset' => 0, // Page start default 0
+        );
+        if ($limit > 200) {
+            throw new BadRequest($this->id . ' fetchFundingHistory() $limit argument cannot exceed 200');
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = yield $this->privateGetApiDataFuturesFundingFees (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "OK",
+        //         "data" => {
+        //             "rows" => array(
+        //                 {
+        //                     "symbol" => "BTCUSD",
+        //                     "currency" => "BTC",
+        //                     "execQty" => 18,
+        //                     "side" => "Buy",
+        //                     "execPriceEp" => 360086455,
+        //                     "execValueEv" => 49987,
+        //                     "fundingRateEr" => 10000,
+        //                     "feeRateEr" => 10000,
+        //                     "execFeeEv" => 5,
+        //                     "createTime" => 1651881600000
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $rows = $this->safe_value($data, 'rows', array());
+        $result = array();
+        for ($i = 0; $i < count($rows); $i++) {
+            $entry = $rows[$i];
+            $timestamp = $this->safe_integer($entry, 'createTime');
+            $result[] = array(
+                'info' => $entry,
+                'symbol' => $this->safe_string($entry, 'symbol'),
+                'code' => $this->safe_currency_code($this->safe_string($entry, 'currency')),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'id' => null,
+                'amount' => $this->from_ev($this->safe_string($entry, 'execFeeEv'), $market),
+            );
+        }
+        return $result;
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {

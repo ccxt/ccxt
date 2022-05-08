@@ -38,7 +38,7 @@ class phemex(Exchange):
                 'CORS': None,
                 'spot': True,
                 'margin': False,
-                'swap': None,  # has but not fully implemented
+                'swap': True,
                 'future': False,
                 'option': False,
                 'cancelAllOrders': True,
@@ -59,8 +59,13 @@ class phemex(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': True,
                 'fetchFundingRate': True,
+                'fetchFundingRateHistories': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
@@ -71,6 +76,7 @@ class phemex(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPositions': True,
+                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
@@ -78,6 +84,7 @@ class phemex(Exchange):
                 'fetchTradingFees': False,
                 'fetchWithdrawals': True,
                 'setLeverage': True,
+                'setPositionMode': False,
                 'transfer': True,
                 'withdraw': None,
             },
@@ -150,6 +157,7 @@ class phemex(Exchange):
                         # swap
                         'accounts/accountPositions',  # ?currency=<currency>
                         'accounts/positions',  # ?currency=<currency>
+                        'api-data/futures/funding-fees',  # ?symbol=<symbol>
                         'orders/activeList',  # ?symbol=<symbol>
                         'exchange/order/list',  # ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
                         'exchange/order',  # ?symbol=<symbol>&orderID=<orderID1,orderID2>
@@ -2660,6 +2668,60 @@ class phemex(Exchange):
             'hedged': False,
             'percentage': self.parse_number(percentage),
         }
+
+    async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            # 'limit': 20,  # Page size default 20, max 200
+            # 'offset': 0,  # Page start default 0
+        }
+        if limit > 200:
+            raise BadRequest(self.id + ' fetchFundingHistory() limit argument cannot exceed 200')
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.privateGetApiDataFuturesFundingFees(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "OK",
+        #         "data": {
+        #             "rows": [
+        #                 {
+        #                     "symbol": "BTCUSD",
+        #                     "currency": "BTC",
+        #                     "execQty": 18,
+        #                     "side": "Buy",
+        #                     "execPriceEp": 360086455,
+        #                     "execValueEv": 49987,
+        #                     "fundingRateEr": 10000,
+        #                     "feeRateEr": 10000,
+        #                     "execFeeEv": 5,
+        #                     "createTime": 1651881600000
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        rows = self.safe_value(data, 'rows', [])
+        result = []
+        for i in range(0, len(rows)):
+            entry = rows[i]
+            timestamp = self.safe_integer(entry, 'createTime')
+            result.append({
+                'info': entry,
+                'symbol': self.safe_string(entry, 'symbol'),
+                'code': self.safe_currency_code(self.safe_string(entry, 'currency')),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'id': None,
+                'amount': self.from_ev(self.safe_string(entry, 'execFeeEv'), market),
+            })
+        return result
 
     async def fetch_funding_rate(self, symbol, params={}):
         await self.load_markets()
