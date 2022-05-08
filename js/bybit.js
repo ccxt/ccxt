@@ -638,6 +638,7 @@ module.exports = class bybit extends Exchange {
                 'recvWindow': 5 * 1000, // 5 sec default
                 'timeDifference': 0, // the difference between system clock and exchange server clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
+                'defaultSettle': 'USDT', // USDC for USDC settled markets
             },
             'fees': {
                 'trading': {
@@ -1073,8 +1074,8 @@ module.exports = class bybit extends Exchange {
             let strike = undefined;
             let optionType = undefined;
             if (settle === undefined) {
-                settleId = quoteId;
-                settle = this.safeCurrencyCode (settleId);
+                settleId = 'USDC';
+                settle = 'USDC';
             }
             symbol = symbol + ':' + settle;
             if (option) {
@@ -1278,7 +1279,7 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let method = undefined;
-        const isUsdcSettled = (market['option']) || (market['settle'] === 'USD');
+        const isUsdcSettled = market['settle'] === 'USDC';
         if (market['spot']) {
             method = 'publicGetSpotQuoteV1Ticker24hr';
         } else if (!isUsdcSettled) {
@@ -1383,13 +1384,14 @@ module.exports = class bybit extends Exchange {
             const symbol = this.safeValue (symbols, 0);
             market = this.market (symbol);
             type = market['type'];
-            isUsdcSettled = market['option'] || (market['settle'] === 'USD');
+            isUsdcSettled = market['settle'] === 'USDC';
         } else {
             [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
             if (type !== 'spot') {
-                isUsdcSettled = this.safeValue (this.options, 'isUsdcSettled', false);
-                isUsdcSettled = this.safeValue (params, 'isUsdcSettled', isUsdcSettled);
-                params = this.omit (params, 'isUsdcSettled');
+                let defaultSettle = this.safeString (this.options, 'defaultSettle', 'USDT');
+                defaultSettle = this.safeString2 (params, 'settle', 'defaultSettle', isUsdcSettled);
+                params = this.omit (params, [ 'settle', 'defaultSettle' ]);
+                isUsdcSettled = defaultSettle === 'USDC';
             }
         }
         let method = undefined;
@@ -1520,7 +1522,7 @@ module.exports = class bybit extends Exchange {
         let method = undefined;
         let intervalKey = 'interval';
         let sinceKey = 'from';
-        const isUsdcSettled = (market['option']) || (market['settle'] === 'USD');
+        const isUsdcSettled = market['settle'] === 'USDC';
         if (market['spot']) {
             method = 'publicGetSpotQuoteV1Kline';
         } else if (market['contract'] && !isUsdcSettled) {
@@ -1873,7 +1875,7 @@ module.exports = class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const isUsdcSettled = (market['option']) || (market['settle'] === 'USD');
+        const isUsdcSettled = market['settle'] === 'USDC';
         if (market['type'] === 'spot') {
             method = 'publicGetSpotQuoteV1Trades';
         } else if (!isUsdcSettled) {
