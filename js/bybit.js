@@ -3438,17 +3438,9 @@ module.exports = class bybit extends Exchange {
                 const isOpenapi = url.indexOf ('openapi') >= 0;
                 const timestamp = this.milliseconds ();
                 if (isOpenapi) {
-                    const paramsLength = params.length;
-                    let query = {};
-                    if (paramsLength > 0) {
+                    let query = '';
+                    if (Object.keys (params).length) {
                         query = this.json (params);
-                    }
-                    // this is needed because in PHP
-                    // an empty object is converted to an array
-                    if (Array.isArray (query)) {
-                        query = '';
-                    } else {
-                        query = this.json (query);
                     }
                     body = query;
                     const payload = timestamp.toString () + this.apiKey + query;
