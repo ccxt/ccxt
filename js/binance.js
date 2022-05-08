@@ -41,7 +41,7 @@ module.exports = class binance extends Exchange {
                 'fetchBidsAsks': true,
                 'fetchBorrowInterest': true,
                 'fetchBorrowRate': true,
-                'fetchBorrowRateHistories': true,
+                'fetchBorrowRateHistories': undefined,
                 'fetchBorrowRateHistory': true,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
@@ -213,6 +213,7 @@ module.exports = class binance extends Exchange {
                         'margin/crossMarginData': { 'cost': 0.1, 'noCoin': 0.5 },
                         'margin/isolatedMarginData': { 'cost': 0.1, 'noCoin': 1 },
                         'margin/isolatedMarginTier': 0.1,
+                        'margin/rateLimit/order': 2,
                         'loan/income': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'fiat/orders': 0.1,
                         'fiat/payments': 0.1,
@@ -252,6 +253,7 @@ module.exports = class binance extends Exchange {
                         'sub-account/transfer/subUserHistory': 0.1,
                         'sub-account/universalTransfer': 0.1,
                         'managed-subaccount/asset': 0.1,
+                        'managed-subaccount/accountSnapshot': 240,
                         // lending endpoints
                         'lending/daily/product/list': 0.1,
                         'lending/daily/userLeftQuota': 0.1,
@@ -326,9 +328,19 @@ module.exports = class binance extends Exchange {
                         'nft/user/getAsset': 20.001,
                         'pay/transactions': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'giftcard/verify': 0.1,
+                        'algo/futures/openOrders': 0.1,
+                        'algo/futures/historicalOrders': 0.1,
+                        'algo/futures/subOrders': 0.1,
+                        'portfolio/account': 0.1,
+                        // staking
+                        'staking/productList': 0.1,
+                        'staking/position': 0.1,
+                        'staking/stakingRecord': 0.1,
+                        'staking/personalLeftQuota': 0.1,
                     },
                     'post': {
-                        'asset/dust': 0.06667, // Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
+                        'asset/dust': 1,
+                        'asset/dust-btc': 0.1,
                         'asset/transfer': 0.1,
                         'asset/get-funding-asset': 0.1,
                         'account/disableFastWithdrawSwitch': 0.1,
@@ -400,6 +412,12 @@ module.exports = class binance extends Exchange {
                         //
                         'giftcard/createCode': 0.1,
                         'giftcard/redeemCode': 0.1,
+                        'algo/futures/newOrderVp': 20.001,
+                        'algo/futures/newOrderTwap': 20.001,
+                        // staking
+                        'staking/purchase': 0.1,
+                        'staking/redeem': 0.1,
+                        'staking/setAutoStaking': 0.1,
                     },
                     'put': {
                         'userDataStream': 0.1,
@@ -416,6 +434,7 @@ module.exports = class binance extends Exchange {
                         // brokerage API TODO NO MENTION OF RATELIMIT IN BROKERAGE DOCS
                         'broker/subAccountApi': 1,
                         'broker/subAccountApi/ipRestriction/ipList': 1,
+                        'algo/futures/order': 0.1,
                     },
                 },
                 'sapiV3': {
@@ -640,6 +659,7 @@ module.exports = class binance extends Exchange {
                         'order',
                         'batchOrders',
                         'userDataStream',
+                        'openAccount',
                     ],
                     'put': [
                         'userDataStream',
@@ -2077,6 +2097,7 @@ module.exports = class binance extends Exchange {
             'status': this.safeString ({ '0': 'ok', '1': 'maintenance' }, statusRaw, statusRaw),
             'updated': this.milliseconds (),
             'eta': undefined,
+            'url': undefined,
             'info': response,
         };
     }
@@ -2976,7 +2997,7 @@ module.exports = class binance extends Exchange {
             const symbols = this.symbols;
             const numSymbols = symbols.length;
             const fetchOpenOrdersRateLimit = parseInt (numSymbols / 2);
-            throw new ExchangeError (this.id + ' fetchOpenOrders WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
+            throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         } else {
             const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
             type = this.safeString (params, 'type', defaultType);
@@ -4696,7 +4717,7 @@ module.exports = class binance extends Exchange {
         const linear = ('notional' in position);
         if (marginType === 'cross') {
             // calculate collateral
-            const precision = this.safeValue (market, 'precision');
+            const precision = this.safeValue (market, 'precision', {});
             if (linear) {
                 // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
                 let onePlusMaintenanceMarginPercentageString = undefined;
@@ -4709,8 +4730,11 @@ module.exports = class binance extends Exchange {
                 }
                 const inner = Precise.stringMul (liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                 const leftSide = Precise.stringAdd (inner, entryPriceSignString);
-                const quotePrecision = this.safeInteger (precision, 'quote');
-                collateralString = Precise.stringDiv (Precise.stringMul (leftSide, contractsAbs), '1', quotePrecision);
+                const pricePrecision = this.safeInteger (precision, 'price');
+                const quotePrecision = this.safeInteger (precision, 'quote', pricePrecision);
+                if (quotePrecision !== undefined) {
+                    collateralString = Precise.stringDiv (Precise.stringMul (leftSide, contractsAbs), '1', quotePrecision);
+                }
             } else {
                 // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
                 let onePlusMaintenanceMarginPercentageString = undefined;
@@ -4724,7 +4748,9 @@ module.exports = class binance extends Exchange {
                 const leftSide = Precise.stringMul (contractsAbs, contractSizeString);
                 const rightSide = Precise.stringSub (Precise.stringDiv ('1', entryPriceSignString), Precise.stringDiv (onePlusMaintenanceMarginPercentageString, liquidationPriceString));
                 const basePrecision = this.safeInteger (precision, 'base');
-                collateralString = Precise.stringDiv (Precise.stringMul (leftSide, rightSide), '1', basePrecision);
+                if (basePrecision !== undefined) {
+                    collateralString = Precise.stringDiv (Precise.stringMul (leftSide, rightSide), '1', basePrecision);
+                }
             }
         } else {
             collateralString = this.safeString (position, 'isolatedMargin');
@@ -4927,7 +4953,7 @@ module.exports = class binance extends Exchange {
     async fetchAccountPositions (symbols = undefined, params = {}) {
         if (symbols !== undefined) {
             if (!Array.isArray (symbols)) {
-                throw new ArgumentsRequired (this.id + ' fetchPositions requires an array argument for symbols');
+                throw new ArgumentsRequired (this.id + ' fetchPositions() requires an array argument for symbols');
             }
         }
         await this.loadMarkets ();
@@ -4951,7 +4977,7 @@ module.exports = class binance extends Exchange {
     async fetchPositionsRisk (symbols = undefined, params = {}) {
         if (symbols !== undefined) {
             if (!Array.isArray (symbols)) {
-                throw new ArgumentsRequired (this.id + ' fetchPositionsRisk requires an array argument for symbols');
+                throw new ArgumentsRequired (this.id + ' fetchPositionsRisk() requires an array argument for symbols');
             }
         }
         await this.loadMarkets ();
@@ -5444,7 +5470,7 @@ module.exports = class binance extends Exchange {
             limit = 93;
         } else if (limit > 93) {
             // Binance API says the limit is 100, but "Illegal characters found in a parameter." is returned when limit is > 93
-            throw new BadRequest (this.id + ' fetchBorrowRateHistory limit parameter cannot exceed 92');
+            throw new BadRequest (this.id + ' fetchBorrowRateHistory() limit parameter cannot exceed 92');
         }
         const currency = this.currency (code);
         const request = {

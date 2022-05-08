@@ -33,6 +33,7 @@ module.exports = class phemex extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
@@ -372,6 +373,7 @@ module.exports = class phemex extends Exchange {
                 },
             },
             'options': {
+                'brokerId': 'ccxt2022',
                 'x-phemex-request-expiry': 60, // in seconds
                 'createOrderByQuoteRequiresPrice': true,
                 'networks': {
@@ -1849,6 +1851,7 @@ module.exports = class phemex extends Exchange {
         const market = this.market (symbol);
         side = this.capitalize (side);
         type = this.capitalize (type);
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
         const request = {
             // common
             'symbol': market['id'],
@@ -1876,6 +1879,16 @@ module.exports = class phemex extends Exchange {
             // 'pegPriceType': 'TrailingStopPeg', // TrailingTakeProfitPeg
             // 'text': 'comment',
         };
+        const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
+        if (clientOrderId === undefined) {
+            const brokerId = this.safeString (this.options, 'brokerId');
+            if (brokerId !== undefined) {
+                request['clOrdID'] = brokerId + this.uuid16 ();
+            }
+        } else {
+            request['clOrdID'] = clientOrderId;
+            params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
+        }
         const stopPrice = this.safeString2 (params, 'stopPx', 'stopPrice');
         if (stopPrice !== undefined) {
             request['stopPxEp'] = this.toEp (stopPrice, market);
@@ -1907,6 +1920,9 @@ module.exports = class phemex extends Exchange {
                 request['baseQtyEv'] = this.toEv (amountString, market);
             }
         } else if (market['swap']) {
+            if (reduceOnly !== undefined) {
+                request['reduceOnly'] = reduceOnly;
+            }
             request['orderQty'] = parseInt (amount);
             if (stopPrice !== undefined) {
                 const triggerType = this.safeString (params, 'triggerType', 'ByMarkPrice');
@@ -1928,6 +1944,7 @@ module.exports = class phemex extends Exchange {
             params = this.omit (params, 'stopLossPrice');
         }
         const method = market['spot'] ? 'privatePostSpotOrders' : 'privatePostOrders';
+        params = this.omit (params, 'reduceOnly');
         const response = await this[method] (this.extend (request, params));
         //
         // spot
@@ -2007,6 +2024,13 @@ module.exports = class phemex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
+    }
+
+    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        const request = {
+            'reduceOnly': true,
+        };
+        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
     async editOrder (id, symbol, type = undefined, side = undefined, amount = undefined, price = undefined, params = {}) {
@@ -2118,9 +2142,9 @@ module.exports = class phemex extends Exchange {
             const numOrders = data.length;
             if (numOrders < 1) {
                 if (clientOrderId !== undefined) {
-                    throw new OrderNotFound (this.id + ' fetchOrder ' + symbol + ' order with clientOrderId ' + clientOrderId + ' not found');
+                    throw new OrderNotFound (this.id + ' fetchOrder() ' + symbol + ' order with clientOrderId ' + clientOrderId + ' not found');
                 } else {
-                    throw new OrderNotFound (this.id + ' fetchOrder ' + symbol + ' order with id ' + id + ' not found');
+                    throw new OrderNotFound (this.id + ' fetchOrder() ' + symbol + ' order with id ' + id + ' not found');
                 }
             }
             order = this.safeValue (data, 0, {});
@@ -2799,7 +2823,7 @@ module.exports = class phemex extends Exchange {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
         if ((leverage < 1) || (leverage > 100)) {
-            throw new BadRequest (this.id + ' leverage should be between 1 and 100');
+            throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 100');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

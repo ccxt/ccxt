@@ -163,7 +163,7 @@ class itbit extends Exchange {
         $symbol = $this->safe_symbol(null, $market);
         $serverTimeUTC = $this->safe_string($ticker, 'serverTimeUTC');
         if (!$serverTimeUTC) {
-            throw new ExchangeError($this->id . ' fetchTicker returned a bad response => ' . $this->json($ticker));
+            throw new ExchangeError($this->id . ' fetchTicker() returned a bad response => ' . $this->json($ticker));
         }
         $timestamp = $this->parse8601($serverTimeUTC);
         $vwap = $this->safe_string($ticker, 'vwap24h');
@@ -635,7 +635,7 @@ class itbit extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         yield $this->load_markets();
         if ($type === 'market') {
-            throw new ExchangeError($this->id . ' allows limit orders only');
+            throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
         }
         $walletIdInParams = (is_array($params) && array_key_exists('walletId', $params));
         if (!$walletIdInParams) {

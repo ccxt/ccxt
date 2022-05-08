@@ -386,6 +386,7 @@ class phemex(Exchange):
                 },
             },
             'options': {
+                'brokerId': 'ccxt2022',
                 'x-phemex-request-expiry': 60,  # in seconds
                 'createOrderByQuoteRequiresPrice': True,
                 'networks': {
@@ -1823,6 +1824,14 @@ class phemex(Exchange):
             # 'pegPriceType': 'TrailingStopPeg',  # TrailingTakeProfitPeg
             # 'text': 'comment',
         }
+        clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
+        if clientOrderId is None:
+            brokerId = self.safe_string(self.options, 'brokerId')
+            if brokerId is not None:
+                request['clOrdID'] = brokerId + self.uuid16()
+        else:
+            request['clOrdID'] = clientOrderId
+            params = self.omit(params, ['clOrdID', 'clientOrderId'])
         stopPrice = self.safe_string_2(params, 'stopPx', 'stopPrice')
         if stopPrice is not None:
             request['stopPxEp'] = self.to_ep(stopPrice, market)
@@ -2037,9 +2046,9 @@ class phemex(Exchange):
             numOrders = len(data)
             if numOrders < 1:
                 if clientOrderId is not None:
-                    raise OrderNotFound(self.id + ' fetchOrder ' + symbol + ' order with clientOrderId ' + clientOrderId + ' not found')
+                    raise OrderNotFound(self.id + ' fetchOrder() ' + symbol + ' order with clientOrderId ' + clientOrderId + ' not found')
                 else:
-                    raise OrderNotFound(self.id + ' fetchOrder ' + symbol + ' order with id ' + id + ' not found')
+                    raise OrderNotFound(self.id + ' fetchOrder() ' + symbol + ' order with id ' + id + ' not found')
             order = self.safe_value(data, 0, {})
         return self.parse_order(order, market)
 
@@ -2674,7 +2683,7 @@ class phemex(Exchange):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         if (leverage < 1) or (leverage > 100):
-            raise BadRequest(self.id + ' leverage should be between 1 and 100')
+            raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 100')
         self.load_markets()
         market = self.market(symbol)
         request = {

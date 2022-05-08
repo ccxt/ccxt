@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
+use \ccxt\NotSupported;
 
 class bybit extends Exchange {
 
@@ -497,6 +498,7 @@ class bybit extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     '-2015' => '\\ccxt\\AuthenticationError', // Invalid API-key, IP, or permissions for action.
+                    '-10009' => '\\ccxt\\BadRequest', // array("ret_code":-10009,"ret_msg":"Invalid period!","result":null,"token":null)
                     '10001' => '\\ccxt\\BadRequest', // parameter error
                     '10002' => '\\ccxt\\InvalidNonce', // request expired, check your timestamp and recv_window
                     '10003' => '\\ccxt\\AuthenticationError', // Invalid apikey
@@ -680,11 +682,114 @@ class bybit extends Exchange {
         if ($this->options['adjustForTimeDifference']) {
             $this->load_time_difference();
         }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchMarkets', null, $params);
+        if ($type === 'spot') {
+            // spot and swap ids are equal
+            // so they can't be loaded together
+            $spotMarkets = $this->fetch_spot_markets($params);
+            return $spotMarkets;
+        }
+        $contractMarkets = $this->fetch_swap_and_future_markets($params);
+        $usdcMarkets = $this->fetch_usdc_markets($params);
+        $markets = $contractMarkets;
+        $markets = $this->array_concat($markets, $usdcMarkets);
+        return $markets;
+    }
+
+    public function fetch_spot_markets($params) {
+        $response = $this->publicGetSpotV1Symbols ($params);
+        //
+        //     {
+        //         "ret_code":0,
+        //         "ret_msg":"",
+        //         "ext_code":null,
+        //         "ext_info":null,
+        //         "result":array(
+        //             array(
+        //                 "name":"BTCUSDT",
+        //                 "alias":"BTCUSDT",
+        //                 "baseCurrency":"BTC",
+        //                 "quoteCurrency":"USDT",
+        //                 "basePrecision":"0.000001",
+        //                 "quotePrecision":"0.00000001",
+        //                 "minTradeQuantity":"0.000158",
+        //                 "minTradeAmount":"10",
+        //                 "maxTradeQuantity":"4",
+        //                 "maxTradeAmount":"100000",
+        //                 "minPricePrecision":"0.01",
+        //                 "category":1,
+        //                 "showStatus":true
+        //             ),
+        //         )
+        //     }
+        $markets = $this->safe_value($response, 'result', array());
+        $result = array();
+        for ($i = 0; $i < count($markets); $i++) {
+            $market = $markets[$i];
+            $id = $this->safe_string($market, 'name');
+            $baseId = $this->safe_string($market, 'baseCurrency');
+            $quoteId = $this->safe_string($market, 'quoteCurrency');
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
+            $active = $this->safe_value($market, 'showStatus');
+            $result[] = array(
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'settle' => null,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'settleId' => null,
+                'type' => 'spot',
+                'spot' => true,
+                'margin' => null,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => $active,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => null,
+                'maker' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_number($market, 'basePrecision'),
+                    'price' => $this->safe_number($market, 'quotePrecision'),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => $this->parse_number('1'),
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $this->safe_number($market, 'minTradeQuantity'),
+                        'max' => $this->safe_number($market, 'maxTradeQuantity'),
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => $this->safe_number($market, 'minTradeAmount'),
+                        'max' => $this->safe_number($market, 'maxTradeAmount'),
+                    ),
+                ),
+                'info' => $market,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_swap_and_future_markets($params) {
         $response = $this->publicGetV2PublicSymbols ($params);
-        //
-        // $linear swaps and inverse swaps and futures
-        // $swapsResponse = $this->publicGetV2PublicSymbols ($params);
-        //
         //     {
         //         "ret_code":0,
         //         "ret_msg":"OK",
@@ -719,67 +824,145 @@ class bybit extends Exchange {
         //                 "price_filter":array("min_price":"0.5","max_price":"999999","tick_size":"0.5"),
         //                 "lot_size_filter":array("max_trading_qty":100,"min_trading_qty":0.001, "qty_step":0.001)
         //             ),
-        //             // inverse futures
-        //             array(
-        //                 "name":"BTCUSDM22",
-        //                 "alias":"BTCUSD0624",
-        //                 "status":"Trading",
-        //                 "base_currency":"BTC",
-        //                 "quote_currency":"USD",
-        //                 "price_scale":2,
-        //                 "taker_fee":"0.00075",
-        //                 "maker_fee":"-0.00025",
-        //                 "leverage_filter":array("min_leverage":1,"max_leverage":100,"leverage_step":"0.01"),
-        //                 "price_filter":array("min_price":"0.5","max_price":"999999","tick_size":"0.5"),
-        //                 "lot_size_filter":array("max_trading_qty":1000000,"min_trading_qty":1,"qty_step":1)
-        //             ),
-        //             {
-        //                 "name":"BTCUSDH22",
-        //                 "alias":"BTCUSD0325",
-        //                 "status":"Trading",
-        //                 "base_currency":"BTC",
-        //                 "quote_currency":"USD",
-        //                 "price_scale":2,
-        //                 "taker_fee":"0.00075",
-        //                 "maker_fee":"-0.00025",
-        //                 "leverage_filter":array("min_leverage":1,"max_leverage":100,"leverage_step":"0.01")
-        //                 "price_filter":array("min_price":"0.5","max_price":"999999","tick_size":"0.5"),
-        //                 "lot_size_filter":array("max_trading_qty":1000000,"min_trading_qty":1,"qty_step":1)
-        //             }
+        //  inverse futures
+        //            {
+        //                "name" => "BTCUSDU22",
+        //                "alias" => "BTCUSD0930",
+        //                "status" => "Trading",
+        //                "base_currency" => "BTC",
+        //                "quote_currency" => "USD",
+        //                "price_scale" => "2",
+        //                "taker_fee" => "0.0006",
+        //                "maker_fee" => "0.0001",
+        //                "funding_interval" => "480",
+        //                "leverage_filter" => array(
+        //                    "min_leverage" => "1",
+        //                    "max_leverage" => "100",
+        //                    "leverage_step" => "0.01"
+        //                ),
+        //                "price_filter" => array(
+        //                    "min_price" => "0.5",
+        //                    "max_price" => "999999",
+        //                    "tick_size" => "0.5"
+        //                ),
+        //                "lot_size_filter" => {
+        //                    "max_trading_qty" => "1000000",
+        //                    "min_trading_qty" => "1",
+        //                    "qty_step" => "1",
+        //                    "post_only_max_trading_qty" => "5000000"
+        //                }
+        //            }
         //         ),
         //         "time_now":"1642369942.072113"
         //     }
         //
-        // spot $markets
-        // $spotResponse = $this->publicGetSpotV1Symbols ($params);
+        $markets = $this->safe_value($response, 'result', array());
+        $result = array();
+        $options = $this->safe_value($this->options, 'fetchMarkets', array());
+        $linearQuoteCurrencies = $this->safe_value($options, 'linear', array( 'USDT' => true ));
+        for ($i = 0; $i < count($markets); $i++) {
+            $market = $markets[$i];
+            $id = $this->safe_string($market, 'name');
+            $baseId = $this->safe_string($market, 'base_currency');
+            $quoteId = $this->safe_string($market, 'quote_currency');
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $linear = (is_array($linearQuoteCurrencies) && array_key_exists($quote, $linearQuoteCurrencies));
+            $symbol = $base . '/' . $quote;
+            $baseQuote = $base . $quote;
+            $type = 'swap';
+            if ($baseQuote !== $id) {
+                $type = 'future';
+            }
+            $lotSizeFilter = $this->safe_value($market, 'lot_size_filter', array());
+            $priceFilter = $this->safe_value($market, 'price_filter', array());
+            $leverage = $this->safe_value($market, 'leverage_filter', array());
+            $status = $this->safe_string($market, 'status');
+            $active = null;
+            if ($status !== null) {
+                $active = ($status === 'Trading');
+            }
+            $swap = ($type === 'swap');
+            $future = ($type === 'future');
+            $expiry = null;
+            $expiryDatetime = null;
+            $settleId = $linear ? $quoteId : $baseId;
+            $settle = $this->safe_currency_code($settleId);
+            $symbol = $symbol . ':' . $settle;
+            if ($future) {
+                // we have to do some gymnastics here because bybit
+                // only provides the day and month regarding the contract expiration
+                $alias = $this->safe_string($market, 'alias'); // BTCUSD0930
+                $aliasDate = mb_substr($alias, -4); // 0930
+                $aliasMonth = mb_substr($aliasDate, 0, 2 - 0); // 09
+                $aliasDay = mb_substr($aliasDate, 2, 4 - 2); // 30
+                $dateNow = $this->yyyymmdd($this->milliseconds());
+                $dateParts = explode('-', $dateNow);
+                $year = $this->safe_value($dateParts, 0);
+                $artificial8601Date = $year . '-' . $aliasMonth . '-' . $aliasDay . 'T00:00:00.000Z';
+                $expiryDatetime = $artificial8601Date;
+                $expiry = $this->parse8601($expiryDatetime);
+                $symbol = $symbol . '-' . $this->yymmdd($expiry);
+            }
+            $result[] = array(
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'settle' => $settle,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'settleId' => $settleId,
+                'type' => $type,
+                'spot' => false,
+                'margin' => null,
+                'swap' => $swap,
+                'future' => $future,
+                'option' => false,
+                'active' => $active,
+                'contract' => true,
+                'linear' => $linear,
+                'inverse' => !$linear,
+                'taker' => $this->safe_number($market, 'taker_fee'),
+                'maker' => $this->safe_number($market, 'maker_fee'),
+                'contractSize' => null, // todo
+                'expiry' => $expiry,
+                'expiryDatetime' => $expiryDatetime,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_number($lotSizeFilter, 'qty_step'),
+                    'price' => $this->safe_number($priceFilter, 'tick_size'),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => $this->parse_number('1'),
+                        'max' => $this->safe_number($leverage, 'max_leverage', 1),
+                    ),
+                    'amount' => array(
+                        'min' => $this->safe_number($lotSizeFilter, 'min_trading_qty'),
+                        'max' => $this->safe_number($lotSizeFilter, 'max_trading_qty'),
+                    ),
+                    'price' => array(
+                        'min' => $this->safe_number($priceFilter, 'min_price'),
+                        'max' => $this->safe_number($priceFilter, 'max_price'),
+                    ),
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+                'info' => $market,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_usdc_markets($params) {
+        $linearOptionsResponse = $this->publicGetOptionUsdcOpenapiPublicV1Symbols ($params);
+        $usdcLinearPerpetualSwaps = $this->publicGetPerpetualUsdcOpenapiPublicV1Symbols ($params);
         //
-        //     {
-        //         "ret_code":0,
-        //         "ret_msg":"",
-        //         "ext_code":null,
-        //         "ext_info":null,
-        //         "result":array(
-        //             array(
-        //                 "name":"BTCUSDT",
-        //                 "alias":"BTCUSDT",
-        //                 "baseCurrency":"BTC",
-        //                 "quoteCurrency":"USDT",
-        //                 "basePrecision":"0.000001",
-        //                 "quotePrecision":"0.00000001",
-        //                 "minTradeQuantity":"0.000158",
-        //                 "minTradeAmount":"10",
-        //                 "maxTradeQuantity":"4",
-        //                 "maxTradeAmount":"100000",
-        //                 "minPricePrecision":"0.01",
-        //                 "category":1,
-        //                 "showStatus":true
-        //             ),
-        //         )
-        //     }
-        //
-        // USDC $linear $options $response
-        // $linearOptionsResponse = $this->publicGetOptionUsdcOpenapiPublicV1Symbols ($params);
-        //
+        // USDC $linear $options
         //     {
         //         "retCode":0,
         //         "retMsg":"success",
@@ -832,7 +1015,6 @@ class bybit extends Exchange {
         //     }
         //
         // USDC $linear perpetual swaps
-        // $usdcLinearPerpetualSwaps = $this->publicGetPerpetualUsdcOpenapiPublicV1Symbols ($params);
         //
         //     {
         //         "retCode":0,
@@ -860,71 +1042,55 @@ class bybit extends Exchange {
         //         )
         //     }
         //
-        $markets = $this->safe_value($response, 'result', array());
-        $options = $this->safe_value($this->options, 'fetchMarkets', array());
-        $linearQuoteCurrencies = $this->safe_value($options, 'linear', array( 'USDT' => true ));
+        $optionsResponse = $this->safe_value($linearOptionsResponse, 'result', array());
+        $options = $this->safe_value($optionsResponse, 'dataList', array());
+        $contractsResponse = $this->safe_value($usdcLinearPerpetualSwaps, 'result', array());
+        $markets = $this->array_concat($options, $contractsResponse);
         $result = array();
+        // all $markets fetched here are $linear
+        $linear = true;
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
-            $id = $this->safe_string_2($market, 'name', 'symbol');
-            $baseId = $this->safe_string_2($market, 'base_currency', 'baseCoin');
-            $quoteId = $this->safe_string_2($market, 'quote_currency', 'quoteCoin');
+            $id = $this->safe_string($market, 'symbol');
+            $baseId = $this->safe_string($market, 'baseCoin');
+            $quoteId = $this->safe_string($market, 'quoteCoin');
             $settleId = $this->safe_string($market, 'settleCoin');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $settle = $this->safe_currency_code($settleId);
-            $linear = (is_array($linearQuoteCurrencies) && array_key_exists($quote, $linearQuoteCurrencies));
             $symbol = $base . '/' . $quote;
-            $baseQuote = $base . $quote;
             $type = 'swap';
-            if ($baseQuote !== $id) {
-                $type = 'future';
+            if ($settleId !== null) {
+                $type = 'option';
             }
-            $lotSizeFilter = $this->safe_value($market, 'lot_size_filter', array());
-            $priceFilter = $this->safe_value($market, 'price_filter', array());
+            $swap = ($type === 'swap');
+            $option = ($type === 'option');
             $leverage = $this->safe_value($market, 'leverage_filter', array());
             $status = $this->safe_string($market, 'status');
             $active = null;
             if ($status !== null) {
-                $active = ($status === 'Trading');
+                $active = ($status === 'ONLINE');
             }
-            $swap = ($type === 'swap');
-            $future = ($type === 'future');
-            $option = ($type === 'option');
-            $contract = $swap || $future || $option;
             $expiry = null;
             $expiryDatetime = null;
             $strike = null;
             $optionType = null;
-            if ($contract) {
-                if ($settle === null) {
-                    $settleId = $linear ? $quoteId : $baseId;
-                    $settle = $this->safe_currency_code($settleId);
-                }
-                $symbol = $symbol . ':' . $settle;
-                if ($future) {
-                    $alias = $this->safe_string($market, 'alias');
-                    $shortDate = mb_substr($alias, -4);
-                    $date = $this->iso8601($this->milliseconds());
-                    $splitDate = explode('-', $date);
-                    $year = $splitDate[0];
-                    $expiryMonth = mb_substr($shortDate, 0, 2 - 0);
-                    $expiryDay = mb_substr($shortDate, 2, 4 - 2);
-                    $expiryDatetime = $year . '-' . $expiryMonth . '-' . $expiryDay . 'T00:00:00Z';
-                    $expiry = $this->parse8601($expiryDatetime);
-                    $symbol = $symbol . '-' . $this->yymmdd($expiry);
-                } else if ($option) {
-                    $expiry = $this->safe_integer($market, 'deliveryTime');
-                    $expiryDatetime = $this->iso8601($expiry);
-                    $splitId = $this->split ($id, '-');
-                    $strike = $this->safe_string($splitId, 2);
-                    $optionLetter = $this->safe_string($splitId, 3);
-                    $symbol = $symbol . '-' . $this->yymmdd($expiry) . ':' . $strike . ':' . $optionLetter;
-                    if ($optionLetter === 'P') {
-                        $optionType = 'put';
-                    } else if ($optionLetter === 'C') {
-                        $optionType = 'call';
-                    }
+            if ($settle === null) {
+                $settleId = $quoteId;
+                $settle = $this->safe_currency_code($settleId);
+            }
+            $symbol = $symbol . ':' . $settle;
+            if ($option) {
+                $expiry = $this->safe_integer($market, 'deliveryTime');
+                $expiryDatetime = $this->iso8601($expiry);
+                $splitId = explode('-', $id);
+                $strike = $this->safe_string($splitId, 2);
+                $optionLetter = $this->safe_string($splitId, 3);
+                $symbol = $symbol . '-' . $this->yymmdd($expiry) . ':' . $strike . ':' . $optionLetter;
+                if ($optionLetter === 'P') {
+                    $optionType = 'put';
+                } else if ($optionLetter === 'C') {
+                    $optionType = 'call';
                 }
             }
             $result[] = array(
@@ -937,39 +1103,38 @@ class bybit extends Exchange {
                 'quoteId' => $quoteId,
                 'settleId' => $settleId,
                 'type' => $type,
-                'spot' => ($type === 'spot'),
-                'margin' => null, // todo
+                'spot' => false,
+                'margin' => null,
                 'swap' => $swap,
-                'future' => $future,
-                'futures' => $future, // Deprecated, use $future
+                'future' => false,
                 'option' => $option,
                 'active' => $active,
-                'contract' => $contract,
+                'contract' => true,
                 'linear' => $linear,
                 'inverse' => !$linear,
                 'taker' => $this->safe_number($market, 'taker_fee'),
                 'maker' => $this->safe_number($market, 'maker_fee'),
-                'contractSize' => null, // todo
+                'contractSize' => null,
                 'expiry' => $expiry,
                 'expiryDatetime' => $expiryDatetime,
                 'strike' => $strike,
                 'optionType' => $optionType,
                 'precision' => array(
-                    'amount' => $this->safe_number($lotSizeFilter, 'qty_step'),
-                    'price' => $this->safe_number($priceFilter, 'tick_size'),
+                    'amount' => $this->safe_number($market, 'minOrderSizeIncrement'),
+                    'price' => $this->safe_number($market, 'tickSize'),
                 ),
                 'limits' => array(
                     'leverage' => array(
-                        'min' => $this->parse_number('1'),
-                        'max' => $this->safe_number($leverage, 'max_leverage', 1),
+                        'min' => $this->safe_number($leverage, 'minLeverage', 1),
+                        'max' => $this->safe_number($leverage, 'maxLeverage', 1),
                     ),
                     'amount' => array(
-                        'min' => $this->safe_number($lotSizeFilter, 'min_trading_qty'),
-                        'max' => $this->safe_number($lotSizeFilter, 'max_trading_qty'),
+                        'min' => $this->safe_number($market, 'minOrderSize'),
+                        'max' => $this->safe_number($market, 'maxOrderSize'),
                     ),
                     'price' => array(
-                        'min' => $this->safe_number($priceFilter, 'min_price'),
-                        'max' => $this->safe_number($priceFilter, 'max_price'),
+                        'min' => $this->safe_number($market, 'minOrderPrice'),
+                        'max' => $this->safe_number($market, 'maxOrderPrice'),
                     ),
                     'cost' => array(
                         'min' => null,
@@ -1176,8 +1341,50 @@ class bybit extends Exchange {
         //         "close":7541
         //     }
         //
+        // usdc perpetual
+        //     {
+        //         "symbol":"BTCPERP",
+        //         "volume":"0.01",
+        //         "period":"1",
+        //         "openTime":"1636358160",
+        //         "open":"66001.50",
+        //         "high":"66001.50",
+        //         "low":"66001.50",
+        //         "close":"66001.50",
+        //         "turnover":"1188.02"
+        //     }
+        //
+        // spot
+        //     array(
+        //         1651837620000, // start tame
+        //         "35831.5", // open
+        //         "35831.5", // high
+        //         "35801.93", // low
+        //         "35817.11", // close
+        //         "1.23453", // volume
+        //         0, // end time
+        //         "44213.97591627", // quote asset volume
+        //         24, // number of trades
+        //         "0", // taker base volume
+        //         "0" // taker quote volume
+        //     )
+        //
+        if (gettype($ohlcv) === 'array' && count(array_filter(array_keys($ohlcv), 'is_string')) == 0) {
+            return array(
+                $this->safe_number($ohlcv, 0),
+                $this->safe_number($ohlcv, 1),
+                $this->safe_number($ohlcv, 2),
+                $this->safe_number($ohlcv, 3),
+                $this->safe_number($ohlcv, 4),
+                $this->safe_number($ohlcv, 5),
+            );
+        }
+        $timestamp = $this->safe_timestamp_2($ohlcv, 'open_time', 'openTime');
+        if ($timestamp === null) {
+            $timestamp = $this->safe_timestamp($ohlcv, 'start_at');
+        }
         return array(
-            $this->safe_timestamp_2($ohlcv, 'open_time', 'start_at'),
+            $timestamp,
             $this->safe_number($ohlcv, 'open'),
             $this->safe_number($ohlcv, 'high'),
             $this->safe_number($ohlcv, 'low'),
@@ -1193,32 +1400,64 @@ class bybit extends Exchange {
         $params = $this->omit($params, 'price');
         $request = array(
             'symbol' => $market['id'],
-            'interval' => $this->timeframes[$timeframe],
         );
         $duration = $this->parse_timeframe($timeframe);
         $now = $this->seconds();
+        $sinceTimestamp = null;
         if ($since === null) {
             if ($limit === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument or a $limit argument');
             } else {
-                $request['from'] = $now - $limit * $duration;
+                $sinceTimestamp = $now - $limit * $duration;
             }
         } else {
-            $request['from'] = intval($since / 1000);
+            $sinceTimestamp = intval($since / 1000);
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // max 200, default 200
         }
-        $method = 'publicGetV2PublicKlineList';
-        if ($price === 'mark') {
-            $method = 'publicGetV2PublicMarkPriceKline';
-        } else if ($price === 'index') {
-            $method = 'publicGetV2PublicIndexPriceKline';
-        } else if ($price === 'premiumIndex') {
-            $method = 'publicGetV2PublicPremiumIndexKline';
-        } else if ($market['linear']) {
-            $method = 'publicGetPublicLinearKline';
+        $method = null;
+        $intervalKey = 'interval';
+        $sinceKey = 'from';
+        $isUsdcSettled = ($market['option']) || ($market['settle'] === 'USD');
+        if ($market['spot']) {
+            $method = 'publicGetSpotQuoteV1Kline';
+        } else if ($market['contract'] && !$isUsdcSettled) {
+            if ($market['linear']) {
+                // linear swaps/futures
+                $methods = array(
+                    'mark' => 'publicGetPublicLinearMarkPriceKline',
+                    'index' => 'publicGetPublicLinearIndexPriceKline',
+                    'premium' => 'publicGetPublicLinearPremiumIndexKline',
+                );
+                $method = $this->safe_value($methods, $price, 'publicGetPublicLinearKline');
+            } else {
+                // inverse swaps/ futures
+                $methods = array(
+                    'mark' => 'publicGetV2PublicMarkPriceKline',
+                    'index' => 'publicGetV2PublicIndexPriceKline',
+                    'premium' => 'publicGetV2PublicPremiumPriceKline',
+                );
+                $method = $this->safe_value($methods, $price, 'publicGetV2PublicKlineList');
+            }
+        } else {
+            // usdc markets
+            if ($market['option']) {
+                throw new NotSupported($this->id . ' fetchOHLCV() is not supported for USDC options markets');
+            }
+            $intervalKey = 'period';
+            $sinceKey = 'startTime';
+            $methods = array(
+                'mark' => 'publicGetPerpetualUsdcOpenapiPublicV1MarkPriceKline',
+                'index' => 'publicGetPerpetualUsdcOpenapiPublicV1IndexPriceKline',
+                'premium' => 'publicGetPerpetualUsdcOpenapiPublicV1PremiumPriceKline',
+            );
+            $method = $this->safe_value($methods, $price, 'publicGetPerpetualUsdcOpenapiPublicV1KlineList');
         }
+        // spot markets use the same interval format as ccxt
+        // so we don't need  to convert it
+        $request[$intervalKey] = $market['spot'] ? $timeframe : $this->timeframes[$timeframe];
+        $request[$sinceKey] = $sinceTimestamp;
         $response = $this->$method (array_merge($request, $params));
         //
         // inverse perpetual BTC/USD
@@ -1266,6 +1505,28 @@ class bybit extends Exchange {
         //         ),
         //         "time_now":"1587884120.168077"
         //     }
+        // spot
+        //     {
+        //    "ret_code" => "0",
+        //    "ret_msg" => null,
+        //     "result" => array(
+        //         array(
+        //             1651837620000,
+        //             "35831.5",
+        //             "35831.5",
+        //             "35801.93",
+        //             "35817.11",
+        //             "1.23453",
+        //             0,
+        //             "44213.97591627",
+        //             24,
+        //             "0",
+        //             "0"
+        //         )
+        //     ),
+        //     "ext_code" => null,
+        //     "ext_info" => null
+        // }
         //
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
@@ -1365,19 +1626,37 @@ class bybit extends Exchange {
 
     public function parse_trade($trade, $market = null) {
         //
-        // fetchTrades (public)
+        //  public spot
         //
-        //      {
-        //          "id" => "44275042152",
-        //          "symbol" => "AAVEUSDT",
-        //          "price" => "256.35",
-        //          "qty" => "0.1",
-        //          "side" => "Buy",
-        //          "time" => "2021-11-30T12:46:14.000Z",
-        //          "trade_time_ms" => "1638276374312"
-        //      }
+        //    {
+        //        "price" => "39548.68",
+        //        "time" => "1651748717850",
+        //        "qty" => "0.166872",
+        //        "isBuyerMaker" => true
+        //    }
         //
-        // fetchMyTrades, fetchOrderTrades (private)
+        // public linear/inverse swap/future
+        //
+        //     {
+        //         "id" => "112348766532",
+        //         "symbol" => "BTCUSDT",
+        //         "price" => "39536",
+        //         "qty" => "0.011",
+        //         "side" => "Buy",
+        //         "time" => "2022-05-05T11:16:02.000Z",
+        //         "trade_time_ms" => "1651749362196"
+        //     }
+        //
+        // public usdc $market
+        //
+        //     {
+        //         "symbol" => "BTC-30SEP22-400000-C",
+        //         "orderQty" => "0.010",
+        //         "orderPrice" => "5.00",
+        //         "time" => "1651104300208"
+        //     }
+        //
+        // private futures/swap
         //
         //      {
         //          "order_id" => "b020b4bc-6fe2-45b5-adbc-dd07794f9746",
@@ -1402,20 +1681,63 @@ class bybit extends Exchange {
         //          "trade_time_ms" => "1638276374312"
         //      }
         //
+        // spot
+        //    {
+        //         "id" => "1149467000412631552",
+        //         "symbol" => "LTCUSDT",
+        //         "symbolName" => "LTCUSDT",
+        //         "orderId" => "1149467000244912384",
+        //         "ticketId" => "2200000000002601358",
+        //         "matchOrderId" => "1149465793552007078",
+        //         "price" => "100.19",
+        //         "qty" => "0.09973",
+        //         "commission" => "0.0099919487",
+        //         "commissionAsset" => "USDT",
+        //         "time" => "1651763144465",
+        //         "isBuyer" => false,
+        //         "isMaker" => false,
+        //         "fee" => array(
+        //             "feeTokenId" => "USDT",
+        //             "feeTokenName" => "USDT",
+        //             "fee" => "0.0099919487"
+        //         ),
+        //         "feeTokenId" => "USDT",
+        //         "feeAmount" => "0.0099919487",
+        //         "makerRebate" => "0"
+        //     }
+        //
         $id = $this->safe_string_2($trade, 'id', 'exec_id');
         $marketId = $this->safe_string($trade, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $amountString = $this->safe_string_2($trade, 'qty', 'exec_qty');
+        if ($amountString === null) {
+            $amountString = $this->safe_string($trade, 'orderQty');
+        }
         $priceString = $this->safe_string_2($trade, 'exec_price', 'price');
+        if ($priceString === null) {
+            $priceString = $this->safe_string($trade, 'orderPrice');
+        }
         $costString = $this->safe_string($trade, 'exec_value');
         $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
         if ($timestamp === null) {
-            $timestamp = $this->safe_integer($trade, 'trade_time_ms');
+            $timestamp = $this->safe_number_2($trade, 'trade_time_ms', 'time');
         }
         $side = $this->safe_string_lower($trade, 'side');
-        $lastLiquidityInd = $this->safe_string($trade, 'last_liquidity_ind');
-        $takerOrMaker = ($lastLiquidityInd === 'AddedLiquidity') ? 'maker' : 'taker';
+        if ($side === null) {
+            $isBuyer = $this->safe_value($trade, 'isBuyer');
+            if ($isBuyer !== null) {
+                $side = $isBuyer ? 'buy' : 'sell';
+            }
+        }
+        $isMaker = $this->safe_value($trade, 'isMaker');
+        $takerOrMaker = null;
+        if ($isMaker !== null) {
+            $takerOrMaker = $isMaker ? 'maker' : 'taker';
+        } else {
+            $lastLiquidityInd = $this->safe_string($trade, 'last_liquidity_ind');
+            $takerOrMaker = ($lastLiquidityInd === 'AddedLiquidity') ? 'maker' : 'taker';
+        }
         $feeCostString = $this->safe_string($trade, 'exec_fee');
         $fee = null;
         if ($feeCostString !== null) {
@@ -1432,7 +1754,7 @@ class bybit extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
-            'order' => $this->safe_string($trade, 'order_id'),
+            'order' => $this->safe_string_2($trade, 'order_id', 'orderId'),
             'type' => $this->safe_string_lower($trade, 'order_type'),
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
@@ -1446,14 +1768,24 @@ class bybit extends Exchange {
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
+        $method = null;
         $request = array(
             'symbol' => $market['id'],
-            // 'from' => 123, // from id
         );
-        if ($limit !== null) {
-            $request['count'] = $limit; // default 500, max 1000
+        $isUsdcSettled = ($market['option']) || ($market['settle'] === 'USD');
+        if ($market['type'] === 'spot') {
+            $method = 'publicGetSpotQuoteV1Trades';
+        } else if (!$isUsdcSettled) {
+            // inverse perpetual // usdt linear // inverse futures
+            $method = $market['linear'] ? 'publicGetPublicLinearRecentTradingRecords' : 'publicGetV2PublicTradingRecords';
+        } else {
+            // usdc option/ swap
+            $method = 'publicGetOptionUsdcOpenapiPublicV1QueryTradeLatest';
+            $request['category'] = $market['option'] ? 'OPTION' : 'PERPETUAL';
         }
-        $method = $market['linear'] ? 'publicGetPublicLinearRecentTradingRecords' : 'publicGetV2PublicTradingRecords';
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 500, max 1000
+        }
         $response = $this->$method (array_merge($request, $params));
         //
         //     {
@@ -1461,7 +1793,7 @@ class bybit extends Exchange {
         //         ret_msg => 'OK',
         //         ext_code => '',
         //         ext_info => '',
-        //         $result => array(
+        //         result => array(
         //             array(
         //                 id => 43785688,
         //                 $symbol => 'BTCUSD',
@@ -1474,8 +1806,31 @@ class bybit extends Exchange {
         //         time_now => '1583954313.393362'
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_trades($result, $market, $since, $limit);
+        // usdc $trades
+        //     {
+        //         "retCode" => 0,
+        //           "retMsg" => "Success.",
+        //           "result" => {
+        //           "resultTotalSize" => 2,
+        //             "cursor" => "",
+        //             "dataList" => array(
+        //                  {
+        //                    "id" => "3caaa0ca",
+        //                    "symbol" => "BTCPERP",
+        //                    "orderPrice" => "58445.00",
+        //                    "orderQty" => "0.010",
+        //                    "side" => "Buy",
+        //                    "time" => "1638275679673"
+        //                  }
+        //              )
+        //         }
+        //     }
+        //
+        $trades = $this->safe_value($response, 'result', array());
+        if (gettype($trades) === 'array' && count(array_filter(array_keys($trades), 'is_string')) != 0) {
+            $trades = $this->safe_value($trades, 'dataList', array());
+        }
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'Buy', $asksKey = 'Sell', $priceKey = 'price', $amountKey = 'size') {
@@ -1489,7 +1844,7 @@ class bybit extends Exchange {
             } else if ($side === 'Sell') {
                 $asks[] = $this->parse_bid_ask($bidask, $priceKey, $amountKey);
             } else {
-                throw new ExchangeError($this->id . ' parseOrderBook encountered an unrecognized $bidask format => ' . $this->json($bidask));
+                throw new ExchangeError($this->id . ' parseOrderBook() encountered an unrecognized $bidask format => ' . $this->json($bidask));
             }
         }
         return array(
@@ -2246,7 +2601,20 @@ class bybit extends Exchange {
         } else if ($market['future']) {
             $defaultMethod = 'futuresPrivatePostOrderCancelAll';
         }
+        $stop = $this->safe_value($params, 'stop');
+        if ($stop) {
+            if ($market['swap']) {
+                if ($market['linear']) {
+                    $defaultMethod = 'privateLinearPostStopOrderCancelAll';
+                } else if ($market['inverse']) {
+                    $defaultMethod = 'v2PrivatePostStopOrderCancelAll';
+                }
+            } else if ($market['future']) {
+                $defaultMethod = 'futuresPrivatePostStopOrderCancelAll';
+            }
+        }
         $method = $this->safe_string($options, 'method', $defaultMethod);
+        $params = $this->omit($params, 'stop');
         $response = $this->$method (array_merge($request, $params));
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_orders($result, $market);
@@ -2951,7 +3319,7 @@ class bybit extends Exchange {
         if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) == 0) {
             $length = is_array($symbols) ? count($symbols) : 0;
             if ($length !== 1) {
-                throw new ArgumentsRequired($this->id . ' fetchPositions takes an array with exactly one symbol');
+                throw new ArgumentsRequired($this->id . ' fetchPositions() takes an array with exactly one symbol');
             }
             $request['symbol'] = $this->market_id($symbols[0]);
         }
@@ -3004,7 +3372,7 @@ class bybit extends Exchange {
             $marginType = 'CROSS';
         }
         if (($marginType !== 'ISOLATED') && ($marginType !== 'CROSS')) {
-            throw new BadRequest($this->id . ' $marginType must be either isolated or cross');
+            throw new BadRequest($this->id . ' setMarginMode() $marginType must be either isolated or cross');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3081,7 +3449,7 @@ class bybit extends Exchange {
             }
         }
         if (($buy_leverage < 1) || ($buy_leverage > 100) || ($sell_leverage < 1) || ($sell_leverage > 100)) {
-            throw new BadRequest($this->id . ' $leverage should be between 1 and 100');
+            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 100');
         }
         $request = array(
             'symbol' => $market['id'],

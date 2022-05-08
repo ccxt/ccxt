@@ -25,6 +25,7 @@ module.exports = class bitopro extends Exchange {
                 'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'createOrder': true,
                 'editOrder': false,
                 'fetchBalance': true,
@@ -274,10 +275,10 @@ module.exports = class bitopro extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const active = !this.safeValue (market, 'maintain');
-            const pair = this.safeString (market, 'pair');
+            const id = this.safeString (market, 'pair');
+            const uppercaseId = id.toUpperCase ();
             const baseId = this.safeString (market, 'base');
             const quoteId = this.safeString (market, 'quote');
-            const id = pair;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
@@ -305,6 +306,7 @@ module.exports = class bitopro extends Exchange {
             };
             result.push ({
                 'id': id,
+                'uppercaseId': uppercaseId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -950,6 +952,29 @@ module.exports = class bitopro extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const id = market['uppercaseId'];
+        const request = {};
+        request[id] = ids;
+        const response = await this.privatePutOrders (this.extend (request, params));
+        //
+        //     {
+        //         "data":{
+        //             "BNB_TWD":[
+        //                 "5236347105",
+        //                 "359488711"
+        //             ]
+        //         }
+        //     }
+        //
+        return response;
+    }
+
     async cancelAllOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -1371,7 +1396,7 @@ module.exports = class bitopro extends Exchange {
         headers['X-BITOPRO-API'] = 'ccxt';
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            if (method === 'POST') {
+            if (method === 'POST' || method === 'PUT') {
                 body = this.json (params);
                 const payload = this.stringToBase64 (body);
                 const signature = this.hmac (payload, this.encode (this.secret), 'sha384');

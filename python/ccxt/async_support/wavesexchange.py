@@ -40,6 +40,9 @@ class wavesexchange(Exchange):
                 'createMarketOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -948,7 +951,7 @@ class wavesexchange(Exchange):
                 networksByCurrency[currencyCode][currencyId] = True
         if not (code in currencies):
             codes = list(currencies.keys())
-            raise ExchangeError(self.id + ' fetch ' + code + ' deposit address not supported. Currency code must be one of ' + ', '.join(codes))
+            raise ExchangeError(self.id + ' fetchDepositAddress() ' + code + ' not supported. Currency code must be one of ' + ', '.join(codes))
         response = None
         if network is None:
             request = {
@@ -1922,7 +1925,7 @@ class wavesexchange(Exchange):
                 currencies[currencyCode] = True
             if not (code in currencies):
                 codes = list(currencies.keys())
-                raise ExchangeError(self.id + ' fetch ' + code + ' withdrawals are not supported. Currency code must be one of ' + str(codes))
+                raise ExchangeError(self.id + ' withdraw() ' + code + ' not supported. Currency code must be one of ' + str(codes))
         await self.load_markets()
         hexChars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
         set = {}

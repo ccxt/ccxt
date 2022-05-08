@@ -323,7 +323,7 @@ class exmo(Exchange):
         value = parts[0].replace('%', '')
         result = float(value)
         if (result > 0) and isPercentage:
-            raise ExchangeError(self.id + ' parseFixedFloatValue detected an unsupported non-zero percentage-based fee ' + input)
+            raise ExchangeError(self.id + ' parseFixedFloatValue() detected an unsupported non-zero percentage-based fee ' + input)
         return result
 
     def fetch_funding_fees(self, params={}):
@@ -603,7 +603,7 @@ class exmo(Exchange):
                 raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument or a limit argument')
             else:
                 if limit > maxLimit:
-                    raise BadRequest(self.id + ' fetchOHLCV will serve ' + str(maxLimit) + ' candles at most')
+                    raise BadRequest(self.id + ' fetchOHLCV() will serve ' + str(maxLimit) + ' candles at most')
                 request['from'] = int(now / 1000) - limit * duration - 1
                 request['to'] = int(now / 1000)
         else:
@@ -612,7 +612,7 @@ class exmo(Exchange):
                 request['to'] = int(now / 1000)
             else:
                 if limit > maxLimit:
-                    raise BadRequest(self.id + ' fetchOHLCV will serve ' + str(maxLimit) + ' candles at most')
+                    raise BadRequest(self.id + ' fetchOHLCV() will serve ' + str(maxLimit) + ' candles at most')
                 to = self.sum(since, limit * duration * 1000)
                 request['to'] = int(to / 1000)
         response = self.publicGetCandlesHistory(self.extend(request, params))
@@ -701,7 +701,7 @@ class exmo(Exchange):
             # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if len(ids) > 2048:
                 numIds = len(self.ids)
-                raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks')
+                raise ExchangeError(self.id + ' fetchOrderBooks() has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks')
         else:
             ids = self.market_ids(symbols)
             ids = ','.join(ids)
@@ -977,7 +977,7 @@ class exmo(Exchange):
         if clientOrderId is not None:
             clientOrderId = self.safe_integer_2(params, 'client_id', 'clientOrderId')
             if clientOrderId is None:
-                raise BadRequest(self.id + ' createOrder client order id must be an integer / numeric literal')
+                raise BadRequest(self.id + ' createOrder() client order id must be an integer / numeric literal')
             else:
                 request['client_id'] = clientOrderId
             params = self.omit(params, ['client_id', 'clientOrderId'])

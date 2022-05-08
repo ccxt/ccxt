@@ -316,6 +316,7 @@ class mexc(Exchange):
                 'exact': {
                     '400': BadRequest,  # Invalid parameter
                     '401': AuthenticationError,  # Invalid signature, fail to pass the validation
+                    '402': AuthenticationError,  # {"success":false,"code":402,"message":"API key expired!"}
                     '403': PermissionDenied,  # {"msg":"no permission to access the endpoint","code":403}
                     '429': RateLimitExceeded,  # too many requests, rate limit rule is violated
                     '703': PermissionDenied,  # Require trade read permission!
@@ -382,6 +383,7 @@ class mexc(Exchange):
             'status': status,
             'updated': self.milliseconds(),
             'eta': None,
+            'url': None,
             'info': response,
         }
 
@@ -2164,7 +2166,7 @@ class mexc(Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)

@@ -511,7 +511,7 @@ class cryptocom(Exchange):
         }
         marketType, query = self.handle_market_type_and_params('fetchTicker', market, params)
         if marketType != 'spot':
-            raise NotSupported(self.id + ' fetchTicker only supports spot markets')
+            raise NotSupported(self.id + ' fetchTicker() only supports spot markets')
         response = self.spotPublicGetPublicGetTicker(self.extend(request, query))
         # {
         #     "code":0,
@@ -1134,7 +1134,7 @@ class cryptocom(Exchange):
         data = self.safe_value(response, 'result', {})
         addresses = self.safe_value(data, 'deposit_address_list', [])
         if len(addresses) == 0:
-            raise ExchangeError(self.id + ' generating address...')
+            raise ExchangeError(self.id + ' fetchDepositAddressesByNetwork() generating address...')
         result = {}
         for i in range(0, len(addresses)):
             value = self.safe_value(addresses, i)
@@ -1271,7 +1271,7 @@ class cryptocom(Exchange):
 
     def fetch_transfers(self, code=None, since=None, limit=None, params={}):
         if not ('direction' in params):
-            raise ArgumentsRequired(self.id + ' fetchTransfers requires a direction param to be either "IN" or "OUT"')
+            raise ArgumentsRequired(self.id + ' fetchTransfers() requires a direction param to be either "IN" or "OUT"')
         self.load_markets()
         currency = None
         request = {

@@ -166,6 +166,7 @@ module.exports = class bitbns extends Exchange {
             'status': this.safeString ({ '1': 'ok' }, statusRaw, statusRaw),
             'updated': this.milliseconds (),
             'eta': undefined,
+            'url': undefined,
             'info': response,
         };
     }

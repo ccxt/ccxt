@@ -1058,6 +1058,7 @@ class zonda(Exchange):
         self.load_markets()
         market = self.market(symbol)
         tradingSymbol = market['baseId'] + '-' + market['quoteId']
+        amount = float(self.amount_to_precision(symbol, amount))
         request = {
             'symbol': tradingSymbol,
             'offerType': side,
@@ -1066,8 +1067,7 @@ class zonda(Exchange):
         }
         if type == 'limit':
             request['rate'] = price
-            price = float(price)
-        amount = float(amount)
+            price = float(self.price_to_precision(symbol, price))
         response = self.v1_01PrivatePostTradingOfferSymbol(self.extend(request, params))
         #
         # unfilled(open order)

@@ -547,7 +547,7 @@ class hitbtc extends Exchange {
         $fetchBalanceAccounts = $this->safe_value($this->options, 'fetchBalanceMethod', array());
         $typeId = $this->safe_string($fetchBalanceAccounts, $type);
         if ($typeId === null) {
-            throw new ExchangeError($this->id . ' fetchBalance account $type must be either main or trading');
+            throw new ExchangeError($this->id . ' fetchBalance() account $type must be either main or trading');
         }
         $method = 'privateGet' . $this->capitalize($typeId) . 'Balance';
         $query = $this->omit($params, 'type');
@@ -1239,7 +1239,7 @@ class hitbtc extends Exchange {
         $fromNetwork = $this->safe_string($networks, $fromNetwork, $fromNetwork); // handle ETH>ERC20 alias
         $toNetwork = $this->safe_string($networks, $toNetwork, $toNetwork); // handle ETH>ERC20 alias
         if ($fromNetwork === $toNetwork) {
-            throw new ExchangeError($this->id . ' $fromNetwork cannot be the same as toNetwork');
+            throw new ExchangeError($this->id . ' convertCurrencyNetwork() $fromNetwork cannot be the same as toNetwork');
         }
         $request = array(
             'fromCurrency' => $currency['id'] . $fromNetwork,

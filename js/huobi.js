@@ -788,6 +788,7 @@ module.exports = class huobi extends Exchange {
                     'order-marketorder-amount-min-error': InvalidOrder, // market order amount error, min: `0.01`
                     'order-limitorder-price-min-error': InvalidOrder, // limit order price error
                     'order-limitorder-price-max-error': InvalidOrder, // limit order price error
+                    'order-invalid-price': InvalidOrder, // {"status":"error","err-code":"order-invalid-price","err-msg":"invalid price","data":null}
                     'order-holding-limit-failed': InvalidOrder, // {"status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of this currency","data":null}
                     'order-orderprice-precision-error': InvalidOrder, // {"status":"error","err-code":"order-orderprice-precision-error","err-msg":"order price precision error, scale: `4`","data":null}
                     'order-etp-nav-price-max-error': InvalidOrder, // {"status":"error","err-code":"order-etp-nav-price-max-error","err-msg":"Order price cannot be higher than 5% of NAV","data":null}
@@ -1536,16 +1537,18 @@ module.exports = class huobi extends Exchange {
         const swap = (type === 'swap');
         const linear = (subType === 'linear');
         const inverse = (subType === 'inverse');
-        if (linear) {
-            method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
-            if (future) {
-                request['business_type'] = 'futures';
-            }
-        } else if (inverse) {
-            if (future) {
-                method = 'contractPublicGetMarketDetailBatchMerged';
-            } else if (swap) {
-                method = 'contractPublicGetSwapExMarketDetailBatchMerged';
+        if (future || swap) {
+            if (linear) {
+                method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
+                if (future) {
+                    request['business_type'] = 'futures';
+                }
+            } else if (inverse) {
+                if (future) {
+                    method = 'contractPublicGetMarketDetailBatchMerged';
+                } else if (swap) {
+                    method = 'contractPublicGetSwapExMarketDetailBatchMerged';
+                }
             }
         }
         params = this.omit (params, [ 'type', 'subType' ]);
@@ -3001,7 +3004,7 @@ module.exports = class huobi extends Exchange {
             'future': 'fetchContractOrders',
         });
         if (method === undefined) {
-            throw new NotSupported (this.id + ' fetchOrders does not support ' + marketType + ' markets yet');
+            throw new NotSupported (this.id + ' fetchOrders() does not support ' + marketType + ' markets yet');
         }
         const contract = (marketType === 'swap') || (marketType === 'future');
         if (contract && (symbol === undefined)) {
@@ -3020,7 +3023,7 @@ module.exports = class huobi extends Exchange {
             'future': 'fetchClosedContractOrders',
         });
         if (method === undefined) {
-            throw new NotSupported (this.id + ' fetchClosedOrders does not support ' + marketType + ' markets yet');
+            throw new NotSupported (this.id + ' fetchClosedOrders() does not support ' + marketType + ' markets yet');
         }
         return await this[method] (symbol, since, limit, params);
     }
@@ -3409,7 +3412,7 @@ module.exports = class huobi extends Exchange {
             'future': 'createContractOrder',
         });
         if (method === undefined) {
-            throw new NotSupported (this.id + ' createOrder does not support ' + marketType + ' markets yet');
+            throw new NotSupported (this.id + ' createOrder() does not support ' + marketType + ' markets yet');
         }
         return await this[method] (symbol, type, side, amount, price, query);
     }

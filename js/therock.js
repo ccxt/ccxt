@@ -31,7 +31,6 @@ module.exports = class therock extends Exchange {
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
-                'fetchFundingRateHistories': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
@@ -166,7 +165,7 @@ module.exports = class therock extends Exchange {
         const markets = this.safeValue (response, 'funds');
         const result = [];
         if (markets === undefined) {
-            throw new ExchangeError (this.id + ' fetchMarkets got an unexpected response');
+            throw new ExchangeError (this.id + ' fetchMarkets() got an unexpected response');
         } else {
             for (let i = 0; i < markets.length; i++) {
                 const market = markets[i];

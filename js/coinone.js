@@ -440,7 +440,7 @@ module.exports = class coinone extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type !== 'limit') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
+            throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
         await this.loadMarkets ();
         const request = {
@@ -619,7 +619,7 @@ module.exports = class coinone extends Exchange {
         // The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
         // For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
         if (symbol === undefined) {
-            throw new ExchangeError (this.id + ' allows fetching closed orders with a specific symbol');
+            throw new ExchangeError (this.id + ' fetchOpenOrders() allows fetching closed orders with a specific symbol');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

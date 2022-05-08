@@ -376,6 +376,7 @@ class phemex extends Exchange {
                 ),
             ),
             'options' => array(
+                'brokerId' => 'ccxt2022',
                 'x-phemex-request-expiry' => 60, // in seconds
                 'createOrderByQuoteRequiresPrice' => true,
                 'networks' => array(
@@ -1880,6 +1881,16 @@ class phemex extends Exchange {
             // 'pegPriceType' => 'TrailingStopPeg', // TrailingTakeProfitPeg
             // 'text' => 'comment',
         );
+        $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
+        if ($clientOrderId === null) {
+            $brokerId = $this->safe_string($this->options, 'brokerId');
+            if ($brokerId !== null) {
+                $request['clOrdID'] = $brokerId . $this->uuid16();
+            }
+        } else {
+            $request['clOrdID'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
+        }
         $stopPrice = $this->safe_string_2($params, 'stopPx', 'stopPrice');
         if ($stopPrice !== null) {
             $request['stopPxEp'] = $this->to_ep($stopPrice, $market);
@@ -2122,9 +2133,9 @@ class phemex extends Exchange {
             $numOrders = is_array($data) ? count($data) : 0;
             if ($numOrders < 1) {
                 if ($clientOrderId !== null) {
-                    throw new OrderNotFound($this->id . ' fetchOrder ' . $symbol . ' $order with $clientOrderId ' . $clientOrderId . ' not found');
+                    throw new OrderNotFound($this->id . ' fetchOrder() ' . $symbol . ' $order with $clientOrderId ' . $clientOrderId . ' not found');
                 } else {
-                    throw new OrderNotFound($this->id . ' fetchOrder ' . $symbol . ' $order with $id ' . $id . ' not found');
+                    throw new OrderNotFound($this->id . ' fetchOrder() ' . $symbol . ' $order with $id ' . $id . ' not found');
                 }
             }
             $order = $this->safe_value($data, 0, array());
@@ -2803,7 +2814,7 @@ class phemex extends Exchange {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
         if (($leverage < 1) || ($leverage > 100)) {
-            throw new BadRequest($this->id . ' $leverage should be between 1 and 100');
+            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 100');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);

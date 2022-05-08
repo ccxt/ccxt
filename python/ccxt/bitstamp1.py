@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
-from ccxt.base.errors import NotSupported
 from ccxt.base.precise import Precise
 
 
@@ -44,7 +43,7 @@ class bitstamp1(Exchange):
                 'fetchLeverage': False,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
-                'fetchOrder': True,
+                'fetchOrder': None,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
                 'fetchPositions': False,
@@ -288,9 +287,6 @@ class bitstamp1(Exchange):
         }
         response = self.privatePostOpenOrdersId(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
-
-    def fetch_order(self, id, symbol=None, params={}):
-        raise NotSupported(self.id + ' fetchOrder is not implemented yet')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)

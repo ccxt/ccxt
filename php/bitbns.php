@@ -168,6 +168,7 @@ class bitbns extends Exchange {
             'status' => $this->safe_string(array( '1' => 'ok' ), $statusRaw, $statusRaw),
             'updated' => $this->milliseconds(),
             'eta' => null,
+            'url' => null,
             'info' => $response,
         );
     }

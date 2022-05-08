@@ -261,6 +261,7 @@ class delta(Exchange):
             'status': status,
             'updated': updated,
             'eta': None,
+            'url': None,
             'info': response,
         }
 

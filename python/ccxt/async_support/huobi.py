@@ -808,6 +808,7 @@ class huobi(Exchange):
                     'order-marketorder-amount-min-error': InvalidOrder,  # market order amount error, min: `0.01`
                     'order-limitorder-price-min-error': InvalidOrder,  # limit order price error
                     'order-limitorder-price-max-error': InvalidOrder,  # limit order price error
+                    'order-invalid-price': InvalidOrder,  # {"status":"error","err-code":"order-invalid-price","err-msg":"invalid price","data":null}
                     'order-holding-limit-failed': InvalidOrder,  # {"status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of self currency","data":null}
                     'order-orderprice-precision-error': InvalidOrder,  # {"status":"error","err-code":"order-orderprice-precision-error","err-msg":"order price precision error, scale: `4`","data":null}
                     'order-etp-nav-price-max-error': InvalidOrder,  # {"status":"error","err-code":"order-etp-nav-price-max-error","err-msg":"Order price cannot be higher than 5% of NAV","data":null}
@@ -1515,15 +1516,16 @@ class huobi(Exchange):
         swap = (type == 'swap')
         linear = (subType == 'linear')
         inverse = (subType == 'inverse')
-        if linear:
-            method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged'
-            if future:
-                request['business_type'] = 'futures'
-        elif inverse:
-            if future:
-                method = 'contractPublicGetMarketDetailBatchMerged'
-            elif swap:
-                method = 'contractPublicGetSwapExMarketDetailBatchMerged'
+        if future or swap:
+            if linear:
+                method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged'
+                if future:
+                    request['business_type'] = 'futures'
+            elif inverse:
+                if future:
+                    method = 'contractPublicGetMarketDetailBatchMerged'
+                elif swap:
+                    method = 'contractPublicGetSwapExMarketDetailBatchMerged'
         params = self.omit(params, ['type', 'subType'])
         response = await getattr(self, method)(self.extend(request, params))
         #
@@ -2874,7 +2876,7 @@ class huobi(Exchange):
             'future': 'fetchContractOrders',
         })
         if method is None:
-            raise NotSupported(self.id + ' fetchOrders does not support ' + marketType + ' markets yet')
+            raise NotSupported(self.id + ' fetchOrders() does not support ' + marketType + ' markets yet')
         contract = (marketType == 'swap') or (marketType == 'future')
         if contract and (symbol is None):
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument for ' + marketType + ' orders')
@@ -2890,7 +2892,7 @@ class huobi(Exchange):
             'future': 'fetchClosedContractOrders',
         })
         if method is None:
-            raise NotSupported(self.id + ' fetchClosedOrders does not support ' + marketType + ' markets yet')
+            raise NotSupported(self.id + ' fetchClosedOrders() does not support ' + marketType + ' markets yet')
         return await getattr(self, method)(symbol, since, limit, params)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -3258,7 +3260,7 @@ class huobi(Exchange):
             'future': 'createContractOrder',
         })
         if method is None:
-            raise NotSupported(self.id + ' createOrder does not support ' + marketType + ' markets yet')
+            raise NotSupported(self.id + ' createOrder() does not support ' + marketType + ' markets yet')
         return await getattr(self, method)(symbol, type, side, amount, price, query)
 
     async def create_spot_order(self, symbol, type, side, amount, price=None, params={}):

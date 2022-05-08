@@ -1145,7 +1145,7 @@ module.exports = class probit extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const firstAddress = this.safeValue (data, 0);
         if (firstAddress === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress returned an empty response');
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() returned an empty response');
         }
         return this.parseDepositAddress (firstAddress, currency);
     }
