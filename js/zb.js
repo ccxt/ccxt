@@ -137,8 +137,7 @@ module.exports = class zb extends Exchange {
                                 'allTicker': 16.667,
                                 'depth': 16.667,
                                 'trades': 16.667,
-                                // TODO resolve kline fetching issue
-                                'kline': 300, // Kline 1 per second (should be weight 166.667 by the limit is strictly 1 request per second so throttling doesnt really work)
+                                'kline': 166.667, // Kline 1 per second
                                 'getGroupMarkets': 16.667,
                                 'getFeeInfo': 16.667,
                             },
