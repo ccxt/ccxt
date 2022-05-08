@@ -1737,9 +1737,10 @@ class ftx(Exchange):
         defaultMethod = self.safe_string(options, 'method', 'privateGetOrders')
         method = self.safe_string(params, 'method', defaultMethod)
         type = self.safe_value(params, 'type')
-        if (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
+        stop = self.safe_value(params, 'stop')
+        if stop or (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
             method = 'privateGetConditionalOrders'
-        query = self.omit(params, ['method', 'type'])
+        query = self.omit(params, ['method', 'type', 'stop'])
         response = await getattr(self, method)(self.extend(request, query))
         #
         #     {

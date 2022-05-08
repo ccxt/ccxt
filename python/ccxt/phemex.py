@@ -1741,7 +1741,8 @@ class phemex(Exchange):
         #         "pegOffsetValueEp":0,
         #         "execStatus":"PendingNew",
         #         "pegPriceType":"UNSPECIFIED",
-        #         "ordStatus":"Created"
+        #         "ordStatus":"Created",
+        #         "execInst": "ReduceOnly"
         #     }
         #
         id = self.safe_string(order, 'orderID')

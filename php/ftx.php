@@ -1808,10 +1808,11 @@ class ftx extends Exchange {
         $defaultMethod = $this->safe_string($options, 'method', 'privateGetOrders');
         $method = $this->safe_string($params, 'method', $defaultMethod);
         $type = $this->safe_value($params, 'type');
-        if (($type === 'stop') || ($type === 'trailingStop') || ($type === 'takeProfit')) {
+        $stop = $this->safe_value($params, 'stop');
+        if ($stop || ($type === 'stop') || ($type === 'trailingStop') || ($type === 'takeProfit')) {
             $method = 'privateGetConditionalOrders';
         }
-        $query = $this->omit($params, array( 'method', 'type' ));
+        $query = $this->omit($params, array( 'method', 'type', 'stop' ));
         $response = $this->$method (array_merge($request, $query));
         //
         //     {
