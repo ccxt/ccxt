@@ -3435,14 +3435,19 @@ module.exports = class bybit extends Exchange {
             } else if (api === 'private') {
                 this.checkRequiredCredentials ();
                 const isOpenapi = url.indexOf ('openapi') >= 0;
-                const timestamp = this.nonce ();
+                const timestamp = this.milliseconds ();
                 if (isOpenapi) {
                     const paramsLength = params.length;
-                    let query = undefined;
+                    let query = {};
                     if (paramsLength > 0) {
                         query = this.json (params);
+                    }
+                    // this is needed because in PHP
+                    // an empty object is converted to an array
+                    if (Array.isArray (query)) {
+                        query = '';
                     } else {
-                        query = '{}';
+                        query = this.json (query);
                     }
                     body = query;
                     const payload = timestamp.toString () + this.apiKey + query;
