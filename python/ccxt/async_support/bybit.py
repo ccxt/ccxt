@@ -650,6 +650,7 @@ class bybit(Exchange):
                 'recvWindow': 5 * 1000,  # 5 sec default
                 'timeDifference': 0,  # the difference between system clock and exchange server clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
+                'defaultSettle': 'USDT',  # USDC for USDC settled markets
             },
             'fees': {
                 'trading': {
@@ -1070,8 +1071,8 @@ class bybit(Exchange):
             strike = None
             optionType = None
             if settle is None:
-                settleId = quoteId
-                settle = self.safe_currency_code(settleId)
+                settleId = 'USDC'
+                settle = 'USDC'
             symbol = symbol + ':' + settle
             if option:
                 expiry = self.safe_integer(market, 'deliveryTime')
@@ -1263,7 +1264,7 @@ class bybit(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         method = None
-        isUsdcSettled = (market['option']) or (market['settle'] == 'USD')
+        isUsdcSettled = market['settle'] == 'USDC'
         if market['spot']:
             method = 'publicGetSpotQuoteV1Ticker24hr'
         elif not isUsdcSettled:
@@ -1365,13 +1366,14 @@ class bybit(Exchange):
             symbol = self.safe_value(symbols, 0)
             market = self.market(symbol)
             type = market['type']
-            isUsdcSettled = market['option'] or (market['settle'] == 'USD')
+            isUsdcSettled = market['settle'] == 'USDC'
         else:
             type, params = self.handle_market_type_and_params('fetchTickers', market, params)
             if type != 'spot':
-                isUsdcSettled = self.safe_value(self.options, 'isUsdcSettled', False)
-                isUsdcSettled = self.safe_value(params, 'isUsdcSettled', isUsdcSettled)
-                params = self.omit(params, 'isUsdcSettled')
+                defaultSettle = self.safe_string(self.options, 'defaultSettle', 'USDT')
+                defaultSettle = self.safe_string_2(params, 'settle', 'defaultSettle', isUsdcSettled)
+                params = self.omit(params, ['settle', 'defaultSettle'])
+                isUsdcSettled = defaultSettle == 'USDC'
         method = None
         if type == 'spot':
             method = 'publicGetSpotQuoteV1Ticker24hr'
@@ -1491,7 +1493,7 @@ class bybit(Exchange):
         method = None
         intervalKey = 'interval'
         sinceKey = 'from'
-        isUsdcSettled = (market['option']) or (market['settle'] == 'USD')
+        isUsdcSettled = market['settle'] == 'USDC'
         if market['spot']:
             method = 'publicGetSpotQuoteV1Kline'
         elif market['contract'] and not isUsdcSettled:
@@ -1825,7 +1827,7 @@ class bybit(Exchange):
         request = {
             'symbol': market['id'],
         }
-        isUsdcSettled = (market['option']) or (market['settle'] == 'USD')
+        isUsdcSettled = market['settle'] == 'USDC'
         if market['type'] == 'spot':
             method = 'publicGetSpotQuoteV1Trades'
         elif not isUsdcSettled:

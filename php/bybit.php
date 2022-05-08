@@ -641,6 +641,7 @@ class bybit extends Exchange {
                 'recvWindow' => 5 * 1000, // 5 sec default
                 'timeDifference' => 0, // the difference between system clock and exchange server clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
+                'defaultSettle' => 'USDT', // USDC for USDC settled markets
             ),
             'fees' => array(
                 'trading' => array(
@@ -1076,8 +1077,8 @@ class bybit extends Exchange {
             $strike = null;
             $optionType = null;
             if ($settle === null) {
-                $settleId = $quoteId;
-                $settle = $this->safe_currency_code($settleId);
+                $settleId = 'USDC';
+                $settle = 'USDC';
             }
             $symbol = $symbol . ':' . $settle;
             if ($option) {
@@ -1281,7 +1282,7 @@ class bybit extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $method = null;
-        $isUsdcSettled = ($market['option']) || ($market['settle'] === 'USD');
+        $isUsdcSettled = $market['settle'] === 'USDC';
         if ($market['spot']) {
             $method = 'publicGetSpotQuoteV1Ticker24hr';
         } else if (!$isUsdcSettled) {
@@ -1386,13 +1387,14 @@ class bybit extends Exchange {
             $symbol = $this->safe_value($symbols, 0);
             $market = $this->market($symbol);
             $type = $market['type'];
-            $isUsdcSettled = $market['option'] || ($market['settle'] === 'USD');
+            $isUsdcSettled = $market['settle'] === 'USDC';
         } else {
             list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
             if ($type !== 'spot') {
-                $isUsdcSettled = $this->safe_value($this->options, 'isUsdcSettled', false);
-                $isUsdcSettled = $this->safe_value($params, 'isUsdcSettled', $isUsdcSettled);
-                $params = $this->omit($params, 'isUsdcSettled');
+                $defaultSettle = $this->safe_string($this->options, 'defaultSettle', 'USDT');
+                $defaultSettle = $this->safe_string_2($params, 'settle', 'defaultSettle', $isUsdcSettled);
+                $params = $this->omit($params, array( 'settle', 'defaultSettle' ));
+                $isUsdcSettled = $defaultSettle === 'USDC';
             }
         }
         $method = null;
@@ -1523,7 +1525,7 @@ class bybit extends Exchange {
         $method = null;
         $intervalKey = 'interval';
         $sinceKey = 'from';
-        $isUsdcSettled = ($market['option']) || ($market['settle'] === 'USD');
+        $isUsdcSettled = $market['settle'] === 'USDC';
         if ($market['spot']) {
             $method = 'publicGetSpotQuoteV1Kline';
         } else if ($market['contract'] && !$isUsdcSettled) {
@@ -1876,7 +1878,7 @@ class bybit extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $isUsdcSettled = ($market['option']) || ($market['settle'] === 'USD');
+        $isUsdcSettled = $market['settle'] === 'USDC';
         if ($market['type'] === 'spot') {
             $method = 'publicGetSpotQuoteV1Trades';
         } else if (!$isUsdcSettled) {
