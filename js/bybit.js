@@ -1812,9 +1812,10 @@ module.exports = class bybit extends Exchange {
         if (type === 'spot') {
             method = 'privateGetSpotV1Account';
         } else {
-            let isUsdcSettled = this.safeValue (this.options, 'isUsdcSettled', false);
-            isUsdcSettled = this.safeValue (params, 'isUsdcSettled', isUsdcSettled);
-            params = this.omit (params, 'isUsdcSettled');
+            let settle = this.safeValue (this.options, 'defaultSettle', false);
+            settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
+            params = this.omit (params, [ 'settle', 'defaultSettle' ]);
+            const isUsdcSettled = settle === 'USDC';
             if (!isUsdcSettled) {
                 // linear/inverse future/swap
                 method = 'privateGetV2PrivateWalletBalance';
