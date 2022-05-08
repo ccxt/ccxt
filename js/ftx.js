@@ -1804,10 +1804,11 @@ module.exports = class ftx extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'privateGetOrders');
         let method = this.safeString (params, 'method', defaultMethod);
         const type = this.safeValue (params, 'type');
-        if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
+        const stop = this.safeValue (params, 'stop');
+        if (stop || (type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
             method = 'privateGetConditionalOrders';
         }
-        const query = this.omit (params, [ 'method', 'type' ]);
+        const query = this.omit (params, [ 'method', 'type', 'stop' ]);
         const response = await this[method] (this.extend (request, query));
         //
         //     {
