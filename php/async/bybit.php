@@ -2995,6 +2995,10 @@ class bybit extends Exchange {
             $params = $this->omit($params, 'order_id');
         }
         $market = $this->market($symbol);
+        $isUsdcSettled = $market['settle'] === 'USDC';
+        if ($isUsdcSettled) {
+            throw new NotSupported($this->id . ' fetchMyTrades() is not supported for $market ' . $symbol);
+        }
         $request['symbol'] = $market['id'];
         if ($since !== null) {
             $request['start_time'] = $since;
@@ -3002,22 +3006,51 @@ class bybit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 20, max 50
         }
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
-        $marketDefined = ($market !== null);
-        $linear = ($marketDefined && $market['linear']) || ($marketType === 'linear');
-        $inverse = ($marketDefined && $market['swap'] && $market['inverse']) || ($marketType === 'inverse');
-        $future = ($marketDefined && $market['future']) || (($marketType === 'future') || ($marketType === 'futures')); // * ($marketType === 'futures') deprecated, use ($marketType === 'future')
         $method = null;
-        if ($linear) {
-            $method = 'privateLinearGetTradeExecutionList';
-        } else if ($inverse) {
-            $method = 'v2PrivateGetExecutionList';
-        } else if ($future) {
-            $method = 'futuresPrivateGetExecutionList';
+        if ($market['spot']) {
+            $method = 'privateGetSpotV1MyTrades';
+        } else if ($market['future']) {
+            $method = 'privateGetFuturesPrivateExecutionList';
+        } else {
+            // linear and inverse swaps
+            $method = $market['linear'] ? 'privateGetPrivateLinearTradeExecutionList' : 'privateGetV2PrivateExecutionList';
         }
-        $response = yield $this->$method (array_merge($request, $query));
+        $response = yield $this->$method (array_merge($request, $params));
         //
-        // $inverse
+        // spot
+        //     {
+        //         "ret_code" => 0,
+        //         "ret_msg" => "",
+        //         "ext_code" => null,
+        //         "ext_info" => null,
+        //         "result" => array(
+        //            {
+        //                 "id" => "931975237315196160",
+        //                 "symbol" => "BTCUSDT",
+        //                 "symbolName" => "BTCUSDT",
+        //                 "orderId" => "931975236946097408",
+        //                 "ticketId" => "1057753175328833537",
+        //                 "matchOrderId" => "931975113180558592",
+        //                 "price" => "20000.00001",
+        //                 "qty" => "0.01",
+        //                 "commission" => "0.02000000001",
+        //                 "commissionAsset" => "USDT",
+        //                 "time" => "1625836105890",
+        //                 "isBuyer" => false,
+        //                 "isMaker" => false,
+        //                 "fee" => array(
+        //                     "feeTokenId" => "USDT",
+        //                     "feeTokenName" => "USDT",
+        //                     "fee" => "0.02000000001"
+        //                 ),
+        //                 "feeTokenId" => "USDT",
+        //                 "feeAmount" => "0.02000000001",
+        //                 "makerRebate" => "0"
+        //            }
+        //         )
+        //     }
+        //
+        // inverse
         //
         //     {
         //         "ret_code" => 0,
@@ -3058,7 +3091,7 @@ class bybit extends Exchange {
         //         "rate_limit" => 120
         //     }
         //
-        // $linear
+        // linear
         //
         //     {
         //         "ret_code":0,
@@ -3099,8 +3132,10 @@ class bybit extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        $trades = $this->safe_value_2($result, 'trade_list', 'data', array());
-        return $this->parse_trades($trades, $market, $since, $limit);
+        if (gettype($result) === 'array' && count(array_filter(array_keys($result), 'is_string')) != 0) {
+            $result = $this->safe_value_2($result, 'trade_list', 'data', array());
+        }
+        return $this->parse_trades($result, $market, $since, $limit);
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {

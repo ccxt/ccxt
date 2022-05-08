@@ -2861,24 +2861,56 @@ class bybit(Exchange):
             request['order_id'] = orderId
             params = self.omit(params, 'order_id')
         market = self.market(symbol)
+        isUsdcSettled = market['settle'] == 'USDC'
+        if isUsdcSettled:
+            raise NotSupported(self.id + ' fetchMyTrades() is not supported for market ' + symbol)
         request['symbol'] = market['id']
         if since is not None:
             request['start_time'] = since
         if limit is not None:
             request['limit'] = limit  # default 20, max 50
-        marketType, query = self.handle_market_type_and_params('fetchMyTrades', market, params)
-        marketDefined = (market is not None)
-        linear = (marketDefined and market['linear']) or (marketType == 'linear')
-        inverse = (marketDefined and market['swap'] and market['inverse']) or (marketType == 'inverse')
-        future = (marketDefined and market['future']) or ((marketType == 'future') or (marketType == 'futures'))  # * (marketType == 'futures') deprecated, use(marketType == 'future')
         method = None
-        if linear:
-            method = 'privateLinearGetTradeExecutionList'
-        elif inverse:
-            method = 'v2PrivateGetExecutionList'
-        elif future:
-            method = 'futuresPrivateGetExecutionList'
-        response = await getattr(self, method)(self.extend(request, query))
+        if market['spot']:
+            method = 'privateGetSpotV1MyTrades'
+        elif market['future']:
+            method = 'privateGetFuturesPrivateExecutionList'
+        else:
+            # linear and inverse swaps
+            method = 'privateGetPrivateLinearTradeExecutionList' if market['linear'] else 'privateGetV2PrivateExecutionList'
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # spot
+        #     {
+        #         "ret_code": 0,
+        #         "ret_msg": "",
+        #         "ext_code": null,
+        #         "ext_info": null,
+        #         "result": [
+        #            {
+        #                 "id": "931975237315196160",
+        #                 "symbol": "BTCUSDT",
+        #                 "symbolName": "BTCUSDT",
+        #                 "orderId": "931975236946097408",
+        #                 "ticketId": "1057753175328833537",
+        #                 "matchOrderId": "931975113180558592",
+        #                 "price": "20000.00001",
+        #                 "qty": "0.01",
+        #                 "commission": "0.02000000001",
+        #                 "commissionAsset": "USDT",
+        #                 "time": "1625836105890",
+        #                 "isBuyer": False,
+        #                 "isMaker": False,
+        #                 "fee": {
+        #                     "feeTokenId": "USDT",
+        #                     "feeTokenName": "USDT",
+        #                     "fee": "0.02000000001"
+        #                 },
+        #                 "feeTokenId": "USDT",
+        #                 "feeAmount": "0.02000000001",
+        #                 "makerRebate": "0"
+        #            }
+        #         ]
+        #     }
         #
         # inverse
         #
@@ -2962,8 +2994,9 @@ class bybit(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        trades = self.safe_value_2(result, 'trade_list', 'data', [])
-        return self.parse_trades(trades, market, since, limit)
+        if not isinstance(result, list):
+            result = self.safe_value_2(result, 'trade_list', 'data', [])
+        return self.parse_trades(result, market, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
