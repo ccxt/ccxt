@@ -3437,15 +3437,12 @@ module.exports = class bybit extends Exchange {
                 const isOpenapi = url.indexOf ('openapi') >= 0;
                 const timestamp = this.nonce ();
                 if (isOpenapi) {
-                    let query = {
-                        'recv_window': this.options['recvWindow'],
-                    };
-                    query = this.json (query);
-                    // let query = body;
                     const paramsLength = params.length;
+                    let query = undefined;
                     if (paramsLength > 0) {
                         query = this.json (params);
-                        body = this.extend (body, query);
+                    } else {
+                        query = '{}';
                     }
                     body = query;
                     const payload = timestamp.toString () + this.apiKey + query;
