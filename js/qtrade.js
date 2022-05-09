@@ -72,12 +72,15 @@ module.exports = class qtrade extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchTransactions': undefined,
+                'fetchTransfer': false,
+                'fetchTransfers': true,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -1242,6 +1245,68 @@ module.exports = class qtrade extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const deposits = this.safeValue (data, 'deposits', []);
         return this.parseTransactions (deposits, currency, since, limit);
+    }
+
+    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const response = await this.privateGetTransfers (params);
+        //
+        //     {
+        //         "data": {
+        //             "transfers": [
+        //                 {
+        //                     "amount": "0.5",
+        //                     "created_at": "2018-12-10T00:06:41.066665Z",
+        //                     "currency": "BTC",
+        //                     "id": 9,
+        //                     "reason_code": "referral_payout",
+        //                     "reason_metadata": {
+        //                         "note": "January referral earnings"
+        //                     },
+        //                     "sender_email": "qtrade",
+        //                     "sender_id": 218
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const transfers = this.safeValue (data, 'transfers', []);
+        return this.parseTransfers (transfers, currency, since, limit);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         "amount": "0.5",
+        //         "created_at": "2018-12-10T00:06:41.066665Z",
+        //         "currency": "BTC",
+        //         "id": 9,
+        //         "reason_code": "referral_payout",
+        //         "reason_metadata": {
+        //             "note": "January referral earnings"
+        //         },
+        //         "sender_email": "qtrade",
+        //         "sender_id": 218
+        //     }
+        //
+        const currencyId = this.safeString (transfer, 'currency');
+        const dateTime = this.safeString (transfer, 'created_at');
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': this.parse8601 (dateTime),
+            'datetime': dateTime,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': this.safeString (transfer, 'sender_id'),
+            'toAccount': undefined,
+            'status': 'ok',
+        };
     }
 
     async fetchWithdrawal (id, code = undefined, params = {}) {
