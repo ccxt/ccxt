@@ -381,6 +381,7 @@ module.exports = class gateio extends ccxt.gateio {
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const marketId = market['id'];
         const type = market['type'];
         const messageType = this.getUniformType (type);
@@ -447,6 +448,7 @@ module.exports = class gateio extends ccxt.gateio {
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const marketId = market['id'];
         const type = market['type'];
         const interval = this.timeframes[timeframe];
@@ -700,6 +702,7 @@ module.exports = class gateio extends ccxt.gateio {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         let type = 'spot';
         if (market['future'] || market['swap']) {
             type = 'futures';

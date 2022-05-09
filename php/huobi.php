@@ -1339,14 +1339,21 @@ class huobi extends \ccxt\async\huobi {
                             $balance = $balances[$i];
                             $marketId = $this->safe_string_2($balance, 'contract_code', 'margin_account');
                             $market = $this->safe_market($marketId);
-                            $account = $this->account();
-                            $account['free'] = $this->safe_string($balance, 'margin_balance');
-                            $account['used'] = $this->safe_string($balance, 'margin_frozen');
-                            $code = $market['settle'];
-                            $accountsByCode = array();
-                            $accountsByCode[$code] = $account;
-                            $symbol = $market['symbol'];
-                            $this->balance[$symbol] = $this->safe_balance($accountsByCode);
+                            $currencyId = $this->safe_string($balance, 'margin_asset');
+                            $currency = $this->safe_currency($currencyId);
+                            $code = $this->safe_string($market, 'settle', $currency['code']);
+                            // the exchange outputs positions for delisted markets
+                            // https://www.huobi.com/support/en-us/detail/74882968522337
+                            // we skip it if the $market was delisted
+                            if ($code !== null) {
+                                $account = $this->account();
+                                $account['free'] = $this->safe_string($balance, 'margin_balance');
+                                $account['used'] = $this->safe_string($balance, 'margin_frozen');
+                                $accountsByCode = array();
+                                $accountsByCode[$code] = $account;
+                                $symbol = $market['symbol'];
+                                $this->balance[$symbol] = $this->safe_balance($accountsByCode);
+                            }
                         }
                     }
                 } else {
@@ -1781,25 +1788,28 @@ class huobi extends \ccxt\async\huobi {
         //             "feeDeductType":""
         //         }
         //     }
+        //
         // contract
-        // {
-        //     "symbol" => "ADA/USDT:USDT"
-        //     "ch" => "orders_cross.ada-usdt"
-        //      "trades" => array(
-        //          {
-        //              "trade_fee":-0.022099447513812154,
-        //              "fee_asset":"ADA",
-        //              "trade_id":113913755890,
-        //              "id":"113913755890-773207641127878656-1",
-        //              "trade_volume":1,
-        //              "trade_price":0.0905,
-        //              "trade_turnover":10,
-        //              "created_at":1604388667194,
-        //              "profit":0,
-        //              "real_profit" => 0,
-        //              "role":"maker"
-        //          }
-        //      ),
+        //
+        //     {
+        //         "symbol" => "ADA/USDT:USDT"
+        //         "ch" => "orders_cross.ada-usdt"
+        //         "trades" => array(
+        //             {
+        //                 "trade_fee":-0.022099447513812154,
+        //                 "fee_asset":"ADA",
+        //                 "trade_id":113913755890,
+        //                 "id":"113913755890-773207641127878656-1",
+        //                 "trade_volume":1,
+        //                 "trade_price":0.0905,
+        //                 "trade_turnover":10,
+        //                 "created_at":1604388667194,
+        //                 "profit":0,
+        //                 "real_profit" => 0,
+        //                 "role":"maker"
+        //             }
+        //         ),
+        //     }
         //
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);

@@ -40,11 +40,30 @@ class okx extends \ccxt\async\okx {
             ),
             'options' => array(
                 'watchOrderBook' => array(
-                    // books, 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed every 100 ms when there is change in order book.
-                    // books5, 5 depth levels will be pushed every time. Data will be pushed every 100 ms when there is change in order book.
-                    // books50-l2-tbt, 50 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
-                    // books-l2-tbt, 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
-                    'depth' => 'books-l2-tbt',
+                    //
+                    // bbo-tbt
+                    // 1. Newly added channel that sends tick-by-tick Level 1 data
+                    // 2. All API users can subscribe
+                    // 3. Public depth channel, verification not required
+                    //
+                    // books-l2-tbt
+                    // 1. Only users who're VIP5 and above can subscribe
+                    // 2. Identity verification required before subscription
+                    //
+                    // books50-l2-tbt
+                    // 1. Only users who're VIP4 and above can subscribe
+                    // 2. Identity verification required before subscription
+                    //
+                    // books
+                    // 1. All API users can subscribe
+                    // 2. Public depth channel, verification not required
+                    //
+                    // books5
+                    // 1. All API users can subscribe
+                    // 2. Public depth channel, verification not required
+                    // 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
+                    //
+                    'depth' => 'books',
                 ),
                 'watchBalance' => 'spot', // margin, futures, swap
                 'ws' => array(
@@ -222,11 +241,30 @@ class okx extends \ccxt\async\okx {
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
         $options = $this->safe_value($this->options, 'watchOrderBook', array());
-        // books, 400 $depth levels will be pushed in the initial full snapshot. Incremental data will be pushed every 100 ms when there is change in order book.
-        // books5, 5 $depth levels will be pushed every time. Data will be pushed every 100 ms when there is change in order book.
-        // books50-l2-tbt, 50 $depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
-        // books-l2-tbt, 400 $depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
-        $depth = $this->safe_string($options, 'depth', 'books-l2-tbt');
+        //
+        // bbo-tbt
+        // 1. Newly added channel that sends tick-by-tick Level 1 data
+        // 2. All API users can subscribe
+        // 3. Public $depth channel, verification not required
+        //
+        // books-l2-tbt
+        // 1. Only users who're VIP5 and above can subscribe
+        // 2. Identity verification required before subscription
+        //
+        // books50-l2-tbt
+        // 1. Only users who're VIP4 and above can subscribe
+        // 2. Identity verification required before subscription
+        //
+        // books
+        // 1. All API users can subscribe
+        // 2. Public $depth channel, verification not required
+        //
+        // books5
+        // 1. All API users can subscribe
+        // 2. Public $depth channel, verification not required
+        // 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
+        //
+        $depth = $this->safe_string($options, 'depth', 'books');
         $orderbook = yield $this->subscribe('public', $depth, $symbol, $params);
         return $orderbook->limit ($limit);
     }
@@ -348,6 +386,22 @@ class okx extends \ccxt\async\okx {
         //         )
         //     }
         //
+        // bbo-tbt
+        //
+        //     {
+        //         "arg":array(
+        //             "channel":"bbo-tbt",
+        //             "instId":"BTC-USDT"
+        //         ),
+        //         "data":[
+        //             {
+        //                 "asks":[["36232.2","1.8826134","0","17"]],
+        //                 "bids":[["36232.1","0.00572212","0","2"]],
+        //                 "ts":"1651826598363"
+        //             }
+        //         ]
+        //     }
+        //
         $arg = $this->safe_value($message, 'arg', array());
         $channel = $this->safe_string($arg, 'channel');
         $action = $this->safe_string($message, 'action');
@@ -356,6 +410,7 @@ class okx extends \ccxt\async\okx {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $depths = array(
+            'bbo-tbt' => 1,
             'books' => 400,
             'books5' => 5,
             'books-l2-tbt' => 400,
@@ -381,7 +436,7 @@ class okx extends \ccxt\async\okx {
                     $client->resolve ($orderbook, $messageHash);
                 }
             }
-        } else if ($channel === 'books5') {
+        } else if (($channel === 'books5') || ($channel === 'bbo-tbt')) {
             $orderbook = $this->safe_value($this->orderbooks, $symbol);
             if ($orderbook === null) {
                 $orderbook = $this->order_book(array(), $limit);
@@ -390,7 +445,7 @@ class okx extends \ccxt\async\okx {
             for ($i = 0; $i < count($data); $i++) {
                 $update = $data[$i];
                 $timestamp = $this->safe_integer($update, 'ts');
-                $snapshot = $this->parse_order_book($update, $symbol, $timestamp, 'bids', 'asks', 0, 1, $market);
+                $snapshot = $this->parse_order_book($update, $symbol, $timestamp, 'bids', 'asks', 0, 1);
                 $orderbook->reset ($snapshot);
                 $messageHash = $channel . ':' . $marketId;
                 $client->resolve ($orderbook, $messageHash);
@@ -729,10 +784,11 @@ class okx extends \ccxt\async\okx {
             $arg = $this->safe_value($message, 'arg', array());
             $channel = $this->safe_string($arg, 'channel');
             $methods = array(
-                'books' => array($this, 'handle_order_book'), // 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed every 100 ms when there is change in order book.
-                'books5' => array($this, 'handle_order_book'), // 5 depth levels will be pushed every time. Data will be pushed every 100 ms when there is change in order book.
-                'books50-l2-tbt' => array($this, 'handle_order_book'), // 50 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
-                'books-l2-tbt' => array($this, 'handle_order_book'), // 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
+                'bbo-tbt' => array($this, 'handle_order_book'), // newly added $channel that sends tick-by-tick Level 1 data, all API users can subscribe, public depth $channel, verification not required
+                'books' => array($this, 'handle_order_book'), // all API users can subscribe, public depth $channel, verification not required
+                'books5' => array($this, 'handle_order_book'), // all API users can subscribe, public depth $channel, verification not required, data feeds will be delivered every 100ms (vs. every 200ms now)
+                'books50-l2-tbt' => array($this, 'handle_order_book'), // only users who're VIP4 and above can subscribe, identity verification required before subscription
+                'books-l2-tbt' => array($this, 'handle_order_book'), // only users who're VIP5 and above can subscribe, identity verification required before subscription
                 'tickers' => array($this, 'handle_ticker'),
                 'trades' => array($this, 'handle_trades'),
                 'account' => array($this, 'handle_balance'),

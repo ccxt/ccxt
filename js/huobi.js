@@ -1333,14 +1333,21 @@ module.exports = class huobi extends ccxt.huobi {
                             const balance = balances[i];
                             const marketId = this.safeString2 (balance, 'contract_code', 'margin_account');
                             const market = this.safeMarket (marketId);
-                            const account = this.account ();
-                            account['free'] = this.safeString (balance, 'margin_balance');
-                            account['used'] = this.safeString (balance, 'margin_frozen');
-                            const code = market['settle'];
-                            const accountsByCode = {};
-                            accountsByCode[code] = account;
-                            const symbol = market['symbol'];
-                            this.balance[symbol] = this.safeBalance (accountsByCode);
+                            const currencyId = this.safeString (balance, 'margin_asset');
+                            const currency = this.safeCurrency (currencyId);
+                            const code = this.safeString (market, 'settle', currency['code']);
+                            // the exchange outputs positions for delisted markets
+                            // https://www.huobi.com/support/en-us/detail/74882968522337
+                            // we skip it if the market was delisted
+                            if (code !== undefined) {
+                                const account = this.account ();
+                                account['free'] = this.safeString (balance, 'margin_balance');
+                                account['used'] = this.safeString (balance, 'margin_frozen');
+                                const accountsByCode = {};
+                                accountsByCode[code] = account;
+                                const symbol = market['symbol'];
+                                this.balance[symbol] = this.safeBalance (accountsByCode);
+                            }
                         }
                     }
                 } else {
@@ -1775,25 +1782,28 @@ module.exports = class huobi extends ccxt.huobi {
         //             "feeDeductType":""
         //         }
         //     }
+        //
         // contract
-        // {
-        //     "symbol": "ADA/USDT:USDT"
-        //     "ch": "orders_cross.ada-usdt"
-        //      "trades": [
-        //          {
-        //              "trade_fee":-0.022099447513812154,
-        //              "fee_asset":"ADA",
-        //              "trade_id":113913755890,
-        //              "id":"113913755890-773207641127878656-1",
-        //              "trade_volume":1,
-        //              "trade_price":0.0905,
-        //              "trade_turnover":10,
-        //              "created_at":1604388667194,
-        //              "profit":0,
-        //              "real_profit": 0,
-        //              "role":"maker"
-        //          }
-        //      ],
+        //
+        //     {
+        //         "symbol": "ADA/USDT:USDT"
+        //         "ch": "orders_cross.ada-usdt"
+        //         "trades": [
+        //             {
+        //                 "trade_fee":-0.022099447513812154,
+        //                 "fee_asset":"ADA",
+        //                 "trade_id":113913755890,
+        //                 "id":"113913755890-773207641127878656-1",
+        //                 "trade_volume":1,
+        //                 "trade_price":0.0905,
+        //                 "trade_turnover":10,
+        //                 "created_at":1604388667194,
+        //                 "profit":0,
+        //                 "real_profit": 0,
+        //                 "role":"maker"
+        //             }
+        //         ],
+        //     }
         //
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);

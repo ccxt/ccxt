@@ -2,7 +2,9 @@
 
 error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
-require_once '../../vendor/autoload.php';
+
+$root = dirname(dirname(dirname(__FILE__)));
+require_once $root . '/vendor/autoload.php';
 
 date_default_timezone_set('UTC');
 
@@ -24,6 +26,18 @@ function main($argv) {
         $no_poll = count(array_filter($args, function ($option) { return strstr($option, '--no-poll') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--no-poll') === false; }));
 
+        $spot = count(array_filter($args, function ($option) { return strstr($option, '--spot') !== false; })) > 0;
+        $args = array_values(array_filter($args, function ($option) { return strstr($option, '--spot') === false; }));
+    
+        $swap = count(array_filter($args, function ($option) { return strstr($option, '--swap') !== false; })) > 0;
+        $args = array_values(array_filter($args, function ($option) { return strstr($option, '--swap') === false; }));
+    
+        $future = count(array_filter($args, function ($option) { return strstr($option, '--future') !== false; })) > 0;
+        $args = array_values(array_filter($args, function ($option) { return strstr($option, '--future') === false; }));
+
+        $new_updates = count(array_filter($args, function ($option) { return strstr($option, '--newUpdates') !== false; })) > 0;
+        $args = array_values(array_filter($args, function ($option) { return strstr($option, '--newUpdates') === false; }));
+
         $id = $args[1];
         $member = $args[2];
         $args = array_slice($args, 3);
@@ -44,6 +58,18 @@ function main($argv) {
             // instantiate the exchange by id
             $exchange = '\\ccxtpro\\' . $id;
             $exchange = new $exchange($config);
+
+            if ($spot) {
+                $exchange->options['defaultType'] = 'spot';
+            } else if ($swap) {
+                $exchange->options['defaultType'] = 'swap';
+            } else if ($future) {
+                $exchange->options['defaultType'] = 'future';
+            }
+
+            if ($new_updates) {
+                $exchange->newUpdates = true;
+            }
 
             if ($test) {
                 $exchange->set_sandbox_mode(true);
