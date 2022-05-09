@@ -1936,8 +1936,12 @@ module.exports = class coinflex extends Exchange {
         }
         const orderType = this.convertOrderType (type);
         // creating stop orders using type argument will mess up the unification logic (beacuse of missing market/limit). So, we have to use unified approach for sending stop orders
-        if (orderType === 'STOP') {
-            throw new ArgumentsRequired (this.id + ' createOrder() you need to specify the "stopPrice" param for stop order instead of using "STOP" as type argument');
+        if (orderType !== 'market' && orderType !== 'limit') {
+            if (orderType === 'STOP') {
+                throw new ArgumentsRequired (this.id + ' createOrder() : instead of using "STOP" as argument, you need to specify the "stopPrice" param as stop order trigger price, and the "price" argument for limit price');
+            } else {
+                throw new ArgumentsRequired (this.id + ' createOrder() accepts "market" or "limit" as order type argument.If you want to specify custom order-type, use params["orderType"] instead');
+            }
         }
         await this.loadMarkets ();
         const order = {
