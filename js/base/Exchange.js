@@ -2360,11 +2360,14 @@ module.exports = class Exchange {
         return this.createOrder(symbol, 'market', side, amount, undefined, query);
     }
 
-    checkOrderTypeAndPrice (market, type, side, amount, price) {
+    checkOrderArguments (market, type, side, amount, price, params) {
         if (price === undefined) {
             if (type === 'limit') {
                   throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a limit order');
              }
+        }
+        if (amount <= 0) {
+            throw new ArgumentsRequired (this.id + ' createOrder() amount should be above 0');
         }
     }
 
