@@ -57,6 +57,8 @@ module.exports = class independentreserve extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': false,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87182090-1e9e9080-c2ec-11ea-8e49-563db9a38f37.jpg',
@@ -120,6 +122,9 @@ module.exports = class independentreserve extends Exchange {
             },
             'commonCurrencies': {
                 'PLA': 'PlayChip',
+            },
+            'options': {
+                'fiat': [ 'AUD', 'USD', 'NZD', 'SGD' ],
             },
         });
     }
@@ -609,6 +614,161 @@ module.exports = class independentreserve extends Exchange {
             'orderGuid': id,
         };
         return await this.privatePostCancelOrder (this.extend (request, params));
+    }
+
+    isFiat (code) {
+        const fiat = this.safeValue (this.options, 'fiat', []);
+        return this.inArray (code, fiat);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        let request = undefined;
+        let method = undefined;
+        if (this.isFiat (code)) {
+            request = {
+                'secondaryCurrencyCode  ': currency['id'],
+                'fiatBankAccountGuid ': address,
+                'withdrawalAmount ': this.currencyToPrecision (code, amount),
+                // "useNpp": "true",
+                // "comment": "{comment}"
+            };
+            method = 'privatePostWithdrawFiatCurrency';
+        } else {
+            request = {
+                'primaryCurrencyCode ': currency['id'],
+                'withdrawalAddress ': address,
+                'amount': amount,
+            };
+            if (tag !== undefined) {
+                request['destinationTag '] = tag;
+            }
+            method = 'privatePostWithdrawDigitalCurrency';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //  privatePostWithdrawFiatCurrency
+        //      {
+        //          "FiatWithdrawalRequestGuid": "a953d73e-e650-471f-a502-676dea9574ea",
+        //          "AccountGuid": "137edc8f-d681-4a61-905c-5e761317193b",
+        //          "Status": "Executed",
+        //          "CreatedTimestampUtc": "2020-09-30T14:08:47.4032405Z",
+        //          "TotalWithdrawalAmount": 11.5,
+        //          "FeeAmount": 1.5,
+        //          "Currency": "Aud"
+        //      }
+        //
+        //  privatePostWithdrawDigitalCurrency
+        //      {
+        //          "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
+        //          "PrimaryCurrencyCode": "Bch",
+        //          "CreatedTimestampUtc": "2020-04-01T05:26:30.5093622+00:00",
+        //          "Amount": {
+        //              "Total": 0.1231,
+        //              "Fee": 0.0001
+        //          },
+        //          "Destination": {
+        //              "Address": "bc1qhpqxkjpvgkckw530yfmxyr53c94q8f4273a7ez",
+        //              "Tag": null
+        //          },
+        //          "Status": "Pending",
+        //          "Transaction": null
+        //      }
+        //
+        return this.parseTransaction (response, currency);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //  privatePostWithdrawFiatCurrency
+        //      {
+        //          "FiatWithdrawalRequestGuid": "a953d73e-e650-471f-a502-676dea9574ea",
+        //          "AccountGuid": "137edc8f-d681-4a61-905c-5e761317193b",
+        //          "Status": "Executed",
+        //          "CreatedTimestampUtc": "2020-09-30T14:08:47.4032405Z",
+        //          "TotalWithdrawalAmount": 11.5,
+        //          "FeeAmount": 1.5,
+        //          "Currency": "Aud"
+        //      }
+        //
+        //  privatePostWithdrawDigitalCurrency
+        //      {
+        //          "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
+        //          "PrimaryCurrencyCode": "Bch",
+        //          "CreatedTimestampUtc": "2020-04-01T05:26:30.5093622+00:00",
+        //          "Amount": {
+        //              "Total": 0.1231,
+        //              "Fee": 0.0001
+        //          },
+        //          "Destination": {
+        //              "Address": "bc1qhpqxkjpvgkckw530yfmxyr53c94q8f4273a7ez",
+        //              "Tag": null
+        //          },
+        //          "Status": "Pending",
+        //          "Transaction": null
+        //      }
+        //
+        const id = this.safeString2 (transaction, 'FiatWithdrawalRequestGuid', 'TransactionGuid');
+        const destination = this.safeValue (transaction, 'Destination', {});
+        const addressFrom = this.safeString (transaction, 'AccountGuid');
+        const addressTo = this.safeString (destination, 'Address');
+        const address = addressFrom ? addressFrom : addressTo;
+        const tag = this.safeString (destination, 'Tag');
+        const networkTransaction = this.safeString (transaction, 'Transaction');
+        const txid = this.safeString (networkTransaction, 'Hash');
+        const currencyId = this.safeString2 (transaction, 'PrimaryCurrencyCode', 'Currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const dateTime = this.safeString (transaction, 'CreatedTimestampUtc');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const amountObject = this.safeValue (transaction, 'Amount');
+        let amount = this.safeNumber (transaction, 'TotalWithdrawalAmount');
+        if (amount === undefined) {
+            amount = this.safeNumber (amountObject, 'Total');
+        }
+        let feeCost = this.safeNumber (transaction, 'FeeAmount');
+        if (feeCost === undefined) {
+            feeCost = this.safeNumber (amountObject, 'Fee');
+        }
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = { 'currency': code, 'cost': feeCost };
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': this.parse8601 (dateTime),
+            'datetime': dateTime,
+            'network': undefined,
+            'address': address,
+            'addressTo': addressTo,
+            'addressFrom': addressFrom,
+            'tag': tag,
+            'tagTo': tag,
+            'tagFrom': undefined,
+            'type': 'withdrawal',
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': undefined,
+            'internal': false,
+            'fee': fee,
+        };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'Pending': 'pending',
+            'Held': 'pending',
+            'Approved': 'ok',
+            'Executing': 'pending',
+            'Executed': 'ok',
+            'Rejected': 'rejected',
+            'Cancelled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
