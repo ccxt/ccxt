@@ -387,6 +387,7 @@ module.exports = class kucoin extends Exchange {
                 'versions': {
                     'public': {
                         'GET': {
+                            'currencies/{currency}': 'v2',
                             'status': 'v1',
                             'market/orderbook/level2_20': 'v1',
                             'market/orderbook/level2_100': 'v1',
@@ -1020,7 +1021,10 @@ module.exports = class kucoin extends Exchange {
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         const data = this.safeValue (response, 'data', {});
         const address = this.safeString (data, 'address');
-        const tag = this.safeString (data, 'memo');
+        let tag = this.safeString (data, 'memo');
+        if (tag === '') {
+            tag = undefined;
+        }
         if (code !== 'NIM') {
             // contains spaces
             this.checkAddress (address);
@@ -2511,7 +2515,7 @@ module.exports = class kucoin extends Exchange {
         headers = (headers !== undefined) ? headers : {};
         if (Object.keys (query).length) {
             if ((method === 'GET') || (method === 'DELETE')) {
-                endpoint += '?' + this.urlencode (query);
+                endpoint += '?' + this.rawencode (query);
             } else {
                 body = this.json (query);
                 endpart = body;
