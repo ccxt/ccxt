@@ -260,6 +260,7 @@ class bybit extends Exchange {
                         'v2/public/account-ratio' => 1,
                         'v2/public/funding-rate' => 1,
                         'v2/public/elite-ratio' => 1,
+                        'v2/public/risk-limit/list' => 1,
                         // linear swap USDT
                         'public/linear/kline' => 3,
                         'public/linear/recent-trading-records' => 1,
@@ -298,6 +299,7 @@ class bybit extends Exchange {
                         'perpetual/usdc/openapi/public/v1/open-interest' => 1,
                         'perpetual/usdc/openapi/public/v1/big-deal' => 1,
                         'perpetual/usdc/openapi/public/v1/account-ratio' => 1,
+                        'perpetual/usdc/openapi/public/v1/risk-limit/list' => 1,
                     ),
                     // outdated endpoints--------------------------------------
                     'linear' => array(
@@ -3729,21 +3731,21 @@ class bybit extends Exchange {
         $this->load_markets();
         $request = array();
         $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            if ($market['spot']) {
-                throw new BadRequest($this->id . ' fetchLeverageTiers() $symbol supports contract markets only');
-            }
-            $request['symbol'] = $market['id'];
+        $market = $this->market($symbol);
+        if ($market['spot'] || $market['option']) {
+            throw new BadRequest($this->id . ' fetchLeverageTiers() $symbol does not support $market ' . $symbol);
         }
-        list($type, $query) = $this->handle_market_type_and_params('fetchMarketLeverageTiers', $market, $params);
-        $method = $this->get_supported_mapping($type, array(
-            'linear' => 'publicLinearGetRiskLimit', // Symbol required
-            'swap' => 'publicLinearGetRiskLimit',
-            'inverse' => 'v2PublicGetRiskLimitList', // Symbol not required, could implement fetchLeverageTiers
-            'future' => 'v2PublicGetRiskLimitList',
-        ));
-        $response = $this->$method (array_merge($request, $query));
+        $request['symbol'] = $market['id'];
+        $isUsdcSettled = $market['settle'] === 'USDC';
+        $method = null;
+        if ($isUsdcSettled) {
+            $method = 'publicGetPerpetualUsdcOpenapiPublicV1RiskLimitList';
+        } else if ($market['linear']) {
+            $method = 'publicLinearGetRiskLimit';
+        } else {
+            $method = 'publicGetV2PublicRiskLimitList';
+        }
+        $response = $this->$method (array_merge($request, $params));
         //
         //  publicLinearGetRiskLimit
         //    {
@@ -3849,6 +3851,28 @@ class bybit extends Exchange {
         //        ...
         //    )
         //
+        // usdc swap
+        //
+        //    {
+        //        "riskId":"10001",
+        //        "symbol":"BTCPERP",
+        //        "limit":"1000000",
+        //        "startingMargin":"0.0100",
+        //        "maintainMargin":"0.0050",
+        //        "isLowestRisk":true,
+        //        "section":array(
+        //           "1",
+        //           "2",
+        //           "3",
+        //           "5",
+        //           "10",
+        //           "25",
+        //           "50",
+        //           "100"
+        //        ),
+        //        "maxLeverage":"100.00"
+        //    }
+        //
         $minNotional = 0;
         $tiers = array();
         for ($i = 0; $i < count($info); $i++) {
@@ -3859,8 +3883,8 @@ class bybit extends Exchange {
                 'currency' => $market['base'],
                 'minNotional' => $minNotional,
                 'maxNotional' => $maxNotional,
-                'maintenanceMarginRate' => $this->safe_number($item, 'maintain_margin'),
-                'maxLeverage' => $this->safe_number($item, 'max_leverage'),
+                'maintenanceMarginRate' => $this->safe_number_2($item, 'maintain_margin', 'maintainMargin'),
+                'maxLeverage' => $this->safe_number_2($item, 'max_leverage', 'maxLeverage'),
                 'info' => $item,
             );
             $minNotional = $maxNotional;

@@ -1825,11 +1825,18 @@ module.exports = class zb extends Exchange {
                     request['action'] = type;
                 }
                 request['symbol'] = market['id'];
-                request['clientOrderId'] = params['clientOrderId']; // OPTIONAL '^[a-zA-Z0-9-_]{1,36}$', // The user-defined order number
-                request['extend'] = params['extend']; // OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
+                const clientOrderId = this.safeString (params, 'clientOrderId'); // OPTIONAL '^[a-zA-Z0-9-_]{1,36}$', // The user-defined order number
+                if (clientOrderId !== undefined) {
+                    request['clientOrderId'] = clientOrderId;
+                }
+                // using extend as const name causes issues in python
+                const extendOrderAlgos = this.safeValue (params, 'extend', undefined); // OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
+                if (extendOrderAlgos !== undefined) {
+                    request['extend'] = extendOrderAlgos;
+                }
             }
         }
-        const query = this.omit (params, [ 'reduceOnly', 'stop', 'stopPrice', 'orderType', 'triggerPrice', 'algoPrice', 'priceType', 'bizType' ]);
+        const query = this.omit (params, [ 'reduceOnly', 'stop', 'stopPrice', 'orderType', 'triggerPrice', 'algoPrice', 'priceType', 'bizType', 'clientOrderId', 'extend' ]);
         let response = await this[method] (this.extend (request, query));
         //
         // Spot
@@ -1859,10 +1866,13 @@ module.exports = class zb extends Exchange {
         //         "desc": "操作成功"
         //     }
         //
-        if (swap && stop === undefined && stopPrice === undefined) {
+        if ((swap) && (!stop) && (stopPrice === undefined)) {
             response = this.safeValue (response, 'data');
             response['timeInForce'] = timeInForce;
-            response['type'] = request['tradeType'];
+            const tradeType = this.safeString (response, 'tradeType');
+            if (tradeType === undefined) {
+                response['type'] = tradeType;
+            }
             response['total_amount'] = amount;
             response['price'] = price;
         }

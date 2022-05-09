@@ -1833,11 +1833,18 @@ class zb extends Exchange {
                     $request['action'] = $type;
                 }
                 $request['symbol'] = $market['id'];
-                $request['clientOrderId'] = $params['clientOrderId']; // OPTIONAL '^[a-zA-Z0-9-_]array(1,36)$', // The user-defined order number
-                $request['extend'] = $params['extend']; // OPTIONAL array("orderAlgos":[array("bizType":1,"priceType":1,"triggerPrice":"70000"),array("bizType":2,"priceType":1,"triggerPrice":"40000")])
+                $clientOrderId = $this->safe_string($params, 'clientOrderId'); // OPTIONAL '^[a-zA-Z0-9-_]array(1,36)$', // The user-defined order number
+                if ($clientOrderId !== null) {
+                    $request['clientOrderId'] = $clientOrderId;
+                }
+                // using extend as $name causes issues in python
+                $extendOrderAlgos = $this->safe_value($params, 'extend', null); // OPTIONAL array("orderAlgos":[array("bizType":1,"priceType":1,"triggerPrice":"70000"),array("bizType":2,"priceType":1,"triggerPrice":"40000")])
+                if ($extendOrderAlgos !== null) {
+                    $request['extend'] = $extendOrderAlgos;
+                }
             }
         }
-        $query = $this->omit($params, array( 'reduceOnly', 'stop', 'stopPrice', 'orderType', 'triggerPrice', 'algoPrice', 'priceType', 'bizType' ));
+        $query = $this->omit($params, array( 'reduceOnly', 'stop', 'stopPrice', 'orderType', 'triggerPrice', 'algoPrice', 'priceType', 'bizType', 'clientOrderId', 'extend' ));
         $response = $this->$method (array_merge($request, $query));
         //
         // Spot
@@ -1867,10 +1874,13 @@ class zb extends Exchange {
         //         "desc" => "操作成功"
         //     }
         //
-        if ($swap && $stop === null && $stopPrice === null) {
+        if (($swap) && (!$stop) && ($stopPrice === null)) {
             $response = $this->safe_value($response, 'data');
             $response['timeInForce'] = $timeInForce;
-            $response['type'] = $request['tradeType'];
+            $tradeType = $this->safe_string($response, 'tradeType');
+            if ($tradeType === null) {
+                $response['type'] = $tradeType;
+            }
             $response['total_amount'] = $amount;
             $response['price'] = $price;
         }

@@ -1778,9 +1778,14 @@ class zb(Exchange):
                 else:
                     request['action'] = type
                 request['symbol'] = market['id']
-                request['clientOrderId'] = params['clientOrderId']  # OPTIONAL '^[a-zA-Z0-9-_]{1,36}$',  # The user-defined order number
-                request['extend'] = params['extend']  # OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
-        query = self.omit(params, ['reduceOnly', 'stop', 'stopPrice', 'orderType', 'triggerPrice', 'algoPrice', 'priceType', 'bizType'])
+                clientOrderId = self.safe_string(params, 'clientOrderId')  # OPTIONAL '^[a-zA-Z0-9-_]{1,36}$',  # The user-defined order number
+                if clientOrderId is not None:
+                    request['clientOrderId'] = clientOrderId
+                # using self.extend as name causes issues in python
+                extendOrderAlgos = self.safe_value(params, 'extend', None)  # OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
+                if extendOrderAlgos is not None:
+                    request['extend'] = extendOrderAlgos
+        query = self.omit(params, ['reduceOnly', 'stop', 'stopPrice', 'orderType', 'triggerPrice', 'algoPrice', 'priceType', 'bizType', 'clientOrderId', 'extend'])
         response = getattr(self, method)(self.extend(request, query))
         #
         # Spot
@@ -1810,10 +1815,12 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
-        if swap and stop is None and stopPrice is None:
+        if (swap) and (not stop) and (stopPrice is None):
             response = self.safe_value(response, 'data')
             response['timeInForce'] = timeInForce
-            response['type'] = request['tradeType']
+            tradeType = self.safe_string(response, 'tradeType')
+            if tradeType is None:
+                response['type'] = tradeType
             response['total_amount'] = amount
             response['price'] = price
         return self.parse_order(response, market)
