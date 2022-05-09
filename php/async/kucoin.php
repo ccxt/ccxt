@@ -390,6 +390,7 @@ class kucoin extends Exchange {
                 'versions' => array(
                     'public' => array(
                         'GET' => array(
+                            'currencies/{currency}' => 'v2',
                             'status' => 'v1',
                             'market/orderbook/level2_20' => 'v1',
                             'market/orderbook/level2_100' => 'v1',
@@ -1024,6 +1025,9 @@ class kucoin extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $address = $this->safe_string($data, 'address');
         $tag = $this->safe_string($data, 'memo');
+        if ($tag === '') {
+            $tag = null;
+        }
         if ($code !== 'NIM') {
             // contains spaces
             $this->check_address($address);
@@ -2500,7 +2504,7 @@ class kucoin extends Exchange {
         $headers = ($headers !== null) ? $headers : array();
         if ($query) {
             if (($method === 'GET') || ($method === 'DELETE')) {
-                $endpoint .= '?' . $this->urlencode($query);
+                $endpoint .= '?' . $this->rawencode($query);
             } else {
                 $body = $this->json($query);
                 $endpart = $body;
