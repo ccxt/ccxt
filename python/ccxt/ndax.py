@@ -77,6 +77,7 @@ class ndax(Exchange):
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'signIn': True,
+                'transfer': False,
                 'withdraw': True,
             },
             'timeframes': {

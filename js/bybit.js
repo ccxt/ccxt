@@ -258,6 +258,7 @@ module.exports = class bybit extends Exchange {
                         'v2/public/funding-rate': 1,
                         'v2/public/elite-ratio': 1,
                         'v2/public/funding/prev-funding-rate': 1,
+                        'v2/public/risk-limit/list': 1,
                         // linear swap USDT
                         'public/linear/kline': 3,
                         'public/linear/recent-trading-records': 1,
@@ -297,6 +298,7 @@ module.exports = class bybit extends Exchange {
                         'perpetual/usdc/openapi/public/v1/big-deal': 1,
                         'perpetual/usdc/openapi/public/v1/account-ratio': 1,
                         'perpetual/usdc/openapi/public/v1/prev-funding-rate': 1,
+                        'perpetual/usdc/openapi/public/v1/risk-limit/list': 1,
                     },
                     // outdated endpoints--------------------------------------
                     'linear': {
@@ -3748,21 +3750,21 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            if (market['spot']) {
-                throw new BadRequest (this.id + ' fetchLeverageTiers() symbol supports contract markets only');
-            }
-            request['symbol'] = market['id'];
+        market = this.market (symbol);
+        if (market['spot'] || market['option']) {
+            throw new BadRequest (this.id + ' fetchLeverageTiers() symbol does not support market ' + symbol);
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarketLeverageTiers', market, params);
-        const method = this.getSupportedMapping (type, {
-            'linear': 'publicLinearGetRiskLimit', // Symbol required
-            'swap': 'publicLinearGetRiskLimit',
-            'inverse': 'v2PublicGetRiskLimitList', // Symbol not required, could implement fetchLeverageTiers
-            'future': 'v2PublicGetRiskLimitList',
-        });
-        const response = await this[method] (this.extend (request, query));
+        request['symbol'] = market['id'];
+        const isUsdcSettled = market['settle'] === 'USDC';
+        let method = undefined;
+        if (isUsdcSettled) {
+            method = 'publicGetPerpetualUsdcOpenapiPublicV1RiskLimitList';
+        } else if (market['linear']) {
+            method = 'publicLinearGetRiskLimit';
+        } else {
+            method = 'publicGetV2PublicRiskLimitList';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //  publicLinearGetRiskLimit
         //    {
@@ -3868,6 +3870,28 @@ module.exports = class bybit extends Exchange {
         //        ...
         //    ]
         //
+        // usdc swap
+        //
+        //    {
+        //        "riskId":"10001",
+        //        "symbol":"BTCPERP",
+        //        "limit":"1000000",
+        //        "startingMargin":"0.0100",
+        //        "maintainMargin":"0.0050",
+        //        "isLowestRisk":true,
+        //        "section":[
+        //           "1",
+        //           "2",
+        //           "3",
+        //           "5",
+        //           "10",
+        //           "25",
+        //           "50",
+        //           "100"
+        //        ],
+        //        "maxLeverage":"100.00"
+        //    }
+        //
         let minNotional = 0;
         const tiers = [];
         for (let i = 0; i < info.length; i++) {
@@ -3878,8 +3902,8 @@ module.exports = class bybit extends Exchange {
                 'currency': market['base'],
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
-                'maintenanceMarginRate': this.safeNumber (item, 'maintain_margin'),
-                'maxLeverage': this.safeNumber (item, 'max_leverage'),
+                'maintenanceMarginRate': this.safeNumber2 (item, 'maintain_margin', 'maintainMargin'),
+                'maxLeverage': this.safeNumber2 (item, 'max_leverage', 'maxLeverage'),
                 'info': item,
             });
             minNotional = maxNotional;
