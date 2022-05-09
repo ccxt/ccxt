@@ -257,6 +257,7 @@ module.exports = class bybit extends Exchange {
                         'v2/public/account-ratio': 1,
                         'v2/public/funding-rate': 1,
                         'v2/public/elite-ratio': 1,
+                        'v2/public/funding/prev-funding-rate': 1,
                         // linear swap USDT
                         'public/linear/kline': 3,
                         'public/linear/recent-trading-records': 1,
@@ -1642,7 +1643,7 @@ module.exports = class bybit extends Exchange {
             'symbol': market['id'],
         };
         const isUsdcSettled = market['settle'] === 'USDC';
-        if (market['spot'] || isUsdcSettled) {
+        if (isUsdcSettled) {
             throw new NotSupported (this.id + ' fetchFundingRate() does not support this market ' + symbol);
         }
         const method = market['linear'] ? 'publicLinearGetFundingPrevFundingRate' : 'publicGetV2PublicFundingPrevFundingRate';
