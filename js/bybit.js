@@ -2112,7 +2112,8 @@ module.exports = class bybit extends Exchange {
             let settle = this.safeValue (this.options, 'defaultSettle', false);
             settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
             params = this.omit (params, [ 'settle', 'defaultSettle' ]);
-            const isUsdcSettled = settle === 'USDC';
+            let isUsdcSettled = settle === 'USDC';
+            isUsdcSettled = true;
             if (!isUsdcSettled) {
                 // linear/inverse future/swap
                 method = 'privateGetV2PrivateWalletBalance';
@@ -2167,6 +2168,7 @@ module.exports = class bybit extends Exchange {
             'Created': 'open',
             'Rejected': 'rejected', // order is triggered but failed upon being placed
             'New': 'open',
+            'NEW': 'open',
             'PartiallyFilled': 'open',
             'Filled': 'closed',
             'Cancelled': 'canceled',
@@ -2327,21 +2329,51 @@ module.exports = class bybit extends Exchange {
         //        "sl_trigger_by":"UNKNOWN"
         //    }
         //
+        // fetchOpenOrder spot
+        //     {
+        //        "accountId":"24478790",
+        //        "exchangeId":"301",
+        //        "symbol":"LTCUSDT",
+        //        "symbolName":"LTCUSDT",
+        //        "orderLinkId":"1652115972506",
+        //        "orderId":"1152426740986003968",
+        //        "price":"50",
+        //        "origQty":"0.2",
+        //        "executedQty":"0",
+        //        "cummulativeQuoteQty":"0",
+        //        "avgPrice":"0",
+        //        "status":"NEW",
+        //        "timeInForce":"GTC",
+        //        "type":"LIMIT",
+        //        "side":"BUY",
+        //        "stopPrice":"0.0",
+        //        "icebergQty":"0.0",
+        //        "time":"1652115973053",
+        //        "updateTime":"1652115973063",
+        //        "isWorking":true
+        //     }
+        //
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         let feeCurrency = undefined;
-        const timestamp = this.parse8601 (this.safeString2 (order, 'created_at', 'created_time'));
-        const id = this.safeString2 (order, 'order_id', 'stop_order_id');
-        const type = this.safeStringLower (order, 'order_type');
+        let timestamp = this.parse8601 (this.safeString2 (order, 'created_at', 'created_time'));
+        if (timestamp === undefined) {
+            timestamp = this.safeNumber (order, 'time');
+        }
+        let id = this.safeString2 (order, 'order_id', 'stop_order_id');
+        if (id === undefined) {
+            id = this.safeString (order, 'orderId');
+        }
+        const type = this.safeStringLower2 (order, 'order_type', 'type');
         let price = undefined;
         if (type !== 'market') {
             price = this.safeString (order, 'price');
         }
-        const average = this.safeString (order, 'average_price');
-        const amount = this.safeString (order, 'qty');
+        const average = this.safeString2 (order, 'average_price', 'avgPrice');
+        const amount = this.safeString2 (order, 'qty', 'origQty');
         const cost = this.safeString (order, 'cum_exec_value');
-        const filled = this.safeString (order, 'cum_exec_qty');
+        const filled = this.safeString2 (order, 'cum_exec_qty', 'executedQty');
         const remaining = this.safeString (order, 'leaves_qty');
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol);
@@ -2355,8 +2387,15 @@ module.exports = class bybit extends Exchange {
             lastTradeTimestamp = undefined;
         } else if (lastTradeTimestamp === undefined) {
             lastTradeTimestamp = this.parse8601 (this.safeString2 (order, 'updated_time', 'updated_at'));
+            if (lastTradeTimestamp === undefined) {
+                lastTradeTimestamp = this.safeNumber (order, 'updateTime');
+            }
         }
-        const status = this.parseOrderStatus (this.safeString2 (order, 'order_status', 'stop_order_status'));
+        let raw_status = this.safeString2 (order, 'order_status', 'stop_order_status');
+        if (raw_status === undefined) {
+            raw_status = this.safeString (order, 'status');
+        }
+        const status = this.parseOrderStatus (raw_status);
         const side = this.safeStringLower (order, 'side');
         const feeCostString = this.safeString (order, 'cum_exec_fee');
         let fee = undefined;
@@ -2366,12 +2405,15 @@ module.exports = class bybit extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        let clientOrderId = this.safeString (order, 'order_link_id');
+        let clientOrderId = this.safeString2 (order, 'order_link_id', 'orderLinkId');
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined;
         }
-        const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
-        const stopPrice = this.safeNumber2 (order, 'trigger_price', 'stop_px');
+        const timeInForce = this.parseTimeInForce (this.safeString2 (order, 'time_in_force', 'timeInForce'));
+        let stopPrice = this.safeString2 (order, 'trigger_price', 'stop_px');
+        if (stopPrice === undefined) {
+            stopPrice = this.safeString (order, 'stopPrice');
+        }
         const postOnly = (timeInForce === 'PO');
         return this.safeOrder ({
             'info': order,
@@ -3032,14 +3074,14 @@ module.exports = class bybit extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument for ' + type + ' markets');
             }
-            const defaultStatuses = [
-                'Created',
-                'New',
-                'PartiallyFilled',
-                'PendingCancel',
-                // conditional orders
-                // 'Untriggered',
-            ];
+            // const defaultStatuses = [
+            //     'Created',
+            //     'New',
+            //     'PartiallyFilled',
+            //     'PendingCancel',
+            //     // conditional orders
+            //     // 'Untriggered',
+            // ];
             // const stopOrderStatus = this.safeValue (params, 'stop_order_status');
             // if (stopOrderStatus === undefined) {
             //     request['order_status'] = status;
@@ -3058,7 +3100,38 @@ module.exports = class bybit extends Exchange {
             request['category'] = (type === 'swap') ? 'perpertual' : 'option';
         }
         const orders = await this[method] (symbol, since, limit, this.extend (request, params));
-        return this.parseOrders (orders);
+        const result = this.safeValue (orders, 'result', []);
+        // {
+        //     "ret_code":0,
+        //     "ret_msg":"",
+        //     "ext_code":null,
+        //     "ext_info":null,
+        //     "result":[
+        //        {
+        //           "accountId":"24478790",
+        //           "exchangeId":"301",
+        //           "symbol":"LTCUSDT",
+        //           "symbolName":"LTCUSDT",
+        //           "orderLinkId":"1652115972506",
+        //           "orderId":"1152426740986003968",
+        //           "price":"50",
+        //           "origQty":"0.2",
+        //           "executedQty":"0",
+        //           "cummulativeQuoteQty":"0",
+        //           "avgPrice":"0",
+        //           "status":"NEW",
+        //           "timeInForce":"GTC",
+        //           "type":"LIMIT",
+        //           "side":"BUY",
+        //           "stopPrice":"0.0",
+        //           "icebergQty":"0.0",
+        //           "time":"1652115973053",
+        //           "updateTime":"1652115973063",
+        //           "isWorking":true
+        //        }
+        //     ]
+        //  }
+        return this.parseOrders (result);
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
