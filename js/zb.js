@@ -1866,7 +1866,7 @@ module.exports = class zb extends Exchange {
         //         "desc": "操作成功"
         //     }
         //
-        if ((swap) && (stop === undefined) && (stopPrice === undefined)) {
+        if ((swap) && (!stop) && (stopPrice === undefined)) {
             response = this.safeValue (response, 'data');
             response['timeInForce'] = timeInForce;
             const tradeType = this.safeString (response, 'tradeType');
