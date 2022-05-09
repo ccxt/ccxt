@@ -21,6 +21,7 @@ module.exports = async (exchange, symbol) => {
         'dsx',
         'idex2', // rinkeby testnet, trades too rare
         'bitvavo',
+        'zb', // supports watchOHLCV for contracts only
     ]
 
     if (skippedExchanges.includes (exchange.id)) {
