@@ -1940,7 +1940,7 @@ module.exports = class coinflex extends Exchange {
             if (orderType === 'STOP') {
                 throw new ArgumentsRequired (this.id + ' createOrder() : instead of using "STOP" as argument, you need to specify the "stopPrice" param as stop order trigger price, and the "price" argument for limit price');
             } else {
-                throw new ArgumentsRequired (this.id + ' createOrder() accepts "market" or "limit" as order type argument.If you want to specify custom order-type, use params["orderType"] instead');
+                throw new ArgumentsRequired (this.id + ' createOrder() accepts "market" or "limit" as order type argument.If you want to specify custom order-type for this exchange specifically, use params["orderType"] instead');
             }
         }
         await this.loadMarkets ();
