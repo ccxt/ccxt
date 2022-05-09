@@ -801,7 +801,7 @@ module.exports = class fairdesk extends Exchange {
             'quantity': amount,
             'side': sideValue, // SELL, BUY
             'type': type.toLocaleUpperCase (), // MARKET, LIMIT
-            'clientOrderId': `CCXT_${this.uuid ()}`,
+            'clientOrderId': 'CCXT_' + this.uuid (),
             'orderRespType': 'ACK',
             'positionSide': params.positionSide || (sideValue === 'BUY' ? 'LONG' : 'SHORT'),
             'isolated': params.isolated || false,
