@@ -2192,6 +2192,32 @@ module.exports = class bybit extends Exchange {
         //        "reduce_only":false,
         //        "close_on_trigger":false
         //    }
+        // future
+        //    {
+        //        "user_id":24478789,
+        //        "position_idx":0,
+        //        "order_status":"Filled",
+        //        "symbol":"ETHUSDM22",
+        //        "side":"Buy",
+        //        "order_type":"Market",
+        //        "price":"2523.35",
+        //        "qty":"10",
+        //        "time_in_force":"ImmediateOrCancel",
+        //        "order_link_id":"",
+        //        "order_id":"54feb0e2-ece7-484f-b870-47910609b5ac",
+        //        "created_at":"2022-05-09T14:46:42.346Z",
+        //        "updated_at":"2022-05-09T14:46:42.350Z",
+        //        "leaves_qty":"0",
+        //        "leaves_value":"0",
+        //        "cum_exec_qty":"10",
+        //        "cum_exec_value":"0.00416111",
+        //        "cum_exec_fee":"0.0000025",
+        //        "reject_reason":"EC_NoError",
+        //        "take_profit":"0.0000",
+        //        "stop_loss":"0.0000",
+        //        "tp_trigger_by":"UNKNOWN",
+        //        "sl_trigger_by":"UNKNOWN"
+        //    }
         //
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
@@ -2220,7 +2246,7 @@ module.exports = class bybit extends Exchange {
         if (lastTradeTimestamp === 0) {
             lastTradeTimestamp = undefined;
         } else if (lastTradeTimestamp === undefined) {
-            lastTradeTimestamp = this.parse8601 (this.safeString (order, 'updated_time'));
+            lastTradeTimestamp = this.parse8601 (this.safeString2 (order, 'updated_time', 'updated_at'));
         }
         const status = this.parseOrderStatus (this.safeString2 (order, 'order_status', 'stop_order_status'));
         const side = this.safeStringLower (order, 'side');
@@ -2727,16 +2753,8 @@ module.exports = class bybit extends Exchange {
         if (market['spot'] || (market['settle'] === 'USDC')) {
             throw new NotSupported (this.id + ' fetchOrders() does not support market ' + market['symbol']);
         }
-        // spot > not supported
-        // usdc > not supported
-        // inverse swap - maybe - privateGetV2PrivateOrderList // requires symbol
-        // inverse swap conditional orders - privateGetV2PrivateStopOrderList // requires symbol
-        // linear swap - maybe - privateGetPrivateLineatOrderList // requires symbol
-        // linear swap conditional orders - privateGetPrivateLinearStopOrderList // requires symbol
-        // inverse future - maybe - privateGetFuturesPrivateOrderList // requires symbol
-        // futures conditional orders - privateGetFuturesPrivateStopOrderList // requires symbol
         let method = undefined;
-        const isConditionalOrder = true; // to do
+        const isConditionalOrder = false; // to do
         if (market['linear']) {
             method = !isConditionalOrder ? 'privateGetPrivateLinearOrderList' : 'privateGetPrivateLinearStopOrderList';
         } else if (market['future']) {
