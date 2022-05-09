@@ -81,7 +81,7 @@ class bkex(Exchange):
                 'fetchPositions': None,
                 'fetchPositionsRisk': None,
                 'fetchPremiumIndexOHLCV': None,
-                'fetchStatus': None,
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -366,6 +366,25 @@ class bkex(Exchange):
         # }
         #
         return self.safe_integer(response, 'data')
+
+    async def fetch_status(self, params={}):
+        response = await self.publicGetCommonTimestamp(params)
+        #
+        #     {
+        #         "code": '0',
+        #         "data": 1573542445411,
+        #         "msg": "success",
+        #         "status": 0
+        #     }
+        #
+        statusRaw = self.safe_integer(response, 'status')
+        codeRaw = self.safe_integer(response, 'code')
+        return {
+            'status': 'ok' if (statusRaw == 0 and codeRaw == 0) else statusRaw,
+            'updated': self.milliseconds(),
+            'eta': None,
+            'info': response,
+        }
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
