@@ -74,12 +74,15 @@ class qtrade extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
                 'fetchTransactions' => null,
+                'fetchTransfer' => false,
+                'fetchTransfers' => true,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -1244,6 +1247,68 @@ class qtrade extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $deposits = $this->safe_value($data, 'deposits', array());
         return $this->parse_transactions($deposits, $currency, $since, $limit);
+    }
+
+    public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        $response = $this->privateGetTransfers ($params);
+        //
+        //     {
+        //         "data" => {
+        //             "transfers" => array(
+        //                 {
+        //                     "amount" => "0.5",
+        //                     "created_at" => "2018-12-10T00:06:41.066665Z",
+        //                     "currency" => "BTC",
+        //                     "id" => 9,
+        //                     "reason_code" => "referral_payout",
+        //                     "reason_metadata" => array(
+        //                         "note" => "January referral earnings"
+        //                     ),
+        //                     "sender_email" => "qtrade",
+        //                     "sender_id" => 218
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $transfers = $this->safe_value($data, 'transfers', array());
+        return $this->parse_transfers($transfers, $currency, $since, $limit);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         "amount" => "0.5",
+        //         "created_at" => "2018-12-10T00:06:41.066665Z",
+        //         "currency" => "BTC",
+        //         "id" => 9,
+        //         "reason_code" => "referral_payout",
+        //         "reason_metadata" => array(
+        //             "note" => "January referral earnings"
+        //         ),
+        //         "sender_email" => "qtrade",
+        //         "sender_id" => 218
+        //     }
+        //
+        $currencyId = $this->safe_string($transfer, 'currency');
+        $dateTime = $this->safe_string($transfer, 'created_at');
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'id'),
+            'timestamp' => $this->parse8601($dateTime),
+            'datetime' => $dateTime,
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_number($transfer, 'amount'),
+            'fromAccount' => $this->safe_string($transfer, 'sender_id'),
+            'toAccount' => null,
+            'status' => 'ok',
+        );
     }
 
     public function fetch_withdrawal($id, $code = null, $params = array ()) {
