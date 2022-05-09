@@ -1107,6 +1107,7 @@ class gateio extends Exchange {
          * @param {dict} $params $request parameters
          * @return the api $request object, and the new $params object with non-needed parameters removed
          */
+        // * Do not call for multi spot order methods like cancelAllOrders and fetchOpenOrders. Use multiOrderSpotPrepareRequest instead
         $request = array();
         if ($market !== null) {
             if ($market['contract']) {
@@ -1126,6 +1127,27 @@ class gateio extends Exchange {
             }
         }
         return array( $request, $params );
+    }
+
+    public function spot_order_prepare_request($market = null, $stop = false, $params = array ()) {
+        /**
+         * @ignore
+         * Fills $request $params currency_pair, $market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
+         * @param {dict} $market CCXT $market
+         * @param {bool} $stop true if for a $stop order
+         * @param {dict} $params $request parameters
+         * @return the api $request object, and the new $params object with non-needed parameters removed
+         */
+        list($marginType, $query) = $this->get_margin_type($stop, $params);
+        $request = array();
+        if (!$stop) {
+            if ($market === null) {
+                throw new ArgumentsRequired($this->id . ' spotOrderPrepareRequest() requires a $market argument for non-$stop orders');
+            }
+            $request['account'] = $marginType;
+            $request['currency_pair'] = $market['id']; // Should always be set for non-$stop
+        }
+        return array( $request, $query );
     }
 
     public function multi_order_spot_prepare_request($market = null, $stop = false, $params = array ()) {
@@ -3162,9 +3184,9 @@ class gateio extends Exchange {
          * @param {str} $symbol Unified $market $symbol, *required for spot and margin*
          * @param {dict} $params Parameters specified by the exchange api
          * @param {bool} $params->stop True if the order being fetched is a trigger order
-         * @param {str} $params->marginType 'cross' or 'isolated' - $marginType for margin trading if not provided $this->options['defaultMarginType'] is used
+         * @param {str} $params->marginType 'cross' or 'isolated' - marginType for margin trading if not provided $this->options['defaultMarginType'] is used
          * @param {str} $params->type 'spot', 'swap', or 'future', if not provided $this->options['defaultMarginType'] is used
-         * @param {str} $params->settle 'btc' or 'usdt' - $settle currency for perpetual $swap and future - $market $settle currency is used if $symbol !== null, default="usdt" for $swap and "btc" for future
+         * @param {str} $params->settle 'btc' or 'usdt' - settle currency for perpetual swap and future - $market settle currency is used if $symbol !== null, default="usdt" for swap and "btc" for future
          * @return An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $this->load_markets();
@@ -3179,55 +3201,19 @@ class gateio extends Exchange {
             }
             $orderId = $clientOrderId;
         }
-        $request = array(
-            'order_id' => $orderId,
-        );
-        $market = null;
-        $settle = null;
-        $type = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            if ($market['spot']) {
-                $request['currency_pair'] = $market['id'];
-            } else {
-                $settle = $market['settleId'];
-            }
-        }
-        list($type, $params) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
-        if (!$stop && $type === 'spot' && $symbol === null) {
-            // Symbol not required for $stop orders
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument for spot orders');
-        }
-        $swap = $type === 'swap';
-        if ($swap || $type === 'future') {
-            if ($settle === null) {
-                $defaultSettle = $swap ? 'usdt' : 'btc';
-                $settle = $this->safe_string_lower($params, 'settle', $defaultSettle);
-                $params = $this->omit($params, 'settle');
-            }
-            $request['settle'] = $settle;
-        } else {
-            $marginType = null;
-            list($marginType, $params) = $this->get_margin_type($stop, $params);
-            $request['account'] = $marginType;
-        }
-        $method = null;
-        if ($stop) {
-            $method = $this->get_supported_mapping($type, array(
-                'spot' => 'privateSpotGetPriceOrdersOrderId',
-                'margin' => 'privateSpotGetPriceOrdersOrderId',
-                'swap' => 'privateFuturesGetSettlePriceOrdersOrderId',
-                'future' => 'privateDeliveryGetSettlePriceOrdersOrderId',
-            ));
-        } else {
-            $method = $this->get_supported_mapping($type, array(
-                'spot' => 'privateSpotGetOrdersOrderId',
-                'margin' => 'privateSpotGetOrdersOrderId',
-                'swap' => 'privateFuturesGetSettleOrdersOrderId',
-                'future' => 'privateDeliveryGetSettleOrdersOrderId',
-            ));
-        }
-        $response = $this->$method (array_merge($request, $params));
+        $market = ($symbol === null) ? null : $this->market($symbol);
+        list($type, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
+        $contract = ($type === 'swap') || ($type === 'future');
+        list($request, $requestParams) = $contract ? $this->prepare_request($market, $type, $query) : $this->spot_order_prepare_request($market, $stop, $query);
+        $request['order_id'] = $orderId;
+        $methodMiddle = $stop ? 'PriceOrders' : 'Orders';
+        $method = $this->get_supported_mapping($type, array(
+            'spot' => 'privateSpotGet' . $methodMiddle . 'OrderId',
+            'margin' => 'privateSpotGet' . $methodMiddle . 'OrderId',
+            'swap' => 'privateFuturesGetSettle' . $methodMiddle . 'OrderId',
+            'future' => 'privateDeliveryGetSettle' . $methodMiddle . 'OrderId',
+        ));
+        $response = $this->$method (array_merge($request, $requestParams));
         return $this->parse_order($response, $market);
     }
 
@@ -3417,29 +3403,21 @@ class gateio extends Exchange {
          * @param {bool} $params->stop True if the order to be cancelled is a trigger order
          * @return An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-        }
         $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'order_id' => $id,
-        );
-        if ($market['contract']) {
-            $request['settle'] = $market['settleId'];
-        } else {
-            $request['currency_pair'] = $market['id'];
-        }
+        $market = ($symbol === null) ? null : $this->market($symbol);
         $stop = $this->safe_value_2($params, 'is_stop_order', 'stop', false);
         $params = $this->omit($params, array( 'is_stop_order', 'stop' ));
+        list($type, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
+        list($request, $requestParams) = ($type === 'spot' || $type === 'margin') ? $this->spot_order_prepare_request($market, $stop, $query) : $this->prepare_request($market, $type, $query);
+        $request['order_id'] = $id;
         $pathMiddle = $stop ? 'Price' : '';
-        $method = $this->get_supported_mapping($market['type'], array(
+        $method = $this->get_supported_mapping($type, array(
             'spot' => 'privateSpotDelete' . $pathMiddle . 'OrdersOrderId',
             'margin' => 'privateSpotDelete' . $pathMiddle . 'OrdersOrderId',
             'swap' => 'privateFuturesDeleteSettle' . $pathMiddle . 'OrdersOrderId',
             'future' => 'privateDeliveryDeleteSettle' . $pathMiddle . 'OrdersOrderId',
         ));
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $requestParams));
         //
         // spot
         //
