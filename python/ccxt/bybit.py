@@ -41,6 +41,7 @@ class bybit(Exchange):
             'userAgent': None,
             'rateLimit': 100,
             'hostname': 'bytick.com',  # bybit.com, bytick.com
+            # 'hostname': 'bybit.com',  # bybit.com, bytick.com
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,
@@ -1527,9 +1528,10 @@ class bybit(Exchange):
                 params = self.omit(params, ['stop_px', 'stopPrice', 'base_price'])
         elif basePrice is not None:
             raise ArgumentsRequired(self.id + ' createOrder() requires both the stop_px and base_price params for a conditional ' + type + ' order')
+
         try:
             response = getattr(self, method)(self.extend(request, params))
-        except BadRequest:
+        except (BadRequest, InvalidOrder, ExchangeError):
             traceback.print_exc()
             print("{} Line: {}: request:".format(
                 inspect.getframeinfo(inspect.currentframe()).function,
