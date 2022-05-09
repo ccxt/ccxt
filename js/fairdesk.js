@@ -148,85 +148,85 @@ module.exports = class fairdesk extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '1000': BadRequest,				    // no such account.
-                    '1002': BadRequest,				    // account settled currency do not match.
-                    '1004': BadRequest,				    // leverage is too small
-                    '1005': BadRequest,				    // leverage is too large.
-                    '1006': BadRequest,				    // leverage is equal old leverage.
-                    '1007': InsufficientFunds,			// margin not enough.
-                    '1008': InsufficientFunds,			// balance insufficient.
-                    '1009': BadRequest,				    // the amount of recharge is illegal.
-                    '1010': BadRequest,				    // the amount of balance change is illegal.
-                    '1011': InsufficientFunds,			// invalid margin change amount.
-                    '1012': ExchangeError,				// leverage reduction is not supported in Isolated Margin Mode with open positions.
-                    '1013': BadRequest,				    // balance version not equal.
-                    '2000': InvalidOrder,				// invalid symbol id.
-                    '2004': DuplicateOrderId,			// duplicated asset name
-                    '2005': BadRequest,				    // duplicated asset id
-                    '2006': BadRequest,				    // invalid asset id.
-                    '4000': OrderNotFound,				// no such order.
-                    '4001': ArgumentsRequired,			// price is missing.
-                    '4002': ArgumentsRequired,			// qty is missing.
-                    '4003': InvalidOrder,				// qty is invalid.
-                    '4004': BadRequest,				    // invalid currency id.
-                    '4005': ExchangeError,				// unable to fill.
-                    '4006': InvalidOrder,				// order would immediately trigger.
-                    '4007': InvalidOrder,				// reduce only reject.
-                    '4008': BadRequest,				    // position is not sufficient.
-                    '4009': InvalidOrder,				// reduce only rejected, position more than 0 while buy.
-                    '4010': InvalidOrder,				// reduce only rejected, position less than 0 while sell.
-                    '4011': ExchangeError,				// max open order limit.
-                    '4012': ExchangeError,				// max conditional order limit.
-                    '4013': InvalidOrder,				// conditional order is invalid.
-                    '4014': InvalidOrder,				// clientOrderId duplicated.
-                    '4015': InvalidOrder,				// reduce only reject, order type not supported.
-                    '4020': OrderNotFound,				// unknown order sent.
-                    '4021': BadRequest,				    // unknown update type.
-                    '4030': InvalidOrder,				// reduceOnly order Failed. please check your existing position and open orders.
-                    '4040': InvalidOrder,				// unable to parse order.
-                    '4050': ExchangeError,				// the counter party's best price does not meet the PERCENT_PRICE filter limit.
-                    '4051': ExchangeError,				// order price not in the proper range.
-                    '4060': InvalidOrder,				// trigger price is missing.
-                    '4070': OrderNotFound,				// no open orders to close
-                    '4071': InvalidOrder,				// order id duplicated.
-                    '5000': InvalidOrder,				// positionSide is not valid.
-                    '5001': InvalidOrder,				// positionSide does not match with userSetting.
-                    '5002': BadRequest,				    // isolated position quantity should more than 0 when add margin.
-                    '5003': InsufficientFunds,			// No balance for add position margin.
-                    '5004': BadRequest,				    // Position margin can not decrease.
-                    '100': ExchangeError,				// Request time out.
-                    '200': InvalidOrder,				// Price less than 0.
-                    '201': InvalidOrder,				// Price less than min price.
-                    '202': InvalidOrder,				// Price greater than max price.
-                    '203': InvalidOrder,				// Price not increased by tick size.
-                    '204': InvalidOrder,				// Quantity less than zero.
-                    '205': InvalidOrder,				// Quantity greater than max quantity.
-                    '206': InvalidOrder,				// Quantity less than min quantity.
-                    '207': InvalidOrder,				// Qty not increased by step size.
-                    '208': InvalidOrder,				// Trigger price less than zero.
-                    '209': InvalidOrder,				// Trigger price greater than max price.
-                    '210': InvalidOrder,				// Price trigger type is null or illegal.
-                    '211': InvalidOrder,				// not support order type.
-                    '212': InvalidOrder,				// client order length is not valid.
-                    '213': InvalidOrder,				// client order id is not valid.
-                    '214': InvalidOrder,				// Illegal characters found in a parameter.
-                    '216': ArgumentsRequired,			// Mandatory parameter {%s} was not sent, was empty/null, or malformed.
-                    '217': BadRequest,				    // Parameter '%s' not required.
-                    '218': BadRequest,				    // Invalid side.
-                    '219': BadRequest,				    // Combination of optional parameters '%s' invalid.
-                    '220': InvalidOrder,				// price range not valid
-                    '221': InvalidOrder,				// Qty too large.
-                    '250': InvalidOrder,				// invalid currency.
-                    '300': InvalidOrder,				// invalid symbol.
-                    '301': ExchangeError,				// symbol can not trading now.
-                    '302': ExchangeError,				// symbol order can not cancel now.
-                    '400': ExchangeError,				// invalid account.
-                    '401': ExchangeError,				// account could not trade.
-                    '402': ExchangeError,				// invalid leverage.
-                    '403': ExchangeError,				// invalid user id.
-                    '405': BadRequest,				    // invalid withdraw balance.
-                    '408': InsufficientFunds,			// account margin not enough.
-                    '501': InsufficientFunds,			// wallet insufficient balance
+                    '1000': BadRequest,         // no such account.
+                    '1002': BadRequest,         // account settled currency do not match.
+                    '1004': BadRequest,         // leverage is too small
+                    '1005': BadRequest,         // leverage is too large.
+                    '1006': BadRequest,         // leverage is equal old leverage.
+                    '1007': InsufficientFunds,  // margin not enough.
+                    '1008': InsufficientFunds,  // balance insufficient.
+                    '1009': BadRequest,         // the amount of recharge is illegal.
+                    '1010': BadRequest,         // the amount of balance change is illegal.
+                    '1011': InsufficientFunds,  // invalid margin change amount.
+                    '1012': ExchangeError,      // leverage reduction is not supported in Isolated Margin Mode with open positions.
+                    '1013': BadRequest,         // balance version not equal.
+                    '2000': InvalidOrder,       // invalid symbol id.
+                    '2004': DuplicateOrderId,   // duplicated asset name
+                    '2005': BadRequest,         // duplicated asset id
+                    '2006': BadRequest,         // invalid asset id.
+                    '4000': OrderNotFound,      // no such order.
+                    '4001': ArgumentsRequired,  // price is missing.
+                    '4002': ArgumentsRequired,  // qty is missing.
+                    '4003': InvalidOrder,       // qty is invalid.
+                    '4004': BadRequest,         // invalid currency id.
+                    '4005': ExchangeError,      // unable to fill.
+                    '4006': InvalidOrder,       // order would immediately trigger.
+                    '4007': InvalidOrder,       // reduce only reject.
+                    '4008': BadRequest,         // position is not sufficient.
+                    '4009': InvalidOrder,       // reduce only rejected, position more than 0 while buy.
+                    '4010': InvalidOrder,       // reduce only rejected, position less than 0 while sell.
+                    '4011': ExchangeError,      // max open order limit.
+                    '4012': ExchangeError,      // max conditional order limit.
+                    '4013': InvalidOrder,       // conditional order is invalid.
+                    '4014': InvalidOrder,       // clientOrderId duplicated.
+                    '4015': InvalidOrder,       // reduce only reject, order type not supported.
+                    '4020': OrderNotFound,      // unknown order sent.
+                    '4021': BadRequest,         // unknown update type.
+                    '4030': InvalidOrder,       // reduceOnly order Failed. please check your existing position and open orders.
+                    '4040': InvalidOrder,       // unable to parse order.
+                    '4050': ExchangeError,      // the counter party's best price does not meet the PERCENT_PRICE filter limit.
+                    '4051': ExchangeError,      // order price not in the proper range.
+                    '4060': InvalidOrder,       // trigger price is missing.
+                    '4070': OrderNotFound,      // no open orders to close
+                    '4071': InvalidOrder,       // order id duplicated.
+                    '5000': InvalidOrder,       // positionSide is not valid.
+                    '5001': InvalidOrder,       // positionSide does not match with userSetting.
+                    '5002': BadRequest,         // isolated position quantity should more than 0 when add margin.
+                    '5003': InsufficientFunds,  // No balance for add position margin.
+                    '5004': BadRequest,         // Position margin can not decrease.
+                    '100': ExchangeError,       // Request time out.
+                    '200': InvalidOrder,        // Price less than 0.
+                    '201': InvalidOrder,        // Price less than min price.
+                    '202': InvalidOrder,        // Price greater than max price.
+                    '203': InvalidOrder,        // Price not increased by tick size.
+                    '204': InvalidOrder,        // Quantity less than zero.
+                    '205': InvalidOrder,        // Quantity greater than max quantity.
+                    '206': InvalidOrder,        // Quantity less than min quantity.
+                    '207': InvalidOrder,        // Qty not increased by step size.
+                    '208': InvalidOrder,        // Trigger price less than zero.
+                    '209': InvalidOrder,        // Trigger price greater than max price.
+                    '210': InvalidOrder,        // Price trigger type is null or illegal.
+                    '211': InvalidOrder,        // not support order type.
+                    '212': InvalidOrder,        // client order length is not valid.
+                    '213': InvalidOrder,        // client order id is not valid.
+                    '214': InvalidOrder,        // Illegal characters found in a parameter.
+                    '216': ArgumentsRequired,   // Mandatory parameter {%s} was not sent, was empty/null, or malformed.
+                    '217': BadRequest,          // Parameter '%s' not required.
+                    '218': BadRequest,          // Invalid side.
+                    '219': BadRequest,          // Combination of optional parameters '%s' invalid.
+                    '220': InvalidOrder,        // price range not valid
+                    '221': InvalidOrder,        // Qty too large.
+                    '250': InvalidOrder,        // invalid currency.
+                    '300': InvalidOrder,        // invalid symbol.
+                    '301': ExchangeError,       // symbol can not trading now.
+                    '302': ExchangeError,       // symbol order can not cancel now.
+                    '400': ExchangeError,       // invalid account.
+                    '401': ExchangeError,       // account could not trade.
+                    '402': ExchangeError,       // invalid leverage.
+                    '403': ExchangeError,       // invalid user id.
+                    '405': BadRequest,          // invalid withdraw balance.
+                    '408': InsufficientFunds,   // account margin not enough.
+                    '501': InsufficientFunds    // wallet insufficient balance
                 },
                 'broad': {
                     '401 Insufficient privilege': PermissionDenied, // {"code": "401","msg": "401 Insufficient privilege."}
