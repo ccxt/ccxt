@@ -15,12 +15,11 @@ module.exports = class zb extends Exchange {
             'name': 'ZB',
             'countries': [ 'CN' ],
             // previously rateLimit = 100
-            // TODO if previous was rateLimit 100 and all weights = 1 then that means 10 per second
             // Trading and Margin 10 000 per minute (IP) => 10000 / 60 = 166.66666... per second => rateLimit = 1000/166.66666 = 6
             // Trade and Margin 60 per second (apiKey) => weight = 166.666 / 60 = 2.778 (2.7777777...)
             // Kline 1 per second => weight = 166.667
             // v2 Futures API 100 per 2 seconds => 50 per second => weight = 3.334 (3.3333333...)
-            // for endpoints not mentioned in docs (contract api rate-limits not mentioned in docs)
+            // for endpoints not mentioned in docs
             // previous rateLimit was 100 translating to 10 requests per second => weight = 166.666 / 10 = 16.667 (16.666666...)
             'rateLimit': 6,
             'version': 'v1',
