@@ -972,7 +972,7 @@ module.exports = class gemini extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostV1Orders (params); // takes no params
+        const response = await this.privatePostV1Orders (params);
         //
         //      [
         //          {
