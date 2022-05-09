@@ -2729,6 +2729,11 @@ module.exports = class bybit extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['spot'] || (market['settle'] === 'USDC')) {
+            throw new NotSupported (this.id + ' fetchOrders() does not support market ' + market['symbol']);
+        }
         // spot > not supported
         // usdc > not supported
         // inverse swap - maybe - privateGetV2PrivateOrderList // requires symbol
@@ -2737,10 +2742,15 @@ module.exports = class bybit extends Exchange {
         // linear swap conditional orders - privateGetPrivateLinearStopOrderList // requires symbol
         // inverse future - maybe - privateGetFuturesPrivateOrderList // requires symbol
         // futures conditional orders - privateGetFuturesPrivateStopOrderList // requires symbol
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (market['spot'] || (market['settle'] === 'USDC')) {
-            throw new NotSupported (this.id + ' fetchOrders() does not support market ' + market['symbol']);
+        let method = undefined;
+        const isConditionalOrder = false;
+        if (market['linear']) {
+            method = !isConditionalOrder ? 'privateGetPrivateLineatOrderList' : 'privateGetPrivateLinearStopOrderList';
+        } else if (market['future']) {
+            method = !isConditionalOrder ? 'privateGetFuturesPrivateOrderList' : 'privateGetFuturesPrivateStopOrderList';
+        } else {
+            // inverse swap
+            method = !isConditionalOrder ? 'privateGetV2PrivateOrderList' : 'privateGetV2PrivateStopOrderList';
         }
         const request = {
             'symbol': market['id'],
@@ -2768,15 +2778,7 @@ module.exports = class bybit extends Exchange {
                 request['stop_order_status'] = stopOrderStatus;
                 query = this.omit (params, 'stop_order_status');
             }
-            if (linear) {
-                defaultMethod = 'privateLinearGetStopOrderList';
-            } else if (inverse) {
-                defaultMethod = 'v2PrivateGetStopOrderList';
-            } else if (future) {
-                defaultMethod = 'futuresPrivateGetStopOrderList';
-            }
         }
-        const method = this.safeString (options, 'method', defaultMethod);
         const response = await this[method] (this.extend (request, query));
         //
         //     {
