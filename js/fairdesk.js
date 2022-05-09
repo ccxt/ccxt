@@ -226,7 +226,7 @@ module.exports = class fairdesk extends Exchange {
                     '403': ExchangeError,       // invalid user id.
                     '405': BadRequest,          // invalid withdraw balance.
                     '408': InsufficientFunds,   // account margin not enough.
-                    '501': InsufficientFunds    // wallet insufficient balance
+                    '501': InsufficientFunds,   // wallet insufficient balance
                 },
                 'broad': {
                     '401 Insufficient privilege': PermissionDenied, // {"code": "401","msg": "401 Insufficient privilege."}
