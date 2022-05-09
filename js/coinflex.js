@@ -1935,12 +1935,15 @@ module.exports = class coinflex extends Exchange {
             throw new InvalidOrder (this.id + ' createOrder() param clientOrderId should not exceed ' + maxCOI);
         }
         const orderType = this.convertOrderType (type);
-        // creating stop orders using type argument will mess up the unification logic (beacuse of missing market/limit). So, we have to use unified approach for sending stop orders
-        if (orderType !== 'market' && orderType !== 'limit') {
-            if (orderType === 'STOP') {
-                throw new ArgumentsRequired (this.id + ' createOrder() : instead of using "STOP" as argument, you need to specify the "stopPrice" param as stop order trigger price, and the "price" argument for limit price');
-            } else {
-                throw new ArgumentsRequired (this.id + ' createOrder() accepts "market" or "limit" as order type argument.If you want to specify custom order-type for this exchange specifically, use params["orderType"] instead');
+        const stopPrice = this.safeNumber (params, 'stopPrice');
+        const limitPrice = this.safeNumber (params, 'limitPrice');
+        const stopPriceIsDefined = stopPrice !== undefined;
+        const orderTypeIsStop = orderType === 'STOP';
+        if (orderTypeIsStop) {
+            if (!stopPriceIsDefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires params["stopPrice"] for stop orders');
+            } else if (limitPrice === undefined && price === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires "price" argument or params["limitPrice"] as a limit price for stop orders, as stop-market orders are not supported on this exchange');
             }
         }
         await this.loadMarkets ();
@@ -1950,23 +1953,17 @@ module.exports = class coinflex extends Exchange {
             'orderType': this.convertOrderType (type),
             'quantity': this.amountToPrecision (market['symbol'], amount),
         };
-        const stopPrice = this.safeNumber (params, 'stopPrice');
-        const isStopOrder = stopPrice !== undefined;
-        if (isStopOrder) {
+        if (stopPriceIsDefined || orderTypeIsStop) {
             order['stopPrice'] = this.priceToPrecision (market['symbol'], stopPrice);
             params = this.omit (params, 'stopPrice');
             order['orderType'] = 'STOP';
         }
         // stop orders have separate field for limit price, so make further checks
         if (type === 'limit') {
-            if (isStopOrder) {
-                let limitPrice = this.safeNumber (params, 'limitPrice');
-                if (limitPrice !== undefined) {
-                    params = this.omit (params, 'limitPrice');
-                } else {
-                    limitPrice = price;
+            if (stopPriceIsDefined || orderTypeIsStop) {
+                if (limitPrice === undefined) {
+                    order['limitPrice'] = this.priceToPrecision (market['symbol'], price);
                 }
-                order['limitPrice'] = this.priceToPrecision (market['symbol'], limitPrice);
             } else {
                 order['price'] = this.priceToPrecision (market['symbol'], price);
             }
