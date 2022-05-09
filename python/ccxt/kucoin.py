@@ -985,6 +985,7 @@ class kucoin(Exchange):
         return {
             'info': response,
             'currency': code,
+            'network': self.safe_string(data, 'chain'),
             'address': address,
             'tag': tag,
         }
@@ -1021,7 +1022,7 @@ class kucoin(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': None,
+            'network': network,
         }
 
     def fetch_order_book(self, symbol, limit=None, params={}):
