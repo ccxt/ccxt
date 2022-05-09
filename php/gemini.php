@@ -975,7 +975,7 @@ class gemini extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostV1Orders (); // takes no $params
+        $response = $this->privatePostV1Orders ($params);
         //
         //      array(
         //          {
