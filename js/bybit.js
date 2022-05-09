@@ -2910,31 +2910,47 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // usdc ->privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders [category perpertual/option]
-        // inverse swap -> privateGetV2PrivateOrderList [can get status here too]
-        // linear swap => privateGetPrivateLinearOrderList -> requires Symbol, can get statuses here
+        // usdc ->privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders [category perpertual/option] // symbol not required
+        // inverse swap -> privateGetV2PrivateOrderList [can get status here too] -> use fetchOrders
+        // linear swap => privateGetPrivateLinearOrderList -> requires Symbol, can get statuses here -> use fetchOrders
         // spot -> peivateGetSpotV1OpenOrders -> symbol not required
-        const defaultStatuses = [
-            'Created',
-            'New',
-            'PartiallyFilled',
-            'PendingCancel',
-            // conditional orders
-            // 'Untriggered',
-        ];
-        const options = this.safeValue (this.options, 'fetchOpenOrders', {});
-        let status = this.safeValue (options, 'order_status', defaultStatuses);
-        if (Array.isArray (status)) {
-            status = status.join (',');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        if (type === 'swap' || type === 'future') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument for ' + type + ' markets');
+            }
+            const defaultStatuses = [
+                'Created',
+                'New',
+                'PartiallyFilled',
+                'PendingCancel',
+                // conditional orders
+                // 'Untriggered',
+            ];
+            // const stopOrderStatus = this.safeValue (params, 'stop_order_status');
+            // if (stopOrderStatus === undefined) {
+            //     request['order_status'] = status;
+            // } else {
+            //     request['stop_order_status'] = stopOrderStatus;
+            // }
+            return await this.fetchOrders (symbol, since, limit, params);
         }
         const request = {};
-        const stopOrderStatus = this.safeValue (params, 'stop_order_status');
-        if (stopOrderStatus === undefined) {
-            request['order_status'] = status;
+        let method = undefined;
+        if (type === 'spot') {
+            method = 'privateGetSpotV1OpenOrders';
         } else {
-            request['stop_order_status'] = stopOrderStatus;
+            // usdc
+            method = 'privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders';
+            request['category'] = (type === 'swap') ? 'perpertual' : 'option';
         }
-        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+        const orders = await this[method] (symbol, since, limit, this.extend (request, params));
+        return this.parseOrders (orders);
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
