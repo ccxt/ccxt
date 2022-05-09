@@ -404,6 +404,7 @@ class kucoin(Exchange):
                 'versions': {
                     'public': {
                         'GET': {
+                            'currencies/{currency}': 'v2',
                             'status': 'v1',
                             'market/orderbook/level2_20': 'v1',
                             'market/orderbook/level2_100': 'v1',
@@ -1010,6 +1011,8 @@ class kucoin(Exchange):
         data = self.safe_value(response, 'data', {})
         address = self.safe_string(data, 'address')
         tag = self.safe_string(data, 'memo')
+        if tag == '':
+            tag = None
         if code != 'NIM':
             # contains spaces
             self.check_address(address)
@@ -2391,7 +2394,7 @@ class kucoin(Exchange):
         headers = headers if (headers is not None) else {}
         if query:
             if (method == 'GET') or (method == 'DELETE'):
-                endpoint += '?' + self.urlencode(query)
+                endpoint += '?' + self.rawencode(query)
             else:
                 body = self.json(query)
                 endpart = body
