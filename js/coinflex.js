@@ -259,21 +259,27 @@ module.exports = class coinflex extends Exchange {
             'exceptions': {
                 'exact': {
                     '40001': BadRequest,
-                    '40035': OrderNotFound,
                     '710003': InvalidOrder,
+                    '25009': PermissionDenied,
                     '710006': InsufficientFunds,
+                    '40035': OrderNotFound,
                     '20001': BadRequest,
                     '25030': BadRequest,
                     '35034': BadRequest,
+                    '05001': PermissionDenied,
+                    '20020': InvalidOrder,
                 },
                 'broad': {
-                    'sanity bound check as price': InvalidOrder,
-                    'balance check as balance': InsufficientFunds, // "FAILED balance check as balance (0.8037741278120500) < value (5.20000)"
-                    'Open order not found with clientOrderId or orderId': OrderNotFound,
-                    'result not found, please check your parameters': BadRequest, // 20001
+                    'no result, please check your parameters': BadRequest, // 40001
+                    'sanity bound check as price': InvalidOrder, // 710003
                     '2FA is not turned on': PermissionDenied, // 25009
+                    'balance check as balance': InsufficientFunds, // 710006
+                    'Open order not found with clientOrderId or orderId': OrderNotFound, // 40035
+                    'result not found, please check your parameters': BadRequest, // 20001
                     'Invalid Code': BadRequest, // 25030
                     'Wallet API is abnormal, please try again or contact customer service': BadRequest, // 35034
+                    'Unauthorized': PermissionDenied, // 05001
+                    'stopPrice or limitPrice is invalid': InvalidOrder, // 20020
                 },
             },
         });
@@ -1931,7 +1937,7 @@ module.exports = class coinflex extends Exchange {
         const orderType = this.convertOrderType (type);
         // creating stop orders using type argument will mess up the unification logic (beacuse of missing market/limit). So, we have to use unified approach for sending stop orders
         if (orderType === 'STOP') {
-            throw new ArgumentsRequired (this.id + ' createOrder() : to create a stop order, you need to specify the "stopPrice" param');
+            throw new ArgumentsRequired (this.id + ' createOrder() you need to specify the "stopPrice" param for stop order instead of stop "type"');
         }
         await this.loadMarkets ();
         const order = {
@@ -1945,9 +1951,10 @@ module.exports = class coinflex extends Exchange {
         if (isStopOrder) {
             order['stopPrice'] = this.priceToPrecision (market['symbol'], stopPrice);
             params = this.omit (params, 'stopPrice');
+            order['orderType'] = 'STOP';
         }
-        if (price !== undefined && type === 'limit') {
-            // stop orders have separate field for limit price
+        // stop orders have separate field for limit price, so make further checks
+        if (type === 'limit') {
             if (isStopOrder) {
                 let limitPrice = this.safeNumber (params, 'limitPrice');
                 if (limitPrice !== undefined) {
@@ -1981,7 +1988,7 @@ module.exports = class coinflex extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market (symbol);
-        this.checkOrderTypeAndPrice (market, type, side, amount, price);
+        this.checkOrderArguments (market, type, side, amount, price, params);
         const [ request, query ] = await this.buildOrderRequest (market, type, side, amount, price, params);
         const response = await this.privatePostV2OrdersPlace (this.extend (request, query));
         //
@@ -2021,13 +2028,11 @@ module.exports = class coinflex extends Exchange {
         //          "success": "false",
         //          "timestamp": "1651619029297",
         //          "code": "710003",
-        //          "message": "FAILED sanity bound check as price (4.000) >  upper bound (3.439)",
-        //          "clientOrderId": "1651619024219000",
+        //          "message": "FAILED sanity bound check as price (5.2) >  upper bound (4.1)",
         //          "price": "4.000",
         //          "quantity": "3.0",
         //          "side": "BUY",
         //          "marketCode": "BAND-USD",
-        //          "timeInForce": "GTC",
         //          "orderType": "LIMIT"
         //     }
         //
