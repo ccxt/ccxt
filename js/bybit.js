@@ -2286,6 +2286,8 @@ module.exports = class bybit extends Exchange {
             // 'stop_order_id': id, // one of stop_order_id or order_link_id is required for conditional orders
         };
         let method = undefined;
+        // spot -> privateGetSpotV1Order
+        // linear / inversw swap
         if (market['swap']) {
             if (market['linear']) {
                 method = 'privateLinearGetOrderSearch';
@@ -2724,8 +2726,24 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
+        }
+        // spot > not supported
+        // usdc > not supported
+        // inverse swap - maybe - privateGetV2PrivateOrderList // requires symbol
+        // inverse swap conditional orders - privateGetV2PrivateStopOrderList // requires symbol
+        // linear swap - maybe - privateGetPrivateLineatOrderList // requires symbol
+        // linear swap conditional orders - privateGetPrivateLinearStopOrderList // requires symbol
+        // inverse future - maybe - privateGetFuturesPrivateOrderList // requires symbol
+        // futures conditional orders - privateGetFuturesPrivateStopOrderList // requires symbol
         await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['spot'] || (market['settle'] === 'USDC')) {
+            throw new NotSupported (this.id + ' fetchOrders() does not support market ' + market['symbol']);
+        }
         const request = {
+            'symbol': market['id'],
             // 'order_id': 'string'
             // 'order_link_id': 'string', // unique client order id, max 36 characters
             // 'symbol': market['id'], // default BTCUSD
@@ -2737,29 +2755,8 @@ module.exports = class bybit extends Exchange {
             // 'stop_order_id': 'string',
             // 'stop_order_status': 'Untriggered',
         };
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
         if (limit !== undefined) {
             request['limit'] = limit;
-        }
-        const options = this.safeValue (this.options, 'fetchOrders', {});
-        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
-        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
-        const marketType = this.safeString (marketTypes, symbol, defaultType);
-        let defaultMethod = undefined;
-        const marketDefined = (market !== undefined);
-        const linear = (marketDefined && market['linear']) || (marketType === 'linear');
-        const inverse = (marketDefined && market['swap'] && market['inverse']) || (marketType === 'inverse');
-        const future = (marketDefined && market['future']) || ((marketType === 'future') || (marketType === 'futures')); // * (marketType === 'futures') deprecated, use (marketType === 'future')
-        if (linear) {
-            defaultMethod = 'privateLinearGetOrderList';
-        } else if (inverse) {
-            defaultMethod = 'v2PrivateGetOrderList';
-        } else if (future) {
-            defaultMethod = 'futuresPrivateGetOrderList';
         }
         let query = params;
         if (('stop_order_id' in params) || ('stop_order_status' in params)) {
@@ -2942,6 +2939,10 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // usdc ->privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders [category perpertual/option]
+        // inverse swap -> privateGetV2PrivateOrderList [can get status here too]
+        // linear swap => privateGetPrivateLinearOrderList -> requires Symbol, can get statuses here
+        // spot -> peivateGetSpotV1OpenOrders -> symbol not required
         const defaultStatuses = [
             'Created',
             'New',
