@@ -14,7 +14,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.decimal_to_precision import TICK_SIZE
-from ccxt.base.precise import Precise
 
 
 class ripio(Exchange):
@@ -29,20 +28,50 @@ class ripio(Exchange):
             'pro': True,
             # new metainfo interface
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/94507548-a83d6a80-0218-11eb-9998-28b9cec54165.jpg',
@@ -134,7 +163,12 @@ class ripio(Exchange):
         #                 "quote_name":"USD Coin",
         #                 "symbol":"BTC_USDC",
         #                 "fees":[
-        #                     {"traded_volume":0.0,"maker_fee":0.0,"taker_fee":0.0,"cancellation_fee":0.0}
+        #                     {
+        #                         "traded_volume": 0.0,
+        #                         "maker_fee": 0.0,
+        #                         "taker_fee": 0.0,
+        #                         "cancellation_fee": 0.0
+        #                     }
         #                 ],
         #                 "country":"ZZ",
         #                 "enabled":true,
@@ -156,44 +190,56 @@ class ripio(Exchange):
             id = self.safe_string(market, 'symbol')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': self.safe_number(market, 'min_amount'),
-                'price': self.safe_number(market, 'price_tick'),
-            }
-            limits = {
-                'amount': {
-                    'min': self.safe_number(market, 'min_amount'),
-                    'max': None,
-                },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': self.safe_number(market, 'min_value'),
-                    'max': None,
-                },
-            }
-            active = self.safe_value(market, 'enabled', True)
             fees = self.safe_value(market, 'fees', [])
             firstFee = self.safe_value(fees, 0, {})
-            maker = self.safe_number(firstFee, 'maker_fee', 0.0)
-            taker = self.safe_number(firstFee, 'taker_fee', 0.0)
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'precision': precision,
-                'maker': maker,
-                'taker': taker,
-                'limits': limits,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': self.safe_value(market, 'enabled', True),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': self.safe_number(firstFee, 'taker_fee', 0.0),
+                'maker': self.safe_number(firstFee, 'maker_fee', 0.0),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_number(market, 'min_amount'),
+                    'price': self.safe_number(market, 'price_tick'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(market, 'min_amount'),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'min_value'),
+                        'max': None,
+                    },
+                },
                 'info': market,
             })
         return result
@@ -247,6 +293,8 @@ class ripio(Exchange):
                 'name': name,
                 'info': currency,  # the original payload
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'precision': precision,
                 'limits': {
@@ -281,19 +329,20 @@ class ripio(Exchange):
         #
         timestamp = self.parse8601(self.safe_string(ticker, 'created_at'))
         marketId = self.safe_string(ticker, 'pair')
-        symbol = self.safe_symbol(marketId, market)
-        last = self.safe_number(ticker, 'last_price')
-        average = self.safe_number(ticker, 'avg')
-        return {
+        market = self.safe_market(marketId, market, '_')
+        symbol = market['symbol']
+        last = self.safe_string(ticker, 'last_price')
+        average = self.safe_string(ticker, 'avg')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
-            'bidVolume': self.safe_number(ticker, 'bid_volume'),
-            'ask': self.safe_number(ticker, 'ask'),
-            'askVolume': self.safe_number(ticker, 'ask_volume'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
+            'bidVolume': self.safe_string(ticker, 'bid_volume'),
+            'ask': self.safe_string(ticker, 'ask'),
+            'askVolume': self.safe_string(ticker, 'ask_volume'),
             'vwap': None,
             'open': None,
             'close': last,
@@ -305,7 +354,7 @@ class ripio(Exchange):
             'baseVolume': None,
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -395,7 +444,22 @@ class ripio(Exchange):
 
     def parse_trade(self, trade, market=None):
         #
-        # public fetchTrades, private fetchMyTrades
+        #
+        # fetchTrades(public)
+        #
+        #      {
+        #          "created_at":1649899167,
+        #          "amount":"0.00852",
+        #          "price":"3106.000000",
+        #          "side":"SELL",
+        #          "pair":"ETH_USDC",
+        #          "taker_fee":"0",
+        #          "taker_side":"SELL",
+        #          "maker_fee":"0"
+        #      }
+        #
+        #
+        # fetchMyTrades(private)
         #
         #     {
         #         "created_at":1601322501,
@@ -431,20 +495,17 @@ class ripio(Exchange):
             side = side.lower()
         priceString = self.safe_string_2(trade, 'price', 'match_price')
         amountString = self.safe_string_2(trade, 'amount', 'exchanged')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         marketId = self.safe_string(trade, 'pair')
         market = self.safe_market(marketId, market)
-        feeCost = self.safe_number(trade, takerOrMaker + '_fee')
+        feeCostString = self.safe_string(trade, takerOrMaker + '_fee')
         orderId = self.safe_string(trade, takerOrMaker)
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': market['base'] if (side == 'buy') else market['quote'],
             }
-        return {
+        return self.safe_trade({
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
@@ -452,13 +513,13 @@ class ripio(Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
             'info': trade,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -468,22 +529,82 @@ class ripio(Exchange):
         }
         response = await self.publicGetTradehistoryPair(self.extend(request, params))
         #
-        #     [
-        #         {
-        #             "created_at":1601322501,
-        #             "amount":"0.00276",
-        #             "price":"10850.020000",
-        #             "side":"SELL",
-        #             "pair":"BTC_USDC",
-        #             "taker_fee":"0",
-        #             "taker_side":"SELL",
-        #             "maker_fee":"0",
-        #             "taker":2577953,
-        #             "maker":2577937
-        #         }
-        #     ]
+        #      [
+        #          {
+        #              "created_at":1649899167,
+        #              "amount":"0.00852",
+        #              "price":"3106.000000",
+        #              "side":"SELL",
+        #              "pair":"ETH_USDC",
+        #              "taker_fee":"0",
+        #              "taker_side":"SELL",
+        #              "maker_fee":"0"
+        #          }
+        #      ]
         #
         return self.parse_trades(response, market, since, limit)
+
+    async def fetch_trading_fees(self, params={}):
+        await self.load_markets()
+        response = await self.publicGetPair(params)
+        #
+        #     {
+        #         next: null,
+        #         previous: null,
+        #         results: [
+        #             {
+        #                 base: 'BTC',
+        #                 base_name: 'Bitcoin',
+        #                 quote: 'USDC',
+        #                 quote_name: 'USD Coin',
+        #                 symbol: 'BTC_USDC',
+        #                 fees: [
+        #                     {
+        #                         traded_volume: '0.0',
+        #                         maker_fee: '0.0',
+        #                         taker_fee: '0.0',
+        #                         cancellation_fee: '0.0'
+        #                     }
+        #                 ],
+        #                 country: 'ZZ',
+        #                 enabled: True,
+        #                 priority: '10',
+        #                 min_amount: '0.0000100000',
+        #                 price_tick: '0.000001',
+        #                 min_value: '10',
+        #                 limit_price_threshold: '25.00'
+        #             },
+        #         ]
+        #     }
+        #
+        results = self.safe_value(response, 'results', [])
+        result = {}
+        for i in range(0, len(results)):
+            pair = results[i]
+            marketId = self.safe_string(pair, 'symbol')
+            symbol = self.safe_symbol(marketId, None, '_')
+            fees = self.safe_value(pair, 'fees', [])
+            fee = self.safe_value(fees, 0, {})
+            result[symbol] = {
+                'info': pair,
+                'symbol': symbol,
+                'maker': self.safe_number(fee, 'maker_fee'),
+                'taker': self.safe_number(fee, 'taker_fee'),
+                'tierBased': False,
+            }
+        return result
+
+    def parse_balance(self, response):
+        result = {'info': response}
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string(balance, 'symbol')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'locked')
+            result[code] = account
+        return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -501,16 +622,7 @@ class ripio(Exchange):
         #         },
         #     ]
         #
-        result = {'info': response}
-        for i in range(0, len(response)):
-            balance = response[i]
-            currencyId = self.safe_string(balance, 'symbol')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'available')
-            account['used'] = self.safe_string(balance, 'locked')
-            result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(response)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

@@ -5,7 +5,6 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
@@ -14,33 +13,66 @@ module.exports = class ndax extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'ndax',
             'name': 'NDAX',
-            'countries': [ 'US' ], // United States
+            'countries': [ 'CA' ], // Canada
             'rateLimit': 1000,
             'pro': true,
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
                 'fetchLedger': true,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrderTrades': true,
                 'fetchOrders': true,
+                'fetchOrderTrades': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'signIn': true,
+                'transfer': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '60',
@@ -76,107 +108,107 @@ module.exports = class ndax extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'Activate2FA',
-                        'Authenticate2FA',
-                        'AuthenticateUser',
-                        'GetL2Snapshot',
-                        'GetLevel1',
-                        'GetValidate2FARequiredEndpoints',
-                        'LogOut',
-                        'GetTickerHistory',
-                        'GetProduct',
-                        'GetProducts',
-                        'GetInstrument',
-                        'GetInstruments',
-                        'Ping',
-                        'trades', // undocumented
-                        'GetLastTrades', // undocumented
-                        'SubscribeLevel1',
-                        'SubscribeLevel2',
-                        'SubscribeTicker',
-                        'SubscribeTrades',
-                        'SubscribeBlockTrades',
-                        'UnsubscribeBlockTrades',
-                        'UnsubscribeLevel1',
-                        'UnsubscribeLevel2',
-                        'UnsubscribeTicker',
-                        'UnsubscribeTrades',
-                        'Authenticate', // undocumented
-                    ],
+                    'get': {
+                        'Activate2FA': 1,
+                        'Authenticate2FA': 1,
+                        'AuthenticateUser': 1,
+                        'GetL2Snapshot': 1,
+                        'GetLevel1': 1,
+                        'GetValidate2FARequiredEndpoints': 1,
+                        'LogOut': 1,
+                        'GetTickerHistory': 1,
+                        'GetProduct': 1,
+                        'GetProducts': 1,
+                        'GetInstrument': 1,
+                        'GetInstruments': 1,
+                        'Ping': 1,
+                        'trades': 1, // undocumented
+                        'GetLastTrades': 1, // undocumented
+                        'SubscribeLevel1': 1,
+                        'SubscribeLevel2': 1,
+                        'SubscribeTicker': 1,
+                        'SubscribeTrades': 1,
+                        'SubscribeBlockTrades': 1,
+                        'UnsubscribeBlockTrades': 1,
+                        'UnsubscribeLevel1': 1,
+                        'UnsubscribeLevel2': 1,
+                        'UnsubscribeTicker': 1,
+                        'UnsubscribeTrades': 1,
+                        'Authenticate': 1, // undocumented
+                    },
                 },
                 'private': {
-                    'get': [
-                        'GetUserAccountInfos',
-                        'GetUserAccounts',
-                        'GetUserAffiliateCount',
-                        'GetUserAffiliateTag',
-                        'GetUserConfig',
-                        'GetAllUnredactedUserConfigsForUser',
-                        'GetUnredactedUserConfigByKey',
-                        'GetUserDevices',
-                        'GetUserReportTickets',
-                        'GetUserReportWriterResultRecords',
-                        'GetAccountInfo',
-                        'GetAccountPositions',
-                        'GetAllAccountConfigs',
-                        'GetTreasuryProductsForAccount',
-                        'GetAccountTrades',
-                        'GetAccountTransactions',
-                        'GetOpenTradeReports',
-                        'GetAllOpenTradeReports',
-                        'GetTradesHistory',
-                        'GetOpenOrders',
-                        'GetOpenQuotes',
-                        'GetOrderFee',
-                        'GetOrderHistory',
-                        'GetOrdersHistory',
-                        'GetOrderStatus',
-                        'GetOmsFeeTiers',
-                        'GetAccountDepositTransactions',
-                        'GetAccountWithdrawTransactions',
-                        'GetAllDepositRequestInfoTemplates',
-                        'GetDepositInfo',
-                        'GetDepositRequestInfoTemplate',
-                        'GetDeposits',
-                        'GetDepositTicket',
-                        'GetDepositTickets',
-                        'GetOMSWithdrawFees',
-                        'GetWithdrawFee',
-                        'GetWithdraws',
-                        'GetWithdrawTemplate',
-                        'GetWithdrawTemplateTypes',
-                        'GetWithdrawTicket',
-                        'GetWithdrawTickets',
-                    ],
-                    'post': [
-                        'AddUserAffiliateTag',
-                        'CancelUserReport',
-                        'RegisterNewDevice',
-                        'SubscribeAccountEvents',
-                        'UpdateUserAffiliateTag',
-                        'GenerateTradeActivityReport',
-                        'GenerateTransactionActivityReport',
-                        'GenerateTreasuryActivityReport',
-                        'ScheduleTradeActivityReport',
-                        'ScheduleTransactionActivityReport',
-                        'ScheduleTreasuryActivityReport',
-                        'CancelAllOrders',
-                        'CancelOrder',
-                        'CancelQuote',
-                        'CancelReplaceOrder',
-                        'CreateQuote',
-                        'ModifyOrder',
-                        'SendOrder',
-                        'SubmitBlockTrade',
-                        'UpdateQuote',
-                        'CancelWithdraw',
-                        'CreateDepositTicket',
-                        'CreateWithdrawTicket',
-                        'SubmitDepositTicketComment',
-                        'SubmitWithdrawTicketComment',
-                        'GetOrderHistoryByOrderId',
-                    ],
+                    'get': {
+                        'GetUserAccountInfos': 1,
+                        'GetUserAccounts': 1,
+                        'GetUserAffiliateCount': 1,
+                        'GetUserAffiliateTag': 1,
+                        'GetUserConfig': 1,
+                        'GetAllUnredactedUserConfigsForUser': 1,
+                        'GetUnredactedUserConfigByKey': 1,
+                        'GetUserDevices': 1,
+                        'GetUserReportTickets': 1,
+                        'GetUserReportWriterResultRecords': 1,
+                        'GetAccountInfo': 1,
+                        'GetAccountPositions': 1,
+                        'GetAllAccountConfigs': 1,
+                        'GetTreasuryProductsForAccount': 1,
+                        'GetAccountTrades': 1,
+                        'GetAccountTransactions': 1,
+                        'GetOpenTradeReports': 1,
+                        'GetAllOpenTradeReports': 1,
+                        'GetTradesHistory': 1,
+                        'GetOpenOrders': 1,
+                        'GetOpenQuotes': 1,
+                        'GetOrderFee': 1,
+                        'GetOrderHistory': 1,
+                        'GetOrdersHistory': 1,
+                        'GetOrderStatus': 1,
+                        'GetOmsFeeTiers': 1,
+                        'GetAccountDepositTransactions': 1,
+                        'GetAccountWithdrawTransactions': 1,
+                        'GetAllDepositRequestInfoTemplates': 1,
+                        'GetDepositInfo': 1,
+                        'GetDepositRequestInfoTemplate': 1,
+                        'GetDeposits': 1,
+                        'GetDepositTicket': 1,
+                        'GetDepositTickets': 1,
+                        'GetOMSWithdrawFees': 1,
+                        'GetWithdrawFee': 1,
+                        'GetWithdraws': 1,
+                        'GetWithdrawTemplate': 1,
+                        'GetWithdrawTemplateTypes': 1,
+                        'GetWithdrawTicket': 1,
+                        'GetWithdrawTickets': 1,
+                    },
+                    'post': {
+                        'AddUserAffiliateTag': 1,
+                        'CancelUserReport': 1,
+                        'RegisterNewDevice': 1,
+                        'SubscribeAccountEvents': 1,
+                        'UpdateUserAffiliateTag': 1,
+                        'GenerateTradeActivityReport': 1,
+                        'GenerateTransactionActivityReport': 1,
+                        'GenerateTreasuryActivityReport': 1,
+                        'ScheduleTradeActivityReport': 1,
+                        'ScheduleTransactionActivityReport': 1,
+                        'ScheduleTreasuryActivityReport': 1,
+                        'CancelAllOrders': 1,
+                        'CancelOrder': 1,
+                        'CancelQuote': 1,
+                        'CancelReplaceOrder': 1,
+                        'CreateQuote': 1,
+                        'ModifyOrder': 1,
+                        'SendOrder': 1,
+                        'SubmitBlockTrade': 1,
+                        'UpdateQuote': 1,
+                        'CancelWithdraw': 1,
+                        'CreateDepositTicket': 1,
+                        'CreateWithdrawTicket': 1,
+                        'SubmitDepositTicketComment': 1,
+                        'SubmitWithdrawTicketComment': 1,
+                        'GetOrderHistoryByOrderId': 1,
+                    },
                 },
             },
             'fees': {
@@ -194,7 +226,7 @@ module.exports = class ndax extends Exchange {
                 // these credentials are required for signIn() and withdraw()
                 'login': true,
                 'password': true,
-                'twofa': true,
+                // 'twofa': true,
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -225,8 +257,8 @@ module.exports = class ndax extends Exchange {
 
     async signIn (params = {}) {
         this.checkRequiredCredentials ();
-        if (this.login === undefined || this.password === undefined || this.twofa === undefined) {
-            throw new AuthenticationError (this.id + ' signIn() requires exchange.login, exchange.password and exchange.twofa credentials');
+        if (this.login === undefined || this.password === undefined) {
+            throw new AuthenticationError (this.id + ' signIn() requires exchange.login, exchange.password');
         }
         let request = {
             'grant_type': 'client_credentials', // the only supported value
@@ -248,6 +280,9 @@ module.exports = class ndax extends Exchange {
         }
         const pending2faToken = this.safeString (response, 'Pending2FaToken');
         if (pending2faToken !== undefined) {
+            if (this.twofa === undefined) {
+                throw new AuthenticationError (this.id + ' signIn() requires exchange.twofa credentials');
+            }
             this.options['pending2faToken'] = pending2faToken;
             request = {
                 'Code': this.oath (),
@@ -307,8 +342,19 @@ module.exports = class ndax extends Exchange {
                 'precision': precision,
                 'info': currency,
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
-                'limits': this.limits,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
             };
         }
         return result;
@@ -375,28 +421,42 @@ module.exports = class ndax extends Exchange {
             const quoteId = this.safeString (market, 'Product2');
             const base = this.safeCurrencyCode (this.safeString (market, 'Product1Symbol'));
             const quote = this.safeCurrencyCode (this.safeString (market, 'Product2Symbol'));
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.safeNumber (market, 'QuantityIncrement'),
-                'price': this.safeNumber (market, 'PriceIncrement'),
-            };
             const sessionStatus = this.safeString (market, 'SessionStatus');
             const isDisable = this.safeValue (market, 'IsDisable');
             const sessionRunning = (sessionStatus === 'Running');
-            const active = (sessionRunning && !isDisable) ? true : false;
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
-                'precision': precision,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': (sessionRunning && !isDisable),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeNumber (market, 'QuantityIncrement'),
+                    'price': this.safeNumber (market, 'PriceIncrement'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'MinimumQuantity'),
                         'max': undefined,
@@ -410,6 +470,7 @@ module.exports = class ndax extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;
@@ -523,19 +584,16 @@ module.exports = class ndax extends Exchange {
         //
         const timestamp = this.safeInteger (ticker, 'TimeStamp');
         const marketId = this.safeString (ticker, 'InstrumentId');
+        market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeNumber (ticker, 'LastTradedPx');
         const percentage = this.safeNumber (ticker, 'Rolling24HrPxChangePercent');
         const change = this.safeNumber (ticker, 'Rolling24HrPxChange');
         const open = this.safeNumber (ticker, 'SessionOpen');
-        let average = undefined;
-        if ((last !== undefined) && (change !== undefined)) {
-            average = this.sum (last, open) / 2;
-        }
         const baseVolume = this.safeNumber (ticker, 'Rolling24HrVolume');
         const quoteVolume = this.safeNumber (ticker, 'Rolling24HrNotional');
         const vwap = this.vwap (baseVolume, quoteVolume);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -552,11 +610,11 @@ module.exports = class ndax extends Exchange {
             'previousClose': undefined,
             'change': change,
             'percentage': percentage,
-            'average': average,
+            'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -771,7 +829,7 @@ module.exports = class ndax extends Exchange {
         //
         let priceString = undefined;
         let amountString = undefined;
-        let cost = undefined;
+        let costString = undefined;
         let timestamp = undefined;
         let id = undefined;
         let marketId = undefined;
@@ -796,27 +854,22 @@ module.exports = class ndax extends Exchange {
             marketId = this.safeString2 (trade, 'InstrumentId', 'Instrument');
             priceString = this.safeString (trade, 'Price');
             amountString = this.safeString (trade, 'Quantity');
-            cost = this.safeNumber2 (trade, 'Value', 'GrossValueExecuted');
+            costString = this.safeString2 (trade, 'Value', 'GrossValueExecuted');
             takerOrMaker = this.safeStringLower (trade, 'MakerTaker');
             side = this.safeStringLower (trade, 'Side');
             type = this.safeStringLower (trade, 'OrderType');
-            const feeCost = this.safeNumber (trade, 'Fee');
-            if (feeCost !== undefined) {
+            const feeCostString = this.safeString (trade, 'Fee');
+            if (feeCostString !== undefined) {
                 const feeCurrencyId = this.safeString (trade, 'FeeProductId');
                 const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
                 fee = {
-                    'cost': feeCost,
+                    'cost': feeCostString,
                     'currency': feeCurrencyCode,
                 };
             }
         }
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        if (cost === undefined) {
-            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        }
         const symbol = this.safeSymbol (marketId, market);
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'symbol': symbol,
@@ -826,11 +879,11 @@ module.exports = class ndax extends Exchange {
             'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -883,6 +936,26 @@ module.exports = class ndax extends Exchange {
         return result;
     }
 
+    parseBalance (response) {
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'ProductId');
+            if (currencyId in this.currencies_by_id) {
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['total'] = this.safeString (balance, 'Amount');
+                account['used'] = this.safeString (balance, 'Hold');
+                result[code] = account;
+            }
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
@@ -926,21 +999,7 @@ module.exports = class ndax extends Exchange {
         //         },
         //     ]
         //
-        const result = {
-            'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
-            const currencyId = this.safeString (balance, 'ProductId');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['total'] = this.safeString (balance, 'Amount');
-            account['used'] = this.safeString (balance, 'Hold');
-            result[code] = account;
-        }
-        return this.parseBalance (result);
+        return this.parseBalance (response);
     }
 
     parseLedgerEntryType (type) {
@@ -1153,19 +1212,13 @@ module.exports = class ndax extends Exchange {
         const side = this.safeStringLower (order, 'Side');
         const type = this.safeStringLower (order, 'OrderType');
         const clientOrderId = this.safeString2 (order, 'ReplacementClOrdId', 'ClientOrderId');
-        let price = this.safeNumber (order, 'Price', 0.0);
-        price = (price > 0.0) ? price : undefined;
-        const amount = this.safeNumber (order, 'OrigQuantity');
-        const filled = this.safeNumber (order, 'QuantityExecuted');
-        const cost = this.safeNumber (order, 'GrossValueExecuted');
-        let average = this.safeNumber (order, 'AvgPrice', 0.0);
-        average = (average > 0) ? average : undefined;
-        let stopPrice = this.safeNumber (order, 'StopPrice', 0.0);
-        stopPrice = (stopPrice > 0.0) ? stopPrice : undefined;
-        const timeInForce = undefined;
+        const price = this.safeString (order, 'Price');
+        const amount = this.safeString (order, 'OrigQuantity');
+        const filled = this.safeString (order, 'QuantityExecuted');
+        const cost = this.safeString (order, 'GrossValueExecuted');
+        const average = this.safeString (order, 'AvgPrice');
+        const stopPrice = this.parseNumber (this.omitZero (this.safeString (order, 'StopPrice')));
         const status = this.parseOrderStatus (this.safeString (order, 'OrderState'));
-        const fee = undefined;
-        const trades = undefined;
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1176,7 +1229,7 @@ module.exports = class ndax extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
-            'timeInForce': timeInForce,
+            'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
             'price': price,
@@ -1186,9 +1239,9 @@ module.exports = class ndax extends Exchange {
             'filled': filled,
             'average': average,
             'remaining': undefined,
-            'fee': fee,
-            'trades': trades,
-        });
+            'fee': undefined,
+            'trades': undefined,
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1964,15 +2017,17 @@ module.exports = class ndax extends Exchange {
         //         "NotionalProductId": 0
         //     }
         //
-        const id = this.safeString (transaction, 'DepositId');
+        let id = undefined;
         let txid = undefined;
         const currencyId = this.safeString (transaction, 'ProductId');
         const code = this.safeCurrencyCode (currencyId, currency);
         let timestamp = undefined;
         let type = undefined;
         if ('DepositId' in transaction) {
+            id = this.safeString (transaction, 'DepositId');
             type = 'deposit';
         } else if ('WithdrawId' in transaction) {
+            id = this.safeString (transaction, 'WithdrawId');
             type = 'withdrawal';
         }
         const templateFormString = this.safeString (transaction, 'TemplateForm');
@@ -2020,6 +2075,9 @@ module.exports = class ndax extends Exchange {
         const sessionToken = this.safeString (this.options, 'sessionToken');
         if (sessionToken === undefined) {
             throw new AuthenticationError (this.id + ' call signIn() method to obtain a session token');
+        }
+        if (this.twofa === undefined) {
+            throw new AuthenticationError (this.id + ' withdraw() requires exchange.twofa credentials');
         }
         this.checkAddress (address);
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -2093,10 +2151,7 @@ module.exports = class ndax extends Exchange {
             'Payload': this.json (withdrawPayload),
         };
         const response = await this.privatePostCreateWithdrawTicket (this.deepExtend (withdrawRequest, params));
-        return {
-            'info': response,
-            'id': this.safeString (response, 'Id'),
-        };
+        return this.parseTransaction (response, currency);
     }
 
     nonce () {

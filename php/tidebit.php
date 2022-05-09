@@ -20,17 +20,47 @@ class tidebit extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchDepositAddress' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchOHLCV' => true,
                 'fetchOrderBook' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -158,29 +188,44 @@ class tidebit extends Exchange {
             $id = $this->safe_string($market, 'id');
             $symbol = $this->safe_string($market, 'name');
             list($baseId, $quoteId) = explode('/', $symbol);
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
+                'base' => $this->safe_currency_code($baseId),
+                'quote' => $this->safe_currency_code($quoteId),
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'info' => $market,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
                 'active' => null,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
                 'precision' => $this->precision,
-                'limits' => $this->limits,
+                'limits' => array_merge(array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ), $this->limits),
+                'info' => $market,
             );
         }
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privateGetMembersMe ($params);
+    public function parse_balance($response) {
         $balances = $this->safe_value($response, 'accounts');
         $result = array( 'info' => $balances );
         for ($i = 0; $i < count($balances); $i++) {
@@ -192,7 +237,13 @@ class tidebit extends Exchange {
             $account['used'] = $this->safe_string($balance, 'locked');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetMembersMe ($params);
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -211,21 +262,31 @@ class tidebit extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
+        //
+        //     {
+        //         "at":1398410899,
+        //         "ticker" => {
+        //             "buy" => "3000.0",
+        //             "sell":"3100.0",
+        //             "low":"3000.0",
+        //             "high":"3000.0",
+        //             "last":"3000.0",
+        //             "vol":"0.11"
+        //         }
+        //     }
+        //
         $timestamp = $this->safe_timestamp($ticker, 'at');
         $ticker = $this->safe_value($ticker, 'ticker', array());
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        $last = $this->safe_number($ticker, 'last');
-        return array(
-            'symbol' => $symbol,
+        $market = $this->safe_market(null, $market);
+        $last = $this->safe_string($ticker, 'last');
+        return $this->safe_ticker(array(
+            'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy'),
-            'ask' => $this->safe_number($ticker, 'sell'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'buy'),
+            'ask' => $this->safe_string($ticker, 'sell'),
             'bidVolume' => null,
             'askVolume' => null,
             'vwap' => null,
@@ -236,10 +297,10 @@ class tidebit extends Exchange {
             'percentage' => null,
             'previousClose' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'vol'),
+            'baseVolume' => $this->safe_string($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -264,39 +325,43 @@ class tidebit extends Exchange {
             'market' => $market['id'],
         );
         $response = $this->publicGetTickersMarket (array_merge($request, $params));
+        //
+        //     {
+        //         "at":1398410899,
+        //         "ticker" => {
+        //             "buy" => "3000.0",
+        //             "sell":"3100.0",
+        //             "low":"3000.0",
+        //             "high":"3000.0",
+        //             "last":"3000.0",
+        //             "vol":"0.11"
+        //         }
+        //     }
+        //
         return $this->parse_ticker($response, $market);
     }
 
     public function parse_trade($trade, $market = null) {
         $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         $id = $this->safe_string($trade, 'id');
-        $priceString = $this->safe_string($trade, 'price');
-        $amountString = $this->safe_string($trade, 'volume');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->safe_number($trade, 'funds');
-        if ($cost === null) {
-            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        }
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        return array(
+        $price = $this->safe_string($trade, 'price');
+        $amount = $this->safe_string($trade, 'volume');
+        $market = $this->safe_market(null, $market);
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => null,
             'side' => null,
             'order' => null,
             'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -417,7 +482,7 @@ class tidebit extends Exchange {
         $filled = $this->safe_string($order, 'executed_volume');
         $remaining = $this->safe_string($order, 'remaining_volume');
         $average = $this->safe_string($order, 'avg_price');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
@@ -491,9 +556,31 @@ class tidebit extends Exchange {
             $request['memo'] = $tag;
         }
         $result = $this->privatePostWithdrawsApply (array_merge($request, $params));
+        return $this->parse_transaction($result, $currency);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        $currency = $this->safe_currency(null, $currency);
         return array(
-            'info' => $result,
             'id' => null,
+            'txid' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'network' => null,
+            'addressFrom' => null,
+            'address' => null,
+            'addressTo' => null,
+            'amount' => null,
+            'type' => null,
+            'currency' => $currency['code'],
+            'status' => null,
+            'updated' => null,
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'comment' => null,
+            'fee' => null,
+            'info' => $transaction,
         );
     }
 

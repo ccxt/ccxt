@@ -22,16 +22,29 @@ class upbit extends Exchange {
             'pro' => true,
             // new metainfo interface
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => true,
+                'spot' => true,
+                'margin' => null,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => null,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -39,11 +52,15 @@ class upbit extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => true,
                 'fetchOrders' => null,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => false,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -278,30 +295,36 @@ class upbit extends Exchange {
         );
         $response = $this->privateGetOrdersChance (array_merge($request, $params));
         //
-        //     {     bid_fee =>   "0.0005",
-        //           ask_fee =>   "0.0005",
-        //            market => array(          $id =>   "KRW-BTC",
-        //                             name =>   "BTC/KRW",
-        //                      order_types => ["limit"],
-        //                      order_sides => ["ask", "bid"],
-        //                              $bid => array(   currency => "KRW",
-        //                                     price_unit =>  null,
-        //                                      min_total =>  1000  ),
-        //                              $ask => array(   currency => "BTC",
-        //                                     price_unit =>  null,
-        //                                      min_total =>  1000  ),
-        //                        max_total =>   "1000000000.0",
-        //                            $state =>   "active"              ),
-        //       bid_account => array(          currency => "KRW",
-        //                                balance => "0.0",
-        //                                 locked => "0.0",
-        //                      avg_krw_buy_price => "0",
-        //                               modified =>  false ),
-        //       ask_account => {          currency => "BTC",
-        //                                balance => "0.00780836",
-        //                                 locked => "0.0",
-        //                      avg_krw_buy_price => "6465564.67",
-        //                               modified =>  false        }      }
+        //     {
+        //         "bid_fee" => "0.0015",
+        //         "ask_fee" => "0.0015",
+        //         "market" => array(
+        //             "id" => "KRW-BTC",
+        //             "name" => "BTC/KRW",
+        //             "order_types" => array( "limit" ),
+        //             "order_sides" => array( "ask", "bid" ),
+        //             "bid" => array( "currency" => "KRW", "price_unit" => null, "min_total" => 1000 ),
+        //             "ask" => array( "currency" => "BTC", "price_unit" => null, "min_total" => 1000 ),
+        //             "max_total" => "100000000.0",
+        //             "state" => "active",
+        //         ),
+        //         "bid_account" => array(
+        //             "currency" => "KRW",
+        //             "balance" => "0.0",
+        //             "locked" => "0.0",
+        //             "avg_buy_price" => "0",
+        //             "avg_buy_price_modified" => false,
+        //             "unit_currency" => "KRW",
+        //         ),
+        //         "ask_account" => {
+        //             "currency" => "BTC",
+        //             "balance" => "10.0",
+        //             "locked" => "0.0",
+        //             "avg_buy_price" => "8042000",
+        //             "avg_buy_price_modified" => false,
+        //             "unit_currency" => "KRW",
+        //         }
+        //     }
         //
         $marketInfo = $this->safe_value($response, 'market');
         $bid = $this->safe_value($marketInfo, 'bid');
@@ -311,43 +334,58 @@ class upbit extends Exchange {
         $quoteId = $this->safe_string($bid, 'currency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $symbol = $base . '/' . $quote;
-        $precision = array(
-            'amount' => 8,
-            'price' => 8,
-        );
         $state = $this->safe_string($marketInfo, 'state');
-        $active = ($state === 'active');
         $bidFee = $this->safe_number($response, 'bid_fee');
         $askFee = $this->safe_number($response, 'ask_fee');
         $fee = max ($bidFee, $askFee);
         return array(
-            'info' => $response,
             'id' => $marketId,
-            'symbol' => $symbol,
+            'symbol' => $base . '/' . $quote,
             'base' => $base,
             'quote' => $quote,
+            'settle' => null,
             'baseId' => $baseId,
             'quoteId' => $quoteId,
+            'settleId' => null,
             'type' => 'spot',
             'spot' => true,
-            'active' => $active,
-            'precision' => $precision,
-            'maker' => $fee,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => ($state === 'active'),
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
             'taker' => $fee,
+            'maker' => $fee,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => intval('8'),
+                'price' => intval('8'),
+            ),
             'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
                 'amount' => array(
                     'min' => $this->safe_number($ask, 'min_total'),
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => pow(10, -$precision['price']),
+                    'min' => null,
                     'max' => null,
                 ),
                 'cost' => array(
                     'min' => $this->safe_number($bid, 'min_total'),
                     'max' => $this->safe_number($marketInfo, 'max_total'),
                 ),
+                'info' => $response,
             ),
         );
     }
@@ -355,22 +393,14 @@ class upbit extends Exchange {
     public function fetch_markets($params = array ()) {
         $response = $this->publicGetMarketAll ($params);
         //
-        //     array( array(       $market => "KRW-BTC",
-        //          korean_name => "비트코인",
-        //         english_name => "Bitcoin"  ),
-        //       array(       $market => "KRW-DASH",
-        //          korean_name => "대시",
-        //         english_name => "Dash"      ),
-        //       array(       $market => "KRW-ETH",
-        //          korean_name => "이더리움",
-        //         english_name => "Ethereum" ),
-        //       array(       $market => "BTC-ETH",
-        //          korean_name => "이더리움",
-        //         english_name => "Ethereum" ),
-        //       ...,
-        //       {       $market => "BTC-BSV",
-        //          korean_name => "비트코인에스브이",
-        //         english_name => "Bitcoin SV" } )
+        //    array(
+        //        array(
+        //            $market => "KRW-BTC",
+        //            korean_name => "비트코인",
+        //            english_name => "Bitcoin"
+        //        ),
+        //        ...,
+        //    )
         //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -379,33 +409,47 @@ class upbit extends Exchange {
             list($quoteId, $baseId) = explode('-', $id);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $precision = array(
-                'amount' => 8,
-                'price' => 8,
-            );
-            $active = true;
-            $makerFee = $this->safe_number($this->options['tradingFeesByQuoteCurrency'], $quote, $this->fees['trading']['maker']);
-            $takerFee = $this->safe_number($this->options['tradingFeesByQuoteCurrency'], $quote, $this->fees['trading']['taker']);
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'active' => $active,
-                'info' => $market,
-                'precision' => $precision,
-                'maker' => $makerFee,
-                'taker' => $takerFee,
+                'settleId' => null,
+                'type' => 'spot',
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => true,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => $this->safe_number($this->options['tradingFeesByQuoteCurrency'], $quote, $this->fees['trading']['taker']),
+                'maker' => $this->safe_number($this->options['tradingFeesByQuoteCurrency'], $quote, $this->fees['trading']['maker']),
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => 8,
+                    'amount' => 8,
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
-                        'min' => pow(10, -$precision['amount']),
+                        'min' => null,
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
+                        'min' => null,
                         'max' => null,
                     ),
                     'cost' => array(
@@ -413,26 +457,13 @@ class upbit extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privateGetAccounts ($params);
-        //
-        //     array( array(          currency => "BTC",
-        //                   $balance => "0.005",
-        //                    locked => "0.0",
-        //         avg_krw_buy_price => "7446000",
-        //                  modified =>  false     ),
-        //       {          currency => "ETH",
-        //                   $balance => "0.1",
-        //                    locked => "0.0",
-        //         avg_krw_buy_price => "250000",
-        //                  modified =>  false    }   )
-        //
+    public function parse_balance($response) {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -447,7 +478,25 @@ class upbit extends Exchange {
             $account['used'] = $this->safe_string($balance, 'locked');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetAccounts ($params);
+        //
+        //     array( array(          currency => "BTC",
+        //                   balance => "0.005",
+        //                    locked => "0.0",
+        //         avg_krw_buy_price => "7446000",
+        //                  modified =>  false     ),
+        //       {          currency => "ETH",
+        //                   balance => "0.1",
+        //                    locked => "0.0",
+        //         avg_krw_buy_price => "250000",
+        //                  modified =>  false    }   )
+        //
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
@@ -458,7 +507,7 @@ class upbit extends Exchange {
             // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
             if (strlen($ids) > $this->options['fetchOrderBooksMaxLength']) {
                 $numIds = is_array($this->ids) ? count($this->ids) : 0;
-                throw new ExchangeError($this->id . ' has ' . (string) $numIds . ' $symbols (' . (string) strlen($ids) . ' characters) exceeding max URL length (' . (string) $this->options['fetchOrderBooksMaxLength'] . ' characters), you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
+                throw new ExchangeError($this->id . ' fetchOrderBooks() has ' . (string) $numIds . ' $symbols (' . (string) strlen($ids) . ' characters) exceeding max URL length (' . (string) $this->options['fetchOrderBooksMaxLength'] . ' characters), you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
             }
         } else {
             $ids = $this->market_ids($symbols);
@@ -532,7 +581,7 @@ class upbit extends Exchange {
         //                     low_price =>  0.02934283,
         //                   trade_price =>  0.02947773,
         //            prev_closing_price =>  0.02966,
-        //                        $change => "FALL",
+        //                        change => "FALL",
         //                  change_price =>  0.00018227,
         //                   change_rate =>  0.0061453136,
         //           signed_change_price =>  -0.00018227,
@@ -550,33 +599,30 @@ class upbit extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 'trade_timestamp');
         $marketId = $this->safe_string_2($ticker, 'market', 'code');
-        $symbol = $this->safe_symbol($marketId, $market, '-');
-        $previous = $this->safe_number($ticker, 'prev_closing_price');
-        $last = $this->safe_number($ticker, 'trade_price');
-        $change = $this->safe_number($ticker, 'signed_change_price');
-        $percentage = $this->safe_number($ticker, 'signed_change_rate');
-        return array(
-            'symbol' => $symbol,
+        $market = $this->safe_market($marketId, $market, '-');
+        $last = $this->safe_string($ticker, 'trade_price');
+        return $this->safe_ticker(array(
+            'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high_price'),
-            'low' => $this->safe_number($ticker, 'low_price'),
+            'high' => $this->safe_string($ticker, 'high_price'),
+            'low' => $this->safe_string($ticker, 'low_price'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_number($ticker, 'opening_price'),
+            'open' => $this->safe_string($ticker, 'opening_price'),
             'close' => $last,
             'last' => $last,
-            'previousClose' => $previous,
-            'change' => $change,
-            'percentage' => $percentage,
+            'previousClose' => $this->safe_string($ticker, 'prev_closing_price'),
+            'change' => $this->safe_string($ticker, 'signed_change_price'),
+            'percentage' => $this->safe_string($ticker, 'signed_change_rate'),
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'acc_trade_volume_24h'),
-            'quoteVolume' => $this->safe_number($ticker, 'acc_trade_price_24h'),
+            'baseVolume' => $this->safe_string($ticker, 'acc_trade_volume_24h'),
+            'quoteVolume' => $this->safe_string($ticker, 'acc_trade_price_24h'),
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -587,7 +633,7 @@ class upbit extends Exchange {
             // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
             if (strlen($ids) > $this->options['fetchTickersMaxLength']) {
                 $numIds = is_array($this->ids) ? count($this->ids) : 0;
-                throw new ExchangeError($this->id . ' has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchTickers');
+                throw new ExchangeError($this->id . ' fetchTickers() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchTickers');
             }
         } else {
             $ids = $this->market_ids($symbols);
@@ -681,43 +727,26 @@ class upbit extends Exchange {
         } else if ($askOrBid === 'bid') {
             $side = 'buy';
         }
-        $cost = $this->safe_number($trade, 'funds');
-        $priceString = $this->safe_string_2($trade, 'trade_price', 'price');
-        $amountString = $this->safe_string_2($trade, 'trade_volume', 'volume');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        if ($cost === null) {
-            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        }
+        $cost = $this->safe_string($trade, 'funds');
+        $price = $this->safe_string_2($trade, 'trade_price', 'price');
+        $amount = $this->safe_string_2($trade, 'trade_volume', 'volume');
         $marketId = $this->safe_string_2($trade, 'market', 'code');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, '-');
         $fee = null;
-        $feeCurrency = null;
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-            $feeCurrency = $market['quote'];
-        } else {
-            list($baseId, $quoteId) = explode('-', $marketId);
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $feeCurrency = $quote;
-        }
         $feeCost = $this->safe_string($trade, $askOrBid . '_fee');
         if ($feeCost !== null) {
             $fee = array(
-                'currency' => $feeCurrency,
+                'currency' => $market['quote'],
                 'cost' => $feeCost,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
@@ -725,7 +754,7 @@ class upbit extends Exchange {
             'amount' => $amount,
             'cost' => $cost,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -762,6 +791,63 @@ class upbit extends Exchange {
         //              sequential_id =>  15428917910540000 }  )
         //
         return $this->parse_trades($response, $market, $since, $limit);
+    }
+
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+        );
+        $response = $this->privateGetOrdersChance (array_merge($request, $params));
+        //
+        //     {
+        //         "bid_fee" => "0.0005",
+        //         "ask_fee" => "0.0005",
+        //         "maker_bid_fee" => "0.0005",
+        //         "maker_ask_fee" => "0.0005",
+        //         "market" => array(
+        //             "id" => "KRW-BTC",
+        //             "name" => "BTC/KRW",
+        //             "order_types" => array( "limit" ),
+        //             "order_sides" => array( "ask", "bid" ),
+        //             "bid" => array( "currency" => "KRW", "price_unit" => null, "min_total" => 5000 ),
+        //             "ask" => array( "currency" => "BTC", "price_unit" => null, "min_total" => 5000 ),
+        //             "max_total" => "1000000000.0",
+        //             "state" => "active"
+        //         ),
+        //         "bid_account" => array(
+        //             "currency" => "KRW",
+        //             "balance" => "0.34202414",
+        //             "locked" => "4999.99999922",
+        //             "avg_buy_price" => "0",
+        //             "avg_buy_price_modified" => true,
+        //             "unit_currency" => "KRW"
+        //         ),
+        //         "ask_account" => {
+        //             "currency" => "BTC",
+        //             "balance" => "0.00048",
+        //             "locked" => "0.0",
+        //             "avg_buy_price" => "20870000",
+        //             "avg_buy_price_modified" => false,
+        //             "unit_currency" => "KRW"
+        //         }
+        //     }
+        //
+        $askFee = $this->safe_string($response, 'ask_fee');
+        $bidFee = $this->safe_string($response, 'bid_fee');
+        $taker = Precise::string_max($askFee, $bidFee);
+        $makerAskFee = $this->safe_string($response, 'maker_ask_fee');
+        $makerBidFee = $this->safe_string($response, 'maker_bid_fee');
+        $maker = Precise::string_max($makerAskFee, $makerBidFee);
+        return array(
+            'info' => $response,
+            'symbol' => $symbol,
+            'maker' => $this->parse_number($maker),
+            'taker' => $this->parse_number($taker),
+            'percentage' => true,
+            'tierBased' => false,
+        );
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -866,7 +952,7 @@ class upbit extends Exchange {
         } else if ($side === 'sell') {
             $orderSide = 'ask';
         } else {
-            throw new InvalidOrder($this->id . ' createOrder allows buy or sell $side only!');
+            throw new InvalidOrder($this->id . ' createOrder() allows buy or sell $side only!');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1077,8 +1163,13 @@ class upbit extends Exchange {
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
+            'network' => null,
             'address' => $address,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => $tag,
+            'tagTo' => null,
+            'tagFrom' => null,
             'status' => $status,
             'type' => $type,
             'updated' => $updated,

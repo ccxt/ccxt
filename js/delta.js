@@ -5,7 +5,6 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, ArgumentsRequired, OrderNotFound, ExchangeNotAvailable } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -19,6 +18,12 @@ module.exports = class delta extends Exchange {
             'version': 'v2',
             // new metainfo interface
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -28,11 +33,15 @@ module.exports = class delta extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchLedger': true,
+                'fetchLeverageTiers': false, // An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
+                'fetchPosition': true,
+                'fetchPositions': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -126,22 +135,22 @@ module.exports = class delta extends Exchange {
                     'maker': 0.10 / 100,
                     'tiers': {
                         'taker': [
-                            [0, 0.15 / 100],
-                            [100, 0.13 / 100],
-                            [250, 0.13 / 100],
-                            [1000, 0.1 / 100],
-                            [5000, 0.09 / 100],
-                            [10000, 0.075 / 100],
-                            [20000, 0.065 / 100],
+                            [ 0, 0.15 / 100 ],
+                            [ 100, 0.13 / 100 ],
+                            [ 250, 0.13 / 100 ],
+                            [ 1000, 0.1 / 100 ],
+                            [ 5000, 0.09 / 100 ],
+                            [ 10000, 0.075 / 100 ],
+                            [ 20000, 0.065 / 100 ],
                         ],
                         'maker': [
-                            [0, 0.1 / 100],
-                            [100, 0.1 / 100],
-                            [250, 0.09 / 100],
-                            [1000, 0.075 / 100],
-                            [5000, 0.06 / 100],
-                            [10000, 0.05 / 100],
-                            [20000, 0.05 / 100],
+                            [ 0, 0.1 / 100 ],
+                            [ 100, 0.1 / 100 ],
+                            [ 250, 0.09 / 100 ],
+                            [ 1000, 0.075 / 100 ],
+                            [ 5000, 0.06 / 100 ],
+                            [ 10000, 0.05 / 100 ],
+                            [ 20000, 0.05 / 100 ],
                         ],
                     },
                 },
@@ -176,35 +185,77 @@ module.exports = class delta extends Exchange {
 
     async fetchTime (params = {}) {
         const response = await this.publicGetSettings (params);
-        //
-        //     {
-        //         "result":{
-        //             "server_time":1605472733766141,
-        //             "deto_referral_mining_daily_reward":"25000",
-        //             "deto_total_reward_pool":"100000000",
-        //             "deto_trade_mining_daily_reward":"75000",
-        //             "kyc_deposit_limit":"20",
-        //             "kyc_withdrawal_limit":"2",
-        //             "under_maintenance":"false"
-        //         },
-        //         "success":true
-        //     }
-        //
+        // full response sample under `fetchStatus`
         const result = this.safeValue (response, 'result', {});
         return this.safeIntegerProduct (result, 'server_time', 0.001);
     }
 
     async fetchStatus (params = {}) {
         const response = await this.publicGetSettings (params);
+        //
+        //     {
+        //         "result": {
+        //           "deto_liquidity_mining_daily_reward": "40775",
+        //           "deto_msp": "1.0",
+        //           "deto_staking_daily_reward": "23764.08",
+        //           "enabled_wallets": [
+        //             "BTC",
+        //             ...
+        //           ],
+        //           "portfolio_margin_params": {
+        //             "enabled_portfolios": {
+        //               ".DEAVAXUSDT": {
+        //                 "asset_id": 5,
+        //                 "futures_contingency_margin_percent": "1",
+        //                 "interest_rate": "0",
+        //                 "maintenance_margin_multiplier": "0.8",
+        //                 "max_price_shock": "20",
+        //                 "max_short_notional_limit": "2000",
+        //                 "options_contingency_margin_percent": "1",
+        //                 "options_discount_range": "10",
+        //                 "options_liq_band_range_percentage": "25",
+        //                 "settling_asset": "USDT",
+        //                 "sort_priority": 5,
+        //                 "underlying_asset": "AVAX",
+        //                 "volatility_down_shock": "30",
+        //                 "volatility_up_shock": "45"
+        //               },
+        //               ...
+        //             },
+        //             "portfolio_enabled_contracts": [
+        //               "futures",
+        //               "perpetual_futures",
+        //               "call_options",
+        //               "put_options"
+        //             ]
+        //           },
+        //           "server_time": 1650640673500273,
+        //           "trade_farming_daily_reward": "100000",
+        //           "circulating_supply": "140000000",
+        //           "circulating_supply_update_time": "1636752800",
+        //           "deto_referral_mining_daily_reward": "0",
+        //           "deto_total_reward_pool": "100000000",
+        //           "deto_trade_mining_daily_reward": "0",
+        //           "kyc_deposit_limit": "20",
+        //           "kyc_withdrawal_limit": "10000",
+        //           "maintenance_start_time": "1650387600000000",
+        //           "msp_deto_commission_percent": "25",
+        //           "under_maintenance": "false"
+        //         },
+        //         "success": true
+        //     }
+        //
         const result = this.safeValue (response, 'result', {});
-        const underMaintenance = this.safeValue (result, 'under_maintenance');
+        const underMaintenance = this.safeString (result, 'under_maintenance');
         const status = (underMaintenance === 'true') ? 'maintenance' : 'ok';
-        const updated = this.safeIntegerProduct (result, 'server_time', 0.001);
-        this.status = this.extend (this.status, {
+        const updated = this.safeIntegerProduct (result, 'server_time', 0.001, this.milliseconds ());
+        return {
             'status': status,
             'updated': updated,
-        });
-        return this.status;
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
     }
 
     async fetchCurrencies (params = {}) {
@@ -259,6 +310,8 @@ module.exports = class delta extends Exchange {
                 'name': this.safeString (currency, 'name'),
                 'info': currency, // the original payload
                 'active': active,
+                'deposit': depositsEnabled,
+                'withdraw': withdrawalsEnabled,
                 'fee': this.safeNumber (currency, 'base_withdrawal_fee'),
                 'precision': 1 / Math.pow (10, precision),
                 'limits': {
@@ -367,76 +420,105 @@ module.exports = class delta extends Exchange {
             // const settlingAsset = this.safeValue (market, 'settling_asset', {});
             const quotingAsset = this.safeValue (market, 'quoting_asset', {});
             const underlyingAsset = this.safeValue (market, 'underlying_asset', {});
+            const settlingAsset = this.safeValue (market, 'settling_asset');
             const baseId = this.safeString (underlyingAsset, 'symbol');
             const quoteId = this.safeString (quotingAsset, 'symbol');
+            const settleId = this.safeString (settlingAsset, 'symbol');
             const id = this.safeString (market, 'symbol');
             const numericId = this.safeInteger (market, 'id');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            let symbol = id;
-            let swap = false;
-            let future = false;
-            let option = false;
-            if (type === 'perpetual_futures') {
-                type = 'swap';
-                swap = true;
-                future = false;
-                option = false;
-                if (id.indexOf ('_') < 0) {
-                    symbol = base + '/' + quote;
+            const settle = this.safeCurrencyCode (settleId);
+            const callOptions = (type === 'call_options');
+            const putOptions = (type === 'put_options');
+            const moveOptions = (type === 'move_options');
+            const spot = (type === 'spot');
+            const swap = (type === 'perpetual_futures');
+            const future = (type === 'futures');
+            const option = (callOptions || putOptions || moveOptions);
+            const strike = this.safeString (market, 'strike_price');
+            const expiryDatetime = this.safeString (market, 'settlement_time');
+            const expiry = this.parse8601 (expiryDatetime);
+            const contractSize = this.safeNumber (market, 'contract_value');
+            const linear = (settle === base);
+            let optionType = undefined;
+            let symbol = base + '/' + quote;
+            if (swap || future || option) {
+                symbol = symbol + ':' + settle;
+                if (future || option) {
+                    symbol = symbol + '-' + this.yymmdd (expiry);
+                    if (option) {
+                        type = 'option';
+                        let letter = 'C';
+                        optionType = 'call';
+                        if (putOptions) {
+                            letter = 'P';
+                            optionType = 'put';
+                        } else if (moveOptions) {
+                            letter = 'M';
+                            optionType = 'move';
+                        }
+                        symbol = symbol + ':' + strike + ':' + letter;
+                    } else {
+                        type = 'future';
+                    }
+                } else {
+                    type = 'swap';
                 }
-            } else if ((type === 'call_options') || (type === 'put_options') || (type === 'move_options')) {
-                type = 'option';
-                swap = false;
-                option = true;
-                future = false;
-            } else if (type === 'futures') {
-                type = 'future';
-                swap = false;
-                option = false;
-                future = true;
+            } else {
+                symbol = id;
             }
-            const precision = {
-                'amount': 1.0, // number of contracts
-                'price': this.safeNumber (market, 'tick_size'),
-            };
-            const limits = {
-                'amount': {
-                    'min': 1.0,
-                    'max': this.safeNumber (market, 'position_size_limit'),
-                },
-                'price': {
-                    'min': precision['price'],
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': this.safeNumber (market, 'min_size'),
-                    'max': undefined,
-                },
-            };
             const state = this.safeString (market, 'state');
-            const active = (state === 'live');
-            const maker = this.safeNumber (market, 'maker_commission_rate');
-            const taker = this.safeNumber (market, 'taker_commission_rate');
             result.push ({
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': settleId,
                 'type': type,
-                'spot': false,
-                'option': option,
+                'spot': spot,
+                'margin': spot ? undefined : false,
                 'swap': swap,
                 'future': future,
-                'maker': maker,
-                'taker': taker,
-                'precision': precision,
-                'limits': limits,
+                'option': option,
+                'active': (state === 'live'),
+                'contract': !spot,
+                'linear': spot ? undefined : linear,
+                'inverse': spot ? undefined : !linear,
+                'taker': this.safeNumber (market, 'taker_commission_rate'),
+                'maker': this.safeNumber (market, 'maker_commission_rate'),
+                'contractSize': contractSize,
+                'expiry': expiry,
+                'expiryDatetime': expiryDatetime,
+                'strike': this.parseNumber (strike),
+                'optionType': optionType,
+                'precision': {
+                    'amount': this.parseNumber ('1'), // number of contracts
+                    'price': this.safeNumber (market, 'tick_size'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.parseNumber ('1'),
+                        'max': this.safeNumber (market, 'position_size_limit'),
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'min_size'),
+                        'max': undefined,
+                    },
+                },
                 'info': market,
-                'active': active,
             });
         }
         return result;
@@ -466,22 +548,21 @@ module.exports = class delta extends Exchange {
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.001);
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber (ticker, 'close');
-        const open = this.safeNumber (ticker, 'open');
-        const baseVolume = this.safeNumber (ticker, 'volume');
-        const quoteVolume = this.safeNumber (ticker, 'turnover');
-        const vwap = this.vwap (baseVolume, quoteVolume);
+        const last = this.safeString (ticker, 'close');
+        const open = this.safeString (ticker, 'open');
+        const baseVolume = this.safeString (ticker, 'volume');
+        const quoteVolume = this.safeString (ticker, 'turnover');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
@@ -492,7 +573,7 @@ module.exports = class delta extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -648,9 +729,6 @@ module.exports = class delta extends Exchange {
         timestamp = this.safeIntegerProduct (trade, 'timestamp', 0.001, timestamp);
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'size');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const product = this.safeValue (trade, 'product', {});
         const marketId = this.safeString (product, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
@@ -669,18 +747,18 @@ module.exports = class delta extends Exchange {
         if (type !== undefined) {
             type = type.replace ('_order', '');
         }
-        const feeCost = this.safeNumber (trade, 'commission');
+        const feeCostString = this.safeString (trade, 'commission');
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             const settlingAsset = this.safeValue (product, 'settling_asset', {});
             const feeCurrencyId = this.safeString (settlingAsset, 'symbol');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
@@ -688,13 +766,13 @@ module.exports = class delta extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
             'info': trade,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -777,6 +855,23 @@ module.exports = class delta extends Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
+    parseBalance (response) {
+        const balances = this.safeValue (response, 'result', []);
+        const result = { 'info': response };
+        const currenciesByNumericId = this.safeValue (this.options, 'currenciesByNumericId', {});
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'asset_id');
+            const currency = this.safeValue (currenciesByNumericId, currencyId);
+            const code = (currency === undefined) ? currencyId : currency['code'];
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'balance');
+            account['free'] = this.safeString (balance, 'available_balance');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetWalletBalances (params);
@@ -801,23 +896,10 @@ module.exports = class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const balances = this.safeValue (response, 'result', []);
-        const result = { 'info': response };
-        const currenciesByNumericId = this.safeValue (this.options, 'currenciesByNumericId', {});
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyId = this.safeString (balance, 'asset_id');
-            const currency = this.safeValue (currenciesByNumericId, currencyId);
-            const code = (currency === undefined) ? currencyId : currency['code'];
-            const account = this.account ();
-            account['total'] = this.safeString (balance, 'balance');
-            account['free'] = this.safeString (balance, 'available_balance');
-            result[code] = account;
-        }
-        return this.parseBalance (result);
+        return this.parseBalance (response);
     }
 
-    async fetchPosition (symbol, params = undefined) {
+    async fetchPosition (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -924,8 +1006,8 @@ module.exports = class delta extends Exchange {
         const remaining = this.safeString (order, 'unfilled_size');
         const average = this.safeString (order, 'average_fill_price');
         let fee = undefined;
-        const feeCost = this.safeNumber (order, 'paid_commission');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (order, 'paid_commission');
+        if (feeCostString !== undefined) {
             let feeCurrencyCode = undefined;
             if (market !== undefined) {
                 const settlingAsset = this.safeValue (market['info'], 'settling_asset', {});
@@ -933,11 +1015,11 @@ module.exports = class delta extends Exchange {
                 feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             }
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

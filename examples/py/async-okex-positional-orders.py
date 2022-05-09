@@ -25,7 +25,7 @@ async def main(exchange):
         print('Futures symbols:')
         print([market['symbol'] for market in markets.values() if market['futures']])
         print('---------------------------------------------------------------')
-        symbol = 'BTC-USDT-201225'  # a futures symbol
+        symbol = 'BTC/USDT:USDT-201225'  # a futures symbol
         market = exchange.market(symbol)
         pprint(market)
         print('---------------------------------------------------------------')

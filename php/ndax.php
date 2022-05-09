@@ -15,33 +15,66 @@ class ndax extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'ndax',
             'name' => 'NDAX',
-            'countries' => array( 'US' ), // United States
+            'countries' => array( 'CA' ), // Canada
             'rateLimit' => 1000,
             'pro' => true,
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'editOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
+                'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrderTrades' => true,
                 'fetchOrders' => true,
+                'fetchOrderTrades' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'signIn' => true,
+                'transfer' => false,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '60',
@@ -78,105 +111,105 @@ class ndax extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'Activate2FA',
-                        'Authenticate2FA',
-                        'AuthenticateUser',
-                        'GetL2Snapshot',
-                        'GetLevel1',
-                        'GetValidate2FARequiredEndpoints',
-                        'LogOut',
-                        'GetTickerHistory',
-                        'GetProduct',
-                        'GetProducts',
-                        'GetInstrument',
-                        'GetInstruments',
-                        'Ping',
-                        'trades', // undocumented
-                        'GetLastTrades', // undocumented
-                        'SubscribeLevel1',
-                        'SubscribeLevel2',
-                        'SubscribeTicker',
-                        'SubscribeTrades',
-                        'SubscribeBlockTrades',
-                        'UnsubscribeBlockTrades',
-                        'UnsubscribeLevel1',
-                        'UnsubscribeLevel2',
-                        'UnsubscribeTicker',
-                        'UnsubscribeTrades',
-                        'Authenticate', // undocumented
+                        'Activate2FA' => 1,
+                        'Authenticate2FA' => 1,
+                        'AuthenticateUser' => 1,
+                        'GetL2Snapshot' => 1,
+                        'GetLevel1' => 1,
+                        'GetValidate2FARequiredEndpoints' => 1,
+                        'LogOut' => 1,
+                        'GetTickerHistory' => 1,
+                        'GetProduct' => 1,
+                        'GetProducts' => 1,
+                        'GetInstrument' => 1,
+                        'GetInstruments' => 1,
+                        'Ping' => 1,
+                        'trades' => 1, // undocumented
+                        'GetLastTrades' => 1, // undocumented
+                        'SubscribeLevel1' => 1,
+                        'SubscribeLevel2' => 1,
+                        'SubscribeTicker' => 1,
+                        'SubscribeTrades' => 1,
+                        'SubscribeBlockTrades' => 1,
+                        'UnsubscribeBlockTrades' => 1,
+                        'UnsubscribeLevel1' => 1,
+                        'UnsubscribeLevel2' => 1,
+                        'UnsubscribeTicker' => 1,
+                        'UnsubscribeTrades' => 1,
+                        'Authenticate' => 1, // undocumented
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'GetUserAccountInfos',
-                        'GetUserAccounts',
-                        'GetUserAffiliateCount',
-                        'GetUserAffiliateTag',
-                        'GetUserConfig',
-                        'GetAllUnredactedUserConfigsForUser',
-                        'GetUnredactedUserConfigByKey',
-                        'GetUserDevices',
-                        'GetUserReportTickets',
-                        'GetUserReportWriterResultRecords',
-                        'GetAccountInfo',
-                        'GetAccountPositions',
-                        'GetAllAccountConfigs',
-                        'GetTreasuryProductsForAccount',
-                        'GetAccountTrades',
-                        'GetAccountTransactions',
-                        'GetOpenTradeReports',
-                        'GetAllOpenTradeReports',
-                        'GetTradesHistory',
-                        'GetOpenOrders',
-                        'GetOpenQuotes',
-                        'GetOrderFee',
-                        'GetOrderHistory',
-                        'GetOrdersHistory',
-                        'GetOrderStatus',
-                        'GetOmsFeeTiers',
-                        'GetAccountDepositTransactions',
-                        'GetAccountWithdrawTransactions',
-                        'GetAllDepositRequestInfoTemplates',
-                        'GetDepositInfo',
-                        'GetDepositRequestInfoTemplate',
-                        'GetDeposits',
-                        'GetDepositTicket',
-                        'GetDepositTickets',
-                        'GetOMSWithdrawFees',
-                        'GetWithdrawFee',
-                        'GetWithdraws',
-                        'GetWithdrawTemplate',
-                        'GetWithdrawTemplateTypes',
-                        'GetWithdrawTicket',
-                        'GetWithdrawTickets',
+                        'GetUserAccountInfos' => 1,
+                        'GetUserAccounts' => 1,
+                        'GetUserAffiliateCount' => 1,
+                        'GetUserAffiliateTag' => 1,
+                        'GetUserConfig' => 1,
+                        'GetAllUnredactedUserConfigsForUser' => 1,
+                        'GetUnredactedUserConfigByKey' => 1,
+                        'GetUserDevices' => 1,
+                        'GetUserReportTickets' => 1,
+                        'GetUserReportWriterResultRecords' => 1,
+                        'GetAccountInfo' => 1,
+                        'GetAccountPositions' => 1,
+                        'GetAllAccountConfigs' => 1,
+                        'GetTreasuryProductsForAccount' => 1,
+                        'GetAccountTrades' => 1,
+                        'GetAccountTransactions' => 1,
+                        'GetOpenTradeReports' => 1,
+                        'GetAllOpenTradeReports' => 1,
+                        'GetTradesHistory' => 1,
+                        'GetOpenOrders' => 1,
+                        'GetOpenQuotes' => 1,
+                        'GetOrderFee' => 1,
+                        'GetOrderHistory' => 1,
+                        'GetOrdersHistory' => 1,
+                        'GetOrderStatus' => 1,
+                        'GetOmsFeeTiers' => 1,
+                        'GetAccountDepositTransactions' => 1,
+                        'GetAccountWithdrawTransactions' => 1,
+                        'GetAllDepositRequestInfoTemplates' => 1,
+                        'GetDepositInfo' => 1,
+                        'GetDepositRequestInfoTemplate' => 1,
+                        'GetDeposits' => 1,
+                        'GetDepositTicket' => 1,
+                        'GetDepositTickets' => 1,
+                        'GetOMSWithdrawFees' => 1,
+                        'GetWithdrawFee' => 1,
+                        'GetWithdraws' => 1,
+                        'GetWithdrawTemplate' => 1,
+                        'GetWithdrawTemplateTypes' => 1,
+                        'GetWithdrawTicket' => 1,
+                        'GetWithdrawTickets' => 1,
                     ),
                     'post' => array(
-                        'AddUserAffiliateTag',
-                        'CancelUserReport',
-                        'RegisterNewDevice',
-                        'SubscribeAccountEvents',
-                        'UpdateUserAffiliateTag',
-                        'GenerateTradeActivityReport',
-                        'GenerateTransactionActivityReport',
-                        'GenerateTreasuryActivityReport',
-                        'ScheduleTradeActivityReport',
-                        'ScheduleTransactionActivityReport',
-                        'ScheduleTreasuryActivityReport',
-                        'CancelAllOrders',
-                        'CancelOrder',
-                        'CancelQuote',
-                        'CancelReplaceOrder',
-                        'CreateQuote',
-                        'ModifyOrder',
-                        'SendOrder',
-                        'SubmitBlockTrade',
-                        'UpdateQuote',
-                        'CancelWithdraw',
-                        'CreateDepositTicket',
-                        'CreateWithdrawTicket',
-                        'SubmitDepositTicketComment',
-                        'SubmitWithdrawTicketComment',
-                        'GetOrderHistoryByOrderId',
+                        'AddUserAffiliateTag' => 1,
+                        'CancelUserReport' => 1,
+                        'RegisterNewDevice' => 1,
+                        'SubscribeAccountEvents' => 1,
+                        'UpdateUserAffiliateTag' => 1,
+                        'GenerateTradeActivityReport' => 1,
+                        'GenerateTransactionActivityReport' => 1,
+                        'GenerateTreasuryActivityReport' => 1,
+                        'ScheduleTradeActivityReport' => 1,
+                        'ScheduleTransactionActivityReport' => 1,
+                        'ScheduleTreasuryActivityReport' => 1,
+                        'CancelAllOrders' => 1,
+                        'CancelOrder' => 1,
+                        'CancelQuote' => 1,
+                        'CancelReplaceOrder' => 1,
+                        'CreateQuote' => 1,
+                        'ModifyOrder' => 1,
+                        'SendOrder' => 1,
+                        'SubmitBlockTrade' => 1,
+                        'UpdateQuote' => 1,
+                        'CancelWithdraw' => 1,
+                        'CreateDepositTicket' => 1,
+                        'CreateWithdrawTicket' => 1,
+                        'SubmitDepositTicketComment' => 1,
+                        'SubmitWithdrawTicketComment' => 1,
+                        'GetOrderHistoryByOrderId' => 1,
                     ),
                 ),
             ),
@@ -195,7 +228,7 @@ class ndax extends Exchange {
                 // these credentials are required for signIn() and withdraw()
                 'login' => true,
                 'password' => true,
-                'twofa' => true,
+                // 'twofa' => true,
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -226,8 +259,8 @@ class ndax extends Exchange {
 
     public function sign_in($params = array ()) {
         $this->check_required_credentials();
-        if ($this->login === null || $this->password === null || $this->twofa === null) {
-            throw new AuthenticationError($this->id . ' signIn() requires exchange.login, exchange.password and exchange.twofa credentials');
+        if ($this->login === null || $this->password === null) {
+            throw new AuthenticationError($this->id . ' signIn() requires exchange.login, exchange.password');
         }
         $request = array(
             'grant_type' => 'client_credentials', // the only supported value
@@ -249,6 +282,9 @@ class ndax extends Exchange {
         }
         $pending2faToken = $this->safe_string($response, 'Pending2FaToken');
         if ($pending2faToken !== null) {
+            if ($this->twofa === null) {
+                throw new AuthenticationError($this->id . ' signIn() requires exchange.twofa credentials');
+            }
             $this->options['pending2faToken'] = $pending2faToken;
             $request = array(
                 'Code' => $this->oath(),
@@ -308,8 +344,19 @@ class ndax extends Exchange {
                 'precision' => $precision,
                 'info' => $currency,
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
-                'limits' => $this->limits,
+                'limits' => array(
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
             );
         }
         return $result;
@@ -376,28 +423,42 @@ class ndax extends Exchange {
             $quoteId = $this->safe_string($market, 'Product2');
             $base = $this->safe_currency_code($this->safe_string($market, 'Product1Symbol'));
             $quote = $this->safe_currency_code($this->safe_string($market, 'Product2Symbol'));
-            $symbol = $base . '/' . $quote;
-            $precision = array(
-                'amount' => $this->safe_number($market, 'QuantityIncrement'),
-                'price' => $this->safe_number($market, 'PriceIncrement'),
-            );
             $sessionStatus = $this->safe_string($market, 'SessionStatus');
             $isDisable = $this->safe_value($market, 'IsDisable');
             $sessionRunning = ($sessionStatus === 'Running');
-            $active = ($sessionRunning && !$isDisable) ? true : false;
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'info' => $market,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => $active,
-                'precision' => $precision,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => ($sessionRunning && !$isDisable),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_number($market, 'QuantityIncrement'),
+                    'price' => $this->safe_number($market, 'PriceIncrement'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($market, 'MinimumQuantity'),
                         'max' => null,
@@ -411,6 +472,7 @@ class ndax extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;
@@ -524,19 +586,16 @@ class ndax extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 'TimeStamp');
         $marketId = $this->safe_string($ticker, 'InstrumentId');
+        $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_number($ticker, 'LastTradedPx');
         $percentage = $this->safe_number($ticker, 'Rolling24HrPxChangePercent');
         $change = $this->safe_number($ticker, 'Rolling24HrPxChange');
         $open = $this->safe_number($ticker, 'SessionOpen');
-        $average = null;
-        if (($last !== null) && ($change !== null)) {
-            $average = $this->sum($last, $open) / 2;
-        }
         $baseVolume = $this->safe_number($ticker, 'Rolling24HrVolume');
         $quoteVolume = $this->safe_number($ticker, 'Rolling24HrNotional');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -553,11 +612,11 @@ class ndax extends Exchange {
             'previousClose' => null,
             'change' => $change,
             'percentage' => $percentage,
-            'average' => $average,
+            'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -772,7 +831,7 @@ class ndax extends Exchange {
         //
         $priceString = null;
         $amountString = null;
-        $cost = null;
+        $costString = null;
         $timestamp = null;
         $id = null;
         $marketId = null;
@@ -797,27 +856,22 @@ class ndax extends Exchange {
             $marketId = $this->safe_string_2($trade, 'InstrumentId', 'Instrument');
             $priceString = $this->safe_string($trade, 'Price');
             $amountString = $this->safe_string($trade, 'Quantity');
-            $cost = $this->safe_number_2($trade, 'Value', 'GrossValueExecuted');
+            $costString = $this->safe_string_2($trade, 'Value', 'GrossValueExecuted');
             $takerOrMaker = $this->safe_string_lower($trade, 'MakerTaker');
             $side = $this->safe_string_lower($trade, 'Side');
             $type = $this->safe_string_lower($trade, 'OrderType');
-            $feeCost = $this->safe_number($trade, 'Fee');
-            if ($feeCost !== null) {
+            $feeCostString = $this->safe_string($trade, 'Fee');
+            if ($feeCostString !== null) {
                 $feeCurrencyId = $this->safe_string($trade, 'FeeProductId');
                 $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
                 $fee = array(
-                    'cost' => $feeCost,
+                    'cost' => $feeCostString,
                     'currency' => $feeCurrencyCode,
                 );
             }
         }
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        if ($cost === null) {
-            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        }
         $symbol = $this->safe_symbol($marketId, $market);
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'symbol' => $symbol,
@@ -827,11 +881,11 @@ class ndax extends Exchange {
             'type' => $type,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -884,6 +938,26 @@ class ndax extends Exchange {
         return $result;
     }
 
+    public function parse_balance($response) {
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
+        for ($i = 0; $i < count($response); $i++) {
+            $balance = $response[$i];
+            $currencyId = $this->safe_string($balance, 'ProductId');
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['total'] = $this->safe_string($balance, 'Amount');
+                $account['used'] = $this->safe_string($balance, 'Hold');
+                $result[$code] = $account;
+            }
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
@@ -927,21 +1001,7 @@ class ndax extends Exchange {
         //         ),
         //     )
         //
-        $result = array(
-            'info' => $response,
-            'timestamp' => null,
-            'datetime' => null,
-        );
-        for ($i = 0; $i < count($response); $i++) {
-            $balance = $response[$i];
-            $currencyId = $this->safe_string($balance, 'ProductId');
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['total'] = $this->safe_string($balance, 'Amount');
-            $account['used'] = $this->safe_string($balance, 'Hold');
-            $result[$code] = $account;
-        }
-        return $this->parse_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function parse_ledger_entry_type($type) {
@@ -1154,19 +1214,13 @@ class ndax extends Exchange {
         $side = $this->safe_string_lower($order, 'Side');
         $type = $this->safe_string_lower($order, 'OrderType');
         $clientOrderId = $this->safe_string_2($order, 'ReplacementClOrdId', 'ClientOrderId');
-        $price = $this->safe_number($order, 'Price', 0.0);
-        $price = ($price > 0.0) ? $price : null;
-        $amount = $this->safe_number($order, 'OrigQuantity');
-        $filled = $this->safe_number($order, 'QuantityExecuted');
-        $cost = $this->safe_number($order, 'GrossValueExecuted');
-        $average = $this->safe_number($order, 'AvgPrice', 0.0);
-        $average = ($average > 0) ? $average : null;
-        $stopPrice = $this->safe_number($order, 'StopPrice', 0.0);
-        $stopPrice = ($stopPrice > 0.0) ? $stopPrice : null;
-        $timeInForce = null;
+        $price = $this->safe_string($order, 'Price');
+        $amount = $this->safe_string($order, 'OrigQuantity');
+        $filled = $this->safe_string($order, 'QuantityExecuted');
+        $cost = $this->safe_string($order, 'GrossValueExecuted');
+        $average = $this->safe_string($order, 'AvgPrice');
+        $stopPrice = $this->parse_number($this->omit_zero($this->safe_string($order, 'StopPrice')));
         $status = $this->parse_order_status($this->safe_string($order, 'OrderState'));
-        $fee = null;
-        $trades = null;
         return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1177,7 +1231,7 @@ class ndax extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
-            'timeInForce' => $timeInForce,
+            'timeInForce' => null,
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
@@ -1187,9 +1241,9 @@ class ndax extends Exchange {
             'filled' => $filled,
             'average' => $average,
             'remaining' => null,
-            'fee' => $fee,
-            'trades' => $trades,
-        ));
+            'fee' => null,
+            'trades' => null,
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1965,15 +2019,17 @@ class ndax extends Exchange {
         //         "NotionalProductId" => 0
         //     }
         //
-        $id = $this->safe_string($transaction, 'DepositId');
+        $id = null;
         $txid = null;
         $currencyId = $this->safe_string($transaction, 'ProductId');
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = null;
         $type = null;
         if (is_array($transaction) && array_key_exists('DepositId', $transaction)) {
+            $id = $this->safe_string($transaction, 'DepositId');
             $type = 'deposit';
         } else if (is_array($transaction) && array_key_exists('WithdrawId', $transaction)) {
+            $id = $this->safe_string($transaction, 'WithdrawId');
             $type = 'withdrawal';
         }
         $templateFormString = $this->safe_string($transaction, 'TemplateForm');
@@ -2021,6 +2077,9 @@ class ndax extends Exchange {
         $sessionToken = $this->safe_string($this->options, 'sessionToken');
         if ($sessionToken === null) {
             throw new AuthenticationError($this->id . ' call signIn() method to obtain a session token');
+        }
+        if ($this->twofa === null) {
+            throw new AuthenticationError($this->id . ' withdraw() requires exchange.twofa credentials');
         }
         $this->check_address($address);
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
@@ -2094,10 +2153,7 @@ class ndax extends Exchange {
             'Payload' => $this->json($withdrawPayload),
         );
         $response = $this->privatePostCreateWithdrawTicket ($this->deep_extend($withdrawRequest, $params));
-        return array(
-            'info' => $response,
-            'id' => $this->safe_string($response, 'Id'),
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function nonce() {

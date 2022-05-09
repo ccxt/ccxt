@@ -14,27 +14,54 @@ module.exports = class luno extends Exchange {
             'id': 'luno',
             'name': 'luno',
             'countries': [ 'GB', 'SG', 'ZA' ],
-            'rateLimit': 1000,
+            // 300 calls per minute = 5 calls per second = 1000ms / 5 = 200ms between requests
+            'rateLimit': 200,
             'version': '1',
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
                 'fetchLedger': true,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'fetchTradingFee': true,
                 'fetchTradingFees': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
             },
             'urls': {
                 'referral': 'https://www.luno.com/invite/44893A',
@@ -53,58 +80,66 @@ module.exports = class luno extends Exchange {
             },
             'api': {
                 'exchange': {
-                    'get': [
-                        'markets',
-                    ],
+                    'get': {
+                        'markets': 1,
+                    },
                 },
                 'public': {
-                    'get': [
-                        'orderbook',
-                        'orderbook_top',
-                        'ticker',
-                        'tickers',
-                        'trades',
-                    ],
+                    'get': {
+                        'orderbook': 1,
+                        'orderbook_top': 1,
+                        'ticker': 1,
+                        'tickers': 1,
+                        'trades': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'accounts/{id}/pending',
-                        'accounts/{id}/transactions',
-                        'balance',
-                        'beneficiaries',
-                        'fee_info',
-                        'funding_address',
-                        'listorders',
-                        'listtrades',
-                        'orders/{id}',
-                        'quotes/{id}',
-                        'withdrawals',
-                        'withdrawals/{id}',
-                        'transfers',
+                    'get': {
+                        'accounts/{id}/pending': 1,
+                        'accounts/{id}/transactions': 1,
+                        'balance': 1,
+                        'beneficiaries': 1,
+                        'fee_info': 1,
+                        'funding_address': 1,
+                        'listorders': 1,
+                        'listtrades': 1,
+                        'orders/{id}': 1,
+                        'quotes/{id}': 1,
+                        'withdrawals': 1,
+                        'withdrawals/{id}': 1,
+                        'transfers': 1,
                         // GET /api/exchange/2/listorders
                         // GET /api/exchange/2/orders/{id}
                         // GET /api/exchange/3/order
-                    ],
-                    'post': [
-                        'accounts',
-                        'accounts/{id}/name',
-                        'postorder',
-                        'marketorder',
-                        'stoporder',
-                        'funding_address',
-                        'withdrawals',
-                        'send',
-                        'quotes',
-                        'oauth2/grant',
-                    ],
-                    'put': [
-                        'accounts/{id}/name',
-                        'quotes/{id}',
-                    ],
-                    'delete': [
-                        'quotes/{id}',
-                        'withdrawals/{id}',
-                    ],
+                    },
+                    'post': {
+                        'accounts': 1,
+                        'accounts/{id}/name': 1,
+                        'postorder': 1,
+                        'marketorder': 1,
+                        'stoporder': 1,
+                        'funding_address': 1,
+                        'withdrawals': 1,
+                        'send': 1,
+                        'quotes': 1,
+                        'oauth2/grant': 1,
+                    },
+                    'put': {
+                        'accounts/{id}/name': 1,
+                        'quotes/{id}': 1,
+                    },
+                    'delete': {
+                        'quotes/{id}': 1,
+                        'withdrawals/{id}': 1,
+                    },
+                },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': true, // based on volume from your primary currency (not the same for everyone)
+                    'percentage': true,
+                    'taker': this.parseNumber ('0.001'),
+                    'maker': this.parseNumber ('0'),
                 },
             },
         });
@@ -140,25 +175,40 @@ module.exports = class luno extends Exchange {
             const quoteId = this.safeString (market, 'counter_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const status = this.safeString (market, 'trading_status');
-            const active = (status === 'ACTIVE');
-            const precision = {
-                'amount': this.safeInteger (market, 'volume_scale'),
-                'price': this.safeInteger (market, 'price_scale'),
-            };
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
-                'precision': precision,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': (status === 'ACTIVE'),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (market, 'volume_scale'),
+                    'price': this.safeInteger (market, 'price_scale'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'min_volume'),
                         'max': this.safeNumber (market, 'max_volume'),
@@ -197,19 +247,7 @@ module.exports = class luno extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetBalance (params);
-        //
-        //     {
-        //         'balance': [
-        //             {'account_id': '119...1336','asset': 'XBT','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
-        //             {'account_id': '66...289','asset': 'XBT','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
-        //             {'account_id': '718...5300','asset': 'ETH','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
-        //             {'account_id': '818...7072','asset': 'ZAR','balance': '0.001417','reserved': '0.00','unconfirmed': '0.00'}]}
-        //         ]
-        //     }
-        //
+    parseBalance (response) {
         const wallets = this.safeValue (response, 'balance', []);
         const result = {
             'info': response,
@@ -235,7 +273,23 @@ module.exports = class luno extends Exchange {
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetBalance (params);
+        //
+        //     {
+        //         'balance': [
+        //             {'account_id': '119...1336','asset': 'XBT','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
+        //             {'account_id': '66...289','asset': 'XBT','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
+        //             {'account_id': '718...5300','asset': 'ETH','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
+        //             {'account_id': '818...7072','asset': 'ZAR','balance': '0.001417','reserved': '0.00','unconfirmed': '0.00'}]}
+        //         ]
+        //     }
+        //
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -291,34 +345,34 @@ module.exports = class luno extends Exchange {
             side = 'buy';
         }
         const marketId = this.safeString (order, 'pair');
-        const symbol = this.safeSymbol (marketId, market);
+        market = this.safeMarket (marketId, market);
         const price = this.safeString (order, 'limit_price');
         const amount = this.safeString (order, 'limit_volume');
         const quoteFee = this.safeNumber (order, 'fee_counter');
         const baseFee = this.safeNumber (order, 'fee_base');
         const filled = this.safeString (order, 'base');
         const cost = this.safeString (order, 'counter');
-        const fee = { 'currency': undefined };
-        if (quoteFee) {
-            fee['cost'] = quoteFee;
-            if (market !== undefined) {
-                fee['currency'] = market['quote'];
-            }
-        } else {
-            fee['cost'] = baseFee;
-            if (market !== undefined) {
-                fee['currency'] = market['base'];
-            }
+        let fee = undefined;
+        if (quoteFee !== undefined) {
+            fee = {
+                'cost': quoteFee,
+                'currency': market['quote'],
+            };
+        } else if (baseFee !== undefined) {
+            fee = {
+                'cost': baseFee,
+                'currency': market['base'],
+            };
         }
         const id = this.safeString (order, 'order_id');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': undefined,
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -374,21 +428,28 @@ module.exports = class luno extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        // {
+        //     "pair":"XBTAUD",
+        //     "timestamp":1642201439301,
+        //     "bid":"59972.30000000",
+        //     "ask":"59997.99000000",
+        //     "last_trade":"59997.99000000",
+        //     "rolling_24_hour_volume":"1.89510000",
+        //     "status":"ACTIVE"
+        // }
         const timestamp = this.safeInteger (ticker, 'timestamp');
-        let symbol = undefined;
-        if (market) {
-            symbol = market['symbol'];
-        }
-        const last = this.safeNumber (ticker, 'last_trade');
-        return {
+        const marketId = this.safeString (ticker, 'pair');
+        const symbol = this.safeSymbol (marketId, market);
+        const last = this.safeString (ticker, 'last_trade');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': this.safeNumber (ticker, 'bid'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -398,10 +459,10 @@ module.exports = class luno extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'rolling_24_hour_volume'),
+            'baseVolume': this.safeString (ticker, 'rolling_24_hour_volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -427,14 +488,53 @@ module.exports = class luno extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
+        // {
+        //     "pair":"XBTAUD",
+        //     "timestamp":1642201439301,
+        //     "bid":"59972.30000000",
+        //     "ask":"59997.99000000",
+        //     "last_trade":"59997.99000000",
+        //     "rolling_24_hour_volume":"1.89510000",
+        //     "status":"ACTIVE"
+        // }
         return this.parseTicker (response, market);
     }
 
     parseTrade (trade, market) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "sequence":276989,
+        //          "timestamp":1648651276949,
+        //          "price":"35773.20000000",
+        //          "volume":"0.00300000",
+        //          "is_buy":false
+        //      }
+        //
+        // fetchMyTrades (private)
+        //
+        //      {
+        //          "pair":"LTCXBT",
+        //          "sequence":3256813,
+        //          "order_id":"BXEX6XHHDT5EGW2",
+        //          "type":"ASK",
+        //          "timestamp":1648652135235,
+        //          "price":"0.002786",
+        //          "volume":"0.10",
+        //          "base":"0.10",
+        //          "counter":"0.0002786",
+        //          "fee_base":"0.0001",
+        //          "fee_counter":"0.00",
+        //          "is_buy":false,
+        //          "client_order_id":""
+        //      }
+        //
         // For public trade data (is_buy === True) indicates 'buy' side but for private trade data
         // is_buy indicates maker or taker. The value of "type" (ASK/BID) indicate sell/buy side.
         // Private trade data includes ID field which public trade data does not.
         const orderId = this.safeString (trade, 'order_id');
+        const id = this.safeString (trade, 'sequence');
         let takerOrMaker = undefined;
         let side = undefined;
         if (orderId !== undefined) {
@@ -454,25 +554,25 @@ module.exports = class luno extends Exchange {
         } else {
             side = trade['is_buy'] ? 'buy' : 'sell';
         }
-        const feeBase = this.safeNumber (trade, 'fee_base');
-        const feeCounter = this.safeNumber (trade, 'fee_counter');
+        const feeBaseString = this.safeString (trade, 'fee_base');
+        const feeCounterString = this.safeString (trade, 'fee_counter');
         let feeCurrency = undefined;
         let feeCost = undefined;
-        if (feeBase !== undefined) {
-            if (feeBase !== 0.0) {
+        if (feeBaseString !== undefined) {
+            if (!Precise.stringEquals (feeBaseString, '0.0')) {
                 feeCurrency = market['base'];
-                feeCost = feeBase;
+                feeCost = feeBaseString;
             }
-        } else if (feeCounter !== undefined) {
-            if (feeCounter !== 0.0) {
+        } else if (feeCounterString !== undefined) {
+            if (!Precise.stringEquals (feeCounterString, '0.0')) {
                 feeCurrency = market['quote'];
-                feeCost = feeCounter;
+                feeCost = feeCounterString;
             }
         }
         const timestamp = this.safeInteger (trade, 'timestamp');
-        return {
+        return this.safeTrade ({
             'info': trade,
-            'id': undefined,
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
@@ -480,15 +580,15 @@ module.exports = class luno extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': this.safeNumber (trade, 'price'),
-            'amount': this.safeNumber (trade, 'volume'),
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'volume'),
             // Does not include potential fee costs
-            'cost': this.safeNumber (trade, 'counter'),
+            'cost': this.safeString (trade, 'counter'),
             'fee': {
                 'cost': feeCost,
                 'currency': feeCurrency,
             },
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -501,6 +601,19 @@ module.exports = class luno extends Exchange {
             request['since'] = since;
         }
         const response = await this.publicGetTrades (this.extend (request, params));
+        //
+        //      {
+        //          "trades":[
+        //              {
+        //                  "sequence":276989,
+        //                  "timestamp":1648651276949,
+        //                  "price":"35773.20000000",
+        //                  "volume":"0.00300000",
+        //                  "is_buy":false
+        //              },...
+        //          ]
+        //      }
+        //
         const trades = this.safeValue (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
@@ -521,6 +634,27 @@ module.exports = class luno extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetListtrades (this.extend (request, params));
+        //
+        //      {
+        //          "trades":[
+        //              {
+        //                  "pair":"LTCXBT",
+        //                  "sequence":3256813,
+        //                  "order_id":"BXEX6XHHDT5EGW2",
+        //                  "type":"ASK",
+        //                  "timestamp":1648652135235,
+        //                  "price":"0.002786",
+        //                  "volume":"0.10",
+        //                  "base":"0.10",
+        //                  "counter":"0.0002786",
+        //                  "fee_base":"0.0001",
+        //                  "fee_counter":"0.00",
+        //                  "is_buy":false,
+        //                  "client_order_id":""
+        //              },...
+        //          ]
+        //      }
+        //
         const trades = this.safeValue (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }

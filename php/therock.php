@@ -16,25 +16,40 @@ class therock extends Exchange {
             'id' => 'therock',
             'name' => 'TheRockTrading',
             'countries' => array( 'MT' ),
-            'rateLimit' => 1000,
+            // 10 requests per second => 1000ms / 10 => 100 ms between requests (all endpoints)
+            'rateLimit' => 100,
             'version' => 'v1',
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => null, // has but unimplemented
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => true,
                 'fetchTransactions' => 'emulated',
                 'fetchWithdrawals' => true,
             ),
@@ -50,39 +65,40 @@ class therock extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'funds',
-                        'funds/{id}/orderbook',
-                        'funds/{id}/ticker',
-                        'funds/{id}/trades',
-                        'funds/tickers',
+                        'funds' => 1,
+                        'funds/{id}' => 1,
+                        'funds/{id}/orderbook' => 1,
+                        'funds/{id}/ticker' => 1,
+                        'funds/{id}/trades' => 1,
+                        'funds/tickers' => 1,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'balances',
-                        'balances/{id}',
-                        'discounts',
-                        'discounts/{id}',
-                        'funds',
-                        'funds/{id}',
-                        'funds/{id}/trades',
-                        'funds/{fund_id}/orders',
-                        'funds/{fund_id}/orders/{id}',
-                        'funds/{fund_id}/position_balances',
-                        'funds/{fund_id}/positions',
-                        'funds/{fund_id}/positions/{id}',
-                        'transactions',
-                        'transactions/{id}',
-                        'withdraw_limits/{id}',
-                        'withdraw_limits',
+                        'balances' => 1,
+                        'balances/{id}' => 1,
+                        'discounts' => 1,
+                        'discounts/{id}' => 1,
+                        'funds' => 1,
+                        'funds/{id}' => 1,
+                        'funds/{id}/trades' => 1,
+                        'funds/{fund_id}/orders' => 1,
+                        'funds/{fund_id}/orders/{id}' => 1,
+                        'funds/{fund_id}/position_balances' => 1,
+                        'funds/{fund_id}/positions' => 1,
+                        'funds/{fund_id}/positions/{id}' => 1,
+                        'transactions' => 1,
+                        'transactions/{id}' => 1,
+                        'withdraw_limits/{id}' => 1,
+                        'withdraw_limits' => 1,
                     ),
                     'post' => array(
-                        'atms/withdraw',
-                        'funds/{fund_id}/orders',
+                        'atms/withdraw' => 1,
+                        'funds/{fund_id}/orders' => 1,
                     ),
                     'delete' => array(
-                        'funds/{fund_id}/orders/{id}',
-                        'funds/{fund_id}/orders/remove_all',
+                        'funds/{fund_id}/orders/{id}' => 1,
+                        'funds/{fund_id}/orders/remove_all' => 1,
                     ),
                 ),
             ),
@@ -128,35 +144,30 @@ class therock extends Exchange {
     public function fetch_markets($params = array ()) {
         $response = $this->publicGetFunds ($params);
         //
-        //     { funds => array( array(                      $id =>   "BTCEUR",
-        //                              description =>   "Trade Bitcoin with Euro",
-        //                                     type =>   "currency",
-        //                            base_currency =>   "EUR",
-        //                           trade_currency =>   "BTC",
-        //                                  $buy_fee =>    0.2,
-        //                                 $sell_fee =>    0.2,
-        //                      minimum_price_offer =>    0.01,
-        //                   minimum_quantity_offer =>    0.0005,
-        //                   base_currency_decimals =>    2,
-        //                  trade_currency_decimals =>    4,
-        //                                leverages => array()                           ),
-        //                {                      $id =>   "LTCEUR",
-        //                              description =>   "Trade Litecoin with Euro",
-        //                                     type =>   "currency",
-        //                            base_currency =>   "EUR",
-        //                           trade_currency =>   "LTC",
-        //                                  $buy_fee =>    0.2,
-        //                                 $sell_fee =>    0.2,
-        //                      minimum_price_offer =>    0.01,
-        //                   minimum_quantity_offer =>    0.01,
-        //                   base_currency_decimals =>    2,
-        //                  trade_currency_decimals =>    2,
-        //                                leverages => array()                            } ) }
+        //    {
+        //        funds => array(
+        //            array(
+        //                $id => "BTCEUR",
+        //                description => "Trade Bitcoin with Euro",
+        //                type => "currency",
+        //                base_currency => "EUR",
+        //                trade_currency => "BTC",
+        //                $buy_fee => 0.2,
+        //                $sell_fee => 0.2,
+        //                minimum_price_offer => 0.01,
+        //                minimum_quantity_offer => 0.0005,
+        //                base_currency_decimals => 2,
+        //                trade_currency_decimals => 4,
+        //                $leverages => array()
+        //            ),
+        //            ...
+        //        )
+        //    }
         //
         $markets = $this->safe_value($response, 'funds');
         $result = array();
         if ($markets === null) {
-            throw new ExchangeError($this->id . ' fetchMarkets got an unexpected response');
+            throw new ExchangeError($this->id . ' fetchMarkets() got an unexpected response');
         } else {
             for ($i = 0; $i < count($markets); $i++) {
                 $market = $markets[$i];
@@ -165,30 +176,47 @@ class therock extends Exchange {
                 $quoteId = $this->safe_string($market, 'base_currency');
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-                $buy_fee = $this->safe_number($market, 'buy_fee');
-                $sell_fee = $this->safe_number($market, 'sell_fee');
-                $taker = max ($buy_fee, $sell_fee);
-                $taker = $taker / 100;
-                $maker = $taker;
+                $buy_fee = $this->safe_string($market, 'buy_fee');
+                $sell_fee = $this->safe_string($market, 'sell_fee');
+                $taker = Precise::string_max($buy_fee, $sell_fee);
+                $taker = $this->parse_number(Precise::string_div($taker, '100'));
+                $leverages = $this->safe_value($market, 'leverages');
+                $leveragesLength = is_array($leverages) ? count($leverages) : 0;
                 $result[] = array(
                     'id' => $id,
-                    'symbol' => $symbol,
+                    'symbol' => $base . '/' . $quote,
                     'base' => $base,
                     'quote' => $quote,
+                    'settle' => null,
                     'baseId' => $baseId,
                     'quoteId' => $quoteId,
-                    'info' => $market,
+                    'settleId' => null,
                     'type' => 'spot',
                     'spot' => true,
-                    'active' => true,
-                    'maker' => $maker,
+                    'margin' => $leveragesLength > 0,
+                    'swap' => false,
+                    'future' => false,
+                    'option' => false,
+                    'contract' => false,
+                    'linear' => null,
+                    'inverse' => null,
                     'taker' => $taker,
+                    'maker' => $taker,
+                    'contractSize' => null,
+                    'active' => true,
+                    'expiry' => null,
+                    'expiryDatetime' => null,
+                    'strike' => null,
+                    'optionType' => null,
                     'precision' => array(
                         'amount' => $this->safe_integer($market, 'trade_currency_decimals'),
                         'price' => $this->safe_integer($market, 'base_currency_decimals'),
                     ),
                     'limits' => array(
+                        'leverage' => array(
+                            'min' => 1,
+                            'max' => $this->safe_value($leverages, $leveragesLength - 1, 1),
+                        ),
                         'amount' => array(
                             'min' => $this->safe_number($market, 'minimum_quantity_offer'),
                             'max' => null,
@@ -202,15 +230,14 @@ class therock extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'info' => $market,
                 );
             }
         }
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privateGetBalances ($params);
+    public function parse_balance($response) {
         $balances = $this->safe_value($response, 'balances', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
@@ -222,7 +249,13 @@ class therock extends Exchange {
             $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetBalances ($params);
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -236,34 +269,46 @@ class therock extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
-        $timestamp = $this->parse8601($ticker['date']);
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        $last = $this->safe_number($ticker, 'last');
-        return array(
-            'symbol' => $symbol,
+        //
+        //     {
+        //         "date":"2022-01-16T00:05:08.192Z",
+        //         "fund_id":"ETHBTC",
+        //         "bid":0.07707802,
+        //         "ask":0.07733404,
+        //         "last":0.07739053,
+        //         "open":0.07628192,
+        //         "close":0.07687651,
+        //         "low":0.07612047,
+        //         "high":0.07703306,
+        //         "volume":1.10179665,
+        //         "volume_traded":14.273
+        //     }
+        //
+        $timestamp = $this->parse8601($this->safe_string($ticker, 'date'));
+        $market = $this->safe_market(null, $market);
+        $last = $this->safe_string($ticker, 'last');
+        return $this->safe_ticker(array(
+            'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_number($ticker, 'open'),
+            'open' => $this->safe_string($ticker, 'open'),
             'close' => $last,
             'last' => $last,
-            'previousClose' => $this->safe_number($ticker, 'close'), // previous day close, if any
+            'previousClose' => $this->safe_string($ticker, 'close'), // previous day close, if any
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'volume_traded'),
-            'quoteVolume' => $this->safe_number($ticker, 'volume'),
+            'baseVolume' => $this->safe_string($ticker, 'volume_traded'),
+            'quoteVolume' => $this->safe_string($ticker, 'volume'),
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -285,10 +330,26 @@ class therock extends Exchange {
     public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        $ticker = $this->publicGetFundsIdTicker (array_merge(array(
+        $request = array(
             'id' => $market['id'],
-        ), $params));
-        return $this->parse_ticker($ticker, $market);
+        );
+        $response = $this->publicGetFundsIdTicker (array_merge($request, $params));
+        //
+        //     {
+        //         "date":"2022-01-16T00:05:08.192Z",
+        //         "fund_id":"ETHBTC",
+        //         "bid":0.07707802,
+        //         "ask":0.07733404,
+        //         "last":0.07739053,
+        //         "open":0.07628192,
+        //         "close":0.07687651,
+        //         "low":0.07612047,
+        //         "high":0.07703306,
+        //         "volume":1.10179665,
+        //         "volume_traded":14.273
+        //     }
+        //
+        return $this->parse_ticker($response, $market);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -297,8 +358,8 @@ class therock extends Exchange {
         //
         //     {      $id =>  4493548,
         //       fund_id => "ETHBTC",
-        //        $amount =>  0.203,
-        //         $price =>  0.02783576,
+        //        amount =>  0.203,
+        //         price =>  0.02783576,
         //          $side => "buy",
         //          dark =>  false,
         //          date => "2018-11-30T08:19:18.236Z" }
@@ -307,8 +368,8 @@ class therock extends Exchange {
         //
         //     {           $id =>    237338,
         //            fund_id =>   "BTCEUR",
-        //             $amount =>    0.348,
-        //              $price =>    348,
+        //             amount =>    0.348,
+        //              price =>    348,
         //               $side =>   "sell",
         //               dark =>    false,
         //           order_id =>    14920648,
@@ -316,17 +377,17 @@ class therock extends Exchange {
         //       $transactions => array( array(       $id =>  2770768,
         //                             date => "2015-06-03T00:49:49.000Z",
         //                             type => "sold_currency_to_fund",
-        //                            $price =>  121.1,
+        //                            price =>  121.1,
         //                         currency => "EUR"                       ),
         //                       array(       $id =>  2770769,
         //                             date => "2015-06-03T00:49:49.000Z",
         //                             type => "released_currency_to_fund",
-        //                            $price =>  0.348,
+        //                            price =>  0.348,
         //                         currency => "BTC"                        ),
         //                       {       $id =>  2770772,
         //                             date => "2015-06-03T00:49:49.000Z",
         //                             type => "paid_commission",
-        //                            $price =>  0.06,
+        //                            price =>  0.06,
         //                         currency => "EUR",
         //                         trade_id =>  440492                     }   ) }
         //
@@ -338,27 +399,24 @@ class therock extends Exchange {
         $side = $this->safe_string($trade, 'side');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $fee = null;
-        $feeCost = null;
+        $feeCostString = null;
         $transactions = $this->safe_value($trade, 'transactions', array());
         $transactionsByType = $this->group_by($transactions, 'type');
         $feeTransactions = $this->safe_value($transactionsByType, 'paid_commission', array());
         for ($i = 0; $i < count($feeTransactions); $i++) {
-            if ($feeCost === null) {
-                $feeCost = 0;
+            if ($feeCostString === null) {
+                $feeCostString = '0.0';
             }
-            $feeCost = $this->sum($feeCost, $this->safe_number($feeTransactions[$i], 'price'));
+            $feeCostString = Precise::string_add($feeCostString, $this->safe_string($feeTransactions[$i], 'price'));
         }
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $market['quote'],
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'order' => $orderId,
@@ -368,11 +426,11 @@ class therock extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function parse_ledger_entry_direction($direction) {
@@ -740,12 +798,14 @@ class therock extends Exchange {
         $amount = $this->safe_number($transaction, 'price');
         $timestamp = $this->parse8601($this->safe_string($transaction, 'date'));
         $status = 'ok';
+        $network = $this->safe_string($detail, 'method');
         // todo parse tags
         return array(
             'info' => $transaction,
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
+            'network' => $network,
             'addressFrom' => null,
             'addressTo' => $address,
             'address' => $address,
@@ -1042,7 +1102,36 @@ class therock extends Exchange {
             'id' => $id,
             'fund_id' => $market['id'],
         );
-        $response = $this->privatePostFundsFundIdOrdersId (array_merge($request, $params));
+        $response = $this->privateGetFundsFundIdOrdersId (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => 4325578,
+        //         "fund_id":"BTCEUR",
+        //         "side":"buy",
+        //         "type":"limit",
+        //         "status":"executed",
+        //         "price":0.0102,
+        //         "amount" => 50.0,
+        //         "amount_unfilled" => 0.0,
+        //         "conditional_type" => null,
+        //         "conditional_price" => null,
+        //         "date":"2015-06-03T00:49:48.000Z",
+        //         "close_on" => null,
+        //         "leverage" => 1.0,
+        //         "position_id" => null,
+        //         "trades" => array(
+        //             {
+        //                 "id":237338,
+        //                 "fund_id":"BTCEUR",
+        //                 "amount":50,
+        //                 "price":0.0102,
+        //                 "side":"buy",
+        //                 "dark":false,
+        //                 "date":"2015-06-03T00:49:49.000Z"
+        //             }
+        //         )
+        //     }
+        //
         return $this->parse_order($response);
     }
 
@@ -1088,38 +1177,36 @@ class therock extends Exchange {
         }
         $response = $this->privateGetFundsIdTrades (array_merge($request, $params));
         //
-        //     { trades => array( {           id =>    237338,
-        //                        fund_id =>   "BTCEUR",
-        //                         amount =>    0.348,
-        //                          price =>    348,
-        //                           side =>   "sell",
-        //                           dark =>    false,
-        //                       order_id =>    14920648,
-        //                           date =>   "2015-06-03T00:49:49.000Z",
-        //                   transactions => array( array(       id =>  2770768,
-        //                                         date => "2015-06-03T00:49:49.000Z",
-        //                                         type => "sold_currency_to_fund",
-        //                                        price =>  121.1,
-        //                                     currency => "EUR"                       ),
-        //                                   array(       id =>  2770769,
-        //                                         date => "2015-06-03T00:49:49.000Z",
-        //                                         type => "released_currency_to_fund",
-        //                                        price =>  0.348,
-        //                                     currency => "BTC"                        ),
-        //                                   {       id =>  2770772,
-        //                                         date => "2015-06-03T00:49:49.000Z",
-        //                                         type => "paid_commission",
-        //                                        price =>  0.06,
-        //                                     currency => "EUR",
-        //                                     trade_id =>  440492                     }   ) } ),
-        //         meta => { total_count =>    31,
-        //                       first => array( href => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" ),
-        //                    previous =>    null,
-        //                     current => array( href => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" ),
-        //                        next => array( href => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" ),
-        //                        last => array( href => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" )  } }
+        //     {
+        //         "trades" => array(
+        //             {
+        //                 "id":237338,
+        //                 "fund_id":"BTCEUR",
+        //                 "amount":0.348,
+        //                 "price":348.0,
+        //                 "side":"sell",
+        //                 "dark" => false,
+        //                 "order_id":14920648,
+        //                 "date":"2015-06-03T00:49:49.000Z",
+        //                 "transactions" => array(
+        //                     array( "id" => 2770768, "date" => "2015-06-03T00:49:49.000Z", "type" => "sold_currency_to_fund", "price" => 121.1, "currency" => "EUR" ),
+        //                     array( "id" => 2770769, "date" => "2015-06-03T00:49:49.000Z", "type" => "released_currency_to_fund", "price" => 0.348, "currency" => "BTC" ),
+        //                     array( "id" => 2770772, "date" => "2015-06-03T00:49:49.000Z", "type" => "paid_commission", "price" => 0.06, "currency" => "EUR", "trade_id" => 440492 ),
+        //                 )
+        //             }
+        //         ),
+        //         "meta" => {
+        //             "total_count" => 31,
+        //             "first" => array( "href" => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" ),
+        //             "previous" => null,
+        //             "current" => array( "href" => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" ),
+        //             "next" => array( "href" => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" ),
+        //             "last":array( "href":"https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" )
+        //         }
+        //     }
         //
-        return $this->parse_trades($response['trades'], $market, $since, $limit);
+        $trades = $this->safe_value($response, 'trades', array());
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -1136,31 +1223,151 @@ class therock extends Exchange {
         }
         $response = $this->publicGetFundsIdTrades (array_merge($request, $params));
         //
-        //     { trades => array( array(      id =>  4493548,
-        //                   fund_id => "ETHBTC",
-        //                    amount =>  0.203,
-        //                     price =>  0.02783576,
-        //                      side => "buy",
-        //                      dark =>  false,
-        //                      date => "2018-11-30T08:19:18.236Z" ),
-        //                 {      id =>  4492926,
-        //                   fund_id => "ETHBTC",
-        //                    amount =>  0.04,
-        //                     price =>  0.02767034,
-        //                      side => "buy",
-        //                      dark =>  false,
-        //                      date => "2018-11-30T07:03:03.897Z" }  ),
-        //         meta => { total_count =>    null,
-        //                       first => array( page =>  1,
-        //                                href => "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1" ),
-        //                    previous =>    null,
-        //                     current => array( page =>  1,
-        //                                href => "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1" ),
-        //                        next => array( page =>  2,
-        //                                href => "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=2" ),
-        //                        last =>    null                                                                   } }
+        //     {
+        //         trades => array(
+        //             array(
+        //                 id =>  4493548,
+        //                 fund_id => "ETHBTC",
+        //                 amount =>  0.203,
+        //                 price =>  0.02783576,
+        //                 side => "buy",
+        //                 dark =>  false,
+        //                 date => "2018-11-30T08:19:18.236Z"
+        //             ),
+        //             {
+        //                 id =>  4492926,
+        //                 fund_id => "ETHBTC",
+        //                 amount =>  0.04,
+        //                 price =>  0.02767034,
+        //                 side => "buy",
+        //                 dark =>  false,
+        //                 date => "2018-11-30T07:03:03.897Z"
+        //             }
+        //         ),
+        //         meta => {
+        //             total_count => null,
+        //             first => array( page => 1, href => "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1" ),
+        //             previous => null,
+        //             current => array( page =>  1, href => "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1" ),
+        //             next => array( page =>  2, href => "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=2" ),
+        //             last => null
+        //         }
+        //     }
         //
         return $this->parse_trades($response['trades'], $market, $since, $limit);
+    }
+
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'id' => $market['id'],
+        );
+        $response = $this->publicGetFundsId (array_merge($request, $params));
+        //
+        //     {
+        //         id => 'ETHBTC',
+        //         description => 'Trade Ether with Bitcoin',
+        //         type => 'currency',
+        //         base_currency => 'BTC',
+        //         trade_currency => 'ETH',
+        //         buy_fee => '0.2',
+        //         sell_fee => '0.2',
+        //         minimum_price_offer => '0.00000001',
+        //         minimum_quantity_offer => '0.005',
+        //         base_currency_decimals => '8',
+        //         trade_currency_decimals => '3',
+        //         leverages => array()
+        //     }
+        //
+        $request = array(
+            'id' => $market['quoteId'],
+        );
+        $discount = $this->privateGetDiscountsId (array_merge($request, $params));
+        //
+        //     {
+        //         "currency":"BTC",
+        //         "discount":50.0,
+        //         "details" => {
+        //             "personal_discount" => 50.0,
+        //             "commissions_related_discount" => 0.0
+        //         }
+        //     }
+        //
+        return $this->parse_trading_fee($response, $discount, $market);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        $this->load_markets();
+        $response = $this->publicGetFunds ($params);
+        //
+        //     {
+        //         $funds => array(
+        //             array(
+        //                 id => 'BTCEUR',
+        //                 description => 'Trade Bitcoin with Euro',
+        //                 type => 'currency',
+        //                 base_currency => 'EUR',
+        //                 trade_currency => 'BTC',
+        //                 buy_fee => '0.2',
+        //                 sell_fee => '0.2',
+        //                 minimum_price_offer => '0.01',
+        //                 minimum_quantity_offer => '0.0005',
+        //                 base_currency_decimals => '2',
+        //                 trade_currency_decimals => '4',
+        //                 leverages => array()
+        //             ),
+        //         )
+        //     }
+        //
+        $discountsResponse = $this->privateGetDiscounts ($params);
+        //
+        //     {
+        //         "discounts" => array(
+        //             {
+        //                 "currency":"BTC",
+        //                 "discount":50.0,
+        //                 "details" => {
+        //                     "personal_discount" => 50.0,
+        //                     "commissions_related_discount" => 0.0
+        //                 }
+        //             }
+        //         )
+        //     }
+        //
+        $funds = $this->safe_value($response, 'funds', array());
+        $discounts = $this->safe_value($discountsResponse, 'discounts', array());
+        $result = array();
+        for ($i = 0; $i < count($funds); $i++) {
+            $fund = $funds[$i];
+            $marketId = $this->safe_string($fund, 'id');
+            $market = $this->safe_market($marketId);
+            $quoteId = $this->safe_value($market, 'quoteId');
+            $discount = $this->filter_by($discounts, 'currency', $quoteId);
+            $fee = $this->parse_trading_fee($fund, $discount, $market);
+            $symbol = $fee['symbol'];
+            $result[$symbol] = $fee;
+        }
+        return $result;
+    }
+
+    public function parse_trading_fee($fee, $discount = null, $market = null) {
+        $marketId = $this->safe_string($fee, 'id');
+        $takerString = $this->safe_string($fee, 'buy_fee');
+        $makerString = $this->safe_string($fee, 'sell_fee');
+        // TotalFee = (100 - $discount) * $fee / 10000
+        $discountString = $this->safe_string($discount, 'discount', '0');
+        $feePercentage = Precise::string_sub('100', $discountString);
+        $taker = $this->parse_number(Precise::string_div(Precise::string_mul($takerString, $feePercentage), '10000'));
+        $maker = $this->parse_number(Precise::string_div(Precise::string_mul($makerString, $feePercentage), '10000'));
+        return array(
+            'info' => $fee,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'maker' => $maker,
+            'taker' => $taker,
+            'percentage' => true,
+            'tierBased' => true,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -1199,8 +1406,7 @@ class therock extends Exchange {
         }
         //
         //     {
-        //         "errors":
-        //         array(
+        //         "errors" => array(
         //             array( "message" => ":currency is not a valid value for param currency","code" => "11","meta" => array( "key":"currency","value":":currency") ),
         //             array( "message" => "Address allocation limit reached for currency :currency.","code" => "13" ),
         //             array( "message" => "Request already running", "code" => "50"),

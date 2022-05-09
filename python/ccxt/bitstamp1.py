@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
-from ccxt.base.errors import NotSupported
 from ccxt.base.precise import Precise
 
 
@@ -20,15 +19,42 @@ class bitstamp1(Exchange):
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
-                'cancelOrder': True,
                 'CORS': True,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOrder': None,
                 'fetchOrderBook': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
@@ -94,30 +120,38 @@ class bitstamp1(Exchange):
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
         return self.parse_order_book(orderbook, symbol, timestamp)
 
-    def fetch_ticker(self, symbol, params={}):
-        if symbol != 'BTC/USD':
-            raise ExchangeError(self.id + ' ' + self.version + " fetchTicker doesn't support " + symbol + ', use it for BTC/USD only')
-        self.load_markets()
-        ticker = self.publicGetTicker(params)
+    def parse_ticker(self, ticker, market=None):
+        #
+        # {
+        #     "volume": "2836.47827985",
+        #     "last": "36544.93",
+        #     "timestamp": "1643372072",
+        #     "bid": "36535.79",
+        #     "vwap":"36594.20",
+        #     "high": "37534.15",
+        #     "low": "35511.32",
+        #     "ask": "36548.47",
+        #     "open": 37179.62
+        # }
+        #
+        symbol = self.safe_symbol(None, market)
         timestamp = self.safe_timestamp(ticker, 'timestamp')
-        vwap = self.safe_number(ticker, 'vwap')
-        baseVolume = self.safe_number(ticker, 'volume')
-        quoteVolume = None
-        if baseVolume is not None and vwap is not None:
-            quoteVolume = baseVolume * vwap
-        last = self.safe_number(ticker, 'last')
-        return {
+        vwap = self.safe_string(ticker, 'vwap')
+        baseVolume = self.safe_string(ticker, 'volume')
+        quoteVolume = Precise.string_mul(baseVolume, vwap)
+        last = self.safe_string(ticker, 'last')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
-            'open': self.safe_number(ticker, 'open'),
+            'open': self.safe_string(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
@@ -127,39 +161,53 @@ class bitstamp1(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market, False)
+
+    def fetch_ticker(self, symbol, params={}):
+        if symbol != 'BTC/USD':
+            raise ExchangeError(self.id + ' ' + self.version + " fetchTicker doesn't support " + symbol + ', use it for BTC/USD only')
+        self.load_markets()
+        market = self.market(symbol)
+        ticker = self.publicGetTicker(params)
+        #
+        # {
+        #     "volume": "2836.47827985",
+        #     "last": "36544.93",
+        #     "timestamp": "1643372072",
+        #     "bid": "36535.79",
+        #     "vwap":"36594.20",
+        #     "high": "37534.15",
+        #     "low": "35511.32",
+        #     "ask": "36548.47",
+        #     "open": 37179.62
+        # }
+        #
+        return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_timestamp_2(trade, 'date', 'datetime')
         side = 'buy' if (trade['type'] == 0) else 'sell'
         orderId = self.safe_string(trade, 'order_id')
-        if 'currency_pair' in trade:
-            if trade['currency_pair'] in self.markets_by_id:
-                market = self.markets_by_id[trade['currency_pair']]
         id = self.safe_string(trade, 'tid')
-        priceString = self.safe_string(trade, 'price')
-        amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        return {
+        price = self.safe_string(trade, 'price')
+        amount = self.safe_string(trade, 'amount')
+        marketId = self.safe_string(trade, 'currency_pair')
+        market = self.safe_market(marketId, market)
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': orderId,
             'type': None,
             'side': side,
             'takerOrMaker': None,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         if symbol != 'BTC/USD':
@@ -172,20 +220,23 @@ class bitstamp1(Exchange):
         response = self.publicGetTransactions(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_balance(self, params={}):
-        balance = self.privatePostBalance(params)
-        result = {'info': balance}
+    def parse_balance(self, response):
+        result = {'info': response}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
             currency = self.currency(code)
             currencyId = currency['id']
             account = self.account()
-            account['free'] = self.safe_string(balance, currencyId + '_available')
-            account['used'] = self.safe_string(balance, currencyId + '_reserved')
-            account['total'] = self.safe_string(balance, currencyId + '_balance')
+            account['free'] = self.safe_string(response, currencyId + '_available')
+            account['used'] = self.safe_string(response, currencyId + '_reserved')
+            account['total'] = self.safe_string(response, currencyId + '_balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        response = self.privatePostBalance(params)
+        return self.parse_balance(response)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':
@@ -236,9 +287,6 @@ class bitstamp1(Exchange):
         }
         response = self.privatePostOpenOrdersId(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
-
-    def fetch_order(self, id, symbol=None, params={}):
-        raise NotSupported(self.id + ' fetchOrder is not implemented yet')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)

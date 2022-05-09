@@ -4,15 +4,9 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -29,19 +23,54 @@ class bitso(Exchange):
             'rateLimit': 2000,  # 30 requests per minute
             'version': 'v3',
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchDepositAddress': True,
+                'fetchFundingFee': False,
+                'fetchFundingFees': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
+                'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
+                'transfer': False,
                 'withdraw': True,
             },
             'urls': {
@@ -61,6 +90,17 @@ class bitso(Exchange):
                 },
                 'defaultPrecision': 0.00000001,
             },
+            'timeframes': {
+                '1m': '60',
+                '5m': '300',
+                '15m': '900',
+                '30m': '1800',
+                '1h': '3600',
+                '4h': '14400',
+                '12h': '43200',
+                '1d': '86400',
+                '1w': '604800',
+            },
             'api': {
                 'public': {
                     'get': [
@@ -68,6 +108,7 @@ class bitso(Exchange):
                         'ticker',
                         'order_book',
                         'trades',
+                        'ohlc',
                     ],
                 },
                 'private': {
@@ -118,6 +159,7 @@ class bitso(Exchange):
             'exceptions': {
                 '0201': AuthenticationError,  # Invalid Nonce or Invalid Credentials
                 '104': InvalidNonce,  # Cannot perform request - nonce must be higher than 1520307203724237
+                '0304': BadRequest,  # {"success":false,"error":{"code":"0304","message":"The field time_bucket() is either invalid or missing"}}
             },
         })
 
@@ -165,33 +207,12 @@ class bitso(Exchange):
             quote = quoteId.upper()
             base = self.safe_currency_code(base)
             quote = self.safe_currency_code(quote)
-            symbol = base + '/' + quote
-            limits = {
-                'amount': {
-                    'min': self.safe_number(market, 'minimum_amount'),
-                    'max': self.safe_number(market, 'maximum_amount'),
-                },
-                'price': {
-                    'min': self.safe_number(market, 'minimum_price'),
-                    'max': self.safe_number(market, 'maximum_price'),
-                },
-                'cost': {
-                    'min': self.safe_number(market, 'minimum_value'),
-                    'max': self.safe_number(market, 'maximum_value'),
-                },
-            }
-            defaultPricePrecision = self.safe_number(self.options['precision'], quote, self.options['defaultPrecision'])
-            pricePrecision = self.safe_number(market, 'tick_size', defaultPricePrecision)
-            precision = {
-                'amount': self.safe_number(self.options['precision'], base, self.options['defaultPrecision']),
-                'price': pricePrecision,
-            }
             fees = self.safe_value(market, 'fees', {})
             flatRate = self.safe_value(fees, 'flat_rate', {})
-            makerString = self.safe_string(flatRate, 'maker')
             takerString = self.safe_string(flatRate, 'taker')
-            maker = self.parse_number(Precise.string_div(makerString, '100'))
+            makerString = self.safe_string(flatRate, 'maker')
             taker = self.parse_number(Precise.string_div(takerString, '100'))
+            maker = self.parse_number(Precise.string_div(makerString, '100'))
             feeTiers = self.safe_value(fees, 'structure', [])
             fee = {
                 'taker': taker,
@@ -216,21 +237,77 @@ class bitso(Exchange):
                 'maker': makerFees,
             }
             fee['tiers'] = tiers
+            defaultPricePrecision = self.safe_number(self.options['precision'], quote, self.options['defaultPrecision'])
             result.append(self.extend({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
-                'limits': limits,
-                'precision': precision,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'active': None,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': taker,
+                'maker': maker,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_number(self.options['precision'], base, self.options['defaultPrecision']),
+                    'price': self.safe_number(market, 'tick_size', defaultPricePrecision),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(market, 'minimum_amount'),
+                        'max': self.safe_number(market, 'maximum_amount'),
+                    },
+                    'price': {
+                        'min': self.safe_number(market, 'minimum_price'),
+                        'max': self.safe_number(market, 'maximum_price'),
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'minimum_value'),
+                        'max': self.safe_number(market, 'maximum_value'),
+                    },
+                },
+                'info': market,
             }, fee))
         return result
+
+    def parse_balance(self, response):
+        payload = self.safe_value(response, 'payload', {})
+        balances = self.safe_value(payload, 'balances')
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'locked')
+            account['total'] = self.safe_string(balance, 'total')
+            result[code] = account
+        return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -260,23 +337,7 @@ class bitso(Exchange):
         #       },
         #     }
         #
-        payload = self.safe_value(response, 'payload', {})
-        balances = self.safe_value(payload, 'balances')
-        result = {
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-        }
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            currencyId = self.safe_string(balance, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'available')
-            account['used'] = self.safe_string(balance, 'locked')
-            account['total'] = self.safe_string(balance, 'total')
-            result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -288,29 +349,36 @@ class bitso(Exchange):
         timestamp = self.parse8601(self.safe_string(orderbook, 'updated_at'))
         return self.parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
 
-    async def fetch_ticker(self, symbol, params={}):
-        await self.load_markets()
-        request = {
-            'book': self.market_id(symbol),
-        }
-        response = await self.publicGetTicker(self.extend(request, params))
-        ticker = self.safe_value(response, 'payload')
+    def parse_ticker(self, ticker, market=None):
+        #
+        #     {
+        #         "high":"37446.85",
+        #         "last":"36599.54",
+        #         "created_at":"2022-01-28T12:06:11+00:00",
+        #         "book":"btc_usdt",
+        #         "volume":"7.29075419",
+        #         "vwap":"36579.1564400307",
+        #         "low":"35578.52",
+        #         "ask":"36574.76",
+        #         "bid":"36538.22",
+        #         "change_24":"-105.64"
+        #     }
+        #
+        symbol = self.safe_symbol(None, market)
         timestamp = self.parse8601(self.safe_string(ticker, 'created_at'))
-        vwap = self.safe_number(ticker, 'vwap')
-        baseVolume = self.safe_number(ticker, 'volume')
-        quoteVolume = None
-        if baseVolume is not None and vwap is not None:
-            quoteVolume = baseVolume * vwap
-        last = self.safe_number(ticker, 'last')
-        return {
+        vwap = self.safe_string(ticker, 'vwap')
+        baseVolume = self.safe_string(ticker, 'volume')
+        quoteVolume = Precise.string_mul(baseVolume, vwap)
+        last = self.safe_string(ticker, 'last')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
             'open': None,
@@ -323,7 +391,97 @@ class bitso(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
+        }, market, False)
+
+    async def fetch_ticker(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'book': market['id'],
         }
+        response = await self.publicGetTicker(self.extend(request, params))
+        ticker = self.safe_value(response, 'payload')
+        #
+        #     {
+        #         "success":true,
+        #         "payload":{
+        #             "high":"37446.85",
+        #             "last":"37051.96",
+        #             "created_at":"2022-01-28T17:03:29+00:00",
+        #             "book":"btc_usdt",
+        #             "volume":"6.16176186",
+        #             "vwap":"36582.6293169472",
+        #             "low":"35578.52",
+        #             "ask":"37083.62",
+        #             "bid":"37039.66",
+        #             "change_24":"478.45"
+        #         }
+        #     }
+        #
+        return self.parse_ticker(ticker, market)
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'book': market['id'],
+            'time_bucket': self.timeframes[timeframe],
+        }
+        if since is not None:
+            request['start'] = since
+            if limit is not None:
+                duration = self.parse_timeframe(timeframe)
+                request['end'] = self.sum(since, duration * limit * 1000)
+        elif limit is not None:
+            now = self.milliseconds()
+            request['end'] = now
+            request['start'] = now - self.parse_timeframe(timeframe) * 1000 * limit
+        response = await self.publicGetOhlc(self.extend(request, params))
+        #
+        #     {
+        #         "success":true,
+        #         "payload": [
+        #             {
+        #                 "bucket_start_time":1648219140000,
+        #                 "first_trade_time":1648219154990,
+        #                 "last_trade_time":1648219189441,
+        #                 "first_rate":"44958.60",
+        #                 "last_rate":"44979.88",
+        #                 "min_rate":"44957.33",
+        #                 "max_rate":"44979.88",
+        #                 "trade_count":8,
+        #                 "volume":"0.00082814",
+        #                 "vwap":"44965.02"
+        #             },
+        #         ]
+        #     }
+        #
+        payload = self.safe_value(response, 'payload', [])
+        return self.parse_ohlcvs(payload, market, timeframe, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m'):
+        #
+        #     {
+        #         "bucket_start_time":1648219140000,
+        #         "first_trade_time":1648219154990,
+        #         "last_trade_time":1648219189441,
+        #         "first_rate":"44958.60",
+        #         "last_rate":"44979.88",
+        #         "min_rate":"44957.33",
+        #         "max_rate":"44979.88",
+        #         "trade_count":8,
+        #         "volume":"0.00082814",
+        #         "vwap":"44965.02"
+        #     },
+        #
+        return [
+            self.safe_integer(ohlcv, 'bucket_start_time'),
+            self.safe_number(ohlcv, 'first_rate'),
+            self.safe_number(ohlcv, 'max_rate'),
+            self.safe_number(ohlcv, 'min_rate'),
+            self.safe_number(ohlcv, 'last_rate'),
+            self.safe_number(ohlcv, 'volume'),
+        ]
 
     def parse_trade(self, trade, market=None):
         #
@@ -427,6 +585,69 @@ class bitso(Exchange):
         response = await self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response['payload'], market, since, limit)
 
+    async def fetch_trading_fees(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetFees(params)
+        #
+        #    {
+        #        success: True,
+        #        payload: {
+        #            fees: [
+        #                {
+        #                    book: 'btc_mxn',
+        #                    fee_percent: '0.6500',
+        #                    fee_decimal: '0.00650000',
+        #                    taker_fee_percent: '0.6500',
+        #                    taker_fee_decimal: '0.00650000',
+        #                    maker_fee_percent: '0.5000',
+        #                    maker_fee_decimal: '0.00500000',
+        #                    volume_currency: 'mxn',
+        #                    current_volume: '0.00',
+        #                    next_volume: '1500000.00',
+        #                    next_maker_fee_percent: '0.490',
+        #                    next_taker_fee_percent: '0.637',
+        #                    nextVolume: '1500000.00',
+        #                    nextFee: '0.490',
+        #                    nextTakerFee: '0.637'
+        #                },
+        #                ...
+        #            ],
+        #            deposit_fees: [
+        #                {
+        #                    currency: 'btc',
+        #                    method: 'rewards',
+        #                    fee: '0.00',
+        #                    is_fixed: False
+        #                },
+        #                ...
+        #            ],
+        #            withdrawal_fees: {
+        #                ada: '0.20958100',
+        #                bch: '0.00009437',
+        #                ars: '0',
+        #                btc: '0.00001209',
+        #                ...
+        #            }
+        #        }
+        #    }
+        #
+        payload = self.safe_value(response, 'payload', {})
+        fees = self.safe_value(payload, 'fees', [])
+        result = {}
+        for i in range(0, len(fees)):
+            fee = fees[i]
+            marketId = self.safe_string(fee, 'book')
+            symbol = self.safe_symbol(marketId, None, '_')
+            result[symbol] = {
+                'info': fee,
+                'symbol': symbol,
+                'maker': self.safe_number(fee, 'maker_fee_decimal'),
+                'taker': self.safe_number(fee, 'taker_fee_decimal'),
+                'percentage': True,
+                'tierBased': True,
+            }
+        return result
+
     async def fetch_my_trades(self, symbol=None, since=None, limit=25, params={}):
         await self.load_markets()
         market = self.market(symbol)
@@ -437,7 +658,7 @@ class bitso(Exchange):
         # warn the user with an exception if the user wants to filter
         # starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if (since is not None) and not markerInParams:
-            raise ExchangeError(self.id + ' fetchMyTrades does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id')
+            raise ExchangeError(self.id + ' fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id')
         # convert it to an integer unconditionally
         if markerInParams:
             params = self.extend(params, {
@@ -495,7 +716,7 @@ class bitso(Exchange):
         amount = self.safe_string(order, 'original_amount')
         remaining = self.safe_string(order, 'unfilled_amount')
         clientOrderId = self.safe_string(order, 'client_id')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -529,7 +750,7 @@ class bitso(Exchange):
         # warn the user with an exception if the user wants to filter
         # starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if (since is not None) and not markerInParams:
-            raise ExchangeError(self.id + ' fetchOpenOrders does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id')
+            raise ExchangeError(self.id + ' fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id')
         # convert it to an integer unconditionally
         if markerInParams:
             params = self.extend(params, {
@@ -588,6 +809,73 @@ class bitso(Exchange):
             'info': response,
         }
 
+    async def fetch_funding_fees(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetFees(params)
+        #
+        #    {
+        #        success: True,
+        #        payload: {
+        #            fees: [
+        #                {
+        #                    book: 'btc_mxn',
+        #                    fee_percent: '0.6500',
+        #                    fee_decimal: '0.00650000',
+        #                    taker_fee_percent: '0.6500',
+        #                    taker_fee_decimal: '0.00650000',
+        #                    maker_fee_percent: '0.5000',
+        #                    maker_fee_decimal: '0.00500000',
+        #                    volume_currency: 'mxn',
+        #                    current_volume: '0.00',
+        #                    next_volume: '1500000.00',
+        #                    next_maker_fee_percent: '0.490',
+        #                    next_taker_fee_percent: '0.637',
+        #                    nextVolume: '1500000.00',
+        #                    nextFee: '0.490',
+        #                    nextTakerFee: '0.637'
+        #                },
+        #                ...
+        #            ],
+        #            deposit_fees: [
+        #                {
+        #                    currency: 'btc',
+        #                    method: 'rewards',
+        #                    fee: '0.00',
+        #                    is_fixed: False
+        #                },
+        #                ...
+        #            ],
+        #            withdrawal_fees: {
+        #                ada: '0.20958100',
+        #                bch: '0.00009437',
+        #                ars: '0',
+        #                btc: '0.00001209',
+        #                ...
+        #            }
+        #        }
+        #    }
+        #
+        payload = self.safe_value(response, 'payload', {})
+        depositFees = self.safe_value(payload, 'deposit_fees', [])
+        deposit = {}
+        for i in range(0, len(depositFees)):
+            depositFee = depositFees[i]
+            currencyId = self.safe_string(depositFee, 'currency')
+            code = self.safe_currency_code(currencyId)
+            deposit[code] = self.safe_number(depositFee, 'fee')
+        withdraw = {}
+        withdrawalFees = self.safe_value(payload, 'withdrawal_fees', [])
+        currencyIds = list(withdrawalFees.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = self.safe_currency_code(currencyId)
+            withdraw[code] = self.safe_number(withdrawalFees, currencyId)
+        return {
+            'info': response,
+            'deposit': deposit,
+            'withdraw': withdraw,
+        }
+
     async def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -599,6 +887,7 @@ class bitso(Exchange):
             'BCH': 'Bcash',
             'LTC': 'Litecoin',
         }
+        currency = self.currency(code)
         method = methods[code] if (code in methods) else None
         if method is None:
             raise ExchangeError(self.id + ' not valid withdraw coin: ' + code)
@@ -609,9 +898,67 @@ class bitso(Exchange):
         }
         classMethod = 'privatePost' + method + 'Withdrawal'
         response = await getattr(self, classMethod)(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "payload": [
+        #             {
+        #                 "wid": "c5b8d7f0768ee91d3b33bee648318688",
+        #                 "status": "pending",
+        #                 "created_at": "2016-04-08T17:52:31.000+00:00",
+        #                 "currency": "btc",
+        #                 "method": "Bitcoin",
+        #                 "amount": "0.48650929",
+        #                 "details": {
+        #                     "withdrawal_address": "18MsnATiNiKLqUHDTRKjurwMg7inCrdNEp",
+        #                     "tx_hash": "d4f28394693e9fb5fffcaf730c11f32d1922e5837f76ca82189d3bfe30ded433"
+        #                 }
+        #             },
+        #         ]
+        #     }
+        #
+        payload = self.safe_value(response, 'payload', [])
+        first = self.safe_value(payload, 0)
+        return self.parse_transaction(first, currency)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #     {
+        #         "wid": "c5b8d7f0768ee91d3b33bee648318688",
+        #         "status": "pending",
+        #         "created_at": "2016-04-08T17:52:31.000+00:00",
+        #         "currency": "btc",
+        #         "method": "Bitcoin",
+        #         "amount": "0.48650929",
+        #         "details": {
+        #             "withdrawal_address": "18MsnATiNiKLqUHDTRKjurwMg7inCrdNEp",
+        #             "tx_hash": "d4f28394693e9fb5fffcaf730c11f32d1922e5837f76ca82189d3bfe30ded433"
+        #         }
+        #     }
+        #
+        currency = self.safe_currency(None, currency)
         return {
-            'info': response,
-            'id': self.safe_string(response['payload'], 'wid'),
+            'id': self.safe_string(transaction, 'wid'),
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'amount': None,
+            'type': None,
+            'currency': currency['code'],
+            'status': None,
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': None,
+            'fee': None,
+            'info': transaction,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -645,7 +992,7 @@ class bitso(Exchange):
             #     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
             #
             success = self.safe_value(response, 'success', False)
-            if isinstance(success, basestring):
+            if isinstance(success, str):
                 if (success == 'true') or (success == '1'):
                     success = True
                 else:

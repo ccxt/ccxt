@@ -20,20 +20,41 @@ class kuna extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => null,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchL3OrderBook' => true,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => 'emulated',
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setPositionMode' => false,
                 'withdraw' => null,
             ),
             'timeframes' => null,
@@ -239,8 +260,8 @@ class kuna extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'taker' => 0.25 / 100,
-                    'maker' => 0.25 / 100,
+                    'taker' => $this->parse_number('0.0025'),
+                    'maker' => $this->parse_number('0.0025'),
                 ),
                 'funding' => array(
                     'withdraw' => array(
@@ -283,6 +304,22 @@ class kuna extends Exchange {
         $quotes = array( 'btc', 'rub', 'uah', 'usd', 'usdt', 'usdc' );
         $markets = array();
         $response = $this->publicGetTickers ($params);
+        //
+        //    {
+        //        shibuah => {
+        //            at => '1644463685',
+        //            ticker => {
+        //                buy => '0.000911',
+        //                sell => '0.00092',
+        //                low => '0.000872',
+        //                high => '0.000963',
+        //                last => '0.000911',
+        //                vol => '1539278096.0',
+        //                price => '1434244.211249'
+        //            }
+        //        }
+        //    }
+        //
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
@@ -299,22 +336,39 @@ class kuna extends Exchange {
                     $baseId = $id[0] . str_replace($quoteId, '', $slicedId);
                     $base = $this->safe_currency_code($baseId);
                     $quote = $this->safe_currency_code($quoteId);
-                    $symbol = $base . '/' . $quote;
                     $markets[] = array(
                         'id' => $id,
-                        'symbol' => $symbol,
+                        'symbol' => $base . '/' . $quote,
                         'base' => $base,
                         'quote' => $quote,
+                        'settle' => null,
                         'baseId' => $baseId,
                         'quoteId' => $quoteId,
+                        'settleId' => null,
                         'type' => 'spot',
                         'spot' => true,
+                        'margin' => false,
+                        'swap' => false,
+                        'future' => false,
+                        'option' => false,
                         'active' => null,
+                        'contract' => false,
+                        'linear' => null,
+                        'inverse' => null,
+                        'contractSize' => null,
+                        'expiry' => null,
+                        'expiryDatetime' => null,
+                        'strike' => null,
+                        'optionType' => null,
                         'precision' => array(
                             'amount' => null,
                             'price' => null,
                         ),
                         'limits' => array(
+                            'leverage' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
                             'amount' => array(
                                 'min' => null,
                                 'max' => null,
@@ -353,33 +407,30 @@ class kuna extends Exchange {
     public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->safe_timestamp($ticker, 'at');
         $ticker = $ticker['ticker'];
-        $symbol = null;
-        if ($market) {
-            $symbol = $market['symbol'];
-        }
-        $last = $this->safe_number($ticker, 'last');
-        return array(
+        $symbol = $this->safe_symbol(null, $market);
+        $last = $this->safe_string($ticker, 'last');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'sell'),
+            'ask' => $this->safe_string($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_number($ticker, 'open'),
+            'open' => $this->safe_string($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'vol'),
+            'baseVolume' => $this->safe_string($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -429,10 +480,52 @@ class kuna extends Exchange {
             'market' => $market['id'],
         );
         $response = $this->publicGetTrades (array_merge($request, $params));
+        //
+        //      array(
+        //          array(
+        //              "id":11353466,
+        //              "price":"3000.16",
+        //              "volume":"0.000397",
+        //              "funds":"1.19106352",
+        //              "market":"ethusdt",
+        //              "created_at":"2022-04-12T18:32:36Z",
+        //              "side":null,
+        //              "trend":"sell"
+        //          ),
+        //      )
+        //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "id":11353466,
+        //          "price":"3000.16",
+        //          "volume":"0.000397",
+        //          "funds":"1.19106352",
+        //          "market":"ethusdt",
+        //          "created_at":"2022-04-12T18:32:36Z",
+        //          "side":null,
+        //          "trend":"sell"
+        //      }
+        //
+        // fetchMyTrades (private)
+        //
+        //      {
+        //          "id":11353719,
+        //          "price":"0.13566",
+        //          "volume":"99.0",
+        //          "funds":"13.43034",
+        //          "market":"dogeusdt",
+        //          "created_at":"2022-04-12T18:58:44Z",
+        //          "side":"ask",
+        //          "order_id":1665670371,
+        //          "trend":"buy"
+        //      }
+        //
         $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         $symbol = null;
         if ($market) {
@@ -448,15 +541,10 @@ class kuna extends Exchange {
         }
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'volume');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->safe_number($trade, 'funds');
-        if ($cost === null) {
-            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        }
+        $costString = $this->safe_number($trade, 'funds');
         $orderId = $this->safe_string($trade, 'order_id');
         $id = $this->safe_string($trade, 'id');
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -466,11 +554,11 @@ class kuna extends Exchange {
             'side' => $side,
             'order' => $orderId,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -492,9 +580,7 @@ class kuna extends Exchange {
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privateGetMembersMe ($params);
+    public function parse_balance($response) {
         $balances = $this->safe_value($response, 'accounts');
         $result = array( 'info' => $balances );
         for ($i = 0; $i < count($balances); $i++) {
@@ -506,7 +592,13 @@ class kuna extends Exchange {
             $account['used'] = $this->safe_string($balance, 'locked');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetMembersMe ($params);
+        return $this->parse_balance($response);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -557,7 +649,7 @@ class kuna extends Exchange {
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side');
         $id = $this->safe_string($order, 'id');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
@@ -608,6 +700,21 @@ class kuna extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        //
+        //      array(
+        //          array(
+        //              "id":11353719,
+        //              "price":"0.13566",
+        //              "volume":"99.0",
+        //              "funds":"13.43034",
+        //              "market":"dogeusdt",
+        //              "created_at":"2022-04-12T18:58:44Z",
+        //              "side":"ask",
+        //              "order_id":1665670371,
+        //              "trend":"buy"
+        //          ),
+        //      )
+        //
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }

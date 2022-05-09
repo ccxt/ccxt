@@ -15,7 +15,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
-from ccxt.base.precise import Precise
 
 
 class delta(Exchange):
@@ -29,6 +28,12 @@ class delta(Exchange):
             'version': 'v2',
             # new metainfo interface
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
@@ -38,11 +43,15 @@ class delta(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchLedger': True,
+                'fetchLeverageTiers': False,  # An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
+                'fetchPosition': True,
+                'fetchPositions': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -185,34 +194,76 @@ class delta(Exchange):
 
     def fetch_time(self, params={}):
         response = self.publicGetSettings(params)
-        #
-        #     {
-        #         "result":{
-        #             "server_time":1605472733766141,
-        #             "deto_referral_mining_daily_reward":"25000",
-        #             "deto_total_reward_pool":"100000000",
-        #             "deto_trade_mining_daily_reward":"75000",
-        #             "kyc_deposit_limit":"20",
-        #             "kyc_withdrawal_limit":"2",
-        #             "under_maintenance":"false"
-        #         },
-        #         "success":true
-        #     }
-        #
+        # full response sample under `fetchStatus`
         result = self.safe_value(response, 'result', {})
         return self.safe_integer_product(result, 'server_time', 0.001)
 
     def fetch_status(self, params={}):
         response = self.publicGetSettings(params)
+        #
+        #     {
+        #         "result": {
+        #           "deto_liquidity_mining_daily_reward": "40775",
+        #           "deto_msp": "1.0",
+        #           "deto_staking_daily_reward": "23764.08",
+        #           "enabled_wallets": [
+        #             "BTC",
+        #             ...
+        #           ],
+        #           "portfolio_margin_params": {
+        #             "enabled_portfolios": {
+        #               ".DEAVAXUSDT": {
+        #                 "asset_id": 5,
+        #                 "futures_contingency_margin_percent": "1",
+        #                 "interest_rate": "0",
+        #                 "maintenance_margin_multiplier": "0.8",
+        #                 "max_price_shock": "20",
+        #                 "max_short_notional_limit": "2000",
+        #                 "options_contingency_margin_percent": "1",
+        #                 "options_discount_range": "10",
+        #                 "options_liq_band_range_percentage": "25",
+        #                 "settling_asset": "USDT",
+        #                 "sort_priority": 5,
+        #                 "underlying_asset": "AVAX",
+        #                 "volatility_down_shock": "30",
+        #                 "volatility_up_shock": "45"
+        #               },
+        #               ...
+        #             },
+        #             "portfolio_enabled_contracts": [
+        #               "futures",
+        #               "perpetual_futures",
+        #               "call_options",
+        #               "put_options"
+        #             ]
+        #           },
+        #           "server_time": 1650640673500273,
+        #           "trade_farming_daily_reward": "100000",
+        #           "circulating_supply": "140000000",
+        #           "circulating_supply_update_time": "1636752800",
+        #           "deto_referral_mining_daily_reward": "0",
+        #           "deto_total_reward_pool": "100000000",
+        #           "deto_trade_mining_daily_reward": "0",
+        #           "kyc_deposit_limit": "20",
+        #           "kyc_withdrawal_limit": "10000",
+        #           "maintenance_start_time": "1650387600000000",
+        #           "msp_deto_commission_percent": "25",
+        #           "under_maintenance": "false"
+        #         },
+        #         "success": True
+        #     }
+        #
         result = self.safe_value(response, 'result', {})
-        underMaintenance = self.safe_value(result, 'under_maintenance')
+        underMaintenance = self.safe_string(result, 'under_maintenance')
         status = 'maintenance' if (underMaintenance == 'true') else 'ok'
-        updated = self.safe_integer_product(result, 'server_time', 0.001)
-        self.status = self.extend(self.status, {
+        updated = self.safe_integer_product(result, 'server_time', 0.001, self.milliseconds())
+        return {
             'status': status,
             'updated': updated,
-        })
-        return self.status
+            'eta': None,
+            'url': None,
+            'info': response,
+        }
 
     def fetch_currencies(self, params={}):
         response = self.publicGetAssets(params)
@@ -266,6 +317,8 @@ class delta(Exchange):
                 'name': self.safe_string(currency, 'name'),
                 'info': currency,  # the original payload
                 'active': active,
+                'deposit': depositsEnabled,
+                'withdraw': withdrawalsEnabled,
                 'fee': self.safe_number(currency, 'base_withdrawal_fee'),
                 'precision': 1 / math.pow(10, precision),
                 'limits': {
@@ -369,74 +422,101 @@ class delta(Exchange):
             # settlingAsset = self.safe_value(market, 'settling_asset', {})
             quotingAsset = self.safe_value(market, 'quoting_asset', {})
             underlyingAsset = self.safe_value(market, 'underlying_asset', {})
+            settlingAsset = self.safe_value(market, 'settling_asset')
             baseId = self.safe_string(underlyingAsset, 'symbol')
             quoteId = self.safe_string(quotingAsset, 'symbol')
+            settleId = self.safe_string(settlingAsset, 'symbol')
             id = self.safe_string(market, 'symbol')
             numericId = self.safe_integer(market, 'id')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = id
-            swap = False
-            future = False
-            option = False
-            if type == 'perpetual_futures':
-                type = 'swap'
-                swap = True
-                future = False
-                option = False
-                if id.find('_') < 0:
-                    symbol = base + '/' + quote
-            elif (type == 'call_options') or (type == 'put_options') or (type == 'move_options'):
-                type = 'option'
-                swap = False
-                option = True
-                future = False
-            elif type == 'futures':
-                type = 'future'
-                swap = False
-                option = False
-                future = True
-            precision = {
-                'amount': 1.0,  # number of contracts
-                'price': self.safe_number(market, 'tick_size'),
-            }
-            limits = {
-                'amount': {
-                    'min': 1.0,
-                    'max': self.safe_number(market, 'position_size_limit'),
-                },
-                'price': {
-                    'min': precision['price'],
-                    'max': None,
-                },
-                'cost': {
-                    'min': self.safe_number(market, 'min_size'),
-                    'max': None,
-                },
-            }
+            settle = self.safe_currency_code(settleId)
+            callOptions = (type == 'call_options')
+            putOptions = (type == 'put_options')
+            moveOptions = (type == 'move_options')
+            spot = (type == 'spot')
+            swap = (type == 'perpetual_futures')
+            future = (type == 'futures')
+            option = (callOptions or putOptions or moveOptions)
+            strike = self.safe_string(market, 'strike_price')
+            expiryDatetime = self.safe_string(market, 'settlement_time')
+            expiry = self.parse8601(expiryDatetime)
+            contractSize = self.safe_number(market, 'contract_value')
+            linear = (settle == base)
+            optionType = None
+            symbol = base + '/' + quote
+            if swap or future or option:
+                symbol = symbol + ':' + settle
+                if future or option:
+                    symbol = symbol + '-' + self.yymmdd(expiry)
+                    if option:
+                        type = 'option'
+                        letter = 'C'
+                        optionType = 'call'
+                        if putOptions:
+                            letter = 'P'
+                            optionType = 'put'
+                        elif moveOptions:
+                            letter = 'M'
+                            optionType = 'move'
+                        symbol = symbol + ':' + strike + ':' + letter
+                    else:
+                        type = 'future'
+                else:
+                    type = 'swap'
+            else:
+                symbol = id
             state = self.safe_string(market, 'state')
-            active = (state == 'live')
-            maker = self.safe_number(market, 'maker_commission_rate')
-            taker = self.safe_number(market, 'taker_commission_rate')
             result.append({
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': settleId,
                 'type': type,
-                'spot': False,
-                'option': option,
+                'spot': spot,
+                'margin': None if spot else False,
                 'swap': swap,
                 'future': future,
-                'maker': maker,
-                'taker': taker,
-                'precision': precision,
-                'limits': limits,
+                'option': option,
+                'active': (state == 'live'),
+                'contract': not spot,
+                'linear': None if spot else linear,
+                'inverse': None if spot else not linear,
+                'taker': self.safe_number(market, 'taker_commission_rate'),
+                'maker': self.safe_number(market, 'maker_commission_rate'),
+                'contractSize': contractSize,
+                'expiry': expiry,
+                'expiryDatetime': expiryDatetime,
+                'strike': self.parse_number(strike),
+                'optionType': optionType,
+                'precision': {
+                    'amount': self.parse_number('1'),  # number of contracts
+                    'price': self.safe_number(market, 'tick_size'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.parse_number('1'),
+                        'max': self.safe_number(market, 'position_size_limit'),
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'min_size'),
+                        'max': None,
+                    },
+                },
                 'info': market,
-                'active': active,
             })
         return result
 
@@ -464,22 +544,21 @@ class delta(Exchange):
         timestamp = self.safe_integer_product(ticker, 'timestamp', 0.001)
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_number(ticker, 'close')
-        open = self.safe_number(ticker, 'open')
-        baseVolume = self.safe_number(ticker, 'volume')
-        quoteVolume = self.safe_number(ticker, 'turnover')
-        vwap = self.vwap(baseVolume, quoteVolume)
+        last = self.safe_string(ticker, 'close')
+        open = self.safe_string(ticker, 'open')
+        baseVolume = self.safe_string(ticker, 'volume')
+        quoteVolume = self.safe_string(ticker, 'turnover')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': open,
             'close': last,
             'last': last,
@@ -490,7 +569,7 @@ class delta(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -640,9 +719,6 @@ class delta(Exchange):
         timestamp = self.safe_integer_product(trade, 'timestamp', 0.001, timestamp)
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         product = self.safe_value(trade, 'product', {})
         marketId = self.safe_string(product, 'symbol')
         symbol = self.safe_symbol(marketId, market)
@@ -658,17 +734,17 @@ class delta(Exchange):
         type = self.safe_string(metaData, 'order_type')
         if type is not None:
             type = type.replace('_order', '')
-        feeCost = self.safe_number(trade, 'commission')
+        feeCostString = self.safe_string(trade, 'commission')
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             settlingAsset = self.safe_value(product, 'settling_asset', {})
             feeCurrencyId = self.safe_string(settlingAsset, 'symbol')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
-        return {
+        return self.safe_trade({
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
@@ -676,13 +752,13 @@ class delta(Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
             'info': trade,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -760,6 +836,21 @@ class delta(Exchange):
         result = self.safe_value(response, 'result', [])
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
+    def parse_balance(self, response):
+        balances = self.safe_value(response, 'result', [])
+        result = {'info': response}
+        currenciesByNumericId = self.safe_value(self.options, 'currenciesByNumericId', {})
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'asset_id')
+            currency = self.safe_value(currenciesByNumericId, currencyId)
+            code = currencyId if (currency is None) else currency['code']
+            account = self.account()
+            account['total'] = self.safe_string(balance, 'balance')
+            account['free'] = self.safe_string(balance, 'available_balance')
+            result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privateGetWalletBalances(params)
@@ -784,21 +875,9 @@ class delta(Exchange):
         #         "success":true
         #     }
         #
-        balances = self.safe_value(response, 'result', [])
-        result = {'info': response}
-        currenciesByNumericId = self.safe_value(self.options, 'currenciesByNumericId', {})
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            currencyId = self.safe_string(balance, 'asset_id')
-            currency = self.safe_value(currenciesByNumericId, currencyId)
-            code = currencyId if (currency is None) else currency['code']
-            account = self.account()
-            account['total'] = self.safe_string(balance, 'balance')
-            account['free'] = self.safe_string(balance, 'available_balance')
-            result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(response)
 
-    def fetch_position(self, symbol, params=None):
+    def fetch_position(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -902,18 +981,18 @@ class delta(Exchange):
         remaining = self.safe_string(order, 'unfilled_size')
         average = self.safe_string(order, 'average_fill_price')
         fee = None
-        feeCost = self.safe_number(order, 'paid_commission')
-        if feeCost is not None:
+        feeCostString = self.safe_string(order, 'paid_commission')
+        if feeCostString is not None:
             feeCurrencyCode = None
             if market is not None:
                 settlingAsset = self.safe_value(market['info'], 'settling_asset', {})
                 feeCurrencyId = self.safe_string(settlingAsset, 'symbol')
                 feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

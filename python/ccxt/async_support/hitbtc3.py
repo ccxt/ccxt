@@ -29,36 +29,72 @@ class hitbtc3(Exchange):
             'id': 'hitbtc3',
             'name': 'HitBTC',
             'countries': ['HK'],
-            'rateLimit': 100,  # TODO: optimize https://api.hitbtc.com/#rate-limiting
+            # 300 requests per second => 1000ms / 300 = 3.333(Trading: placing, replacing, deleting)
+            # 30 requests per second =>( 1000ms / rateLimit ) / 30 = cost = 10(Market Data and other Public Requests)
+            # 20 requests per second =>( 1000ms / rateLimit ) / 20 = cost = 15(All Other)
+            'rateLimit': 3.333,  # TODO: optimize https://api.hitbtc.com/#rate-limiting
             'version': '3',
             'pro': True,
             'has': {
-                'cancelOrder': True,
                 'CORS': False,
+                'spot': True,
+                'margin': True,
+                'swap': True,
+                'future': False,
+                'option': None,
+                'addMargin': True,
+                'cancelAllOrders': True,
+                'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': None,
+                'fetchBorrowRateHistories': None,
+                'fetchBorrowRateHistory': None,
+                'fetchBorrowRates': None,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
-                'fetchDeposits': False,
+                'fetchDeposits': True,
+                'fetchFundingHistory': None,
+                'fetchFundingRate': True,
+                'fetchFundingRateHistory': True,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': True,
+                'fetchLeverage': True,
+                'fetchLeverageTiers': None,
+                'fetchMarketLeverageTiers': None,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchOrderBooks': True,
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
+                'fetchPosition': True,
+                'fetchPositions': True,
+                'fetchPremiumIndexOHLCV': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
+                'fetchTradingFees': True,
                 'fetchTransactions': True,
-                'fetchWithdrawals': False,
-                'withdraw': True,
+                'fetchWithdrawals': True,
+                'reduceMargin': True,
+                'setLeverage': True,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'transfer': True,
+                'withdraw': True,
             },
             'precisionMode': TICK_SIZE,
             'urls': {
@@ -84,94 +120,98 @@ class hitbtc3(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'public/currency',
-                        'public/symbol',
-                        'public/ticker',
-                        'public/price/rate',
-                        'public/trades',
-                        'public/orderbook',
-                        'public/candles',
-                        'public/futures/info',
-                        'public/futures/history/funding',
-                        'public/futures/candles/index_price',
-                        'public/futures/candles/mark_price',
-                        'public/futures/candles/premium_index',
-                        'public/futures/candles/open_interest',
-                    ],
+                    'get': {
+                        'public/currency': 10,
+                        'public/symbol': 10,
+                        'public/ticker': 10,
+                        'public/price/rate': 10,
+                        'public/trades': 10,
+                        'public/orderbook': 10,
+                        'public/candles': 10,
+                        'public/futures/info': 10,
+                        'public/futures/history/funding': 10,
+                        'public/futures/candles/index_price': 10,
+                        'public/futures/candles/mark_price': 10,
+                        'public/futures/candles/premium_index': 10,
+                        'public/futures/candles/open_interest': 10,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'spot/balance',
-                        'spot/order',
-                        'spot/order/{client_order_id}',
-                        'spot/fee',
-                        'spot/fee/{symbol}',
-                        'spot/history/order',
-                        'spot/history/trade',
-                        'margin/account',
-                        'margin/account/isolated/{symbol}',
-                        'margin/order',
-                        'margin/order/{client_order_id}',
-                        'margin/history/order',
-                        'margin/history/trade',
-                        'futures/balance',
-                        'futures/account',
-                        'futures/account/isolated/{symbol}',
-                        'futures/order',
-                        'futures/order/{client_order_id}',
-                        'futures/fee',
-                        'futures/fee/{symbol}',
-                        'futures/history/order',
-                        'futures/history/trade',
-                        'wallet/balance',
-                        'wallet/crypto/address',
-                        'wallet/crypto/address/recent-deposit',
-                        'wallet/crypto/address/recent-withdraw',
-                        'wallet/crypto/address/check-mine',
-                        'wallet/transactions',
-                        'wallet/crypto/check-offchain-available',
-                        'wallet/crypto/fee/estimate',
-                        'sub-account',
-                        'sub-account/acl',
-                        'sub-account/balance/{subAccID}',
-                        'sub-account/crypto/address/{subAccID}/{currency}',
-                    ],
-                    'post': [
-                        'spot/order',
-                        'margin/order',
-                        'futures/order',
-                        'wallet/convert',
-                        'wallet/crypto/withdraw',
-                        'wallet/transfer',
-                        'sub-account/freeze',
-                        'sub-account/activate',
-                        'sub-account/transfer',
-                        'sub-account/acl',
-                    ],
-                    'patch': [
-                        'spot/order/{client_order_id}',
-                        'margin/order/{client_order_id}',
-                        'futures/order/{client_order_id}',
-                    ],
-                    'delete': [
-                        'spot/order',
-                        'spot/order/{client_order_id}',
-                        'margin/position',
-                        'margin/position/isolated/{symbol}',
-                        'margin/order',
-                        'margin/order/{client_order_id}',
-                        'futures/position',
-                        'futures/position/isolated/{symbol}',
-                        'futures/order',
-                        'futures/order/{client_order_id}',
-                        'wallet/crypto/withdraw/{id}',
-                    ],
-                    'put': [
-                        'margin/account/isolated/{symbol}',
-                        'futures/account/isolated/{symbol}',
-                        'wallet/crypto/withdraw/{id}',
-                    ],
+                    'get': {
+                        'spot/balance': 15,
+                        'spot/order': 15,
+                        'spot/order/{client_order_id}': 15,
+                        'spot/fee': 15,
+                        'spot/fee/{symbol}': 15,
+                        'spot/history/order': 15,
+                        'spot/history/trade': 15,
+                        'margin/account': 15,
+                        'margin/account/isolated/{symbol}': 15,
+                        'margin/order': 15,
+                        'margin/order/{client_order_id}': 15,
+                        'margin/history/clearing': 15,
+                        'margin/history/order': 15,
+                        'margin/history/positions': 15,
+                        'margin/history/trade': 15,
+                        'futures/balance': 15,
+                        'futures/account': 15,
+                        'futures/account/isolated/{symbol}': 15,
+                        'futures/order': 15,
+                        'futures/order/{client_order_id}': 15,
+                        'futures/fee': 15,
+                        'futures/fee/{symbol}': 15,
+                        'futures/history/clearing': 15,
+                        'futures/history/order': 15,
+                        'futures/history/positions': 15,
+                        'futures/history/trade': 15,
+                        'wallet/balance': 15,
+                        'wallet/crypto/address': 15,
+                        'wallet/crypto/address/recent-deposit': 15,
+                        'wallet/crypto/address/recent-withdraw': 15,
+                        'wallet/crypto/address/check-mine': 15,
+                        'wallet/transactions': 15,
+                        'wallet/crypto/check-offchain-available': 15,
+                        'wallet/crypto/fee/estimate': 15,
+                        'sub-account': 15,
+                        'sub-account/acl': 15,
+                        'sub-account/balance/{subAccID}': 15,
+                        'sub-account/crypto/address/{subAccID}/{currency}': 15,
+                    },
+                    'post': {
+                        'spot/order': 1,
+                        'margin/order': 1,
+                        'futures/order': 1,
+                        'wallet/convert': 15,
+                        'wallet/crypto/withdraw': 15,
+                        'wallet/transfer': 15,
+                        'sub-account/freeze': 15,
+                        'sub-account/activate': 15,
+                        'sub-account/transfer': 15,
+                        'sub-account/acl': 15,
+                    },
+                    'patch': {
+                        'spot/order/{client_order_id}': 1,
+                        'margin/order/{client_order_id}': 1,
+                        'futures/order/{client_order_id}': 1,
+                    },
+                    'delete': {
+                        'spot/order': 1,
+                        'spot/order/{client_order_id}': 1,
+                        'margin/position': 1,
+                        'margin/position/isolated/{symbol}': 1,
+                        'margin/order': 1,
+                        'margin/order/{client_order_id}': 1,
+                        'futures/position': 1,
+                        'futures/position/isolated/{symbol}': 1,
+                        'futures/order': 1,
+                        'futures/order/{client_order_id}': 1,
+                        'wallet/crypto/withdraw/{id}': 1,
+                    },
+                    'put': {
+                        'margin/account/isolated/{symbol}': 1,
+                        'futures/account/isolated/{symbol}': 1,
+                        'wallet/crypto/withdraw/{id}': 1,
+                    },
                 },
             },
             'fees': {
@@ -266,7 +306,7 @@ class hitbtc3(Exchange):
                     '20042': ExchangeError,
                     '20043': ExchangeError,
                     '20044': PermissionDenied,
-                    '20045': ExchangeError,
+                    '20045': InvalidOrder,
                     '20080': ExchangeError,
                     '21001': ExchangeError,
                     '21003': AccountSuspended,
@@ -284,9 +324,32 @@ class hitbtc3(Exchange):
                 },
                 'accountsByType': {
                     'spot': 'spot',
-                    'wallet': 'wallet',
-                    'derivatives': 'derivatives',
+                    'funding': 'wallet',
+                    'future': 'derivatives',
                 },
+            },
+            'commonCurrencies': {
+                'AUTO': 'Cube',
+                'BCC': 'BCC',  # initial symbol for Bitcoin Cash, now inactive
+                'BDP': 'BidiPass',
+                'BET': 'DAO.Casino',
+                'BIT': 'BitRewards',
+                'BOX': 'BOX Token',
+                'CPT': 'Cryptaur',  # conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
+                'GET': 'Themis',
+                'GMT': 'GMT Token',
+                'HSR': 'HC',
+                'IQ': 'IQ.Cash',
+                'LNC': 'LinkerCoin',
+                'PLA': 'PlayChip',
+                'PNT': 'Penta',
+                'SBTC': 'Super Bitcoin',
+                'STEPN': 'GMT',
+                'STX': 'STOX',
+                'TV': 'Tokenville',
+                'USD': 'USDT',
+                'XMT': 'MTL',
+                'XPNT': 'PNT',
             },
         })
 
@@ -294,98 +357,130 @@ class hitbtc3(Exchange):
         return self.milliseconds()
 
     async def fetch_markets(self, params={}):
-        request = {}
-        response = await self.publicGetPublicSymbol(self.extend(request, params))
-        #
-        # fetches both spot and future markets
+        response = await self.publicGetPublicSymbol(params)
         #
         #     {
-        #         "ETHBTC": {
-        #             "type": "spot",
-        #             "base_currency": "ETH",
-        #             "quote_currency": "BTC",
-        #             "quantity_increment": "0.001",
-        #             "tick_size": "0.000001",
-        #             "take_rate": "0.001",
-        #             "make_rate": "-0.0001",
-        #             "fee_currency": "BTC",
-        #             "margin_trading": True,
-        #             "max_initial_leverage": "10.00"
-        #         }
+        #         "AAVEUSDT_PERP":{
+        #             "type":"futures",
+        #             "expiry":null,
+        #             "underlying":"AAVE",
+        #             "base_currency":null,
+        #             "quote_currency":"USDT",
+        #             "quantity_increment":"0.01",
+        #             "tick_size":"0.001",
+        #             "take_rate":"0.0005",
+        #             "make_rate":"0.0002",
+        #             "fee_currency":"USDT",
+        #             "margin_trading":true,
+        #             "max_initial_leverage":"50.00"
+        #         },
+        #         "MANAUSDT":{
+        #             "type":"spot",
+        #             "base_currency":"MANA",
+        #             "quote_currency":"USDT",
+        #             "quantity_increment":"1",
+        #             "tick_size":"0.0000001",
+        #             "take_rate":"0.0025",
+        #             "make_rate":"0.001",
+        #             "fee_currency":"USDT",
+        #             "margin_trading":true,
+        #             "max_initial_leverage":"5.00"
+        #         },
         #     }
         #
-        marketIds = list(response.keys())
         result = []
-        for i in range(0, len(marketIds)):
-            id = marketIds[i]
-            entry = response[id]
-            type = self.safe_string(entry, 'type')
-            spot = (type == 'spot')
-            futures = (type == 'futures')
-            baseId = None
-            if spot:
-                baseId = self.safe_string(entry, 'base_currency')
-            elif futures:
-                baseId = self.safe_string(entry, 'underlying')
-            else:
-                raise ExchangeError(self.id + ' invalid market type ' + type)
-            quoteId = self.safe_string(entry, 'quote_currency')
+        ids = list(response.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            market = self.safe_value(response, id)
+            marketType = self.safe_string(market, 'type')
+            expiry = self.safe_integer(market, 'expiry')
+            contract = (marketType == 'futures')
+            spot = (marketType == 'spot')
+            marginTrading = self.safe_value(market, 'margin_trading', False)
+            margin = spot and marginTrading
+            future = (expiry is not None)
+            swap = (contract and not future)
+            option = False
+            baseId = self.safe_string_2(market, 'base_currency', 'underlying')
+            quoteId = self.safe_string(market, 'quote_currency')
+            feeCurrencyId = self.safe_string(market, 'fee_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            feeCurrency = self.safe_currency_code(feeCurrencyId)
+            settleId = None
+            settle = None
             symbol = base + '/' + quote
-            minLeverage = None
-            if futures:
-                symbol = symbol + ':' + quote
-                minLeverage = self.parse_number('1')
-            maker = self.safe_number(entry, 'make_rate')
-            taker = self.safe_number(entry, 'take_rate')
-            feeCurrency = self.safe_string(entry, 'fee_currency')
-            feeSide = 'quote' if (feeCurrency == quoteId) else 'base'
-            margin = self.safe_value(entry, 'margin_trading', False)
-            priceIncrement = self.safe_number(entry, 'tick_size')
-            amountIncrement = self.safe_number(entry, 'quantity_increment')
-            maxLeverage = self.safe_number(entry, 'max_initial_leverage')
-            precision = {
-                'price': priceIncrement,
-                'amount': amountIncrement,
-            }
-            limits = {
-                'amount': {
-                    'min': None,
-                    'max': None,
-                },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': None,
-                    'max': None,
-                },
-                'leverage': {
-                    'min': minLeverage,
-                    'max': maxLeverage,
-                },
-            }
+            type = 'spot'
+            contractSize = None
+            linear = None
+            inverse = None
+            if contract:
+                contractSize = self.parse_number('1')
+                settleId = feeCurrencyId
+                settle = self.safe_currency_code(settleId)
+                linear = ((quote is not None) and (quote == settle))
+                inverse = not linear
+                symbol = symbol + ':' + settle
+                if future:
+                    symbol = symbol + '-' + expiry
+                    type = 'future'
+                else:
+                    type = 'swap'
+            lotString = self.safe_string(market, 'quantity_increment')
+            stepString = self.safe_string(market, 'tick_size')
+            lot = self.parse_number(lotString)
+            step = self.parse_number(stepString)
             result.append({
-                'info': entry,
-                'symbol': symbol,
                 'id': id,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': settleId,
+                'type': type,
                 'spot': spot,
                 'margin': margin,
-                'futures': futures,
-                'type': type,
-                'feeSide': feeSide,
-                'maker': maker,
-                'taker': taker,
-                'precision': precision,
-                'limits': limits,
-                'expiry': None,
+                'swap': swap,
+                'future': future,
+                'option': option,
+                'active': True,
+                'contract': contract,
+                'linear': linear,
+                'inverse': inverse,
+                'taker': self.safe_number(market, 'take_rate'),
+                'maker': self.safe_number(market, 'make_rate'),
+                'contractSize': contractSize,
+                'expiry': expiry,
                 'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'feeCurrency': feeCurrency,
+                'precision': {
+                    'amount': lot,
+                    'price': step,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': self.parse_number('1'),
+                        'max': self.safe_number(market, 'max_initial_leverage', 1),
+                    },
+                    'amount': {
+                        'min': lot,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': step,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': self.parse_number(Precise.string_mul(lotString, stepString)),
+                        'max': None,
+                    },
+                },
+                'info': market,
             })
         return result
 
@@ -431,6 +526,8 @@ class hitbtc3(Exchange):
             rawNetworks = self.safe_value(entry, 'networks', [])
             networks = {}
             fee = None
+            depositEnabled = None
+            withdrawEnabled = None
             for j in range(0, len(rawNetworks)):
                 rawNetwork = rawNetworks[j]
                 networkId = self.safe_string(rawNetwork, 'protocol')
@@ -441,14 +538,23 @@ class hitbtc3(Exchange):
                 precision = self.safe_number(rawNetwork, 'precision_payout')
                 payinEnabledNetwork = self.safe_value(entry, 'payin_enabled', False)
                 payoutEnabledNetwork = self.safe_value(entry, 'payout_enabled', False)
-                transferEnabledNetwork = self.safe_value(entry, 'transfer_enabled', False)
-                active = payinEnabledNetwork and payoutEnabledNetwork and transferEnabledNetwork
+                activeNetwork = payinEnabledNetwork and payoutEnabledNetwork
+                if payinEnabledNetwork and not depositEnabled:
+                    depositEnabled = True
+                elif not payinEnabledNetwork:
+                    depositEnabled = False
+                if payoutEnabledNetwork and not withdrawEnabled:
+                    withdrawEnabled = True
+                elif not payoutEnabledNetwork:
+                    withdrawEnabled = False
                 networks[network] = {
                     'info': rawNetwork,
                     'id': networkId,
                     'network': network,
                     'fee': fee,
-                    'active': active,
+                    'active': activeNetwork,
+                    'deposit': payinEnabledNetwork,
+                    'withdraw': payoutEnabledNetwork,
                     'precision': precision,
                     'limits': {
                         'withdraw': {
@@ -466,6 +572,8 @@ class hitbtc3(Exchange):
                 'precision': precision,
                 'name': name,
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'networks': networks,
                 'fee': fee if (networksLength <= 1) else None,
                 'limits': {
@@ -513,11 +621,23 @@ class hitbtc3(Exchange):
             'network': None,
         }
 
+    def parse_balance(self, response):
+        result = {'info': response}
+        for i in range(0, len(response)):
+            entry = response[i]
+            currencyId = self.safe_string(entry, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(entry, 'available')
+            account['used'] = self.safe_string(entry, 'reserved')
+            result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         type = self.safe_string_lower(params, 'type', 'spot')
         params = self.omit(params, ['type'])
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
-        account = self.safe_string(accountsByType, type)
+        account = self.safe_string(accountsByType, type, type)
         response = None
         if account == 'wallet':
             response = await self.privateGetWalletBalance(params)
@@ -539,16 +659,7 @@ class hitbtc3(Exchange):
         #       ...
         #     ]
         #
-        result = {'info': response}
-        for i in range(0, len(response)):
-            entry = response[i]
-            currencyId = self.safe_string(entry, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(entry, 'available')
-            account['used'] = self.safe_string(entry, 'reserved')
-            result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(response)
 
     async def fetch_ticker(self, symbol, params={}):
         response = await self.fetch_tickers([symbol], params)
@@ -603,22 +714,21 @@ class hitbtc3(Exchange):
         #
         timestamp = self.parse8601(ticker['timestamp'])
         symbol = self.safe_symbol(None, market)
-        baseVolume = self.safe_number(ticker, 'volume')
-        quoteVolume = self.safe_number(ticker, 'volume_quote')
-        open = self.safe_number(ticker, 'open')
-        last = self.safe_number(ticker, 'last')
-        vwap = self.vwap(baseVolume, quoteVolume)
+        baseVolume = self.safe_string(ticker, 'volume')
+        quoteVolume = self.safe_string(ticker, 'volume_quote')
+        open = self.safe_string(ticker, 'open')
+        last = self.safe_string(ticker, 'last')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': open,
             'close': last,
             'last': last,
@@ -629,7 +739,7 @@ class hitbtc3(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -642,7 +752,7 @@ class hitbtc3(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            request['since'] = since
+            request['from'] = since
         response = await self.publicGetPublicTrades(self.extend(request, params))
         marketIds = list(response.keys())
         trades = []
@@ -664,56 +774,89 @@ class hitbtc3(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            request['since'] = since
-        response = await self.privateGetSpotHistoryTrade(self.extend(request, params))
+            request['from'] = since
+        marketType, query = self.handle_market_type_and_params('fetchMyTrades', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotHistoryTrade',
+            'swap': 'privateGetFuturesHistoryTrade',
+            'margin': 'privateGetMarginHistoryTrade',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         return self.parse_trades(response, market, since, limit)
 
     def parse_trade(self, trade, market=None):
-        # createMarketOrder
         #
-        #  {      fee: "0.0004644",
-        #           id:  386394956,
-        #        price: "0.4644",
-        #     quantity: "1",
-        #    timestamp: "2018-10-25T16:41:44.780Z"}
+        # createOrder(market)
+        #
+        #  {
+        #      id: '1569252895',
+        #      position_id: '0',
+        #      quantity: '10',
+        #      price: '0.03919424',
+        #      fee: '0.000979856000',
+        #      timestamp: '2022-01-25T19:38:36.153Z',
+        #      taker: True
+        #  }
         #
         # fetchTrades
         #
-        # {id: 974786185,
-        #   price: '0.032462',
-        #   qty: '0.3673',
-        #   side: 'buy',
-        #   timestamp: '2020-10-16T12:57:39.846Z'}
+        #  {
+        #      id: 974786185,
+        #      price: '0.032462',
+        #      qty: '0.3673',
+        #      side: 'buy',
+        #      timestamp: '2020-10-16T12:57:39.846Z'
+        #  }
         #
-        # fetchMyTrades
+        # fetchMyTrades spot
         #
-        # {id: 277210397,
-        #   clientOrderId: '6e102f3e7f3f4e04aeeb1cdc95592f1a',
-        #   orderId: 28102855393,
-        #   symbol: 'ETHBTC',
-        #   side: 'sell',
-        #   quantity: '0.002',
-        #   price: '0.073365',
-        #   fee: '0.000000147',
-        #   timestamp: '2018-04-28T18:39:55.345Z',
-        #   taker: True}
+        #  {
+        #      id: 277210397,
+        #      clientOrderId: '6e102f3e7f3f4e04aeeb1cdc95592f1a',
+        #      orderId: 28102855393,
+        #      symbol: 'ETHBTC',
+        #      side: 'sell',
+        #      quantity: '0.002',
+        #      price: '0.073365',
+        #      fee: '0.000000147',
+        #      timestamp: '2018-04-28T18:39:55.345Z',
+        #      taker: True
+        #  }
+        #
+        # fetchMyTrades swap and margin
+        #
+        #  {
+        #      "id": 4718564,
+        #      "order_id": 58730811958,
+        #      "client_order_id": "475c47d97f867f09726186eb22b4c3d4",
+        #      "symbol": "BTCUSDT_PERP",
+        #      "side": "sell",
+        #      "quantity": "0.0001",
+        #      "price": "41118.51",
+        #      "fee": "0.002055925500",
+        #      "timestamp": "2022-03-17T05:23:17.795Z",
+        #      "taker": True,
+        #      "position_id": 2350122,
+        #      "pnl": "0.002255000000",
+        #      "liquidation": False
+        #  }
         #
         timestamp = self.parse8601(trade['timestamp'])
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         fee = None
-        feeCost = self.safe_number(trade, 'fee')
+        feeCostString = self.safe_string(trade, 'fee')
         taker = self.safe_value(trade, 'taker')
         takerOrMaker = None
         if taker is not None:
             takerOrMaker = 'taker' if taker else 'maker'
-        if feeCost is not None:
+        if feeCostString is not None:
             info = self.safe_value(market, 'info', {})
             feeCurrency = self.safe_string(info, 'fee_currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrency)
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
         # we use clientOrderId as the order id with self exchange intentionally
@@ -722,12 +865,9 @@ class hitbtc3(Exchange):
         orderId = self.safe_string(trade, 'clientOrderId')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string_2(trade, 'quantity', 'qty')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         side = self.safe_string(trade, 'side')
         id = self.safe_string(trade, 'id')
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'order': orderId,
@@ -737,11 +877,11 @@ class hitbtc3(Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_transactions_helper(self, types, code, since, limit, params):
         await self.load_markets()
@@ -800,12 +940,14 @@ class hitbtc3(Exchange):
 
     def parse_transaction(self, transaction, currency=None):
         #
+        # transaction
+        #
         #     {
         #       "id": "101609495",
         #       "created_at": "2018-03-06T22:05:06.507Z",
         #       "updated_at": "2018-03-06T22:11:45.03Z",
         #       "status": "SUCCESS",
-        #       "type": "DEPOSIT",
+        #       "type": "DEPOSIT",  # DEPOSIT, WITHDRAW, ..
         #       "subtype": "BLOCKCHAIN",
         #       "native": {
         #         "tx_id": "e20b0965-4024-44d0-b63f-7fb8996a6706",
@@ -817,27 +959,15 @@ class hitbtc3(Exchange):
         #         "confirmations": "20",
         #         "senders": [
         #           "0x243bec9256c9a3469da22103891465b47583d9f1"
-        #         ]
+        #         ],
+        #         "fee": "1.22"  # only for WITHDRAW
         #       }
         #     }
         #
+        # withdraw
+        #
         #     {
-        #       "id": "102703545",
-        #       "created_at": "2018-03-30T21:39:17.854Z",
-        #       "updated_at": "2018-03-31T00:23:19.067Z",
-        #       "status": "SUCCESS",
-        #       "type": "WITHDRAW",
-        #       "subtype": "BLOCKCHAIN",
-        #       "native": {
-        #         "tx_id": "5ecd7a85-ce5d-4d52-a916-b8b755e20926",
-        #         "index": "918286359",
-        #         "currency": "OMG",
-        #         "amount": "2.45",
-        #         "fee": "1.22",
-        #         "hash": "0x1c621d89e7a0841342d5fb3b3587f60b95351590161e078c4a1daee353da4ca9",
-        #         "address": "0x50227da7644cea0a43258a2e2d7444d01b43dcca",
-        #         "confirmations": "0"
-        #       }
+        #         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
         #     }
         #
         id = self.safe_string(transaction, 'id')
@@ -845,7 +975,7 @@ class hitbtc3(Exchange):
         updated = self.parse8601(self.safe_string(transaction, 'updated_at'))
         type = self.parse_transaction_type(self.safe_string(transaction, 'type'))
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        native = self.safe_value(transaction, 'native')
+        native = self.safe_value(transaction, 'native', {})
         currencyId = self.safe_string(native, 'currency')
         code = self.safe_currency_code(currencyId)
         txhash = self.safe_string(native, 'hash')
@@ -869,6 +999,7 @@ class hitbtc3(Exchange):
             'txid': txhash,
             'code': code,
             'amount': amount,
+            'network': None,
             'address': address,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
@@ -915,39 +1046,66 @@ class hitbtc3(Exchange):
         result = await self.fetch_order_books([symbol], limit, params)
         return result[symbol]
 
+    def parse_trading_fee(self, fee, market=None):
+        #
+        #     {
+        #         "symbol":"ARVUSDT",  # returned from fetchTradingFees only
+        #         "take_rate":"0.0009",
+        #         "make_rate":"0.0009"
+        #     }
+        #
+        taker = self.safe_number(fee, 'take_rate')
+        maker = self.safe_number(fee, 'make_rate')
+        marketId = self.safe_string(fee, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'taker': taker,
+            'maker': maker,
+        }
+
     async def fetch_trading_fee(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
-        response = await self.privateGetSpotFeeSymbol(self.extend(request, params))
-        #  {"take_rate":"0.0009","make_rate":"0.0009"}
-        taker = self.safe_number(response, 'take_rate')
-        maker = self.safe_number(response, 'make_rate')
-        return {
-            'info': response,
-            'symbol': symbol,
-            'taker': taker,
-            'maker': maker,
-        }
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'privateGetSpotFeeSymbol',
+            'swap': 'privateGetFuturesFeeSymbol',
+        })
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "take_rate":"0.0009",
+        #         "make_rate":"0.0009"
+        #     }
+        #
+        return self.parse_trading_fee(response, market)
 
     async def fetch_trading_fees(self, symbols=None, params={}):
         await self.load_markets()
-        response = await self.privateGetSpotFee(params)
-        # [{"symbol":"ARVUSDT","take_rate":"0.0009","make_rate":"0.0009"}]
+        marketType, query = self.handle_market_type_and_params('fetchTradingFees', None, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotFee',
+            'swap': 'privateGetFuturesFee',
+        })
+        response = await getattr(self, method)(query)
+        #
+        #     [
+        #         {
+        #             "symbol":"ARVUSDT",
+        #             "take_rate":"0.0009",
+        #             "make_rate":"0.0009"
+        #         }
+        #     ]
+        #
         result = {}
         for i in range(0, len(response)):
-            entry = response[i]
-            symbol = self.safe_symbol(self.safe_string(entry, 'symbol'))
-            taker = self.safe_number(entry, 'take_rate')
-            maker = self.safe_number(entry, 'make_rate')
-            result[symbol] = {
-                'info': entry,
-                'symbol': symbol,
-                'taker': taker,
-                'maker': maker,
-            }
+            fee = self.parse_trading_fee(response[i])
+            symbol = fee['symbol']
+            result[symbol] = fee
         return result
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -961,26 +1119,71 @@ class hitbtc3(Exchange):
             request['from'] = self.iso8601(since)
         if limit is not None:
             request['limit'] = limit
-        response = await self.publicGetPublicCandles(self.extend(request, params))
+        price = self.safe_string(params, 'price')
+        params = self.omit(params, 'price')
+        method = 'publicGetPublicCandles'
+        if price == 'mark':
+            method = 'publicGetPublicFuturesCandlesMarkPrice'
+        elif price == 'index':
+            method = 'publicGetPublicFuturesCandlesIndexPrice'
+        elif price == 'premiumIndex':
+            method = 'publicGetPublicFuturesCandlesPremiumIndex'
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # Spot and Swap
         #
         #     {
-        #       "ETHUSDT": [
-        #         {
-        #           "timestamp": "2021-10-25T07:38:00.000Z",
-        #           "open": "4173.391",
-        #           "close": "4170.923",
-        #           "min": "4170.923",
-        #           "max": "4173.986",
-        #           "volume": "0.1879",
-        #           "volume_quote": "784.2517846"
-        #         }
-        #       ]
+        #         "ETHUSDT": [
+        #             {
+        #                 "timestamp": "2021-10-25T07:38:00.000Z",
+        #                 "open": "4173.391",
+        #                 "close": "4170.923",
+        #                 "min": "4170.923",
+        #                 "max": "4173.986",
+        #                 "volume": "0.1879",
+        #                 "volume_quote": "784.2517846"
+        #             }
+        #         ]
+        #     }
+        #
+        # Mark, Index and Premium Index
+        #
+        #     {
+        #         "BTCUSDT_PERP": [
+        #             {
+        #                 "timestamp": "2022-04-01T01:28:00.000Z",
+        #                 "open": "45146.39",
+        #                 "close": "45219.43",
+        #                 "min": "45146.39",
+        #                 "max": "45219.43"
+        #             },
+        #         ]
         #     }
         #
         ohlcvs = self.safe_value(response, market['id'])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
+    async def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'mark',
+        }
+        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
+    async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'index',
+        }
+        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
+    async def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'premiumIndex',
+        }
+        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
     def parse_ohlcv(self, ohlcv, market=None):
+        #
+        # Spot and Swap
         #
         #     {
         #         "timestamp":"2015-08-20T19:01:00.000Z",
@@ -991,6 +1194,16 @@ class hitbtc3(Exchange):
         #         "volume":"0.003",
         #         "volume_quote":"0.000018"
         #     }
+        #
+        # Mark, Index and Premium Index
+        #
+        #     {
+        #         "timestamp": "2022-04-01T01:28:00.000Z",
+        #         "open": "45146.39",
+        #         "close": "45219.43",
+        #         "min": "45146.39",
+        #         "max": "45219.43"
+        #     },
         #
         return [
             self.parse8601(self.safe_string(ohlcv, 'timestamp')),
@@ -1012,7 +1225,13 @@ class hitbtc3(Exchange):
             request['from'] = self.iso8601(since)
         if limit is not None:
             request['limit'] = limit
-        response = await self.privateGetSpotHistoryOrder(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('fetchClosedOrders', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotHistoryOrder',
+            'swap': 'privateGetFuturesHistoryOrder',
+            'margin': 'privateGetMarginHistoryOrder',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         parsed = self.parse_orders(response, market, since, limit)
         return self.filter_by_array(parsed, 'status', ['closed', 'canceled'], False)
 
@@ -1021,10 +1240,16 @@ class hitbtc3(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+        marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotHistoryOrder',
+            'swap': 'privateGetFuturesHistoryOrder',
+            'margin': 'privateGetMarginHistoryOrder',
+        })
         request = {
             'client_order_id': id,
         }
-        response = await self.privateGetSpotHistoryOrder(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, query))
         #
         #     [
         #       {
@@ -1055,7 +1280,15 @@ class hitbtc3(Exchange):
         request = {
             'order_id': id,  # exchange assigned order id as oppose to the client order id
         }
-        response = await self.privateGetSpotHistoryTrade(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('fetchOrderTrades', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotHistoryTrade',
+            'swap': 'privateGetFuturesHistoryTrade',
+            'margin': 'privateGetMarginHistoryTrade',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
         #
         #     [
         #       {
@@ -1072,6 +1305,26 @@ class hitbtc3(Exchange):
         #       }
         #     ]
         #
+        # Swap and Margin
+        #
+        #     [
+        #         {
+        #             "id": 4718551,
+        #             "order_id": 58730748700,
+        #             "client_order_id": "dcbcd8549e3445ee922665946002ef67",
+        #             "symbol": "BTCUSDT_PERP",
+        #             "side": "buy",
+        #             "quantity": "0.0001",
+        #             "price": "41095.96",
+        #             "fee": "0.002054798000",
+        #             "timestamp": "2022-03-17T05:23:02.217Z",
+        #             "taker": True,
+        #             "position_id": 2350122,
+        #             "pnl": "0",
+        #             "liquidation": False
+        #         }
+        #     ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -1081,7 +1334,13 @@ class hitbtc3(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        response = await self.privateGetSpotOrder(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotOrder',
+            'swap': 'privateGetFuturesOrder',
+            'margin': 'privateGetMarginOrder',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         #
         #     [
         #       {
@@ -1108,10 +1367,16 @@ class hitbtc3(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+        marketType, query = self.handle_market_type_and_params('fetchOpenOrder', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotOrderClientOrderId',
+            'swap': 'privateGetFuturesOrderClientOrderId',
+            'margin': 'privateGetMarginOrderClientOrderId',
+        })
         request = {
             'client_order_id': id,
         }
-        response = await self.privateGetSpotOrderClientOrderId(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
 
     async def cancel_all_orders(self, symbol=None, params={}):
@@ -1121,7 +1386,13 @@ class hitbtc3(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        response = await self.privateDeleteSpotOrder(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateDeleteSpotOrder',
+            'swap': 'privateDeleteFuturesOrder',
+            'margin': 'privateDeleteMarginOrder',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         return self.parse_orders(response, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -1132,7 +1403,13 @@ class hitbtc3(Exchange):
         }
         if symbol is not None:
             market = self.market(symbol)
-        response = await self.privateDeleteSpotOrderClientOrderId(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('cancelOrder', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateDeleteSpotOrderClientOrderId',
+            'swap': 'privateDeleteFuturesOrderClientOrderId',
+            'margin': 'privateDeleteMarginOrderClientOrderId',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
 
     async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
@@ -1144,28 +1421,72 @@ class hitbtc3(Exchange):
         }
         if (type == 'limit') or (type == 'stopLimit'):
             if price is None:
-                raise ExchangeError(self.id + ' limit order requires price')
+                raise ExchangeError(self.id + ' editOrder() limit order requires price')
             request['price'] = self.price_to_precision(symbol, price)
         if symbol is not None:
             market = self.market(symbol)
-        response = await self.privatePatchSpotOrderClientOrderId(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('editOrder', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privatePatchSpotOrderClientOrderId',
+            'swap': 'privatePatchFuturesOrderClientOrderId',
+            'margin': 'privatePatchMarginOrderClientOrderId',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        reduceOnly = self.safe_value_2(params, 'reduce_only', 'reduceOnly')
+        if reduceOnly is not None:
+            if (market['type'] != 'swap') and (market['type'] != 'margin'):
+                raise InvalidOrder(self.id + ' createOrder() does not support reduce_only for ' + market['type'] + ' orders, reduce_only orders are supported for swap and margin markets only')
         request = {
             'type': type,
             'side': side,
             'quantity': self.amount_to_precision(symbol, amount),
             'symbol': market['id'],
+            # 'client_order_id': 'r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4',  # Optional
+            # 'time_in_force': 'GTC',  # Optional GTC, IOC, FOK, Day, GTD
+            # 'price': self.price_to_precision(symbol, price),  # Required if type is limit, stopLimit, or takeProfitLimit
+            # 'stop_price': self.safe_number(params, 'stop_price'),  # Required if type is stopLimit, stopMarket, takeProfitLimit, takeProfitMarket
+            # 'expire_time': '2021-06-15T17:01:05.092Z',  # Required if timeInForce is GTD
+            # 'strict_validate': False,
+            # 'post_only': False,  # Optional
+            # 'reduce_only': False,  # Optional
+            # 'display_quantity': '0',  # Optional
+            # 'take_rate': 0.001,  # Optional
+            # 'make_rate': 0.001,  # Optional
         }
-        if (type == 'limit') or (type == 'stopLimit'):
+        timeInForce = self.safe_string_2(params, 'timeInForce', 'time_in_force')
+        expireTime = self.safe_string(params, 'expire_time')
+        stopPrice = self.safe_number_2(params, 'stopPrice', 'stop_price')
+        if (type == 'limit') or (type == 'stopLimit') or (type == 'takeProfitLimit'):
             if price is None:
-                raise ExchangeError(self.id + ' limit order requires price')
+                raise ExchangeError(self.id + ' createOrder() requires a price argument for limit orders')
             request['price'] = self.price_to_precision(symbol, price)
-        response = await self.privatePostSpotOrder(self.extend(request, params))
+        if (timeInForce == 'GTD'):
+            if expireTime is None:
+                raise ExchangeError(self.id + ' createOrder() requires an expire_time parameter for a GTD order')
+            request['expire_time'] = expireTime
+        if (type == 'stopLimit') or (type == 'stopMarket') or (type == 'takeProfitLimit') or (type == 'takeProfitMarket'):
+            if stopPrice is None:
+                raise ExchangeError(self.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders')
+            request['stop_price'] = self.price_to_precision(symbol, stopPrice)
+        marketType, query = self.handle_market_type_and_params('createOrder', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privatePostSpotOrder',
+            'swap': 'privatePostFuturesOrder',
+            'margin': 'privatePostMarginOrder',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
+
+    async def create_reduce_only_order(self, symbol, type, side, amount, price=None, params={}):
+        request = {
+            'reduce_only': True,
+        }
+        return await self.create_order(symbol, type, side, amount, price, self.extend(request, params))
 
     def parse_order_status(self, status):
         statuses = {
@@ -1225,6 +1546,25 @@ class hitbtc3(Exchange):
         #       ]
         #     }
         #
+        # swap and margin
+        #
+        #     {
+        #         "id": 58418961892,
+        #         "client_order_id": "r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4",
+        #         "symbol": "BTCUSDT_PERP",
+        #         "side": "buy",
+        #         "status": "new",
+        #         "type": "limit",
+        #         "time_in_force": "GTC",
+        #         "quantity": "0.0005",
+        #         "quantity_cumulative": "0",
+        #         "price": "30000.00",
+        #         "post_only": False,
+        #         "reduce_only": False,
+        #         "created_at": "2022-03-16T08:16:53.039Z",
+        #         "updated_at": "2022-03-16T08:16:53.039Z"
+        #     }
+        #
         id = self.safe_string(order, 'client_order_id')
         # we use clientOrderId as the order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
@@ -1242,13 +1582,13 @@ class hitbtc3(Exchange):
             lastTradeTimestamp = self.parse8601(updated)
         filled = self.safe_string(order, 'quantity_cumulative')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        marketId = self.safe_string(order, 'marketId')
+        marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         postOnly = self.safe_value(order, 'post_only')
         timeInForce = self.safe_string(order, 'time_in_force')
         rawTrades = self.safe_value(order, 'trades')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': id,
@@ -1279,13 +1619,8 @@ class hitbtc3(Exchange):
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         fromAccount = fromAccount.lower()
         toAccount = toAccount.lower()
-        fromId = self.safe_string(accountsByType, fromAccount)
-        toId = self.safe_string(accountsByType, toAccount)
-        keys = list(accountsByType.keys())
-        if fromId is None:
-            raise ArgumentsRequired(self.id + ' transfer() fromAccount argument must be one of ' + ', '.join(keys))
-        if toId is None:
-            raise ArgumentsRequired(self.id + ' transfer() toAccount argument must be one of ' + ', '.join(keys))
+        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount, toAccount)
         if fromId == toId:
             raise BadRequest(self.id + ' transfer() fromAccount and toAccount arguments cannot be the same account')
         request = {
@@ -1295,18 +1630,37 @@ class hitbtc3(Exchange):
             'destination': toId,
         }
         response = await self.privatePostWalletTransfer(self.extend(request, params))
-        # ['2db6ebab-fb26-4537-9ef8-1a689472d236']
-        id = self.safe_string(response, 0)
-        return {
-            'info': response,
-            'id': id,
-            'timestamp': None,
-            'datetime': None,
-            'amount': self.parse_number(requestAmount),
-            'currency': code,
+        #
+        #     [
+        #         '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        #     ]
+        #
+        transfer = self.parse_transfer(response, currency)
+        return self.extend(transfer, {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
+            'amount': self.parse_number(requestAmount),
+        })
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        # transfer
+        #
+        #     [
+        #         '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        #     ]
+        #
+        timestamp = self.milliseconds()
+        return {
+            'id': self.safe_string(transfer, 0),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
             'status': None,
+            'info': transfer,
         }
 
     async def convert_currency_network(self, code, amount, fromNetwork, toNetwork, params):
@@ -1319,7 +1673,7 @@ class hitbtc3(Exchange):
         fromNetwork = self.safe_string(networks, fromNetwork)  # handle ETH>ERC20 alias
         toNetwork = self.safe_string(networks, toNetwork)  # handle ETH>ERC20 alias
         if fromNetwork == toNetwork:
-            raise BadRequest(self.id + ' fromNetwork cannot be the same as toNetwork')
+            raise BadRequest(self.id + ' convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork')
         if (fromNetwork is None) or (toNetwork is None):
             keys = list(networks.keys())
             raise ArgumentsRequired(self.id + ' convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are ' + ', '.join(keys))
@@ -1354,12 +1708,437 @@ class hitbtc3(Exchange):
                 request['currency'] = parsedNetwork
             params = self.omit(params, 'network')
         response = await self.privatePostWalletCryptoWithdraw(self.extend(request, params))
-        # {"id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"}
-        id = self.safe_string(response, 'id')
-        return {
-            'info': response,
-            'id': id,
+        #
+        #     {
+        #         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
+        #     }
+        #
+        return self.parse_transaction(response, currency)
+
+    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = None
+        request = {
+            # all arguments are optional
+            # 'symbols': Comma separated list of symbol codes,
+            # 'sort': 'DESC' or 'ASC'
+            # 'from': 'Datetime or Number',
+            # 'till': 'Datetime or Number',
+            # 'limit': 100,
+            # 'offset': 0,
         }
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
+            request['symbols'] = market['id']
+        if since is not None:
+            request['from'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.publicGetPublicFuturesHistoryFunding(self.extend(request, params))
+        #
+        #    {
+        #        "BTCUSDT_PERP": [
+        #            {
+        #                "timestamp": "2021-07-29T16:00:00.271Z",
+        #                "funding_rate": "0.0001",
+        #                "avg_premium_index": "0.000061858585213222",
+        #                "next_funding_time": "2021-07-30T00:00:00.000Z",
+        #                "interest_rate": "0.0001"
+        #            },
+        #            ...
+        #        ],
+        #        ...
+        #    }
+        #
+        contracts = list(response.keys())
+        rates = []
+        for i in range(0, len(contracts)):
+            marketId = contracts[i]
+            market = self.safe_market(marketId)
+            fundingRateData = response[marketId]
+            for i in range(0, len(fundingRateData)):
+                entry = fundingRateData[i]
+                symbol = self.safe_symbol(market['symbol'])
+                fundingRate = self.safe_number(entry, 'funding_rate')
+                datetime = self.safe_string(entry, 'timestamp')
+                rates.append({
+                    'info': entry,
+                    'symbol': symbol,
+                    'fundingRate': fundingRate,
+                    'timestamp': self.parse8601(datetime),
+                    'datetime': datetime,
+                })
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    async def fetch_positions(self, symbols=None, params={}):
+        await self.load_markets()
+        request = {}
+        marketType, query = self.handle_market_type_and_params('fetchPositions', None, params)
+        method = self.get_supported_mapping(marketType, {
+            'swap': 'privateGetFuturesAccount',
+            'margin': 'privateGetMarginAccount',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        #     [
+        #         {
+        #             "symbol": "ETHUSDT_PERP",
+        #             "type": "isolated",
+        #             "leverage": "10.00",
+        #             "created_at": "2022-03-19T07:54:35.24Z",
+        #             "updated_at": "2022-03-19T07:54:58.922Z",
+        #             currencies": [
+        #                 {
+        #                     "code": "USDT",
+        #                     "margin_balance": "7.478100643043",
+        #                     "reserved_orders": "0",
+        #                     "reserved_positions": "0.303530761300"
+        #                 }
+        #             ],
+        #             "positions": [
+        #                 {
+        #                     "id": 2470568,
+        #                     "symbol": "ETHUSDT_PERP",
+        #                     "quantity": "0.001",
+        #                     "price_entry": "2927.509",
+        #                     "price_margin_call": "0",
+        #                     "price_liquidation": "0",
+        #                     "pnl": "0",
+        #                     "created_at": "2022-03-19T07:54:35.24Z",
+        #                     "updated_at": "2022-03-19T07:54:58.922Z"
+        #                 }
+        #             ]
+        #         },
+        #     ]
+        #
+        result = []
+        for i in range(0, len(response)):
+            result.append(self.parse_position(response[i]))
+        return result
+
+    async def fetch_position(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        marketType, query = self.handle_market_type_and_params('fetchPosition', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'swap': 'privateGetFuturesAccountIsolatedSymbol',
+            'margin': 'privateGetMarginAccountIsolatedSymbol',
+        })
+        request = {
+            'symbol': market['id'],
+        }
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        #     [
+        #         {
+        #             "symbol": "ETHUSDT_PERP",
+        #             "type": "isolated",
+        #             "leverage": "10.00",
+        #             "created_at": "2022-03-19T07:54:35.24Z",
+        #             "updated_at": "2022-03-19T07:54:58.922Z",
+        #             currencies": [
+        #                 {
+        #                     "code": "USDT",
+        #                     "margin_balance": "7.478100643043",
+        #                     "reserved_orders": "0",
+        #                     "reserved_positions": "0.303530761300"
+        #                 }
+        #             ],
+        #             "positions": [
+        #                 {
+        #                     "id": 2470568,
+        #                     "symbol": "ETHUSDT_PERP",
+        #                     "quantity": "0.001",
+        #                     "price_entry": "2927.509",
+        #                     "price_margin_call": "0",
+        #                     "price_liquidation": "0",
+        #                     "pnl": "0",
+        #                     "created_at": "2022-03-19T07:54:35.24Z",
+        #                     "updated_at": "2022-03-19T07:54:58.922Z"
+        #                 }
+        #             ]
+        #         },
+        #     ]
+        #
+        return self.parse_position(response, market)
+
+    def parse_position(self, position, market=None):
+        #
+        #     [
+        #         {
+        #             "symbol": "ETHUSDT_PERP",
+        #             "type": "isolated",
+        #             "leverage": "10.00",
+        #             "created_at": "2022-03-19T07:54:35.24Z",
+        #             "updated_at": "2022-03-19T07:54:58.922Z",
+        #             currencies": [
+        #                 {
+        #                     "code": "USDT",
+        #                     "margin_balance": "7.478100643043",
+        #                     "reserved_orders": "0",
+        #                     "reserved_positions": "0.303530761300"
+        #                 }
+        #             ],
+        #             "positions": [
+        #                 {
+        #                     "id": 2470568,
+        #                     "symbol": "ETHUSDT_PERP",
+        #                     "quantity": "0.001",
+        #                     "price_entry": "2927.509",
+        #                     "price_margin_call": "0",
+        #                     "price_liquidation": "0",
+        #                     "pnl": "0",
+        #                     "created_at": "2022-03-19T07:54:35.24Z",
+        #                     "updated_at": "2022-03-19T07:54:58.922Z"
+        #                 }
+        #             ]
+        #         },
+        #     ]
+        #
+        marginType = self.safe_string(position, 'type')
+        leverage = self.safe_number(position, 'leverage')
+        datetime = self.safe_string(position, 'updated_at')
+        positions = self.safe_value(position, 'positions', [])
+        liquidationPrice = None
+        entryPrice = None
+        contracts = None
+        for i in range(0, len(positions)):
+            entry = positions[i]
+            liquidationPrice = self.safe_number(entry, 'price_liquidation')
+            entryPrice = self.safe_number(entry, 'price_entry')
+            contracts = self.safe_number(entry, 'quantity')
+        currencies = self.safe_value(position, 'currencies', [])
+        collateral = None
+        for i in range(0, len(currencies)):
+            entry = currencies[i]
+            collateral = self.safe_number(entry, 'margin_balance')
+        marketId = self.safe_string(position, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        return {
+            'info': position,
+            'symbol': symbol,
+            'notional': None,
+            'marginType': marginType,
+            'liquidationPrice': liquidationPrice,
+            'entryPrice': entryPrice,
+            'unrealizedPnl': None,
+            'percentage': None,
+            'contracts': contracts,
+            'contractSize': None,
+            'markPrice': None,
+            'side': None,
+            'hedged': None,
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+            'maintenanceMargin': None,
+            'maintenanceMarginPercentage': None,
+            'collateral': collateral,
+            'initialMargin': None,
+            'initialMarginPercentage': None,
+            'leverage': leverage,
+            'marginRatio': None,
+        }
+
+    async def fetch_funding_rate(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
+        request = {}
+        if symbol is not None:
+            symbol = market['symbol']
+            request['symbols'] = market['id']
+        response = await self.publicGetPublicFuturesInfo(self.extend(request, params))
+        #
+        #     {
+        #         "BTCUSDT_PERP": {
+        #             "contract_type": "perpetual",
+        #             "mark_price": "42307.43",
+        #             "index_price": "42303.27",
+        #             "funding_rate": "0.0001",
+        #             "open_interest": "30.9826",
+        #             "next_funding_time": "2022-03-22T16:00:00.000Z",
+        #             "indicative_funding_rate": "0.0001",
+        #             "premium_index": "0",
+        #             "avg_premium_index": "0.000029587712038098",
+        #             "interest_rate": "0.0001",
+        #             "timestamp": "2022-03-22T08:08:26.687Z"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, market['id'], {})
+        return self.parse_funding_rate(data, market)
+
+    def parse_funding_rate(self, contract, market=None):
+        #
+        #     {
+        #         "contract_type": "perpetual",
+        #         "mark_price": "42307.43",
+        #         "index_price": "42303.27",
+        #         "funding_rate": "0.0001",
+        #         "open_interest": "30.9826",
+        #         "next_funding_time": "2022-03-22T16:00:00.000Z",
+        #         "indicative_funding_rate": "0.0001",
+        #         "premium_index": "0",
+        #         "avg_premium_index": "0.000029587712038098",
+        #         "interest_rate": "0.0001",
+        #         "timestamp": "2022-03-22T08:08:26.687Z"
+        #     }
+        #
+        nextFundingDatetime = self.safe_string(contract, 'next_funding_time')
+        datetime = self.safe_string(contract, 'timestamp')
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(None, market),
+            'markPrice': self.safe_number(contract, 'mark_price'),
+            'indexPrice': self.safe_number(contract, 'index_price'),
+            'interestRate': self.safe_number(contract, 'interest_rate'),
+            'estimatedSettlePrice': None,
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+            'fundingRate': self.safe_number(contract, 'funding_rate'),
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': self.safe_number(contract, 'indicative_funding_rate'),
+            'nextFundingTimestamp': self.parse8601(nextFundingDatetime),
+            'nextFundingDatetime': nextFundingDatetime,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+        }
+
+    async def modify_margin_helper(self, symbol, amount, type, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        leverage = self.safe_string(params, 'leverage')
+        if market['type'] == 'swap':
+            if leverage is None:
+                raise ArgumentsRequired(self.id + ' modifyMarginHelper() requires a leverage parameter for swap markets')
+        amount = self.amount_to_precision(symbol, amount)
+        request = {
+            'symbol': market['id'],  # swap and margin
+            'margin_balance': amount,  # swap and margin
+            # 'leverage': '10',  # swap only required
+            # 'strict_validate': False,  # swap and margin
+        }
+        if leverage is not None:
+            request['leverage'] = leverage
+        marketType, query = self.handle_market_type_and_params('modifyMarginHelper', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'swap': 'privatePutFuturesAccountIsolatedSymbol',
+            'margin': 'privatePutMarginAccountIsolatedSymbol',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        #     {
+        #         "symbol": "BTCUSDT_PERP",
+        #         "type": "isolated",
+        #         "leverage": "8.00",
+        #         "created_at": "2022-03-30T23:34:27.161Z",
+        #         "updated_at": "2022-03-30T23:34:27.161Z",
+        #         "currencies": [
+        #             {
+        #                 "code": "USDT",
+        #                 "margin_balance": "7.000000000000",
+        #                 "reserved_orders": "0",
+        #                 "reserved_positions": "0"
+        #             }
+        #         ],
+        #         "positions": null
+        #     }
+        #
+        return self.extend(self.parse_modify_margin(response, market), {
+            'amount': self.safe_number(amount),
+            'type': type,
+        })
+
+    def parse_modify_margin(self, data, market=None):
+        currencies = self.safe_value(data, 'currencies', [])
+        currencyInfo = self.safe_value(currencies, 0)
+        return {
+            'info': data,
+            'type': None,
+            'amount': None,
+            'code': self.safe_string(currencyInfo, 'code'),
+            'symbol': market['symbol'],
+            'status': None,
+        }
+
+    async def reduce_margin(self, symbol, amount, params={}):
+        if amount != 0:
+            raise BadRequest(self.id + ' reduceMargin() on hitbtc3 requires the amount to be 0 and that will remove the entire margin amount')
+        return await self.modify_margin_helper(symbol, amount, 'reduce', params)
+
+    async def add_margin(self, symbol, amount, params={}):
+        return await self.modify_margin_helper(symbol, amount, 'add', params)
+
+    async def fetch_leverage(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'privateGetMarginAccountIsolatedSymbol',
+            'margin': 'privateGetMarginAccountIsolatedSymbol',
+            'swap': 'privateGetFuturesAccountIsolatedSymbol',
+        })
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "type": "isolated",
+        #         "leverage": "12.00",
+        #         "created_at": "2022-03-29T22:31:29.067Z",
+        #         "updated_at": "2022-03-30T00:00:00.125Z",
+        #         "currencies": [
+        #             {
+        #                 "code": "USDT",
+        #                 "margin_balance": "20.824360374174",
+        #                 "reserved_orders": "0",
+        #                 "reserved_positions": "0.973330435000"
+        #             }
+        #         ],
+        #         "positions": [
+        #             {
+        #                 "id": 631301,
+        #                 "symbol": "BTCUSDT",
+        #                 "quantity": "0.00022",
+        #                 "price_entry": "47425.57",
+        #                 "price_margin_call": "",
+        #                 "price_liquidation": "0",
+        #                 "pnl": "0",
+        #                 "created_at": "2022-03-29T22:31:29.067Z",
+        #                 "updated_at": "2022-03-30T00:00:00.125Z"
+        #             }
+        #         ]
+        #     }
+        #
+        return self.safe_number(response, 'leverage')
+
+    async def set_leverage(self, leverage, symbol=None, params={}):
+        await self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        if params['margin_balance'] is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair')
+        market = self.market(symbol)
+        amount = self.safe_number(params, 'margin_balance')
+        maxLeverage = self.safe_integer(market['limits']['leverage'], 'max', 50)
+        if market['type'] != 'swap':
+            raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
+        if (leverage < 1) or (leverage > maxLeverage):
+            raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and ' + str(maxLeverage) + ' for ' + symbol)
+        request = {
+            'symbol': market['id'],
+            'leverage': str(leverage),
+            'margin_balance': self.amount_to_precision(symbol, amount),
+            # 'strict_validate': False,
+        }
+        return await self.privatePutFuturesAccountIsolatedSymbol(self.extend(request, params))
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         #
@@ -1416,6 +2195,6 @@ class hitbtc3(Exchange):
             payloadString = ''.join(payload)
             signature = self.hmac(self.encode(payloadString), self.encode(self.secret), hashlib.sha256, 'hex')
             secondPayload = self.apiKey + ':' + signature + ':' + timestamp
-            encoded = self.string_to_base64(secondPayload)
+            encoded = self.decode(self.string_to_base64(secondPayload))
             headers['Authorization'] = 'HS256 ' + encoded
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

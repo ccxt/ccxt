@@ -27,24 +27,52 @@ class timex(Exchange):
             'version': 'v1',
             'rateLimit': 1500,
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelOrder': True,
                 'cancelOrders': True,
-                'CORS': None,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'editOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,  # maker fee only
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
             },
             'timeframes': {
                 '1m': 'I1',
@@ -190,6 +218,7 @@ class timex(Exchange):
                 },
             },
             'options': {
+                'expireIn': 31536000,  # 365 × 24 × 60 × 60
                 'fetchTickers': {
                     'period': '1d',
                 },
@@ -432,18 +461,7 @@ class timex(Exchange):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.tradingGetBalances(params)
-        #
-        #     [
-        #         {"currency":"BTC","totalBalance":"0","lockedBalance":"0"},
-        #         {"currency":"AUDT","totalBalance":"0","lockedBalance":"0"},
-        #         {"currency":"ETH","totalBalance":"0","lockedBalance":"0"},
-        #         {"currency":"TIME","totalBalance":"0","lockedBalance":"0"},
-        #         {"currency":"USDT","totalBalance":"0","lockedBalance":"0"}
-        #     ]
-        #
+    def parse_balance(self, response):
         result = {
             'info': response,
             'timestamp': None,
@@ -457,13 +475,31 @@ class timex(Exchange):
             account['total'] = self.safe_string(balance, 'totalBalance')
             account['used'] = self.safe_string(balance, 'lockedBalance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        response = await self.tradingGetBalances(params)
+        #
+        #     [
+        #         {"currency":"BTC","totalBalance":"0","lockedBalance":"0"},
+        #         {"currency":"AUDT","totalBalance":"0","lockedBalance":"0"},
+        #         {"currency":"ETH","totalBalance":"0","lockedBalance":"0"},
+        #         {"currency":"TIME","totalBalance":"0","lockedBalance":"0"},
+        #         {"currency":"USDT","totalBalance":"0","lockedBalance":"0"}
+        #     ]
+        #
+        return self.parse_balance(response)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         uppercaseSide = side.upper()
         uppercaseType = type.upper()
+        postOnly = self.safe_value(params, 'postOnly', False)
+        if postOnly:
+            uppercaseType = 'POST_ONLY'
+            params = self.omit(params, ['postOnly'])
         request = {
             'symbol': market['id'],
             'quantity': self.amount_to_precision(symbol, amount),
@@ -474,7 +510,7 @@ class timex(Exchange):
             # 'expireTime': 1575523308,  # unix timestamp
         }
         query = params
-        if uppercaseType == 'LIMIT':
+        if (uppercaseType == 'LIMIT') or (uppercaseType == 'POST_ONLY'):
             request['price'] = self.price_to_precision(symbol, price)
             defaultExpireIn = self.safe_integer(self.options, 'expireIn')
             expireTime = self.safe_value(params, 'expireTime')
@@ -778,6 +814,22 @@ class timex(Exchange):
         trades = self.safe_value(response, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
+    def parse_trading_fee(self, fee, market=None):
+        #
+        #     {
+        #         "fee": 0.0075,
+        #         "market": "ETHBTC"
+        #     }
+        #
+        marketId = self.safe_string(fee, 'market')
+        rate = self.safe_number(fee, 'fee')
+        return {
+            'info': fee,
+            'symbol': self.safe_symbol(marketId, market),
+            'maker': rate,
+            'taker': rate,
+        }
+
     async def fetch_trading_fee(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
@@ -794,11 +846,7 @@ class timex(Exchange):
         #     ]
         #
         result = self.safe_value(response, 0, {})
-        return {
-            'info': response,
-            'maker': self.safe_number(result, 'fee'),
-            'taker': None,
-        }
+        return self.parse_trading_fee(result, market)
 
     def parse_market(self, market):
         #
@@ -821,43 +869,64 @@ class timex(Exchange):
         #     }
         #
         locked = self.safe_value(market, 'locked')
-        active = not locked
         id = self.safe_string(market, 'symbol')
         baseId = self.safe_string(market, 'baseCurrency')
         quoteId = self.safe_string(market, 'quoteCurrency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = base + '/' + quote
-        precision = {
-            'amount': self.precision_from_string(self.safe_string(market, 'quantityIncrement')),
-            'price': self.precision_from_string(self.safe_string(market, 'tickSize')),
-        }
-        amountIncrement = self.safe_number(market, 'quantityIncrement')
-        minBase = self.safe_number(market, 'baseMinSize')
-        minAmount = max(amountIncrement, minBase)
-        priceIncrement = self.safe_number(market, 'tickSize')
-        minCost = self.safe_number(market, 'quoteMinSize')
-        limits = {
-            'amount': {'min': minAmount, 'max': None},
-            'price': {'min': priceIncrement, 'max': None},
-            'cost': {'min': max(minCost, minAmount * priceIncrement), 'max': None},
-        }
-        taker = self.safe_number(market, 'takerFee')
-        maker = self.safe_number(market, 'makerFee')
+        amountIncrement = self.safe_string(market, 'quantityIncrement')
+        minBase = self.safe_string(market, 'baseMinSize')
+        minAmount = Precise.string_max(amountIncrement, minBase)
+        priceIncrement = self.safe_string(market, 'tickSize')
+        minCost = self.safe_string(market, 'quoteMinSize')
         return {
             'id': id,
-            'symbol': symbol,
+            'symbol': base + '/' + quote,
             'base': base,
             'quote': quote,
+            'settle': None,
             'baseId': baseId,
             'quoteId': quoteId,
+            'settleId': None,
             'type': 'spot',
             'spot': True,
-            'active': active,
-            'precision': precision,
-            'limits': limits,
-            'taker': taker,
-            'maker': maker,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': not locked,
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'taker': self.safe_number(market, 'takerFee'),
+            'maker': self.safe_number(market, 'makerFee'),
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.precision_from_string(self.safe_string(market, 'quantityIncrement')),
+                'price': self.precision_from_string(self.safe_string(market, 'tickSize')),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+                'amount': {
+                    'min': self.parse_number(minAmount),
+                    'max': None,
+                },
+                'price': {
+                    'min': self.parse_number(priceIncrement),
+                    'max': None,
+                },
+                'cost': {
+                    'min': minCost,
+                    'max': None,
+                },
+            },
             'info': market,
         }
 
@@ -903,7 +972,10 @@ class timex(Exchange):
         code = self.safe_currency_code(id)
         name = self.safe_string(currency, 'name')
         precision = self.safe_integer(currency, 'decimals')
-        active = self.safe_value(currency, 'active')
+        depositEnabled = self.safe_value(currency, 'depositEnabled')
+        withdrawEnabled = self.safe_value(currency, 'withdrawalEnabled')
+        isActive = self.safe_value(currency, 'active')
+        active = depositEnabled and withdrawEnabled and isActive
         # fee = self.safe_number(currency, 'withdrawalFee')
         feeString = self.safe_string(currency, 'withdrawalFee')
         tradeDecimals = self.safe_integer(currency, 'tradeDecimals')
@@ -927,6 +999,8 @@ class timex(Exchange):
             'type': None,
             'name': name,
             'active': active,
+            'deposit': depositEnabled,
+            'withdraw': withdrawEnabled,
             'fee': fee,
             'precision': precision,
             'limits': {
@@ -954,18 +1028,18 @@ class timex(Exchange):
         marketId = self.safe_string(ticker, 'market')
         symbol = self.safe_symbol(marketId, market, '/')
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
-        last = self.safe_number(ticker, 'last')
-        open = self.safe_number(ticker, 'open')
+        last = self.safe_string(ticker, 'last')
+        open = self.safe_string(ticker, 'open')
         return self.safe_ticker({
             'symbol': symbol,
             'info': ticker,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -975,9 +1049,9 @@ class timex(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volume'),
-            'quoteVolume': self.safe_number(ticker, 'volumeQuote'),
-        }, market)
+            'baseVolume': self.safe_string(ticker, 'volume'),
+            'quoteVolume': self.safe_string(ticker, 'volumeQuote'),
+        }, market, False)
 
     def parse_trade(self, trade, market=None):
         #
@@ -1093,23 +1167,18 @@ class timex(Exchange):
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.parse8601(self.safe_string(order, 'createdAt'))
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'quantity')
-        filled = self.safe_number(order, 'filledQuantity')
-        canceledQuantity = self.safe_number(order, 'cancelledQuantity')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'quantity')
+        filled = self.safe_string(order, 'filledQuantity')
+        canceledQuantity = self.omit_zero(self.safe_string(order, 'cancelledQuantity'))
         status = None
-        if (amount is not None) and (filled is not None):
-            if filled >= amount:
-                status = 'closed'
-            elif (canceledQuantity is not None) and (canceledQuantity > 0):
-                status = 'canceled'
-            else:
-                status = 'open'
+        if Precise.string_equals(filled, amount):
+            status = 'closed'
+        elif canceledQuantity is not None:
+            status = 'canceled'
+        else:
+            status = 'open'
         rawTrades = self.safe_value(order, 'trades', [])
-        trades = self.parse_trades(rawTrades, market, None, None, {
-            'order': id,
-            'type': type,
-        })
         clientOrderId = self.safe_string(order, 'clientOrderId')
         return self.safe_order({
             'info': order,
@@ -1132,8 +1201,8 @@ class timex(Exchange):
             'remaining': None,
             'status': status,
             'fee': None,
-            'trades': trades,
-        })
+            'trades': rawTrades,
+        }, market)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + api + '/' + path

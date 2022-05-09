@@ -47,8 +47,9 @@ module.exports = {
 
     , keysort (x, out = {}) {
 
-        for (const k of keys (x).sort ())
+        for (const k of keys (x).sort ()) {
             out[k] = x[k]
+        }
 
         return out
     }
@@ -160,6 +161,22 @@ module.exports = {
         }
     })
 
+    , sortBy2: (array, key1, key2, descending = false, direction  = descending ? -1 : 1) => array.sort ((a, b) => {
+        if (a[key1] < b[key1]) {
+            return -direction
+        } else if (a[key1] > b[key1]) {
+            return direction
+        } else {
+            if (a[key2] < b[key2]) {
+                return -direction;
+            } else if (a[key2] > b[key2]) {
+                return direction;
+            } else {
+                return 0
+            }
+        }
+    })
+
     // ------------------------------------------------------------------------
 
     , flatten: function flatten (x, out = []) {
@@ -229,6 +246,23 @@ module.exports = {
             }
         }
         return out
+    }
+
+    // ------------------------------------------------------------------------
+
+    , merge (target, ...args) {
+        // doesn't overwrite defined keys with undefined
+        const overwrite = {}
+        const merged = Object.assign ({}, ...args)
+        const keys = Object.keys (merged)
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i]
+            if (target[key] === undefined) {
+                overwrite[key] = merged[key]
+            }
+        }
+        // eslint-disable-next-line
+        return Object.assign ({}, target, overwrite)
     }
 
 // ----------------------------------------------------------------------------

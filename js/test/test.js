@@ -97,32 +97,29 @@ if (settings && settings.skip) {
 
 //-----------------------------------------------------------------------------
 
+async function test (methodName, exchange, ... args) {
+    console.log ('Testing', exchange.id, methodName, '(', ... args, ')')
+    return await (tests[methodName] (exchange, ... args))
+}
+
 async function testSymbol (exchange, symbol) {
 
-    if (exchange.id !== 'coinmarketcap') {
-        await tests['loadMarkets'] (exchange)
-        await tests['fetchCurrencies'] (exchange)
-    }
+    await test ('loadMarkets', exchange);
+    await test ('fetchCurrencies', exchange);
+    await test ('fetchTicker', exchange, symbol);
+    await test ('fetchTickers', exchange, symbol);
+    await test ('fetchOHLCV', exchange, symbol);
+    await test ('fetchTrades', exchange, symbol);
 
-    await tests['fetchTicker']  (exchange, symbol)
-    await tests['fetchTickers'] (exchange, symbol)
-    await tests['fetchOHLCV']   (exchange, symbol)
-    await tests['fetchTrades']  (exchange, symbol)
-
-    if (exchange.id === 'coinmarketcap') {
-
-        console.log (await exchange.fetchTickers ())
-        console.log (await exchange.fetchGlobal  ())
-
-    } else if (exchange.id === 'coinbase') {
+    if (exchange.id === 'coinbase') {
 
         // nothing for now
 
     } else {
 
-        await tests['fetchOrderBook']   (exchange, symbol)
-        await tests['fetchL2OrderBook'] (exchange, symbol)
-        await tests['fetchOrderBooks']  (exchange)
+        await test ('fetchOrderBook', exchange, symbol);
+        await test ('fetchL2OrderBook', exchange, symbol);
+        await test ('fetchOrderBooks', exchange);
     }
 }
 
@@ -159,6 +156,7 @@ async function loadExchange (exchange) {
         'BTC/RUB',
         'BTC/UAH',
         'LTC/BTC',
+        'EUR/USD',
     ]
 
     let result = exchange.symbols.filter ((symbol) => symbols.indexOf (symbol) >= 0)
@@ -176,7 +174,25 @@ async function loadExchange (exchange) {
 
 //-----------------------------------------------------------------------------
 
+function getTestSymbol (exchange, symbols) {
+    let symbol = undefined
+    for (let i = 0; i < symbols.length; i++) {
+        const s = symbols[i]
+        const market = exchange.safeValue (exchange.markets, s)
+        if (market !== undefined) {
+            const active = exchange.safeValue (market, 'active')
+            if (active || (active === undefined)) {
+                symbol = s
+                break;
+            }
+        }
+    }
+    return symbol
+}
+
 async function testExchange (exchange) {
+
+    await loadExchange (exchange)
 
     const codes = [
         'BTC',
@@ -211,17 +227,14 @@ async function testExchange (exchange) {
         'ZRX',
     ]
 
-    let code = codes[0]
+    let code = undefined
     for (let i = 0; i < codes.length; i++) {
         if (codes[i] in exchange.currencies) {
             code = codes[i]
         }
     }
 
-    await loadExchange (exchange)
-
-    let symbol = exchange.symbols[0]
-    const symbols = [
+    let symbol = getTestSymbol (exchange, [
         'BTC/USD',
         'BTC/USDT',
         'BTC/CNY',
@@ -233,29 +246,34 @@ async function testExchange (exchange) {
         'BTC/JPY',
         'LTC/BTC',
         'ZRX/WETH',
-    ]
+        'EUR/USD',
+    ])
 
-    for (let i = 0; i < symbols.length; i++) {
-        const s = symbols[i]
-        if (exchange.symbols.includes (s)) {
-            if ('active' in exchange.markets[s]) {
-                if (exchange.markets[s]['active'] === undefined) {
-                    symbol = s
-                } else if (exchange.markets[s]['active']) {
-                    symbol = s
-                }
-            } else {
-                symbol = s
+    if (symbol === undefined) {
+        for (let i = 0; i < codes.length; i++) {
+            const markets = Object.values (exchange.markets)
+            const activeMarkets = markets.filter ((market) => (market['base'] === codes[i]))
+            if (activeMarkets.length) {
+                const activeSymbols = activeMarkets.map (market => market['symbol'])
+                symbol = getTestSymbol (exchange, activeSymbols)
+                break;
             }
-            break
         }
     }
 
-    if (exchange.id === 'okex') {
-        // okex has different order creation params for spot and futures markets
-        // this forces okex to use a spot market until there is a way to test
-        // several markets per exchange
-        symbol = 'BTC/USDT'
+    if (symbol === undefined) {
+        const markets = Object.values (exchange.markets)
+        const activeMarkets = markets.filter ((market) => !exchange.safeValue (market, 'active', false))
+        const activeSymbols = activeMarkets.map (market => market['symbol'])
+        symbol = getTestSymbol (exchange, activeSymbols)
+    }
+
+    if (symbol === undefined) {
+        symbol = getTestSymbol (exchange, exchange.symbols)
+    }
+
+    if (symbol === undefined) {
+        symbol = exchange.symbols[0]
     }
 
     console.log ('SYMBOL:', symbol)
@@ -277,33 +295,38 @@ async function testExchange (exchange) {
     // if (exchange.urls['test'])
     //    exchange.urls['api'] = exchange.urls['test']
 
-    const balance = await tests['fetchBalance'] (exchange)
+    const balance = await test ('fetchBalance', exchange)
 
-    await tests['fetchFundingFees']  (exchange)
-    await tests['fetchTradingFees']  (exchange)
-    await tests['fetchStatus'] (exchange)
+    await test ('fetchFundingFees', exchange)
+    await test ('fetchTradingFees', exchange)
+    await test ('fetchStatus', exchange)
 
-    await tests['fetchOrders']       (exchange, symbol)
-    await tests['fetchOpenOrders']   (exchange, symbol)
-    await tests['fetchClosedOrders'] (exchange, symbol)
-    await tests['fetchMyTrades']     (exchange, symbol)
+    await test ('fetchOrders', exchange, symbol)
+    await test ('fetchOpenOrders', exchange, symbol)
+    await test ('fetchClosedOrders', exchange, symbol)
+    await test ('fetchMyTrades', exchange, symbol)
+    await test ('fetchLeverageTiers', exchange, symbol)
+
+    await test ('fetchPositions', exchange, symbol)
 
     if ('fetchLedger' in tests) {
-        await tests['fetchLedger'] (exchange, code)
+        await test ('fetchLedger', exchange, code)
     }
 
-    await tests['fetchTransactions'] (exchange, code)
-    await tests['fetchDeposits']     (exchange, code)
-    await tests['fetchWithdrawals']  (exchange, code)
-    await tests['fetchBorrowRate']   (exchange, code)
-    await tests['fetchBorrowRates']  (exchange)
+    await test ('fetchTransactions', exchange, code)
+    await test ('fetchDeposits', exchange, code)
+    await test ('fetchWithdrawals', exchange, code)
+    await test ('fetchBorrowRate', exchange, code)
+    await test ('fetchBorrowRates', exchange)
+    await test ('fetchBorrowInterest', exchange, code)
+    await test ('fetchBorrowInterest', exchange, code, symbol)
 
     if (exchange.extendedTest) {
 
-        await tests['InvalidNonce']      (exchange, symbol)
-        await tests['OrderNotFound']     (exchange, symbol)
-        await tests['InvalidOrder']      (exchange, symbol)
-        await tests['InsufficientFunds'] (exchange, symbol, balance) // danger zone - won't execute with non-empty balance
+        await test ('InvalidNonce', exchange, symbol)
+        await test ('OrderNotFound', exchange, symbol)
+        await test ('InvalidOrder', exchange, symbol)
+        await test ('InsufficientFunds', exchange, symbol, balance) // danger zone - won't execute with non-empty balance
     }
 
     // try {
@@ -375,8 +398,6 @@ async function tryAllProxies (exchange, proxies) {
                 continue
             } else if (e instanceof ccxt.AuthenticationError) {
                 return
-            } else if (e instanceof ccxt.AuthenticationError) {
-                return
             } else if (e instanceof ccxt.InvalidNonce) {
                 return
             } else {
@@ -388,7 +409,7 @@ async function tryAllProxies (exchange, proxies) {
 
 //-----------------------------------------------------------------------------
 
-async function test () {
+async function main () {
 
     if (exchangeSymbol) {
 
@@ -402,4 +423,4 @@ async function test () {
 
 }
 
-test ()
+main ()

@@ -8,7 +8,6 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
-use \ccxt\Precise;
 
 class delta extends Exchange {
 
@@ -21,6 +20,12 @@ class delta extends Exchange {
             'version' => 'v2',
             // new metainfo interface
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null,
+                'swap' => null,
+                'future' => null,
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
@@ -30,11 +35,15 @@ class delta extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchLedger' => true,
+                'fetchLeverageTiers' => false, // An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
+                'fetchPosition' => true,
+                'fetchPositions' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -127,24 +136,24 @@ class delta extends Exchange {
                     'taker' => 0.15 / 100,
                     'maker' => 0.10 / 100,
                     'tiers' => array(
-                        'taker' => [
-                            [0, 0.15 / 100],
-                            [100, 0.13 / 100],
-                            [250, 0.13 / 100],
-                            [1000, 0.1 / 100],
-                            [5000, 0.09 / 100],
-                            [10000, 0.075 / 100],
-                            [20000, 0.065 / 100],
-                        ],
-                        'maker' => [
-                            [0, 0.1 / 100],
-                            [100, 0.1 / 100],
-                            [250, 0.09 / 100],
-                            [1000, 0.075 / 100],
-                            [5000, 0.06 / 100],
-                            [10000, 0.05 / 100],
-                            [20000, 0.05 / 100],
-                        ],
+                        'taker' => array(
+                            array( 0, 0.15 / 100 ),
+                            array( 100, 0.13 / 100 ),
+                            array( 250, 0.13 / 100 ),
+                            array( 1000, 0.1 / 100 ),
+                            array( 5000, 0.09 / 100 ),
+                            array( 10000, 0.075 / 100 ),
+                            array( 20000, 0.065 / 100 ),
+                        ),
+                        'maker' => array(
+                            array( 0, 0.1 / 100 ),
+                            array( 100, 0.1 / 100 ),
+                            array( 250, 0.09 / 100 ),
+                            array( 1000, 0.075 / 100 ),
+                            array( 5000, 0.06 / 100 ),
+                            array( 10000, 0.05 / 100 ),
+                            array( 20000, 0.05 / 100 ),
+                        ),
                     ),
                 ),
             ),
@@ -178,35 +187,77 @@ class delta extends Exchange {
 
     public function fetch_time($params = array ()) {
         $response = yield $this->publicGetSettings ($params);
-        //
-        //     {
-        //         "result":array(
-        //             "server_time":1605472733766141,
-        //             "deto_referral_mining_daily_reward":"25000",
-        //             "deto_total_reward_pool":"100000000",
-        //             "deto_trade_mining_daily_reward":"75000",
-        //             "kyc_deposit_limit":"20",
-        //             "kyc_withdrawal_limit":"2",
-        //             "under_maintenance":"false"
-        //         ),
-        //         "success":true
-        //     }
-        //
+        // full $response sample under `fetchStatus`
         $result = $this->safe_value($response, 'result', array());
         return $this->safe_integer_product($result, 'server_time', 0.001);
     }
 
     public function fetch_status($params = array ()) {
         $response = yield $this->publicGetSettings ($params);
+        //
+        //     {
+        //         "result" => array(
+        //           "deto_liquidity_mining_daily_reward" => "40775",
+        //           "deto_msp" => "1.0",
+        //           "deto_staking_daily_reward" => "23764.08",
+        //           "enabled_wallets" => array(
+        //             "BTC",
+        //             ...
+        //           ),
+        //           "portfolio_margin_params" => array(
+        //             "enabled_portfolios" => array(
+        //               ".DEAVAXUSDT" => array(
+        //                 "asset_id" => 5,
+        //                 "futures_contingency_margin_percent" => "1",
+        //                 "interest_rate" => "0",
+        //                 "maintenance_margin_multiplier" => "0.8",
+        //                 "max_price_shock" => "20",
+        //                 "max_short_notional_limit" => "2000",
+        //                 "options_contingency_margin_percent" => "1",
+        //                 "options_discount_range" => "10",
+        //                 "options_liq_band_range_percentage" => "25",
+        //                 "settling_asset" => "USDT",
+        //                 "sort_priority" => 5,
+        //                 "underlying_asset" => "AVAX",
+        //                 "volatility_down_shock" => "30",
+        //                 "volatility_up_shock" => "45"
+        //               ),
+        //               ...
+        //             ),
+        //             "portfolio_enabled_contracts" => array(
+        //               "futures",
+        //               "perpetual_futures",
+        //               "call_options",
+        //               "put_options"
+        //             )
+        //           ),
+        //           "server_time" => 1650640673500273,
+        //           "trade_farming_daily_reward" => "100000",
+        //           "circulating_supply" => "140000000",
+        //           "circulating_supply_update_time" => "1636752800",
+        //           "deto_referral_mining_daily_reward" => "0",
+        //           "deto_total_reward_pool" => "100000000",
+        //           "deto_trade_mining_daily_reward" => "0",
+        //           "kyc_deposit_limit" => "20",
+        //           "kyc_withdrawal_limit" => "10000",
+        //           "maintenance_start_time" => "1650387600000000",
+        //           "msp_deto_commission_percent" => "25",
+        //           "under_maintenance" => "false"
+        //         ),
+        //         "success" => true
+        //     }
+        //
         $result = $this->safe_value($response, 'result', array());
-        $underMaintenance = $this->safe_value($result, 'under_maintenance');
+        $underMaintenance = $this->safe_string($result, 'under_maintenance');
         $status = ($underMaintenance === 'true') ? 'maintenance' : 'ok';
-        $updated = $this->safe_integer_product($result, 'server_time', 0.001);
-        $this->status = array_merge($this->status, array(
+        $updated = $this->safe_integer_product($result, 'server_time', 0.001, $this->milliseconds());
+        return array(
             'status' => $status,
             'updated' => $updated,
-        ));
-        return $this->status;
+            'eta' => null,
+            'url' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_currencies($params = array ()) {
@@ -261,6 +312,8 @@ class delta extends Exchange {
                 'name' => $this->safe_string($currency, 'name'),
                 'info' => $currency, // the original payload
                 'active' => $active,
+                'deposit' => $depositsEnabled,
+                'withdraw' => $withdrawalsEnabled,
                 'fee' => $this->safe_number($currency, 'base_withdrawal_fee'),
                 'precision' => 1 / pow(10, $precision),
                 'limits' => array(
@@ -369,76 +422,105 @@ class delta extends Exchange {
             // $settlingAsset = $this->safe_value($market, 'settling_asset', array());
             $quotingAsset = $this->safe_value($market, 'quoting_asset', array());
             $underlyingAsset = $this->safe_value($market, 'underlying_asset', array());
+            $settlingAsset = $this->safe_value($market, 'settling_asset');
             $baseId = $this->safe_string($underlyingAsset, 'symbol');
             $quoteId = $this->safe_string($quotingAsset, 'symbol');
+            $settleId = $this->safe_string($settlingAsset, 'symbol');
             $id = $this->safe_string($market, 'symbol');
             $numericId = $this->safe_integer($market, 'id');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $id;
-            $swap = false;
-            $future = false;
-            $option = false;
-            if ($type === 'perpetual_futures') {
-                $type = 'swap';
-                $swap = true;
-                $future = false;
-                $option = false;
-                if (mb_strpos($id, '_') === false) {
-                    $symbol = $base . '/' . $quote;
+            $settle = $this->safe_currency_code($settleId);
+            $callOptions = ($type === 'call_options');
+            $putOptions = ($type === 'put_options');
+            $moveOptions = ($type === 'move_options');
+            $spot = ($type === 'spot');
+            $swap = ($type === 'perpetual_futures');
+            $future = ($type === 'futures');
+            $option = ($callOptions || $putOptions || $moveOptions);
+            $strike = $this->safe_string($market, 'strike_price');
+            $expiryDatetime = $this->safe_string($market, 'settlement_time');
+            $expiry = $this->parse8601($expiryDatetime);
+            $contractSize = $this->safe_number($market, 'contract_value');
+            $linear = ($settle === $base);
+            $optionType = null;
+            $symbol = $base . '/' . $quote;
+            if ($swap || $future || $option) {
+                $symbol = $symbol . ':' . $settle;
+                if ($future || $option) {
+                    $symbol = $symbol . '-' . $this->yymmdd($expiry);
+                    if ($option) {
+                        $type = 'option';
+                        $letter = 'C';
+                        $optionType = 'call';
+                        if ($putOptions) {
+                            $letter = 'P';
+                            $optionType = 'put';
+                        } else if ($moveOptions) {
+                            $letter = 'M';
+                            $optionType = 'move';
+                        }
+                        $symbol = $symbol . ':' . $strike . ':' . $letter;
+                    } else {
+                        $type = 'future';
+                    }
+                } else {
+                    $type = 'swap';
                 }
-            } else if (($type === 'call_options') || ($type === 'put_options') || ($type === 'move_options')) {
-                $type = 'option';
-                $swap = false;
-                $option = true;
-                $future = false;
-            } else if ($type === 'futures') {
-                $type = 'future';
-                $swap = false;
-                $option = false;
-                $future = true;
+            } else {
+                $symbol = $id;
             }
-            $precision = array(
-                'amount' => 1.0, // number of contracts
-                'price' => $this->safe_number($market, 'tick_size'),
-            );
-            $limits = array(
-                'amount' => array(
-                    'min' => 1.0,
-                    'max' => $this->safe_number($market, 'position_size_limit'),
-                ),
-                'price' => array(
-                    'min' => $precision['price'],
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => $this->safe_number($market, 'min_size'),
-                    'max' => null,
-                ),
-            );
             $state = $this->safe_string($market, 'state');
-            $active = ($state === 'live');
-            $maker = $this->safe_number($market, 'maker_commission_rate');
-            $taker = $this->safe_number($market, 'taker_commission_rate');
             $result[] = array(
                 'id' => $id,
                 'numericId' => $numericId,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => $settleId,
                 'type' => $type,
-                'spot' => false,
-                'option' => $option,
+                'spot' => $spot,
+                'margin' => $spot ? null : false,
                 'swap' => $swap,
                 'future' => $future,
-                'maker' => $maker,
-                'taker' => $taker,
-                'precision' => $precision,
-                'limits' => $limits,
+                'option' => $option,
+                'active' => ($state === 'live'),
+                'contract' => !$spot,
+                'linear' => $spot ? null : $linear,
+                'inverse' => $spot ? null : !$linear,
+                'taker' => $this->safe_number($market, 'taker_commission_rate'),
+                'maker' => $this->safe_number($market, 'maker_commission_rate'),
+                'contractSize' => $contractSize,
+                'expiry' => $expiry,
+                'expiryDatetime' => $expiryDatetime,
+                'strike' => $this->parse_number($strike),
+                'optionType' => $optionType,
+                'precision' => array(
+                    'amount' => $this->parse_number('1'), // number of contracts
+                    'price' => $this->safe_number($market, 'tick_size'),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $this->parse_number('1'),
+                        'max' => $this->safe_number($market, 'position_size_limit'),
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => $this->safe_number($market, 'min_size'),
+                        'max' => null,
+                    ),
+                ),
                 'info' => $market,
-                'active' => $active,
             );
         }
         return $result;
@@ -468,22 +550,21 @@ class delta extends Exchange {
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.001);
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_number($ticker, 'close');
-        $open = $this->safe_number($ticker, 'open');
-        $baseVolume = $this->safe_number($ticker, 'volume');
-        $quoteVolume = $this->safe_number($ticker, 'turnover');
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
+        $last = $this->safe_string($ticker, 'close');
+        $open = $this->safe_string($ticker, 'open');
+        $baseVolume = $this->safe_string($ticker, 'volume');
+        $quoteVolume = $this->safe_string($ticker, 'turnover');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
             'askVolume' => null,
-            'vwap' => $vwap,
+            'vwap' => null,
             'open' => $open,
             'close' => $last,
             'last' => $last,
@@ -494,7 +575,7 @@ class delta extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -650,9 +731,6 @@ class delta extends Exchange {
         $timestamp = $this->safe_integer_product($trade, 'timestamp', 0.001, $timestamp);
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'size');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $product = $this->safe_value($trade, 'product', array());
         $marketId = $this->safe_string($product, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
@@ -671,18 +749,18 @@ class delta extends Exchange {
         if ($type !== null) {
             $type = str_replace('_order', '', $type);
         }
-        $feeCost = $this->safe_number($trade, 'commission');
+        $feeCostString = $this->safe_string($trade, 'commission');
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $settlingAsset = $this->safe_value($product, 'settling_asset', array());
             $feeCurrencyId = $this->safe_string($settlingAsset, 'symbol');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'order' => $orderId,
             'timestamp' => $timestamp,
@@ -690,13 +768,13 @@ class delta extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'takerOrMaker' => $takerOrMaker,
             'fee' => $fee,
             'info' => $trade,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -779,6 +857,23 @@ class delta extends Exchange {
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
+    public function parse_balance($response) {
+        $balances = $this->safe_value($response, 'result', array());
+        $result = array( 'info' => $response );
+        $currenciesByNumericId = $this->safe_value($this->options, 'currenciesByNumericId', array());
+        for ($i = 0; $i < count($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'asset_id');
+            $currency = $this->safe_value($currenciesByNumericId, $currencyId);
+            $code = ($currency === null) ? $currencyId : $currency['code'];
+            $account = $this->account();
+            $account['total'] = $this->safe_string($balance, 'balance');
+            $account['free'] = $this->safe_string($balance, 'available_balance');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         $response = yield $this->privateGetWalletBalances ($params);
@@ -803,23 +898,10 @@ class delta extends Exchange {
         //         "success":true
         //     }
         //
-        $balances = $this->safe_value($response, 'result', array());
-        $result = array( 'info' => $response );
-        $currenciesByNumericId = $this->safe_value($this->options, 'currenciesByNumericId', array());
-        for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
-            $currencyId = $this->safe_string($balance, 'asset_id');
-            $currency = $this->safe_value($currenciesByNumericId, $currencyId);
-            $code = ($currency === null) ? $currencyId : $currency['code'];
-            $account = $this->account();
-            $account['total'] = $this->safe_string($balance, 'balance');
-            $account['free'] = $this->safe_string($balance, 'available_balance');
-            $result[$code] = $account;
-        }
-        return $this->parse_balance($result);
+        return $this->parse_balance($response);
     }
 
-    public function fetch_position($symbol, $params = null) {
+    public function fetch_position($symbol, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -926,8 +1008,8 @@ class delta extends Exchange {
         $remaining = $this->safe_string($order, 'unfilled_size');
         $average = $this->safe_string($order, 'average_fill_price');
         $fee = null;
-        $feeCost = $this->safe_number($order, 'paid_commission');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($order, 'paid_commission');
+        if ($feeCostString !== null) {
             $feeCurrencyCode = null;
             if ($market !== null) {
                 $settlingAsset = $this->safe_value($market['info'], 'settling_asset', array());
@@ -935,11 +1017,11 @@ class delta extends Exchange {
                 $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             }
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,

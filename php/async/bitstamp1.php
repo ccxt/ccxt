@@ -8,7 +8,6 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\BadSymbol;
-use \ccxt\NotSupported;
 use \ccxt\Precise;
 
 class bitstamp1 extends Exchange {
@@ -21,15 +20,42 @@ class bitstamp1 extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v1',
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => true,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchLeverage' => false,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOrder' => null,
                 'fetchOrderBook' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
@@ -98,32 +124,38 @@ class bitstamp1 extends Exchange {
         return $this->parse_order_book($orderbook, $symbol, $timestamp);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
-        if ($symbol !== 'BTC/USD') {
-            throw new ExchangeError($this->id . ' ' . $this->version . " fetchTicker doesn't support " . $symbol . ', use it for BTC/USD only');
-        }
-        yield $this->load_markets();
-        $ticker = yield $this->publicGetTicker ($params);
+    public function parse_ticker($ticker, $market = null) {
+        //
+        // {
+        //     "volume" => "2836.47827985",
+        //     "last" => "36544.93",
+        //     "timestamp" => "1643372072",
+        //     "bid" => "36535.79",
+        //     "vwap":"36594.20",
+        //     "high" => "37534.15",
+        //     "low" => "35511.32",
+        //     "ask" => "36548.47",
+        //     "open" => 37179.62
+        // }
+        //
+        $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
-        $vwap = $this->safe_number($ticker, 'vwap');
-        $baseVolume = $this->safe_number($ticker, 'volume');
-        $quoteVolume = null;
-        if ($baseVolume !== null && $vwap !== null) {
-            $quoteVolume = $baseVolume * $vwap;
-        }
-        $last = $this->safe_number($ticker, 'last');
-        return array(
+        $vwap = $this->safe_string($ticker, 'vwap');
+        $baseVolume = $this->safe_string($ticker, 'volume');
+        $quoteVolume = Precise::string_mul($baseVolume, $vwap);
+        $last = $this->safe_string($ticker, 'last');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
-            'open' => $this->safe_number($ticker, 'open'),
+            'open' => $this->safe_string($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
@@ -133,43 +165,56 @@ class bitstamp1 extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market, false);
+    }
+
+    public function fetch_ticker($symbol, $params = array ()) {
+        if ($symbol !== 'BTC/USD') {
+            throw new ExchangeError($this->id . ' ' . $this->version . " fetchTicker doesn't support " . $symbol . ', use it for BTC/USD only');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $ticker = yield $this->publicGetTicker ($params);
+        //
+        // {
+        //     "volume" => "2836.47827985",
+        //     "last" => "36544.93",
+        //     "timestamp" => "1643372072",
+        //     "bid" => "36535.79",
+        //     "vwap":"36594.20",
+        //     "high" => "37534.15",
+        //     "low" => "35511.32",
+        //     "ask" => "36548.47",
+        //     "open" => 37179.62
+        // }
+        //
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_trade($trade, $market = null) {
         $timestamp = $this->safe_timestamp_2($trade, 'date', 'datetime');
         $side = ($trade['type'] === 0) ? 'buy' : 'sell';
         $orderId = $this->safe_string($trade, 'order_id');
-        if (is_array($trade) && array_key_exists('currency_pair', $trade)) {
-            if (is_array($this->markets_by_id) && array_key_exists($trade['currency_pair'], $this->markets_by_id)) {
-                $market = $this->markets_by_id[$trade['currency_pair']];
-            }
-        }
         $id = $this->safe_string($trade, 'tid');
-        $priceString = $this->safe_string($trade, 'price');
-        $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        return array(
+        $price = $this->safe_string($trade, 'price');
+        $amount = $this->safe_string($trade, 'amount');
+        $marketId = $this->safe_string($trade, 'currency_pair');
+        $market = $this->safe_market($marketId, $market);
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'order' => $orderId,
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -185,21 +230,25 @@ class bitstamp1 extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_balance($params = array ()) {
-        $balance = yield $this->privatePostBalance ($params);
-        $result = array( 'info' => $balance );
+    public function parse_balance($response) {
+        $result = array( 'info' => $response );
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
             $currency = $this->currency($code);
             $currencyId = $currency['id'];
             $account = $this->account();
-            $account['free'] = $this->safe_string($balance, $currencyId . '_available');
-            $account['used'] = $this->safe_string($balance, $currencyId . '_reserved');
-            $account['total'] = $this->safe_string($balance, $currencyId . '_balance');
+            $account['free'] = $this->safe_string($response, $currencyId . '_available');
+            $account['used'] = $this->safe_string($response, $currencyId . '_reserved');
+            $account['total'] = $this->safe_string($response, $currencyId . '_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $response = yield $this->privatePostBalance ($params);
+        return $this->parse_balance($response);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -258,10 +307,6 @@ class bitstamp1 extends Exchange {
         );
         $response = yield $this->privatePostOpenOrdersId (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
-    }
-
-    public function fetch_order($id, $symbol = null, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchOrder is not implemented yet');
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

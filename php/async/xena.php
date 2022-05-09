@@ -19,20 +19,43 @@ class xena extends Exchange {
             'id' => 'xena',
             'name' => 'Xena Exchange',
             'countries' => array( 'VC', 'UK' ),
-            'rateLimit' => 100,
+            // per second rate limits are far lower than the equivalent hourly
+            // requests per second rounded down (3dp)
+            // relative weight costs rounded up (3dp)
+            // 1 hour = 3600 seconds
+            // Order Cancellations => 100k per hour => 100 000 / 3600 = 27.777 requests per second => rateLimit = 1000ms / 27.777 = 36.001008 ms between requests => 36.1 (safety)
+            // New Orders => 30k per hour => 30 000 / 3600 = 8.333 requests per second => cost = 27.777 / 8.333 = 3.333373335 => 3.334
+            // Heartbeat => 30k per hour => 30 000 / 3600 = 8.333 requests per second => cost = 27.777 / 8.333 = 3.333373335 => 3.334
+            // Candles => 5000 per hour => 5000 /  3600 = 1.388 requests per second => cost = 27.777 / 1.388 = 20.01224784 => 20.013
+            // Dom (market data) => 5000 per hour => 5000 /  3600 = 1.388 requests per second => cost = 27.777 / 1.388 = 20.01224784 => 20.013
+            // All snapshot requests (balances, active orders and trade history, positions) => 500 per hour => 0.138 requests per second => cost = 27.777 / 0.138 = 201.2826087 => 201.283
+            'rateLimit' => 36.1,
             'has' => array(
+                'CORS' => null,
+                'spot' => false,
+                'margin' => false,
+                'swap' => null, // has but not fully implemented
+                'future' => null, // has but not fully implemented
+                'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'editOrder' => true,
+                'fetchAccounts' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchLedger' => true,
+                'fetchLeverageTiers' => true,
+                'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -42,7 +65,13 @@ class xena extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
+                'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -57,7 +86,7 @@ class xena extends Exchange {
                 ),
                 'www' => 'https://xena.exchange',
                 'doc' => 'https://support.xena.exchange/support/solutions/44000808700',
-                'fees' => 'https://trading.xena.exchange/en/platform-specification/fee-schedule',
+                'fees' => 'https://trading.xena.exchange/en/contracts/terms-and-condition',
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -73,55 +102,55 @@ class xena extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'common/currencies',
-                        'common/instruments',
-                        'common/features',
-                        'common/commissions',
-                        'common/news',
-                        'market-data/candles/{marketId}/{timeframe}',
-                        'market-data/market-watch',
-                        'market-data/dom/{symbol}',
-                        'market-data/candles/{symbol}/{timeframe}',
-                        'market-data/trades/{symbol}',
-                        'market-data/server-time',
-                        'market-data/v2/candles/{symbol}/{timeframe}',
-                        'market-data/v2/trades/{symbol}',
-                        'market-data/v2/dom/{symbol}/',
-                        'market-data/v2/server-time',
+                        'common/currencies' => 20.013,
+                        'common/instruments' => 20.013,
+                        'common/features' => 20.013,
+                        'common/commissions' => 20.013,
+                        'common/news' => 20.013,
+                        'market-data/candles/{marketId}/{timeframe}' => 20.013,
+                        'market-data/market-watch' => 20.013,
+                        'market-data/dom/{symbol}' => 20.013,
+                        'market-data/candles/{symbol}/{timeframe}' => 20.013,
+                        'market-data/trades/{symbol}' => 20.013,
+                        'market-data/server-time' => 20.013,
+                        'market-data/v2/candles/{symbol}/{timeframe}' => 20.013,
+                        'market-data/v2/trades/{symbol}' => 20.013,
+                        'market-data/v2/dom/{symbol}/' => 20.013,
+                        'market-data/v2/server-time' => 20.013,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'trading/accounts/{accountId}/order',
-                        'trading/accounts/{accountId}/active-orders',
-                        'trading/accounts/{accountId}/last-order-statuses',
-                        'trading/accounts/{accountId}/positions',
-                        'trading/accounts/{accountId}/positions-history',
-                        'trading/accounts/{accountId}/margin-requirements',
-                        'trading/accounts',
-                        'trading/accounts/{accountId}/balance',
-                        'trading/accounts/{accountId}/trade-history',
-                        // 'trading/accounts/{accountId}/trade-history?symbol=BTC/USDT&client_order_id=EMBB8Veke&trade_id=220143254',
-                        'transfers/accounts',
-                        'transfers/accounts/{accountId}',
-                        'transfers/accounts/{accountId}/deposit-address/{currency}',
-                        'transfers/accounts/{accountId}/deposits',
-                        'transfers/accounts/{accountId}/trusted-addresses',
-                        'transfers/accounts/{accountId}/withdrawals',
-                        'transfers/accounts/{accountId}/balance-history',
-                        // 'transfers/accounts/{accountId}/balance-history?currency={currency}&from={time}&to={time}&kind={kind}&kind={kind}',
-                        // 'transfers/accounts/{accountId}/balance-history?page={page}&limit={limit}',
-                        // 'transfers/accounts/{accountId}/balance-history?txid=3e1db982c4eed2d6355e276c5bae01a52a27c9cef61574b0e8c67ee05fc26ccf',
+                        'trading/accounts/{accountId}/order' => 50,
+                        'trading/accounts/{accountId}/active-orders' => 50,
+                        'trading/accounts/{accountId}/last-order-statuses' => 50,
+                        'trading/accounts/{accountId}/positions' => 50,
+                        'trading/accounts/{accountId}/positions-history' => 50,
+                        'trading/accounts/{accountId}/margin-requirements' => 50,
+                        'trading/accounts' => 50,
+                        'trading/accounts/{accountId}/balance' => 50, // TESTING (50 works)
+                        'trading/accounts/{accountId}/trade-history' => 50,
+                        // 'trading/accounts/{accountId}/trade-history?symbol=BTC/USDT&client_order_id=EMBB8Veke&trade_id=2205043254' => 50,
+                        'transfers/accounts' => 50,
+                        'transfers/accounts/{accountId}' => 50,
+                        'transfers/accounts/{accountId}/deposit-address/{currency}' => 50,
+                        'transfers/accounts/{accountId}/deposits' => 100, // TESTING
+                        'transfers/accounts/{accountId}/trusted-addresses' => 50,
+                        'transfers/accounts/{accountId}/withdrawals' => 50,
+                        'transfers/accounts/{accountId}/balance-history' => 50,
+                        // 'transfers/accounts/{accountId}/balance-history?currency={currency}&from={time}&to={time}&kind={kind}&kind={kind}' => 50,
+                        // 'transfers/accounts/{accountId}/balance-history?page={page}&limit={limit}' => 50,
+                        // 'transfers/accounts/{accountId}/balance-history?txid=3e50db982c4eed2d6355e276c5bae01a52a27c9cef61574b0e8c67ee05fc26ccf' => 50,
                     ),
                     'post' => array(
-                        'trading/order/new',
-                        'trading/order/heartbeat',
-                        'trading/order/cancel',
-                        'trading/order/mass-cancel',
-                        'trading/order/replace',
-                        'trading/position/maintenance',
-                        'transfers/accounts/{accountId}/withdrawals',
-                        'transfers/accounts/{accountId}/deposit-address/{currency}',
+                        'trading/order/new' => 3.334,
+                        'trading/order/heartbeat' => 3.334,
+                        'trading/order/cancel' => 1,
+                        'trading/order/mass-cancel' => 1,
+                        'trading/order/replace' => 3.334,
+                        'trading/position/maintenance' => 3.334,
+                        'transfers/accounts/{accountId}/withdrawals' => 3.334,
+                        'transfers/accounts/{accountId}/deposit-address/{currency}' => 3.334,
                     ),
                 ),
             ),
@@ -178,6 +207,12 @@ class xena extends Exchange {
         $response = yield $this->publicGetCommonInstruments ($params);
         //
         //     array(
+        //         array(
+        //             "type" => "Index",
+        //             "symbol" => ".ADAUSD",
+        //             "tickSize" => 4,
+        //             "enabled" => true
+        //         ),
         //         {
         //             "id":"ETHUSD_3M_250920",
         //             "type":"Margin",
@@ -268,58 +303,75 @@ class xena extends Exchange {
             $marginType = $this->safe_string($market, 'marginType');
             $baseId = $this->safe_string($market, 'baseCurrency');
             $quoteId = $this->safe_string($market, 'quoteCurrency');
+            $settleId = $this->safe_string($market, 'settlCurrency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            $settle = $this->safe_currency_code($settleId);
+            $expiryDate = $this->safe_string($market, 'expiryDate');
+            $expiryTimestamp = $this->parse8601($expiryDate);
             $symbol = $id;
+            $future = false;
+            $swap = false;
             if ($type === 'margin') {
+                $symbol = $base . '/' . $quote . ':' . $settle;
                 if ($marginType === 'XenaFuture') {
+                    $symbol = $symbol . '-' . $this->yymmdd($expiryTimestamp);
                     $type = 'future';
+                    $future = true;
                 } else if ($marginType === 'XenaListedPerpetual') {
                     $type = 'swap';
-                    $symbol = $base . '/' . $quote;
+                    $swap = true;
                 }
             }
-            $future = ($type === 'future');
-            $swap = ($type === 'swap');
-            $pricePrecision = $this->safe_integer_2($market, 'tickSize', 'pricePrecision');
-            $precision = array(
-                'price' => $pricePrecision,
-                'amount' => 0,
-            );
-            $maxCost = $this->safe_number($market, 'maxOrderQty');
-            $minCost = $this->safe_number($market, 'minOrderQuantity');
-            $limits = array(
-                'amount' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'price' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => $minCost,
-                    'max' => $maxCost,
-                ),
-            );
-            $active = $this->safe_value($market, 'enabled', false);
             $inverse = $this->safe_value($market, 'inverse', false);
+            $contract = $swap || $future;
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => $settleId,
                 'numericId' => $numericId,
-                'active' => $active,
                 'type' => $type,
                 'spot' => false,
-                'future' => $future,
+                'margin' => false,
                 'swap' => $swap,
-                'inverse' => $inverse,
-                'precision' => $precision,
-                'limits' => $limits,
+                'future' => $future,
+                'option' => false,
+                'active' => $this->safe_value($market, 'enabled', false),
+                'contract' => $contract,
+                'linear' => $contract ? !$inverse : null,
+                'inverse' => $contract ? $inverse : null,
+                'contractSize' => $this->safe_number($market, 'contractValue'),
+                'expiry' => $expiryTimestamp,
+                'expiryDatetime' => $this->iso8601($expiryTimestamp),
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => intval('0'),
+                    'price' => $this->safe_integer_2($market, 'tickSize', 'pricePrecision'),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => $this->safe_number($market, 'minOrderQuantity'),
+                        'max' => $this->safe_number($market, 'maxOrderQty'),
+                    ),
+                ),
                 'info' => $market,
             );
         }
@@ -372,6 +424,8 @@ class xena extends Exchange {
                 'info' => $currency,
                 'name' => $name,
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => $this->safe_number($withdraw, 'commission'),
                 'precision' => $precision,
                 'limits' => array(
@@ -408,20 +462,20 @@ class xena extends Exchange {
         $timestamp = $this->milliseconds();
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_number($ticker, 'lastPx');
-        $open = $this->safe_number($ticker, 'firstPx');
-        $buyVolume = $this->safe_number($ticker, 'buyVolume');
-        $sellVolume = $this->safe_number($ticker, 'sellVolume');
+        $last = $this->safe_string($ticker, 'lastPx');
+        $open = $this->safe_string($ticker, 'firstPx');
+        $buyVolume = $this->safe_string($ticker, 'buyVolume');
+        $sellVolume = $this->safe_string($ticker, 'sellVolume');
         $baseVolume = $this->sum($buyVolume, $sellVolume);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'highPx'),
-            'low' => $this->safe_number($ticker, 'lowPx'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'high' => $this->safe_string($ticker, 'highPx'),
+            'low' => $this->safe_string($ticker, 'lowPx'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => $open,
@@ -434,7 +488,7 @@ class xena extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -443,7 +497,7 @@ class xena extends Exchange {
         if (is_array($tickers) && array_key_exists($symbol, $tickers)) {
             return $tickers[$symbol];
         }
-        throw new BadSymbol($this->id . ' fetchTicker could not find a ticker with $symbol ' . $symbol);
+        throw new BadSymbol($this->id . ' fetchTicker() could not find a ticker with $symbol ' . $symbol);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -509,7 +563,10 @@ class xena extends Exchange {
         $mdEntry = $this->safe_value($response, 'mdEntry', array());
         $mdEntriesByType = $this->group_by($mdEntry, 'mdEntryType');
         $lastUpdateTime = $this->safe_integer($response, 'lastUpdateTime');
-        $timestamp = intval($lastUpdateTime / 1000000);
+        $timestamp = null;
+        if ($lastUpdateTime !== null) {
+            $timestamp = intval($lastUpdateTime / 1000000);
+        }
         return $this->parse_order_book($mdEntriesByType, $symbol, $timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
     }
 
@@ -574,6 +631,28 @@ class xena extends Exchange {
         return $account['id'];
     }
 
+    public function parse_balance($response) {
+        $result = array( 'info' => $response );
+        $timestamp = null;
+        $balances = $this->safe_value($response, 'balances', array());
+        for ($i = 0; $i < count($balances); $i++) {
+            $balance = $balances[$i];
+            $lastUpdateTime = $this->safe_string($balance, 'lastUpdateTime');
+            $lastUpdated = mb_substr($lastUpdateTime, 0, 13 - 0);
+            $currentTimestamp = intval($lastUpdated);
+            $timestamp = ($timestamp === null) ? $currentTimestamp : max ($timestamp, $currentTimestamp);
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'onHold');
+            $result[$code] = $account;
+        }
+        $result['timestamp'] = $timestamp;
+        $result['datetime'] = $this->iso8601($timestamp);
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         yield $this->load_accounts();
@@ -597,28 +676,12 @@ class xena extends Exchange {
         //         )
         //     }
         //
-        $result = array( 'info' => $response );
-        $timestamp = null;
-        $balances = $this->safe_value($response, 'balances', array());
-        for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
-            $lastUpdateTime = $this->safe_string($balance, 'lastUpdateTime');
-            $lastUpdated = mb_substr($lastUpdateTime, 0, 13 - 0);
-            $currentTimestamp = intval($lastUpdated);
-            $timestamp = ($timestamp === null) ? $currentTimestamp : max ($timestamp, $currentTimestamp);
-            $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['free'] = $this->safe_string($balance, 'available');
-            $account['used'] = $this->safe_string($balance, 'onHold');
-            $result[$code] = $account;
-        }
-        $result['timestamp'] = $timestamp;
-        $result['datetime'] = $this->iso8601($timestamp);
-        return $this->parse_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // fetchTrades (public)
         //
         //     {
         //         "mdUpdateAction":"0",
@@ -630,7 +693,7 @@ class xena extends Exchange {
         //         "aggressorSide":"1"
         //     }
         //
-        // fetchMyTrades
+        // fetchMyTrades (private)
         //
         //     {
         //         "msgType":"8",
@@ -671,22 +734,19 @@ class xena extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $priceString = $this->safe_string_2($trade, 'lastPx', 'mdEntryPx');
         $amountString = $this->safe_string_2($trade, 'lastQty', 'mdEntrySize');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'commission');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($trade, 'commission');
+        if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'commCurrency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
-            $feeRate = $this->safe_number($trade, 'commRate');
+            $feeRateString = $this->safe_string($trade, 'commRate');
             $fee = array(
-                'cost' => $feeCost,
-                'rate' => $feeRate,
+                'cost' => $feeCostString,
+                'rate' => $feeRateString,
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -696,11 +756,11 @@ class xena extends Exchange {
             'order' => $orderId,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -947,7 +1007,7 @@ class xena extends Exchange {
         } else if ($type === '4') {
             $type = 'stop-limit';
         }
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,
@@ -984,7 +1044,7 @@ class xena extends Exchange {
         );
         $orderType = $this->safe_string($orderTypes, $type);
         if ($orderType === null) {
-            throw new InvalidOrder($this->id . ' createOrder does not support order $type ' . $type . ', supported order types are $market, limit, stop, stop-limit');
+            throw new InvalidOrder($this->id . ' createOrder() does not support order $type ' . $type . ', supported order types are $market, limit, stop, stop-limit');
         }
         $orderSides = array(
             'buy' => '1',
@@ -992,7 +1052,7 @@ class xena extends Exchange {
         );
         $orderSide = $this->safe_string($orderSides, $side);
         if ($orderSide === null) {
-            throw new InvalidOrder($this->id . ' createOrder does not support order $side ' . $side . ', supported order sides are buy, sell');
+            throw new InvalidOrder($this->id . ' createOrder() does not support order $side ' . $side . ', supported order sides are buy, sell');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -1465,12 +1525,14 @@ class xena extends Exchange {
         $amount = $this->safe_number($transaction, 'amount');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $fee = null;
+        $network = $this->safe_string($transaction, 'blockchain');
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => $network,
             'addressFrom' => $addressFrom,
             'addressTo' => $addressTo,
             'address' => $address,
@@ -1648,6 +1710,187 @@ class xena extends Exchange {
         //     )
         //
         return $this->parse_ledger($response, $currency, $since, $limit);
+    }
+
+    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->publicGetCommonInstruments ($params);
+        //
+        //    array(
+        //        {
+        //            "id" => "XBTUSD_3M_240622",
+        //            "type" => "Margin",
+        //            "marginType" => "XenaFuture",
+        //            "symbol" => "XBTUSD_3M_240622",
+        //            "baseCurrency" => "BTC",
+        //            "quoteCurrency" => "USD",
+        //            "settlCurrency" => "USDC",
+        //            "tickSize" => 0,
+        //            "minOrderQuantity" => "0.0001",
+        //            "orderQtyStep" => "0.0001",
+        //            "limitOrderMaxDistance" => "10",
+        //            "priceInputMask" => "00000.0",
+        //            "enabled" => true,
+        //            "liquidationMaxDistance" => "0.01",
+        //            "contractValue" => "1",
+        //            "contractCurrency" => "BTC",
+        //            "lotSize" => "1",
+        //            "maxOrderQty" => "10",
+        //            "maxPosVolume" => "200",
+        //            "mark" => ".XBTUSD_3M_240622",
+        //            "underlying" => ".BTC3_TWAP",
+        //            "openInterest" => ".XBTUSD_3M_240622_OpenInterest",
+        //            "addUvmToFreeMargin" => "ProfitAndLoss",
+        //            "margin" => array(
+        //                "netting" => "PositionsAndOrders",
+        //                "rates" => array(
+        //                    array( "maxVolume" => "10", "initialRate" => "0.05", "maintenanceRate" => "0.025" ),
+        //                    array( "maxVolume" => "20", "initialRate" => "0.1", "maintenanceRate" => "0.05" ),
+        //                    array( "maxVolume" => "30", "initialRate" => "0.2", "maintenanceRate" => "0.1" ),
+        //                    array( "maxVolume" => "40", "initialRate" => "0.3", "maintenanceRate" => "0.15" ),
+        //                    array( "maxVolume" => "60", "initialRate" => "0.4", "maintenanceRate" => "0.2" ),
+        //                    array( "maxVolume" => "150", "initialRate" => "0.5", "maintenanceRate" => "0.25" ),
+        //                    array( "maxVolume" => "200", "initialRate" => "1", "maintenanceRate" => "0.5" )
+        //               ),
+        //               "rateMultipliers" => array(
+        //                    "LimitBuy" => "1",
+        //                    "LimitSell" => "1",
+        //                    "Long" => "1",
+        //                    "MarketBuy" => "1",
+        //                    "MarketSell" => "1",
+        //                    "Short" => "1",
+        //                    "StopBuy" => "0",
+        //                    "StopSell" => "0"
+        //                }
+        //            ),
+        //            "clearing" => array( "enabled" => true, "index" => ".XBTUSD_3M_240622" ),
+        //            "riskAdjustment" => array( "enabled" => true, "index" => ".RiskAdjustment_IR" ),
+        //            "expiration" => array( "enabled" => true, "index" => ".BTC3_TWAP" ),
+        //            "pricePrecision" => 1,
+        //            "priceRange" => array(
+        //                "enabled" => true,
+        //                "distance" => "0.2",
+        //                "movingBoundary" => "0",
+        //                "lowIndex" => ".XBTUSD_3M_240622_LOWRANGE",
+        //                "highIndex" => ".XBTUSD_3M_240622_HIGHRANGE"
+        //            ),
+        //            "priceLimits" => array(
+        //                "enabled" => true,
+        //                "distance" => "0.5",
+        //                "movingBoundary" => "0",
+        //                "lowIndex" => ".XBTUSD_3M_240622_LOWLIMIT",
+        //                "highIndex" => ".XBTUSD_3M_240622_HIGHLIMIT"
+        //            ),
+        //            "serie" => "XBTUSD",
+        //            "tradingStartDate" => "2021-12-31 07:00:00",
+        //            "expiryDate" => "2022-06-24 08:00:00"
+        //           ),
+        //           ...
+        //        )
+        //
+        return $this->parse_leverage_tiers($response, $symbols, 'symbol');
+    }
+
+    public function parse_market_leverage_tiers($info, $market) {
+        /**
+         * @ignore
+         * @param {dict} $info Exchange $market response for 1 $market
+         * @param {dict} $market CCXT $market
+         */
+        //
+        //    {
+        //        "id" => "XBTUSD_3M_240622",
+        //        "type" => "Margin",
+        //        "marginType" => "XenaFuture",
+        //        "symbol" => "XBTUSD_3M_240622",
+        //        "baseCurrency" => "BTC",
+        //        "quoteCurrency" => "USD",
+        //        "settlCurrency" => "USDC",
+        //        "tickSize" => 0,
+        //        "minOrderQuantity" => "0.0001",
+        //        "orderQtyStep" => "0.0001",
+        //        "limitOrderMaxDistance" => "10",
+        //        "priceInputMask" => "00000.0",
+        //        "enabled" => true,
+        //        "liquidationMaxDistance" => "0.01",
+        //        "contractValue" => "1",
+        //        "contractCurrency" => "BTC",
+        //        "lotSize" => "1",
+        //        "maxOrderQty" => "10",
+        //        "maxPosVolume" => "200",
+        //        "mark" => ".XBTUSD_3M_240622",
+        //        "underlying" => ".BTC3_TWAP",
+        //        "openInterest" => ".XBTUSD_3M_240622_OpenInterest",
+        //        "addUvmToFreeMargin" => "ProfitAndLoss",
+        //        "margin" => {
+        //            "netting" => "PositionsAndOrders",
+        //            "rates" => array(
+        //                array( "maxVolume" => "10", "initialRate" => "0.05", "maintenanceRate" => "0.025" ),
+        //                array( "maxVolume" => "20", "initialRate" => "0.1", "maintenanceRate" => "0.05" ),
+        //                array( "maxVolume" => "30", "initialRate" => "0.2", "maintenanceRate" => "0.1" ),
+        //                array( "maxVolume" => "40", "initialRate" => "0.3", "maintenanceRate" => "0.15" ),
+        //                array( "maxVolume" => "60", "initialRate" => "0.4", "maintenanceRate" => "0.2" ),
+        //                array( "maxVolume" => "150", "initialRate" => "0.5", "maintenanceRate" => "0.25" ),
+        //                array( "maxVolume" => "200", "initialRate" => "1", "maintenanceRate" => "0.5" )
+        //            ),
+        //            "rateMultipliers" => array(
+        //                "LimitBuy" => "1",
+        //                "LimitSell" => "1",
+        //                "Long" => "1",
+        //                "MarketBuy" => "1",
+        //                "MarketSell" => "1",
+        //                "Short" => "1",
+        //                "StopBuy" => "0",
+        //                "StopSell" => "0"
+        //            }
+        //        ),
+        //        "clearing" => array( "enabled" => true, "index" => ".XBTUSD_3M_240622" ),
+        //        "riskAdjustment" => array( "enabled" => true, "index" => ".RiskAdjustment_IR" ),
+        //        "expiration" => array( "enabled" => true, "index" => ".BTC3_TWAP" ),
+        //        "pricePrecision" => 1,
+        //        "priceRange" => array(
+        //            "enabled" => true,
+        //            "distance" => "0.2",
+        //            "movingBoundary" => "0",
+        //            "lowIndex" => ".XBTUSD_3M_240622_LOWRANGE",
+        //            "highIndex" => ".XBTUSD_3M_240622_HIGHRANGE"
+        //        ),
+        //        "priceLimits" => array(
+        //            "enabled" => true,
+        //            "distance" => "0.5",
+        //            "movingBoundary" => "0",
+        //            "lowIndex" => ".XBTUSD_3M_240622_LOWLIMIT",
+        //            "highIndex" => ".XBTUSD_3M_240622_HIGHLIMIT"
+        //        ),
+        //        "serie" => "XBTUSD",
+        //        "tradingStartDate" => "2021-12-31 07:00:00",
+        //        "expiryDate" => "2022-06-24 08:00:00"
+        //    }
+        //
+        $margin = $this->safe_value($info, 'margin');
+        $rates = $this->safe_value($margin, 'rates');
+        $floor = 0;
+        $id = $this->safe_string($info, 'symbol');
+        $market = $this->safe_market($id, $market);
+        $tiers = array();
+        if ($rates !== null) {
+            for ($j = 0; $j < count($rates); $j++) {
+                $tier = $rates[$j];
+                $cap = $this->safe_number($tier, 'maxVolume');
+                $initialRate = $this->safe_string($tier, 'initialRate');
+                $tiers[] = array(
+                    'tier' => $this->sum($j, 1),
+                    'currency' => $market['base'],
+                    'minNotional' => $floor,
+                    'maxNotional' => $cap,
+                    'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceRate'),
+                    'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialRate)),
+                    'info' => $tier,
+                );
+                $floor = $cap;
+            }
+        }
+        return $tiers;
     }
 
     public function nonce() {

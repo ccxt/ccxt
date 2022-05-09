@@ -11,7 +11,9 @@ from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
@@ -28,21 +30,38 @@ class latoken(Exchange):
             'version': 'v2',
             'rateLimit': 1000,
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': None,  # has but unimplemented
+                'future': None,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCurrencies': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
-                'fetchOrderBook': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': False,
                 'fetchTransactions': True,
+                'fetchTransfer': False,
+                'fetchTransfers': True,
+                'transfer': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg',
@@ -129,10 +148,22 @@ class latoken(Exchange):
                 },
             },
             'commonCurrencies': {
+                'BUX': 'Buxcoin',
+                'CBT': 'Community Business Token',
+                'CTC': 'CyberTronchain',
+                'DMD': 'Diamond Coin',
+                'FREN': 'Frenchie',
+                'GDX': 'GoldenX',
+                'GEC': 'Geco One',
+                'GEM': 'NFTmall',
+                'GMT': 'GMT Token',
+                'IMC': 'IMCoin',
                 'MT': 'Monarch',
                 'TPAY': 'Tetra Pay',
                 'TRADE': 'Smart Trade Coin',
                 'TSL': 'Treasure SL',
+                'UNO': 'Unobtanium',
+                'WAR': 'Warrior Token',
             },
             'exceptions': {
                 'exact': {
@@ -156,11 +187,14 @@ class latoken(Exchange):
                     'UNKNOWN_LOCATION': AuthenticationError,  # user logged from unusual location, email confirmation required.
                     'TOO_MANY_REQUESTS': RateLimitExceeded,  # too many requests at the time. A response header X-Rate-Limit-Remaining indicates the number of allowed request per a period.
                     'INSUFFICIENT_FUNDS': InsufficientFunds,  # {"message":"not enough balance on the spot account for currency(USDT), need(20.000)","error":"INSUFFICIENT_FUNDS","status":"FAILURE"}
+                    'ORDER_VALIDATION': InvalidOrder,  # {"message":"Quantity(0) is not positive","error":"ORDER_VALIDATION","status":"FAILURE"}
                 },
                 'broad': {
                     'invalid API key, signature or digest': AuthenticationError,  # {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
                     'request expired or bad': InvalidNonce,  # {"result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE"}
                     'For input string': BadRequest,  # {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
+                    'Unable to resolve currency by tag': BadSymbol,  # {"message":"Unable to resolve currency by tag(None)","error":"NOT_FOUND","status":"FAILURE"}
+                    'Unable to place order because pair is in inactive state': BadSymbol,  # {"message":"Unable to place order because pair is in inactive state(PAIR_STATUS_INACTIVE)","error":"ORDER_VALIDATION","status":"FAILURE"}
                 },
             },
             'options': {
@@ -172,6 +206,9 @@ class latoken(Exchange):
                 'accounts': {
                     'ACCOUNT_TYPE_WALLET': 'wallet',
                     'ACCOUNT_TYPE_SPOT': 'spot',
+                },
+                'fetchTradingFee': {
+                    'method': 'fetchPrivateTradingFee',  # or 'fetchPublicTradingFee'
                 },
             },
         })
@@ -187,12 +224,6 @@ class latoken(Exchange):
         #     }
         #
         return self.safe_integer(response, 'serverTime')
-
-    def load_time_difference(self, params={}):
-        serverTime = self.fetch_time(params)
-        after = self.milliseconds()
-        self.options['timeDifference'] = after - serverTime
-        return self.options['timeDifference']
 
     def fetch_markets(self, params={}):
         currencies = self.fetch_currencies_from_cache(params)
@@ -264,42 +295,56 @@ class latoken(Exchange):
             if baseCurrency is not None and quoteCurrency is not None:
                 base = self.safe_currency_code(self.safe_string(baseCurrency, 'tag'))
                 quote = self.safe_currency_code(self.safe_string(quoteCurrency, 'tag'))
-                symbol = base + '/' + quote
-                precision = {
-                    'price': self.safe_number(market, 'priceTick'),
-                    'amount': self.safe_number(market, 'quantityTick'),
-                }
                 lowercaseQuote = quote.lower()
                 capitalizedQuote = self.capitalize(lowercaseQuote)
-                limits = {
-                    'amount': {
-                        'min': self.safe_number(market, 'minOrderQuantity'),
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': self.safe_number(market, 'minOrderCost' + capitalizedQuote),
-                        'max': self.safe_number(market, 'maxOrderCost' + capitalizedQuote),
-                    },
-                }
                 status = self.safe_string(market, 'status')
-                active = (status == 'PAIR_STATUS_ACTIVE')
                 result.append({
                     'id': id,
-                    'info': market,
-                    'symbol': symbol,
+                    'symbol': base + '/' + quote,
                     'base': base,
                     'quote': quote,
+                    'settle': None,
                     'baseId': baseId,
                     'quoteId': quoteId,
+                    'settleId': None,
                     'type': 'spot',
                     'spot': True,
-                    'active': active,  # assuming True
-                    'precision': precision,
-                    'limits': limits,
+                    'margin': False,
+                    'swap': False,
+                    'future': False,
+                    'option': False,
+                    'active': (status == 'PAIR_STATUS_ACTIVE'),  # assuming True
+                    'contract': False,
+                    'linear': None,
+                    'inverse': None,
+                    'contractSize': None,
+                    'expiry': None,
+                    'expiryDatetime': None,
+                    'strike': None,
+                    'optionType': None,
+                    'precision': {
+                        'amount': self.safe_number(market, 'quantityTick'),
+                        'price': self.safe_number(market, 'priceTick'),
+                    },
+                    'limits': {
+                        'leverage': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'amount': {
+                            'min': self.safe_number(market, 'minOrderQuantity'),
+                            'max': None,
+                        },
+                        'price': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'cost': {
+                            'min': self.safe_number(market, 'minOrderCost' + capitalizedQuote),
+                            'max': self.safe_number(market, 'maxOrderCost' + capitalizedQuote),
+                        },
+                    },
+                    'info': market,
                 })
         return result
 
@@ -376,6 +421,8 @@ class latoken(Exchange):
                 'name': name,
                 'type': type,
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
@@ -444,7 +491,7 @@ class latoken(Exchange):
             result[code] = account
         result['timestamp'] = maxTimestamp
         result['datetime'] = self.iso8601(maxTimestamp)
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -489,15 +536,15 @@ class latoken(Exchange):
         #
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_number(ticker, 'lastPrice')
-        change = self.safe_number(ticker, 'change24h')
+        last = self.safe_string(ticker, 'lastPrice')
+        change = self.safe_string(ticker, 'change24h')
         timestamp = self.nonce()
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'low': self.safe_number(ticker, 'low'),
-            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'high': self.safe_string(ticker, 'high'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
@@ -511,9 +558,9 @@ class latoken(Exchange):
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': self.safe_number(ticker, 'volume24h'),
+            'quoteVolume': self.safe_string(ticker, 'volume24h'),
             'info': ticker,
-        })
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -658,6 +705,60 @@ class latoken(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
+    def fetch_trading_fee(self, symbol, params={}):
+        method = self.safe_string(params, 'method')
+        params = self.omit(params, 'method')
+        if method is None:
+            options = self.safe_value(self.options, 'fetchTradingFee', {})
+            method = self.safe_string(options, 'method', 'fetchPrivateTradingFee')
+        return getattr(self, method)(symbol, params)
+
+    def fetch_public_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currency': market['baseId'],
+            'quote': market['quoteId'],
+        }
+        response = self.publicGetTradeFeeCurrencyQuote(self.extend(request, params))
+        #
+        #     {
+        #         makerFee: '0.004900000000000000',
+        #         takerFee: '0.004900000000000000',
+        #         type: 'FEE_SCHEME_TYPE_PERCENT_QUOTE',
+        #         take: 'FEE_SCHEME_TAKE_PROPORTION'
+        #     }
+        #
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': self.safe_number(response, 'makerFee'),
+            'taker': self.safe_number(response, 'takerFee'),
+        }
+
+    def fetch_private_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currency': market['baseId'],
+            'quote': market['quoteId'],
+        }
+        response = self.privateGetAuthTradeFeeCurrencyQuote(self.extend(request, params))
+        #
+        #     {
+        #         makerFee: '0.004900000000000000',
+        #         takerFee: '0.004900000000000000',
+        #         type: 'FEE_SCHEME_TYPE_PERCENT_QUOTE',
+        #         take: 'FEE_SCHEME_TAKE_PROPORTION'
+        #     }
+        #
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': self.safe_number(response, 'makerFee'),
+            'taker': self.safe_number(response, 'takerFee'),
+        }
+
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {
@@ -778,7 +879,8 @@ class latoken(Exchange):
         side = None
         if orderSide is not None:
             parts = orderSide.split('_')
-            side = self.safe_string_lower(parts, len(parts) - 1)
+            partsLength = len(parts)
+            side = self.safe_string_lower(parts, partsLength - 1)
         type = self.parse_order_type(self.safe_string(order, 'type'))
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'quantity')
@@ -793,7 +895,7 @@ class latoken(Exchange):
                 status = 'open'
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'condition'))
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -1079,6 +1181,7 @@ class latoken(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': addressTo,
@@ -1106,6 +1209,132 @@ class latoken(Exchange):
             'TRANSACTION_TYPE_WITHDRAWAL': 'withdrawal',
         }
         return self.safe_string(types, type, type)
+
+    def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        response = self.privateGetAuthTransfer(params)
+        #
+        #     {
+        #         "hasNext": True,
+        #         "content": [
+        #             {
+        #             "id": "ebd6312f-cb4f-45d1-9409-4b0b3027f21e",
+        #             "status": "TRANSFER_STATUS_COMPLETED",
+        #             "type": "TRANSFER_TYPE_WITHDRAW_SPOT",
+        #             "fromAccount": "c429c551-adbb-4078-b74b-276bea308a36",
+        #             "toAccount": "631c6203-bd62-4734-a04d-9b2a951f43b9",
+        #             "transferringFunds": 1259.0321785,
+        #             "usdValue": 1259.032179,
+        #             "rejectReason": null,
+        #             "timestamp": 1633515579530,
+        #             "direction": "INTERNAL",
+        #             "method": "TRANSFER_METHOD_UNKNOWN",
+        #             "recipient": null,
+        #             "sender": null,
+        #             "currency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        #             "codeRequired": False,
+        #             "fromUser": "ce555f3f-585d-46fb-9ae6-487f66738073",
+        #             "toUser": "ce555f3f-585d-46fb-9ae6-487f66738073",
+        #             "fee": 0
+        #             },
+        #             ...
+        #         ],
+        #         "first": True,
+        #         "pageSize": 20,
+        #         "hasContent": True
+        #     }
+        #
+        transfers = self.safe_value(response, 'content', [])
+        return self.parse_transfers(transfers, currency, since, limit)
+
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        method = None
+        if toAccount.includes('@'):
+            method = 'privatePostAuthTransferEmail'
+        elif len(toAccount) == 36:
+            method = 'privatePostAuthTransferId'
+        else:
+            method = 'privatePostAuthTransferPhone'
+        request = {
+            'currency': currency['id'],
+            'recipient': toAccount,
+            'value': self.currency_to_precision(code, amount),
+        }
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "id": "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
+        #         "status": "TRANSFER_STATUS_COMPLETED",
+        #         "type": "TRANSFER_TYPE_DEPOSIT_SPOT",
+        #         "fromAccount": "3bf61015-bf32-47a6-b237-c9f70df772ad",
+        #         "toAccount": "355eb279-7c7e-4515-814a-575a49dc0325",
+        #         "transferringFunds": "500000.000000000000000000",
+        #         "usdValue": "0.000000000000000000",
+        #         "rejectReason": "",
+        #         "timestamp": 1576844438402,
+        #         "direction": "INTERNAL",
+        #         "method": "TRANSFER_METHOD_UNKNOWN",
+        #         "recipient": "",
+        #         "sender": "",
+        #         "currency": "40af7879-a8cc-4576-a42d-7d2749821b58",
+        #         "codeRequired": False,
+        #         "fromUser": "cd555555-666d-46fb-9ae6-487f66738073",
+        #         "toUser": "cd555555-666d-46fb-9ae6-487f66738073",
+        #         "fee": 0
+        #     }
+        #
+        return self.parse_transfer(response)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         "id": "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
+        #         "status": "TRANSFER_STATUS_COMPLETED",
+        #         "type": "TRANSFER_TYPE_DEPOSIT_SPOT",
+        #         "fromAccount": "3bf61015-bf32-47a6-b237-c9f70df772ad",
+        #         "toAccount": "355eb279-7c7e-4515-814a-575a49dc0325",
+        #         "transferringFunds": "500000.000000000000000000",
+        #         "usdValue": "0.000000000000000000",
+        #         "rejectReason": "",
+        #         "timestamp": 1576844438402,
+        #         "direction": "INTERNAL",
+        #         "method": "TRANSFER_METHOD_UNKNOWN",
+        #         "recipient": "",
+        #         "sender": "",
+        #         "currency": "40af7879-a8cc-4576-a42d-7d2749821b58",
+        #         "codeRequired": False,
+        #         "fromUser": "cd555555-666d-46fb-9ae6-487f66738073",
+        #         "toUser": "cd555555-666d-46fb-9ae6-487f66738073",
+        #         "fee": 0
+        #     }
+        #
+        timestamp = self.safe_timestamp(transfer, 'timestamp')
+        currencyId = self.safe_string(transfer, 'currency')
+        status = self.safe_string(transfer, 'status')
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'id'),
+            'timestamp': self.safe_number(transfer),
+            'datetime': self.iso8601(timestamp),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(transfer, 'transferringFunds'),
+            'fromAccount': self.safe_string(transfer, 'fromAccount'),
+            'toAccount': self.safe_string(transfer, 'toAccount'),
+            'status': self.parse_transfer_status(status),
+        }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'TRANSFER_STATUS_COMPLETED': 'ok',
+            'TRANSFER_STATUS_PENDING': 'pending',
+            'TRANSFER_STATUS_REJECTED': 'failed',
+            'TRANSFER_STATUS_UNVERIFIED': 'pending',
+            'TRANSFER_STATUS_CANCELLED': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
 
     def sign(self, path, api='public', method='GET', params=None, headers=None, body=None):
         request = '/' + self.version + '/' + self.implode_params(path, params)

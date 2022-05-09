@@ -33,8 +33,13 @@ class bibox(Exchange):
             'version': 'v1',
             'hostname': 'bibox.com',
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': None,  # has but unimplemented
+                'swap': None,  # has but unimplemented
+                'future': None,
+                'option': None,
+                'cancelOrder': True,
                 'createMarketOrder': None,  # or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder': True,
                 'fetchBalance': True,
@@ -54,8 +59,9 @@ class bibox(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'fetchWithdrawals': True,
-                'publicAPI': None,
                 'withdraw': True,
             },
             'timeframes': {
@@ -113,8 +119,8 @@ class bibox(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'taker': self.parse_number('0.001'),
-                    'maker': self.parse_number('0.0008'),
+                    'taker': self.parse_number('0.002'),
+                    'maker': self.parse_number('0.001'),
                 },
                 'funding': {
                     'tierBased': False,
@@ -151,16 +157,14 @@ class bibox(Exchange):
                 'APENFT(NFT)': 'NFT',
                 'BOX': 'DefiBox',
                 'BPT': 'BlockPool Token',
-                'GTC': 'Game.com',
+                'GMT': 'GMT Token',
                 'KEY': 'Bihu',
                 'MTC': 'MTC Mesh Network',  # conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
                 'NFT': 'NFT Protocol',
                 'PAI': 'PCHAIN',
                 'REVO': 'Revo Network',
+                'STAR': 'Starbase',
                 'TERN': 'Ternio-ERC20',
-            },
-            'options': {
-                'fetchCurrencies': 'fetchCurrenciesPrivate',  # or 'fetchCurrenciesPrivate' with apiKey and secret
             },
         })
 
@@ -229,32 +233,48 @@ class bibox(Exchange):
             spot = True
             areaId = self.safe_integer(market, 'area_id')
             if areaId == 16:
-                type = None
-                spot = False
-            precision = {
-                'amount': self.safe_number(market, 'amount_scale'),
-                'price': self.safe_number(market, 'decimal'),
-            }
+                # TODO: update to v3 api
+                continue
             result.append({
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': type,
                 'spot': spot,
-                'active': True,
-                'info': market,
-                'precision': precision,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': None,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_integer(market, 'amount_scale'),
+                    'price': self.safe_integer(market, 'decimal'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
+                        'min': None,
                         'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
+                        'min': None,
                         'max': None,
                     },
                     'cost': {
@@ -262,38 +282,35 @@ class bibox(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 
     def parse_ticker(self, ticker, market=None):
         # we don't set values that are not defined by the exchange
         timestamp = self.safe_integer(ticker, 'timestamp')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        else:
-            baseId = self.safe_string(ticker, 'coin_symbol')
-            quoteId = self.safe_string(ticker, 'currency_symbol')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-        last = self.safe_number(ticker, 'last')
-        change = self.safe_number(ticker, 'change')
-        baseVolume = self.safe_number_2(ticker, 'vol', 'vol24H')
+        marketId = None
+        baseId = self.safe_string(ticker, 'coin_symbol')
+        quoteId = self.safe_string(ticker, 'currency_symbol')
+        if (baseId is not None) and (quoteId is not None):
+            marketId = baseId + '_' + quoteId
+        market = self.safe_market(marketId, market)
+        last = self.safe_string(ticker, 'last')
+        change = self.safe_string(ticker, 'change')
+        baseVolume = self.safe_string_2(ticker, 'vol', 'vol24H')
         percentage = self.safe_string(ticker, 'percent')
         if percentage is not None:
             percentage = percentage.replace('%', '')
-            percentage = self.parse_number(percentage)
         return self.safe_ticker({
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'buy'),
-            'bidVolume': None,
-            'ask': self.safe_number(ticker, 'sell'),
-            'askVolume': None,
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
+            'bidVolume': self.safe_string(ticker, 'buy_amount'),
+            'ask': self.safe_string(ticker, 'sell'),
+            'askVolume': self.safe_string(ticker, 'sell_amount'),
             'vwap': None,
             'open': None,
             'close': last,
@@ -303,9 +320,9 @@ class bibox(Exchange):
             'percentage': percentage,
             'average': None,
             'baseVolume': baseVolume,
-            'quoteVolume': self.safe_number(ticker, 'amount'),
+            'quoteVolume': self.safe_string(ticker, 'amount'),
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -330,34 +347,23 @@ class bibox(Exchange):
         timestamp = self.safe_integer_2(trade, 'time', 'createdAt')
         side = self.safe_integer_2(trade, 'side', 'order_side')
         side = 'buy' if (side == 1) else 'sell'
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(trade, 'pair')
-            if marketId is None:
-                baseId = self.safe_string(trade, 'coin_symbol')
-                quoteId = self.safe_string(trade, 'currency_symbol')
-                if (baseId is not None) and (quoteId is not None):
-                    marketId = baseId + '_' + quoteId
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
-        fee = None
-        feeCostString = self.safe_string(trade, 'fee')
-        feeCurrency = self.safe_string(trade, 'fee_symbol')
-        if feeCurrency is not None:
-            if feeCurrency in self.currencies_by_id:
-                feeCurrency = self.currencies_by_id[feeCurrency]['code']
-            else:
-                feeCurrency = self.safe_currency_code(feeCurrency)
-        feeRate = None  # todo: deduce from market if market is defined
+        marketId = self.safe_string(trade, 'pair')
+        if marketId is None:
+            baseId = self.safe_string(trade, 'coin_symbol')
+            quoteId = self.safe_string(trade, 'currency_symbol')
+            if (baseId is not None) and (quoteId is not None):
+                marketId = baseId + '_' + quoteId
+        market = self.safe_market(marketId, market)
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
+        fee = None
+        feeCostString = self.safe_string(trade, 'fee')
         if feeCostString is not None:
+            feeCurrencyId = self.safe_string(trade, 'fee_symbol')
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': Precise.string_neg(feeCostString),
-                'currency': feeCurrency,
-                'rate': feeRate,
+                'currency': feeCurrencyCode,
             }
         id = self.safe_string(trade, 'id')
         return self.safe_trade({
@@ -366,7 +372,7 @@ class bibox(Exchange):
             'order': None,  # Bibox does not have it(documented) yet
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': 'limit',
             'takerOrMaker': None,
             'side': side,
@@ -445,8 +451,10 @@ class bibox(Exchange):
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     async def fetch_currencies(self, params={}):
-        method = self.safe_string(self.options, 'fetchCurrencies', 'fetchCurrenciesPublic')
-        return await getattr(self, method)(params)
+        if self.check_required_credentials(False):
+            return await self.fetch_currencies_private(params)
+        else:
+            return await self.fetch_currencies_public(params)
 
     async def fetch_currencies_public(self, params={}):
         request = {
@@ -490,6 +498,8 @@ class bibox(Exchange):
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': None,
                 'precision': precision,
                 'limits': {
@@ -506,7 +516,7 @@ class bibox(Exchange):
         return result
 
     async def fetch_currencies_private(self, params={}):
-        if not self.apiKey or not self.secret:
+        if not self.check_required_credentials(False):
             raise AuthenticationError(self.id + " fetchCurrencies is an authenticated endpoint, therefore it requires 'apiKey' and 'secret' credentials. If you don't need currency details, set exchange.has['fetchCurrencies'] = False before calling its methods.")
         request = {
             'cmd': 'transfer/coinList',
@@ -598,6 +608,22 @@ class bibox(Exchange):
             }
         return result
 
+    def parse_balance(self, response):
+        outerResult = self.safe_value(response, 'result')
+        firstResult = self.safe_value(outerResult, 0, {})
+        innerResult = self.safe_value(firstResult, 'result')
+        result = {'info': response}
+        assetsList = self.safe_value(innerResult, 'assets_list', [])
+        for i in range(0, len(assetsList)):
+            balance = assetsList[i]
+            currencyId = self.safe_string(balance, 'coin_symbol')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'freeze')
+            result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         type = self.safe_string(params, 'type', 'assets')
@@ -628,20 +654,7 @@ class bibox(Exchange):
         #         ]
         #     }
         #
-        outerResult = self.safe_value(response, 'result')
-        firstResult = self.safe_value(outerResult, 0, {})
-        innerResult = self.safe_value(firstResult, 'result')
-        result = {'info': response}
-        assetsList = self.safe_value(innerResult, 'assets_list', [])
-        for i in range(0, len(assetsList)):
-            balance = assetsList[i]
-            currencyId = self.safe_string(balance, 'coin_symbol')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'balance')
-            account['used'] = self.safe_string(balance, 'freeze')
-            result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(response)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -778,7 +791,14 @@ class bibox(Exchange):
         #         'status': 3
         #     }
         #
-        id = self.safe_string(transaction, 'id')
+        # withdraw
+        #
+        #     {
+        #         "result": 228,  # withdrawal id
+        #         "cmd":"transfer/transferOut"
+        #     }
+        #
+        id = self.safe_string_2(transaction, 'id', 'result')
         address = self.safe_string(transaction, 'to_address')
         currencyId = self.safe_string(transaction, 'coin_symbol')
         code = self.safe_currency_code(currencyId, currency)
@@ -801,8 +821,13 @@ class bibox(Exchange):
             'txid': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': tag,
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,
             'amount': amount,
             'currency': code,
@@ -927,17 +952,12 @@ class bibox(Exchange):
         return self.parse_order(order)
 
     def parse_order(self, order, market=None):
-        symbol = None
-        if market is None:
-            marketId = None
-            baseId = self.safe_string(order, 'coin_symbol')
-            quoteId = self.safe_string(order, 'currency_symbol')
-            if (baseId is not None) and (quoteId is not None):
-                marketId = baseId + '_' + quoteId
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        marketId = None
+        baseId = self.safe_string(order, 'coin_symbol')
+        quoteId = self.safe_string(order, 'currency_symbol')
+        if (baseId is not None) and (quoteId is not None):
+            marketId = baseId + '_' + quoteId
+        market = self.safe_market(marketId, market)
         rawType = self.safe_string(order, 'order_type')
         type = 'market' if (rawType == '1') else 'limit'
         timestamp = self.safe_integer(order, 'createdAt')
@@ -950,21 +970,21 @@ class bibox(Exchange):
         side = 'buy' if (rawSide == '1') else 'sell'
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string(order, 'id')
-        feeCost = self.safe_number(order, 'fee')
+        feeCost = self.safe_string(order, 'fee')
         fee = None
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
                 'currency': None,
             }
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': None,
             'postOnly': None,
@@ -1232,11 +1252,7 @@ class bibox(Exchange):
         #
         outerResults = self.safe_value(response, 'result')
         firstResult = self.safe_value(outerResults, 0, {})
-        id = self.safe_value(firstResult, 'result')
-        return {
-            'info': response,
-            'id': id,
-        }
+        return self.parse_transaction(firstResult, currency)
 
     async def fetch_funding_fees(self, codes=None, params={}):
         # by default it will try load withdrawal fees of all currencies(with separate requests)

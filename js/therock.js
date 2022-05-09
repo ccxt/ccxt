@@ -14,25 +14,40 @@ module.exports = class therock extends Exchange {
             'id': 'therock',
             'name': 'TheRockTrading',
             'countries': [ 'MT' ],
-            'rateLimit': 1000,
+            // 10 requests per second => 1000ms / 10 => 100 ms between requests (all endpoints)
+            'rateLimit': 100,
             'version': 'v1',
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but unimplemented
+                'swap': false,
+                'future': false,
+                'option': false,
+                'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
                 'fetchLedger': true,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
                 'fetchTransactions': 'emulated',
                 'fetchWithdrawals': true,
             },
@@ -47,41 +62,42 @@ module.exports = class therock extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'funds',
-                        'funds/{id}/orderbook',
-                        'funds/{id}/ticker',
-                        'funds/{id}/trades',
-                        'funds/tickers',
-                    ],
+                    'get': {
+                        'funds': 1,
+                        'funds/{id}': 1,
+                        'funds/{id}/orderbook': 1,
+                        'funds/{id}/ticker': 1,
+                        'funds/{id}/trades': 1,
+                        'funds/tickers': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'balances',
-                        'balances/{id}',
-                        'discounts',
-                        'discounts/{id}',
-                        'funds',
-                        'funds/{id}',
-                        'funds/{id}/trades',
-                        'funds/{fund_id}/orders',
-                        'funds/{fund_id}/orders/{id}',
-                        'funds/{fund_id}/position_balances',
-                        'funds/{fund_id}/positions',
-                        'funds/{fund_id}/positions/{id}',
-                        'transactions',
-                        'transactions/{id}',
-                        'withdraw_limits/{id}',
-                        'withdraw_limits',
-                    ],
-                    'post': [
-                        'atms/withdraw',
-                        'funds/{fund_id}/orders',
-                    ],
-                    'delete': [
-                        'funds/{fund_id}/orders/{id}',
-                        'funds/{fund_id}/orders/remove_all',
-                    ],
+                    'get': {
+                        'balances': 1,
+                        'balances/{id}': 1,
+                        'discounts': 1,
+                        'discounts/{id}': 1,
+                        'funds': 1,
+                        'funds/{id}': 1,
+                        'funds/{id}/trades': 1,
+                        'funds/{fund_id}/orders': 1,
+                        'funds/{fund_id}/orders/{id}': 1,
+                        'funds/{fund_id}/position_balances': 1,
+                        'funds/{fund_id}/positions': 1,
+                        'funds/{fund_id}/positions/{id}': 1,
+                        'transactions': 1,
+                        'transactions/{id}': 1,
+                        'withdraw_limits/{id}': 1,
+                        'withdraw_limits': 1,
+                    },
+                    'post': {
+                        'atms/withdraw': 1,
+                        'funds/{fund_id}/orders': 1,
+                    },
+                    'delete': {
+                        'funds/{fund_id}/orders/{id}': 1,
+                        'funds/{fund_id}/orders/remove_all': 1,
+                    },
                 },
             },
             'fees': {
@@ -126,35 +142,30 @@ module.exports = class therock extends Exchange {
     async fetchMarkets (params = {}) {
         const response = await this.publicGetFunds (params);
         //
-        //     { funds: [ {                      id:   "BTCEUR",
-        //                              description:   "Trade Bitcoin with Euro",
-        //                                     type:   "currency",
-        //                            base_currency:   "EUR",
-        //                           trade_currency:   "BTC",
-        //                                  buy_fee:    0.2,
-        //                                 sell_fee:    0.2,
-        //                      minimum_price_offer:    0.01,
-        //                   minimum_quantity_offer:    0.0005,
-        //                   base_currency_decimals:    2,
-        //                  trade_currency_decimals:    4,
-        //                                leverages: []                           },
-        //                {                      id:   "LTCEUR",
-        //                              description:   "Trade Litecoin with Euro",
-        //                                     type:   "currency",
-        //                            base_currency:   "EUR",
-        //                           trade_currency:   "LTC",
-        //                                  buy_fee:    0.2,
-        //                                 sell_fee:    0.2,
-        //                      minimum_price_offer:    0.01,
-        //                   minimum_quantity_offer:    0.01,
-        //                   base_currency_decimals:    2,
-        //                  trade_currency_decimals:    2,
-        //                                leverages: []                            } ] }
+        //    {
+        //        funds: [
+        //            {
+        //                id: "BTCEUR",
+        //                description: "Trade Bitcoin with Euro",
+        //                type: "currency",
+        //                base_currency: "EUR",
+        //                trade_currency: "BTC",
+        //                buy_fee: 0.2,
+        //                sell_fee: 0.2,
+        //                minimum_price_offer: 0.01,
+        //                minimum_quantity_offer: 0.0005,
+        //                base_currency_decimals: 2,
+        //                trade_currency_decimals: 4,
+        //                leverages: []
+        //            },
+        //            ...
+        //        ]
+        //    }
         //
         const markets = this.safeValue (response, 'funds');
         const result = [];
         if (markets === undefined) {
-            throw new ExchangeError (this.id + ' fetchMarkets got an unexpected response');
+            throw new ExchangeError (this.id + ' fetchMarkets() got an unexpected response');
         } else {
             for (let i = 0; i < markets.length; i++) {
                 const market = markets[i];
@@ -163,30 +174,47 @@ module.exports = class therock extends Exchange {
                 const quoteId = this.safeString (market, 'base_currency');
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
-                const symbol = base + '/' + quote;
-                const buy_fee = this.safeNumber (market, 'buy_fee');
-                const sell_fee = this.safeNumber (market, 'sell_fee');
-                let taker = Math.max (buy_fee, sell_fee);
-                taker = taker / 100;
-                const maker = taker;
+                const buy_fee = this.safeString (market, 'buy_fee');
+                const sell_fee = this.safeString (market, 'sell_fee');
+                let taker = Precise.stringMax (buy_fee, sell_fee);
+                taker = this.parseNumber (Precise.stringDiv (taker, '100'));
+                const leverages = this.safeValue (market, 'leverages');
+                const leveragesLength = leverages.length;
                 result.push ({
                     'id': id,
-                    'symbol': symbol,
+                    'symbol': base + '/' + quote,
                     'base': base,
                     'quote': quote,
+                    'settle': undefined,
                     'baseId': baseId,
                     'quoteId': quoteId,
-                    'info': market,
+                    'settleId': undefined,
                     'type': 'spot',
                     'spot': true,
-                    'active': true,
-                    'maker': maker,
+                    'margin': leveragesLength > 0,
+                    'swap': false,
+                    'future': false,
+                    'option': false,
+                    'contract': false,
+                    'linear': undefined,
+                    'inverse': undefined,
                     'taker': taker,
+                    'maker': taker,
+                    'contractSize': undefined,
+                    'active': true,
+                    'expiry': undefined,
+                    'expiryDatetime': undefined,
+                    'strike': undefined,
+                    'optionType': undefined,
                     'precision': {
                         'amount': this.safeInteger (market, 'trade_currency_decimals'),
                         'price': this.safeInteger (market, 'base_currency_decimals'),
                     },
                     'limits': {
+                        'leverage': {
+                            'min': 1,
+                            'max': this.safeValue (leverages, leveragesLength - 1, 1),
+                        },
                         'amount': {
                             'min': this.safeNumber (market, 'minimum_quantity_offer'),
                             'max': undefined,
@@ -200,15 +228,14 @@ module.exports = class therock extends Exchange {
                             'max': undefined,
                         },
                     },
+                    'info': market,
                 });
             }
         }
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetBalances (params);
+    parseBalance (response) {
         const balances = this.safeValue (response, 'balances', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
@@ -220,7 +247,13 @@ module.exports = class therock extends Exchange {
             account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetBalances (params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -234,34 +267,46 @@ module.exports = class therock extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = this.parse8601 (ticker['date']);
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        const last = this.safeNumber (ticker, 'last');
-        return {
-            'symbol': symbol,
+        //
+        //     {
+        //         "date":"2022-01-16T00:05:08.192Z",
+        //         "fund_id":"ETHBTC",
+        //         "bid":0.07707802,
+        //         "ask":0.07733404,
+        //         "last":0.07739053,
+        //         "open":0.07628192,
+        //         "close":0.07687651,
+        //         "low":0.07612047,
+        //         "high":0.07703306,
+        //         "volume":1.10179665,
+        //         "volume_traded":14.273
+        //     }
+        //
+        const timestamp = this.parse8601 (this.safeString (ticker, 'date'));
+        market = this.safeMarket (undefined, market);
+        const last = this.safeString (ticker, 'last');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeNumber (ticker, 'open'),
+            'open': this.safeString (ticker, 'open'),
             'close': last,
             'last': last,
-            'previousClose': this.safeNumber (ticker, 'close'), // previous day close, if any
+            'previousClose': this.safeString (ticker, 'close'), // previous day close, if any
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume_traded'),
-            'quoteVolume': this.safeNumber (ticker, 'volume'),
+            'baseVolume': this.safeString (ticker, 'volume_traded'),
+            'quoteVolume': this.safeString (ticker, 'volume'),
             'info': ticker,
-        };
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -283,10 +328,26 @@ module.exports = class therock extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const ticker = await this.publicGetFundsIdTicker (this.extend ({
+        const request = {
             'id': market['id'],
-        }, params));
-        return this.parseTicker (ticker, market);
+        };
+        const response = await this.publicGetFundsIdTicker (this.extend (request, params));
+        //
+        //     {
+        //         "date":"2022-01-16T00:05:08.192Z",
+        //         "fund_id":"ETHBTC",
+        //         "bid":0.07707802,
+        //         "ask":0.07733404,
+        //         "last":0.07739053,
+        //         "open":0.07628192,
+        //         "close":0.07687651,
+        //         "low":0.07612047,
+        //         "high":0.07703306,
+        //         "volume":1.10179665,
+        //         "volume_traded":14.273
+        //     }
+        //
+        return this.parseTicker (response, market);
     }
 
     parseTrade (trade, market = undefined) {
@@ -336,27 +397,24 @@ module.exports = class therock extends Exchange {
         const side = this.safeString (trade, 'side');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let fee = undefined;
-        let feeCost = undefined;
+        let feeCostString = undefined;
         const transactions = this.safeValue (trade, 'transactions', []);
         const transactionsByType = this.groupBy (transactions, 'type');
         const feeTransactions = this.safeValue (transactionsByType, 'paid_commission', []);
         for (let i = 0; i < feeTransactions.length; i++) {
-            if (feeCost === undefined) {
-                feeCost = 0;
+            if (feeCostString === undefined) {
+                feeCostString = '0.0';
             }
-            feeCost = this.sum (feeCost, this.safeNumber (feeTransactions[i], 'price'));
+            feeCostString = Precise.stringAdd (feeCostString, this.safeString (feeTransactions[i], 'price'));
         }
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': market['quote'],
             };
         }
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'order': orderId,
@@ -366,11 +424,11 @@ module.exports = class therock extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     parseLedgerEntryDirection (direction) {
@@ -738,12 +796,14 @@ module.exports = class therock extends Exchange {
         const amount = this.safeNumber (transaction, 'price');
         const timestamp = this.parse8601 (this.safeString (transaction, 'date'));
         const status = 'ok';
+        const network = this.safeString (detail, 'method');
         // todo parse tags
         return {
             'info': transaction,
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': network,
             'addressFrom': undefined,
             'addressTo': address,
             'address': address,
@@ -1040,7 +1100,36 @@ module.exports = class therock extends Exchange {
             'id': id,
             'fund_id': market['id'],
         };
-        const response = await this.privatePostFundsFundIdOrdersId (this.extend (request, params));
+        const response = await this.privateGetFundsFundIdOrdersId (this.extend (request, params));
+        //
+        //     {
+        //         "id": 4325578,
+        //         "fund_id":"BTCEUR",
+        //         "side":"buy",
+        //         "type":"limit",
+        //         "status":"executed",
+        //         "price":0.0102,
+        //         "amount": 50.0,
+        //         "amount_unfilled": 0.0,
+        //         "conditional_type": null,
+        //         "conditional_price": null,
+        //         "date":"2015-06-03T00:49:48.000Z",
+        //         "close_on": null,
+        //         "leverage": 1.0,
+        //         "position_id": null,
+        //         "trades": [
+        //             {
+        //                 "id":237338,
+        //                 "fund_id":"BTCEUR",
+        //                 "amount":50,
+        //                 "price":0.0102,
+        //                 "side":"buy",
+        //                 "dark":false,
+        //                 "date":"2015-06-03T00:49:49.000Z"
+        //             }
+        //         ]
+        //     }
+        //
         return this.parseOrder (response);
     }
 
@@ -1086,38 +1175,36 @@ module.exports = class therock extends Exchange {
         }
         const response = await this.privateGetFundsIdTrades (this.extend (request, params));
         //
-        //     { trades: [ {           id:    237338,
-        //                        fund_id:   "BTCEUR",
-        //                         amount:    0.348,
-        //                          price:    348,
-        //                           side:   "sell",
-        //                           dark:    false,
-        //                       order_id:    14920648,
-        //                           date:   "2015-06-03T00:49:49.000Z",
-        //                   transactions: [ {       id:  2770768,
-        //                                         date: "2015-06-03T00:49:49.000Z",
-        //                                         type: "sold_currency_to_fund",
-        //                                        price:  121.1,
-        //                                     currency: "EUR"                       },
-        //                                   {       id:  2770769,
-        //                                         date: "2015-06-03T00:49:49.000Z",
-        //                                         type: "released_currency_to_fund",
-        //                                        price:  0.348,
-        //                                     currency: "BTC"                        },
-        //                                   {       id:  2770772,
-        //                                         date: "2015-06-03T00:49:49.000Z",
-        //                                         type: "paid_commission",
-        //                                        price:  0.06,
-        //                                     currency: "EUR",
-        //                                     trade_id:  440492                     }   ] } ],
-        //         meta: { total_count:    31,
-        //                       first: { href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" },
-        //                    previous:    null,
-        //                     current: { href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" },
-        //                        next: { href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" },
-        //                        last: { href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" }  } }
+        //     {
+        //         "trades": [
+        //             {
+        //                 "id":237338,
+        //                 "fund_id":"BTCEUR",
+        //                 "amount":0.348,
+        //                 "price":348.0,
+        //                 "side":"sell",
+        //                 "dark": false,
+        //                 "order_id":14920648,
+        //                 "date":"2015-06-03T00:49:49.000Z",
+        //                 "transactions": [
+        //                     { "id": 2770768, "date": "2015-06-03T00:49:49.000Z", "type": "sold_currency_to_fund", "price": 121.1, "currency": "EUR" },
+        //                     { "id": 2770769, "date": "2015-06-03T00:49:49.000Z", "type": "released_currency_to_fund", "price": 0.348, "currency": "BTC" },
+        //                     { "id": 2770772, "date": "2015-06-03T00:49:49.000Z", "type": "paid_commission", "price": 0.06, "currency": "EUR", "trade_id": 440492 },
+        //                 ]
+        //             }
+        //         ],
+        //         "meta": {
+        //             "total_count": 31,
+        //             "first": { "href": "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" },
+        //             "previous": null,
+        //             "current": { "href": "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" },
+        //             "next": { "href": "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" },
+        //             "last":{ "href":"https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" }
+        //         }
+        //     }
         //
-        return this.parseTrades (response['trades'], market, since, limit);
+        const trades = this.safeValue (response, 'trades', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -1134,31 +1221,151 @@ module.exports = class therock extends Exchange {
         }
         const response = await this.publicGetFundsIdTrades (this.extend (request, params));
         //
-        //     { trades: [ {      id:  4493548,
-        //                   fund_id: "ETHBTC",
-        //                    amount:  0.203,
-        //                     price:  0.02783576,
-        //                      side: "buy",
-        //                      dark:  false,
-        //                      date: "2018-11-30T08:19:18.236Z" },
-        //                 {      id:  4492926,
-        //                   fund_id: "ETHBTC",
-        //                    amount:  0.04,
-        //                     price:  0.02767034,
-        //                      side: "buy",
-        //                      dark:  false,
-        //                      date: "2018-11-30T07:03:03.897Z" }  ],
-        //         meta: { total_count:    null,
-        //                       first: { page:  1,
-        //                                href: "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1" },
-        //                    previous:    null,
-        //                     current: { page:  1,
-        //                                href: "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1" },
-        //                        next: { page:  2,
-        //                                href: "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=2" },
-        //                        last:    null                                                                   } }
+        //     {
+        //         trades: [
+        //             {
+        //                 id:  4493548,
+        //                 fund_id: "ETHBTC",
+        //                 amount:  0.203,
+        //                 price:  0.02783576,
+        //                 side: "buy",
+        //                 dark:  false,
+        //                 date: "2018-11-30T08:19:18.236Z"
+        //             },
+        //             {
+        //                 id:  4492926,
+        //                 fund_id: "ETHBTC",
+        //                 amount:  0.04,
+        //                 price:  0.02767034,
+        //                 side: "buy",
+        //                 dark:  false,
+        //                 date: "2018-11-30T07:03:03.897Z"
+        //             }
+        //         ],
+        //         meta: {
+        //             total_count: null,
+        //             first: { page: 1, href: "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1" },
+        //             previous: null,
+        //             current: { page:  1, href: "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1" },
+        //             next: { page:  2, href: "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=2" },
+        //             last: null
+        //         }
+        //     }
         //
         return this.parseTrades (response['trades'], market, since, limit);
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let request = {
+            'id': market['id'],
+        };
+        const response = await this.publicGetFundsId (this.extend (request, params));
+        //
+        //     {
+        //         id: 'ETHBTC',
+        //         description: 'Trade Ether with Bitcoin',
+        //         type: 'currency',
+        //         base_currency: 'BTC',
+        //         trade_currency: 'ETH',
+        //         buy_fee: '0.2',
+        //         sell_fee: '0.2',
+        //         minimum_price_offer: '0.00000001',
+        //         minimum_quantity_offer: '0.005',
+        //         base_currency_decimals: '8',
+        //         trade_currency_decimals: '3',
+        //         leverages: []
+        //     }
+        //
+        request = {
+            'id': market['quoteId'],
+        };
+        const discount = await this.privateGetDiscountsId (this.extend (request, params));
+        //
+        //     {
+        //         "currency":"BTC",
+        //         "discount":50.0,
+        //         "details": {
+        //             "personal_discount": 50.0,
+        //             "commissions_related_discount": 0.0
+        //         }
+        //     }
+        //
+        return this.parseTradingFee (response, discount, market);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetFunds (params);
+        //
+        //     {
+        //         funds: [
+        //             {
+        //                 id: 'BTCEUR',
+        //                 description: 'Trade Bitcoin with Euro',
+        //                 type: 'currency',
+        //                 base_currency: 'EUR',
+        //                 trade_currency: 'BTC',
+        //                 buy_fee: '0.2',
+        //                 sell_fee: '0.2',
+        //                 minimum_price_offer: '0.01',
+        //                 minimum_quantity_offer: '0.0005',
+        //                 base_currency_decimals: '2',
+        //                 trade_currency_decimals: '4',
+        //                 leverages: []
+        //             },
+        //         ]
+        //     }
+        //
+        const discountsResponse = await this.privateGetDiscounts (params);
+        //
+        //     {
+        //         "discounts": [
+        //             {
+        //                 "currency":"BTC",
+        //                 "discount":50.0,
+        //                 "details": {
+        //                     "personal_discount": 50.0,
+        //                     "commissions_related_discount": 0.0
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        const funds = this.safeValue (response, 'funds', []);
+        const discounts = this.safeValue (discountsResponse, 'discounts', []);
+        const result = {};
+        for (let i = 0; i < funds.length; i++) {
+            const fund = funds[i];
+            const marketId = this.safeString (fund, 'id');
+            const market = this.safeMarket (marketId);
+            const quoteId = this.safeValue (market, 'quoteId');
+            const discount = this.filterBy (discounts, 'currency', quoteId);
+            const fee = this.parseTradingFee (fund, discount, market);
+            const symbol = fee['symbol'];
+            result[symbol] = fee;
+        }
+        return result;
+    }
+
+    parseTradingFee (fee, discount = undefined, market = undefined) {
+        const marketId = this.safeString (fee, 'id');
+        const takerString = this.safeString (fee, 'buy_fee');
+        const makerString = this.safeString (fee, 'sell_fee');
+        // TotalFee = (100 - discount) * fee / 10000
+        const discountString = this.safeString (discount, 'discount', '0');
+        const feePercentage = Precise.stringSub ('100', discountString);
+        const taker = this.parseNumber (Precise.stringDiv (Precise.stringMul (takerString, feePercentage), '10000'));
+        const maker = this.parseNumber (Precise.stringDiv (Precise.stringMul (makerString, feePercentage), '10000'));
+        return {
+            'info': fee,
+            'symbol': this.safeSymbol (marketId, market),
+            'maker': maker,
+            'taker': taker,
+            'percentage': true,
+            'tierBased': true,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -1197,8 +1404,7 @@ module.exports = class therock extends Exchange {
         }
         //
         //     {
-        //         "errors":
-        //         [
+        //         "errors": [
         //             { "message": ":currency is not a valid value for param currency","code": "11","meta": { "key":"currency","value":":currency"} },
         //             { "message": "Address allocation limit reached for currency :currency.","code": "13" },
         //             { "message": "Request already running", "code": "50"},

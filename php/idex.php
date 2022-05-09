@@ -18,30 +18,67 @@ class idex extends Exchange {
             'id' => 'idex',
             'name' => 'IDEX',
             'countries' => array( 'US' ),
-            'rateLimit' => 1500,
-            'version' => 'v2',
+            // public data endpoints 5 requests a second => 1000ms / 5 = 200ms between requests roughly (without Authentication)
+            // all endpoints 10 requests a second => (1000ms / rateLimit) / 10 => 1 / 2 (with Authentication)
+            'rateLimit' => 200,
+            'version' => 'v3',
             'pro' => true,
             'certified' => true,
             'requiresWeb3' => true,
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => null,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -55,13 +92,11 @@ class idex extends Exchange {
             ),
             'urls' => array(
                 'test' => array(
-                    'public' => 'https://api-sandbox.idex.io',
-                    'private' => 'https://api-sandbox.idex.io',
+                    'MATIC' => 'https://api-sandbox-matic.idex.io',
                 ),
                 'logo' => 'https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg',
                 'api' => array(
-                    'ETH' => 'https://api-eth.idex.io',
-                    'BSC' => 'https://api-bsc.idex.io',
+                    'MATIC' => 'https://api-matic.idex.io',
                 ),
                 'www' => 'https://idex.io',
                 'doc' => array(
@@ -71,43 +106,43 @@ class idex extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'ping',
-                        'time',
-                        'exchange',
-                        'assets',
-                        'markets',
-                        'tickers',
-                        'candles',
-                        'trades',
-                        'orderbook',
-                        'wsToken',
+                        'ping' => 1,
+                        'time' => 1,
+                        'exchange' => 1,
+                        'assets' => 1,
+                        'markets' => 1,
+                        'tickers' => 1,
+                        'candles' => 1,
+                        'trades' => 1,
+                        'orderbook' => 1,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'user',
-                        'wallets',
-                        'balances',
-                        'orders',
-                        'fills',
-                        'deposits',
-                        'withdrawals',
+                        'user' => 1,
+                        'wallets' => 1,
+                        'balances' => 1,
+                        'orders' => 1,
+                        'fills' => 1,
+                        'deposits' => 1,
+                        'withdrawals' => 1,
+                        'wsToken' => 1,
                     ),
                     'post' => array(
-                        'wallets',
-                        'orders',
-                        'orders/test',
-                        'withdrawals',
+                        'wallets' => 1,
+                        'orders' => 1,
+                        'orders/test' => 1,
+                        'withdrawals' => 1,
                     ),
                     'delete' => array(
-                        'orders',
+                        'orders' => 1,
                     ),
                 ),
             ),
             'options' => array(
                 'defaultTimeInForce' => 'gtc',
                 'defaultSelfTradePrevention' => 'cn',
-                'network' => 'ETH', // also supports BSC
+                'network' => 'MATIC',
             ),
             'exceptions' => array(
                 'INVALID_ORDER_QUANTITY' => '\\ccxt\\InvalidOrder',
@@ -126,11 +161,6 @@ class idex extends Exchange {
             ),
             'paddingMode' => PAD_WITH_ZERO,
             'commonCurrencies' => array(),
-            'requireCredentials' => array(
-                'privateKey' => true,
-                'apiKey' => true,
-                'secret' => true,
-            ),
         ));
     }
 
@@ -166,9 +196,9 @@ class idex extends Exchange {
         //
         $maker = $this->safe_number($response2, 'makerFeeRate');
         $taker = $this->safe_number($response2, 'takerFeeRate');
-        $makerMin = $this->safe_number($response2, 'makerTradeMinimum');
-        $takerMin = $this->safe_number($response2, 'takerTradeMinimum');
-        $minCostETH = min ($makerMin, $takerMin);
+        $makerMin = $this->safe_string($response2, 'makerTradeMinimum');
+        $takerMin = $this->safe_string($response2, 'takerTradeMinimum');
+        $minCostETH = $this->parse_number(Precise::string_min($makerMin, $takerMin));
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
@@ -177,36 +207,50 @@ class idex extends Exchange {
             $quoteId = $this->safe_string($entry, 'quoteAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
             $basePrecisionString = $this->safe_string($entry, 'baseAssetPrecision');
             $quotePrecisionString = $this->safe_string($entry, 'quoteAssetPrecision');
             $basePrecision = $this->parse_precision($basePrecisionString);
             $quotePrecision = $this->parse_precision($quotePrecisionString);
             $status = $this->safe_string($entry, 'status');
-            $active = $status === 'active';
             $minCost = null;
             if ($quote === 'ETH') {
                 $minCost = $minCostETH;
             }
-            $precision = array(
-                'amount' => intval($basePrecisionString),
-                'price' => intval($quotePrecisionString),
-            );
             $result[] = array(
-                'symbol' => $symbol,
                 'id' => $marketId,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => $active,
-                'info' => $entry,
-                'precision' => $precision,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => ($status === 'active'),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
                 'taker' => $taker,
                 'maker' => $maker,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => intval($basePrecisionString),
+                    'price' => intval($quotePrecisionString),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->parse_number($basePrecision),
                         'max' => null,
@@ -220,6 +264,7 @@ class idex extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $entry,
             );
         }
         return $result;
@@ -282,60 +327,46 @@ class idex extends Exchange {
         // {
         //   $market => 'DIL-ETH',
         //   time => 1598367493008,
-        //   $open => '0.09695361',
-        //   $high => '0.10245881',
-        //   $low => '0.09572507',
+        //   open => '0.09695361',
+        //   high => '0.10245881',
+        //   low => '0.09572507',
         //   $close => '0.09917079',
         //   closeQuantity => '0.71320950',
-        //   $baseVolume => '309.17380612',
-        //   $quoteVolume => '30.57633981',
+        //   baseVolume => '309.17380612',
+        //   quoteVolume => '30.57633981',
         //   percentChange => '2.28',
         //   numTrades => 205,
-        //   $ask => '0.09910476',
-        //   $bid => '0.09688340',
+        //   ask => '0.09910476',
+        //   bid => '0.09688340',
         //   sequence => 3902
         // }
         $marketId = $this->safe_string($ticker, 'market');
-        $symbol = $this->safe_symbol($marketId, $market, '-');
-        $baseVolume = $this->safe_number($ticker, 'baseVolume');
-        $quoteVolume = $this->safe_number($ticker, 'quoteVolume');
+        $market = $this->safe_market($marketId, $market, '-');
+        $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($ticker, 'time');
-        $open = $this->safe_number($ticker, 'open');
-        $high = $this->safe_number($ticker, 'high');
-        $low = $this->safe_number($ticker, 'low');
-        $close = $this->safe_number($ticker, 'close');
-        $ask = $this->safe_number($ticker, 'ask');
-        $bid = $this->safe_number($ticker, 'bid');
-        $percentage = $this->safe_number($ticker, 'percentChange');
-        if ($percentage !== null) {
-            $percentage = 1 . $percentage / 100;
-        }
-        $change = null;
-        if (($close !== null) && ($open !== null)) {
-            $change = $close - $open;
-        }
-        return array(
+        $close = $this->safe_string($ticker, 'close');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $high,
-            'low' => $low,
-            'bid' => $bid,
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $ask,
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $open,
+            'open' => $this->safe_string($ticker, 'open'),
             'close' => $close,
             'last' => $close,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
+            'change' => null,
+            'percentage' => $this->safe_string($ticker, 'percentChange'),
             'average' => null,
-            'baseVolume' => $baseVolume,
-            'quoteVolume' => $quoteVolume,
+            'baseVolume' => $this->safe_string($ticker, 'baseVolume'),
+            'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -418,44 +449,48 @@ class idex extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
         // public trades
-        // {
-        //   fillId => 'b5467d00-b13e-3fa9-8216-dd66735550fc',
-        //   $price => '0.09771286',
-        //   quantity => '1.45340410',
-        //   quoteQuantity => '0.14201627',
-        //   time => 1598345638994,
-        //   $makerSide => 'buy',
-        //   sequence => 3853
-        // }
+        //  {
+        //      "fillId":"a4883704-850b-3c4b-8588-020b5e4c62f1",
+        //      "price":"0.20377008",
+        //      "quantity":"47.58448728",
+        //      "quoteQuantity":"9.69629509",
+        //      "time":1642091300873,
+        //      "makerSide":"buy",
+        //      "type":"hybrid",        // one of either => "orderBook", "hybrid", or "pool"
+        //      "sequence":31876
+        //  }
+        //
         // private trades
-        // {
-        //   fillId => '48582d10-b9bb-3c4b-94d3-e67537cf2472',
-        //   $price => '0.09905990',
-        //   quantity => '0.40000000',
-        //   quoteQuantity => '0.03962396',
-        //   time => 1598873478762,
-        //   $makerSide => 'sell',
-        //   sequence => 5053,
-        //   $market => 'DIL-ETH',
-        //   $orderId => '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
-        //   $side => 'buy',
-        //   $fee => '0.00080000',
-        //   feeAsset => 'DIL',
-        //   gas => '0.00857497',
-        //   liquidity => 'taker',
-        //   txId => '0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65',
-        //   txStatus => 'mined'
-        // }
+        //  {
+        //      "fillId":"83429066-9334-3582-b710-78858b2f0d6b",
+        //      "price":"0.20717368",
+        //      "quantity":"15.00000000",
+        //      "quoteQuantity":"3.10760523",
+        //      "orderBookQuantity":"0.00000003",
+        //      "orderBookQuoteQuantity":"0.00000001",
+        //      "poolQuantity":"14.99999997",
+        //      "poolQuoteQuantity":"3.10760522",
+        //      "time":1642083351215,
+        //      "makerSide":"sell",
+        //      "sequence":31795,
+        //      "market":"IDEX-USDC",
+        //      "orderId":"4fe993f0-747b-11ec-bd08-79d4a0b6e47c",
+        //      "side":"buy",
+        //      "fee":"0.03749989",
+        //      "feeAsset":"IDEX",
+        //      "gas":"0.40507261",
+        //      "liquidity":"taker",
+        //      "type":"hybrid",
+        //      "txId":"0x69f6d82a762d12e3201efd0b3e9cc1969351e3c6ea3cf07c47c66bf24a459815",
+        //      "txStatus":"mined"
+        //  }
+        //
         $id = $this->safe_string($trade, 'fillId');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'quantity');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->safe_number($trade, 'quoteQuantity');
-        if ($cost === null) {
-            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        }
+        $costString = $this->safe_string($trade, 'quoteQuantity');
         $timestamp = $this->safe_integer($trade, 'time');
         $marketId = $this->safe_string($trade, 'market');
         $symbol = $this->safe_symbol($marketId, $market, '-');
@@ -464,17 +499,17 @@ class idex extends Exchange {
         $oppositeSide = ($makerSide === 'buy') ? 'sell' : 'buy';
         $side = $this->safe_string($trade, 'side', $oppositeSide);
         $takerOrMaker = $this->safe_string($trade, 'liquidity', 'taker');
-        $feeCost = $this->safe_number($trade, 'fee');
+        $feeCostString = $this->safe_string($trade, 'fee');
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'feeAsset');
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $this->safe_currency_code($feeCurrencyId),
             );
         }
         $orderId = $this->safe_string($trade, 'orderId');
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -484,11 +519,50 @@ class idex extends Exchange {
             'type' => 'limit',
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => $fee,
+        ), $market);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        $this->check_required_credentials();
+        $this->load_markets();
+        $nonce = $this->uuidv1();
+        $request = array(
+            'nonce' => $nonce,
         );
+        $response = null;
+        $response = $this->privateGetUser (array_merge($request, $params));
+        //
+        //     {
+        //         depositEnabled => true,
+        //         orderEnabled => true,
+        //         cancelEnabled => true,
+        //         withdrawEnabled => true,
+        //         totalPortfolioValueUsd => '0.00',
+        //         makerFeeRate => '0.0000',
+        //         takerFeeRate => '0.0025',
+        //         takerIdexFeeRate => '0.0005',
+        //         takerLiquidityProviderFeeRate => '0.0020'
+        //     }
+        //
+        $maker = $this->safe_number($response, 'makerFeeRate');
+        $taker = $this->safe_number($response, 'takerFeeRate');
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $result[$symbol] = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'maker' => $maker,
+                'taker' => $taker,
+                'percentage' => true,
+                'tierBased' => false,
+            );
+        }
+        return $result;
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -574,6 +648,8 @@ class idex extends Exchange {
                 'type' => null,
                 'name' => $name,
                 'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
                 'precision' => intval($precisionString),
                 'limits' => array(
@@ -583,6 +659,25 @@ class idex extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function parse_balance($response) {
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $currencyId = $this->safe_string($entry, 'asset');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['total'] = $this->safe_string($entry, 'quantity');
+            $account['free'] = $this->safe_string($entry, 'availableForTrade');
+            $account['used'] = $this->safe_string($entry, 'locked');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
     }
 
     public function fetch_balance($params = array ()) {
@@ -604,7 +699,7 @@ class idex extends Exchange {
         // )
         $extendedRequest = array_merge($request, $params);
         if ($extendedRequest['wallet'] === null) {
-            throw new BadRequest($this->id . ' wallet is null, set $this->walletAddress or "address" in params');
+            throw new BadRequest($this->id . ' fetchBalance() wallet is null, set $this->walletAddress or "address" in params');
         }
         $response = null;
         try {
@@ -618,22 +713,7 @@ class idex extends Exchange {
                 throw $e;
             }
         }
-        $result = array(
-            'info' => $response,
-            'timestamp' => null,
-            'datetime' => null,
-        );
-        for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
-            $currencyId = $this->safe_string($entry, 'asset');
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['total'] = $this->safe_string($entry, 'quantity');
-            $account['free'] = $this->safe_string($entry, 'availableForTrade');
-            $account['used'] = $this->safe_string($entry, 'locked');
-            $result[$code] = $account;
-        }
-        return $this->parse_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -676,7 +756,7 @@ class idex extends Exchange {
         // )
         $extendedRequest = array_merge($request, $params);
         if ($extendedRequest['wallet'] === null) {
-            throw new BadRequest($this->id . ' $walletAddress is null, set $this->walletAddress or "address" in params');
+            throw new BadRequest($this->id . ' fetchMyTrades() $walletAddress is null, set $this->walletAddress or "address" in params');
         }
         $response = null;
         try {
@@ -852,13 +932,13 @@ class idex extends Exchange {
         $marketId = $this->safe_string($order, 'market');
         $side = $this->safe_string($order, 'side');
         $symbol = $this->safe_symbol($marketId, $market, '-');
-        $trades = $this->parse_trades($fills, $market);
         $type = $this->safe_string($order, 'type');
-        $amount = $this->safe_number($order, 'originalQuantity');
-        $filled = $this->safe_number($order, 'executedQuantity');
-        $average = $this->safe_number($order, 'avgExecutionPrice');
-        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_string($order, 'originalQuantity');
+        $filled = $this->safe_string($order, 'executedQuantity');
+        $average = $this->safe_string($order, 'avgExecutionPrice');
+        $price = $this->safe_string($order, 'price');
         $rawStatus = $this->safe_string($order, 'status');
+        $timeInForce = $this->safe_string_upper($order, 'timeInForce');
         $status = $this->parse_order_status($rawStatus);
         return $this->safe_order(array(
             'info' => $order,
@@ -869,7 +949,7 @@ class idex extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
-            'timeInForce' => null,
+            'timeInForce' => $timeInForce,
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
@@ -881,8 +961,8 @@ class idex extends Exchange {
             'remaining' => null,
             'status' => $status,
             'fee' => null,
-            'trades' => $trades,
-        ));
+            'trades' => $fills,
+        ), $market);
     }
 
     public function associate_wallet($walletAddress, $params = array ()) {
@@ -927,7 +1007,7 @@ class idex extends Exchange {
         $stopPriceString = null;
         if (($type === 'stopLossLimit') || ($type === 'takeProfitLimit') || (is_array($params) && array_key_exists('stopPrice', $params))) {
             if (!(is_array($params) && array_key_exists('stopPrice', $params))) {
-                throw new BadRequest($this->id . ' stopPrice is a required parameter for ' . $type . 'orders');
+                throw new BadRequest($this->id . ' createOrder() stopPrice is a required parameter for ' . $type . 'orders');
             }
             $stopPriceString = $this->price_to_precision($symbol, $params['stopPrice']);
         }
@@ -952,7 +1032,7 @@ class idex extends Exchange {
         $amountEnum = 0; // base quantity
         if (is_array($params) && array_key_exists('quoteOrderQuantity', $params)) {
             if ($type !== 'market') {
-                throw new NotSupported($this->id . ' quoteOrderQuantity is not supported for ' . $type . ' orders, only supported for $market orders');
+                throw new NotSupported($this->id . ' createOrder() quoteOrderQuantity is not supported for ' . $type . ' orders, only supported for $market orders');
             }
             $amountEnum = 1;
             $amount = $this->safe_number($params, 'quoteOrderQuantity');
@@ -960,7 +1040,11 @@ class idex extends Exchange {
         $sideEnum = ($side === 'buy') ? 0 : 1;
         $walletBytes = $this->remove0x_prefix($this->walletAddress);
         $network = $this->safe_string($this->options, 'network', 'ETH');
-        $orderVersion = ($network === 'ETH') ? 1 : 2;
+        $orderVersion = $this->get_supported_mapping($network, array(
+            'ETH' => 1,
+            'BSC' => 2,
+            'MATIC' => 4,
+        ));
         $amountString = $this->amount_to_precision($symbol, $amount);
         // https://docs.idex.io/#time-in-force
         $timeInForceEnums = array(
@@ -1033,11 +1117,13 @@ class idex extends Exchange {
                 'side' => $side,
                 'type' => $type,
                 'wallet' => $this->walletAddress,
-                'timeInForce' => $timeInForce,
                 'selfTradePrevention' => $selfTradePrevention,
             ),
             'signature' => $signature,
         );
+        if ($type !== 'market') {
+            $request['parameters']['timeInForce'] = $timeInForce;
+        }
         if ($limitOrder) {
             $request['parameters']['price'] = $priceString;
         }
@@ -1114,22 +1200,20 @@ class idex extends Exchange {
             ),
             'signature' => $signature,
         );
-        // {
-        //   withdrawalId => 'a61dcff0-ec4d-11ea-8b83-c78a6ecb3180',
-        //   asset => 'ETH',
-        //   assetContractAddress => '0x0000000000000000000000000000000000000000',
-        //   quantity => '0.20000000',
-        //   time => 1598962883190,
-        //   fee => '0.00024000',
-        //   txStatus => 'pending',
-        //   txId => null
-        // }
         $response = $this->privatePostWithdrawals ($request);
-        $id = $this->safe_string($response, 'withdrawalId');
-        return array(
-            'info' => $response,
-            'id' => $id,
-        );
+        //
+        //     {
+        //         withdrawalId => 'a61dcff0-ec4d-11ea-8b83-c78a6ecb3180',
+        //         asset => 'ETH',
+        //         assetContractAddress => '0x0000000000000000000000000000000000000000',
+        //         quantity => '0.20000000',
+        //         time => 1598962883190,
+        //         fee => '0.00024000',
+        //         txStatus => 'pending',
+        //         txId => null
+        //     }
+        //
+        return $this->parse_transaction($response, $currency);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -1231,33 +1315,52 @@ class idex extends Exchange {
     }
 
     public function parse_transaction($transaction, $currency = null) {
+        //
         // fetchDeposits
-        // {
-        //   depositId => 'e9970cc0-eb6b-11ea-9e89-09a5ebc1f98f',
-        //   asset => 'ETH',
-        //   quantity => '1.00000000',
-        //   txId => '0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142',
-        //   txTime => 1598865853000,
-        //   confirmationTime => 1598865930231
-        // }
+        //
+        //     {
+        //         depositId => 'e9970cc0-eb6b-11ea-9e89-09a5ebc1f98f',
+        //         asset => 'ETH',
+        //         quantity => '1.00000000',
+        //         txId => '0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142',
+        //         txTime => 1598865853000,
+        //         confirmationTime => 1598865930231
+        //     }
+        //
         // fetchWithdrwalas
-        // {
-        //   withdrawalId => 'a62d8760-ec4d-11ea-9fa6-47904c19499b',
-        //   asset => 'ETH',
-        //   assetContractAddress => '0x0000000000000000000000000000000000000000',
-        //   quantity => '0.20000000',
-        //   time => 1598962883288,
-        //   $fee => '0.00024000',
-        //   txId => '0x305e9cdbaa85ad029f50578d13d31d777c085de573ed5334d95c19116d8c03ce',
-        //   txStatus => 'mined'
-        //  }
+        //
+        //     {
+        //         withdrawalId => 'a62d8760-ec4d-11ea-9fa6-47904c19499b',
+        //         asset => 'ETH',
+        //         assetContractAddress => '0x0000000000000000000000000000000000000000',
+        //         quantity => '0.20000000',
+        //         time => 1598962883288,
+        //         $fee => '0.00024000',
+        //         txId => '0x305e9cdbaa85ad029f50578d13d31d777c085de573ed5334d95c19116d8c03ce',
+        //         txStatus => 'mined'
+        //     }
+        //
+        // withdraw
+        //
+        //     {
+        //         withdrawalId => 'a61dcff0-ec4d-11ea-8b83-c78a6ecb3180',
+        //         asset => 'ETH',
+        //         assetContractAddress => '0x0000000000000000000000000000000000000000',
+        //         quantity => '0.20000000',
+        //         time => 1598962883190,
+        //         $fee => '0.00024000',
+        //         txStatus => 'pending',
+        //         txId => null
+        //     }
+        //
         $type = null;
         if (is_array($transaction) && array_key_exists('depositId', $transaction)) {
             $type = 'deposit';
-        } else if (is_array($transaction) && array_key_exists('withdrawalId', $transaction)) {
+        } else if ((is_array($transaction) && array_key_exists('withdrawId', $transaction)) || (is_array($transaction) && array_key_exists('withdrawalId', $transaction))) {
             $type = 'withdrawal';
         }
         $id = $this->safe_string_2($transaction, 'depositId', 'withdrawId');
+        $id = $this->safe_string($transaction, 'withdrawalId', $id);
         $code = $this->safe_currency_code($this->safe_string($transaction, 'asset'), $currency);
         $amount = $this->safe_number($transaction, 'quantity');
         $txid = $this->safe_string($transaction, 'txId');
@@ -1278,8 +1381,13 @@ class idex extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'address' => null,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => null,
+            'tagTo' => null,
+            'tagFrom' => null,
             'type' => $type,
             'amount' => $amount,
             'currency' => $code,
@@ -1287,6 +1395,16 @@ class idex extends Exchange {
             'updated' => $updated,
             'fee' => $fee,
         );
+    }
+
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+        $hasApiKey = ($this->apiKey !== null);
+        $hasSecret = ($this->secret !== null);
+        $hasWalletAddress = ($this->walletAddress !== null);
+        $hasPrivateKey = ($this->privateKey !== null);
+        $defaultCost = $this->safe_value($config, 'cost', 1);
+        $authenticated = $hasApiKey && $hasSecret && $hasWalletAddress && $hasPrivateKey;
+        return $authenticated ? ($defaultCost / 2) : $defaultCost;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -40,7 +40,9 @@ module.exports = (exchange, ticker, method, symbol) => {
     assert (!('first' in ticker), '`first` field leftover in ' + exchange.id)
     assert (ticker['last'] === ticker['close'], '`last` != `close` in ' + exchange.id)
 
-    console.log (ticker['datetime'], exchange.id, method, ticker['symbol'], ticker['last'])
+    if (method !== undefined) {
+        console.log (ticker['datetime'], exchange.id, method, ticker['symbol'], ticker['last'])
+    }
 
     // const { high, low, vwap, baseVolume, quoteVolume } = ticker
     // this assert breaks QuadrigaCX sometimes... still investigating
@@ -65,12 +67,13 @@ module.exports = (exchange, ticker, method, symbol) => {
         'bitrue',
         'btcturk',
         'bybit',
-        'coinmarketcap',
         'coss',
         'ftx',
+        'ftxus',
         'gateio', // some ticker bids are greaters than asks
         'idex',
         'mercado',
+        'mexc',
         'okex',
         'poloniex',
         'qtrade',

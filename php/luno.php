@@ -16,27 +16,54 @@ class luno extends Exchange {
             'id' => 'luno',
             'name' => 'luno',
             'countries' => array( 'GB', 'SG', 'ZA' ),
-            'rateLimit' => 1000,
+            // 300 calls per minute = 5 calls per second = 1000ms / 5 = 200ms between requests
+            'rateLimit' => 200,
             'version' => '1',
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
+                'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
-                'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
             ),
             'urls' => array(
                 'referral' => 'https://www.luno.com/invite/44893A',
@@ -56,57 +83,65 @@ class luno extends Exchange {
             'api' => array(
                 'exchange' => array(
                     'get' => array(
-                        'markets',
+                        'markets' => 1,
                     ),
                 ),
                 'public' => array(
                     'get' => array(
-                        'orderbook',
-                        'orderbook_top',
-                        'ticker',
-                        'tickers',
-                        'trades',
+                        'orderbook' => 1,
+                        'orderbook_top' => 1,
+                        'ticker' => 1,
+                        'tickers' => 1,
+                        'trades' => 1,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'accounts/{id}/pending',
-                        'accounts/{id}/transactions',
-                        'balance',
-                        'beneficiaries',
-                        'fee_info',
-                        'funding_address',
-                        'listorders',
-                        'listtrades',
-                        'orders/{id}',
-                        'quotes/{id}',
-                        'withdrawals',
-                        'withdrawals/{id}',
-                        'transfers',
+                        'accounts/{id}/pending' => 1,
+                        'accounts/{id}/transactions' => 1,
+                        'balance' => 1,
+                        'beneficiaries' => 1,
+                        'fee_info' => 1,
+                        'funding_address' => 1,
+                        'listorders' => 1,
+                        'listtrades' => 1,
+                        'orders/{id}' => 1,
+                        'quotes/{id}' => 1,
+                        'withdrawals' => 1,
+                        'withdrawals/{id}' => 1,
+                        'transfers' => 1,
                         // GET /api/exchange/2/listorders
                         // GET /api/exchange/2/orders/{id}
                         // GET /api/exchange/3/order
                     ),
                     'post' => array(
-                        'accounts',
-                        'accounts/{id}/name',
-                        'postorder',
-                        'marketorder',
-                        'stoporder',
-                        'funding_address',
-                        'withdrawals',
-                        'send',
-                        'quotes',
-                        'oauth2/grant',
+                        'accounts' => 1,
+                        'accounts/{id}/name' => 1,
+                        'postorder' => 1,
+                        'marketorder' => 1,
+                        'stoporder' => 1,
+                        'funding_address' => 1,
+                        'withdrawals' => 1,
+                        'send' => 1,
+                        'quotes' => 1,
+                        'oauth2/grant' => 1,
                     ),
                     'put' => array(
-                        'accounts/{id}/name',
-                        'quotes/{id}',
+                        'accounts/{id}/name' => 1,
+                        'quotes/{id}' => 1,
                     ),
                     'delete' => array(
-                        'quotes/{id}',
-                        'withdrawals/{id}',
+                        'quotes/{id}' => 1,
+                        'withdrawals/{id}' => 1,
                     ),
+                ),
+            ),
+            'fees' => array(
+                'trading' => array(
+                    'tierBased' => true, // based on volume from your primary currency (not the same for everyone)
+                    'percentage' => true,
+                    'taker' => $this->parse_number('0.001'),
+                    'maker' => $this->parse_number('0'),
                 ),
             ),
         ));
@@ -142,25 +177,40 @@ class luno extends Exchange {
             $quoteId = $this->safe_string($market, 'counter_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
             $status = $this->safe_string($market, 'trading_status');
-            $active = ($status === 'ACTIVE');
-            $precision = array(
-                'amount' => $this->safe_integer($market, 'volume_scale'),
-                'price' => $this->safe_integer($market, 'price_scale'),
-            );
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => $active,
-                'precision' => $precision,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => ($status === 'ACTIVE'),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_integer($market, 'volume_scale'),
+                    'price' => $this->safe_integer($market, 'price_scale'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($market, 'min_volume'),
                         'max' => $this->safe_number($market, 'max_volume'),
@@ -199,19 +249,7 @@ class luno extends Exchange {
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privateGetBalance ($params);
-        //
-        //     {
-        //         'balance' => [
-        //             array('account_id' => '119...1336','asset' => 'XBT','balance' => '0.00','reserved' => '0.00','unconfirmed' => '0.00'),
-        //             array('account_id' => '66...289','asset' => 'XBT','balance' => '0.00','reserved' => '0.00','unconfirmed' => '0.00'),
-        //             array('account_id' => '718...5300','asset' => 'ETH','balance' => '0.00','reserved' => '0.00','unconfirmed' => '0.00'),
-        //             array('account_id' => '818...7072','asset' => 'ZAR','balance' => '0.001417','reserved' => '0.00','unconfirmed' => '0.00')]}
-        //         ]
-        //     }
-        //
+    public function parse_balance($response) {
         $wallets = $this->safe_value($response, 'balance', array());
         $result = array(
             'info' => $response,
@@ -237,7 +275,23 @@ class luno extends Exchange {
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetBalance ($params);
+        //
+        //     {
+        //         'balance' => [
+        //             array('account_id' => '119...1336','asset' => 'XBT','balance' => '0.00','reserved' => '0.00','unconfirmed' => '0.00'),
+        //             array('account_id' => '66...289','asset' => 'XBT','balance' => '0.00','reserved' => '0.00','unconfirmed' => '0.00'),
+        //             array('account_id' => '718...5300','asset' => 'ETH','balance' => '0.00','reserved' => '0.00','unconfirmed' => '0.00'),
+        //             array('account_id' => '818...7072','asset' => 'ZAR','balance' => '0.001417','reserved' => '0.00','unconfirmed' => '0.00')]}
+        //         ]
+        //     }
+        //
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -293,34 +347,34 @@ class luno extends Exchange {
             $side = 'buy';
         }
         $marketId = $this->safe_string($order, 'pair');
-        $symbol = $this->safe_symbol($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         $price = $this->safe_string($order, 'limit_price');
         $amount = $this->safe_string($order, 'limit_volume');
         $quoteFee = $this->safe_number($order, 'fee_counter');
         $baseFee = $this->safe_number($order, 'fee_base');
         $filled = $this->safe_string($order, 'base');
         $cost = $this->safe_string($order, 'counter');
-        $fee = array( 'currency' => null );
-        if ($quoteFee) {
-            $fee['cost'] = $quoteFee;
-            if ($market !== null) {
-                $fee['currency'] = $market['quote'];
-            }
-        } else {
-            $fee['cost'] = $baseFee;
-            if ($market !== null) {
-                $fee['currency'] = $market['base'];
-            }
+        $fee = null;
+        if ($quoteFee !== null) {
+            $fee = array(
+                'cost' => $quoteFee,
+                'currency' => $market['quote'],
+            );
+        } else if ($baseFee !== null) {
+            $fee = array(
+                'cost' => $baseFee,
+                'currency' => $market['base'],
+            );
         }
         $id = $this->safe_string($order, 'order_id');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => null,
             'timeInForce' => null,
             'postOnly' => null,
@@ -376,21 +430,28 @@ class luno extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
+        // {
+        //     "pair":"XBTAUD",
+        //     "timestamp":1642201439301,
+        //     "bid":"59972.30000000",
+        //     "ask":"59997.99000000",
+        //     "last_trade":"59997.99000000",
+        //     "rolling_24_hour_volume":"1.89510000",
+        //     "status":"ACTIVE"
+        // }
         $timestamp = $this->safe_integer($ticker, 'timestamp');
-        $symbol = null;
-        if ($market) {
-            $symbol = $market['symbol'];
-        }
-        $last = $this->safe_number($ticker, 'last_trade');
-        return array(
+        $marketId = $this->safe_string($ticker, 'pair');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $last = $this->safe_string($ticker, 'last_trade');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -400,10 +461,10 @@ class luno extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'rolling_24_hour_volume'),
+            'baseVolume' => $this->safe_string($ticker, 'rolling_24_hour_volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -429,14 +490,53 @@ class luno extends Exchange {
             'pair' => $market['id'],
         );
         $response = $this->publicGetTicker (array_merge($request, $params));
+        // {
+        //     "pair":"XBTAUD",
+        //     "timestamp":1642201439301,
+        //     "bid":"59972.30000000",
+        //     "ask":"59997.99000000",
+        //     "last_trade":"59997.99000000",
+        //     "rolling_24_hour_volume":"1.89510000",
+        //     "status":"ACTIVE"
+        // }
         return $this->parse_ticker($response, $market);
     }
 
     public function parse_trade($trade, $market) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "sequence":276989,
+        //          "timestamp":1648651276949,
+        //          "price":"35773.20000000",
+        //          "volume":"0.00300000",
+        //          "is_buy":false
+        //      }
+        //
+        // fetchMyTrades (private)
+        //
+        //      {
+        //          "pair":"LTCXBT",
+        //          "sequence":3256813,
+        //          "order_id":"BXEX6XHHDT5EGW2",
+        //          "type":"ASK",
+        //          "timestamp":1648652135235,
+        //          "price":"0.002786",
+        //          "volume":"0.10",
+        //          "base":"0.10",
+        //          "counter":"0.0002786",
+        //          "fee_base":"0.0001",
+        //          "fee_counter":"0.00",
+        //          "is_buy":false,
+        //          "client_order_id":""
+        //      }
+        //
         // For public $trade data (is_buy === True) indicates 'buy' $side but for private $trade data
         // is_buy indicates maker or taker. The value of "type" (ASK/BID) indicate sell/buy $side->
         // Private $trade data includes ID field which public $trade data does not.
         $orderId = $this->safe_string($trade, 'order_id');
+        $id = $this->safe_string($trade, 'sequence');
         $takerOrMaker = null;
         $side = null;
         if ($orderId !== null) {
@@ -456,25 +556,25 @@ class luno extends Exchange {
         } else {
             $side = $trade['is_buy'] ? 'buy' : 'sell';
         }
-        $feeBase = $this->safe_number($trade, 'fee_base');
-        $feeCounter = $this->safe_number($trade, 'fee_counter');
+        $feeBaseString = $this->safe_string($trade, 'fee_base');
+        $feeCounterString = $this->safe_string($trade, 'fee_counter');
         $feeCurrency = null;
         $feeCost = null;
-        if ($feeBase !== null) {
-            if ($feeBase !== 0.0) {
+        if ($feeBaseString !== null) {
+            if (!Precise::string_equals($feeBaseString, '0.0')) {
                 $feeCurrency = $market['base'];
-                $feeCost = $feeBase;
+                $feeCost = $feeBaseString;
             }
-        } else if ($feeCounter !== null) {
-            if ($feeCounter !== 0.0) {
+        } else if ($feeCounterString !== null) {
+            if (!Precise::string_equals($feeCounterString, '0.0')) {
                 $feeCurrency = $market['quote'];
-                $feeCost = $feeCounter;
+                $feeCost = $feeCounterString;
             }
         }
         $timestamp = $this->safe_integer($trade, 'timestamp');
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
-            'id' => null,
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $market['symbol'],
@@ -482,15 +582,15 @@ class luno extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $this->safe_number($trade, 'price'),
-            'amount' => $this->safe_number($trade, 'volume'),
+            'price' => $this->safe_string($trade, 'price'),
+            'amount' => $this->safe_string($trade, 'volume'),
             // Does not include potential fee costs
-            'cost' => $this->safe_number($trade, 'counter'),
+            'cost' => $this->safe_string($trade, 'counter'),
             'fee' => array(
                 'cost' => $feeCost,
                 'currency' => $feeCurrency,
             ),
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -503,6 +603,19 @@ class luno extends Exchange {
             $request['since'] = $since;
         }
         $response = $this->publicGetTrades (array_merge($request, $params));
+        //
+        //      {
+        //          "trades":array(
+        //              array(
+        //                  "sequence":276989,
+        //                  "timestamp":1648651276949,
+        //                  "price":"35773.20000000",
+        //                  "volume":"0.00300000",
+        //                  "is_buy":false
+        //              ),...
+        //          )
+        //      }
+        //
         $trades = $this->safe_value($response, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -523,6 +636,27 @@ class luno extends Exchange {
             $request['limit'] = $limit;
         }
         $response = $this->privateGetListtrades (array_merge($request, $params));
+        //
+        //      {
+        //          "trades":array(
+        //              array(
+        //                  "pair":"LTCXBT",
+        //                  "sequence":3256813,
+        //                  "order_id":"BXEX6XHHDT5EGW2",
+        //                  "type":"ASK",
+        //                  "timestamp":1648652135235,
+        //                  "price":"0.002786",
+        //                  "volume":"0.10",
+        //                  "base":"0.10",
+        //                  "counter":"0.0002786",
+        //                  "fee_base":"0.0001",
+        //                  "fee_counter":"0.00",
+        //                  "is_buy":false,
+        //                  "client_order_id":""
+        //              ),...
+        //          )
+        //      }
+        //
         $trades = $this->safe_value($response, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }

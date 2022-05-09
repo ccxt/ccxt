@@ -8,6 +8,7 @@ include_once 'vendor/autoload.php';
 include_once 'test_trade.php';
 include_once 'test_order.php';
 include_once 'test_ohlcv.php';
+include_once 'test_position.php';
 include_once 'test_transaction.php';
 
 function style($s, $style) {
@@ -50,6 +51,10 @@ $exchanges = null;
 // $options = getopt ($shortopts, $longopts);
 // var_dump ($options);
 // exit ();
+
+# first we filter the args
+$verbose = count(array_filter($argv, function ($option) { return strstr($option, '--verbose') !== false; })) > 0;
+$args = array_values(array_filter($argv, function ($option) { return strstr($option, '--verbose') === false; }));
 
 //-----------------------------------------------------------------------------
 
@@ -141,6 +146,38 @@ function test_orders($exchange, $symbol) {
 }
 
 //-----------------------------------------------------------------------------
+
+function test_positions($exchange, $symbol) {
+    if ($exchange->has['fetchPositions']) {
+        $skipped_exchanges = array (
+        );
+        if (in_array($exchange->id, $skipped_exchanges)) {
+            dump(green($symbol), 'fetch_positions() skipped');
+            return;
+        }
+
+        // without symbol
+        dump('fetching positions...');
+        $positions = $exchange->fetch_positions();
+        foreach ($positions as $position) {
+            test_position($exchange, $position, null, time() * 1000);
+        }
+        dump(green($symbol), 'fetched', green(count($positions)), 'positions');
+
+        // with symbol
+        dump(green($symbol), 'fetching positions...');
+        $positions = $exchange->fetch_positions(array($symbol));
+        foreach ($positions as $position) {
+            test_position($exchange, $position, $symbol, time() * 1000);
+        }
+        dump(green($symbol), 'fetched', green(count($positions)), 'positions');
+    } else {
+        dump(green($symbol), 'fetchPositions() not supported');
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 
 function test_closed_orders($exchange, $symbol) {
     if ($exchange->has['fetchClosedOrders']) {
@@ -246,7 +283,9 @@ function test_symbol($exchange, $symbol, $code) {
 }
 
 function load_exchange($exchange) {
+    global $verbose;
     $markets = $exchange->load_markets();
+    $exchange->verbose = $verbose;
     // $exchange->verbose = true;
     $symbols = array_keys($markets);
     dump(green($exchange->id), green(count($symbols)), 'symbols:', implode(', ', $symbols));
@@ -292,27 +331,22 @@ function try_all_proxies($exchange, $proxies) {
     }
 }
 
-function test_exchange($exchange) {
-
-    $symbol = is_array($exchange->symbols) ? current($exchange->symbols) : '';
-    $symbols = array(
-        'BTC/USD',
-        'BTC/USDT',
-        'BTC/CNY',
-        'BTC/EUR',
-        'BTC/ETH',
-        'ETH/BTC',
-        'ETH/USDT',
-        'BTC/JPY',
-        'LTC/BTC',
-    );
-
+function get_test_symbol($exchange, $symbols) {
+    $symbol = null;
     foreach ($symbols as $s) {
-        if (in_array ($s, $exchange->symbols) && (array_key_exists ('active', $exchange->markets[$s]) ? $exchange->markets[$s]['active'] : true)) {
-            $symbol = $s;
-            break;
+        $market = $exchange->safe_value($exchange->markets, $s);
+        if ($market !== null) {
+            $active = $exchange->safe_value($market, 'active');
+            if ($active || $active === null) {
+                $symbol = $s;
+                break;
+            }
         }
     }
+    return $symbol;
+}
+
+function test_exchange($exchange) {
 
     $codes = array(
         'BTC',
@@ -354,6 +388,55 @@ function test_exchange($exchange) {
         }
     }
 
+    $symbol = get_test_symbol($exchange, array(
+        'BTC/USD',
+        'BTC/USDT',
+        'BTC/CNY',
+        'BTC/EUR',
+        'BTC/ETH',
+        'ETH/BTC',
+        'ETH/USDT',
+        'BTC/JPY',
+        'LTC/BTC',
+        'USD/SLL',
+        'EUR/USD',
+    ));
+
+    if ($symbol === null) {
+        $markets = array_values($exchange->markets);
+        foreach ($codes as $code) {
+            $activeMarkets = array_filter($markets, function($market) use ($exchange, $code) {
+                return $market['base'] === $code;
+            });
+            if (count($activeMarkets)) {
+                $activeSymbols = array_map(function($market) {
+                    return $market['symbol'];
+                }, $activeMarkets);
+                $symbol = get_test_symbol($exchange, $activeSymbols);
+                break;
+            }
+        }
+    }
+
+    if ($symbol === null) {
+        $markets = array_values($exchange->markets);
+        $activeMarkets = array_filter($markets, function($market) use ($exchange) {
+            return !$exchange->safe_value($market, 'active', false);
+        });
+        $activeSymbols = array_map(function($market) {
+            return $market['symbol'];
+        }, $activeMarkets);
+        $symbol = get_test_symbol($exchange, $activeSymbols);
+    }
+
+    if ($symbol === null) {
+        $symbol = get_test_symbol($exchange, $exchange->symbols);
+    }
+
+    if ($symbol === null) {
+        $symbol = $exchange->symbols[0];
+    }
+
     if (strpos($symbol, '.d') === false) {
         dump(green('SYMBOL:'), green($symbol));
         dump(green('CODE:'), green($code));
@@ -367,10 +450,10 @@ $proxies = array(
     // 'https://crossorigin.me/',
 );
 
-$main = function() use ($argv, $exchanges, $proxies, $config) {
-    if (count($argv) > 1) {
-        if ($exchanges[$argv[1]]) {
-            $id = $argv[1];
+$main = function() use ($args, $exchanges, $proxies, $config) {
+    if (count($args) > 1) {
+        if ($exchanges[$args[1]]) {
+            $id = $args[1];
             $exchange = $exchanges[$id];
 
             $exchange_config = $exchange->safe_value($config, $id, array());
@@ -382,14 +465,15 @@ $main = function() use ($argv, $exchanges, $proxies, $config) {
 
             dump(green('EXCHANGE:'), green($exchange->id));
 
-            if (count($argv) > 2) {
+            if (count($args) > 2) {
                 load_exchange($exchange);
-                test_symbol($exchange, $argv[2]);
+                // var_dump($args);
+                test_symbol($exchange, $args[2]);
             } else {
                 try_all_proxies($exchange, $proxies);
             }
         } else {
-            echo $argv[1] . " not found.\n";
+            echo $args[1] . " not found.\n";
         }
     } else {
         foreach ($exchanges as $id => $exchange) {

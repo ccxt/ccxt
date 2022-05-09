@@ -12,7 +12,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.precise import Precise
 
 
 class bitbank(Exchange):
@@ -24,17 +23,51 @@ class bitbank(Exchange):
             'countries': ['JP'],
             'version': 'v1',
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchDepositAddress': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
+                'transfer': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -151,63 +184,71 @@ class bitbank(Exchange):
             quoteId = self.safe_string(entry, 'quote_asset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            maker = self.safe_number(entry, 'maker_fee_rate_quote')
-            taker = self.safe_number(entry, 'taker_fee_rate_quote')
-            pricePrecisionString = self.safe_string(entry, 'price_digits')
-            priceLimit = self.parse_precision(pricePrecisionString)
-            precision = {
-                'price': int(pricePrecisionString),
-                'amount': self.safe_integer(entry, 'amount_digits'),
-            }
-            active = self.safe_value(entry, 'is_enabled')
-            minAmountString = self.safe_string(entry, 'unit_amount')
-            minCost = Precise.string_mul(minAmountString, priceLimit)
-            limits = {
-                'amount': {
-                    'min': self.safe_number(entry, 'unit_amount'),
-                    'max': self.safe_number(entry, 'limit_max_amount'),
-                },
-                'price': {
-                    'min': self.parse_number(priceLimit),
-                    'max': None,
-                },
-                'cost': {
-                    'min': self.parse_number(minCost),
-                    'max': None,
-                },
-            }
             result.append({
-                'info': entry,
                 'id': id,
-                'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
-                'precision': precision,
-                'limits': limits,
+                'settle': None,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'maker': maker,
-                'taker': taker,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': self.safe_value(entry, 'is_enabled'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': self.safe_number(entry, 'taker_fee_rate_quote'),
+                'maker': self.safe_number(entry, 'maker_fee_rate_quote'),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_integer(entry, 'amount_digits'),
+                    'price': self.safe_integer(entry, 'price_digits'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(entry, 'unit_amount'),
+                        'max': self.safe_number(entry, 'limit_max_amount'),
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'info': entry,
             })
         return result
 
     def parse_ticker(self, ticker, market=None):
         symbol = self.safe_symbol(None, market)
         timestamp = self.safe_integer(ticker, 'timestamp')
-        last = self.safe_number(ticker, 'last')
+        last = self.safe_string(ticker, 'last')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'buy'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'sell'),
+            'ask': self.safe_string(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -217,10 +258,10 @@ class bitbank(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'vol'),
+            'baseVolume': self.safe_string(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -244,11 +285,7 @@ class bitbank(Exchange):
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_integer(trade, 'executed_at')
-        symbol = None
-        feeCurrency = None
-        if market is not None:
-            symbol = market['symbol']
-            feeCurrency = market['quote']
+        market = self.safe_market(None, market)
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
         id = self.safe_string_2(trade, 'transaction_id', 'trade_id')
@@ -257,7 +294,7 @@ class bitbank(Exchange):
         feeCostString = self.safe_string(trade, 'fee_amount_quote')
         if feeCostString is not None:
             fee = {
-                'currency': feeCurrency,
+                'currency': market['quote'],
                 'cost': feeCostString,
             }
         orderId = self.safe_string(trade, 'order_id')
@@ -266,7 +303,7 @@ class bitbank(Exchange):
         return self.safe_trade({
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'id': id,
             'order': orderId,
             'type': type,
@@ -290,6 +327,55 @@ class bitbank(Exchange):
         trades = self.safe_value(data, 'transactions', [])
         return self.parse_trades(trades, market, since, limit)
 
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.marketsGetSpotPairs(params)
+        #
+        #     {
+        #         success: '1',
+        #         data: {
+        #           pairs: [
+        #             {
+        #               name: 'btc_jpy',
+        #               base_asset: 'btc',
+        #               quote_asset: 'jpy',
+        #               maker_fee_rate_base: '0',
+        #               taker_fee_rate_base: '0',
+        #               maker_fee_rate_quote: '-0.0002',
+        #               taker_fee_rate_quote: '0.0012',
+        #               unit_amount: '0.0001',
+        #               limit_max_amount: '1000',
+        #               market_max_amount: '10',
+        #               market_allowance_rate: '0.2',
+        #               price_digits: '0',
+        #               amount_digits: '4',
+        #               is_enabled: True,
+        #               stop_order: False,
+        #               stop_order_and_cancel: False
+        #             },
+        #             ...
+        #           ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        pairs = self.safe_value(data, 'pairs', [])
+        result = {}
+        for i in range(0, len(pairs)):
+            pair = pairs[i]
+            marketId = self.safe_string(pair, 'name')
+            market = self.safe_market(marketId)
+            symbol = market['symbol']
+            result[symbol] = {
+                'info': pair,
+                'symbol': symbol,
+                'maker': self.safe_number(pair, 'maker_fee_rate_quote'),
+                'taker': self.safe_number(pair, 'taker_fee_rate_quote'),
+                'percentage': True,
+                'tierBased': False,
+            }
+        return result
+
     def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
@@ -312,7 +398,7 @@ class bitbank(Exchange):
 
     def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
         if since is None:
-            raise ArgumentsRequired(self.id + ' fetchOHLCV requires a since argument')
+            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -344,6 +430,25 @@ class bitbank(Exchange):
         first = self.safe_value(candlestick, 0, {})
         ohlcv = self.safe_value(first, 'ohlcv', [])
         return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
+
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        data = self.safe_value(response, 'data', {})
+        assets = self.safe_value(data, 'assets', [])
+        for i in range(0, len(assets)):
+            balance = assets[i]
+            currencyId = self.safe_string(balance, 'asset')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'free_amount')
+            account['used'] = self.safe_string(balance, 'locked_amount')
+            account['total'] = self.safe_string(balance, 'onhand_amount')
+            result[code] = account
+        return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -381,23 +486,7 @@ class bitbank(Exchange):
         #       }
         #     }
         #
-        result = {
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-        }
-        data = self.safe_value(response, 'data', {})
-        assets = self.safe_value(data, 'assets', [])
-        for i in range(0, len(assets)):
-            balance = assets[i]
-            currencyId = self.safe_string(balance, 'asset')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'free_amount')
-            account['used'] = self.safe_string(balance, 'locked_amount')
-            account['total'] = self.safe_string(balance, 'onhand_amount')
-            result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(response)
 
     def parse_order_status(self, status):
         statuses = {
@@ -412,11 +501,7 @@ class bitbank(Exchange):
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 'order_id')
         marketId = self.safe_string(order, 'pair')
-        symbol = None
-        if marketId and not market and (marketId in self.markets_by_id):
-            market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(order, 'ordered_at')
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'start_amount')
@@ -426,14 +511,14 @@ class bitbank(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': None,
             'postOnly': None,
@@ -504,12 +589,11 @@ class bitbank(Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
+        request = {}
         market = None
         if symbol is not None:
-            market = self.market(symbol)
-        request = {}
-        if market is not None:
             request['pair'] = market['id']
+            market = self.market(symbol)
         if limit is not None:
             request['count'] = limit
         if since is not None:
@@ -550,11 +634,65 @@ class bitbank(Exchange):
             'amount': amount,
         }
         response = self.privatePostUserRequestWithdrawal(self.extend(request, params))
+        #
+        #     {
+        #         "success": 1,
+        #         "data": {
+        #             "uuid": "string",
+        #             "asset": "btc",
+        #             "amount": 0,
+        #             "account_uuid": "string",
+        #             "fee": 0,
+        #             "status": "DONE",
+        #             "label": "string",
+        #             "txid": "string",
+        #             "address": "string",
+        #             "requested_at": 0
+        #         }
+        #     }
+        #
         data = self.safe_value(response, 'data', {})
-        txid = self.safe_string(data, 'txid')
+        return self.parse_transaction(data, currency)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #     {
+        #         "uuid": "string",
+        #         "asset": "btc",
+        #         "amount": 0,
+        #         "account_uuid": "string",
+        #         "fee": 0,
+        #         "status": "DONE",
+        #         "label": "string",
+        #         "txid": "string",
+        #         "address": "string",
+        #         "requested_at": 0
+        #     }
+        #
+        txid = self.safe_string(transaction, 'txid')
+        currency = self.safe_currency(None, currency)
         return {
-            'info': response,
             'id': txid,
+            'txid': txid,
+            'timestamp': None,
+            'datetime': None,
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'amount': None,
+            'type': None,
+            'currency': currency['code'],
+            'status': None,
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': None,
+            'fee': None,
+            'info': transaction,
         }
 
     def nonce(self):

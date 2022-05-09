@@ -7,10 +7,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-
-//  ---------------------------------------------------------------------------
 
 function test_ohlcv($exchange, $ohlcv, $symbol, $now) {
 
@@ -29,14 +25,15 @@ function test_ohlcv($exchange, $ohlcv, $symbol, $now) {
     $skippedExchanges = array(
         'bitmex', // BitMEX API docs => also note the open price is equal to the close price of the previous timeframe bucket.
         'vcc', // same as BitMEX, the open price is equal to the close price of the previous timeframe bucket.
+        'delta',
+        'cryptocom',
     );
 
     if (!$exchange->in_array($exchange->id, $skippedExchanges)) {
         assert (($ohlcv[1] === null) || ($ohlcv[2] === null) || ($ohlcv[1] <= $ohlcv[2]), 'open > high, ' . $exchange->safe_string($ohlcv, 1, 'null') . ' > ' . $exchange->safe_string($ohlcv, 2, 'null')); // open <= high
+        assert (($ohlcv[3] === null) || ($ohlcv[2] === null) || ($ohlcv[3] <= $ohlcv[2]), 'low > high, ' . $exchange->safe_string($ohlcv, 2, 'null') . ' > ' . $exchange->safe_string($ohlcv, 3, 'null')); // low <= high
+        assert (($ohlcv[3] === null) || ($ohlcv[4] === null) || ($ohlcv[3] <= $ohlcv[4]), 'low > close, ' . $exchange->safe_string($ohlcv, 3, 'null') . ' > ' . $exchange->safe_string($ohlcv, 4, 'null')); // low <= close
     }
-
-    assert (($ohlcv[3] === null) || ($ohlcv[2] === null) || ($ohlcv[3] <= $ohlcv[2]), 'low > high, ' . $exchange->safe_string($ohlcv, 2, 'null') . ' > ' . $exchange->safe_string($ohlcv, 3, 'null')); // low <= high
-    assert (($ohlcv[3] === null) || ($ohlcv[4] === null) || ($ohlcv[3] <= $ohlcv[4]), 'low > close, ' . $exchange->safe_string($ohlcv, 3, 'null') . ' > ' . $exchange->safe_string($ohlcv, 4, 'null')); // low <= close
 }
 
 

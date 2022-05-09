@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AddressPending, AuthenticationError, ExchangeError, NotSupported, PermissionDenied, ArgumentsRequired } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,26 +17,59 @@ module.exports = class buda extends Exchange {
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchFundingFees': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
+                'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
+                'transfer': false,
                 'withdraw': true,
             },
             'urls': {
@@ -114,22 +148,22 @@ module.exports = class buda extends Exchange {
                     'maker': 0.004,  // 0.4%
                     'tiers': {
                         'taker': [
-                            [0, 0.008],  // 0.8%
-                            [2000, 0.007],  // 0.7%
-                            [20000, 0.006],  // 0.6%
-                            [100000, 0.005],  // 0.5%
-                            [500000, 0.004],  // 0.4%
-                            [2500000, 0.003],  // 0.3%
-                            [12500000, 0.002],  // 0.2%
+                            [ 0, 0.008 ],  // 0.8%
+                            [ 2000, 0.007 ],  // 0.7%
+                            [ 20000, 0.006 ],  // 0.6%
+                            [ 100000, 0.005 ],  // 0.5%
+                            [ 500000, 0.004 ],  // 0.4%
+                            [ 2500000, 0.003 ],  // 0.3%
+                            [ 12500000, 0.002 ],  // 0.2%
                         ],
                         'maker': [
-                            [0, 0.004],  // 0.4%
-                            [2000, 0.0035],  // 0.35%
-                            [20000, 0.003],  // 0.3%
-                            [100000, 0.0025],  // 0.25%
-                            [500000, 0.002],  // 0.2%
-                            [2500000, 0.0015],  // 0.15%
-                            [12500000, 0.001],  // 0.1%
+                            [ 0, 0.004 ],  // 0.4%
+                            [ 2000, 0.0035 ],  // 0.35%
+                            [ 20000, 0.003 ],  // 0.3%
+                            [ 100000, 0.0025 ],  // 0.25%
+                            [ 500000, 0.002 ],  // 0.2%
+                            [ 2500000, 0.0015 ],  // 0.15%
+                            [ 12500000, 0.001 ],  // 0.1%
                         ],
                     },
                 },
@@ -148,6 +182,27 @@ module.exports = class buda extends Exchange {
     async fetchCurrencyInfo (currency, currencies = undefined) {
         if (!currencies) {
             const response = await this.publicGetCurrencies ();
+            //
+            //     {
+            //         "currencies":[
+            //             {
+            //                 "id":"BTC",
+            //                 "symbol":"฿",
+            //                 "managed":true,
+            //                 "input_decimals":8,
+            //                 "display_decimals":8,
+            //                 "timezone":"UTC",
+            //                 "deposit_minimum":["0.0","BTC"],
+            //                 "withdrawal_minimum":["0.00001","BTC"],
+            //                 "max_digits_for_decimals":6,
+            //                 "crypto":true,
+            //                 "address_explorer":"https://blockchair.com/bitcoin/address/",
+            //                 "tx_explorer":"https://blockchair.com/bitcoin/transaction/",
+            //                 "amount_to_micro_multiplier":1000000000000
+            //             }
+            //         ]
+            //     }
+            //
             currencies = this.safeValue (response, 'currencies');
         }
         for (let i = 0; i < currencies.length; i++) {
@@ -167,47 +222,60 @@ module.exports = class buda extends Exchange {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const id = this.safeString (market, 'id');
             const baseId = this.safeString (market, 'base_currency');
             const quoteId = this.safeString (market, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const baseInfo = await this.fetchCurrencyInfo (baseId, currencies);
             const quoteInfo = await this.fetchCurrencyInfo (quoteId, currencies);
-            const symbol = base + '/' + quote;
             const pricePrecisionString = this.safeString (quoteInfo, 'input_decimals');
-            const priceLimit = this.parsePrecision (pricePrecisionString);
-            const precision = {
-                'amount': this.safeInteger (baseInfo, 'input_decimals'),
-                'price': parseInt (pricePrecisionString),
-            };
             const minimumOrderAmount = this.safeValue (market, 'minimum_order_amount', []);
-            const limits = {
-                'amount': {
-                    'min': this.safeNumber (minimumOrderAmount, 0),
-                    'max': undefined,
-                },
-                'price': {
-                    'min': priceLimit,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
             result.push ({
-                'id': id,
-                'symbol': symbol,
+                'id': this.safeString (market, 'id'),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': true,
-                'precision': precision,
-                'limits': limits,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (baseInfo, 'input_decimals'),
+                    'price': parseInt (pricePrecisionString),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (minimumOrderAmount, 0),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }
@@ -216,23 +284,51 @@ module.exports = class buda extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetCurrencies ();
+        //
+        //     {
+        //         "currencies":[
+        //             {
+        //                 "id":"BTC",
+        //                 "symbol":"฿",
+        //                 "managed":true,
+        //                 "input_decimals":8,
+        //                 "display_decimals":8,
+        //                 "timezone":"UTC",
+        //                 "deposit_minimum":["0.0","BTC"],
+        //                 "withdrawal_minimum":["0.00001","BTC"],
+        //                 "max_digits_for_decimals":6,
+        //                 "crypto":true,
+        //                 "address_explorer":"https://blockchair.com/bitcoin/address/",
+        //                 "tx_explorer":"https://blockchair.com/bitcoin/transaction/",
+        //                 "amount_to_micro_multiplier":1000000000000
+        //             }
+        //         ]
+        //     }
+        //
         const currencies = response['currencies'];
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
-            if (!currency['managed']) {
+            const managed = this.safeValue (currency, 'managed', false);
+            if (!managed) {
                 continue;
             }
             const id = this.safeString (currency, 'id');
             const code = this.safeCurrencyCode (id);
             const precision = this.safeNumber (currency, 'input_decimals');
             const minimum = Math.pow (10, -precision);
+            const depositMinimum = this.safeValue (currency, 'deposit_minimum', []);
+            const withdrawalMinimum = this.safeValue (currency, 'withdrawal_minimum', []);
+            const minDeposit = this.safeNumber (depositMinimum, 0);
+            const minWithdraw = this.safeNumber (withdrawalMinimum, 0);
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': undefined,
                 'active': true,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'precision': precision,
                 'limits': {
@@ -241,11 +337,11 @@ module.exports = class buda extends Exchange {
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': parseFloat (currency['deposit_minimum'][0]),
+                        'min': minDeposit,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': parseFloat (currency['withdrawal_minimum'][0]),
+                        'min': minWithdraw,
                     },
                 },
             };
@@ -305,43 +401,69 @@ module.exports = class buda extends Exchange {
             'market': market['id'],
         };
         const response = await this.publicGetMarketsMarketTicker (this.extend (request, params));
+        //
+        //     {
+        //         "ticker":{
+        //             "market_id":"ETH-BTC",
+        //             "last_price":["0.07300001","BTC"],
+        //             "min_ask":["0.07716895","BTC"],
+        //             "max_bid":["0.0754966","BTC"],
+        //             "volume":["0.168965697","ETH"],
+        //             "price_variation_24h":"-0.046",
+        //             "price_variation_7d":"-0.085"
+        //         }
+        //     }
+        //
         const ticker = this.safeValue (response, 'ticker');
         return this.parseTicker (ticker, market);
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        // fetchTicker
+        //
+        //     {
+        //         "market_id":"ETH-BTC",
+        //         "last_price":["0.07300001","BTC"],
+        //         "min_ask":["0.07716895","BTC"],
+        //         "max_bid":["0.0754966","BTC"],
+        //         "volume":["0.168965697","ETH"],
+        //         "price_variation_24h":"-0.046",
+        //         "price_variation_7d":"-0.085"
+        //     }
+        //
         const timestamp = this.milliseconds ();
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        const last = parseFloat (ticker['last_price'][0]);
-        const percentage = parseFloat (ticker['price_variation_24h']);
-        const open = parseFloat (this.priceToPrecision (symbol, last / (percentage + 1)));
-        const change = last - open;
-        const average = this.sum (last, open) / 2;
-        return {
+        const marketId = this.safeString (ticker, 'market_id');
+        const symbol = this.safeSymbol (marketId, market, '-');
+        const lastPrice = this.safeValue (ticker, 'last_price', []);
+        const last = this.safeString (lastPrice, 0);
+        let percentage = this.safeString (ticker, 'price_variation_24h');
+        percentage = Precise.stringMul (percentage, '100');
+        const maxBid = this.safeValue (ticker, 'max_bid', []);
+        const minAsk = this.safeValue (ticker, 'min_ask', []);
+        const baseVolume = this.safeValue (ticker, 'volume', []);
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': parseFloat (ticker['max_bid'][0]),
+            'bid': this.safeString (maxBid, 0),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['min_ask'][0]),
+            'ask': this.safeString (minAsk, 0),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': open,
+            'open': undefined,
             'close': last,
             'last': last,
-            'previousClose': open,
-            'change': change,
-            'percentage': percentage * 100,
-            'average': average,
-            'baseVolume': parseFloat (ticker['volume'][0]),
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': percentage,
+            'average': undefined,
+            'baseVolume': this.safeString (baseVolume, 0),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market, false);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -438,9 +560,7 @@ module.exports = class buda extends Exchange {
         return this.parseTradingViewOHLCV (response, market, timeframe, since, limit);
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetBalances (params);
+    parseBalance (response) {
         const result = { 'info': response };
         const balances = this.safeValue (response, 'balances');
         for (let i = 0; i < balances.length; i++) {
@@ -452,7 +572,13 @@ module.exports = class buda extends Exchange {
             account['total'] = this.safeString (balance['amount'], 0);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetBalances (params);
+        return this.parseBalance (response);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -586,7 +712,7 @@ module.exports = class buda extends Exchange {
                 'code': feeCurrencyCode,
             };
         }
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -659,7 +785,7 @@ module.exports = class buda extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         if (this.isFiat (code)) {
-            throw new NotSupported (this.id + ': fiat fetchDepositAddress() for ' + code + ' is not supported');
+            throw new NotSupported (this.id + ' fetchDepositAddress() of fiat for ' + code + ' is not supported');
         }
         const request = {
             'currency': currency['id'],
@@ -705,7 +831,13 @@ module.exports = class buda extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type,
             'amount': amount,
             'currency': code,
@@ -721,7 +853,7 @@ module.exports = class buda extends Exchange {
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ': fetchDeposits() requires a currency code argument');
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
         }
         const currency = this.currency (code);
         const request = {
@@ -736,7 +868,7 @@ module.exports = class buda extends Exchange {
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ': fetchDeposits() requires a currency code argument');
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
         }
         const currency = this.currency (code);
         const request = {

@@ -18,22 +18,49 @@ module.exports = class coinone extends Exchange {
             'rateLimit': 667,
             'version': 'v2',
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': undefined, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
-                'fetchCurrencies': undefined,
                 'fetchDepositAddresses': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -106,6 +133,27 @@ module.exports = class coinone extends Exchange {
             'currency': 'all',
         };
         const response = await this.publicGetTicker (request);
+        //
+        //    {
+        //        "result": "success",
+        //        "errorCode": "0",
+        //        "timestamp": "1643676668",
+        //        "xec": {
+        //          "currency": "xec",
+        //          "first": "0.0914",
+        //          "low": "0.0894",
+        //          "high": "0.096",
+        //          "last": "0.0937",
+        //          "volume": "1673283662.9797",
+        //          "yesterday_first": "0.0929",
+        //          "yesterday_low": "0.0913",
+        //          "yesterday_high": "0.0978",
+        //          "yesterday_last": "0.0913",
+        //          "yesterday_volume": "1167285865.4571"
+        //        },
+        //        ...
+        //    }
+        //
         const result = [];
         const quoteId = 'krw';
         const quote = this.safeCurrencyCode (quoteId);
@@ -119,24 +167,58 @@ module.exports = class coinone extends Exchange {
             }
             const base = this.safeCurrencyCode (baseId);
             result.push ({
-                'info': ticker,
                 'id': baseId,
                 'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': undefined,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': undefined,
+                    'price': undefined,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': ticker,
             });
         }
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privatePostAccountBalance (params);
+    parseBalance (response) {
         const result = { 'info': response };
         const balances = this.omit (response, [
             'errorCode',
@@ -153,7 +235,13 @@ module.exports = class coinone extends Exchange {
             account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostAccountBalance (params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -205,17 +293,32 @@ module.exports = class coinone extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "currency":"xec",
+        //         "first":"0.1069",
+        //         "low":"0.09",
+        //         "high":"0.1069",
+        //         "last":"0.0911",
+        //         "volume":"4591217267.4974",
+        //         "yesterday_first":"0.1128",
+        //         "yesterday_low":"0.1035",
+        //         "yesterday_high":"0.1167",
+        //         "yesterday_last":"0.1069",
+        //         "yesterday_volume":"4014832231.5102"
+        //     }
+        //
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
-        const open = this.safeNumber (ticker, 'first');
-        const last = this.safeNumber (ticker, 'last');
-        const previousClose = this.safeNumber (ticker, 'yesterday_last');
+        const open = this.safeString (ticker, 'first');
+        const last = this.safeString (ticker, 'last');
+        const previousClose = this.safeString (ticker, 'yesterday_last');
         const symbol = this.safeSymbol (undefined, market);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
@@ -228,10 +331,10 @@ module.exports = class coinone extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume'),
+            'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     parseTrade (trade, market = undefined) {
@@ -258,7 +361,7 @@ module.exports = class coinone extends Exchange {
         //     }
         //
         const timestamp = this.safeTimestamp (trade, 'timestamp');
-        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        market = this.safeMarket (undefined, market);
         const is_ask = this.safeString (trade, 'is_ask');
         let side = this.safeString (trade, 'type');
         if (is_ask !== undefined) {
@@ -276,41 +379,35 @@ module.exports = class coinone extends Exchange {
         }
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'qty');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const orderId = this.safeString (trade, 'orderId');
-        let feeCost = this.safeNumber (trade, 'fee');
+        let feeCostString = this.safeString (trade, 'fee');
         let fee = undefined;
-        if (feeCost !== undefined) {
-            feeCost = Math.abs (feeCost);
-            let feeRate = this.safeNumber (trade, 'feeRate');
-            feeRate = Math.abs (feeRate);
-            let feeCurrencyCode = undefined;
-            if (market !== undefined) {
-                feeCurrencyCode = (side === 'sell') ? market['quote'] : market['base'];
-            }
+        if (feeCostString !== undefined) {
+            feeCostString = Precise.stringAbs (feeCostString);
+            let feeRateString = this.safeString (trade, 'feeRate');
+            feeRateString = Precise.stringAbs (feeRateString);
+            const feeCurrencyCode = (side === 'sell') ? market['quote'] : market['base'];
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
-                'rate': feeRate,
+                'rate': feeRateString,
             };
         }
-        return {
+        return this.safeTrade ({
             'id': this.safeString (trade, 'id'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'order': orderId,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -343,7 +440,7 @@ module.exports = class coinone extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type !== 'limit') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
+            throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
         await this.loadMarkets ();
         const request = {
@@ -444,7 +541,7 @@ module.exports = class coinone extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'orderId');
-        const price = this.safeString (order, 'price');
+        const priceString = this.safeString (order, 'price');
         const timestamp = this.safeTimestamp (order, 'timestamp');
         let side = this.safeString (order, 'type');
         if (side === 'ask') {
@@ -452,13 +549,13 @@ module.exports = class coinone extends Exchange {
         } else if (side === 'bid') {
             side = 'buy';
         }
-        const remaining = this.safeString (order, 'remainQty');
-        const amount = this.safeString (order, 'qty');
+        const remainingString = this.safeString (order, 'remainQty');
+        const amountString = this.safeString (order, 'qty');
         let status = this.safeString (order, 'status');
         // https://github.com/ccxt/ccxt/pull/7067
         if (status === 'live') {
-            if ((remaining !== undefined) && (amount !== undefined)) {
-                const isLessThan = Precise.stringLt (remaining, amount);
+            if ((remainingString !== undefined) && (amountString !== undefined)) {
+                const isLessThan = Precise.stringLt (remainingString, amountString);
                 if (isLessThan) {
                     status = 'canceled';
                 }
@@ -484,16 +581,16 @@ module.exports = class coinone extends Exchange {
             quote = market['quote'];
         }
         let fee = undefined;
-        const feeCost = this.safeNumber (order, 'fee');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (order, 'fee');
+        if (feeCostString !== undefined) {
             const feeCurrencyCode = (side === 'sell') ? quote : base;
             fee = {
-                'cost': feeCost,
-                'rate': this.safeNumber (order, 'feeRate'),
+                'cost': feeCostString,
+                'rate': this.safeString (order, 'feeRate'),
                 'currency': feeCurrencyCode,
             };
         }
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -505,13 +602,13 @@ module.exports = class coinone extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': price,
+            'price': priceString,
             'stopPrice': undefined,
             'cost': undefined,
             'average': undefined,
-            'amount': amount,
+            'amount': amountString,
             'filled': undefined,
-            'remaining': remaining,
+            'remaining': remainingString,
             'status': status,
             'fee': fee,
             'trades': undefined,
@@ -522,7 +619,7 @@ module.exports = class coinone extends Exchange {
         // The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
         // For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
         if (symbol === undefined) {
-            throw new ExchangeError (this.id + ' allows fetching closed orders with a specific symbol');
+            throw new ExchangeError (this.id + ' fetchOpenOrders() allows fetching closed orders with a specific symbol');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

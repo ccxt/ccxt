@@ -20,11 +20,24 @@ class eqonex(Exchange):
             'countries': ['US', 'SG'],  # United States, Singapore
             'rateLimit': 10,
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': None,  # has but not fully implemented
+                'future': None,  # has but not fully implemented
+                'option': False,
+                'cancelOrder': True,
                 'createOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
@@ -38,7 +51,9 @@ class eqonex(Exchange):
                 'fetchOrders': True,
                 'fetchTicker': None,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTradingLimits': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
@@ -50,6 +65,7 @@ class eqonex(Exchange):
                 '6h': 5,
                 '1d': 6,
                 '7d': 7,
+                '1w': 7,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/122649755-1a076c80-d138-11eb-8f2e-9a9166a03d79.jpg',
@@ -122,37 +138,51 @@ class eqonex(Exchange):
         }
         response = self.publicGetGetInstrumentPairs(self.extend(request, params))
         #
-        #     {
-        #         "instrumentPairs":[
-        #             {
-        #                 "instrumentId":52,
-        #                 "symbol":"BTC/USDC",
-        #                 "quoteId":1,
-        #                 "baseId":3,
-        #                 "price_scale":2,
-        #                 "quantity_scale":6,
-        #                 "securityStatus":1,
-        #                 "securityDesc":"BTC/USDC",  # "BTC/USDC[F]"
-        #                 "assetType":"PAIR",  # "PERPETUAL_SWAP"
-        #                 "currency":"BTC",
-        #                 "contAmtCurr":"USDC",
-        #                 "settlCurrency":"USDC",
-        #                 "commCurrency":"USDC",
-        #                 "cfiCode":"XXXXXX",
-        #                 "securityExchange":"XXXX",
-        #                 "instrumentPricePrecision":2,
-        #                 "minPriceIncrement":1.0,
-        #                 "minPriceIncrementAmount":1.0,
-        #                 "roundLot":1,
-        #                 "minTradeVol":0.001000,
-        #                 "maxTradeVol":0.000000
-        #                 # contracts onlye
-        #                 "qtyType":0,
-        #                 "contractMultiplier":1.0,
-        #                 "issueDate":1598608087000
-        #             },
-        #         ]
-        #     }
+        #    {
+        #        "instrumentPairs": [
+        #            {
+        #                "instrumentId":303,
+        #                "symbol":"BTC/USDC[220325]",
+        #                "quoteId":1,
+        #                "baseId":3,
+        #                "price_scale":2,
+        #                "quantity_scale":6,
+        #                "securityStatus":1,
+        #                "securityDesc":"BTC Dated Future",
+        #                "assetType":"DATED_FUTURE",
+        #                "currency":"BTC",
+        #                "contAmtCurr":"USDC",
+        #                "settlCurrency":"USDC",
+        #                "commCurrency":"USDC",
+        #                "cfiCode":"FFCPSX",
+        #                "securityExchange":"EQOS",
+        #                "micCode":"EQOD",
+        #                "instrumentPricePrecision":2,
+        #                "minPriceIncrement":1.0,
+        #                "minPriceIncrementAmount":1.0,
+        #                "roundLot":100,
+        #                "minTradeVol":0.000100,
+        #                "maxTradeVol":0.000000,
+        #                "qtyType":0,
+        #                "contractMultiplier":1.0,
+        #                "auctionStartTime":0,
+        #                "auctionDuration":0,
+        #                "auctionFrequency":0,
+        #                "auctionPrice":0,
+        #                "auctionVolume":0,
+        #                "marketStatus":"OPEN",
+        #                "underlyingSymbol":"BTC/USDC",
+        #                "underlyingSecurityId":52,
+        #                "underlyingSecuritySource":"M",
+        #                "underlyingSecurityExchange":"EQOC",
+        #                "issueDate":1643256000000,
+        #                "maturityDate":"2022-03-25",
+        #                "maturityTime":"2022-03-25T08:00:00Z",
+        #                "contractExpireTime":1648195200000
+        #            }
+        #            ...
+        #        ]
+        #    }
         #
         instrumentPairs = self.safe_value(response, 'instrumentPairs', [])
         markets = []
@@ -163,65 +193,117 @@ class eqonex(Exchange):
 
     def parse_market(self, market):
         #
-        #     {
-        #         "instrumentId":52,
-        #         "symbol":"BTC/USDC",  # "BTC/USDC[F]"
-        #         "quoteId":1,
-        #         "baseId":3,
-        #         "price_scale":2,
-        #         "quantity_scale":6,
-        #         "securityStatus":1,
-        #         "securityDesc":"BTC/USDC",  # "BTC/USDC[F]"
-        #         "assetType":"PAIR",  # "PERPETUAL_SWAP"
-        #         "currency":"BTC",
-        #         "contAmtCurr":"USDC",
-        #         "settlCurrency":"USDC",
-        #         "commCurrency":"USDC",
-        #         "cfiCode":"XXXXXX",
-        #         "securityExchange":"XXXX",
-        #         "instrumentPricePrecision":2,
-        #         "minPriceIncrement":1.0,
-        #         "minPriceIncrementAmount":1.0,
-        #         "roundLot":1,
-        #         "minTradeVol":0.001000,
-        #         "maxTradeVol":0.000000
-        #         # contracts onlye
-        #         "qtyType":0,
-        #         "contractMultiplier":1.0,
-        #         "issueDate":1598608087000
-        #     }
+        #    {
+        #        "instrumentPairs": [
+        #            {
+        #                "instrumentId":303,
+        #                "symbol":"BTC/USDC[220325]",
+        #                "quoteId":1,
+        #                "baseId":3,
+        #                "price_scale":2,
+        #                "quantity_scale":6,
+        #                "securityStatus":1,
+        #                "securityDesc":"BTC Dated Future",
+        #                "assetType":"DATED_FUTURE",
+        #                "currency":"BTC",
+        #                "contAmtCurr":"USDC",
+        #                "settlCurrency":"USDC",
+        #                "commCurrency":"USDC",
+        #                "cfiCode":"FFCPSX",
+        #                "securityExchange":"EQOS",
+        #                "micCode":"EQOD",
+        #                "instrumentPricePrecision":2,
+        #                "minPriceIncrement":1.0,
+        #                "minPriceIncrementAmount":1.0,
+        #                "roundLot":100,
+        #                "minTradeVol":0.000100,
+        #                "maxTradeVol":0.000000,
+        #                "qtyType":0,
+        #                "contractMultiplier":1.0,
+        #                "auctionStartTime":0,
+        #                "auctionDuration":0,
+        #                "auctionFrequency":0,
+        #                "auctionPrice":0,
+        #                "auctionVolume":0,
+        #                "marketStatus":"OPEN",
+        #                "underlyingSymbol":"BTC/USDC",
+        #                "underlyingSecurityId":52,
+        #                "underlyingSecuritySource":"M",
+        #                "underlyingSecurityExchange":"EQOC",
+        #                "issueDate":1643256000000,
+        #                "maturityDate":"2022-03-25",
+        #                "maturityTime":"2022-03-25T08:00:00Z",
+        #                "contractExpireTime":1648195200000
+        #            }
+        #            ...
+        #        ]
+        #    }
         #
-        id = self.safe_string(market, 'instrumentId')
-        uppercaseId = self.safe_string(market, 'symbol')
         assetType = self.safe_string(market, 'assetType')
         spot = (assetType == 'PAIR')
         swap = (assetType == 'PERPETUAL_SWAP')
-        type = 'swap' if swap else 'spot'
+        future = (assetType == 'DATED_FUTURE')
+        contract = swap or future
+        id = self.safe_string(market, 'instrumentId')
         baseId = self.safe_string(market, 'currency')
         quoteId = self.safe_string(market, 'contAmtCurr')
+        settleId = self.safe_string(market, 'settlCurrency') if contract else None
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = uppercaseId if swap else (base + '/' + quote)
+        settle = self.safe_currency_code(settleId)
+        symbol = base + '/' + quote
+        uppercaseId = self.safe_string(market, 'symbol')
+        type = 'spot'
+        linear = None
+        inverse = None
+        expiry = self.safe_number(market, 'contractExpireTime')
+        if contract:
+            symbol = symbol + ':' + settle
+            linear = (quote == settle)
+            inverse = not linear
+            if swap:
+                type = 'swap'
+            elif future:
+                symbol = symbol + '-' + self.yymmdd(expiry)
+                type = 'future'
+            else:
+                symbol = uppercaseId
+                type = assetType
         status = self.safe_integer(market, 'securityStatus')
-        active = (status == 1)
-        precision = {
-            'amount': self.safe_integer(market, 'quantity_scale'),
-            'price': self.safe_integer(market, 'price_scale'),
-        }
         return {
             'id': id,
             'uppercaseId': uppercaseId,
             'symbol': symbol,
             'base': base,
             'quote': quote,
+            'settle': settle,
             'baseId': baseId,
             'quoteId': quoteId,
+            'settleId': settleId,
             'type': type,
             'spot': spot,
+            'margin': False,
             'swap': swap,
-            'active': active,
-            'precision': precision,
+            'future': future,
+            'option': False,
+            'active': (status == 1),
+            'contract': contract,
+            'linear': linear,
+            'inverse': inverse,
+            'contractSize': self.safe_number(market, 'contractMultiplier'),
+            'expiry': expiry,
+            'expiryDatetime': self.iso8601(expiry),
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.safe_integer(market, 'quantity_scale'),
+                'price': self.safe_integer(market, 'price_scale'),
+            },
             'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
                 'amount': {
                     'min': self.safe_number(market, 'minTradeVol'),
                     'max': None,
@@ -296,6 +378,8 @@ class eqonex(Exchange):
             'precision': precision,
             'fee': fee,
             'active': active,
+            'deposit': None,
+            'withdraw': None,
             'limits': {
                 'amount': {
                     'min': None,
@@ -484,7 +568,7 @@ class eqonex(Exchange):
         priceString = None
         amountString = None
         fee = None
-        symbol = None
+        marketId = None
         if isinstance(trade, list):
             id = self.safe_string(trade, 3)
             priceString = self.convert_from_scale(self.safe_string(trade, 0), market['precision']['price'])
@@ -499,41 +583,56 @@ class eqonex(Exchange):
             id = self.safe_string(trade, 'execId')
             timestamp = self.safe_integer(trade, 'time')
             marketId = self.safe_string(trade, 'symbol')
-            symbol = self.safe_symbol(marketId, market)
             orderId = self.safe_string(trade, 'orderId')
             side = self.safe_string_lower(trade, 'side')
             type = self.parse_order_type(self.safe_string(trade, 'ordType'))
             priceString = self.safe_string(trade, 'lastPx')
             amountString = self.safe_string(trade, 'qty')
-            feeCost = self.safe_number(trade, 'commission')
-            if feeCost is not None:
-                feeCost = -feeCost
+            feeCostString = self.safe_string(trade, 'commission')
+            if feeCostString is not None:
+                feeCostString = Precise.string_neg(feeCostString)
                 feeCurrencyId = self.safe_string(trade, 'commCurrency')
                 feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
                 fee = {
-                    'cost': feeCost,
+                    'cost': feeCostString,
                     'currency': feeCurrencyCode,
                 }
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-        cost = self.parse_number(Precise.string_mul(amountString, priceString))
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        return {
+        market = self.safe_market(marketId, market)
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': orderId,
             'type': type,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
+        }, market)
+
+    def parse_balance(self, response):
+        positions = self.safe_value(response, 'positions', [])
+        result = {
+            'info': response,
         }
+        for i in range(0, len(positions)):
+            position = positions[i]
+            assetType = self.safe_string(position, 'assetType')
+            if assetType == 'ASSET':
+                currencyId = self.safe_string(position, 'symbol')
+                code = self.safe_currency_code(currencyId)
+                quantityString = self.safe_string(position, 'quantity')
+                availableQuantityString = self.safe_string(position, 'availableQuantity')
+                scale = self.safe_integer(position, 'quantity_scale')
+                account = self.account()
+                account['free'] = self.convert_from_scale(availableQuantityString, scale)
+                account['total'] = self.convert_from_scale(quantityString, scale)
+                result[code] = account
+        return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -560,24 +659,7 @@ class eqonex(Exchange):
         #             },
         #         ]
         #     }
-        positions = self.safe_value(response, 'positions', [])
-        result = {
-            'info': response,
-        }
-        for i in range(0, len(positions)):
-            position = positions[i]
-            assetType = self.safe_string(position, 'assetType')
-            if assetType == 'ASSET':
-                currencyId = self.safe_string(position, 'symbol')
-                code = self.safe_currency_code(currencyId)
-                quantityString = self.safe_string(position, 'quantity')
-                availableQuantityString = self.safe_string(position, 'availableQuantity')
-                scale = self.safe_integer(position, 'quantity_scale')
-                account = self.account()
-                account['free'] = self.convert_from_scale(availableQuantityString, scale)
-                account['total'] = self.convert_from_scale(quantityString, scale)
-                result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(response)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -1071,6 +1153,7 @@ class eqonex(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'addressFrom': None,
             'address': address,
             'addressTo': None,
@@ -1129,22 +1212,74 @@ class eqonex(Exchange):
         return self.parse_transaction(response, currency)
 
     def fetch_trading_fees(self, params={}):
-        # getExchangeInfo
+        self.load_markets()
         response = self.publicGetGetExchangeInfo(params)
-        tradingFees = self.safe_value(response, 'spotFees', [])
-        taker = {}
-        maker = {}
-        for i in range(0, len(tradingFees)):
-            tradingFee = tradingFees[i]
-            if self.safe_string(tradingFee, 'tier') is not None:
-                taker[tradingFee['tier']] = self.safe_number(tradingFee, 'taker')
-                maker[tradingFee['tier']] = self.safe_number(tradingFee, 'maker')
-        return {
-            'info': tradingFees,
-            'tierBased': True,
-            'maker': maker,
-            'taker': taker,
+        #
+        #     {
+        #         tradingLimits: [],
+        #         withdrawLimits: [{All: '0.0', Type: 'percent'}],
+        #         futuresFees: [
+        #             {tier: '0', maker: '0.000300', taker: '0.000500'},
+        #             {tier: '1', maker: '0.000200', taker: '0.000400'},
+        #             {tier: '2', maker: '0.000180', taker: '0.000400'},
+        #         ],
+        #         spotFees: [
+        #             {tier: '0', maker: '0.000900', taker: '0.001500', volume: '0'},
+        #             {tier: '1', maker: '0.000600', taker: '0.001250', volume: '200000'},
+        #             {tier: '2', maker: '0.000540', taker: '0.001200', volume: '2500000'},
+        #         ],
+        #         referrals: {earning: '0.30', discount: '0.05', duration: '180'}
+        #     }
+        #
+        spotFees = self.safe_value(response, 'spotFees', [])
+        firstSpotFee = self.safe_value(spotFees, 0, {})
+        spotMakerFee = self.safe_number(firstSpotFee, 'maker')
+        spotTakerFee = self.safe_number(firstSpotFee, 'taker')
+        futureFees = self.safe_value(response, 'futuresFees', [])
+        firstFutureFee = self.safe_value(futureFees, 0, {})
+        futureMakerFee = self.safe_number(firstFutureFee, 'maker')
+        futureTakerFee = self.safe_number(firstFutureFee, 'taker')
+        spotTakerTiers = []
+        spotMakerTiers = []
+        result = {}
+        for i in range(0, len(spotFees)):
+            spotFee = spotFees[i]
+            volume = self.safe_number(spotFee, 'volume')
+            spotTakerTiers.append([volume, self.safe_number(spotFee, 'taker')])
+            spotMakerTiers.append([volume, self.safe_number(spotFee, 'maker')])
+        spotTiers = {
+            'taker': spotTakerTiers,
+            'maker': spotMakerTiers,
         }
+        futureTakerTiers = []
+        futureMakerTiers = []
+        for i in range(0, len(futureFees)):
+            futureFee = futureFees[i]
+            futureTakerTiers.append([None, self.safe_number(futureFee, 'taker')])
+            futureMakerTiers.append([None, self.safe_number(futureFee, 'maker')])
+        futureTiers = {
+            'taker': futureTakerTiers,
+            'maker': futureMakerTiers,
+        }
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            market = self.market(symbol)
+            fee = {
+                'info': response,
+                'symbol': symbol,
+                'percentage': True,
+                'tierBased': True,
+            }
+            if self.safe_value(market, 'spot'):
+                fee['maker'] = spotMakerFee
+                fee['taker'] = spotTakerFee
+                fee['tiers'] = spotTiers
+            elif self.safe_value(market, 'contract'):
+                fee['maker'] = futureMakerFee
+                fee['taker'] = futureTakerFee
+                fee['tiers'] = futureTiers
+            result[symbol] = fee
+        return result
 
     def fetch_trading_limits(self, symbols=None, params={}):
         self.load_markets()
@@ -1261,15 +1396,16 @@ class eqonex(Exchange):
         fee = None
         currencyId = self.safe_integer(order, 'feeInstrumentId')
         feeCurrencyCode = self.safe_currency_code(currencyId)
+        feeCostString = None
         feeCost = self.safe_string(order, 'feeTotal')
         feeScale = self.safe_integer(order, 'fee_scale')
         if feeCost is not None:
             feeCost = Precise.string_neg(feeCost)
-            feeCost = self.parse_number(self.convert_from_scale(feeCost, feeScale))
+            feeCostString = self.convert_from_scale(feeCost, feeScale)
         if feeCost is not None:
             fee = {
                 'currency': feeCurrencyCode,
-                'cost': feeCost,
+                'cost': feeCostString,
                 'rate': None,
             }
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
@@ -1277,7 +1413,7 @@ class eqonex(Exchange):
             timeInForce = None
         stopPriceScale = self.safe_integer(order, 'stopPx_scale', 0)
         stopPrice = self.parse_number(self.convert_from_scale(self.safe_string(order, 'stopPx'), stopPriceScale))
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

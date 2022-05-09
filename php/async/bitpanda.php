@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\Precise;
 
 class bitpanda extends Exchange {
 
@@ -20,32 +21,63 @@ class bitpanda extends Exchange {
             'version' => 'v1',
             // new metainfo interface
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
-                'CORS' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
                 'fetchWithdrawals' => true,
                 'privateAPI' => true,
                 'publicAPI' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -122,29 +154,29 @@ class bitpanda extends Exchange {
                     'percentage' => true,
                     'taker' => $this->parse_number('0.0015'),
                     'maker' => $this->parse_number('0.001'),
-                    'tiers' => [
+                    'tiers' => array(
                         // volume in BTC
                         array(
-                            'taker' => [
-                                [$this->parse_number('0'), $this->parse_number('0.0015')],
-                                [$this->parse_number('100'), $this->parse_number('0.0013')],
-                                [$this->parse_number('250'), $this->parse_number('0.0013')],
-                                [$this->parse_number('1000'), $this->parse_number('0.001')],
-                                [$this->parse_number('5000'), $this->parse_number('0.0009')],
-                                [$this->parse_number('10000'), $this->parse_number('0.00075')],
-                                [$this->parse_number('20000'), $this->parse_number('0.00065')],
-                            ],
-                            'maker' => [
-                                [$this->parse_number('0'), $this->parse_number('0.001')],
-                                [$this->parse_number('100'), $this->parse_number('0.001')],
-                                [$this->parse_number('250'), $this->parse_number('0.0009')],
-                                [$this->parse_number('1000'), $this->parse_number('0.00075')],
-                                [$this->parse_number('5000'), $this->parse_number('0.0006')],
-                                [$this->parse_number('10000'), $this->parse_number('0.0005')],
-                                [$this->parse_number('20000'), $this->parse_number('0.0005')],
-                            ],
+                            'taker' => array(
+                                array( $this->parse_number('0'), $this->parse_number('0.0015') ),
+                                array( $this->parse_number('100'), $this->parse_number('0.0013') ),
+                                array( $this->parse_number('250'), $this->parse_number('0.0013') ),
+                                array( $this->parse_number('1000'), $this->parse_number('0.001') ),
+                                array( $this->parse_number('5000'), $this->parse_number('0.0009') ),
+                                array( $this->parse_number('10000'), $this->parse_number('0.00075') ),
+                                array( $this->parse_number('20000'), $this->parse_number('0.00065') ),
+                            ),
+                            'maker' => array(
+                                array( $this->parse_number('0'), $this->parse_number('0.001') ),
+                                array( $this->parse_number('100'), $this->parse_number('0.001') ),
+                                array( $this->parse_number('250'), $this->parse_number('0.0009') ),
+                                array( $this->parse_number('1000'), $this->parse_number('0.00075') ),
+                                array( $this->parse_number('5000'), $this->parse_number('0.0006') ),
+                                array( $this->parse_number('10000'), $this->parse_number('0.0005') ),
+                                array( $this->parse_number('20000'), $this->parse_number('0.0005') ),
+                            ),
                         ),
-                    ],
+                    ),
                 ),
             ),
             'requiredCredentials' => array(
@@ -296,8 +328,8 @@ class bitpanda extends Exchange {
         //     array(
         //         {
         //             $state => 'ACTIVE',
-        //             $base => array( code => 'ETH', $precision => 8 ),
-        //             $quote => array( code => 'CHF', $precision => 2 ),
+        //             $base => array( code => 'ETH', precision => 8 ),
+        //             $quote => array( code => 'CHF', precision => 2 ),
         //             amount_precision => 4,
         //             market_precision => 2,
         //             min_size => '10.0'
@@ -314,40 +346,54 @@ class bitpanda extends Exchange {
             $id = $baseId . '_' . $quoteId;
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $precision = array(
-                'amount' => $this->safe_integer($market, 'amount_precision'),
-                'price' => $this->safe_integer($market, 'market_precision'),
-            );
-            $limits = array(
-                'amount' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'price' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => $this->safe_number($market, 'min_size'),
-                    'max' => null,
-                ),
-            );
             $state = $this->safe_string($market, 'state');
-            $active = ($state === 'ACTIVE');
             $result[] = array(
-                'info' => $market,
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'precision' => $precision,
-                'limits' => $limits,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => $active,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => ($state === 'ACTIVE'),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_integer($market, 'amount_precision'),
+                    'price' => $this->safe_integer($market, 'market_precision'),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => $this->safe_number($market, 'min_size'),
+                        'max' => null,
+                    ),
+                ),
+                'info' => $market,
             );
         }
         return $result;
@@ -370,7 +416,7 @@ class bitpanda extends Exchange {
         //     array(
         //         {
         //             "fee_group_id":"default",
-        //             "display_text":"The standard $fee plan.",
+        //             "display_text":"The standard fee plan.",
         //             "fee_tiers":array(
         //                 array("volume":"0.0","fee_group_id":"default","maker_fee":"0.1","taker_fee":"0.15"),
         //                 array("volume":"100.0","fee_group_id":"default","maker_fee":"0.1","taker_fee":"0.13"),
@@ -385,43 +431,22 @@ class bitpanda extends Exchange {
         //         }
         //     )
         //
-        $feeGroupsById = $this->index_by($response, 'fee_group_id');
-        $feeGroupId = $this->safe_value($this->options, 'fee_group_id', 'default');
-        $feeGroup = $this->safe_value($feeGroupsById, $feeGroupId, array());
-        $feeTiers = $this->safe_value($feeGroup, 'fee_tiers');
+        $first = $this->safe_value($response, 0, array());
+        $feeTiers = $this->safe_value($first, 'fee_tiers');
+        $tiers = $this->parse_fee_tiers($feeTiers);
+        $firstTier = $this->safe_value($feeTiers, 0, array());
         $result = array();
         for ($i = 0; $i < count($this->symbols); $i++) {
             $symbol = $this->symbols[$i];
-            $fee = array(
-                'info' => $feeGroup,
+            $result[$symbol] = array(
+                'info' => $first,
                 'symbol' => $symbol,
-                'maker' => null,
-                'taker' => null,
+                'maker' => $this->safe_number($firstTier, 'maker_fee'),
+                'taker' => $this->safe_number($firstTier, 'taker_fee'),
                 'percentage' => true,
                 'tierBased' => true,
+                'tiers' => $tiers,
             );
-            $takerFees = array();
-            $makerFees = array();
-            for ($i = 0; $i < count($feeTiers); $i++) {
-                $tier = $feeTiers[$i];
-                $volume = $this->safe_number($tier, 'volume');
-                $taker = $this->safe_number($tier, 'taker_fee');
-                $maker = $this->safe_number($tier, 'maker_fee');
-                $taker /= 100;
-                $maker /= 100;
-                $takerFees[] = array( $volume, $taker );
-                $makerFees[] = array( $volume, $maker );
-                if ($i === 0) {
-                    $fee['taker'] = $taker;
-                    $fee['maker'] = $maker;
-                }
-            }
-            $tiers = array(
-                'taker' => $takerFees,
-                'maker' => $makerFees,
-            );
-            $fee['tiers'] = $tiers;
-            $result[$symbol] = $fee;
         }
         return $result;
     }
@@ -451,32 +476,45 @@ class bitpanda extends Exchange {
         //     }
         //
         $activeFeeTier = $this->safe_value($response, 'active_fee_tier', array());
-        $result = array(
-            'info' => $response,
-            'maker' => $this->safe_number($activeFeeTier, 'maker_fee'),
-            'taker' => $this->safe_number($activeFeeTier, 'taker_fee'),
-            'percentage' => true,
-            'tierBased' => true,
-        );
+        $makerFee = $this->safe_string($activeFeeTier, 'maker_fee');
+        $takerFee = $this->safe_string($activeFeeTier, 'taker_fee');
+        $makerFee = Precise::string_div($makerFee, '100');
+        $takerFee = Precise::string_div($takerFee, '100');
         $feeTiers = $this->safe_value($response, 'fee_tiers');
+        $result = array();
+        $tiers = $this->parse_fee_tiers($feeTiers);
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $result[$symbol] = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'maker' => $this->parse_number($makerFee),
+                'taker' => $this->parse_number($takerFee),
+                'percentage' => true,
+                'tierBased' => true,
+                'tiers' => $tiers,
+            );
+        }
+        return $result;
+    }
+
+    public function parse_fee_tiers($feeTiers, $market = null) {
         $takerFees = array();
         $makerFees = array();
         for ($i = 0; $i < count($feeTiers); $i++) {
             $tier = $feeTiers[$i];
             $volume = $this->safe_number($tier, 'volume');
-            $taker = $this->safe_number($tier, 'taker_fee');
-            $maker = $this->safe_number($tier, 'maker_fee');
-            $taker /= 100;
-            $maker /= 100;
-            $takerFees[] = array( $volume, $taker );
-            $makerFees[] = array( $volume, $maker );
+            $taker = $this->safe_string($tier, 'taker_fee');
+            $maker = $this->safe_string($tier, 'maker_fee');
+            $maker = Precise::string_div($maker, '100');
+            $taker = Precise::string_div($taker, '100');
+            $makerFees[] = array( $volume, $this->parse_number($maker) );
+            $takerFees[] = array( $volume, $this->parse_number($taker) );
         }
-        $tiers = array(
-            'taker' => $takerFees,
+        return array(
             'maker' => $makerFees,
+            'taker' => $takerFees,
         );
-        $result['tiers'] = $tiers;
-        return $result;
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -503,23 +541,22 @@ class bitpanda extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($ticker, 'time'));
         $marketId = $this->safe_string($ticker, 'instrument_code');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $last = $this->safe_number($ticker, 'last_price');
-        $percentage = $this->safe_number($ticker, 'price_change_percentage');
-        $change = $this->safe_number($ticker, 'price_change');
-        $baseVolume = $this->safe_number($ticker, 'base_volume');
-        $quoteVolume = $this->safe_number($ticker, 'quote_volume');
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
+        $last = $this->safe_string($ticker, 'last_price');
+        $percentage = $this->safe_string($ticker, 'price_change_percentage');
+        $change = $this->safe_string($ticker, 'price_change');
+        $baseVolume = $this->safe_string($ticker, 'base_volume');
+        $quoteVolume = $this->safe_string($ticker, 'quote_volume');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'best_bid'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'best_bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'best_ask'),
+            'ask' => $this->safe_string($ticker, 'best_ask'),
             'askVolume' => null,
-            'vwap' => $vwap,
+            'vwap' => null,
             'open' => null,
             'close' => $last,
             'last' => $last,
@@ -530,7 +567,7 @@ class bitpanda extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -860,6 +897,21 @@ class bitpanda extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
+    public function parse_balance($response) {
+        $balances = $this->safe_value($response, 'balances', array());
+        $result = array( 'info' => $response );
+        for ($i = 0; $i < count($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'currency_code');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'locked');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         $response = yield $this->privateGetAccountBalances ($params);
@@ -879,18 +931,7 @@ class bitpanda extends Exchange {
         //         )
         //     }
         //
-        $balances = $this->safe_value($response, 'balances', array());
-        $result = array( 'info' => $response );
-        for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
-            $currencyId = $this->safe_string($balance, 'currency_code');
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['free'] = $this->safe_string($balance, 'available');
-            $account['used'] = $this->safe_string($balance, 'locked');
-            $result[$code] = $account;
-        }
-        return $this->parse_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function parse_deposit_address($depositAddress, $currency = null) {
@@ -1168,6 +1209,7 @@ class bitpanda extends Exchange {
             'id' => $id,
             'currency' => $currency['code'],
             'amount' => $amount,
+            'network' => null,
             'address' => $addressTo,
             'addressFrom' => null,
             'addressTo' => $addressTo,
@@ -1283,7 +1325,7 @@ class bitpanda extends Exchange {
         $stopPrice = $this->safe_number($rawOrder, 'trigger_price');
         $postOnly = $this->safe_value($rawOrder, 'is_post_only');
         $rawTrades = $this->safe_value($order, 'trades', array());
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,

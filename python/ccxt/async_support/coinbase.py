@@ -26,39 +26,67 @@ class coinbase(Exchange):
                 'CB-VERSION': '2018-05-30',
             },
             'has': {
-                'cancelOrder': None,
                 'CORS': True,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': None,
                 'createDepositAddress': True,
                 'createOrder': None,
-                'deposit': None,
+                'createReduceOnlyOrder': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
+                'fetchAccounts': True,
                 'fetchBalance': True,
-                'fetchBorrowRate': False,
-                'fetchBorrowRates': False,
                 'fetchBidsAsks': None,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': None,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': None,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchL2OrderBook': None,
+                'fetchL2OrderBook': False,
                 'fetchLedger': True,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyBuys': True,
                 'fetchMySells': True,
                 'fetchMyTrades': None,
-                'fetchOHLCV': None,
+                'fetchOHLCV': False,
                 'fetchOpenOrders': None,
                 'fetchOrder': None,
-                'fetchOrderBook': None,
+                'fetchOrderBook': False,
                 'fetchOrders': None,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
-                'fetchTickers': None,
+                'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': None,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': None,
             },
             'urls': {
@@ -248,7 +276,7 @@ class coinbase(Exchange):
                     accountId = account['id']
                     break
         if accountId is None:
-            raise ExchangeError(self.id + ' createDepositAddress could not find the account with matching currency code, specify an `account_id` extra param')
+            raise ExchangeError(self.id + ' createDepositAddress() could not find the account with matching currency code, specify an `account_id` extra param')
         request = {
             'account_id': accountId,
         }
@@ -428,8 +456,13 @@ class coinbase(Exchange):
             'txid': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': None,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,
             'amount': amount,
             'currency': currency,
@@ -530,24 +563,39 @@ class coinbase(Exchange):
                     quoteCurrency = data[j]
                     quoteId = self.safe_string(quoteCurrency, 'id')
                     quote = self.safe_currency_code(quoteId)
-                    symbol = base + '/' + quote
-                    id = baseId + '-' + quoteId
                     result.append({
-                        'id': id,
-                        'symbol': symbol,
+                        'id': baseId + '-' + quoteId,
+                        'symbol': base + '/' + quote,
                         'base': base,
                         'quote': quote,
+                        'settle': None,
                         'baseId': baseId,
                         'quoteId': quoteId,
+                        'settleId': None,
                         'type': 'spot',
                         'spot': True,
+                        'margin': False,
+                        'swap': False,
+                        'future': False,
+                        'option': False,
                         'active': None,
-                        'info': quoteCurrency,
+                        'contract': False,
+                        'linear': None,
+                        'inverse': None,
+                        'contractSize': None,
+                        'expiry': None,
+                        'expiryDatetime': None,
+                        'strike': None,
+                        'optionType': None,
                         'precision': {
                             'amount': None,
                             'price': None,
                         },
                         'limits': {
+                            'leverage': {
+                                'min': None,
+                                'max': None,
+                            },
                             'amount': {
                                 'min': None,
                                 'max': None,
@@ -560,10 +608,8 @@ class coinbase(Exchange):
                                 'min': self.safe_number(quoteCurrency, 'min_size'),
                                 'max': None,
                             },
-                            'leverage': {
-                                'max': 1,
-                            },
                         },
+                        'info': quoteCurrency,
                     })
         return result
 
@@ -632,6 +678,8 @@ class coinbase(Exchange):
                 'type': type,
                 'name': name,
                 'active': True,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'precision': None,
                 'limits': {
@@ -647,20 +695,86 @@ class coinbase(Exchange):
             }
         return result
 
+    async def fetch_tickers(self, symbols=None, params={}):
+        await self.load_markets()
+        request = {
+            # 'currency': 'USD',
+        }
+        response = await self.publicGetExchangeRates(self.extend(request, params))
+        #
+        #     {
+        #         "data":{
+        #             "currency":"USD",
+        #             "rates":{
+        #                 "AED":"3.6731",
+        #                 "AFN":"103.163942",
+        #                 "ALL":"106.973038",
+        #             }
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        rates = self.safe_value(data, 'rates', {})
+        quoteId = self.safe_string(data, 'currency')
+        result = {}
+        baseIds = list(rates.keys())
+        delimiter = '-'
+        for i in range(0, len(baseIds)):
+            baseId = baseIds[i]
+            marketId = baseId + delimiter + quoteId
+            market = self.safe_market(marketId, None, delimiter)
+            symbol = market['symbol']
+            result[symbol] = self.parse_ticker(rates[baseId], market)
+        return self.filter_by_array(result, 'symbol', symbols)
+
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
-        timestamp = self.seconds()
         market = self.market(symbol)
         request = self.extend({
             'symbol': market['id'],
         }, params)
-        buy = await self.publicGetPricesSymbolBuy(request)
-        sell = await self.publicGetPricesSymbolSell(request)
         spot = await self.publicGetPricesSymbolSpot(request)
-        ask = self.safe_number(buy['data'], 'amount')
-        bid = self.safe_number(sell['data'], 'amount')
-        last = self.safe_number(spot['data'], 'amount')
-        return {
+        #
+        #     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
+        #
+        buy = await self.publicGetPricesSymbolBuy(request)
+        #
+        #     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
+        #
+        sell = await self.publicGetPricesSymbolSell(request)
+        #
+        #     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
+        #
+        return self.parse_ticker([spot, buy, sell], market)
+
+    def parse_ticker(self, ticker, market=None):
+        #
+        # fetchTicker
+        #
+        #     [
+        #         "48691.23",  # spot
+        #         "48691.23",  # buy
+        #         "48691.23",  # sell
+        #     ]
+        #
+        # fetchTickers
+        #
+        #     "48691.23"
+        #
+        symbol = self.safe_symbol(None, market)
+        ask = None
+        bid = None
+        last = None
+        timestamp = self.milliseconds()
+        if not isinstance(ticker, str):
+            spot, buy, sell = ticker
+            spotData = self.safe_value(spot, 'data', {})
+            buyData = self.safe_value(buy, 'data', {})
+            sellData = self.safe_value(sell, 'data', {})
+            last = self.safe_string(spotData, 'amount')
+            bid = self.safe_string(buyData, 'amount')
+            ask = self.safe_string(sellData, 'amount')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -680,12 +794,8 @@ class coinbase(Exchange):
             'average': None,
             'baseVolume': None,
             'quoteVolume': None,
-            'info': {
-                'buy': buy,
-                'sell': sell,
-                'spot': spot,
-            },
-        }
+            'info': ticker,
+        }, market, False)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -715,7 +825,7 @@ class coinbase(Exchange):
                         account['free'] = Precise.string_add(account['free'], total)
                         account['total'] = Precise.string_add(account['total'], total)
                     result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1066,7 +1176,7 @@ class coinbase(Exchange):
     def prepare_account_request(self, limit=None, params={}):
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
         if accountId is None:
-            raise ArgumentsRequired(self.id + ' method requires an account_id(or accountId) parameter')
+            raise ArgumentsRequired(self.id + ' prepareAccountRequest() method requires an account_id(or accountId) parameter')
         request = {
             'account_id': accountId,
         }
@@ -1078,10 +1188,10 @@ class coinbase(Exchange):
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
         if accountId is None:
             if code is None:
-                raise ArgumentsRequired(self.id + ' method requires an account_id(or accountId) parameter OR a currency code argument')
+                raise ArgumentsRequired(self.id + ' prepareAccountRequestWithCurrencyCode() method requires an account_id(or accountId) parameter OR a currency code argument')
             accountId = await self.find_account_id(code)
             if accountId is None:
-                raise ExchangeError(self.id + ' could not find account id for ' + code)
+                raise ExchangeError(self.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code)
         request = {
             'account_id': accountId,
         }

@@ -12,6 +12,7 @@ from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AddressPending
 from ccxt.base.errors import NotSupported
+from ccxt.base.precise import Precise
 
 
 class buda(Exchange):
@@ -24,26 +25,59 @@ class buda(Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createDepositAddress': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFees': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': None,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
+                'transfer': False,
                 'withdraw': True,
             },
             'urls': {
@@ -155,6 +189,27 @@ class buda(Exchange):
     async def fetch_currency_info(self, currency, currencies=None):
         if not currencies:
             response = await self.publicGetCurrencies()
+            #
+            #     {
+            #         "currencies":[
+            #             {
+            #                 "id":"BTC",
+            #                 "symbol":"฿",
+            #                 "managed":true,
+            #                 "input_decimals":8,
+            #                 "display_decimals":8,
+            #                 "timezone":"UTC",
+            #                 "deposit_minimum":["0.0","BTC"],
+            #                 "withdrawal_minimum":["0.00001","BTC"],
+            #                 "max_digits_for_decimals":6,
+            #                 "crypto":true,
+            #                 "address_explorer":"https://blockchair.com/bitcoin/address/",
+            #                 "tx_explorer":"https://blockchair.com/bitcoin/transaction/",
+            #                 "amount_to_micro_multiplier":1000000000000
+            #             }
+            #         ]
+            #     }
+            #
             currencies = self.safe_value(response, 'currencies')
         for i in range(0, len(currencies)):
             currencyInfo = currencies[i]
@@ -170,69 +225,110 @@ class buda(Exchange):
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            id = self.safe_string(market, 'id')
             baseId = self.safe_string(market, 'base_currency')
             quoteId = self.safe_string(market, 'quote_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             baseInfo = await self.fetch_currency_info(baseId, currencies)
             quoteInfo = await self.fetch_currency_info(quoteId, currencies)
-            symbol = base + '/' + quote
             pricePrecisionString = self.safe_string(quoteInfo, 'input_decimals')
-            priceLimit = self.parse_precision(pricePrecisionString)
-            precision = {
-                'amount': self.safe_integer(baseInfo, 'input_decimals'),
-                'price': int(pricePrecisionString),
-            }
             minimumOrderAmount = self.safe_value(market, 'minimum_order_amount', [])
-            limits = {
-                'amount': {
-                    'min': self.safe_number(minimumOrderAmount, 0),
-                    'max': None,
-                },
-                'price': {
-                    'min': priceLimit,
-                    'max': None,
-                },
-                'cost': {
-                    'min': None,
-                    'max': None,
-                },
-            }
             result.append({
-                'id': id,
-                'symbol': symbol,
+                'id': self.safe_string(market, 'id'),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'active': True,
-                'precision': precision,
-                'limits': limits,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_integer(baseInfo, 'input_decimals'),
+                    'price': int(pricePrecisionString),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(minimumOrderAmount, 0),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
                 'info': market,
             })
         return result
 
     async def fetch_currencies(self, params={}):
         response = await self.publicGetCurrencies()
+        #
+        #     {
+        #         "currencies":[
+        #             {
+        #                 "id":"BTC",
+        #                 "symbol":"฿",
+        #                 "managed":true,
+        #                 "input_decimals":8,
+        #                 "display_decimals":8,
+        #                 "timezone":"UTC",
+        #                 "deposit_minimum":["0.0","BTC"],
+        #                 "withdrawal_minimum":["0.00001","BTC"],
+        #                 "max_digits_for_decimals":6,
+        #                 "crypto":true,
+        #                 "address_explorer":"https://blockchair.com/bitcoin/address/",
+        #                 "tx_explorer":"https://blockchair.com/bitcoin/transaction/",
+        #                 "amount_to_micro_multiplier":1000000000000
+        #             }
+        #         ]
+        #     }
+        #
         currencies = response['currencies']
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
-            if not currency['managed']:
+            managed = self.safe_value(currency, 'managed', False)
+            if not managed:
                 continue
             id = self.safe_string(currency, 'id')
             code = self.safe_currency_code(id)
             precision = self.safe_number(currency, 'input_decimals')
             minimum = math.pow(10, -precision)
+            depositMinimum = self.safe_value(currency, 'deposit_minimum', [])
+            withdrawalMinimum = self.safe_value(currency, 'withdrawal_minimum', [])
+            minDeposit = self.safe_number(depositMinimum, 0)
+            minWithdraw = self.safe_number(withdrawalMinimum, 0)
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': None,
                 'active': True,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'precision': precision,
                 'limits': {
@@ -241,11 +337,11 @@ class buda(Exchange):
                         'max': None,
                     },
                     'deposit': {
-                        'min': float(currency['deposit_minimum'][0]),
+                        'min': minDeposit,
                         'max': None,
                     },
                     'withdraw': {
-                        'min': float(currency['withdrawal_minimum'][0]),
+                        'min': minWithdraw,
                     },
                 },
             }
@@ -297,41 +393,68 @@ class buda(Exchange):
             'market': market['id'],
         }
         response = await self.publicGetMarketsMarketTicker(self.extend(request, params))
+        #
+        #     {
+        #         "ticker":{
+        #             "market_id":"ETH-BTC",
+        #             "last_price":["0.07300001","BTC"],
+        #             "min_ask":["0.07716895","BTC"],
+        #             "max_bid":["0.0754966","BTC"],
+        #             "volume":["0.168965697","ETH"],
+        #             "price_variation_24h":"-0.046",
+        #             "price_variation_7d":"-0.085"
+        #         }
+        #     }
+        #
         ticker = self.safe_value(response, 'ticker')
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
+        #
+        # fetchTicker
+        #
+        #     {
+        #         "market_id":"ETH-BTC",
+        #         "last_price":["0.07300001","BTC"],
+        #         "min_ask":["0.07716895","BTC"],
+        #         "max_bid":["0.0754966","BTC"],
+        #         "volume":["0.168965697","ETH"],
+        #         "price_variation_24h":"-0.046",
+        #         "price_variation_7d":"-0.085"
+        #     }
+        #
         timestamp = self.milliseconds()
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        last = float(ticker['last_price'][0])
-        percentage = float(ticker['price_variation_24h'])
-        open = float(self.price_to_precision(symbol, last / (percentage + 1)))
-        change = last - open
-        average = self.sum(last, open) / 2
-        return {
+        marketId = self.safe_string(ticker, 'market_id')
+        symbol = self.safe_symbol(marketId, market, '-')
+        lastPrice = self.safe_value(ticker, 'last_price', [])
+        last = self.safe_string(lastPrice, 0)
+        percentage = self.safe_string(ticker, 'price_variation_24h')
+        percentage = Precise.string_mul(percentage, '100')
+        maxBid = self.safe_value(ticker, 'max_bid', [])
+        minAsk = self.safe_value(ticker, 'min_ask', [])
+        baseVolume = self.safe_value(ticker, 'volume', [])
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': float(ticker['max_bid'][0]),
+            'bid': self.safe_string(maxBid, 0),
             'bidVolume': None,
-            'ask': float(ticker['min_ask'][0]),
+            'ask': self.safe_string(minAsk, 0),
             'askVolume': None,
             'vwap': None,
-            'open': open,
+            'open': None,
             'close': last,
             'last': last,
-            'previousClose': open,
-            'change': change,
-            'percentage': percentage * 100,
-            'average': average,
-            'baseVolume': float(ticker['volume'][0]),
+            'previousClose': None,
+            'change': None,
+            'percentage': percentage,
+            'average': None,
+            'baseVolume': self.safe_string(baseVolume, 0),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market, False)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -419,9 +542,7 @@ class buda(Exchange):
         response = await self.publicGetTvHistory(self.extend(request, params))
         return self.parse_trading_view_ohlcv(response, market, timeframe, since, limit)
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.privateGetBalances(params)
+    def parse_balance(self, response):
         result = {'info': response}
         balances = self.safe_value(response, 'balances')
         for i in range(0, len(balances)):
@@ -432,7 +553,12 @@ class buda(Exchange):
             account['free'] = self.safe_string(balance['available_amount'], 0)
             account['total'] = self.safe_string(balance['amount'], 0)
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetBalances(params)
+        return self.parse_balance(response)
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -553,7 +679,7 @@ class buda(Exchange):
                 'cost': feeCost,
                 'code': feeCurrencyCode,
             }
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -619,7 +745,7 @@ class buda(Exchange):
         await self.load_markets()
         currency = self.currency(code)
         if self.is_fiat(code):
-            raise NotSupported(self.id + ': fiat fetchDepositAddress() for ' + code + ' is not supported')
+            raise NotSupported(self.id + ' fetchDepositAddress() of fiat for ' + code + ' is not supported')
         request = {
             'currency': currency['id'],
         }
@@ -662,7 +788,13 @@ class buda(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,
             'amount': amount,
             'currency': code,
@@ -677,7 +809,7 @@ class buda(Exchange):
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
         if code is None:
-            raise ArgumentsRequired(self.id + ': fetchDeposits() requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -690,7 +822,7 @@ class buda(Exchange):
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
         if code is None:
-            raise ArgumentsRequired(self.id + ': fetchDeposits() requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
         currency = self.currency(code)
         request = {
             'currency': currency['id'],

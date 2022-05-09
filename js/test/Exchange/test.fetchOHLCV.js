@@ -35,7 +35,7 @@ module.exports = async (exchange, symbol) => {
             testOHLCV (exchange, ohlcv, symbol, now)
         }
 
-        console.log (symbol.green, 'fetched', Object.keys (ohlcvs).length, 'OHLCVs')
+        console.log (symbol, 'fetched', Object.keys (ohlcvs).length, 'OHLCVs')
 
         return ohlcvs
 

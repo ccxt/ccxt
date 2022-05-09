@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -28,29 +29,60 @@ class stex(Exchange):
             'certified': False,
             # new metainfo interface
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
                 'createDepositAddress': True,
                 'createMarketOrder': None,  # limit orders only
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
+                'fetchClosedOrder': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFees': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': False,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'version': 'v3',
@@ -249,6 +281,7 @@ class stex(Exchange):
                     'Selected Pair is disabled': BadSymbol,  # {"success":false,"message":"Selected Pair is disabled"}
                     'Invalid scope(s) provided.': PermissionDenied,  # {"message": "Invalid scope(s) provided."}
                     'The maximum amount of open orders with the same price cannot exceed 10': InvalidOrder,  # {"success":false,"message":"The maximum amount of open orders with the same price cannot exceed 10"}
+                    'Your account not verified!': AccountSuspended,  # {"success":false,"message":"Your account not verified!","unified_message":{"message_id":"verification_required_to_continue","substitutions":null},"notice":"Please be informed that parameter `message` is deprecated and will be removed. Use unified_message instead."}
                 },
                 'broad': {
                     'Not enough': InsufficientFunds,  # {"success":false,"message":"Not enough  ETH"}
@@ -308,10 +341,15 @@ class stex(Exchange):
                 'type': None,
                 'name': self.safe_string(currency, 'name'),
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'fee': fee,
                 'precision': int(precision),
                 'limits': {
-                    'amount': {'min': self.parse_number(amountLimit), 'max': None},
+                    'amount': {
+                        'min': self.parse_number(amountLimit),
+                        'max': None,
+                    },
                     'deposit': {
                         'min': self.safe_number(currency, 'minimum_deposit_amount'),
                         'max': None,
@@ -370,46 +408,64 @@ class stex(Exchange):
             quoteNumericId = self.safe_integer(market, 'market_currency_id')
             base = self.safe_currency_code(self.safe_string(market, 'currency_code'))
             quote = self.safe_currency_code(self.safe_string(market, 'market_code'))
-            symbol = base + '/' + quote
-            precision = {
-                'amount': self.safe_integer(market, 'currency_precision'),
-                'price': self.safe_integer(market, 'market_precision'),
-            }
-            active = self.safe_value(market, 'active')
-            minBuyPrice = self.safe_number(market, 'min_buy_price')
-            minSellPrice = self.safe_number(market, 'min_sell_price')
-            minPrice = max(minBuyPrice, minSellPrice)
-            buyFee = self.safe_number(market, 'buy_fee_percent') / 100
-            sellFee = self.safe_number(market, 'sell_fee_percent') / 100
-            fee = max(buyFee, sellFee)
+            minBuyPrice = self.safe_string(market, 'min_buy_price')
+            minSellPrice = self.safe_string(market, 'min_sell_price')
+            minPrice = Precise.string_max(minBuyPrice, minSellPrice)
+            buyFee = Precise.string_div(self.safe_string(market, 'buy_fee_percent'), '100')
+            sellFee = Precise.string_div(self.safe_string(market, 'sell_fee_percent'), '100')
+            fee = Precise.string_max(buyFee, sellFee)
             result.append({
                 'id': id,
                 'numericId': numericId,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'baseNumericId': baseNumericId,
                 'quoteNumericId': quoteNumericId,
-                'info': market,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'maker': fee,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': self.safe_value(market, 'active'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
                 'taker': fee,
-                'precision': precision,
+                'maker': fee,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_integer(market, 'currency_precision'),
+                    'price': self.safe_integer(market, 'market_precision'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'min_order_amount'),
                         'max': None,
                     },
-                    'price': {'min': minPrice, 'max': None},
+                    'price': {
+                        'min': minPrice,
+                        'max': None,
+                    },
                     'cost': {
                         'min': None,
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 
@@ -559,17 +615,17 @@ class stex(Exchange):
         timestamp = self.safe_integer(ticker, 'timestamp')
         marketId = self.safe_string_2(ticker, 'id', 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
-        last = self.safe_number(ticker, 'last')
-        open = self.safe_number(ticker, 'open')
+        last = self.safe_string(ticker, 'last')
+        open = self.safe_string(ticker, 'open')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -579,10 +635,10 @@ class stex(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volumeQuote'),
-            'quoteVolume': self.safe_number(ticker, 'volume'),
+            'baseVolume': self.safe_string(ticker, 'volumeQuote'),
+            'quoteVolume': self.safe_string(ticker, 'volume'),
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
@@ -725,14 +781,11 @@ class stex(Exchange):
         timestamp = self.safe_timestamp(trade, 'timestamp')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = None
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
         side = self.safe_string_lower_2(trade, 'type', 'trade_type')
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -742,11 +795,11 @@ class stex(Exchange):
             'type': None,
             'takerOrMaker': None,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -781,6 +834,46 @@ class stex(Exchange):
         #
         trades = self.safe_value(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
+
+    def fetch_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currencyPairId': market['id'],
+        }
+        response = self.tradingGetFeesCurrencyPairId(self.extend(request, params))
+        #
+        #     {
+        #         success: True,
+        #         data: {buy_fee: '0.00200000', sell_fee: '0.00200000'},
+        #         unified_message: {message_id: 'operation_successful', substitutions: []}
+        #      }
+        #
+        data = self.safe_value(response, 'data')
+        return {
+            'info': response,
+            'symbol': market['symbol'],
+            'maker': self.safe_number(data, 'sell_fee'),
+            'taker': self.safe_number(data, 'buy_fee'),
+            'percentage': True,
+            'tierBased': True,
+        }
+
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        balances = self.safe_value(response, 'data', [])
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            code = self.safe_currency_code(self.safe_string(balance, 'currency_id'))
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'frozen_balance')
+            result[code] = account
+        return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -829,20 +922,7 @@ class stex(Exchange):
         #         ]
         #     }
         #
-        result = {
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-        }
-        balances = self.safe_value(response, 'data', [])
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            code = self.safe_currency_code(self.safe_string(balance, 'currency_id'))
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'balance')
-            account['used'] = self.safe_string(balance, 'frozen_balance')
-            result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(response)
 
     def parse_order_status(self, status):
         statuses = {
@@ -969,7 +1049,7 @@ class stex(Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
-            raise ExchangeError(self.id + ' createOrder allows limit orders only')
+            raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         self.load_markets()
         market = self.market(symbol)
         if type == 'limit':
@@ -1178,14 +1258,14 @@ class stex(Exchange):
         numRejectedOrders = len(rejectedOrders)
         if numAcceptedOrders < 1:
             if numRejectedOrders < 1:
-                raise OrderNotFound(self.id + ' cancelOrder received an empty response: ' + self.json(response))
+                raise OrderNotFound(self.id + ' cancelOrder() received an empty response: ' + self.json(response))
             else:
                 return self.parse_order(rejectedOrders[0])
         else:
             if numRejectedOrders < 1:
                 return self.parse_order(acceptedOrders[0])
             else:
-                raise OrderNotFound(self.id + ' cancelOrder received an empty response: ' + self.json(response))
+                raise OrderNotFound(self.id + ' cancelOrder() received an empty response: ' + self.json(response))
 
     def cancel_all_orders(self, symbol=None, params={}):
         self.load_markets()
@@ -1515,12 +1595,14 @@ class stex(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
+        network = self.safe_string(withdrawalAddress, 'protocol_name')
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': network,
             'addressFrom': None,
             'address': address,
             'addressTo': address,

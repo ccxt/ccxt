@@ -17,13 +17,31 @@ module.exports = class paymium extends Exchange {
             'rateLimit': 2000,
             'version': 'v1',
             'has': {
-                'cancelOrder': true,
                 'CORS': true,
+                'spot': true,
+                'margin': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'cancelOrder': true,
+                'createDepositAddress': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchMarkOHLCV': false,
                 'fetchOrderBook': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
+                'transfer': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg',
@@ -33,6 +51,7 @@ module.exports = class paymium extends Exchange {
                 'doc': [
                     'https://github.com/Paymium/api-documentation',
                     'https://www.paymium.com/page/developers',
+                    'https://paymium.github.io/api-documentation/',
                 ],
                 'referral': 'https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj',
             },
@@ -78,16 +97,14 @@ module.exports = class paymium extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': this.parseNumber ('0.002'),
-                    'taker': this.parseNumber ('0.002'),
+                    'maker': this.parseNumber ('-0.001'),
+                    'taker': this.parseNumber ('0.005'),
                 },
             },
         });
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetUser (params);
+    parseBalance (response) {
         const result = { 'info': response };
         const currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
@@ -103,7 +120,13 @@ module.exports = class paymium extends Exchange {
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetUser (params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -115,73 +138,106 @@ module.exports = class paymium extends Exchange {
         return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'currency': this.marketId (symbol),
-        };
-        const ticker = await this.publicGetDataCurrencyTicker (this.extend (request, params));
+    parseTicker (ticker, market = undefined) {
+        //
+        // {
+        //     "high":"33740.82",
+        //     "low":"32185.15",
+        //     "volume":"4.7890433",
+        //     "bid":"33313.53",
+        //     "ask":"33497.97",
+        //     "midpoint":"33405.75",
+        //     "vwap":"32802.5263553",
+        //     "at":1643381654,
+        //     "price":"33143.91",
+        //     "open":"33116.86",
+        //     "variation":"0.0817",
+        //     "currency":"EUR",
+        //     "trade_id":"ce2f5152-3ac5-412d-9b24-9fa72338474c",
+        //     "size":"0.00041087"
+        // }
+        //
+        const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.safeTimestamp (ticker, 'at');
-        const vwap = this.safeNumber (ticker, 'vwap');
-        const baseVolume = this.safeNumber (ticker, 'volume');
-        let quoteVolume = undefined;
-        if (baseVolume !== undefined && vwap !== undefined) {
-            quoteVolume = baseVolume * vwap;
-        }
-        const last = this.safeNumber (ticker, 'price');
-        return {
+        const vwap = this.safeString (ticker, 'vwap');
+        const baseVolume = this.safeString (ticker, 'volume');
+        const quoteVolume = Precise.stringMul (baseVolume, vwap);
+        const last = this.safeString (ticker, 'price');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': vwap,
-            'open': this.safeNumber (ticker, 'open'),
+            'open': this.safeString (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeNumber (ticker, 'variation'),
+            'percentage': this.safeString (ticker, 'variation'),
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
+        }, market, false);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'currency': market['id'],
         };
+        const ticker = await this.publicGetDataCurrencyTicker (this.extend (request, params));
+        //
+        // {
+        //     "high":"33740.82",
+        //     "low":"32185.15",
+        //     "volume":"4.7890433",
+        //     "bid":"33313.53",
+        //     "ask":"33497.97",
+        //     "midpoint":"33405.75",
+        //     "vwap":"32802.5263553",
+        //     "at":1643381654,
+        //     "price":"33143.91",
+        //     "open":"33116.86",
+        //     "variation":"0.0817",
+        //     "currency":"EUR",
+        //     "trade_id":"ce2f5152-3ac5-412d-9b24-9fa72338474c",
+        //     "size":"0.00041087"
+        // }
+        //
+        return this.parseTicker (ticker, market);
     }
 
     parseTrade (trade, market) {
         const timestamp = this.safeTimestamp (trade, 'created_at_int');
         const id = this.safeString (trade, 'uuid');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (undefined, market);
         const side = this.safeString (trade, 'side');
-        const priceString = this.safeString (trade, 'price');
+        const price = this.safeString (trade, 'price');
         const amountField = 'traded_' + market['base'].toLowerCase ();
-        const amountString = this.safeString (trade, amountField);
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        return {
+        const amount = this.safeString (trade, amountField);
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -192,6 +248,73 @@ module.exports = class paymium extends Exchange {
         };
         const response = await this.publicGetDataCurrencyTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostUserAddresses (params);
+        //
+        //     {
+        //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //         "valid_until": 1620041926,
+        //         "currency": "BTC",
+        //         "label": "Savings"
+        //     }
+        //
+        return this.parseDepositAddress (response);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'address': code,
+        };
+        const response = await this.privateGetUserAddressesAddress (this.extend (request, params));
+        //
+        //     {
+        //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //         "valid_until": 1620041926,
+        //         "currency": "BTC",
+        //         "label": "Savings"
+        //     }
+        //
+        return this.parseDepositAddress (response);
+    }
+
+    async fetchDepositAddresses (codes = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetUserAddresses (params);
+        //
+        //     [
+        //         {
+        //             "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //             "valid_until": 1620041926,
+        //             "currency": "BTC",
+        //             "label": "Savings"
+        //         }
+        //     ]
+        //
+        return this.parseDepositAddresses (response, codes);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //         "valid_until": 1620041926,
+        //         "currency": "BTC",
+        //         "label": "Savings"
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        const currencyId = this.safeString (depositAddress, 'currency');
+        return {
+            'info': depositAddress,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'address': address,
+            'tag': undefined,
+            'network': undefined,
+        };
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -217,6 +340,117 @@ module.exports = class paymium extends Exchange {
             'uuid': id,
         };
         return await this.privateDeleteUserOrdersUuidCancel (this.extend (request, params));
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        if (toAccount.indexOf ('@') < 0) {
+            throw new ExchangeError (this.id + ' transfer() only allows transfers to an email address');
+        }
+        if (code !== 'BTC' && code !== 'EUR') {
+            throw new ExchangeError (this.id + ' transfer() only allows BTC or EUR');
+        }
+        const request = {
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+            'email': toAccount,
+            // 'comment': 'a small note explaining the transfer'
+        };
+        const response = await this.privatePostUserEmailTransfers (this.extend (request, params));
+        //
+        //     {
+        //         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        //         "type": "Transfer",
+        //         "currency": "BTC",
+        //         "currency_amount": "string",
+        //         "created_at": "2013-10-24T10:34:37.000Z",
+        //         "updated_at": "2013-10-24T10:34:37.000Z",
+        //         "amount": "1.0",
+        //         "state": "executed",
+        //         "currency_fee": "0.0",
+        //         "btc_fee": "0.0",
+        //         "comment": "string",
+        //         "traded_btc": "string",
+        //         "traded_currency": "string",
+        //         "direction": "buy",
+        //         "price": "string",
+        //         "account_operations": [
+        //             {
+        //                 "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        //                 "amount": "1.0",
+        //                 "currency": "BTC",
+        //                 "created_at": "2013-10-24T10:34:37.000Z",
+        //                 "created_at_int": 1389094259,
+        //                 "name": "account_operation",
+        //                 "address": "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
+        //                 "tx_hash": "string",
+        //                 "is_trading_account": true
+        //             }
+        //         ]
+        //     }
+        //
+        return this.parseTransfer (response, currency);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        //         "type": "Transfer",
+        //         "currency": "BTC",
+        //         "currency_amount": "string",
+        //         "created_at": "2013-10-24T10:34:37.000Z",
+        //         "updated_at": "2013-10-24T10:34:37.000Z",
+        //         "amount": "1.0",
+        //         "state": "executed",
+        //         "currency_fee": "0.0",
+        //         "btc_fee": "0.0",
+        //         "comment": "string",
+        //         "traded_btc": "string",
+        //         "traded_currency": "string",
+        //         "direction": "buy",
+        //         "price": "string",
+        //         "account_operations": [
+        //             {
+        //                 "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        //                 "amount": "1.0",
+        //                 "currency": "BTC",
+        //                 "created_at": "2013-10-24T10:34:37.000Z",
+        //                 "created_at_int": 1389094259,
+        //                 "name": "account_operation",
+        //                 "address": "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
+        //                 "tx_hash": "string",
+        //                 "is_trading_account": true
+        //             }
+        //         ]
+        //     }
+        //
+        const currencyId = this.safeString (transfer, 'currency');
+        const updatedAt = this.safeString (transfer, 'updated_at');
+        const timetstamp = this.parseDate (updatedAt);
+        const accountOperations = this.safeValue (transfer, 'account_operations');
+        const firstOperation = this.safeValue (accountOperations, 0, {});
+        const status = this.safeString (transfer, 'state');
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'uuid'),
+            'timestamp': timetstamp,
+            'datetime': this.iso8601 (timetstamp),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': undefined,
+            'toAccount': this.safeString (firstOperation, 'address'),
+            'status': this.parseTransferStatus (status),
+        };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'executed': 'ok',
+            // what are the other statuses?
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

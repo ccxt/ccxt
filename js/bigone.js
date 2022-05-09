@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, OrderNotFound, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,9 +16,18 @@ module.exports = class bigone extends Exchange {
             'version': 'v3',
             'rateLimit': 1200, // 500 request per 10 minutes
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but unimplemented
+                'swap': undefined, // has but unimplemented
+                'future': undefined, // has but unimplemented
+                'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
@@ -34,7 +43,10 @@ module.exports = class bigone extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
                 'fetchWithdrawals': true,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -105,6 +117,17 @@ module.exports = class bigone extends Exchange {
                     'withdraw': {},
                 },
             },
+            'options': {
+                'accountsByType': {
+                    'spot': 'SPOT',
+                    'funding': 'FUND',
+                    'future': 'CONTRACT',
+                    'swap': 'CONTRACT',
+                },
+                'transfer': {
+                    'fillResponseFromRequest': true,
+                },
+            },
             'exceptions': {
                 'exact': {
                     '10001': BadRequest, // syntax error
@@ -113,7 +136,7 @@ module.exports = class bigone extends Exchange {
                     "Price mulit with amount should larger than AssetPair's min_quote_value": InvalidOrder,
                     '10007': BadRequest, // parameter error, {"code":10007,"message":"Amount's scale must greater than AssetPair's base scale"}
                     '10011': ExchangeError, // system error
-                    '10013': OrderNotFound, // {"code":10013,"message":"Resource not found"}
+                    '10013': BadSymbol, // {"code":10013,"message":"Resource not found"}
                     '10014': InsufficientFunds, // {"code":10014,"message":"Insufficient funds"}
                     '10403': PermissionDenied, // permission denied
                     '10429': RateLimitExceeded, // too many requests
@@ -136,6 +159,7 @@ module.exports = class bigone extends Exchange {
             'commonCurrencies': {
                 'CRE': 'Cybereits',
                 'FXT': 'FXTTOKEN',
+                'FREE': 'FreeRossDAO',
                 'MBN': 'Mobilian Coin',
                 'ONE': 'BigONE Token',
             },
@@ -164,6 +188,7 @@ module.exports = class bigone extends Exchange {
         //                 },
         //                 "base_scale":3,
         //                 "min_quote_value":"0.0001",
+        //                 "max_quote_value":"35"
         //             },
         //         ]
         //     }
@@ -180,40 +205,51 @@ module.exports = class bigone extends Exchange {
             const quoteId = this.safeString (quoteAsset, 'symbol');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const amountPrecisionString = this.safeString (market, 'base_scale');
-            const pricePrecisionString = this.safeString (market, 'quote_scale');
-            const amountLimit = this.parsePrecision (amountPrecisionString);
-            const priceLimit = this.parsePrecision (pricePrecisionString);
-            const precision = {
-                'amount': parseInt (amountPrecisionString),
-                'price': parseInt (pricePrecisionString),
-            };
-            const minCost = this.safeNumber (market, 'min_quote_value');
             const entry = {
                 'id': id,
                 'uuid': uuid,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': true,
-                'precision': precision,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (market, 'base_scale'),
+                    'price': this.safeInteger (market, 'quote_scale'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
-                        'min': this.parseNumber (amountLimit),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.parseNumber (priceLimit),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
-                        'min': minCost,
-                        'max': undefined,
+                        'min': this.safeNumber (market, 'min_quote_value'),
+                        'max': this.safeNumber (market, 'max_quote_value'),
                     },
                 },
                 'info': market,
@@ -256,31 +292,31 @@ module.exports = class bigone extends Exchange {
         const marketId = this.safeString (ticker, 'asset_pair_name');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = undefined;
-        const close = this.safeNumber (ticker, 'close');
+        const close = this.safeString (ticker, 'close');
         const bid = this.safeValue (ticker, 'bid', {});
         const ask = this.safeValue (ticker, 'ask', {});
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (bid, 'price'),
-            'bidVolume': this.safeNumber (bid, 'quantity'),
-            'ask': this.safeNumber (ask, 'price'),
-            'askVolume': this.safeNumber (ask, 'quantity'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (bid, 'price'),
+            'bidVolume': this.safeString (bid, 'quantity'),
+            'ask': this.safeString (ask, 'price'),
+            'askVolume': this.safeString (ask, 'quantity'),
             'vwap': undefined,
-            'open': this.safeNumber (ticker, 'open'),
+            'open': this.safeString (ticker, 'open'),
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': this.safeNumber (ticker, 'daily_change'),
+            'change': this.safeString (ticker, 'daily_change'),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume'),
+            'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -445,7 +481,7 @@ module.exports = class bigone extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const marketId = this.safeString (trade, 'asset_pair_name');
-        const symbol = this.safeSymbol (marketId, market, '-');
+        market = this.safeMarket (marketId, market, '-');
         let side = this.safeString (trade, 'side');
         const takerSide = this.safeString (trade, 'taker_side');
         let takerOrMaker = undefined;
@@ -480,7 +516,7 @@ module.exports = class bigone extends Exchange {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': orderId,
             'type': 'limit',
             'side': side,
@@ -492,7 +528,7 @@ module.exports = class bigone extends Exchange {
         };
         let makerCurrencyCode = undefined;
         let takerCurrencyCode = undefined;
-        if ((market !== undefined) && (takerOrMaker !== undefined)) {
+        if (takerOrMaker !== undefined) {
             if (side === 'buy') {
                 if (takerOrMaker === 'maker') {
                     makerCurrencyCode = market['base'];
@@ -636,6 +672,25 @@ module.exports = class bigone extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
+    parseBalance (response) {
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        const balances = this.safeValue (response, 'data', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const symbol = this.safeString (balance, 'asset_symbol');
+            const code = this.safeCurrencyCode (symbol);
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'locked_balance');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const type = this.safeString (params, 'type', '');
@@ -652,22 +707,7 @@ module.exports = class bigone extends Exchange {
         //         ],
         //     }
         //
-        const result = {
-            'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        const balances = this.safeValue (response, 'data', []);
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const symbol = this.safeString (balance, 'asset_symbol');
-            const code = this.safeCurrencyCode (symbol);
-            const account = this.account ();
-            account['total'] = this.safeString (balance, 'balance');
-            account['used'] = this.safeString (balance, 'locked_balance');
-            result[code] = account;
-        }
-        return this.parseBalance (result);
+        return this.parseBalance (response);
     }
 
     parseOrder (order, market = undefined) {
@@ -701,7 +741,7 @@ module.exports = class bigone extends Exchange {
             side = 'sell';
         }
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'updated_at'));
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -1007,7 +1047,7 @@ module.exports = class bigone extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const dataLength = data.length;
         if (dataLength < 1) {
-            throw new ExchangeError (this.id + 'fetchDepositAddress() returned empty address response');
+            throw new ExchangeError (this.id + ' fetchDepositAddress() returned empty address response');
         }
         const firstElement = data[0];
         const address = this.safeString (firstElement, 'value');
@@ -1103,6 +1143,7 @@ module.exports = class bigone extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'addressFrom': undefined,
             'address': undefined,
             'addressTo': address,
@@ -1200,6 +1241,69 @@ module.exports = class bigone extends Exchange {
         //
         const withdrawals = this.safeValue (response, 'data', []);
         return this.parseTransactions (withdrawals, code, since, limit);
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        const guid = this.safeString (params, 'guid', this.uuid ());
+        const request = {
+            'symbol': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+            'from': fromId,
+            'to': toId,
+            'guid': guid,
+            // 'type': type, // NORMAL, MASTER_TO_SUB, SUB_TO_MASTER, SUB_INTERNAL, default is NORMAL
+            // 'sub_acccunt': '', // when type is NORMAL, it should be empty, and when type is others it is required
+        };
+        const response = await this.privatePostTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": null
+        //     }
+        //
+        const transfer = this.parseTransfer (response, currency);
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
+            transfer['amount'] = amount;
+            transfer['id'] = guid;
+        }
+        return transfer;
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         "code": 0,
+        //         "data": null
+        //     }
+        //
+        const code = this.safeNumber (transfer, 'code');
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': code,
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': this.parseTransferStatus (code),
+        };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            '0': 'ok',
+        };
+        return this.safeString (statuses, status, 'failed');
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {

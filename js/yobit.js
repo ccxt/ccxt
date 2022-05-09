@@ -14,28 +14,58 @@ module.exports = class yobit extends Exchange {
             'id': 'yobit',
             'name': 'YoBit',
             'countries': [ 'RU' ],
-            'rateLimit': 3000, // responses are cached every 2 seconds
+            'rateLimit': 2000, // responses are cached every 2 seconds
             'version': '3',
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
                 'createDepositAddress': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchDepositAddress': true,
                 'fetchDeposits': undefined,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': undefined,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'urls': {
@@ -50,24 +80,24 @@ module.exports = class yobit extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'depth/{pair}',
-                        'info',
-                        'ticker/{pair}',
-                        'trades/{pair}',
-                    ],
+                    'get': {
+                        'depth/{pair}': 1,
+                        'info': 1,
+                        'ticker/{pair}': 1,
+                        'trades/{pair}': 1,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'ActiveOrders',
-                        'CancelOrder',
-                        'GetDepositAddress',
-                        'getInfo',
-                        'OrderInfo',
-                        'Trade',
-                        'TradeHistory',
-                        'WithdrawCoinsToAddress',
-                    ],
+                    'post': {
+                        'ActiveOrders': 1,
+                        'CancelOrder': 1,
+                        'GetDepositAddress': 1,
+                        'getInfo': 1,
+                        'OrderInfo': 1,
+                        'Trade': 1,
+                        'TradeHistory': 1,
+                        'WithdrawCoinsToAddress': 1,
+                    },
                 },
             },
             'fees': {
@@ -87,6 +117,9 @@ module.exports = class yobit extends Exchange {
                 'ASN': 'Ascension',
                 'AST': 'Astral',
                 'ATM': 'Autumncoin',
+                'AUR': 'AuroraCoin',
+                'BAB': 'Babel',
+                'BAN': 'BANcoin',
                 'BCC': 'BCH',
                 'BCS': 'BitcoinStake',
                 'BITS': 'Bitstar',
@@ -112,6 +145,7 @@ module.exports = class yobit extends Exchange {
                 'DIRT': 'DIRTY',
                 'DROP': 'FaucetCoin',
                 'DSH': 'DASH',
+                'EGC': 'EverGreenCoin',
                 'EGG': 'EggCoin',
                 'EKO': 'EkoCoin',
                 'ENTER': 'ENTRC',
@@ -125,6 +159,7 @@ module.exports = class yobit extends Exchange {
                 'GCC': 'GlobalCryptocurrency',
                 'GEN': 'Genstake',
                 'GENE': 'Genesiscoin',
+                'GMR': 'Gimmer',
                 'GOLD': 'GoldMint',
                 'GOT': 'Giotto Coin',
                 'GSX': 'GlowShares',
@@ -146,7 +181,9 @@ module.exports = class yobit extends Exchange {
                 'LUNA': 'Luna Coin',
                 'MASK': 'Yobit MASK',
                 'MDT': 'Midnight',
+                'MEME': 'Memez Token', // conflict with Meme Inu / Degenerator Meme
                 'MIS': 'MIScoin',
+                'MM': 'MasterMint', // conflict with MilliMeter
                 'NAV': 'NavajoCoin',
                 'NBT': 'NiceBytes',
                 'OMG': 'OMGame',
@@ -155,6 +192,7 @@ module.exports = class yobit extends Exchange {
                 'PLAY': 'PlayCoin',
                 'PIVX': 'Darknet',
                 'PRS': 'PRE',
+                'PURE': 'PurePOS',
                 'PUTIN': 'PutinCoin',
                 'SPACE': 'Spacecoin',
                 'STK': 'StakeCoin',
@@ -166,13 +204,17 @@ module.exports = class yobit extends Exchange {
                 'REP': 'Republicoin',
                 'RUR': 'RUB',
                 'SBTC': 'Super Bitcoin',
+                'SMC': 'SmartCoin',
                 'SOLO': 'SoloCoin',
+                'STAR': 'StarCoin',
                 'SUPER': 'SuperCoin',
+                'TNS': 'Transcodium',
                 'TTC': 'TittieCoin',
                 'UNI': 'Universe',
                 'UST': 'Uservice',
                 'VOL': 'VolumeCoin',
                 'XIN': 'XINCoin',
+                'XMT': 'SummitCoin',
                 'XRA': 'Ratecoin',
             },
             'options': {
@@ -216,6 +258,28 @@ module.exports = class yobit extends Exchange {
         });
     }
 
+    parseBalance (response) {
+        const balances = this.safeValue (response, 'return', {});
+        const timestamp = this.safeInteger (balances, 'server_time');
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        const free = this.safeValue (balances, 'funds', {});
+        const total = this.safeValue (balances, 'funds_incl_orders', {});
+        const currencyIds = Object.keys (this.extend (free, total));
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (free, currencyId);
+            account['total'] = this.safeString (total, currencyId);
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostGetInfo (params);
@@ -244,25 +308,7 @@ module.exports = class yobit extends Exchange {
         //         }
         //     }
         //
-        const balances = this.safeValue (response, 'return', {});
-        const timestamp = this.safeInteger (balances, 'server_time');
-        const result = {
-            'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
-        const free = this.safeValue (balances, 'funds', {});
-        const total = this.safeValue (balances, 'funds_incl_orders', {});
-        const currencyIds = Object.keys (this.extend (free, total));
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (free, currencyId);
-            account['total'] = this.safeString (total, currencyId);
-            result[code] = account;
-        }
-        return this.parseBalance (result);
+        return this.parseBalance (response);
     }
 
     async fetchMarkets (params = {}) {
@@ -296,48 +342,58 @@ module.exports = class yobit extends Exchange {
             let quote = quoteId.toUpperCase ();
             base = this.safeCurrencyCode (base);
             quote = this.safeCurrencyCode (quote);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.safeInteger (market, 'decimal_places'),
-                'price': this.safeInteger (market, 'decimal_places'),
-            };
-            const amountLimits = {
-                'min': this.safeNumber (market, 'min_amount'),
-                'max': this.safeNumber (market, 'max_amount'),
-            };
-            const priceLimits = {
-                'min': this.safeNumber (market, 'min_price'),
-                'max': this.safeNumber (market, 'max_price'),
-            };
-            const costLimits = {
-                'min': this.safeNumber (market, 'min_total'),
-            };
-            const limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-                'cost': costLimits,
-            };
             const hidden = this.safeInteger (market, 'hidden');
-            const active = (hidden === 0);
             let feeString = this.safeString (market, 'fee');
             feeString = Precise.stringDiv (feeString, '100');
             // yobit maker = taker
-            const takerFee = this.parseNumber (feeString);
-            const makerFee = this.parseNumber (feeString);
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
-                'taker': takerFee,
-                'maker': makerFee,
-                'precision': precision,
-                'limits': limits,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': (hidden === 0),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.parseNumber (feeString),
+                'maker': this.parseNumber (feeString),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (market, 'decimal_places'),
+                    'price': this.safeInteger (market, 'decimal_places'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'min_amount'),
+                        'max': this.safeNumber (market, 'max_amount'),
+                    },
+                    'price': {
+                        'min': this.safeNumber (market, 'min_price'),
+                        'max': this.safeNumber (market, 'max_price'),
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'min_total'),
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }
@@ -370,7 +426,7 @@ module.exports = class yobit extends Exchange {
             // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if (ids.length > 2048) {
                 const numIds = this.ids.length;
-                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
+                throw new ExchangeError (this.id + ' fetchOrderBooks() has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
             }
         } else {
             ids = this.marketIds (symbols);
@@ -396,31 +452,29 @@ module.exports = class yobit extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        //   {    high: 0.03497582,
+        //     {
+        //         high: 0.03497582,
         //         low: 0.03248474,
         //         avg: 0.03373028,
         //         vol: 120.11485715062999,
-        //     vol_cur: 3572.24914074,
-        //        last: 0.0337611,
+        //         vol_cur: 3572.24914074,
+        //         last: 0.0337611,
         //         buy: 0.0337442,
-        //        sell: 0.03377798,
-        //     updated: 1537522009          }
+        //         sell: 0.03377798,
+        //         updated: 1537522009
+        //     }
         //
         const timestamp = this.safeTimestamp (ticker, 'updated');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        const last = this.safeNumber (ticker, 'last');
-        return {
-            'symbol': symbol,
+        const last = this.safeString (ticker, 'last');
+        return this.safeTicker ({
+            'symbol': this.safeSymbol (undefined, market),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'buy'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'sell'),
+            'ask': this.safeString (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -429,11 +483,11 @@ module.exports = class yobit extends Exchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': this.safeNumber (ticker, 'avg'),
-            'baseVolume': this.safeNumber (ticker, 'vol_cur'),
-            'quoteVolume': this.safeNumber (ticker, 'vol'),
+            'average': this.safeString (ticker, 'avg'),
+            'baseVolume': this.safeString (ticker, 'vol_cur'),
+            'quoteVolume': this.safeString (ticker, 'vol'),
             'info': ticker,
-        };
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -445,7 +499,7 @@ module.exports = class yobit extends Exchange {
             const maxLength = this.safeInteger (this.options, 'fetchTickersMaxLength', 2048);
             // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
             if (ids.length > this.options['fetchTickersMaxLength']) {
-                throw new ArgumentsRequired (this.id + ' has ' + numIds.toString () + ' markets exceeding max URL length for this endpoint (' + maxLength.toString () + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers');
+                throw new ArgumentsRequired (this.id + ' fetchTickers() has ' + numIds.toString () + ' markets exceeding max URL length for this endpoint (' + maxLength.toString () + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers');
             }
         } else {
             ids = this.marketIds (symbols);
@@ -473,6 +527,29 @@ module.exports = class yobit extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "type":"bid",
+        //          "price":0.14046179,
+        //          "amount":0.001,
+        //          "tid":200256901,
+        //          "timestamp":1649861004
+        //      }
+        //
+        // fetchMyTrades (private)
+        //
+        //      {
+        //          "pair":"doge_usdt",
+        //          "type":"sell",
+        //          "amount":139,
+        //          "rate":0.139,
+        //          "order_id":"2101103631773172",
+        //          "is_your_order":1,
+        //          "timestamp":"1649861561"
+        //      }
+        //
         const timestamp = this.safeTimestamp (trade, 'timestamp');
         let side = this.safeString (trade, 'type');
         if (side === 'ask') {
@@ -486,27 +563,32 @@ module.exports = class yobit extends Exchange {
         const marketId = this.safeString (trade, 'pair');
         const symbol = this.safeSymbol (marketId, market);
         const amountString = this.safeString (trade, 'amount');
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        // arguments for calculateFee (need to be numbers)
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
         const type = 'limit'; // all trades are still limit trades
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'commission');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeNumber (trade, 'commission');
+        if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'commissionCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
         const isYourOrder = this.safeValue (trade, 'is_your_order');
         if (isYourOrder !== undefined) {
             if (fee === undefined) {
-                fee = this.calculateFee (symbol, type, side, amount, price, 'taker');
+                const feeInNumbers = this.calculateFee (symbol, type, side, amount, price, 'taker');
+                fee = {
+                    'currency': this.safeString (feeInNumbers, 'currency'),
+                    'cost': this.safeString (feeInNumbers, 'cost'),
+                    'rate': this.safeString (feeInNumbers, 'rate'),
+                };
             }
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'order': order,
             'timestamp': timestamp,
@@ -515,12 +597,12 @@ module.exports = class yobit extends Exchange {
             'type': type,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
             'info': trade,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -533,18 +615,77 @@ module.exports = class yobit extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicGetTradesPair (this.extend (request, params));
+        //
+        //      {
+        //          "doge_usdt": [
+        //              {
+        //                  "type":"ask",
+        //                  "price":0.13956743,
+        //                  "amount":0.0008,
+        //                  "tid":200256900,
+        //                  "timestamp":1649860521
+        //              },
+        //          ]
+        //      }
+        //
         if (Array.isArray (response)) {
             const numElements = response.length;
             if (numElements === 0) {
                 return [];
             }
         }
-        return this.parseTrades (response[market['id']], market, since, limit);
+        const result = this.safeValue (response, market['id'], []);
+        return this.parseTrades (result, market, since, limit);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetInfo (params);
+        //
+        //     {
+        //         "server_time":1615856752,
+        //         "pairs":{
+        //             "ltc_btc":{
+        //                 "decimal_places":8,
+        //                 "min_price":0.00000001,
+        //                 "max_price":10000,
+        //                 "min_amount":0.0001,
+        //                 "min_total":0.0001,
+        //                 "hidden":0,
+        //                 "fee":0.2,
+        //                 "fee_buyer":0.2,
+        //                 "fee_seller":0.2
+        //             },
+        //             ...
+        //         },
+        //     }
+        //
+        const pairs = this.safeValue (response, 'pairs');
+        const marketIds = Object.keys (pairs);
+        const result = {};
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const pair = this.safeValue (pairs, marketId, {});
+            const symbol = this.safeSymbol (marketId, undefined, '_');
+            const takerString = this.safeString (pair, 'fee_buyer');
+            const makerString = this.safeString (pair, 'fee_seller');
+            const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
+            const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
+            result[symbol] = {
+                'info': pair,
+                'symbol': symbol,
+                'taker': taker,
+                'maker': maker,
+                'percentage': true,
+                'tierBased': false,
+            };
+        }
+        return result;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type === 'market') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
+            throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -555,41 +696,29 @@ module.exports = class yobit extends Exchange {
             'rate': this.priceToPrecision (symbol, price),
         };
         const response = await this.privatePostTrade (this.extend (request, params));
-        let id = undefined;
-        let status = 'open';
-        let filled = 0.0;
-        let remaining = amount;
-        if ('return' in response) {
-            id = this.safeString (response['return'], 'order_id');
-            if (id === '0') {
-                id = this.safeString (response['return'], 'init_order_id');
-                status = 'closed';
-            }
-            filled = this.safeNumber (response['return'], 'received', 0.0);
-            remaining = this.safeNumber (response['return'], 'remains', amount);
-        }
-        const timestamp = this.milliseconds ();
-        return {
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': price * filled,
-            'amount': amount,
-            'remaining': remaining,
-            'filled': filled,
-            'fee': undefined,
-            // 'trades': this.parseTrades (order['trades'], market),
-            'info': response,
-            'clientOrderId': undefined,
-            'average': undefined,
-            'trades': undefined,
-        };
+        //
+        //      {
+        //          "success":1,
+        //          "return": {
+        //              "received":0,
+        //              "remains":10,
+        //              "order_id":1101103635125179,
+        //              "funds": {
+        //                  "usdt":27.84756553,
+        //                  "usdttrc20":0,
+        //                  "doge":19.98327206
+        //              },
+        //              "funds_incl_orders": {
+        //                  "usdt":30.35256553,
+        //                  "usdttrc20":0,
+        //                  "doge":19.98327206
+        //               },
+        //               "server_time":1650114256
+        //           }
+        //       }
+        //
+        const result = this.safeValue (response, 'return');
+        return this.parseOrder (result, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -597,7 +726,28 @@ module.exports = class yobit extends Exchange {
         const request = {
             'order_id': parseInt (id),
         };
-        return await this.privatePostCancelOrder (this.extend (request, params));
+        const response = await this.privatePostCancelOrder (this.extend (request, params));
+        //
+        //      {
+        //          "success":1,
+        //          "return": {
+        //              "order_id":1101103632552304,
+        //              "funds": {
+        //                  "usdt":30.71055443,
+        //                  "usdttrc20":0,
+        //                  "doge":9.98327206
+        //              },
+        //              "funds_incl_orders": {
+        //                  "usdt":31.81275443,
+        //                  "usdttrc20":0,
+        //                  "doge":9.98327206
+        //              },
+        //              "server_time":1649918298
+        //          }
+        //      }
+        //
+        const result = this.safeValue (response, 'return', {});
+        return this.parseOrder (result);
     }
 
     parseOrderStatus (status) {
@@ -611,18 +761,84 @@ module.exports = class yobit extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        const id = this.safeString (order, 'id');
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const timestamp = this.safeTimestamp (order, 'timestamp_created');
+        //
+        // createOrder (private)
+        //
+        //      {
+        //          "received":0,
+        //          "remains":10,
+        //          "order_id":1101103635125179,
+        //          "funds": {
+        //              "usdt":27.84756553,
+        //              "usdttrc20":0,
+        //              "doge":19.98327206
+        //          },
+        //          "funds_incl_orders": {
+        //              "usdt":30.35256553,
+        //              "usdttrc20":0,
+        //              "doge":19.98327206
+        //          },
+        //          "server_time":1650114256
+        //      }
+        //
+        // fetchOrder (private)
+        //
+        //      {
+        //          "id: "1101103635103335",  // id-field is manually added in fetchOrder () from exchange response id-order dictionary structure
+        //          "pair":"doge_usdt",
+        //          "type":"buy",
+        //          "start_amount":10,
+        //          "amount":10,
+        //          "rate":0.05,
+        //          "timestamp_created":"1650112553",
+        //          "status":0
+        //      }
+        //
+        // fetchOpenOrders (private)
+        //
+        //      {
+        //          "id":"1101103635103335", // id-field is manually added in fetchOpenOrders () from exchange response id-order dictionary structure
+        //          "pair":"doge_usdt",
+        //          "type":"buy",
+        //          "amount":10,
+        //          "rate":0.05,
+        //          "timestamp_created":"1650112553",
+        //          "status":0
+        //      }
+        //
+        // cancelOrder (private)
+        //
+        //      {
+        //          "order_id":1101103634000197,
+        //          "funds": {
+        //              "usdt":31.81275443,
+        //              "usdttrc20":0,
+        //              "doge":9.98327206
+        //          },
+        //          "funds_incl_orders": {
+        //              "usdt":31.81275443,
+        //              "usdttrc20":0,
+        //              "doge":9.98327206
+        //          }
+        //      }
+        //
+        let id = this.safeString2 (order, 'id', 'order_id');
+        let status = this.parseOrderStatus (this.safeString (order, 'status', 'open'));
+        if (id === '0') {
+            id = this.safeString (order, 'init_order_id');
+            status = 'closed';
+        }
+        const timestamp = this.safeTimestamp2 (order, 'timestamp_created', 'server_time');
         const marketId = this.safeString (order, 'pair');
         const symbol = this.safeSymbol (marketId, market);
-        const remaining = this.safeString (order, 'amount');
         const amount = this.safeString (order, 'start_amount');
+        const remaining = this.safeString2 (order, 'amount', 'remains');
+        const filled = this.safeString (order, 'received', '0.0');
         const price = this.safeString (order, 'rate');
         const fee = undefined;
         const type = 'limit';
         const side = this.safeString (order, 'type');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -639,7 +855,7 @@ module.exports = class yobit extends Exchange {
             'cost': undefined,
             'amount': amount,
             'remaining': remaining,
-            'filled': undefined,
+            'filled': filled,
             'status': status,
             'fee': fee,
             'average': undefined,
@@ -655,6 +871,22 @@ module.exports = class yobit extends Exchange {
         const response = await this.privatePostOrderInfo (this.extend (request, params));
         id = id.toString ();
         const orders = this.safeValue (response, 'return', {});
+        //
+        //      {
+        //          "success":1,
+        //          "return": {
+        //              "1101103635103335": {
+        //                  "pair":"doge_usdt",
+        //                  "type":"buy",
+        //                  "start_amount":10,
+        //                  "amount":10,
+        //                  "rate":0.05,
+        //                  "timestamp_created":"1650112553",
+        //                  "status":0
+        //              }
+        //          }
+        //      }
+        //
         return this.parseOrder (this.extend ({ 'id': id }, orders[id]));
     }
 
@@ -670,8 +902,31 @@ module.exports = class yobit extends Exchange {
             request['pair'] = market['id'];
         }
         const response = await this.privatePostActiveOrders (this.extend (request, params));
-        const orders = this.safeValue (response, 'return', []);
-        return this.parseOrders (orders, market, since, limit);
+        //
+        //      {
+        //          "success":1,
+        //          "return": {
+        //              "1101103634006799": {
+        //                  "pair":"doge_usdt",
+        //                  "type":"buy",
+        //                  "amount":10,
+        //                  "rate":0.1,
+        //                  "timestamp_created":"1650034937",
+        //                  "status":0
+        //              },
+        //              "1101103634006738": {
+        //                  "pair":"doge_usdt",
+        //                  "type":"buy",
+        //                  "amount":10,
+        //                  "rate":0.1,
+        //                  "timestamp_created":"1650034932",
+        //                  "status":0
+        //              }
+        //          }
+        //      }
+        //
+        const result = this.safeValue (response, 'return', {});
+        return this.parseOrders (result, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -698,6 +953,22 @@ module.exports = class yobit extends Exchange {
             request['since'] = parseInt (since / 1000);
         }
         const response = await this.privatePostTradeHistory (this.extend (request, params));
+        //
+        //      {
+        //          "success":1,
+        //          "return": {
+        //              "200257004": {
+        //                  "pair":"doge_usdt",
+        //                  "type":"sell",
+        //                  "amount":139,
+        //                  "rate":0.139,
+        //                  "order_id":"2101103631773172",
+        //                  "is_your_order":1,
+        //                  "timestamp":"1649861561"
+        //              }
+        //          }
+        //      }
+        //
         const trades = this.safeValue (response, 'return', {});
         const ids = Object.keys (trades);
         const result = [];
@@ -708,7 +979,7 @@ module.exports = class yobit extends Exchange {
             }), market);
             result.push (trade);
         }
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit);
     }
 
     async createDepositAddress (code, params = {}) {

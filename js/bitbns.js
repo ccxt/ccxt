@@ -20,22 +20,42 @@ module.exports = class bitbns extends Exchange {
             'version': 'v2',
             // new metainfo interface
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but unimplemented
+                'swap': false,
+                'future': false,
+                'option': undefined, // coming soon
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': undefined,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': 'emulated',
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
+                'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
+                'transfer': false,
+                'withdraw': false,
             },
             'timeframes': {
             },
@@ -141,15 +161,14 @@ module.exports = class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        let status = this.safeString (response, 'status');
-        if (status !== undefined) {
-            status = (status === '1') ? 'ok' : 'maintenance';
-            this.status = this.extend (this.status, {
-                'status': status,
-                'updated': this.milliseconds (),
-            });
-        }
-        return this.status;
+        const statusRaw = this.safeString (response, 'status');
+        return {
+            'status': this.safeString ({ '1': 'ok' }, statusRaw, statusRaw),
+            'updated': this.milliseconds (),
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
     }
 
     async fetchMarkets (params = {}) {
@@ -185,12 +204,7 @@ module.exports = class bitbns extends Exchange {
             const quoteId = this.safeString (market, 'quote');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const marketPrecision = this.safeValue (market, 'precision', {});
-            const precision = {
-                'amount': this.safeInteger (marketPrecision, 'amount'),
-                'price': this.safeInteger (marketPrecision, 'price'),
-            };
             const marketLimits = this.safeValue (market, 'limits', {});
             const amountLimits = this.safeValue (marketLimits, 'amount', {});
             const priceLimits = this.safeValue (marketLimits, 'price', {});
@@ -201,17 +215,37 @@ module.exports = class bitbns extends Exchange {
             result.push ({
                 'id': id,
                 'uppercaseId': uppercaseId,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': undefined,
-                'precision': precision,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (marketPrecision, 'amount'),
+                    'price': this.safeInteger (marketPrecision, 'price'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (amountLimits, 'min'),
                         'max': this.safeNumber (amountLimits, 'max'),
@@ -225,6 +259,7 @@ module.exports = class bitbns extends Exchange {
                         'max': this.safeNumber (costLimits, 'max'),
                     },
                 },
+                'info': market,
             });
         }
         return result;
@@ -258,7 +293,7 @@ module.exports = class bitbns extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (response, 'timestamp');
-        return this.parseOrderBook (response, timestamp);
+        return this.parseOrderBook (response, symbol, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -295,29 +330,29 @@ module.exports = class bitbns extends Exchange {
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber (ticker, 'last');
+        const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
-            'bidVolume': this.safeNumber (ticker, 'bidVolume'),
-            'ask': this.safeNumber (ticker, 'ask'),
-            'askVolume': this.safeNumber (ticker, 'askVolume'),
-            'vwap': this.safeNumber (ticker, 'vwap'),
-            'open': this.safeNumber (ticker, 'open'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
+            'bidVolume': this.safeString (ticker, 'bidVolume'),
+            'ask': this.safeString (ticker, 'ask'),
+            'askVolume': this.safeString (ticker, 'askVolume'),
+            'vwap': this.safeString (ticker, 'vwap'),
+            'open': this.safeString (ticker, 'open'),
             'close': last,
             'last': last,
-            'previousClose': this.safeNumber (ticker, 'previousClose'), // previous day close
-            'change': this.safeNumber (ticker, 'change'),
-            'percentage': this.safeNumber (ticker, 'percentage'),
-            'average': this.safeNumber (ticker, 'average'),
-            'baseVolume': this.safeNumber (ticker, 'baseVolume'),
-            'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
+            'previousClose': this.safeString (ticker, 'previousClose'), // previous day close
+            'change': this.safeString (ticker, 'change'),
+            'percentage': this.safeString (ticker, 'percentage'),
+            'average': this.safeString (ticker, 'average'),
+            'baseVolume': this.safeString (ticker, 'baseVolume'),
+            'quoteVolume': this.safeString (ticker, 'quoteVolume'),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -358,25 +393,7 @@ module.exports = class bitbns extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.v1PostCurrentCoinBalanceEVERYTHING (params);
-        //
-        //     {
-        //         "data":{
-        //             "availableorderMoney":0,
-        //             "availableorderBTC":0,
-        //             "availableorderXRP":0,
-        //             "inorderMoney":0,
-        //             "inorderBTC":0,
-        //             "inorderXRP":0,
-        //             "inorderNEO":0,
-        //         },
-        //         "status":1,
-        //         "error":null,
-        //         "code":200
-        //     }
-        //
+    parseBalance (response) {
         const timestamp = undefined;
         const result = {
             'info': response,
@@ -400,7 +417,29 @@ module.exports = class bitbns extends Exchange {
                 }
             }
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.v1PostCurrentCoinBalanceEVERYTHING (params);
+        //
+        //     {
+        //         "data":{
+        //             "availableorderMoney":0,
+        //             "availableorderBTC":0,
+        //             "availableorderXRP":0,
+        //             "inorderMoney":0,
+        //             "inorderBTC":0,
+        //             "inorderXRP":0,
+        //             "inorderNEO":0,
+        //         },
+        //         "status":1,
+        //         "error":null,
+        //         "code":200
+        //     }
+        //
+        return this.parseBalance (response);
     }
 
     parseOrderStatus (status) {
@@ -483,7 +522,7 @@ module.exports = class bitbns extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -924,6 +963,7 @@ module.exports = class bitbns extends Exchange {
             'txid': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'address': undefined,
             'addressTo': undefined,
             'addressFrom': undefined,

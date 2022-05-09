@@ -8,7 +8,6 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.precise import Precise
 
 
 class tidebit(Exchange):
@@ -21,17 +20,47 @@ class tidebit(Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchDepositAddress': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
                 'fetchOrderBook': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -155,27 +184,42 @@ class tidebit(Exchange):
             id = self.safe_string(market, 'id')
             symbol = self.safe_string(market, 'name')
             baseId, quoteId = symbol.split('/')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
             result.append({
                 'id': id,
                 'symbol': symbol,
-                'base': base,
-                'quote': quote,
+                'base': self.safe_currency_code(baseId),
+                'quote': self.safe_currency_code(quoteId),
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'active': None,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
                 'precision': self.precision,
-                'limits': self.limits,
+                'limits': self.extend({
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                }, self.limits),
+                'info': market,
             })
         return result
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.privateGetMembersMe(params)
+    def parse_balance(self, response):
         balances = self.safe_value(response, 'accounts')
         result = {'info': balances}
         for i in range(0, len(balances)):
@@ -186,7 +230,12 @@ class tidebit(Exchange):
             account['free'] = self.safe_string(balance, 'balance')
             account['used'] = self.safe_string(balance, 'locked')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetMembersMe(params)
+        return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -202,20 +251,31 @@ class tidebit(Exchange):
         return self.parse_order_book(response, symbol, timestamp)
 
     def parse_ticker(self, ticker, market=None):
+        #
+        #     {
+        #         "at":1398410899,
+        #         "ticker": {
+        #             "buy": "3000.0",
+        #             "sell":"3100.0",
+        #             "low":"3000.0",
+        #             "high":"3000.0",
+        #             "last":"3000.0",
+        #             "vol":"0.11"
+        #         }
+        #     }
+        #
         timestamp = self.safe_timestamp(ticker, 'at')
         ticker = self.safe_value(ticker, 'ticker', {})
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        last = self.safe_number(ticker, 'last')
-        return {
-            'symbol': symbol,
+        market = self.safe_market(None, market)
+        last = self.safe_string(ticker, 'last')
+        return self.safe_ticker({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'buy'),
-            'ask': self.safe_number(ticker, 'sell'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
+            'ask': self.safe_string(ticker, 'sell'),
             'bidVolume': None,
             'askVolume': None,
             'vwap': None,
@@ -226,10 +286,10 @@ class tidebit(Exchange):
             'percentage': None,
             'previousClose': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'vol'),
+            'baseVolume': self.safe_string(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -251,36 +311,42 @@ class tidebit(Exchange):
             'market': market['id'],
         }
         response = await self.publicGetTickersMarket(self.extend(request, params))
+        #
+        #     {
+        #         "at":1398410899,
+        #         "ticker": {
+        #             "buy": "3000.0",
+        #             "sell":"3100.0",
+        #             "low":"3000.0",
+        #             "high":"3000.0",
+        #             "last":"3000.0",
+        #             "vol":"0.11"
+        #         }
+        #     }
+        #
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         id = self.safe_string(trade, 'id')
-        priceString = self.safe_string(trade, 'price')
-        amountString = self.safe_string(trade, 'volume')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.safe_number(trade, 'funds')
-        if cost is None:
-            cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        return {
+        price = self.safe_string(trade, 'price')
+        amount = self.safe_string(trade, 'volume')
+        market = self.safe_market(None, market)
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
             'side': None,
             'order': None,
             'takerOrMaker': None,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -393,7 +459,7 @@ class tidebit(Exchange):
         filled = self.safe_string(order, 'executed_volume')
         remaining = self.safe_string(order, 'remaining_volume')
         average = self.safe_string(order, 'avg_price')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
@@ -460,9 +526,30 @@ class tidebit(Exchange):
         if tag is not None:
             request['memo'] = tag
         result = await self.privatePostWithdrawsApply(self.extend(request, params))
+        return self.parse_transaction(result, currency)
+
+    def parse_transaction(self, transaction, currency=None):
+        currency = self.safe_currency(None, currency)
         return {
-            'info': result,
             'id': None,
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'amount': None,
+            'type': None,
+            'currency': currency['code'],
+            'status': None,
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': None,
+            'fee': None,
+            'info': transaction,
         }
 
     def nonce(self):

@@ -20,34 +20,38 @@ module.exports = class bitrue extends Exchange {
             'version': 'v1',
             // new metainfo interface
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': undefined, // has but unimplemented
+                'future': undefined,
+                'option': false,
                 'cancelAllOrders': false,
                 'cancelOrder': true,
-                'CORS': undefined,
                 'createOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
                 'fetchFundingFees': false,
-                'fetchFundingHistory': false,
-                'fetchFundingRate': false,
-                'fetchFundingRateHistory': false,
-                'fetchFundingRates': false,
-                'fetchIndexOHLCV': false,
-                'fetchIsolatedPositions': false,
                 'fetchMarkets': true,
-                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': 'emulated',
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
-                'fetchPositions': false,
-                'fetchPremiumIndexOHLCV': false,
-                'fetchStatus': false,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -57,8 +61,6 @@ module.exports = class bitrue extends Exchange {
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': true,
-                'setLeverage': false,
-                'setMarginMode': false,
                 'transfer': false,
                 'withdraw': true,
             },
@@ -143,8 +145,8 @@ module.exports = class bitrue extends Exchange {
                     'feeSide': 'get',
                     'tierBased': false,
                     'percentage': true,
-                    'taker': this.parseNumber ('0.0098'),
-                    'maker': this.parseNumber ('0.0098'),
+                    'taker': this.parseNumber ('0.00098'),
+                    'maker': this.parseNumber ('0.00098'),
                 },
                 'future': {
                     'trading': {
@@ -220,6 +222,7 @@ module.exports = class bitrue extends Exchange {
             // exchange-specific options
             'options': {
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
+                'fetchMyTradesMethod': 'v2PrivateGetMyTrades', // v1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'recvWindow': 5 * 1000, // 5 sec, binance default
                 'timeDifference': 0, // the difference between system clock and Binance clock
@@ -235,6 +238,9 @@ module.exports = class bitrue extends Exchange {
                     'DOGE': 'dogecoin',
                     'ADA': 'Cardano',
                 },
+            },
+            'commonCurrencies': {
+                'MIM': 'MIM Swarm',
             },
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
@@ -315,10 +321,10 @@ module.exports = class bitrue extends Exchange {
         return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
     }
 
-    currencyToPrecision (currency, fee) {
+    currencyToPrecision (code, fee) {
         // info is available in currencies only if the user has configured his api keys
-        if (this.safeValue (this.currencies[currency], 'precision') !== undefined) {
-            return this.decimalToPrecision (fee, TRUNCATE, this.currencies[currency]['precision'], this.precisionMode, this.paddingMode);
+        if (this.safeValue (this.currencies[code], 'precision') !== undefined) {
+            return this.decimalToPrecision (fee, TRUNCATE, this.currencies[code]['precision'], this.precisionMode, this.paddingMode);
         } else {
             return this.numberToString (fee);
         }
@@ -326,6 +332,25 @@ module.exports = class bitrue extends Exchange {
 
     nonce () {
         return this.milliseconds () - this.options['timeDifference'];
+    }
+
+    async fetchStatus (params = {}) {
+        const response = await this.v1PublicGetPing (params);
+        //
+        // empty means working status.
+        //
+        //     {}
+        //
+        const keys = Object.keys (response);
+        const keysLength = keys.length;
+        const formattedStatus = keysLength ? 'maintenance' : 'ok';
+        return {
+            'status': formattedStatus,
+            'updated': this.milliseconds (),
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
     }
 
     async fetchTime (params = {}) {
@@ -336,13 +361,6 @@ module.exports = class bitrue extends Exchange {
         //     }
         //
         return this.safeInteger (response, 'serverTime');
-    }
-
-    async loadTimeDifference (params = {}) {
-        const serverTime = await this.fetchTime (params);
-        const after = this.milliseconds ();
-        this.options['timeDifference'] = after - serverTime;
-        return this.options['timeDifference'];
     }
 
     safeNetwork (networkId) {
@@ -498,6 +516,8 @@ module.exports = class bitrue extends Exchange {
                 'precision': precision,
                 'info': currency,
                 'active': active,
+                'deposit': enableDeposit,
+                'withdraw': enableWithdraw,
                 'networks': networks,
                 'fee': this.safeNumber (currency, 'withdrawFee'),
                 // 'fees': fees,
@@ -568,73 +588,87 @@ module.exports = class bitrue extends Exchange {
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const filters = this.safeValue (market, 'filters', []);
             const filtersByType = this.indexBy (filters, 'filterType');
-            const precision = {
-                'base': this.safeInteger (market, 'baseAssetPrecision'),
-                'quote': this.safeInteger (market, 'quotePrecision'),
-                'amount': this.safeInteger (market, 'quantityPrecision'),
-                'price': this.safeInteger (market, 'pricePrecision'),
-            };
             const status = this.safeString (market, 'status');
-            const active = (status === 'TRADING');
+            const priceDefault = this.safeInteger (market, 'pricePrecision');
+            const amountDefault = this.safeInteger (market, 'quantityPrecision');
+            const priceFilter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
+            const amountFilter = this.safeValue (filtersByType, 'LOT_SIZE', {});
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
-                'spot': true,
+                'settleId': undefined,
                 'type': 'spot',
+                'spot': true,
                 'margin': false,
+                'swap': false,
                 'future': false,
-                'delivery': false,
-                'linear': false,
-                'inverse': false,
+                'option': false,
+                'active': (status === 'TRADING'),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
-                'active': active,
-                'precision': precision,
-                'contractSize': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (amountFilter, 'volumeScale', amountDefault),
+                    'price': this.safeInteger (priceFilter, 'priceScale', priceDefault),
+                    'base': this.safeInteger (market, 'baseAssetPrecision'),
+                    'quote': this.safeInteger (market, 'quotePrecision'),
+                },
                 'limits': {
-                    'amount': {
+                    'leverage': {
                         'min': undefined,
                         'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (amountFilter, 'minQty'),
+                        'max': this.safeNumber (amountFilter, 'maxQty'),
                     },
                     'price': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.safeNumber (priceFilter, 'minPrice'),
+                        'max': this.safeNumber (priceFilter, 'maxPrice'),
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeNumber (amountFilter, 'minVal'),
                         'max': undefined,
                     },
                 },
+                'info': market,
             };
-            if ('PRICE_FILTER' in filtersByType) {
-                const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
-                entry['limits']['price'] = {
-                    'min': this.safeNumber (filter, 'minPrice'),
-                    'max': this.safeNumber (filter, 'maxPrice'),
-                };
-                entry['precision']['price'] = this.safeInteger (filter, 'priceScale');
-            }
-            if ('LOT_SIZE' in filtersByType) {
-                const filter = this.safeValue (filtersByType, 'LOT_SIZE', {});
-                entry['precision']['amount'] = this.safeInteger (filter, 'volumeScale');
-                entry['limits']['amount'] = {
-                    'min': this.safeNumber (filter, 'minQty'),
-                    'max': this.safeNumber (filter, 'maxQty'),
-                };
-                entry['limits']['cost']['min'] = this.safeNumber (filter, 'minVal');
-            }
             result.push (entry);
         }
         return result;
+    }
+
+    parseBalance (response) {
+        const result = {
+            'info': response,
+        };
+        const timestamp = this.safeInteger (response, 'updateTime');
+        const balances = this.safeValue2 (response, 'balances', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'free');
+            account['used'] = this.safeString (balance, 'locked');
+            result[code] = account;
+        }
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601 (timestamp);
+        return this.safeBalance (result);
     }
 
     async fetchBalance (params = {}) {
@@ -657,23 +691,7 @@ module.exports = class bitrue extends Exchange {
         //         "canDeposit":false
         //     }
         //
-        const result = {
-            'info': response,
-        };
-        const timestamp = this.safeInteger (response, 'updateTime');
-        const balances = this.safeValue2 (response, 'balances', []);
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyId = this.safeString (balance, 'asset');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (balance, 'free');
-            account['used'] = this.safeString (balance, 'locked');
-            result[code] = account;
-        }
-        result['timestamp'] = timestamp;
-        result['datetime'] = this.iso8601 (timestamp);
-        return this.parseBalance (result);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -724,16 +742,16 @@ module.exports = class bitrue extends Exchange {
         //     }
         //
         const symbol = this.safeSymbol (undefined, market);
-        const last = this.safeNumber (ticker, 'last');
+        const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
-            'high': this.safeNumber (ticker, 'high24hr'),
-            'low': this.safeNumber (ticker, 'low24hr'),
-            'bid': this.safeNumber (ticker, 'highestBid'),
+            'high': this.safeString (ticker, 'high24hr'),
+            'low': this.safeString (ticker, 'low24hr'),
+            'bid': this.safeString (ticker, 'highestBid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'lowestAsk'),
+            'ask': this.safeString (ticker, 'lowestAsk'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -741,12 +759,12 @@ module.exports = class bitrue extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeNumber (ticker, 'percentChange'),
+            'percentage': this.safeString (ticker, 'percentChange'),
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'baseVolume'),
-            'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
+            'baseVolume': this.safeString (ticker, 'baseVolume'),
+            'quoteVolume': this.safeString (ticker, 'quoteVolume'),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -914,7 +932,7 @@ module.exports = class bitrue extends Exchange {
         if ('commission' in trade) {
             fee = {
                 'cost': this.safeString (trade, 'commission'),
-                'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAsset')),
+                'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAssert')),
             };
         }
         let takerOrMaker = undefined;
@@ -1080,7 +1098,7 @@ module.exports = class bitrue extends Exchange {
         }
         const stopPriceString = this.safeString (order, 'stopPrice');
         const stopPrice = this.parseNumber (this.omitZero (stopPriceString));
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1219,7 +1237,7 @@ module.exports = class bitrue extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1284,6 +1302,10 @@ module.exports = class bitrue extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const method = this.safeString (this.options, 'fetchMyTradesMethod', 'v2PrivateGetMyTrades');
+        if ((symbol === undefined) && (method === 'v2PrivateGetMyTrades')) {
+            throw new ArgumentsRequired (this.id + ' v2PrivateGetMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const request = {
             // 'symbol': market['id'],
@@ -1303,7 +1325,7 @@ module.exports = class bitrue extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v1PrivateGetMyTrades (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     [
         //         {
@@ -1327,7 +1349,7 @@ module.exports = class bitrue extends Exchange {
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits requires a code argument');
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a code argument');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1389,7 +1411,7 @@ module.exports = class bitrue extends Exchange {
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchWithdrawals requires a code argument');
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a code argument');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1424,7 +1446,7 @@ module.exports = class bitrue extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseTransaction (data, currency);
+        return this.parseTransactions (data, currency);
     }
 
     parseTransactionStatusByType (status, type = undefined) {
@@ -1589,7 +1611,7 @@ module.exports = class bitrue extends Exchange {
             const networkEntry = this.safeValue (networks, network, {});
             chainName = this.safeString (networkEntry, 'id'); // handle ERC20>ETH alias
             if (chainName === undefined) {
-                throw new ArgumentsRequired (this.id + ' withdraw requires a network parameter or a chainName parameter');
+                throw new ArgumentsRequired (this.id + ' withdraw() requires a network parameter or a chainName parameter');
             }
             params = this.omit (params, 'network');
         }
@@ -1607,10 +1629,7 @@ module.exports = class bitrue extends Exchange {
         }
         const response = await this.v1PrivatePostWithdrawCommit (this.extend (request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
-        return {
-            'info': response,
-            'id': this.safeString (response, 'id'),
-        };
+        return this.parseTransaction (response, currency);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

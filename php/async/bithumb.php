@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
+use \ccxt\Precise;
 
 class bithumb extends Exchange {
 
@@ -19,21 +20,49 @@ class bithumb extends Exchange {
             'countries' => array( 'KR' ), // South Korea
             'rateLimit' => 500,
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => true,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelOrder' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'hostname' => 'bithumb.com',
@@ -151,6 +180,7 @@ class bithumb extends Exchange {
         $quotes = is_array($quoteCurrencies) ? array_keys($quoteCurrencies) : array();
         for ($i = 0; $i < count($quotes); $i++) {
             $quote = $quotes[$i];
+            $quoteId = $quote;
             $extension = $this->safe_value($quoteCurrencies, $quote, array());
             $method = 'publicGetTickerALL' . $quote;
             $response = yield $this->$method ($params);
@@ -163,7 +193,6 @@ class bithumb extends Exchange {
                 }
                 $market = $data[$currencyId];
                 $base = $this->safe_currency_code($currencyId);
-                $symbol = $currencyId . '/' . $quote;
                 $active = true;
                 if (gettype($market) === 'array' && count(array_filter(array_keys($market), 'is_string')) == 0) {
                     $numElements = is_array($market) ? count($market) : 0;
@@ -173,18 +202,37 @@ class bithumb extends Exchange {
                 }
                 $entry = $this->deep_extend(array(
                     'id' => $currencyId,
-                    'symbol' => $symbol,
+                    'symbol' => $base . '/' . $quote,
                     'base' => $base,
                     'quote' => $quote,
-                    'info' => $market,
+                    'settle' => null,
+                    'baseId' => $currencyId,
+                    'quoteId' => $quoteId,
+                    'settleId' => null,
                     'type' => 'spot',
                     'spot' => true,
+                    'margin' => false,
+                    'swap' => false,
+                    'future' => false,
+                    'option' => false,
                     'active' => $active,
+                    'contract' => false,
+                    'linear' => null,
+                    'inverse' => null,
+                    'contractSize' => null,
+                    'expiry' => null,
+                    'expiryDateTime' => null,
+                    'strike' => null,
+                    'optionType' => null,
                     'precision' => array(
-                        'amount' => 4,
-                        'price' => 4,
+                        'amount' => intval('4'),
+                        'price' => intval('4'),
                     ),
                     'limits' => array(
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                         'amount' => array(
                             'min' => null,
                             'max' => null,
@@ -195,8 +243,7 @@ class bithumb extends Exchange {
                         ),
                         'cost' => array(), // set via options
                     ),
-                    'baseId' => null,
-                    'quoteId' => null,
+                    'info' => $market,
                 ), $extension);
                 $result[] = $entry;
             }
@@ -204,12 +251,7 @@ class bithumb extends Exchange {
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        $request = array(
-            'currency' => 'ALL',
-        );
-        $response = yield $this->privatePostInfoBalance (array_merge($request, $params));
+    public function parse_balance($response) {
         $result = array( 'info' => $response );
         $balances = $this->safe_value($response, 'data');
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
@@ -223,7 +265,16 @@ class bithumb extends Exchange {
             $account['free'] = $this->safe_string($balances, 'available_' . $lowerCurrencyId);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        yield $this->load_markets();
+        $request = array(
+            'currency' => 'ALL',
+        );
+        $response = yield $this->privatePostInfoBalance (array_merge($request, $params));
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -282,22 +333,21 @@ class bithumb extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 'date');
         $symbol = $this->safe_symbol(null, $market);
-        $open = $this->safe_number($ticker, 'opening_price');
-        $close = $this->safe_number($ticker, 'closing_price');
-        $baseVolume = $this->safe_number($ticker, 'units_traded_24H');
-        $quoteVolume = $this->safe_number($ticker, 'acc_trade_value_24H');
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
+        $open = $this->safe_string($ticker, 'opening_price');
+        $close = $this->safe_string($ticker, 'closing_price');
+        $baseVolume = $this->safe_string($ticker, 'units_traded_24H');
+        $quoteVolume = $this->safe_string($ticker, 'acc_trade_value_24H');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'max_price'),
-            'low' => $this->safe_number($ticker, 'min_price'),
-            'bid' => $this->safe_number($ticker, 'buy_price'),
+            'high' => $this->safe_string($ticker, 'max_price'),
+            'low' => $this->safe_string($ticker, 'min_price'),
+            'bid' => $this->safe_string($ticker, 'buy_price'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'sell_price'),
+            'ask' => $this->safe_string($ticker, 'sell_price'),
             'askVolume' => null,
-            'vwap' => $vwap,
+            'vwap' => null,
             'open' => $open,
             'close' => $close,
             'last' => $close,
@@ -308,7 +358,7 @@ class bithumb extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -491,10 +541,7 @@ class bithumb extends Exchange {
         $side = $this->safe_string($trade, 'type');
         $side = ($side === 'ask') ? 'sell' : 'buy';
         $id = $this->safe_string($trade, 'cont_no');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market(null, $market);
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string_2($trade, 'units_traded', 'units');
         $costString = $this->safe_string($trade, 'total');
@@ -513,7 +560,7 @@ class bithumb extends Exchange {
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'order' => null,
             'type' => $type,
             'side' => $side,
@@ -702,17 +749,16 @@ class bithumb extends Exchange {
         $sideProperty = $this->safe_value_2($order, 'type', 'side');
         $side = ($sideProperty === 'bid') ? 'buy' : 'sell';
         $status = $this->parse_order_status($this->safe_string($order, 'order_status'));
-        $price = $this->safe_number_2($order, 'order_price', 'price');
+        $price = $this->safe_string_2($order, 'order_price', 'price');
         $type = 'limit';
-        if ($price === 0) {
-            $price = null;
+        if (Precise::string_equals($price, '0')) {
             $type = 'market';
         }
-        $amount = $this->safe_number_2($order, 'order_qty', 'units');
-        $remaining = $this->safe_number($order, 'units_remaining');
+        $amount = $this->safe_string_2($order, 'order_qty', 'units');
+        $remaining = $this->safe_string($order, 'units_remaining');
         if ($remaining === null) {
             if ($status === 'closed') {
-                $remaining = 0;
+                $remaining = '0';
             } else if ($status !== 'canceled') {
                 $remaining = $amount;
             }
@@ -725,16 +771,12 @@ class bithumb extends Exchange {
         if (($base !== null) && ($quote !== null)) {
             $symbol = $base . '/' . $quote;
         }
-        if (($symbol === null) && ($market !== null)) {
+        if ($symbol === null) {
+            $market = $this->safe_market(null, $market);
             $symbol = $market['symbol'];
         }
         $id = $this->safe_string($order, 'order_id');
         $rawTrades = $this->safe_value($order, 'contract', array());
-        $trades = $this->parse_trades($rawTrades, $market, null, null, array(
-            'side' => $side,
-            'symbol' => $symbol,
-            'order' => $id,
-        ));
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -756,8 +798,8 @@ class bithumb extends Exchange {
             'remaining' => $remaining,
             'status' => $status,
             'fee' => null,
-            'trades' => $trades,
-        ));
+            'trades' => $rawTrades,
+        ), $market);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -846,9 +888,39 @@ class bithumb extends Exchange {
             }
         }
         $response = yield $this->privatePostTradeBtcWithdrawal (array_merge($request, $params));
+        //
+        // array( "status" : "0000")
+        //
+        return $this->parse_transaction($response, $currency);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        // withdraw
+        //
+        //     array( "status" : "0000")
+        //
+        $currency = $this->safe_currency(null, $currency);
         return array(
-            'info' => $response,
             'id' => null,
+            'txid' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'network' => null,
+            'addressFrom' => null,
+            'address' => null,
+            'addressTo' => null,
+            'amount' => null,
+            'type' => null,
+            'currency' => $currency['code'],
+            'status' => null,
+            'updated' => null,
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'comment' => null,
+            'fee' => null,
+            'info' => $transaction,
         );
     }
 

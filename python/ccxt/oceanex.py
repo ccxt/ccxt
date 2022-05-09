@@ -20,7 +20,7 @@ class oceanex(Exchange):
         return self.deep_extend(super(oceanex, self).describe(), {
             'id': 'oceanex',
             'name': 'OceanEx',
-            'countries': ['LU', 'CN', 'SG'],
+            'countries': ['BS'],  # Bahamas
             'version': 'v1',
             'rateLimit': 3000,
             'urls': {
@@ -31,17 +31,27 @@ class oceanex(Exchange):
                 'referral': 'https://oceanex.pro/signup?referral=VE24QX',
             },
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': None,  # has but unimplemented
+                'future': None,
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createMarketOrder': True,
                 'createOrder': True,
-                'fetchAllTradingFees': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
-                'fetchCurrencies': None,
                 'fetchFundingFees': None,
                 'fetchMarkets': True,
+                'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -51,19 +61,23 @@ class oceanex(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTradingFees': None,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'fetchTradingLimits': None,
             },
             'timeframes': {
-                '1m': '1m',
-                '5m': '5m',
-                '15m': '15m',
-                '30m': '30m',
-                '1h': '1h',
-                '4h': '4h',
-                '12h': '12h',
-                '1d': '1d',
-                '1w': '1w',
+                '1m': '1',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '2h': '120',
+                '4h': '240',
+                '6h': '360',
+                '12h': '720',
+                '1d': '1440',
+                '3d': '4320',
+                '1w': '10080',
             },
             'api': {
                 'public': {
@@ -76,6 +90,9 @@ class oceanex(Exchange):
                         'fees/trading',
                         'trades',
                         'timestamp',
+                    ],
+                    'post': [
+                        'k',
                     ],
                 },
                 'private': {
@@ -98,8 +115,8 @@ class oceanex(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.1 / 100,
-                    'taker': 0.1 / 100,
+                    'maker': self.parse_number('0.001'),
+                    'taker': self.parse_number('0.001'),
                 },
             },
             'commonCurrencies': {
@@ -132,6 +149,19 @@ class oceanex(Exchange):
     def fetch_markets(self, params={}):
         request = {'show_details': True}
         response = self.publicGetMarkets(self.extend(request, params))
+        #
+        #    {
+        #        id: 'xtzusdt',
+        #        name: 'XTZ/USDT',
+        #        ask_precision: '8',
+        #        bid_precision: '8',
+        #        enabled: True,
+        #        price_precision: '4',
+        #        amount_precision: '3',
+        #        usd_precision: '4',
+        #        minimum_trading_amount: '1.0'
+        #    },
+        #
         result = []
         markets = self.safe_value(response, 'data')
         for i in range(0, len(markets)):
@@ -149,12 +179,25 @@ class oceanex(Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': True,
-                'info': market,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': None,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
                 'precision': {
                     'amount': self.safe_integer(market, 'amount_precision'),
                     'price': self.safe_integer(market, 'price_precision'),
@@ -162,6 +205,10 @@ class oceanex(Exchange):
                     'quote': self.safe_integer(market, 'bid_precision'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': None,
                         'max': None,
@@ -175,6 +222,7 @@ class oceanex(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 
@@ -255,28 +303,29 @@ class oceanex(Exchange):
         #
         ticker = self.safe_value(data, 'ticker', {})
         timestamp = self.safe_timestamp(data, 'at')
-        return {
-            'symbol': market['symbol'],
+        symbol = self.safe_symbol(None, market)
+        return self.safe_ticker({
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'buy'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'sell'),
+            'ask': self.safe_string(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': self.safe_number(ticker, 'last'),
-            'last': self.safe_number(ticker, 'last'),
+            'close': self.safe_string(ticker, 'last'),
+            'last': self.safe_string(ticker, 'last'),
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volume'),
+            'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -363,10 +412,42 @@ class oceanex(Exchange):
         if limit is not None:
             request['limit'] = limit
         response = self.publicGetTrades(self.extend(request, params))
+        #
+        #      {
+        #          "code":0,
+        #          "message":"Operation successful",
+        #          "data": [
+        #              {
+        #                  "id":220247666,
+        #                  "price":"3098.62",
+        #                  "volume":"0.00196",
+        #                  "funds":"6.0732952",
+        #                  "market":"ethusdt",
+        #                  "created_at":"2022-04-19T19:03:15Z",
+        #                  "created_on":1650394995,
+        #                  "side":"bid"
+        #              },
+        #          ]
+        #      }
+        #
         data = self.safe_value(response, 'data')
         return self.parse_trades(data, market, since, limit)
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #      {
+        #          "id":220247666,
+        #          "price":"3098.62",
+        #          "volume":"0.00196",
+        #          "funds":"6.0732952",
+        #          "market":"ethusdt",
+        #          "created_at":"2022-04-19T19:03:15Z",
+        #          "created_on":1650394995,
+        #          "side":"bid"
+        #      }
+        #
         side = self.safe_value(trade, 'side')
         if side == 'bid':
             side = 'buy'
@@ -377,7 +458,9 @@ class oceanex(Exchange):
         timestamp = self.safe_timestamp(trade, 'created_on')
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
-        return {
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'volume')
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -387,11 +470,11 @@ class oceanex(Exchange):
             'type': 'limit',
             'takerOrMaker': None,
             'side': side,
-            'price': self.safe_number(trade, 'price'),
-            'amount': self.safe_number(trade, 'volume'),
+            'price': priceString,
+            'amount': amountString,
             'cost': None,
             'fee': None,
-        }
+        }, market)
 
     def fetch_time(self, params={}):
         response = self.publicGetTimestamp(params)
@@ -400,7 +483,7 @@ class oceanex(Exchange):
         #
         return self.safe_timestamp(response, 'data')
 
-    def fetch_all_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}):
         response = self.publicGetFeesTrading(params)
         data = self.safe_value(response, 'data')
         result = {}
@@ -415,6 +498,7 @@ class oceanex(Exchange):
                 'symbol': symbol,
                 'maker': self.safe_number(maker, 'value'),
                 'taker': self.safe_number(taker, 'value'),
+                'percentage': True,
             }
         return result
 
@@ -422,9 +506,7 @@ class oceanex(Exchange):
         response = self.privateGetKey(params)
         return self.safe_value(response, 'data')
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privateGetMembersMe(params)
+    def parse_balance(self, response):
         data = self.safe_value(response, 'data')
         balances = self.safe_value(data, 'accounts')
         result = {'info': response}
@@ -436,7 +518,12 @@ class oceanex(Exchange):
             account['free'] = self.safe_string(balance, 'balance')
             account['used'] = self.safe_string(balance, 'locked')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privateGetMembersMe(params)
+        return self.parse_balance(response)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -509,6 +596,39 @@ class oceanex(Exchange):
             result = self.array_concat(result, parsedOrders)
         return result
 
+    def parse_ohlcv(self, ohlcv, market=None):
+        # [
+        #    1559232000,
+        #    8889.22,
+        #    9028.52,
+        #    8889.22,
+        #    9028.52
+        #    0.3121
+        # ]
+        return [
+            self.safe_timestamp(ohlcv, 0),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
+        ]
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+            'period': self.timeframes[timeframe],
+        }
+        if since is not None:
+            request['timestamp'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = self.publicPostK(self.extend(request, params))
+        ohlcvs = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+
     def parse_order(self, order, market=None):
         #
         #     {
@@ -538,7 +658,7 @@ class oceanex(Exchange):
         amount = self.safe_string(order, 'volume')
         remaining = self.safe_string(order, 'remaining_volume')
         filled = self.safe_string(order, 'executed_volume')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,

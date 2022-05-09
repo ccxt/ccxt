@@ -10,6 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\AddressPending;
 use \ccxt\NotSupported;
+use \ccxt\Precise;
 
 class buda extends Exchange {
 
@@ -21,26 +22,59 @@ class buda extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingFees' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => null,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
+                'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -118,24 +152,24 @@ class buda extends Exchange {
                     'taker' => 0.008,  // 0.8%
                     'maker' => 0.004,  // 0.4%
                     'tiers' => array(
-                        'taker' => [
-                            [0, 0.008],  // 0.8%
-                            [2000, 0.007],  // 0.7%
-                            [20000, 0.006],  // 0.6%
-                            [100000, 0.005],  // 0.5%
-                            [500000, 0.004],  // 0.4%
-                            [2500000, 0.003],  // 0.3%
-                            [12500000, 0.002],  // 0.2%
-                        ],
-                        'maker' => [
-                            [0, 0.004],  // 0.4%
-                            [2000, 0.0035],  // 0.35%
-                            [20000, 0.003],  // 0.3%
-                            [100000, 0.0025],  // 0.25%
-                            [500000, 0.002],  // 0.2%
-                            [2500000, 0.0015],  // 0.15%
-                            [12500000, 0.001],  // 0.1%
-                        ],
+                        'taker' => array(
+                            array( 0, 0.008 ),  // 0.8%
+                            array( 2000, 0.007 ),  // 0.7%
+                            array( 20000, 0.006 ),  // 0.6%
+                            array( 100000, 0.005 ),  // 0.5%
+                            array( 500000, 0.004 ),  // 0.4%
+                            array( 2500000, 0.003 ),  // 0.3%
+                            array( 12500000, 0.002 ),  // 0.2%
+                        ),
+                        'maker' => array(
+                            array( 0, 0.004 ),  // 0.4%
+                            array( 2000, 0.0035 ),  // 0.35%
+                            array( 20000, 0.003 ),  // 0.3%
+                            array( 100000, 0.0025 ),  // 0.25%
+                            array( 500000, 0.002 ),  // 0.2%
+                            array( 2500000, 0.0015 ),  // 0.15%
+                            array( 12500000, 0.001 ),  // 0.1%
+                        ),
                     ),
                 ),
             ),
@@ -153,6 +187,27 @@ class buda extends Exchange {
     public function fetch_currency_info($currency, $currencies = null) {
         if (!$currencies) {
             $response = yield $this->publicGetCurrencies ();
+            //
+            //     {
+            //         "currencies":[
+            //             {
+            //                 "id":"BTC",
+            //                 "symbol":"฿",
+            //                 "managed":true,
+            //                 "input_decimals":8,
+            //                 "display_decimals":8,
+            //                 "timezone":"UTC",
+            //                 "deposit_minimum":["0.0","BTC"],
+            //                 "withdrawal_minimum":["0.00001","BTC"],
+            //                 "max_digits_for_decimals":6,
+            //                 "crypto":true,
+            //                 "address_explorer":"https://blockchair.com/bitcoin/address/",
+            //                 "tx_explorer":"https://blockchair.com/bitcoin/transaction/",
+            //                 "amount_to_micro_multiplier":1000000000000
+            //             }
+            //         ]
+            //     }
+            //
             $currencies = $this->safe_value($response, 'currencies');
         }
         for ($i = 0; $i < count($currencies); $i++) {
@@ -172,47 +227,60 @@ class buda extends Exchange {
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
-            $id = $this->safe_string($market, 'id');
             $baseId = $this->safe_string($market, 'base_currency');
             $quoteId = $this->safe_string($market, 'quote_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $baseInfo = yield $this->fetch_currency_info($baseId, $currencies);
             $quoteInfo = yield $this->fetch_currency_info($quoteId, $currencies);
-            $symbol = $base . '/' . $quote;
             $pricePrecisionString = $this->safe_string($quoteInfo, 'input_decimals');
-            $priceLimit = $this->parse_precision($pricePrecisionString);
-            $precision = array(
-                'amount' => $this->safe_integer($baseInfo, 'input_decimals'),
-                'price' => intval($pricePrecisionString),
-            );
             $minimumOrderAmount = $this->safe_value($market, 'minimum_order_amount', array());
-            $limits = array(
-                'amount' => array(
-                    'min' => $this->safe_number($minimumOrderAmount, 0),
-                    'max' => null,
-                ),
-                'price' => array(
-                    'min' => $priceLimit,
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-            );
             $result[] = array(
-                'id' => $id,
-                'symbol' => $symbol,
+                'id' => $this->safe_string($market, 'id'),
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
                 'active' => true,
-                'precision' => $precision,
-                'limits' => $limits,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_integer($baseInfo, 'input_decimals'),
+                    'price' => intval($pricePrecisionString),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $this->safe_number($minimumOrderAmount, 0),
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
                 'info' => $market,
             );
         }
@@ -221,23 +289,51 @@ class buda extends Exchange {
 
     public function fetch_currencies($params = array ()) {
         $response = yield $this->publicGetCurrencies ();
+        //
+        //     {
+        //         "currencies":[
+        //             {
+        //                 "id":"BTC",
+        //                 "symbol":"฿",
+        //                 "managed":true,
+        //                 "input_decimals":8,
+        //                 "display_decimals":8,
+        //                 "timezone":"UTC",
+        //                 "deposit_minimum":["0.0","BTC"],
+        //                 "withdrawal_minimum":["0.00001","BTC"],
+        //                 "max_digits_for_decimals":6,
+        //                 "crypto":true,
+        //                 "address_explorer":"https://blockchair.com/bitcoin/address/",
+        //                 "tx_explorer":"https://blockchair.com/bitcoin/transaction/",
+        //                 "amount_to_micro_multiplier":1000000000000
+        //             }
+        //         ]
+        //     }
+        //
         $currencies = $response['currencies'];
         $result = array();
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $currencies[$i];
-            if (!$currency['managed']) {
+            $managed = $this->safe_value($currency, 'managed', false);
+            if (!$managed) {
                 continue;
             }
             $id = $this->safe_string($currency, 'id');
             $code = $this->safe_currency_code($id);
             $precision = $this->safe_number($currency, 'input_decimals');
             $minimum = pow(10, -$precision);
+            $depositMinimum = $this->safe_value($currency, 'deposit_minimum', array());
+            $withdrawalMinimum = $this->safe_value($currency, 'withdrawal_minimum', array());
+            $minDeposit = $this->safe_number($depositMinimum, 0);
+            $minWithdraw = $this->safe_number($withdrawalMinimum, 0);
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
                 'info' => $currency,
                 'name' => null,
                 'active' => true,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
                 'precision' => $precision,
                 'limits' => array(
@@ -246,11 +342,11 @@ class buda extends Exchange {
                         'max' => null,
                     ),
                     'deposit' => array(
-                        'min' => floatval($currency['deposit_minimum'][0]),
+                        'min' => $minDeposit,
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => floatval($currency['withdrawal_minimum'][0]),
+                        'min' => $minWithdraw,
                     ),
                 ),
             );
@@ -310,43 +406,69 @@ class buda extends Exchange {
             'market' => $market['id'],
         );
         $response = yield $this->publicGetMarketsMarketTicker (array_merge($request, $params));
+        //
+        //     {
+        //         "ticker":{
+        //             "market_id":"ETH-BTC",
+        //             "last_price":["0.07300001","BTC"],
+        //             "min_ask":["0.07716895","BTC"],
+        //             "max_bid":["0.0754966","BTC"],
+        //             "volume":["0.168965697","ETH"],
+        //             "price_variation_24h":"-0.046",
+        //             "price_variation_7d":"-0.085"
+        //         }
+        //     }
+        //
         $ticker = $this->safe_value($response, 'ticker');
         return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_ticker($ticker, $market = null) {
+        //
+        // fetchTicker
+        //
+        //     {
+        //         "market_id":"ETH-BTC",
+        //         "last_price":["0.07300001","BTC"],
+        //         "min_ask":["0.07716895","BTC"],
+        //         "max_bid":["0.0754966","BTC"],
+        //         "volume":["0.168965697","ETH"],
+        //         "price_variation_24h":"-0.046",
+        //         "price_variation_7d":"-0.085"
+        //     }
+        //
         $timestamp = $this->milliseconds();
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        $last = floatval($ticker['last_price'][0]);
-        $percentage = floatval($ticker['price_variation_24h']);
-        $open = floatval($this->price_to_precision($symbol, $last / ($percentage + 1)));
-        $change = $last - $open;
-        $average = $this->sum($last, $open) / 2;
-        return array(
+        $marketId = $this->safe_string($ticker, 'market_id');
+        $symbol = $this->safe_symbol($marketId, $market, '-');
+        $lastPrice = $this->safe_value($ticker, 'last_price', array());
+        $last = $this->safe_string($lastPrice, 0);
+        $percentage = $this->safe_string($ticker, 'price_variation_24h');
+        $percentage = Precise::string_mul($percentage, '100');
+        $maxBid = $this->safe_value($ticker, 'max_bid', array());
+        $minAsk = $this->safe_value($ticker, 'min_ask', array());
+        $baseVolume = $this->safe_value($ticker, 'volume', array());
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => floatval($ticker['max_bid'][0]),
+            'bid' => $this->safe_string($maxBid, 0),
             'bidVolume' => null,
-            'ask' => floatval($ticker['min_ask'][0]),
+            'ask' => $this->safe_string($minAsk, 0),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $open,
+            'open' => null,
             'close' => $last,
             'last' => $last,
-            'previousClose' => $open,
-            'change' => $change,
-            'percentage' => $percentage * 100,
-            'average' => $average,
-            'baseVolume' => floatval($ticker['volume'][0]),
+            'previousClose' => null,
+            'change' => null,
+            'percentage' => $percentage,
+            'average' => null,
+            'baseVolume' => $this->safe_string($baseVolume, 0),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -443,9 +565,7 @@ class buda extends Exchange {
         return $this->parse_trading_view_ohlcv($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        $response = yield $this->privateGetBalances ($params);
+    public function parse_balance($response) {
         $result = array( 'info' => $response );
         $balances = $this->safe_value($response, 'balances');
         for ($i = 0; $i < count($balances); $i++) {
@@ -457,7 +577,13 @@ class buda extends Exchange {
             $account['total'] = $this->safe_string($balance['amount'], 0);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privateGetBalances ($params);
+        return $this->parse_balance($response);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -591,7 +717,7 @@ class buda extends Exchange {
                 'code' => $feeCurrencyCode,
             );
         }
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -664,7 +790,7 @@ class buda extends Exchange {
         yield $this->load_markets();
         $currency = $this->currency($code);
         if ($this->is_fiat($code)) {
-            throw new NotSupported($this->id . ' => fiat fetchDepositAddress() for ' . $code . ' is not supported');
+            throw new NotSupported($this->id . ' fetchDepositAddress() of fiat for ' . $code . ' is not supported');
         }
         $request = array(
             'currency' => $currency['id'],
@@ -710,7 +836,13 @@ class buda extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'address' => $address,
+            'addressTo' => null,
+            'addressFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'tagFrom' => null,
             'type' => $type,
             'amount' => $amount,
             'currency' => $code,
@@ -726,7 +858,7 @@ class buda extends Exchange {
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' => fetchDeposits() requires a $currency $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
         }
         $currency = $this->currency($code);
         $request = array(
@@ -741,7 +873,7 @@ class buda extends Exchange {
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' => fetchDeposits() requires a $currency $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
         }
         $currency = $this->currency($code);
         $request = array(

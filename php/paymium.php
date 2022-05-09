@@ -18,13 +18,31 @@ class paymium extends Exchange {
             'rateLimit' => 2000,
             'version' => 'v1',
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => true,
+                'spot' => true,
+                'margin' => null,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'cancelOrder' => true,
+                'createDepositAddress' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchMarkOHLCV' => false,
                 'fetchOrderBook' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
+                'transfer' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg',
@@ -34,6 +52,7 @@ class paymium extends Exchange {
                 'doc' => array(
                     'https://github.com/Paymium/api-documentation',
                     'https://www.paymium.com/page/developers',
+                    'https://paymium.github.io/api-documentation/',
                 ),
                 'referral' => 'https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj',
             ),
@@ -79,16 +98,14 @@ class paymium extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => $this->parse_number('0.002'),
-                    'taker' => $this->parse_number('0.002'),
+                    'maker' => $this->parse_number('-0.001'),
+                    'taker' => $this->parse_number('0.005'),
                 ),
             ),
         ));
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privateGetUser ($params);
+    public function parse_balance($response) {
         $result = array( 'info' => $response );
         $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($currencies); $i++) {
@@ -104,7 +121,13 @@ class paymium extends Exchange {
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetUser ($params);
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -116,73 +139,106 @@ class paymium extends Exchange {
         return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 'price', 'amount');
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
-        $this->load_markets();
-        $request = array(
-            'currency' => $this->market_id($symbol),
-        );
-        $ticker = $this->publicGetDataCurrencyTicker (array_merge($request, $params));
+    public function parse_ticker($ticker, $market = null) {
+        //
+        // {
+        //     "high":"33740.82",
+        //     "low":"32185.15",
+        //     "volume":"4.7890433",
+        //     "bid":"33313.53",
+        //     "ask":"33497.97",
+        //     "midpoint":"33405.75",
+        //     "vwap":"32802.5263553",
+        //     "at":1643381654,
+        //     "price":"33143.91",
+        //     "open":"33116.86",
+        //     "variation":"0.0817",
+        //     "currency":"EUR",
+        //     "trade_id":"ce2f5152-3ac5-412d-9b24-9fa72338474c",
+        //     "size":"0.00041087"
+        // }
+        //
+        $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->safe_timestamp($ticker, 'at');
-        $vwap = $this->safe_number($ticker, 'vwap');
-        $baseVolume = $this->safe_number($ticker, 'volume');
-        $quoteVolume = null;
-        if ($baseVolume !== null && $vwap !== null) {
-            $quoteVolume = $baseVolume * $vwap;
-        }
-        $last = $this->safe_number($ticker, 'price');
-        return array(
+        $vwap = $this->safe_string($ticker, 'vwap');
+        $baseVolume = $this->safe_string($ticker, 'volume');
+        $quoteVolume = Precise::string_mul($baseVolume, $vwap);
+        $last = $this->safe_string($ticker, 'price');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
-            'open' => $this->safe_number($ticker, 'open'),
+            'open' => $this->safe_string($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
-            'percentage' => $this->safe_number($ticker, 'variation'),
+            'percentage' => $this->safe_string($ticker, 'variation'),
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
+        ), $market, false);
+    }
+
+    public function fetch_ticker($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'currency' => $market['id'],
         );
+        $ticker = $this->publicGetDataCurrencyTicker (array_merge($request, $params));
+        //
+        // {
+        //     "high":"33740.82",
+        //     "low":"32185.15",
+        //     "volume":"4.7890433",
+        //     "bid":"33313.53",
+        //     "ask":"33497.97",
+        //     "midpoint":"33405.75",
+        //     "vwap":"32802.5263553",
+        //     "at":1643381654,
+        //     "price":"33143.91",
+        //     "open":"33116.86",
+        //     "variation":"0.0817",
+        //     "currency":"EUR",
+        //     "trade_id":"ce2f5152-3ac5-412d-9b24-9fa72338474c",
+        //     "size":"0.00041087"
+        // }
+        //
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_trade($trade, $market) {
         $timestamp = $this->safe_timestamp($trade, 'created_at_int');
         $id = $this->safe_string($trade, 'uuid');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market(null, $market);
         $side = $this->safe_string($trade, 'side');
-        $priceString = $this->safe_string($trade, 'price');
+        $price = $this->safe_string($trade, 'price');
         $amountField = 'traded_' . strtolower($market['base']);
-        $amountString = $this->safe_string($trade, $amountField);
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        return array(
+        $amount = $this->safe_string($trade, $amountField);
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'order' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -193,6 +249,73 @@ class paymium extends Exchange {
         );
         $response = $this->publicGetDataCurrencyTrades (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
+    }
+
+    public function create_deposit_address($code, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostUserAddresses ($params);
+        //
+        //     {
+        //         "address" => "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //         "valid_until" => 1620041926,
+        //         "currency" => "BTC",
+        //         "label" => "Savings"
+        //     }
+        //
+        return $this->parse_deposit_address($response);
+    }
+
+    public function fetch_deposit_address($code, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            'address' => $code,
+        );
+        $response = $this->privateGetUserAddressesAddress (array_merge($request, $params));
+        //
+        //     {
+        //         "address" => "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //         "valid_until" => 1620041926,
+        //         "currency" => "BTC",
+        //         "label" => "Savings"
+        //     }
+        //
+        return $this->parse_deposit_address($response);
+    }
+
+    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetUserAddresses ($params);
+        //
+        //     array(
+        //         {
+        //             "address" => "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //             "valid_until" => 1620041926,
+        //             "currency" => "BTC",
+        //             "label" => "Savings"
+        //         }
+        //     )
+        //
+        return $this->parse_deposit_addresses($response, $codes);
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        //
+        //     {
+        //         "address" => "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //         "valid_until" => 1620041926,
+        //         "currency" => "BTC",
+        //         "label" => "Savings"
+        //     }
+        //
+        $address = $this->safe_string($depositAddress, 'address');
+        $currencyId = $this->safe_string($depositAddress, 'currency');
+        return array(
+            'info' => $depositAddress,
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'address' => $address,
+            'tag' => null,
+            'network' => null,
+        );
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -218,6 +341,117 @@ class paymium extends Exchange {
             'uuid' => $id,
         );
         return $this->privateDeleteUserOrdersUuidCancel (array_merge($request, $params));
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        if (mb_strpos($toAccount, '@') === false) {
+            throw new ExchangeError($this->id . ' transfer() only allows transfers to an email address');
+        }
+        if ($code !== 'BTC' && $code !== 'EUR') {
+            throw new ExchangeError($this->id . ' transfer() only allows BTC or EUR');
+        }
+        $request = array(
+            'currency' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+            'email' => $toAccount,
+            // 'comment' => 'a small note explaining the transfer'
+        );
+        $response = $this->privatePostUserEmailTransfers (array_merge($request, $params));
+        //
+        //     {
+        //         "uuid" => "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        //         "type" => "Transfer",
+        //         "currency" => "BTC",
+        //         "currency_amount" => "string",
+        //         "created_at" => "2013-10-24T10:34:37.000Z",
+        //         "updated_at" => "2013-10-24T10:34:37.000Z",
+        //         "amount" => "1.0",
+        //         "state" => "executed",
+        //         "currency_fee" => "0.0",
+        //         "btc_fee" => "0.0",
+        //         "comment" => "string",
+        //         "traded_btc" => "string",
+        //         "traded_currency" => "string",
+        //         "direction" => "buy",
+        //         "price" => "string",
+        //         "account_operations" => array(
+        //             {
+        //                 "uuid" => "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        //                 "amount" => "1.0",
+        //                 "currency" => "BTC",
+        //                 "created_at" => "2013-10-24T10:34:37.000Z",
+        //                 "created_at_int" => 1389094259,
+        //                 "name" => "account_operation",
+        //                 "address" => "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
+        //                 "tx_hash" => "string",
+        //                 "is_trading_account" => true
+        //             }
+        //         )
+        //     }
+        //
+        return $this->parse_transfer($response, $currency);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         "uuid" => "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        //         "type" => "Transfer",
+        //         "currency" => "BTC",
+        //         "currency_amount" => "string",
+        //         "created_at" => "2013-10-24T10:34:37.000Z",
+        //         "updated_at" => "2013-10-24T10:34:37.000Z",
+        //         "amount" => "1.0",
+        //         "state" => "executed",
+        //         "currency_fee" => "0.0",
+        //         "btc_fee" => "0.0",
+        //         "comment" => "string",
+        //         "traded_btc" => "string",
+        //         "traded_currency" => "string",
+        //         "direction" => "buy",
+        //         "price" => "string",
+        //         "account_operations" => array(
+        //             {
+        //                 "uuid" => "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        //                 "amount" => "1.0",
+        //                 "currency" => "BTC",
+        //                 "created_at" => "2013-10-24T10:34:37.000Z",
+        //                 "created_at_int" => 1389094259,
+        //                 "name" => "account_operation",
+        //                 "address" => "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
+        //                 "tx_hash" => "string",
+        //                 "is_trading_account" => true
+        //             }
+        //         )
+        //     }
+        //
+        $currencyId = $this->safe_string($transfer, 'currency');
+        $updatedAt = $this->safe_string($transfer, 'updated_at');
+        $timetstamp = $this->parse_date($updatedAt);
+        $accountOperations = $this->safe_value($transfer, 'account_operations');
+        $firstOperation = $this->safe_value($accountOperations, 0, array());
+        $status = $this->safe_string($transfer, 'state');
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'uuid'),
+            'timestamp' => $timetstamp,
+            'datetime' => $this->iso8601($timetstamp),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_number($transfer, 'amount'),
+            'fromAccount' => null,
+            'toAccount' => $this->safe_string($firstOperation, 'address'),
+            'status' => $this->parse_transfer_status($status),
+        );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'executed' => 'ok',
+            // what are the other $statuses?
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

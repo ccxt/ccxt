@@ -11,7 +11,6 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.decimal_to_precision import TICK_SIZE
-from ccxt.base.precise import Precise
 
 
 class ndax(Exchange):
@@ -20,33 +19,66 @@ class ndax(Exchange):
         return self.deep_extend(super(ndax, self).describe(), {
             'id': 'ndax',
             'name': 'NDAX',
-            'countries': ['US'],  # United States
+            'countries': ['CA'],  # Canada
             'rateLimit': 1000,
             'pro': True,
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createDepositAddress': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'editOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
                 'fetchLedger': True,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrderTrades': True,
                 'fetchOrders': True,
+                'fetchOrderTrades': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'signIn': True,
+                'transfer': False,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '60',
@@ -82,107 +114,107 @@ class ndax(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'Activate2FA',
-                        'Authenticate2FA',
-                        'AuthenticateUser',
-                        'GetL2Snapshot',
-                        'GetLevel1',
-                        'GetValidate2FARequiredEndpoints',
-                        'LogOut',
-                        'GetTickerHistory',
-                        'GetProduct',
-                        'GetProducts',
-                        'GetInstrument',
-                        'GetInstruments',
-                        'Ping',
-                        'trades',  # undocumented
-                        'GetLastTrades',  # undocumented
-                        'SubscribeLevel1',
-                        'SubscribeLevel2',
-                        'SubscribeTicker',
-                        'SubscribeTrades',
-                        'SubscribeBlockTrades',
-                        'UnsubscribeBlockTrades',
-                        'UnsubscribeLevel1',
-                        'UnsubscribeLevel2',
-                        'UnsubscribeTicker',
-                        'UnsubscribeTrades',
-                        'Authenticate',  # undocumented
-                    ],
+                    'get': {
+                        'Activate2FA': 1,
+                        'Authenticate2FA': 1,
+                        'AuthenticateUser': 1,
+                        'GetL2Snapshot': 1,
+                        'GetLevel1': 1,
+                        'GetValidate2FARequiredEndpoints': 1,
+                        'LogOut': 1,
+                        'GetTickerHistory': 1,
+                        'GetProduct': 1,
+                        'GetProducts': 1,
+                        'GetInstrument': 1,
+                        'GetInstruments': 1,
+                        'Ping': 1,
+                        'trades': 1,  # undocumented
+                        'GetLastTrades': 1,  # undocumented
+                        'SubscribeLevel1': 1,
+                        'SubscribeLevel2': 1,
+                        'SubscribeTicker': 1,
+                        'SubscribeTrades': 1,
+                        'SubscribeBlockTrades': 1,
+                        'UnsubscribeBlockTrades': 1,
+                        'UnsubscribeLevel1': 1,
+                        'UnsubscribeLevel2': 1,
+                        'UnsubscribeTicker': 1,
+                        'UnsubscribeTrades': 1,
+                        'Authenticate': 1,  # undocumented
+                    },
                 },
                 'private': {
-                    'get': [
-                        'GetUserAccountInfos',
-                        'GetUserAccounts',
-                        'GetUserAffiliateCount',
-                        'GetUserAffiliateTag',
-                        'GetUserConfig',
-                        'GetAllUnredactedUserConfigsForUser',
-                        'GetUnredactedUserConfigByKey',
-                        'GetUserDevices',
-                        'GetUserReportTickets',
-                        'GetUserReportWriterResultRecords',
-                        'GetAccountInfo',
-                        'GetAccountPositions',
-                        'GetAllAccountConfigs',
-                        'GetTreasuryProductsForAccount',
-                        'GetAccountTrades',
-                        'GetAccountTransactions',
-                        'GetOpenTradeReports',
-                        'GetAllOpenTradeReports',
-                        'GetTradesHistory',
-                        'GetOpenOrders',
-                        'GetOpenQuotes',
-                        'GetOrderFee',
-                        'GetOrderHistory',
-                        'GetOrdersHistory',
-                        'GetOrderStatus',
-                        'GetOmsFeeTiers',
-                        'GetAccountDepositTransactions',
-                        'GetAccountWithdrawTransactions',
-                        'GetAllDepositRequestInfoTemplates',
-                        'GetDepositInfo',
-                        'GetDepositRequestInfoTemplate',
-                        'GetDeposits',
-                        'GetDepositTicket',
-                        'GetDepositTickets',
-                        'GetOMSWithdrawFees',
-                        'GetWithdrawFee',
-                        'GetWithdraws',
-                        'GetWithdrawTemplate',
-                        'GetWithdrawTemplateTypes',
-                        'GetWithdrawTicket',
-                        'GetWithdrawTickets',
-                    ],
-                    'post': [
-                        'AddUserAffiliateTag',
-                        'CancelUserReport',
-                        'RegisterNewDevice',
-                        'SubscribeAccountEvents',
-                        'UpdateUserAffiliateTag',
-                        'GenerateTradeActivityReport',
-                        'GenerateTransactionActivityReport',
-                        'GenerateTreasuryActivityReport',
-                        'ScheduleTradeActivityReport',
-                        'ScheduleTransactionActivityReport',
-                        'ScheduleTreasuryActivityReport',
-                        'CancelAllOrders',
-                        'CancelOrder',
-                        'CancelQuote',
-                        'CancelReplaceOrder',
-                        'CreateQuote',
-                        'ModifyOrder',
-                        'SendOrder',
-                        'SubmitBlockTrade',
-                        'UpdateQuote',
-                        'CancelWithdraw',
-                        'CreateDepositTicket',
-                        'CreateWithdrawTicket',
-                        'SubmitDepositTicketComment',
-                        'SubmitWithdrawTicketComment',
-                        'GetOrderHistoryByOrderId',
-                    ],
+                    'get': {
+                        'GetUserAccountInfos': 1,
+                        'GetUserAccounts': 1,
+                        'GetUserAffiliateCount': 1,
+                        'GetUserAffiliateTag': 1,
+                        'GetUserConfig': 1,
+                        'GetAllUnredactedUserConfigsForUser': 1,
+                        'GetUnredactedUserConfigByKey': 1,
+                        'GetUserDevices': 1,
+                        'GetUserReportTickets': 1,
+                        'GetUserReportWriterResultRecords': 1,
+                        'GetAccountInfo': 1,
+                        'GetAccountPositions': 1,
+                        'GetAllAccountConfigs': 1,
+                        'GetTreasuryProductsForAccount': 1,
+                        'GetAccountTrades': 1,
+                        'GetAccountTransactions': 1,
+                        'GetOpenTradeReports': 1,
+                        'GetAllOpenTradeReports': 1,
+                        'GetTradesHistory': 1,
+                        'GetOpenOrders': 1,
+                        'GetOpenQuotes': 1,
+                        'GetOrderFee': 1,
+                        'GetOrderHistory': 1,
+                        'GetOrdersHistory': 1,
+                        'GetOrderStatus': 1,
+                        'GetOmsFeeTiers': 1,
+                        'GetAccountDepositTransactions': 1,
+                        'GetAccountWithdrawTransactions': 1,
+                        'GetAllDepositRequestInfoTemplates': 1,
+                        'GetDepositInfo': 1,
+                        'GetDepositRequestInfoTemplate': 1,
+                        'GetDeposits': 1,
+                        'GetDepositTicket': 1,
+                        'GetDepositTickets': 1,
+                        'GetOMSWithdrawFees': 1,
+                        'GetWithdrawFee': 1,
+                        'GetWithdraws': 1,
+                        'GetWithdrawTemplate': 1,
+                        'GetWithdrawTemplateTypes': 1,
+                        'GetWithdrawTicket': 1,
+                        'GetWithdrawTickets': 1,
+                    },
+                    'post': {
+                        'AddUserAffiliateTag': 1,
+                        'CancelUserReport': 1,
+                        'RegisterNewDevice': 1,
+                        'SubscribeAccountEvents': 1,
+                        'UpdateUserAffiliateTag': 1,
+                        'GenerateTradeActivityReport': 1,
+                        'GenerateTransactionActivityReport': 1,
+                        'GenerateTreasuryActivityReport': 1,
+                        'ScheduleTradeActivityReport': 1,
+                        'ScheduleTransactionActivityReport': 1,
+                        'ScheduleTreasuryActivityReport': 1,
+                        'CancelAllOrders': 1,
+                        'CancelOrder': 1,
+                        'CancelQuote': 1,
+                        'CancelReplaceOrder': 1,
+                        'CreateQuote': 1,
+                        'ModifyOrder': 1,
+                        'SendOrder': 1,
+                        'SubmitBlockTrade': 1,
+                        'UpdateQuote': 1,
+                        'CancelWithdraw': 1,
+                        'CreateDepositTicket': 1,
+                        'CreateWithdrawTicket': 1,
+                        'SubmitDepositTicketComment': 1,
+                        'SubmitWithdrawTicketComment': 1,
+                        'GetOrderHistoryByOrderId': 1,
+                    },
                 },
             },
             'fees': {
@@ -200,7 +232,7 @@ class ndax(Exchange):
                 # these credentials are required for signIn() and withdraw()
                 'login': True,
                 'password': True,
-                'twofa': True,
+                # 'twofa': True,
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -230,8 +262,8 @@ class ndax(Exchange):
 
     def sign_in(self, params={}):
         self.check_required_credentials()
-        if self.login is None or self.password is None or self.twofa is None:
-            raise AuthenticationError(self.id + ' signIn() requires exchange.login, exchange.password and exchange.twofa credentials')
+        if self.login is None or self.password is None:
+            raise AuthenticationError(self.id + ' signIn() requires exchange.login, exchange.password')
         request = {
             'grant_type': 'client_credentials',  # the only supported value
         }
@@ -251,6 +283,8 @@ class ndax(Exchange):
             return response
         pending2faToken = self.safe_string(response, 'Pending2FaToken')
         if pending2faToken is not None:
+            if self.twofa is None:
+                raise AuthenticationError(self.id + ' signIn() requires exchange.twofa credentials')
             self.options['pending2faToken'] = pending2faToken
             request = {
                 'Code': self.oath(),
@@ -308,8 +342,19 @@ class ndax(Exchange):
                 'precision': precision,
                 'info': currency,
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
-                'limits': self.limits,
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
             }
         return result
 
@@ -374,28 +419,42 @@ class ndax(Exchange):
             quoteId = self.safe_string(market, 'Product2')
             base = self.safe_currency_code(self.safe_string(market, 'Product1Symbol'))
             quote = self.safe_currency_code(self.safe_string(market, 'Product2Symbol'))
-            symbol = base + '/' + quote
-            precision = {
-                'amount': self.safe_number(market, 'QuantityIncrement'),
-                'price': self.safe_number(market, 'PriceIncrement'),
-            }
             sessionStatus = self.safe_string(market, 'SessionStatus')
             isDisable = self.safe_value(market, 'IsDisable')
             sessionRunning = (sessionStatus == 'Running')
-            active = True if (sessionRunning and not isDisable) else False
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'precision': precision,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': (sessionRunning and not isDisable),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_number(market, 'QuantityIncrement'),
+                    'price': self.safe_number(market, 'PriceIncrement'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'MinimumQuantity'),
                         'max': None,
@@ -409,6 +468,7 @@ class ndax(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 
@@ -515,18 +575,16 @@ class ndax(Exchange):
         #
         timestamp = self.safe_integer(ticker, 'TimeStamp')
         marketId = self.safe_string(ticker, 'InstrumentId')
+        market = self.safe_market(marketId, market)
         symbol = self.safe_symbol(marketId, market)
         last = self.safe_number(ticker, 'LastTradedPx')
         percentage = self.safe_number(ticker, 'Rolling24HrPxChangePercent')
         change = self.safe_number(ticker, 'Rolling24HrPxChange')
         open = self.safe_number(ticker, 'SessionOpen')
-        average = None
-        if (last is not None) and (change is not None):
-            average = self.sum(last, open) / 2
         baseVolume = self.safe_number(ticker, 'Rolling24HrVolume')
         quoteVolume = self.safe_number(ticker, 'Rolling24HrNotional')
         vwap = self.vwap(baseVolume, quoteVolume)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -543,11 +601,11 @@ class ndax(Exchange):
             'previousClose': None,
             'change': change,
             'percentage': percentage,
-            'average': average,
+            'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         omsId = self.safe_integer(self.options, 'omsId', 1)
@@ -755,7 +813,7 @@ class ndax(Exchange):
         #
         priceString = None
         amountString = None
-        cost = None
+        costString = None
         timestamp = None
         id = None
         marketId = None
@@ -780,24 +838,20 @@ class ndax(Exchange):
             marketId = self.safe_string_2(trade, 'InstrumentId', 'Instrument')
             priceString = self.safe_string(trade, 'Price')
             amountString = self.safe_string(trade, 'Quantity')
-            cost = self.safe_number_2(trade, 'Value', 'GrossValueExecuted')
+            costString = self.safe_string_2(trade, 'Value', 'GrossValueExecuted')
             takerOrMaker = self.safe_string_lower(trade, 'MakerTaker')
             side = self.safe_string_lower(trade, 'Side')
             type = self.safe_string_lower(trade, 'OrderType')
-            feeCost = self.safe_number(trade, 'Fee')
-            if feeCost is not None:
+            feeCostString = self.safe_string(trade, 'Fee')
+            if feeCostString is not None:
                 feeCurrencyId = self.safe_string(trade, 'FeeProductId')
                 feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
                 fee = {
-                    'cost': feeCost,
+                    'cost': feeCostString,
                     'currency': feeCurrencyCode,
                 }
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        if cost is None:
-            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = self.safe_symbol(marketId, market)
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'symbol': symbol,
@@ -807,11 +861,11 @@ class ndax(Exchange):
             'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         omsId = self.safe_integer(self.options, 'omsId', 1)
@@ -858,6 +912,23 @@ class ndax(Exchange):
             })
         return result
 
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string(balance, 'ProductId')
+            if currencyId in self.currencies_by_id:
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['total'] = self.safe_string(balance, 'Amount')
+                account['used'] = self.safe_string(balance, 'Hold')
+                result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         omsId = self.safe_integer(self.options, 'omsId', 1)
         self.load_markets()
@@ -901,20 +972,7 @@ class ndax(Exchange):
         #         },
         #     ]
         #
-        result = {
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-        }
-        for i in range(0, len(response)):
-            balance = response[i]
-            currencyId = self.safe_string(balance, 'ProductId')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['total'] = self.safe_string(balance, 'Amount')
-            account['used'] = self.safe_string(balance, 'Hold')
-            result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(response)
 
     def parse_ledger_entry_type(self, type):
         types = {
@@ -1118,19 +1176,13 @@ class ndax(Exchange):
         side = self.safe_string_lower(order, 'Side')
         type = self.safe_string_lower(order, 'OrderType')
         clientOrderId = self.safe_string_2(order, 'ReplacementClOrdId', 'ClientOrderId')
-        price = self.safe_number(order, 'Price', 0.0)
-        price = price if (price > 0.0) else None
-        amount = self.safe_number(order, 'OrigQuantity')
-        filled = self.safe_number(order, 'QuantityExecuted')
-        cost = self.safe_number(order, 'GrossValueExecuted')
-        average = self.safe_number(order, 'AvgPrice', 0.0)
-        average = average if (average > 0) else None
-        stopPrice = self.safe_number(order, 'StopPrice', 0.0)
-        stopPrice = stopPrice if (stopPrice > 0.0) else None
-        timeInForce = None
+        price = self.safe_string(order, 'Price')
+        amount = self.safe_string(order, 'OrigQuantity')
+        filled = self.safe_string(order, 'QuantityExecuted')
+        cost = self.safe_string(order, 'GrossValueExecuted')
+        average = self.safe_string(order, 'AvgPrice')
+        stopPrice = self.parse_number(self.omit_zero(self.safe_string(order, 'StopPrice')))
         status = self.parse_order_status(self.safe_string(order, 'OrderState'))
-        fee = None
-        trades = None
         return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1141,7 +1193,7 @@ class ndax(Exchange):
             'status': status,
             'symbol': symbol,
             'type': type,
-            'timeInForce': timeInForce,
+            'timeInForce': None,
             'postOnly': None,
             'side': side,
             'price': price,
@@ -1151,9 +1203,9 @@ class ndax(Exchange):
             'filled': filled,
             'average': average,
             'remaining': None,
-            'fee': fee,
-            'trades': trades,
-        })
+            'fee': None,
+            'trades': None,
+        }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         omsId = self.safe_integer(self.options, 'omsId', 1)
@@ -1894,15 +1946,17 @@ class ndax(Exchange):
         #         "NotionalProductId": 0
         #     }
         #
-        id = self.safe_string(transaction, 'DepositId')
+        id = None
         txid = None
         currencyId = self.safe_string(transaction, 'ProductId')
         code = self.safe_currency_code(currencyId, currency)
         timestamp = None
         type = None
         if 'DepositId' in transaction:
+            id = self.safe_string(transaction, 'DepositId')
             type = 'deposit'
         elif 'WithdrawId' in transaction:
+            id = self.safe_string(transaction, 'WithdrawId')
             type = 'withdrawal'
         templateFormString = self.safe_string(transaction, 'TemplateForm')
         address = None
@@ -1946,6 +2000,8 @@ class ndax(Exchange):
         sessionToken = self.safe_string(self.options, 'sessionToken')
         if sessionToken is None:
             raise AuthenticationError(self.id + ' call signIn() method to obtain a session token')
+        if self.twofa is None:
+            raise AuthenticationError(self.id + ' withdraw() requires exchange.twofa credentials')
         self.check_address(address)
         omsId = self.safe_integer(self.options, 'omsId', 1)
         self.load_markets()
@@ -2014,10 +2070,7 @@ class ndax(Exchange):
             'Payload': self.json(withdrawPayload),
         }
         response = self.privatePostCreateWithdrawTicket(self.deep_extend(withdrawRequest, params))
-        return {
-            'info': response,
-            'id': self.safe_string(response, 'Id'),
-        }
+        return self.parse_transaction(response, currency)
 
     def nonce(self):
         return self.milliseconds()

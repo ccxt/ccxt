@@ -22,20 +22,19 @@ exchange.load_markets()
 
 # exchange.verbose = True  # uncomment for debugging purposes if necessary
 
-symbol = 'BTC-PERP'  # change for your symbol
+symbol = 'BTC/USD:USD'  # change for your symbol
 positions = exchange.fetch_positions()
 positions_by_symbol = exchange.index_by(positions, 'symbol')
-position = exchange.safe_value(positions_by_symbol, symbol)
-
-if position is None:
+if symbol in positions_by_symbol:
+    position = positions_by_symbol[symbol]
+    type = 'market'
+    side = 'sell' if position['side'] == 'long' else 'buy'
+    amount = position['contracts']
+    price = None
+    params = {
+        'reduceOnly': True
+    }
+    order = exchange.create_order(symbol, type, side, amount, price, params)
+    pprint(order)
+else:
     print('You do not have an open', symbol, 'position')
-
-type = 'market'
-side = 'sell' if position['side'] == 'long' else 'buy'
-amount = position['contracts']
-price = None
-params = {
-    'reduceOnly': True
-}
-order = exchange.create_order(symbol, type, side, amount, price, params)
-pprint(order)

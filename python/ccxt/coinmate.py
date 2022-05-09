@@ -23,19 +23,50 @@ class coinmate(Exchange):
             'countries': ['GB', 'CZ', 'EU'],  # UK, Czech Republic
             'rateLimit': 1000,
             'has': {
-                'cancelOrder': True,
                 'CORS': True,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': False,
                 'fetchTransactions': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
+                'transfer': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg',
@@ -117,58 +148,27 @@ class coinmate(Exchange):
                     'taker': 0.25 / 100,
                     'tiers': {
                         'taker': [
-                            [0, 0.25 / 100],
-                            [10000, 0.23 / 100],
-                            [100000, 0.21 / 100],
-                            [250000, 0.20 / 100],
-                            [500000, 0.15 / 100],
-                            [1000000, 0.13 / 100],
-                            [3000000, 0.10 / 100],
-                            [15000000, 0.05 / 100],
+                            [self.parse_number('0'), self.parse_number('0.0035')],
+                            [self.parse_number('10000'), self.parse_number('0.0023')],
+                            [self.parse_number('100000'), self.parse_number('0.0021')],
+                            [self.parse_number('250000'), self.parse_number('0.0020')],
+                            [self.parse_number('500000'), self.parse_number('0.0015')],
+                            [self.parse_number('1000000'), self.parse_number('0.0013')],
+                            [self.parse_number('3000000'), self.parse_number('0.0010')],
+                            [self.parse_number('15000000'), self.parse_number('0.0005')],
                         ],
                         'maker': [
-                            [0, 0.12 / 100],
-                            [10000, 0.11 / 100],
-                            [1000000, 0.10 / 100],
-                            [250000, 0.08 / 100],
-                            [500000, 0.05 / 100],
-                            [1000000, 0.03 / 100],
-                            [3000000, 0.02 / 100],
-                            [15000000, 0],
+                            [self.parse_number('0'), self.parse_number('0.003')],
+                            [self.parse_number('10000'), self.parse_number('0.0011')],
+                            [self.parse_number('100000'), self.parse_number('0.0010')],
+                            [self.parse_number('250000'), self.parse_number('0.0008')],
+                            [self.parse_number('500000'), self.parse_number('0.0005')],
+                            [self.parse_number('1000000'), self.parse_number('0.0003')],
+                            [self.parse_number('3000000'), self.parse_number('0.0002')],
+                            [self.parse_number('15000000'), self.parse_number('0')],
                         ],
                     },
                 },
-                'promotional': {
-                    'trading': {
-                        'maker': 0.05 / 100,
-                        'taker': 0.15 / 100,
-                        'tiers': {
-                            'taker': [
-                                [0, 0.15 / 100],
-                                [10000, 0.14 / 100],
-                                [100000, 0.13 / 100],
-                                [250000, 0.12 / 100],
-                                [500000, 0.11 / 100],
-                                [1000000, 0.1 / 100],
-                                [3000000, 0.08 / 100],
-                                [15000000, 0.05 / 100],
-                            ],
-                            'maker': [
-                                [0, 0.05 / 100],
-                                [10000, 0.04 / 100],
-                                [1000000, 0.03 / 100],
-                                [250000, 0.02 / 100],
-                                [500000, 0],
-                                [1000000, 0],
-                                [3000000, 0],
-                                [15000000, 0],
-                            ],
-                        },
-                    },
-                },
-            },
-            'options': {
-                'promotionalMarkets': ['ETH/EUR', 'ETH/CZK', 'ETH/BTC', 'XRP/EUR', 'XRP/CZK', 'XRP/BTC', 'DASH/EUR', 'DASH/CZK', 'DASH/BTC', 'BCH/EUR', 'BCH/CZK', 'BCH/BTC'],
             },
             'exceptions': {
                 'exact': {
@@ -215,29 +215,39 @@ class coinmate(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            promotionalMarkets = self.safe_value(self.options, 'promotionalMarkets', [])
-            fees = self.safe_value(self.fees, 'trading')
-            if self.in_array(symbol, promotionalMarkets):
-                promotionalFees = self.safe_value(self.fees, 'promotional', {})
-                fees = self.safe_value(promotionalFees, 'trading', fees)
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'active': None,
-                'maker': fees['maker'],
-                'taker': fees['taker'],
-                'info': market,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'priceDecimals'),
                     'amount': self.safe_integer(market, 'lotDecimals'),
+                    'price': self.safe_integer(market, 'priceDecimals'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'minAmount'),
                         'max': None,
@@ -251,12 +261,11 @@ class coinmate(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privatePostBalances(params)
+    def parse_balance(self, response):
         balances = self.safe_value(response, 'data')
         result = {'info': response}
         currencyIds = list(balances.keys())
@@ -269,7 +278,12 @@ class coinmate(Exchange):
             account['used'] = self.safe_string(balance, 'reserved')
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privatePostBalances(params)
+        return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -337,7 +351,7 @@ class coinmate(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, item, currency=None):
+    def parse_transaction(self, transaction, currency=None):
         #
         # deposits
         #
@@ -372,17 +386,18 @@ class coinmate(Exchange):
         #         destinationTag: null
         #     }
         #
-        timestamp = self.safe_integer(item, 'timestamp')
-        amount = self.safe_number(item, 'amount')
-        fee = self.safe_number(item, 'fee')
-        txid = self.safe_string(item, 'txid')
-        address = self.safe_string(item, 'destination')
-        tag = self.safe_string(item, 'destinationTag')
-        currencyId = self.safe_string(item, 'amountCurrency')
+        timestamp = self.safe_integer(transaction, 'timestamp')
+        amount = self.safe_number(transaction, 'amount')
+        fee = self.safe_number(transaction, 'fee')
+        txid = self.safe_string(transaction, 'txid')
+        address = self.safe_string(transaction, 'destination')
+        tag = self.safe_string(transaction, 'destinationTag')
+        currencyId = self.safe_string(transaction, 'amountCurrency')
         code = self.safe_currency_code(currencyId, currency)
-        type = self.safe_string_lower(item, 'transferType')
-        status = self.parse_transaction_status(self.safe_string(item, 'transferStatus'))
-        id = self.safe_string(item, 'transactionId')
+        type = self.safe_string_lower(transaction, 'transferType')
+        status = self.parse_transaction_status(self.safe_string(transaction, 'transferStatus'))
+        id = self.safe_string(transaction, 'transactionId')
+        network = self.safe_string(transaction, 'walletType')
         return {
             'id': id,
             'timestamp': timestamp,
@@ -391,14 +406,19 @@ class coinmate(Exchange):
             'amount': amount,
             'type': type,
             'txid': txid,
+            'network': network,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': tag,
+            'tagTo': None,
+            'tagFrom': None,
             'status': status,
             'fee': {
                 'cost': fee,
                 'currency': code,
             },
-            'info': item,
+            'info': transaction,
         }
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -414,8 +434,8 @@ class coinmate(Exchange):
         if since is not None:
             request['timestampFrom'] = since
         response = self.privatePostTradeHistory(self.extend(request, params))
-        items = response['data']
-        return self.parse_trades(items, None, since, limit)
+        data = self.safe_value(response, 'data', [])
+        return self.parse_trades(data, None, since, limit)
 
     def parse_trade(self, trade, market=None):
         #
@@ -449,24 +469,21 @@ class coinmate(Exchange):
         market = self.safe_market(marketId, market, '_')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         side = self.safe_string_lower_2(trade, 'type', 'tradeType')
         type = self.safe_string_lower(trade, 'orderType')
         orderId = self.safe_string(trade, 'orderId')
         id = self.safe_string(trade, 'transactionId')
         timestamp = self.safe_integer_2(trade, 'timestamp', 'createdTimestamp')
         fee = None
-        feeCost = self.safe_number(trade, 'fee')
-        if feeCost is not None:
+        feeCostString = self.safe_string(trade, 'fee')
+        if feeCostString is not None:
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': market['quote'],
             }
         takerOrMaker = self.safe_string(trade, 'feeType')
         takerOrMaker = 'maker' if (takerOrMaker == 'MAKER') else 'taker'
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -476,11 +493,11 @@ class coinmate(Exchange):
             'side': side,
             'order': orderId,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -508,6 +525,34 @@ class coinmate(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
+
+    def fetch_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currencyPair': market['id'],
+        }
+        response = self.privatePostTraderFees(self.extend(request, params))
+        #
+        #     {
+        #         error: False,
+        #         errorMessage: null,
+        #         data: {maker: '0.3', taker: '0.35', timestamp: '1646253217815'}
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        makerString = self.safe_string(data, 'maker')
+        takerString = self.safe_string(data, 'taker')
+        maker = self.parse_number(Precise.string_div(makerString, '100'))
+        taker = self.parse_number(Precise.string_div(takerString, '100'))
+        return {
+            'info': data,
+            'symbol': symbol,
+            'maker': maker,
+            'taker': taker,
+            'percentage': True,
+            'tierBased': True,
+        }
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         response = self.privatePostOpenOrders(self.extend({}, params))
@@ -590,17 +635,17 @@ class coinmate(Exchange):
         id = self.safe_string(order, 'id')
         timestamp = self.safe_integer(order, 'timestamp')
         side = self.safe_string_lower(order, 'type')
-        price = self.safe_string(order, 'price')
-        amount = self.safe_string(order, 'originalAmount')
-        remaining = self.safe_string_2(order, 'remainingAmount', 'amount')
+        priceString = self.safe_string(order, 'price')
+        amountString = self.safe_string(order, 'originalAmount')
+        remainingString = self.safe_string_2(order, 'remainingAmount', 'amount')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.parse_order_type(self.safe_string(order, 'orderTradeType'))
-        average = self.safe_string(order, 'avgPrice')
+        averageString = self.safe_string(order, 'avgPrice')
         marketId = self.safe_string(order, 'currencyPair')
         symbol = self.safe_symbol(marketId, market, '_')
         clientOrderId = self.safe_string(order, 'clientOrderId')
         stopPrice = self.safe_number(order, 'stopPrice')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
@@ -611,13 +656,13 @@ class coinmate(Exchange):
             'timeInForce': None,
             'postOnly': None,
             'side': side,
-            'price': price,
+            'price': priceString,
             'stopPrice': stopPrice,
-            'amount': amount,
+            'amount': amountString,
             'cost': None,
-            'average': average,
+            'average': averageString,
             'filled': None,
-            'remaining': remaining,
+            'remaining': remainingString,
             'status': status,
             'trades': None,
             'info': order,
