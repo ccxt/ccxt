@@ -1763,13 +1763,26 @@ module.exports = class mexc extends Exchange {
             orderSide = 'ASK';
         }
         let orderType = type.toUpperCase ();
-        const postOnly = this.safeValue (params, 'postOnly', false);
-        if (postOnly) {
-            orderType = 'POST_ONLY';
-        } else if (orderType === 'LIMIT') {
+        if (orderType === 'MARKET') {
+            throw new InvalidOrder (this.id + ' createOrder () does not support market orders, only limit orders are allowed');
+        }
+        if (orderType === 'LIMIT') {
             orderType = 'LIMIT_ORDER';
-        } else if ((orderType !== 'POST_ONLY') && (orderType !== 'IMMEDIATE_OR_CANCEL')) {
-            throw new InvalidOrder (this.id + ' createOrder() does not support ' + type + ' order type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL');
+        }
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const maker = (postOnly || (timeInForce === 'PO'));
+        const ioc = (timeInForce === 'IOC');
+        if (maker) {
+            orderType = 'POST_ONLY';
+        } else if (ioc) {
+            orderType = 'IMMEDIATE_OR_CANCEL';
+        }
+        if (timeInForce === 'FOK') {
+            throw new InvalidOrder (this.id + ' createOrder () does not support timeInForce FOK, only IOC, PO, and GTC are allowed');
+        }
+        if (((orderType !== 'POST_ONLY') && (orderType !== 'IMMEDIATE_OR_CANCEL') && (orderType !== 'LIMIT_ORDER'))) {
+            throw new InvalidOrder (this.id + ' createOrder () does not support ' + type + ' order type, only LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL are allowed');
         }
         const request = {
             'symbol': market['id'],
@@ -1782,7 +1795,7 @@ module.exports = class mexc extends Exchange {
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
-        params = this.omit (params, [ 'type', 'clientOrderId', 'client_order_id', 'postOnly' ]);
+        params = this.omit (params, [ 'type', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce' ]);
         const response = await this.spotPrivatePostOrderPlace (this.extend (request, params));
         //
         //     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
@@ -1795,7 +1808,7 @@ module.exports = class mexc extends Exchange {
         const market = this.market (symbol);
         const openType = this.safeInteger (params, 'openType');
         if (openType === undefined) {
-            throw new ArgumentsRequired (this.id + ' createSwapOrder() requires an integer openType parameter, 1 for isolated margin, 2 for cross margin');
+            throw new ArgumentsRequired (this.id + ' createSwapOrder () requires an integer openType parameter, 1 for isolated margin, 2 for cross margin');
         }
         if ((type !== 'limit') && (type !== 'market') && (type !== 1) && (type !== 2) && (type !== 3) && (type !== 4) && (type !== 5) && (type !== 6)) {
             throw new InvalidOrder (this.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
@@ -1974,6 +1987,7 @@ module.exports = class mexc extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        // TODO update parseOrder to reflect type, timeInForce, and postOnly
         //
         // createOrder
         //
