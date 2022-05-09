@@ -365,6 +365,22 @@ class okx(Exchange, ccxt.okx):
         #         ]
         #     }
         #
+        # bbo-tbt
+        #
+        #     {
+        #         "arg":{
+        #             "channel":"bbo-tbt",
+        #             "instId":"BTC-USDT"
+        #         },
+        #         "data":[
+        #             {
+        #                 "asks":[["36232.2","1.8826134","0","17"]],
+        #                 "bids":[["36232.1","0.00572212","0","2"]],
+        #                 "ts":"1651826598363"
+        #             }
+        #         ]
+        #     }
+        #
         arg = self.safe_value(message, 'arg', {})
         channel = self.safe_string(arg, 'channel')
         action = self.safe_string(message, 'action')
@@ -373,6 +389,7 @@ class okx(Exchange, ccxt.okx):
         market = self.safe_market(marketId)
         symbol = market['symbol']
         depths = {
+            'bbo-tbt': 1,
             'books': 400,
             'books5': 5,
             'books-l2-tbt': 400,
@@ -395,7 +412,7 @@ class okx(Exchange, ccxt.okx):
                     self.handle_order_book_message(client, update, orderbook)
                     messageHash = channel + ':' + marketId
                     client.resolve(orderbook, messageHash)
-        elif channel == 'books5':
+        elif (channel == 'books5') or (channel == 'bbo-tbt'):
             orderbook = self.safe_value(self.orderbooks, symbol)
             if orderbook is None:
                 orderbook = self.order_book({}, limit)
@@ -403,7 +420,7 @@ class okx(Exchange, ccxt.okx):
             for i in range(0, len(data)):
                 update = data[i]
                 timestamp = self.safe_integer(update, 'ts')
-                snapshot = self.parse_order_book(update, symbol, timestamp, 'bids', 'asks', 0, 1, market)
+                snapshot = self.parse_order_book(update, symbol, timestamp, 'bids', 'asks', 0, 1)
                 orderbook.reset(snapshot)
                 messageHash = channel + ':' + marketId
                 client.resolve(orderbook, messageHash)
@@ -714,10 +731,11 @@ class okx(Exchange, ccxt.okx):
             arg = self.safe_value(message, 'arg', {})
             channel = self.safe_string(arg, 'channel')
             methods = {
-                'books': self.handle_order_book,  # 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed every 100 ms when there is change in order book.
-                'books5': self.handle_order_book,  # 5 depth levels will be pushed every time. Data will be pushed every 100 ms when there is change in order book.
-                'books50-l2-tbt': self.handle_order_book,  # 50 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
-                'books-l2-tbt': self.handle_order_book,  # 400 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed tick by tick, i.e. whenever there is change in order book.
+                'bbo-tbt': self.handle_order_book,  # newly added channel that sends tick-by-tick Level 1 data, all API users can subscribe, public depth channel, verification not required
+                'books': self.handle_order_book,  # all API users can subscribe, public depth channel, verification not required
+                'books5': self.handle_order_book,  # all API users can subscribe, public depth channel, verification not required, data feeds will be delivered every 100ms(vs. every 200ms now)
+                'books50-l2-tbt': self.handle_order_book,  # only users who're VIP4 and above can subscribe, identity verification required before subscription
+                'books-l2-tbt': self.handle_order_book,  # only users who're VIP5 and above can subscribe, identity verification required before subscription
                 'tickers': self.handle_ticker,
                 'trades': self.handle_trades,
                 'account': self.handle_balance,
