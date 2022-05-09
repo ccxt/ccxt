@@ -1096,6 +1096,7 @@ class gateio(Exchange):
         :param dict params: request parameters
         :returns: the api request object, and the new params object with non-needed parameters removed
         """
+        # * Do not call for multi spot order methods like cancelAllOrders and fetchOpenOrders. Use multiOrderSpotPrepareRequest instead
         request = {}
         if market is not None:
             if market['contract']:
@@ -1112,6 +1113,24 @@ class gateio(Exchange):
                 params = self.omit(params, 'settle')
                 request['settle'] = settle
         return [request, params]
+
+    def spot_order_prepare_request(self, market=None, stop=False, params={}):
+        """
+         * @ignore
+        Fills request params currency_pair, market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
+        :param dict market: CCXT market
+        :param bool stop: True if for a stop order
+        :param dict params: request parameters
+        :returns: the api request object, and the new params object with non-needed parameters removed
+        """
+        marginType, query = self.get_margin_type(stop, params)
+        request = {}
+        if not stop:
+            if market is None:
+                raise ArgumentsRequired(self.id + ' spotOrderPrepareRequest() requires a market argument for non-stop orders')
+            request['account'] = marginType
+            request['currency_pair'] = market['id']  # Should always be set for non-stop
+        return [request, query]
 
     def multi_order_spot_prepare_request(self, market=None, stop=False, params={}):
         """
@@ -3042,49 +3061,19 @@ class gateio(Exchange):
             if clientOrderId[0] != 't':
                 clientOrderId = 't-' + clientOrderId
             orderId = clientOrderId
-        request = {
-            'order_id': orderId,
-        }
-        market = None
-        settle = None
-        type = None
-        if symbol is not None:
-            market = self.market(symbol)
-            if market['spot']:
-                request['currency_pair'] = market['id']
-            else:
-                settle = market['settleId']
-        type, params = self.handle_market_type_and_params('fetchOrder', market, params)
-        if not stop and type == 'spot' and symbol is None:
-            # Symbol not required for stop orders
-            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument for spot orders')
-        swap = type == 'swap'
-        if swap or type == 'future':
-            if settle is None:
-                defaultSettle = 'usdt' if swap else 'btc'
-                settle = self.safe_string_lower(params, 'settle', defaultSettle)
-                params = self.omit(params, 'settle')
-            request['settle'] = settle
-        else:
-            marginType = None
-            marginType, params = self.get_margin_type(stop, params)
-            request['account'] = marginType
-        method = None
-        if stop:
-            method = self.get_supported_mapping(type, {
-                'spot': 'privateSpotGetPriceOrdersOrderId',
-                'margin': 'privateSpotGetPriceOrdersOrderId',
-                'swap': 'privateFuturesGetSettlePriceOrdersOrderId',
-                'future': 'privateDeliveryGetSettlePriceOrdersOrderId',
-            })
-        else:
-            method = self.get_supported_mapping(type, {
-                'spot': 'privateSpotGetOrdersOrderId',
-                'margin': 'privateSpotGetOrdersOrderId',
-                'swap': 'privateFuturesGetSettleOrdersOrderId',
-                'future': 'privateDeliveryGetSettleOrdersOrderId',
-            })
-        response = getattr(self, method)(self.extend(request, params))
+        market = None if (symbol is None) else self.market(symbol)
+        type, query = self.handle_market_type_and_params('fetchOrder', market, params)
+        contract = (type == 'swap') or (type == 'future')
+        request, requestParams = self.prepare_request(market, type, query) if contract else self.spot_order_prepare_request(market, stop, query)
+        request['order_id'] = orderId
+        methodMiddle = 'PriceOrders' if stop else 'Orders'
+        method = self.get_supported_mapping(type, {
+            'spot': 'privateSpotGet' + methodMiddle + 'OrderId',
+            'margin': 'privateSpotGet' + methodMiddle + 'OrderId',
+            'swap': 'privateFuturesGetSettle' + methodMiddle + 'OrderId',
+            'future': 'privateDeliveryGetSettle' + methodMiddle + 'OrderId',
+        })
+        response = getattr(self, method)(self.extend(request, requestParams))
         return self.parse_order(response, market)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -3263,27 +3252,21 @@ class gateio(Exchange):
         :param bool params['stop']: True if the order to be cancelled is a trigger order
         :returns: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'order_id': id,
-        }
-        if market['contract']:
-            request['settle'] = market['settleId']
-        else:
-            request['currency_pair'] = market['id']
+        market = None if (symbol is None) else self.market(symbol)
         stop = self.safe_value_2(params, 'is_stop_order', 'stop', False)
         params = self.omit(params, ['is_stop_order', 'stop'])
+        type, query = self.handle_market_type_and_params('cancelOrder', market, params)
+        request, requestParams = self.spot_order_prepare_request(market, stop, query) if (type == 'spot' or type == 'margin') else self.prepare_request(market, type, query)
+        request['order_id'] = id
         pathMiddle = 'Price' if stop else ''
-        method = self.get_supported_mapping(market['type'], {
+        method = self.get_supported_mapping(type, {
             'spot': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
             'margin': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
             'swap': 'privateFuturesDeleteSettle' + pathMiddle + 'OrdersOrderId',
             'future': 'privateDeliveryDeleteSettle' + pathMiddle + 'OrdersOrderId',
         })
-        response = getattr(self, method)(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, requestParams))
         #
         # spot
         #
