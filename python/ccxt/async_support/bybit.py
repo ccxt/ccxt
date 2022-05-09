@@ -269,6 +269,7 @@ class bybit(Exchange):
                         'v2/public/account-ratio': 1,
                         'v2/public/funding-rate': 1,
                         'v2/public/elite-ratio': 1,
+                        'v2/public/risk-limit/list': 1,
                         # linear swap USDT
                         'public/linear/kline': 3,
                         'public/linear/recent-trading-records': 1,
@@ -307,6 +308,7 @@ class bybit(Exchange):
                         'perpetual/usdc/openapi/public/v1/open-interest': 1,
                         'perpetual/usdc/openapi/public/v1/big-deal': 1,
                         'perpetual/usdc/openapi/public/v1/account-ratio': 1,
+                        'perpetual/usdc/openapi/public/v1/risk-limit/list': 1,
                     },
                     # outdated endpoints--------------------------------------
                     'linear': {
@@ -3539,19 +3541,19 @@ class bybit(Exchange):
         await self.load_markets()
         request = {}
         market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            if market['spot']:
-                raise BadRequest(self.id + ' fetchLeverageTiers() symbol supports contract markets only')
-            request['symbol'] = market['id']
-        type, query = self.handle_market_type_and_params('fetchMarketLeverageTiers', market, params)
-        method = self.get_supported_mapping(type, {
-            'linear': 'publicLinearGetRiskLimit',  # Symbol required
-            'swap': 'publicLinearGetRiskLimit',
-            'inverse': 'v2PublicGetRiskLimitList',  # Symbol not required, could implement fetchLeverageTiers
-            'future': 'v2PublicGetRiskLimitList',
-        })
-        response = await getattr(self, method)(self.extend(request, query))
+        market = self.market(symbol)
+        if market['spot'] or market['option']:
+            raise BadRequest(self.id + ' fetchLeverageTiers() symbol does not support market ' + symbol)
+        request['symbol'] = market['id']
+        isUsdcSettled = market['settle'] == 'USDC'
+        method = None
+        if isUsdcSettled:
+            method = 'publicGetPerpetualUsdcOpenapiPublicV1RiskLimitList'
+        elif market['linear']:
+            method = 'publicLinearGetRiskLimit'
+        else:
+            method = 'publicGetV2PublicRiskLimitList'
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #  publicLinearGetRiskLimit
         #    {
@@ -3656,6 +3658,28 @@ class bybit(Exchange):
         #        ...
         #    ]
         #
+        # usdc swap
+        #
+        #    {
+        #        "riskId":"10001",
+        #        "symbol":"BTCPERP",
+        #        "limit":"1000000",
+        #        "startingMargin":"0.0100",
+        #        "maintainMargin":"0.0050",
+        #        "isLowestRisk":true,
+        #        "section":[
+        #           "1",
+        #           "2",
+        #           "3",
+        #           "5",
+        #           "10",
+        #           "25",
+        #           "50",
+        #           "100"
+        #        ],
+        #        "maxLeverage":"100.00"
+        #    }
+        #
         minNotional = 0
         tiers = []
         for i in range(0, len(info)):
@@ -3666,8 +3690,8 @@ class bybit(Exchange):
                 'currency': market['base'],
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
-                'maintenanceMarginRate': self.safe_number(item, 'maintain_margin'),
-                'maxLeverage': self.safe_number(item, 'max_leverage'),
+                'maintenanceMarginRate': self.safe_number_2(item, 'maintain_margin', 'maintainMargin'),
+                'maxLeverage': self.safe_number_2(item, 'max_leverage', 'maxLeverage'),
                 'info': item,
             })
             minNotional = maxNotional
