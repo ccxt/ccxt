@@ -2169,38 +2169,29 @@ module.exports = class bybit extends Exchange {
         //
         // conditional order
         //
-        //     {
-        //         "user_id":##,
-        //         "symbol":"BTCUSD",
-        //         "side":"Buy",
-        //         "order_type":"Market",
-        //         "price":0,
-        //         "qty":10,
-        //         "time_in_force":"GoodTillCancel",
-        //         "stop_order_type":"Stop",
-        //         "trigger_by":"LastPrice",
-        //         "base_price":11833,
-        //         "order_status":"Untriggered",
-        //         "ext_fields":{
-        //             "stop_order_type":"Stop",
-        //             "trigger_by":"LastPrice",
-        //             "base_price":11833,
-        //             "expected_direction":"Rising",
-        //             "trigger_price":12400,
-        //             "close_on_trigger":true,
-        //             "op_from":"api",
-        //             "remark":"x.x.x.x",
-        //             "o_req_num":0
-        //         },
-        //         "leaves_qty":10,
-        //         "leaves_value":0.00080645,
-        //         "reject_reason":null,
-        //         "cross_seq":-1,
-        //         "created_at":"2020-08-21T09:18:48.000Z",
-        //         "updated_at":"2020-08-21T09:18:48.000Z",
-        //         "trigger_price":12400,
-        //         "stop_order_id":"3f3b54b1-3379-42c7-8510-44f4d9915be0"
-        //     }
+        //    {
+        //        "user_id":"24478789",
+        //        "stop_order_id":"68e996af-fa55-4ca1-830e-4bf68ffbff3e",
+        //        "symbol":"LTCUSDT",
+        //        "side":"Buy",
+        //        "order_type":"Limit",
+        //        "price":"86",
+        //        "qty":"0.1",
+        //        "time_in_force":"GoodTillCancel",
+        //        "order_status":"Filled",
+        //        "trigger_price":"86",
+        //        "order_link_id":"",
+        //        "created_time":"2022-05-09T14:36:36Z",
+        //        "updated_time":"2022-05-09T14:39:25Z",
+        //        "take_profit":"0",
+        //        "stop_loss":"0",
+        //        "trigger_by":"LastPrice",
+        //        "base_price":"86.96",
+        //        "tp_trigger_by":"UNKNOWN",
+        //        "sl_trigger_by":"UNKNOWN",
+        //        "reduce_only":false,
+        //        "close_on_trigger":false
+        //    }
         //
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
@@ -2228,6 +2219,8 @@ module.exports = class bybit extends Exchange {
         let lastTradeTimestamp = this.safeTimestamp (order, 'last_exec_time');
         if (lastTradeTimestamp === 0) {
             lastTradeTimestamp = undefined;
+        } else if (lastTradeTimestamp === undefined) {
+            lastTradeTimestamp = this.parse8601 (this.safeString (order, 'updated_time'));
         }
         const status = this.parseOrderStatus (this.safeString2 (order, 'order_status', 'stop_order_status'));
         const side = this.safeStringLower (order, 'side');
@@ -2743,9 +2736,9 @@ module.exports = class bybit extends Exchange {
         // inverse future - maybe - privateGetFuturesPrivateOrderList // requires symbol
         // futures conditional orders - privateGetFuturesPrivateStopOrderList // requires symbol
         let method = undefined;
-        const isConditionalOrder = false;
+        const isConditionalOrder = true; // to do
         if (market['linear']) {
-            method = !isConditionalOrder ? 'privateGetPrivateLineatOrderList' : 'privateGetPrivateLinearStopOrderList';
+            method = !isConditionalOrder ? 'privateGetPrivateLinearOrderList' : 'privateGetPrivateLinearStopOrderList';
         } else if (market['future']) {
             method = !isConditionalOrder ? 'privateGetFuturesPrivateOrderList' : 'privateGetFuturesPrivateStopOrderList';
         } else {
@@ -2781,131 +2774,89 @@ module.exports = class bybit extends Exchange {
         }
         const response = await this[method] (this.extend (request, query));
         //
-        //     {
-        //         "ret_code": 0,
-        //         "ret_msg": "ok",
-        //         "ext_code": "",
-        //         "result": {
-        //             "current_page": 1,
-        //             "last_page": 6,
-        //             "data": [
-        //                 {
-        //                     "user_id": 1,
-        //                     "symbol": "BTCUSD",
-        //                     "side": "Sell",
-        //                     "order_type": "Market",
-        //                     "price": 7074,
-        //                     "qty": 2,
-        //                     "time_in_force": "ImmediateOrCancel",
-        //                     "order_status": "Filled",
-        //                     "ext_fields": {
-        //                         "close_on_trigger": true,
-        //                         "orig_order_type": "BLimit",
-        //                         "prior_x_req_price": 5898.5,
-        //                         "op_from": "pc",
-        //                         "remark": "127.0.0.1",
-        //                         "o_req_num": -34799032763,
-        //                         "xreq_type": "x_create"
-        //                     },
-        //                     "last_exec_time": "1577448481.696421",
-        //                     "last_exec_price": 7070.5,
-        //                     "leaves_qty": 0,
-        //                     "leaves_value": 0,
-        //                     "cum_exec_qty": 2,
-        //                     "cum_exec_value": 0.00028283,
-        //                     "cum_exec_fee": 0.00002,
-        //                     "reject_reason": "NoError",
-        //                     "order_link_id": "",
-        //                     "created_at": "2019-12-27T12:08:01.000Z",
-        //                     "updated_at": "2019-12-27T12:08:01.000Z",
-        //                     "order_id": "f185806b-b801-40ff-adec-52289370ed62"
-        //                 }
-        //             ]
-        //         },
-        //         "ext_info": null,
-        //         "time_now": "1577448922.437871",
-        //         "rate_limit_status": 98,
-        //         "rate_limit_reset_ms": 1580885703683,
-        //         "rate_limit": 100
-        //     }
-        //
-        // linear swaps
+        // linear swap
         //
         //     {
-        //         "ret_code":0,
+        //         "ret_code":"0",
         //         "ret_msg":"OK",
         //         "ext_code":"",
         //         "ext_info":"",
         //         "result":{
-        //             "current_page":1,
-        //             "data":[
-        //                 {
-        //                     "order_id":"7917bd70-e7c3-4af5-8147-3285cd99c509",
-        //                     "user_id":22919890,
-        //                     "symbol":"GMTUSDT",
-        //                     "side":"Buy",
-        //                     "order_type":"Limit",
-        //                     "price":2.9262,
-        //                     "qty":50,
-        //                     "time_in_force":"GoodTillCancel",
-        //                     "order_status":"Filled",
-        //                     "last_exec_price":2.9219,
-        //                     "cum_exec_qty":50,
-        //                     "cum_exec_value":146.095,
-        //                     "cum_exec_fee":0.087657,
-        //                     "reduce_only":false,
-        //                     "close_on_trigger":false,
-        //                     "order_link_id":"",
-        //                     "created_time":"2022-04-18T17:09:54Z",
-        //                     "updated_time":"2022-04-18T17:09:54Z",
-        //                     "take_profit":0,
-        //                     "stop_loss":0,
-        //                     "tp_trigger_by":"UNKNOWN",
-        //                     "sl_trigger_by":"UNKNOWN"
-        //                 }
-        //             ]
+        //            "current_page":"1",
+        //            "data":[
+        //               {
+        //                  "order_id":"68ab115d-cdbc-4c38-adc0-b2fbc60136ab",
+        //                  "user_id":"24478789",
+        //                  "symbol":"LTCUSDT",
+        //                  "side":"Sell",
+        //                  "order_type":"Market",
+        //                  "price":"94.72",
+        //                  "qty":"0.1",
+        //                  "time_in_force":"ImmediateOrCancel",
+        //                  "order_status":"Filled",
+        //                  "last_exec_price":"99.65",
+        //                  "cum_exec_qty":"0.1",
+        //                  "cum_exec_value":"9.965",
+        //                  "cum_exec_fee":"0.005979",
+        //                  "reduce_only":true,
+        //                  "close_on_trigger":true,
+        //                  "order_link_id":"",
+        //                  "created_time":"2022-05-05T15:15:34Z",
+        //                  "updated_time":"2022-05-05T15:15:34Z",
+        //                  "take_profit":"0",
+        //                  "stop_loss":"0",
+        //                  "tp_trigger_by":"UNKNOWN",
+        //                  "sl_trigger_by":"UNKNOWN"
+        //               }
+        //            ]
         //         },
-        //         "time_now":"1650970113.283952",
-        //         "rate_limit_status":599,
-        //         "rate_limit_reset_ms":1650970113275,
-        //         "rate_limit":600
+        //         "time_now":"1652106664.857572",
+        //         "rate_limit_status":"598",
+        //         "rate_limit_reset_ms":"1652106664856",
+        //         "rate_limit":"600"
         //     }
+        //
         //
         // conditional orders
         //
         //     {
-        //         "ret_code": 0,
-        //         "ret_msg": "ok",
-        //         "ext_code": "",
-        //         "result": {
-        //             "current_page": 1,
-        //             "last_page": 1,
-        //             "data": [
-        //                 {
-        //                     "user_id": 1,
-        //                     "stop_order_status": "Untriggered",
-        //                     "symbol": "BTCUSD",
-        //                     "side": "Buy",
-        //                     "order_type": "Limit",
-        //                     "price": 8000,
-        //                     "qty": 1,
-        //                     "time_in_force": "GoodTillCancel",
-        //                     "stop_order_type": "Stop",
-        //                     "trigger_by": "LastPrice",
-        //                     "base_price": 7000,
-        //                     "order_link_id": "",
-        //                     "created_at": "2019-12-27T12:48:24.000Z",
-        //                     "updated_at": "2019-12-27T12:48:24.000Z",
-        //                     "stop_px": 7500,
-        //                     "stop_order_id": "a85cd1c0-a9a4-49d3-a1bd-bab5ebe946d5"
-        //                 },
-        //             ]
+        //         "ret_code":"0",
+        //         "ret_msg":"OK",
+        //         "ext_code":"",
+        //         "ext_info":"",
+        //         "result":{
+        //            "current_page":"1",
+        //            "last_page":"0",
+        //            "data":[
+        //               {
+        //                  "user_id":"24478789",
+        //                  "stop_order_id":"68e996af-fa55-4ca1-830e-4bf68ffbff3e",
+        //                  "symbol":"LTCUSDT",
+        //                  "side":"Buy",
+        //                  "order_type":"Limit",
+        //                  "price":"86",
+        //                  "qty":"0.1",
+        //                  "time_in_force":"GoodTillCancel",
+        //                  "order_status":"Untriggered",
+        //                  "trigger_price":"86",
+        //                  "order_link_id":"",
+        //                  "created_time":"2022-05-09T14:36:36Z",
+        //                  "updated_time":"2022-05-09T14:36:36Z",
+        //                  "take_profit":"0",
+        //                  "stop_loss":"0",
+        //                  "trigger_by":"LastPrice",
+        //                  "base_price":"86.96",
+        //                  "tp_trigger_by":"UNKNOWN",
+        //                  "sl_trigger_by":"UNKNOWN",
+        //                  "reduce_only":false,
+        //                  "close_on_trigger":false
+        //               }
+        //            ]
         //         },
-        //         "ext_info": null,
-        //         "time_now": "1577451658.755468",
-        //         "rate_limit_status": 599,
-        //         "rate_limit_reset_ms": 1577451658762,
-        //         "rate_limit": 600
+        //         "time_now":"1652107028.148177",
+        //         "rate_limit_status":"598",
+        //         "rate_limit_reset_ms":"1652107028146",
+        //         "rate_limit":"600"
         //     }
         //
         const result = this.safeValue (response, 'result', {});
