@@ -296,6 +296,7 @@ module.exports = class bybit extends Exchange {
                         'perpetual/usdc/openapi/public/v1/open-interest': 1,
                         'perpetual/usdc/openapi/public/v1/big-deal': 1,
                         'perpetual/usdc/openapi/public/v1/account-ratio': 1,
+                        'perpetual/usdc/openapi/public/v1/prev-funding-rate': 1,
                     },
                     // outdated endpoints--------------------------------------
                     'linear': {
@@ -1643,10 +1644,12 @@ module.exports = class bybit extends Exchange {
             'symbol': market['id'],
         };
         const isUsdcSettled = market['settle'] === 'USDC';
+        let method = undefined;
         if (isUsdcSettled) {
-            throw new NotSupported (this.id + ' fetchFundingRate() does not support this market ' + symbol);
+            method = 'publicGetPerpetualUsdcOpenapiPublicV1PrevFundingRate';
+        } else {
+            method = market['linear'] ? 'publicLinearGetFundingPrevFundingRate' : 'publicGetV2PublicFundingPrevFundingRate';
         }
-        const method = market['linear'] ? 'publicLinearGetFundingPrevFundingRate' : 'publicGetV2PublicFundingPrevFundingRate';
         const response = await this[method] (this.extend (request, params));
         //
         //     {
@@ -1674,11 +1677,26 @@ module.exports = class bybit extends Exchange {
         //         },
         //         "time_now":"1647040852.515724"
         //     }
+        // usdc
+        //     {
+        //         "retCode":0,
+        //         "retMsg":"",
+        //         "result":{
+        //            "symbol":"BTCPERP",
+        //            "fundingRate":"0.00010000",
+        //            "fundingRateTimestamp":"1652112000000"
+        //         }
+        //     }
         //
         const result = this.safeValue (response, 'result');
-        const fundingRate = this.safeNumber (result, 'funding_rate');
+        const fundingRate = this.safeNumber2 (result, 'funding_rate', 'fundingRate');
         let fundingTimestamp = this.parse8601 (this.safeString (result, 'funding_rate_timestamp'));
-        fundingTimestamp = this.safeTimestamp (result, 'funding_rate_timestamp', fundingTimestamp);
+        if (fundingTimestamp === undefined) {
+            fundingTimestamp = this.safeTimestamp2 (result, 'funding_rate_timestamp', fundingTimestamp);
+            if (fundingTimestamp === undefined) {
+                fundingTimestamp = this.safeInteger (result, 'fundingRateTimestamp');
+            }
+        }
         const currentTime = this.milliseconds ();
         return {
             'info': result,
