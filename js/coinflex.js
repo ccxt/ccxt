@@ -1938,8 +1938,8 @@ module.exports = class coinflex extends Exchange {
         const stopPrice = this.safeNumber (params, 'stopPrice');
         const limitPrice = this.safeNumber (params, 'limitPrice');
         const stopPriceIsDefined = stopPrice !== undefined;
-        const isStopOrder = topPriceIsDefined || orderTypeIsStop;
         const orderTypeIsStop = orderType === 'STOP';
+        const isStopOrder = stopPriceIsDefined || orderTypeIsStop;
         if (orderTypeIsStop) {
             if (!stopPriceIsDefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires params["stopPrice"] for stop orders');
