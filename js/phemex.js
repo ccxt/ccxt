@@ -1012,9 +1012,7 @@ module.exports = class phemex extends Exchange {
         };
         const duration = this.parseTimeframe (timeframe);
         const now = this.seconds ();
-        // Note !
-        // * this exchange doesnt support native API endpoint for kline data, so this implementation uses data from Web-UI chart, 
-        // * which seems to be missing the last 1 minute bar. So, this is a known bug and there seems no fix atm.
+        // the exchange does not return the current 1m candle
         if (since !== undefined) {
             if (limit === undefined) {
                 limit = 2000; // max 2000
