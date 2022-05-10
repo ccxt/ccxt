@@ -2503,11 +2503,10 @@ module.exports = class ascendex extends Exchange {
 
     async fetchPermissions (params) {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPermissions', undefined, params);
-        const [ apikeysSet, initialPermissions ] = this.getInitialPermissions ();
+        const [ apikeysSet, initialPermissions, privateTree ] = this.getInitialPermissions ();
         if (!apikeysSet) {
             return initialPermissions;
         }
-        const privatePerms = this.getPlacholderPermissionGroups ();
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PrivateGetInfo',
             'margin': 'v1PrivateGetInfo',
@@ -2557,30 +2556,30 @@ module.exports = class ascendex extends Exchange {
             {
                 'value': this.safeValue (data, 'viewPermission'),
                 'affectedGroups': [
-                    privatePerms['account']['read'],
-                    privatePerms['order']['read'],
-                    privatePerms['position']['read'],
-                    privatePerms['margin']['read'],
-                    privatePerms['withdraw']['read'],
-                    privatePerms['deposit']['read'],
-                    privatePerms['transfer']['read'],
+                    privateTree['account']['read'],
+                    privateTree['order']['read'],
+                    privateTree['position']['read'],
+                    privateTree['margin']['read'],
+                    privateTree['withdraw']['read'],
+                    privateTree['deposit']['read'],
+                    privateTree['transfer']['read'],
                 ],
             },
             {
                 'value': this.safeValue (data, 'tradePermission'),
                 'affectedGroups': [
-                    privatePerms['order']['write'],
-                    privatePerms['order']['cancel'],
-                    privatePerms['position']['write'],
-                    privatePerms['margin']['write'],
+                    privateTree['order']['write'],
+                    privateTree['order']['cancel'],
+                    privateTree['position']['write'],
+                    privateTree['margin']['write'],
                 ],
             },
             {
                 'value': this.safeValue (data, 'transferPermission'),
                 'affectedGroups': [
-                    privatePerms['withdraw']['write'],
-                    privatePerms['deposit']['write'],
-                    privatePerms['transfer']['write'],
+                    privateTree['withdraw']['write'],
+                    privateTree['deposit']['write'],
+                    privateTree['transfer']['write'],
                 ],
             },
         ]);
