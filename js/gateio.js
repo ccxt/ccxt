@@ -3391,7 +3391,8 @@ module.exports = class gateio extends Exchange {
         } else {
             filteredResponse = response;
         }
-        return this.parseOrders (filteredResponse, market, since, limit);
+        const orders = this.parseOrders (filteredResponse, market, since, limit);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
