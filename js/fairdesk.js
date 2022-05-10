@@ -358,7 +358,7 @@ module.exports = class fairdesk extends Exchange {
         //         "liquidationFeeRate": 0.01
         //     },]
         // }
-        const products = response.data;
+        const products = this.safeValue (response, 'data', {});
         const result = [];
         for (let i = 0; i < products.length; i++) {
             let market = products[i];
@@ -499,25 +499,27 @@ module.exports = class fairdesk extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (ticker, 'timestamp');
-        const last = this.safeString (ticker, 'close');
-        const open = this.safeString (ticker, 'open');
+        const last = this.safeNumber (ticker, 'close');
+        const open = this.safeNumber (ticker, 'open');
+        const change = last - open;
+        const percentage = ((last - open) / open) * 100;
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeString (ticker, 'high'),
             'low': this.safeString (ticker, 'low'),
-            'open': open,
-            'close': last,
-            'last': last,
+            'open': open.toString (),
+            'close': last.toString (),
+            'last': last.toString (),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
             'previousClose': undefined, // previous day close
-            'change': last - open,
-            'percentage': (last - open) / open * 100,
+            'change': change.toString (),
+            'percentage': percentage.toString (),
             'average': this.safeString (ticker, 'averagePrice'),
             'baseVolume': this.safeString (ticker, 'baseVolume'),
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),
@@ -641,6 +643,12 @@ module.exports = class fairdesk extends Exchange {
         const isMaker = this.safeValue (trade, 'maker');
         const side = this.safeStringLower (trade, 'side');
         const positionSide = this.safeStringLower (trade, 'positionSide');
+        let takerOrMaker = '';
+        if (isMaker) {
+            takerOrMaker = 'maker';
+        } else {
+            takerOrMaker = 'taker';
+        }
         return {
             'info': trade,
             'id': this.safeString (trade, 'tradeId'),
@@ -649,7 +657,7 @@ module.exports = class fairdesk extends Exchange {
             'type': undefined,
             'side': side,
             'positionSide': positionSide,
-            'takerOrMaker': isMaker ? 'maker' : 'taker',
+            'takerOrMaker': takerOrMaker,
             'price': this.safeString (trade, 'lastPrice'),
             'amount': this.safeString (trade, 'lastQty'),
             'cost': undefined,
@@ -895,7 +903,7 @@ module.exports = class fairdesk extends Exchange {
         //         "status": "NEW"
         //     }
         // }
-        if (response.status !== '0') {
+        if (this.safeString (response, 'status') !== '0') {
             return response;
         }
         const data = this.safeValue (response, 'data', {});
