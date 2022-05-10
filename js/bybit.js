@@ -2855,7 +2855,7 @@ module.exports = class bybit extends Exchange {
         } else if (market['future']) {
             method = isConditional ? 'privatePostFuturesPrivateStopOrderCancel' : 'privatePostFuturesPrivateOrderCancel';
         } else {
-            // inverse swaps
+            // inverse futures
             method = isConditional ? 'privatePostFuturesPrivateStopOrderCancel' : 'privatePostFuturesPrivateOrderCancel';
         }
         if (market['contract'] && !isUsdcSettled) {
@@ -3183,33 +3183,24 @@ module.exports = class bybit extends Exchange {
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const request = {};
+        let method = undefined;
         if ((type === 'swap' || type === 'future') && !isUsdcSettled) {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument for ' + symbol + ' markets');
             }
-            const type = this.safeStringLower (params, 'type');
+            request['symbol'] = market['id'];
+            const type = this.safeStringLower (params, 'orderType');
             const isConditional = (type === 'stop') || (type === 'conditional');
-            let defaultStatuses = undefined;
-            if (isConditional) {
-                defaultStatuses = [
-                    'Created',
-                    'New',
-                    'PartiallyFilled',
-                    'PendingCancel',
-                ];
+            if (market['future']) {
+                method = isConditional ? 'privateGetFuturesPrivateStopOrder' : 'privateGetFuturesPrivateOrder';
+            } else if (market['linear']) {
+                method = isConditional ? 'privateGetPrivateLinearStopOrderSearch' : 'privateGetPrivateLinearOrderSearch';
             } else {
-                // conditional orders
-                defaultStatuses = [ 'Untriggered' ];
+                // inverse swap
+                method = isConditional ? 'privateGetV2PrivateStopOrder' : 'privateGetV2PrivateOrder';
             }
-            const openStatus = defaultStatuses.join (',');
-            const status = this.safeString2 (params, 'order_status', 'status', openStatus);
-            params = this.omit (params, [ 'order_status', 'status' ]);
-            params['order_status'] = status;
-            return await this.fetchOrders (symbol, since, limit, params);
-        }
-        const request = {};
-        let method = undefined;
-        if (type === 'spot') {
+        } else if (type === 'spot') {
             method = 'privateGetSpotV1OpenOrders';
         } else {
             // usdc
