@@ -1639,7 +1639,12 @@ module.exports = class bybit extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
-    parseCustomOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'Buy', asksKey = 'Sell', priceKey = 'price', amountKey = 'size') {
+    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'Buy', asksKey = 'Sell', priceKey = 'price', amountKey = 'size') {
+        const market = this.market (symbol);
+        if (market['spot']) {
+            const timestamp = this.safeInteger (orderbook, 'time');
+            return super.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks');
+        }
         const bids = [];
         const asks = [];
         for (let i = 0; i < orderbook.length; i++) {
@@ -1737,12 +1742,8 @@ module.exports = class bybit extends Exchange {
         //    }
         //
         const result = this.safeValue (response, 'result', []);
-        if (market['spot']) {
-            const timestamp = this.safeInteger (result, 'time');
-            return this.parseOrderBook (result, symbol, timestamp, 'bids', 'asks');
-        }
         const timestamp = this.safeTimestamp (response, 'time_now');
-        return this.parseCustomOrderBook (result, symbol, timestamp, 'Buy', 'Sell', 'price', 'size');
+        return this.parseOrderBook (result, symbol, timestamp, 'Buy', 'Sell', 'price', 'size');
     }
 
     parseBalance (response) {
