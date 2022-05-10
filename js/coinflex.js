@@ -1938,6 +1938,7 @@ module.exports = class coinflex extends Exchange {
         const stopPrice = this.safeNumber (params, 'stopPrice');
         const limitPrice = this.safeNumber (params, 'limitPrice');
         const stopPriceIsDefined = stopPrice !== undefined;
+        const isStopOrder = topPriceIsDefined || orderTypeIsStop;
         const orderTypeIsStop = orderType === 'STOP';
         if (orderTypeIsStop) {
             if (!stopPriceIsDefined) {
@@ -1953,14 +1954,14 @@ module.exports = class coinflex extends Exchange {
             'orderType': this.convertOrderType (type),
             'quantity': this.amountToPrecision (market['symbol'], amount),
         };
-        if (stopPriceIsDefined || orderTypeIsStop) {
+        if (isStopOrder) {
             order['stopPrice'] = this.priceToPrecision (market['symbol'], stopPrice);
             params = this.omit (params, 'stopPrice');
             order['orderType'] = 'STOP';
         }
         // stop orders have separate field for limit price, so make further checks
-        if (type === 'limit') {
-            if (stopPriceIsDefined || orderTypeIsStop) {
+        if (type === 'limit' || isStopOrder) {
+            if (isStopOrder) {
                 if (limitPrice === undefined) {
                     order['limitPrice'] = this.priceToPrecision (market['symbol'], price);
                 }
