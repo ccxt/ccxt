@@ -599,6 +599,7 @@ module.exports = class bybit extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'createMarketBuyOrderRequiresPrice': true,
                 'marketTypes': {
                     'BTC/USDT': 'linear',
                     'ETH/USDT': 'linear',
@@ -2474,6 +2475,19 @@ module.exports = class bybit extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        // inverse swap -> privatePostV2PrivateOrderCreate
+        // inverse swap conditional -> privatePostV2PrivateStopOrderCreate
+        // linear swap -> privatePostPrivateLinearOrderCreate
+        // linear swap conditional -> privatePostPrivateLinearStopOrderCreate
+        // future -> privatePostFuturesPrivateOrderCreate
+        // future conditional -> privatePostFuturesPrivateStopOrderCreate
+        // spot -> privatePostSpotV1Order
+        // usdc perpetual -> privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder
+        // usdc option -> privatePostOptionUsdcOpenapiPrivateV1PlaceOrder
+        //
+        // ---- ORDER TYPE ----
+        // Limit and Market (market not available for options)
+        // spot also supports limit maker
         await this.loadMarkets ();
         const market = this.market (symbol);
         let qty = this.amountToPrecision (symbol, amount);
@@ -2482,14 +2496,19 @@ module.exports = class bybit extends Exchange {
         } else {
             qty = parseFloat (qty);
         }
+        const isUsdcSettled = market['settle'] === 'USDC';
+        const orderTypeKey = isUsdcSettled ? 'orderType' : 'order_type';
+        const quantityKey = isUsdcSettled ? 'orderQty' : 'qty';
+        const priceKey = isUsdcSettled ? 'orderPrice' : 'price';
+        const timeInForceKey = isUsdcSettled ? 'timeInForce' : 'time_in_force';
         const request = {
             // orders ---------------------------------------------------------
             'side': this.capitalize (side),
             'symbol': market['id'],
-            'order_type': this.capitalize (type),
-            'qty': qty, // order quantity in USD, integer only
+            // 'order_type': this.capitalize (type),
+            // 'qty': qty, // order quantity in USD, integer only
             // 'price': parseFloat (this.priceToPrecision (symbol, price)), // required for limit orders
-            'time_in_force': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
+            // 'time_in_force': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
             // 'take_profit': 123.45, // take profit price, only take effect upon opening the position
             // 'stop_loss': 123.45, // stop loss price, only take effect upon opening the position
             // 'reduce_only': false, // reduce only, required for linear orders
@@ -2506,8 +2525,11 @@ module.exports = class bybit extends Exchange {
             // 'stop_px': 123.45, // trigger price, required for conditional orders
             // 'trigger_by': 'LastPrice', // IndexPrice, MarkPrice
         };
+        request[orderTypeKey] = this.capitalize (type);
+        request[timeInForceKey] = 'GoodTillCancel';
+        request[quantityKey] = qty;
         let priceIsRequired = false;
-        if (type === 'limit') {
+        if (type === 'limit' || type === 'limit_maker') {
             priceIsRequired = true;
         }
         if (priceIsRequired) {
@@ -2525,16 +2547,18 @@ module.exports = class bybit extends Exchange {
         const stopPx = this.safeValue2 (params, 'stop_px', 'stopPrice');
         const basePrice = this.safeValue (params, 'base_price');
         let method = undefined;
-        if (market['swap']) {
+        if (market['spot']) {
+            method = 'privatePostSpotV1Order';
+        } else if (market['swap']) {
             if (market['linear']) {
-                method = 'privateLinearPostOrderCreate';
+                method = 'privatePostPrivateLinearOrderCreate';
                 request['reduce_only'] = false;
                 request['close_on_trigger'] = false;
             } else if (market['inverse']) {
-                method = 'v2PrivatePostOrderCreate';
+                method = 'privatePostV2PrivateOrderCreate';
             }
         } else if (market['future']) {
-            method = 'futuresPrivatePostOrderCreate';
+            method = 'privatePostFuturesPrivateOrderCreate';
         }
         if (stopPx !== undefined) {
             if (basePrice === undefined) {
@@ -2542,12 +2566,12 @@ module.exports = class bybit extends Exchange {
             } else {
                 if (market['swap']) {
                     if (market['linear']) {
-                        method = 'privateLinearPostStopOrderCreate';
+                        method = 'privatePostPrivateLinearStopOrderCreate';
                     } else if (market['inverse']) {
-                        method = 'v2PrivatePostStopOrderCreate';
+                        method = 'privatePostV2PrivateStopOrderCreate';
                     }
                 } else if (market['future']) {
-                    method = 'futuresPrivatePostStopOrderCreate';
+                    method = 'privatePostFuturesPrivateStopOrderCreate';
                 }
                 request['stop_px'] = parseFloat (this.priceToPrecision (symbol, stopPx));
                 request['base_price'] = parseFloat (this.priceToPrecision (symbol, basePrice));
@@ -2637,6 +2661,40 @@ module.exports = class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result');
         return this.parseOrder (result, market);
+    }
+
+    async createSpotOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (type === 'market' && side === 'buy') {
+            // for market buy it requires the amount of quote currency to spend
+            if (this.options['createMarketBuyOrderRequiresPrice']) {
+                const cost = this.safeNumber (params, 'cost');
+                params = this.omit (params, 'cost');
+                if (price === undefined && cost === undefined) {
+                    throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                } else {
+                    amount = (cost !== undefined) ? cost : amount * price;
+                }
+            }
+        }
+        const request = {
+            'side': this.capitalize (side),
+            'symbol': market['id'],
+            'order_type': this.capitalize (type), // limit, market or limit_maker
+            'timeInForce': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
+            'qty': amount,
+        };
+        if (type === 'limit' || type === 'limit_maker') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'orderLinkId');
+        if (clientOrderId !== undefined) {
+            request['orderLinkId'] = clientOrderId;
+        }
+        params = this.omit (params, [ 'clientOrderId', 'orderLinkId' ]);
+        const response = await this.privatePostSpotV1Order (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
