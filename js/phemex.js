@@ -2786,7 +2786,8 @@ module.exports = class phemex extends Exchange {
             'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentageString),
             'marginRatio': this.parseNumber (marginRatio),
             'datetime': undefined,
-            'marginType': undefined,
+            'marginType': undefined, // deprecated
+            'marginMode': undefined,
             'side': side,
             'hedged': false,
             'percentage': this.parseNumber (percentage),
@@ -2933,13 +2934,13 @@ module.exports = class phemex extends Exchange {
         };
     }
 
-    async setMarginMode (marginType, symbol = undefined, params = {}) {
+    async setMarginMode (marginMode, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
-        marginType = marginType.toLowerCase ();
-        if (marginType !== 'isolated' && marginType !== 'cross') {
-            throw new BadRequest (this.id + ' setMarginMode() marginType argument should be isolated or cross');
+        marginMode = marginMode.toLowerCase ();
+        if (marginMode !== 'isolated' && marginMode !== 'cross') {
+            throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2947,7 +2948,7 @@ module.exports = class phemex extends Exchange {
             throw new BadSymbol (this.id + ' setMarginMode() supports swap contracts only');
         }
         let leverage = this.safeInteger (params, 'leverage');
-        if (marginType === 'cross') {
+        if (marginMode === 'cross') {
             leverage = 0;
         }
         if (leverage === undefined) {
