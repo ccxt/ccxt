@@ -825,6 +825,181 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' fetchPermissions() is not supported yet')
     }
 
+    
+    getInitialPermissions () {
+        const broadPropertyNames = {
+            'publicAPI': 0,
+            'privateAPI': 0,
+            'CORS': 0,
+            'spot': 0,
+            'margin': 0,
+            'swap': 0,
+            'future': 0,
+            'option': 0,
+        };
+        // public endpoints, which are considered to work without need of api-key (though, in some exchanges some 'public' endpoints will be manually overriden as 'non-public')
+        const publicPropertyNames = {
+            'fetchBidsAsks': 0,
+            'fetchBorrowInterest': 0,
+            'fetchBorrowRate': 0,
+            'fetchBorrowRateHistory': 0,
+            'fetchBorrowRates': 0,
+            'fetchBorrowRatesPerSymbol': 0,
+            'fetchCurrencies': 0,
+            'fetchFundingFee': 0,
+            'fetchFundingFees': 0,
+            'fetchFundingRate': 0,
+            'fetchFundingRateHistory': 0,
+            'fetchFundingRates': 0,
+            'fetchIndexOHLCV': 0,
+            'fetchL2OrderBook': 0,
+            'fetchLeverageTiers': 0,
+            'fetchMarketLeverageTiers': 0,
+            'fetchMarkets': 0,
+            'fetchMarkOHLCV': 0,
+            'fetchOHLCV': 0,
+            'fetchOrderBook': 0,
+            'fetchOrderBooks': 0,
+            'fetchPremiumIndexOHLCV': 0,
+            'fetchStatus': 0,
+            'fetchTicker': 0,
+            'fetchTickers': 0,
+            'fetchTime': 0,
+            'fetchTrades': 0,
+            'fetchTradingFee': 0,
+            'fetchTradingFees': 0,
+            'fetchTradingLimits': 0,
+        };
+        const publiclyAvailables = Object.assign (broadPropertyNames, publicPropertyNames);
+        const initialPermissions = {};
+        const allKeys = Object.keys (this.has);
+        for (let i = 0; i < allKeys.length; i++) {
+            const methodName = allKeys[i];
+            if (methodName in publiclyAvailables) {
+                // if method is non-private endpoint, set it to same value as in `.has`
+                initialPermissions[methodName] = this.has[methodName];
+                // TODO: even thought, if exchange does have some public methods supported, the permission should be still true for unified (public) endpoints, unless exchange will implement it differently
+                // if (initialPermissions[methodName] === undefined || !initialPermissions[methodName]) {
+                //    initialPermissions[methodName] = true;
+                // }
+            } else {
+                // if method is private endpoint, then set it to undefined, to be overriden by implementation (we could set to false initially, but be it undefined atm)
+                initialPermissions[methodName] = undefined;
+            }
+        }
+        // if user didn't set api-keys, then we can't further check private endpoints, thus return
+        const apikeySet = this.checkRequiredCredentials (false) === true;
+        this.initialPermissions = initialPermissions;
+        const privatePermissionsTree = {
+            // account-related
+            'account': {
+                'read': [
+                    'fetchAccounts', 'fetchBalance', 'fetchFundingHistory', 'fetchPermissions', 'signIn', 
+                ],
+            },
+            // order-related
+            'order': {
+                'read': [
+                    'fetchOrder', 'fetchCanceledOrders', 'fetchClosedOrder', 'fetchClosedOrders', 'fetchMyTrades', 'fetchOpenOrder', 'fetchOpenOrders', 'fetchOrders', 'fetchOrderTrades',
+                ],
+                'write': [
+                    'createOrder', 'createLimitOrder', 'createMarketOrder', 'createPostOnlyOrder', 'createStopOrder', 'createStopLimitOrder', 'createStopLimitOrder', 'createStopMarketOrder', 'createReduceOnlyOrder', 'editOrder',
+                ],
+                'cancel': [
+                    'cancelOrder', 'cancelOrders', 'cancelAllOrders',
+                ],
+            },
+            // position-related
+            'position': {
+                'read': [
+                    'fetchPosition', 'fetchPositions', 'fetchPositionsRisk',
+                ],
+                'write': [
+                    'setPositionMode', 'setLeverage',
+                ],
+            },
+            // margin-related
+            'margin': {
+                'read': [
+                    'getMargin', 'getMarginMode',
+                ],
+                'write': [
+                    'addMargin', 'reduceMargin', 'setMarginMode',
+                ],
+            },
+            // withdraw-related
+            'withdraw': {
+                'read': [
+                    'fetchWithdrawal', 'fetchWithdrawals', 'fetchLedger', 'fetchLedgerEntry', 'fetchTransactions',
+                ],
+                'write': [
+                    'withdraw',
+                ],
+            },
+            // deposit-related
+            'deposit': {
+                'read': [
+                    'fetchDeposit', 'fetchDeposits', 'fetchDepositAddress', 'fetchDepositAddresses', 'fetchDepositAddressesByNetwork',
+                ],
+                'write': [
+                    'createDepositAddress',
+                ],
+            },
+            // transfer-related
+            'transfer': {
+                'read': [
+                    'fetchTransfers', 'fetchTransfer',
+                ],
+                'write': [
+                    'transfer',
+                ],
+            },
+        };
+        return [ apikeySet, initialPermissions, privatePermissionsTree ];
+    }
+
+    safePermissions (permissionsMap = {}) {
+        // Most common way exchanges return permissions with key-value pairs, like:
+        //
+        //     {
+        //         'tradePerm': true/false,
+        //         'viewOrdersPerm': true/false,
+        //         'transferPerm': true/false,
+        //         'whateverKey' : true/false,
+        //         ...
+        //     }
+        //
+        // So, we should pass 'permissionsMap' which is mapped to the affected methods group, like:
+        //
+        //     [
+        //       {
+        //         'value': this.safeValue (data, 'viewOrdersPerm'),
+        //         'affectedGroups': [
+        //             privatePerms['order']['read'],
+        //             privatePerms['position']['read'],
+        //             privatePerms['margin']['read'],
+        //             ...
+        //         ],
+        //         ..
+        //       },
+        //     ]
+        //
+        const privatePermissions = {};
+        for (let i = 0; i < permissionsMap.length; i++) {
+            const permissionEntry = permissionsMap[i];
+            const permissionAllowed = permissionEntry['value']; // true or false
+            const affectedGroups = permissionEntry['affectedGroups']; 
+            for (let j = 0; j < affectedGroups.length; j++) {
+                const affectedGroupMethods = affectedGroups[j];
+                for (let k = 0; k < affectedGroupMethods.length; k++) {
+                    const methodName = affectedGroupMethods[k];
+                    privatePermissions[methodName] = permissionAllowed;
+                }
+            }
+        }
+        return this.extend (this.initialPermissions, privatePermissions);
+    }
+
     // is async (returns a promise)
     loadMarkets (reload = false, params = {}) {
         if ((reload && !this.reloadingMarkets) || !this.marketsLoading) {
