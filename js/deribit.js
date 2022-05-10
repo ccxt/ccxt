@@ -2086,11 +2086,11 @@ module.exports = class deribit extends Exchange {
             'currency': currency['id'],
         };
         if (limit !== undefined) {
-            request['count'] = limit
+            request['count'] = limit;
         }
         const response = await this.privateGetGetTransfers (this.extend (request, params));
         //
-        //     {    
+        //     {
         //         "jsonrpc": "2.0",
         //         "id": 7606,
         //         "result": {
@@ -2120,7 +2120,7 @@ module.exports = class deribit extends Exchange {
         //                 }
         //             ]
         //         }
-        //     }    
+        //     }
         //
         const result = this.safeValue (response, 'result', {});
         const transfers = this.safeValue (result, 'data', []);
