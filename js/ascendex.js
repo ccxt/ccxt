@@ -61,6 +61,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
+                'fetchPermissions': true,
                 'fetchPosition': false,
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
@@ -2498,6 +2499,91 @@ module.exports = class ascendex extends Exchange {
             return 'ok';
         }
         return 'failed';
+    }
+
+    async fetchPermissions (params) {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPermissions', undefined, params);
+        const [ apikeysSet, initialPermissions ] = this.getInitialPermissions ();
+        if (!apikeysSet) {
+            return initialPermissions;
+        }
+        const privatePerms = this.getPlacholderPermissionGroups ();
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'v1PrivateGetInfo',
+            'margin': 'v1PrivateGetInfo',
+            //
+            //    {
+            //        "code": "0",
+            //        "data": {
+            //            "email": "example@gmail.com",
+            //            "accountGroup": "4",
+            //            "viewPermission": true,
+            //            "tradePermission": true,
+            //            "transferPermission": false,
+            //            "cashAccount": [ "cshICjfhO38493rKOUSFj3fFerkf3fsd" ],
+            //            "marginAccount": [ "marktgj9038ISDFFjkf03erdkflw0f3r" ],
+            //            "futuresAccount": [ "futFGef3908USFOjkfpefIOjfefeewer" ],
+            //            "userUID": "U7257879201",
+            //            "expireTime": "1666355898714",
+            //            "allowedIps": [],
+            //            "limitQuota": "1000"
+            //        }
+            //    }
+            //
+            'swap': 'v2PrivateGetAccountInfo',
+            //
+            //    {
+            //        "code": "0",
+            //        "data": {
+            //            "email": "example@gmail.com",
+            //            "accountGroup": "4",
+            //            "viewPermission": true,
+            //            "tradePermission": true,
+            //            "transferPermission": false,
+            //            "cashAccount": [ "cshICjfhO38493rKOUSFj3fFerkf3fsd" ],
+            //            "marginAccount": [ "marktgj9038ISDFFjkf03erdkflw0f3r" ],
+            //            "futuresAccount": [ "futFGef3908USFOjkfpefIOjfefeewer" ],
+            //            "userUID": "U7257879201",
+            //            "expireTime": "1666355898317",
+            //            "allowedIps": [],
+            //            "limitQuota": "1000"
+            //        }
+            //    }
+            //
+        });
+        const response = await this[method] (query);
+        const data = this.safeValue (response, 'data');
+        return this.safePermissions ([
+            {
+                'value': this.safeValue (data, 'viewPermission'),
+                'affectedGroups': [
+                    privatePerms['account']['read'],
+                    privatePerms['order']['read'],
+                    privatePerms['position']['read'],
+                    privatePerms['margin']['read'],
+                    privatePerms['withdraw']['read'],
+                    privatePerms['deposit']['read'],
+                    privatePerms['transfer']['read'],
+                ],
+            },
+            {
+                'value': this.safeValue (data, 'tradePermission'),
+                'affectedGroups': [
+                    privatePerms['order']['write'],
+                    privatePerms['order']['cancel'],
+                    privatePerms['position']['write'],
+                    privatePerms['margin']['write'],
+                ],
+            },
+            {
+                'value': this.safeValue (data, 'transferPermission'),
+                'affectedGroups': [
+                    privatePerms['withdraw']['write'],
+                    privatePerms['deposit']['write'],
+                    privatePerms['transfer']['write'],
+                ],
+            },
+        ]);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
