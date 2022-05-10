@@ -1013,6 +1013,7 @@ module.exports = class phemex extends Exchange {
         };
         const duration = this.parseTimeframe (timeframe);
         const now = this.seconds ();
+        // the exchange does not return the last 1m candle
         if (since !== undefined) {
             if (limit === undefined) {
                 limit = 2000; // max 2000
@@ -2786,8 +2787,8 @@ module.exports = class phemex extends Exchange {
             'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentageString),
             'marginRatio': this.parseNumber (marginRatio),
             'datetime': undefined,
-            'marginType': undefined, // deprecated
             'marginMode': undefined,
+            'marginType': undefined, // deprecated
             'side': side,
             'hedged': false,
             'percentage': this.parseNumber (percentage),

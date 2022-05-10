@@ -1123,12 +1123,12 @@ class gateio(Exchange):
         :param dict params: request parameters
         :returns: the api request object, and the new params object with non-needed parameters removed
         """
-        marginType, query = self.get_margin_type(stop, params)
+        marginMode, query = self.get_margin_mode(stop, params)
         request = {}
         if not stop:
             if market is None:
                 raise ArgumentsRequired(self.id + ' spotOrderPrepareRequest() requires a market argument for non-stop orders')
-            request['account'] = marginType
+            request['account'] = marginMode
             request['currency_pair'] = market['id']  # Should always be set for non-stop
         return [request, query]
 
@@ -1141,9 +1141,9 @@ class gateio(Exchange):
         :param dict params: request parameters
         :returns: the api request object, and the new params object with non-needed parameters removed
         """
-        marginType, query = self.get_margin_type(stop, params)
+        marginMode, query = self.get_margin_mode(stop, params)
         request = {
-            'account': marginType,
+            'account': marginMode,
         }
         if market is not None:
             if stop:
@@ -1153,30 +1153,30 @@ class gateio(Exchange):
                 request['currency_pair'] = market['id']
         return [request, query]
 
-    def get_margin_type(self, stop, params):
+    def get_margin_mode(self, stop, params):
         """
          * @ignore
         Gets the margin type for self api call
         :param bool stop: True if for a stop order
         :param dict params: Request params
-        :returns: The marginType and the updated request params with marginType removed, marginType value is the value that can be read by the "account" property specified in gateios api docs
+        :returns: The marginMode and the updated request params with marginMode removed, marginMode value is the value that can be read by the "account" property specified in gateios api docs
         """
-        defaultMarginType = self.safe_string_lower_2(self.options, 'defaultMarginType', 'marginType', 'spot')  # 'margin' is isolated margin on gateio's api
-        marginType = self.safe_string_lower_2(params, 'marginType', 'account', defaultMarginType)
-        params = self.omit(params, ['marginType', 'account'])
-        if marginType == 'cross':
-            marginType = 'cross_margin'
-        elif marginType == 'isolated':
-            marginType = 'margin'
-        elif marginType == '':
-            marginType = 'spot'
+        defaultMarginMode = self.safe_string_lower_2(self.options, 'defaultMarginMode', 'marginMode', 'spot')  # 'margin' is isolated margin on gateio's api
+        marginMode = self.safe_string_lower_2(params, 'marginMode', 'account', defaultMarginMode)
+        params = self.omit(params, ['marginMode', 'account'])
+        if marginMode == 'cross':
+            marginMode = 'cross_margin'
+        elif marginMode == 'isolated':
+            marginMode = 'margin'
+        elif marginMode == '':
+            marginMode = 'spot'
         if stop:
-            if marginType == 'spot':
+            if marginMode == 'spot':
                 # gateio spot stop orders use the term normal instead of spot
-                marginType = 'normal'
-            if marginType == 'cross_margin':
-                raise BadRequest(self.id + ' getMarginType() does not support stop orders for cross margin')
-        return [marginType, params]
+                marginMode = 'normal'
+            if marginMode == 'cross_margin':
+                raise BadRequest(self.id + ' getMarginMode() does not support stop orders for cross margin')
+        return [marginMode, params]
 
     def get_settlement_currencies(self, type, method):
         options = self.safe_value(self.options, type, {})  # ['BTC', 'USDT'] unified codes
@@ -1871,7 +1871,7 @@ class gateio(Exchange):
         :param dict params: exchange specific parameters
         :param str params['type']: spot, margin, swap or future, if not provided self.options['defaultType'] is used
         :param str params['settle']: 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
-        :param str params['marginType']: 'cross' or 'isolated' - marginType for margin trading if not provided self.options['defaultMarginType'] is used
+        :param str params['marginMode']: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
         :param str params['symbol']: margin only - unified ccxt symbol
         """
         await self.load_markets()
@@ -1879,12 +1879,12 @@ class gateio(Exchange):
         params = self.omit(params, 'symbol')
         type, query = self.handle_market_type_and_params('fetchBalance', None, params)
         request, requestParams = self.prepare_request(None, type, query)
-        marginType, requestQuery = self.get_margin_type(False, requestParams)
+        marginMode, requestQuery = self.get_margin_mode(False, requestParams)
         if symbol is not None:
             market = self.market(symbol)
             request['currency_pair'] = market['id']
         method = self.get_supported_mapping(type, {
-            'spot': self.get_supported_mapping(marginType, {
+            'spot': self.get_supported_mapping(marginMode, {
                 'spot': 'privateSpotGetAccounts',
                 'margin': 'privateMarginGetAccounts',
                 'cross_margin': 'privateMarginGetCrossAccounts',
@@ -2009,8 +2009,8 @@ class gateio(Exchange):
         result = {
             'info': response,
         }
-        crossMargin = marginType == 'cross_margin'
-        margin = marginType == 'margin'
+        crossMargin = marginMode == 'cross_margin'
+        margin = marginMode == 'margin'
         data = response
         if 'balances' in data:  # True for cross_margin
             flatBalances = []
@@ -2581,7 +2581,7 @@ class gateio(Exchange):
         :param dict params:  Extra parameters specific to the exchange API endpoint
         :param float params['stopPrice']: The price at which a trigger order is triggered at
         :param str params['timeInForce']: "GTC", "IOC", or "PO"
-        :param str params['marginType']: 'cross' or 'isolated' - marginType for margin trading if not provided self.options['defaultMarginType'] is used
+        :param str params['marginMode']: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
         :param int params['iceberg']: Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
         :param str params['text']: User defined information
         :param str params['account']: *spot and margin only* "spot", "margin" or "cross_margin"
@@ -2641,14 +2641,14 @@ class gateio(Exchange):
                 if timeInForce is not None:
                     request['tif'] = timeInForce
             else:
-                marginType = None
-                marginType, params = self.get_margin_type(False, params)
+                marginMode = None
+                marginMode, params = self.get_margin_mode(False, params)
                 # spot order
                 request = {
                     # 'text': clientOrderId,  # 't-abcdef1234567890',
                     'currency_pair': market['id'],  # filled in prepareRequest above
                     'type': type,
-                    'account': marginType,  # 'spot', 'margin', 'cross_margin'
+                    'account': marginMode,  # 'spot', 'margin', 'cross_margin'
                     'side': side,
                     'amount': self.amount_to_precision(symbol, amount),
                     'price': self.price_to_precision(symbol, price),
@@ -2705,8 +2705,8 @@ class gateio(Exchange):
             else:
                 # spot conditional order
                 options = self.safe_value(self.options, 'createOrder', {})
-                marginType = None
-                marginType, params = self.get_margin_type(True, params)
+                marginMode = None
+                marginMode, params = self.get_margin_mode(True, params)
                 defaultExpiration = self.safe_integer(options, 'expiration')
                 expiration = self.safe_integer(params, 'expiration', defaultExpiration)
                 rule = '>=' if (side == 'buy') else '<='
@@ -2722,7 +2722,7 @@ class gateio(Exchange):
                         'side': side,
                         'price': self.price_to_precision(symbol, price),
                         'amount': self.amount_to_precision(symbol, amount),
-                        'account': marginType,
+                        'account': marginMode,
                         'time_in_force': timeInForce,  # gtc, ioc for taker only
                     },
                     'market': market['id'],
@@ -3046,8 +3046,8 @@ class gateio(Exchange):
         :param str symbol: Unified market symbol, *required for spot and margin*
         :param dict params: Parameters specified by the exchange api
         :param bool params['stop']: True if the order being fetched is a trigger order
-        :param str params['marginType']: 'cross' or 'isolated' - marginType for margin trading if not provided self.options['defaultMarginType'] is used
-        :param str params['type']: 'spot', 'swap', or 'future', if not provided self.options['defaultMarginType'] is used
+        :param str params['marginMode']: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
+        :param str params['type']: 'spot', 'swap', or 'future', if not provided self.options['defaultMarginMode'] is used
         :param str params['settle']: 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol is not None, default="usdt" for swap and "btc" for future
         :returns: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -3084,7 +3084,7 @@ class gateio(Exchange):
         :param int limit: max number of order structures to return
         :param dict params: exchange specific params
         :param str params['type']: spot, margin, swap or future, if not provided self.options['defaultType'] is used
-        :param str params['marginType']: 'cross' or 'isolated' - marginType for type='margin', if not provided self.options['defaultMarginType'] is used
+        :param str params['marginMode']: 'cross' or 'isolated' - marginMode for type='margin', if not provided self.options['defaultMarginMode'] is used
         :returns: An array of order structures
         """
         await self.load_markets()
@@ -3480,13 +3480,13 @@ class gateio(Exchange):
             'future': 'privateDeliveryPostSettlePositionsContractLeverage',
         })
         request, query = self.prepare_request(market, None, params)
-        defaultMarginType = self.safe_string_2(self.options, 'marginType', 'defaultMarginType')
+        defaultMarginMode = self.safe_string_2(self.options, 'marginMode', 'defaultMarginMode')
         crossLeverageLimit = self.safe_string(query, 'cross_leverage_limit')
-        marginType = self.safe_string(query, 'marginType', defaultMarginType)
+        marginMode = self.safe_string(query, 'marginMode', defaultMarginMode)
         if crossLeverageLimit is not None:
-            marginType = 'cross'
+            marginMode = 'cross'
             leverage = crossLeverageLimit
-        if marginType == 'cross' or marginType == 'cross_margin':
+        if marginMode == 'cross' or marginMode == 'cross_margin':
             request['query'] = {
                 'cross_leverage_limit': str(leverage),
                 'leverage': '0',
@@ -3564,11 +3564,11 @@ class gateio(Exchange):
         maintenanceRate = self.safe_string(position, 'maintenance_rate')
         notional = self.safe_string(position, 'value')
         leverage = self.safe_string(position, 'leverage')
-        marginType = None
+        marginMode = None
         if leverage == '0':
-            marginType = 'cross'
+            marginMode = 'cross'
         else:
-            marginType = 'isolated'
+            marginMode = 'isolated'
         unrealisedPnl = self.safe_string(position, 'unrealised_pnl')
         # Initial Position Margin = ( Position Value / Leverage ) + Close Position Fee
         # *The default leverage under the full position is the highest leverage in the market.
@@ -3597,7 +3597,8 @@ class gateio(Exchange):
             'liquidationPrice': self.safe_number(position, 'liq_price'),
             'markPrice': self.safe_number(position, 'mark_price'),
             'collateral': self.safe_number(position, 'margin'),
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode,  # deprecated
             'side': side,
             'percentage': self.parse_number(percentage),
         }

@@ -1897,7 +1897,7 @@ class hitbtc3(Exchange):
         #         },
         #     ]
         #
-        marginType = self.safe_string(position, 'type')
+        marginMode = self.safe_string(position, 'type')
         leverage = self.safe_number(position, 'leverage')
         datetime = self.safe_string(position, 'updated_at')
         positions = self.safe_value(position, 'positions', [])
@@ -1921,7 +1921,8 @@ class hitbtc3(Exchange):
             'info': position,
             'symbol': symbol,
             'notional': None,
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode,
             'liquidationPrice': liquidationPrice,
             'entryPrice': entryPrice,
             'unrealizedPnl': None,

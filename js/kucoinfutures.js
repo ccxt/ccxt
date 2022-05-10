@@ -272,6 +272,7 @@ module.exports = class kucoinfutures extends kucoin {
                 'symbolSeparator': '-',
                 'defaultType': 'swap',
                 'code': 'USDT',
+                'marginModes': {},
                 'marginTypes': {},
                 // endpoint versions
                 'versions': {
@@ -902,7 +903,7 @@ module.exports = class kucoinfutures extends kucoin {
         const unrealisedPnl = this.safeString (position, 'unrealisedPnl');
         const crossMode = this.safeValue (position, 'crossMode');
         // currently crossMode is always set to false and only isolated positions are supported
-        const marginType = crossMode ? 'cross' : 'isolated';
+        const marginMode = crossMode ? 'cross' : 'isolated';
         return {
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
@@ -923,7 +924,8 @@ module.exports = class kucoinfutures extends kucoin {
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'markPrice': this.safeNumber (position, 'markPrice'),
             'collateral': this.safeNumber (position, 'maintMargin'),
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode,
             'side': side,
             'percentage': this.parseNumber (Precise.stringDiv (unrealisedPnl, initialMargin)),
         };

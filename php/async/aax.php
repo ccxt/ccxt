@@ -2477,6 +2477,7 @@ class aax extends Exchange {
         $notional = Precise::string_mul($initialQuote, $marketPrice);
         $timestamp = $this->safe_integer($position, 'ts');
         $liquidationPrice = $this->safe_string($position, 'liquidationPrice');
+        $marginMode = $this->safe_string($position, 'settleType');
         return array(
             'info' => $position,
             'symbol' => $this->safe_string($market, 'symbol'),
@@ -2496,7 +2497,8 @@ class aax extends Exchange {
             'liquidationPrice' => $liquidationPrice,
             'markPrice' => $this->safe_number($position, 'marketPrice'),
             'collateral' => $this->safe_number($position, 'posMargin'),
-            'marginType' => $this->safe_string($position, 'settleType'),
+            'marginMode' => $marginMode,
+            'marginType' => $marginMode, // deprecated
             'side' => $side,
             'percentage' => null,
         );

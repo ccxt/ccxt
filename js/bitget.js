@@ -2332,20 +2332,20 @@ module.exports = class bitget extends Exchange {
         return await this.privateMixPostAccountSetLeverage (this.extend (request, params));
     }
 
-    async setMarginMode (marginType, symbol = undefined, params = {}) {
+    async setMarginMode (marginMode, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
-        marginType = marginType.toLowerCase ();
-        if ((marginType !== 'fixed') && (marginType !== 'crossed')) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() marginType must be "fixed" or "crossed"');
+        marginMode = marginMode.toLowerCase ();
+        if ((marginMode !== 'fixed') && (marginMode !== 'crossed')) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() marginMode must be "fixed" or "crossed"');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
-            'marginMode': marginType,
+            'marginMode': marginMode,
         };
         return await this.privateMixPostAccountSetMarginMode (this.extend (request, params));
     }
