@@ -64,7 +64,7 @@ module.exports = class yobit extends Exchange {
                 'fetchWithdrawals': undefined,
                 'reduceMargin': false,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'setPositionMode': false,
                 'withdraw': true,
             },

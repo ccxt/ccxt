@@ -61,7 +61,7 @@ module.exports = class indodax extends Exchange {
                 'fetchTradingFees': false,
                 'reduceMargin': false,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'setPositionMode': false,
                 'withdraw': true,
             },

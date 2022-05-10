@@ -72,7 +72,7 @@ module.exports = class bitpanda extends Exchange {
                 'publicAPI': true,
                 'reduceMargin': false,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'setPositionMode': false,
                 'transfer': false,
                 'withdraw': true,

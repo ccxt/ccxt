@@ -62,7 +62,7 @@ module.exports = class lbank2 extends Exchange {
                 'fetchTradingFees': true,
                 'reduceMargin': false,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'setPositionMode': false,
                 'withdraw': false,
             },

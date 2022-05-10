@@ -425,3 +425,8 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + ' create_stop_market_order() is not supported yet')
         query = self.extend(params, {'stopPrice': stopPrice})
         return await self.create_order(symbol, 'market', side, amount, None, query)
+
+    async def set_margin_type(self, marginType, symbol=None, params={}):
+        if not self.has['setMarginMode']:
+            raise NotSupported(self.id + ' set_margin_type() is not supported yet')
+        return await self.set_margin_mode(self, marginType, symbol, params)

@@ -57,7 +57,7 @@ module.exports = class timex extends Exchange {
                 'fetchTradingFee': true, // maker fee only
                 'reduceMargin': false,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'setPositionMode': false,
             },
             'timeframes': {

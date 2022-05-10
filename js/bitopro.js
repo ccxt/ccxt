@@ -66,7 +66,7 @@ module.exports = class bitopro extends Exchange {
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'transfer': false,
                 'withdraw': true,
             },

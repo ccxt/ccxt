@@ -425,4 +425,11 @@ class Exchange extends \ccxt\Exchange {
         $query = $this->extend($params, $array);
         return yield $this->create_order($symbol, 'market', $side, $amount, null, $query);
     }
+
+    public function set_margin_type($marginType, $symbol = null, $params = array()) {
+        if (!$this->has['setMarginMode']) {
+            throw new NotSupported($this->id . ' set_margin_type() is not supported yet');   
+        }
+        return yield $this->setMarginMode($marginType, $symbol, $params);
+    }
 }

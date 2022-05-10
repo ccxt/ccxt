@@ -106,7 +106,7 @@ module.exports = class gateio extends Exchange {
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'transfer': true,
                 'withdraw': true,
             },

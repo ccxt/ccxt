@@ -59,7 +59,7 @@ module.exports = class itbit extends Exchange {
                 'fetchTransactions': true,
                 'reduceMargin': false,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'setPositionMode': false,
             },
             'urls': {

@@ -75,7 +75,7 @@ module.exports = class crex24 extends Exchange {
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'setPositionMode': false,
                 'withdraw': true,
             },

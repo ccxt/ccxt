@@ -59,7 +59,7 @@ module.exports = class coinone extends Exchange {
                 'fetchTrades': true,
                 'reduceMargin': false,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'setPositionMode': false,
             },
             'urls': {

@@ -144,7 +144,8 @@ module.exports = class Exchange {
                 'loadMarkets': true,
                 'reduceMargin': undefined,
                 'setLeverage': undefined,
-                'setMarginMode': undefined,
+                'setMarginType': undefined,
+                'setMarginMode': undefined, // ! deprecated
                 'setPositionMode': undefined,
                 'signIn': undefined,
                 'transfer': undefined,
@@ -2367,5 +2368,12 @@ module.exports = class Exchange {
             interest.push (this.parseBorrowInterest (row, market));
         }
         return interest;
+    }
+
+    async setMarginType (marginType, symbol = undefined, params = {}) {
+        if (!this.has['setMarginMode']) {
+            throw new NotSupported(this.id + ' setMarginType() is not supported yet');   
+        }
+        return this.setMarginMode (marginType, symbol, params);
     }
 }

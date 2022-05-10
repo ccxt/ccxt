@@ -78,7 +78,7 @@ module.exports = class zb extends Exchange {
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'setLeverage': true,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,

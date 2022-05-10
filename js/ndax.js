@@ -68,7 +68,7 @@ module.exports = class ndax extends Exchange {
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'setPositionMode': false,
                 'signIn': true,
                 'transfer': false,

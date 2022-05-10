@@ -54,7 +54,7 @@ module.exports = class cryptocom extends Exchange {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'transfer': true,
                 'withdraw': true,
             },

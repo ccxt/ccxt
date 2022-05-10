@@ -68,7 +68,7 @@ module.exports = class probit extends Exchange {
                 'fetchWithdrawals': false,
                 'reduceMargin': false,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'setPositionMode': false,
                 'signIn': true,
                 'transfer': false,

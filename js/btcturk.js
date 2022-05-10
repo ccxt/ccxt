@@ -54,7 +54,7 @@ module.exports = class btcturk extends Exchange {
                 'fetchTrades': true,
                 'reduceMargin': false,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'setPositionMode': false,
             },
             'timeframes': {

@@ -1288,7 +1288,8 @@ class Exchange {
             'loadMarkets' => true,
             'reduceMargin' => null,
             'setLeverage' => null,
-            'setMarginMode' => null,
+            'setMarginType' => null,
+            'setMarginMode' => null, // ! deprecated
             'setPositionMode' => null,
             'signIn' => null,
             'transfer' => null,
@@ -3890,5 +3891,12 @@ class Exchange {
         $array = array('stopPrice' => $stopPrice);
         $query = $this->extend($params, $array);
         return $this->create_order($symbol, 'market', $side, $amount, null, $query);
+    }
+
+    public function set_margin_type($marginType, $symbol = null, $params = array()) {
+        if (!$this->has['setMarginMode']) {
+            throw new NotSupported($this->id . ' set_margin_type() is not supported yet');   
+        }
+        return $this->setMarginMode($marginType, $symbol, $params);
     }
 }

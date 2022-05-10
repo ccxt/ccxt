@@ -73,7 +73,7 @@ module.exports = class mexc extends Exchange {
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'setLeverage': true,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'transfer': true,
                 'withdraw': true,
             },

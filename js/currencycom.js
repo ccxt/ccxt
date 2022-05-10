@@ -95,7 +95,7 @@ module.exports = class currencycom extends Exchange {
                 'fetchWithdrawals': true,
                 'reduceMargin': undefined,
                 'setLeverage': undefined,
-                'setMarginMode': undefined,
+                'setMarginType': undefined,
                 'setPositionMode': undefined,
                 'signIn': undefined,
                 'transfer': undefined,

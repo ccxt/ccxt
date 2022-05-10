@@ -93,7 +93,8 @@ module.exports = class bkex extends Exchange {
                 'publicAPI': true,
                 'reduceMargin': undefined,
                 'setLeverage': undefined,
-                'setMarginMode': undefined,
+                'setMarginType': undefined,
+                'setMarginMode': undefined, // ! deprecated
                 'setPositionMode': undefined,
                 'signIn': undefined,
                 'transfer': false,

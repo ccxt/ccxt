@@ -53,7 +53,7 @@ module.exports = class bl3p extends Exchange {
                 'fetchTransfers': false,
                 'reduceMargin': false,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'setPositionMode': false,
                 'transfer': false,
             },

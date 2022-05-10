@@ -67,7 +67,7 @@ module.exports = class bitmart extends Exchange {
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'transfer': false,
                 'withdraw': true,
             },

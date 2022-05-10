@@ -64,7 +64,7 @@ module.exports = class wavesexchange extends Exchange {
                 'fetchTransfers': false,
                 'reduceMargin': false,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'setPositionMode': false,
                 'signIn': true,
                 'transfer': false,

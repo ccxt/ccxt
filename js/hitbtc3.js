@@ -71,7 +71,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'setLeverage': true,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,

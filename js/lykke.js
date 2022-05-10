@@ -64,7 +64,7 @@ module.exports = class lykke extends Exchange {
                 'fetchTransactions': true,
                 'fetchWithdrawals': false,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'withdraw': true,
             },
             'requiredCredentials': {

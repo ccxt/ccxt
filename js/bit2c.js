@@ -55,7 +55,7 @@ module.exports = class bit2c extends Exchange {
                 'fetchTransfers': false,
                 'reduceMargin': false,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'setPositionMode': false,
                 'transfer': false,
             },

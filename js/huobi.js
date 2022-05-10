@@ -104,7 +104,7 @@ module.exports = class huobi extends Exchange {
                 'fetchWithdrawalWhitelist': undefined,
                 'reduceMargin': undefined,
                 'setLeverage': true,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'setPositionMode': false,
                 'signIn': undefined,
                 'transfer': true,

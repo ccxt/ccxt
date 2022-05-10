@@ -106,7 +106,7 @@ module.exports = class aax extends Exchange {
                 'fetchWithdrawalWhitelist': undefined,
                 'reduceMargin': undefined,
                 'setLeverage': true,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'setPositionMode': undefined,
                 'signIn': undefined,
                 'transfer': true,

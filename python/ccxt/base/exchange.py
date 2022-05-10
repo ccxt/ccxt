@@ -321,7 +321,8 @@ class Exchange(object):
         'loadMarkets': True,
         'reduceMargin': None,
         'setLeverage': None,
-        'setMarginMode': None,
+        'setMarginType': None,
+        'setMarginMode': None,  # ! deprecated
         'setPositionMode': None,
         'signIn': None,
         'transfer': None,
@@ -2940,3 +2941,8 @@ class Exchange(object):
             row = response[i]
             interest.append(self.parse_borrow_interest(row, market))
         return interest
+
+    def set_margin_type(self, marginType, symbol=None, params={}):
+        if not self.has['setMarginMode']:
+            raise NotSupported(self.id + ' set_margin_type() is not supported yet')
+        return self.set_margin_mode(self, marginType, symbol, params)

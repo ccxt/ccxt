@@ -58,7 +58,8 @@ module.exports = class bitget extends Exchange {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': false,
                 'setLeverage': true,
-                'setMarginMode': true,
+                'setMarginType': true,
+                'setMarginMode': true, // ! deprecated
                 'transfer': false,
                 'withdraw': false,
             },

@@ -57,7 +57,7 @@ module.exports = class coinmate extends Exchange {
                 'fetchTransactions': true,
                 'reduceMargin': false,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'setPositionMode': false,
                 'transfer': false,
             },

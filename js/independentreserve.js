@@ -55,7 +55,7 @@ module.exports = class independentreserve extends Exchange {
                 'fetchTradingFees': true,
                 'reduceMargin': false,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'setPositionMode': false,
             },
             'urls': {

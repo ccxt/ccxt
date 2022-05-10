@@ -98,7 +98,8 @@ module.exports = class binance extends Exchange {
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': true,
                 'setLeverage': true,
-                'setMarginMode': true,
+                'setMarginType': true,
+                'setMarginMode': true, // ! deprecated
                 'setPositionMode': true,
                 'signIn': false,
                 'transfer': true,

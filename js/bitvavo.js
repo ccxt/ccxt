@@ -73,7 +73,7 @@ module.exports = class bitvavo extends Exchange {
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginType': false,
                 'setPositionMode': false,
                 'transfer': false,
                 'withdraw': true,
