@@ -2857,41 +2857,75 @@ module.exports = class bybit extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
+        let market = undefined;
+        let isUsdcSettled = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            isUsdcSettled = market['settle'] === 'USDC';
+        } else {
+            let settle = this.safeString (this.options, 'defaultSettle');
+            settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
+            params = this.omit (params, [ 'settle', 'defaultSettle' ]);
+            isUsdcSettled = settle === 'USDC';
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        if (!isUsdcSettled && symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument for ' + type + ' markets');
         }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const options = this.safeValue (this.options, 'cancelAllOrders', {});
-        let defaultMethod = undefined;
-        if (market['swap']) {
-            if (market['linear']) {
-                defaultMethod = 'privateLinearPostOrderCancelAll';
-            } else if (market['inverse']) {
-                defaultMethod = 'v2PrivatePostOrderCancelAll';
-            }
-        } else if (market['future']) {
-            defaultMethod = 'futuresPrivatePostOrderCancelAll';
+        const request = {};
+        if (!isUsdcSettled) {
+            request['symbol'] = market['id'];
         }
-        const stop = this.safeValue (params, 'stop');
-        if (stop) {
-            if (market['swap']) {
-                if (market['linear']) {
-                    defaultMethod = 'privateLinearPostStopOrderCancelAll';
-                } else if (market['inverse']) {
-                    defaultMethod = 'v2PrivatePostStopOrderCancelAll';
-                }
-            } else if (market['future']) {
-                defaultMethod = 'futuresPrivatePostStopOrderCancelAll';
-            }
+        const isLinear = this.safeValue (market, 'linear', false);
+        const orderType = this.safeStringLower (params, 'orderType');
+        const isConditional = (orderType === 'stop') || (orderType === 'conditional');
+        let method = undefined;
+        if (type === 'spot') {
+            method = 'privateDeleteSpotOrderBatchCancel';
+        } else if (isUsdcSettled) {
+            method = (type === 'option') ? 'privatePostOptionUsdcOpenapiPrivateV1CancelAll' : 'privatePostPerpetualUsdcOpenapiPrivateV1CancelAll';
+        } else if (type === 'future') {
+            method = isConditional ? 'privatePostFuturesPrivateStopOrderCancelAll' : 'privatePostFuturesPrivateOrderCancelAll';
+        } else if (isLinear) {
+            // linear swap
+            method = isConditional ? 'privatePostPrivateLinearStopOrderCancelAll' : 'privatePostPrivateLinearOrderCancelAll';
+        } else {
+            // futures
+            method = isConditional ? 'privatePostFuturesPrivateStopOrderCancelAll' : 'privatePostFuturesPrivateOrderCancelAll';
         }
-        const method = this.safeString (options, 'method', defaultMethod);
-        params = this.omit (params, 'stop');
         const response = await this[method] (this.extend (request, params));
+        // spot
+        //    {
+        //        "ret_code": 0,
+        //        "ret_msg": "",
+        //        "ext_code": null,
+        //        "ext_info": null,
+        //        "result": {
+        //            "success": true
+        //        }
+        //    }
+        //
+        // linear swap
+        //   {
+        //       "ret_code":0,
+        //       "ret_msg":"OK",
+        //       "ext_code":"",
+        //       "ext_info":"",
+        //       "result":[
+        //          "49d9ee94-303b-4bcf-959b-9e5d215e4973"
+        //       ],
+        //       "time_now":"1652182444.015560",
+        //       "rate_limit_status":90,
+        //       "rate_limit_reset_ms":1652182444010,
+        //       "rate_limit":100
+        //    }
+        //
         const result = this.safeValue (response, 'result', []);
+        if (!Array.isArray (result)) {
+            return response;
+        }
         return this.parseOrders (result, market);
     }
 
