@@ -2866,6 +2866,41 @@ module.exports = class bybit extends Exchange {
             }
         }
         const response = await this[method] (this.extend (request, params));
+        // spot order
+        //    {
+        //        "ret_code":0,
+        //        "ret_msg":"",
+        //        "ext_code":null,
+        //        "ext_info":null,
+        //        "result":{
+        //           "accountId":"24478790",
+        //           "symbol":"LTCUSDT",
+        //           "orderLinkId":"1652192399682",
+        //           "orderId":"1153067855569315072",
+        //           "transactTime":"1652192399866",
+        //           "price":"50",
+        //           "origQty":"0.2",
+        //           "executedQty":"0",
+        //           "status":"NEW",
+        //           "timeInForce":"GTC",
+        //           "type":"LIMIT",
+        //           "side":"BUY"
+        //        }
+        //    }
+        // linear
+        //    {
+        //        "ret_code":0,
+        //        "ret_msg":"OK",
+        //        "ext_code":"",
+        //        "ext_info":"",
+        //        "result":{
+        //           "order_id":"f5103487-f7f9-48d3-a26d-b74a3a53d3d3"
+        //        },
+        //        "time_now":"1652192814.880473",
+        //        "rate_limit_status":99,
+        //        "rate_limit_reset_ms":1652192814876,
+        //        "rate_limit":100
+        //     }
         const result = this.safeValue (response, 'result', {});
         return this.parseOrder (result, market);
     }
