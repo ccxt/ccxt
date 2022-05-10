@@ -1906,6 +1906,10 @@ class bybit(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='Buy', asksKey='Sell', priceKey='price', amountKey='size'):
+        market = self.market(symbol)
+        if market['spot']:
+            timestamp = self.safe_integer(orderbook, 'time')
+            return super(bybit, self).parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks')
         bids = []
         asks = []
         for i in range(0, len(orderbook)):
@@ -1932,7 +1936,38 @@ class bybit(Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = self.publicGetV2PublicOrderBookL2(self.extend(request, params))
+        isUsdcSettled = market['settle'] == 'USDC'
+        method = None
+        if market['spot']:
+            method = 'publicGetSpotQuoteV1Depth'
+        elif not isUsdcSettled:
+            # inverse perpetual  # usdt linear  # inverse futures
+            method = 'publicGetV2PublicOrderBookL2'
+        else:
+            # usdc option/ swap
+            method = 'publicGetOptionUsdcOpenapiPublicV1OrderBook' if market['option'] else 'publicGetPerpetualUsdcOpenapiPublicV1OrderBook'
+        if limit is not None:
+            request['limit'] = limit
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # spot
+        #     {
+        #         "ret_code": 0,
+        #         "ret_msg": null,
+        #         "result": {
+        #             "time": 1620886105740,
+        #             "bids": [
+        #                 ["50005.12","403.0416"]
+        #             ],
+        #             "asks": [
+        #                 ["50006.34", "0.2297"]
+        #             ]
+        #         },
+        #         "ext_code": null,
+        #         "ext_info": null
+        #     }
+        #
+        # linear/inverse swap/futures
         #
         #     {
         #         ret_code: 0,
@@ -1943,12 +1978,28 @@ class bybit(Exchange):
         #             {symbol: 'BTCUSD', price: '7767.5', size: 677956, side: 'Buy'},
         #             {symbol: 'BTCUSD', price: '7767', size: 580690, side: 'Buy'},
         #             {symbol: 'BTCUSD', price: '7766.5', size: 475252, side: 'Buy'},
-        #             {symbol: 'BTCUSD', price: '7768', size: 330847, side: 'Sell'},
-        #             {symbol: 'BTCUSD', price: '7768.5', size: 97159, side: 'Sell'},
-        #             {symbol: 'BTCUSD', price: '7769', size: 6508, side: 'Sell'},
         #         ],
         #         time_now: '1583954829.874823'
         #     }
+        #
+        # usdc markets
+        #
+        #     {
+        #         "retCode": 0,
+        #           "retMsg": "SUCCESS",
+        #           "result": [
+        #           {
+        #             "price": "5000.00000000",
+        #             "size": "2.0000",
+        #             "side": "Buy"  # bids
+        #           },
+        #           {
+        #             "price": "5900.00000000",
+        #             "size": "0.9000",
+        #             "side": "Sell"  # asks
+        #           }
+        #         ]
+        #    }
         #
         result = self.safe_value(response, 'result', [])
         timestamp = self.safe_timestamp(response, 'time_now')

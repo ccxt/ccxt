@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.81.94'
+__version__ = '1.81.99'
 
 # -----------------------------------------------------------------------------
 
@@ -136,6 +136,7 @@ from ccxt.async_support.kucoinfutures import kucoinfutures                # noqa
 from ccxt.async_support.kuna import kuna                                  # noqa: F401
 from ccxt.async_support.latoken import latoken                            # noqa: F401
 from ccxt.async_support.lbank import lbank                                # noqa: F401
+from ccxt.async_support.lbank2 import lbank2                              # noqa: F401
 from ccxt.async_support.liquid import liquid                              # noqa: F401
 from ccxt.async_support.luno import luno                                  # noqa: F401
 from ccxt.async_support.lykke import lykke                                # noqa: F401
@@ -256,6 +257,7 @@ exchanges = [
     'kuna',
     'latoken',
     'lbank',
+    'lbank2',
     'liquid',
     'luno',
     'lykke',
