@@ -2111,7 +2111,7 @@ module.exports = class bybit extends Exchange {
         if (type === 'spot') {
             method = 'privateGetSpotV1Account';
         } else {
-            let settle = this.safeValue (this.options, 'defaultSettle', false);
+            let settle = this.safeString (this.options, 'defaultSettle');
             settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
             params = this.omit (params, [ 'settle', 'defaultSettle' ]);
             let isUsdcSettled = settle === 'USDC';
