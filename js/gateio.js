@@ -2324,9 +2324,9 @@ module.exports = class gateio extends Exchange {
          * @param {int} since The earliest timestamp, in ms, that fetched trades were made
          * @param {int} limit The max number of trades to fetch
          * @param {dict} params Exchange specific parameters
-         * @param {int} params.type 'spot', 'swap' or 'future'
-         * @param {int} params.marginType 'cross' or 'isolated', the marginType for spot margin trades
-         * @param {str} params.till The latest timestamp, in ms, that fetched trades were made
+         * @param {str} params.marginType 'cross' or 'isolated' - marginType for margin trading if not provided this.options['defaultMarginType'] is used
+         * @param {str} params.type 'spot', 'swap', or 'future', if not provided this.options['defaultMarginType'] is used
+         * @param {int} params.till The latest timestamp, in ms, that fetched trades were made
          * @param {int} params.page *spot only* Page number
          * @param {str} params.order_id *spot only* Filter trades with specified order ID. symbol is also required if this field is present
          * @param {str} params.order *contract only* Futures order ID, return related data only if specified
@@ -2336,12 +2336,23 @@ module.exports = class gateio extends Exchange {
          * @returns a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
+        let type = undefined;
+        let marginType = undefined;
+        let request = {};
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const till = this.safeNumber (params, 'till');
         params = this.omit (params, 'till');
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const contract = (type === 'swap') || (type === 'future');
-        const [ request, requestParams ] = contract ? this.prepareRequest (market, type, query) : this.spotOrderPrepareRequest (market, false, params);
+        if (contract) {
+            [ request, params ] = this.prepareRequest (market, type, params);
+        } else {
+            if (market !== undefined) {
+                request['currency_pair'] = market['id']; // Should always be set for non-stop
+            }
+            [ marginType, params ] = this.getMarginType (false, params);
+            request['account'] = marginType;
+        }
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
@@ -2357,7 +2368,7 @@ module.exports = class gateio extends Exchange {
             'swap': 'privateFuturesGetSettleMyTrades',
             'future': 'privateDeliveryGetSettleMyTrades',
         });
-        const response = await this[method] (this.extend (request, requestParams));
+        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
