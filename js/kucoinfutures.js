@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, AccountSuspended, InvalidNonce, NotSupported, OrderNotFound, BadRequest, AuthenticationError, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 const kucoin = require ('./kucoin.js');
 const { TICK_SIZE } = require ('./base/functions/number');
@@ -196,6 +196,9 @@ module.exports = class kucoinfutures extends kucoin {
                     '400100': BadRequest, // Parameter Error -- You tried to access the resource with invalid parameters
                     '411100': AccountSuspended, // User is frozen -- Please contact us via support center
                     '500000': ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
+                },
+                'broad': {
+                    'Position does not exist': OrderNotFound, // { "code":"200000", "msg":"Position does not exist" }
                 },
             },
             'fees': {
@@ -1149,7 +1152,10 @@ module.exports = class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        return this.parseMargin (data, market);
+        return this.extend (this.parseMargin (data, market), {
+            'amount': this.amountToPrecision (symbol, amount),
+            'type': 'add',
+        });
     }
 
     parseMargin (info, market = undefined) {
@@ -1201,12 +1207,15 @@ module.exports = class kucoinfutures extends kucoin {
         const id = this.safeString (info, 'id');
         market = this.safeMarket (id, market);
         const currencyId = this.safeString (info, 'settleCurrency');
+        const mode = (this.safeValue (info, 'crossMode') === true) ? 'cross' : 'isolated';
+        const marketId = this.safeString (market, 'symbol');
         return {
             'info': info,
             'adjustment': undefined,
+            'mode': mode,
             'amount': undefined,
             'code': this.safeCurrencyCode (currencyId),
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': this.safeSymbol (marketId, market),
             'status': undefined,
         };
     }
