@@ -27,6 +27,7 @@ module.exports = class phemex extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
+                'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -69,6 +70,7 @@ module.exports = class phemex extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
+                'reduceMargin': true,
                 'setLeverage': true,
                 'setPositionMode': false,
                 'transfer': true,
@@ -2932,12 +2934,63 @@ module.exports = class phemex extends Exchange {
         };
     }
 
+    async modifyMarginHelper (symbol, amount, addOrReduce, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'posBalanceEv': this.toEv (amount, market),
+        };
+        const response = await this.privatePostPositionsAssign (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "data": "OK"
+        //     }
+        //
+        return this.extend (this.parseModifyMargin (response, market), {
+            'amount': amount,
+            'type': addOrReduce,
+        });
+    }
+
+    parseMarginStatus (status) {
+        const statuses = {
+            '0': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseModifyMargin (data, market = undefined) {
+        const codeCurrency = market['inverse'] ? 'base' : 'quote';
+        return {
+            'info': data,
+            'type': undefined,
+            'amount': undefined,
+            'code': market[codeCurrency],
+            'symbol': this.safeSymbol (undefined, market),
+            'status': this.parseMarginStatus (this.safeString (data, 'code')),
+        };
+    }
+
+    async addMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 'add', params);
+    }
+
+    async reduceMargin (symbol, amount, params = {}) {
+        if (amount > 0) {
+            throw new BadRequest (this.id + ' reduceMargin() amount parameter must be a negative value');
+        }
+        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         const requestPath = '/' + this.implodeParams (path, params);
         let url = requestPath;
         let queryString = '';
-        if ((method === 'GET') || (method === 'DELETE') || (method === 'PUT')) {
+        if ((method === 'GET') || (method === 'DELETE') || (method === 'PUT') || (url === '/positions/assign')) {
             if (Object.keys (query).length) {
                 queryString = this.urlencodeWithArrayRepeat (query);
                 url += '?' + queryString;
