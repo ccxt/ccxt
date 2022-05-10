@@ -3511,7 +3511,7 @@ module.exports = class bybit extends Exchange {
         return this.safeValue (response, 'result');
     }
 
-    async setMarginMode (marginType, symbol = undefined, params = {}) {
+    async setMarginMode (marginMode, symbol = undefined, params = {}) {
         //
         // {
         //     "ret_code": 0,
@@ -3529,12 +3529,12 @@ module.exports = class bybit extends Exchange {
         if (leverage === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter');
         }
-        marginType = marginType.toUpperCase ();
-        if (marginType === 'CROSSED') { // * Deprecated, use 'CROSS' instead
-            marginType = 'CROSS';
+        marginMode = marginMode.toUpperCase ();
+        if (marginMode === 'CROSSED') { // * Deprecated, use 'CROSS' instead
+            marginMode = 'CROSS';
         }
-        if ((marginType !== 'ISOLATED') && (marginType !== 'CROSS')) {
-            throw new BadRequest (this.id + ' setMarginMode() marginType must be either isolated or cross');
+        if ((marginMode !== 'ISOLATED') && (marginMode !== 'CROSS')) {
+            throw new BadRequest (this.id + ' setMarginMode() marginMode must be either isolated or cross');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3552,7 +3552,7 @@ module.exports = class bybit extends Exchange {
         } else if (future) {
             method = 'privateFuturesPostPositionSwitchIsolated';
         }
-        const isIsolated = (marginType === 'ISOLATED');
+        const isIsolated = (marginMode === 'ISOLATED');
         const request = {
             'symbol': market['id'],
             'is_isolated': isIsolated,

@@ -2473,6 +2473,7 @@ module.exports = class aax extends Exchange {
         const notional = Precise.stringMul (initialQuote, marketPrice);
         const timestamp = this.safeInteger (position, 'ts');
         const liquidationPrice = this.safeString (position, 'liquidationPrice');
+        const marginMode = this.safeString (position, 'settleType');
         return {
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
@@ -2492,7 +2493,8 @@ module.exports = class aax extends Exchange {
             'liquidationPrice': liquidationPrice,
             'markPrice': this.safeNumber (position, 'marketPrice'),
             'collateral': this.safeNumber (position, 'posMargin'),
-            'marginType': this.safeString (position, 'settleType'),
+            'marginMode': marginMode,
+            'marginType': marginMode, // ! deprecated
             'side': side,
             'percentage': undefined,
         };

@@ -2785,7 +2785,8 @@ module.exports = class phemex extends Exchange {
             'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentageString),
             'marginRatio': this.parseNumber (marginRatio),
             'datetime': undefined,
-            'marginType': undefined,
+            'marginMode': undefined,
+            'marginType': undefined, // ! deprecated
             'side': side,
             'hedged': false,
             'percentage': this.parseNumber (percentage),
