@@ -3787,17 +3787,17 @@ module.exports = class okx extends Exchange {
             notionalString = Precise.stringDiv (Precise.stringMul (contractsAbs, contractSizeString), markPriceString);
         }
         const notional = this.parseNumber (notionalString);
-        const marginType = this.safeString (position, 'mgnMode');
+        const marginMode = this.safeString (position, 'mgnMode');
         let initialMarginString = undefined;
         const entryPriceString = this.safeString (position, 'avgPx');
         const unrealizedPnlString = this.safeString (position, 'upl');
         const leverageString = this.safeString (position, 'lever');
         let initialMarginPercentage = undefined;
         let collateralString = undefined;
-        if (marginType === 'cross') {
+        if (marginMode === 'cross') {
             initialMarginString = this.safeString (position, 'imr');
             collateralString = Precise.stringAdd (initialMarginString, unrealizedPnlString);
-        } else if (marginType === 'isolated') {
+        } else if (marginMode === 'isolated') {
             initialMarginPercentage = Precise.stringDiv ('1', leverageString);
             collateralString = this.safeString (position, 'margin');
         }
@@ -3820,7 +3820,8 @@ module.exports = class okx extends Exchange {
             'info': position,
             'symbol': symbol,
             'notional': notional,
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode, // ! deprecated
             'liquidationPrice': liquidationPrice,
             'entryPrice': this.parseNumber (entryPriceString),
             'unrealizedPnl': this.parseNumber (unrealizedPnlString),
@@ -4298,15 +4299,15 @@ module.exports = class okx extends Exchange {
         return response;
     }
 
-    async setMarginMode (marginType, symbol = undefined, params = {}) {
+    async setMarginMode (marginMode, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        marginType = marginType.toLowerCase ();
-        if ((marginType !== 'cross') && (marginType !== 'isolated')) {
-            throw new BadRequest (this.id + ' setMarginMode() marginType must be either cross or isolated');
+        marginMode = marginMode.toLowerCase ();
+        if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
+            throw new BadRequest (this.id + ' setMarginMode() marginMode must be either cross or isolated');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -4317,7 +4318,7 @@ module.exports = class okx extends Exchange {
         params = this.omit (params, [ 'lever' ]);
         const request = {
             'lever': lever,
-            'mgnMode': marginType,
+            'mgnMode': marginMode,
             'instId': market['id'],
         };
         const response = await this.privatePostAccountSetLeverage (this.extend (request, params));
@@ -4727,16 +4728,18 @@ module.exports = class okx extends Exchange {
 
     parseBorrowInterest (info, market = undefined) {
         const instId = this.safeString (info, 'instId');
-        let account = 'cross'; // todo rename it to margin/marginType and separate it from the symbol
+        let account = 'cross'; // todo rename it to margin/marginMode and separate it from the symbol
         if (instId !== undefined) {
             market = this.safeMarket (instId, market);
             account = this.safeString (market, 'symbol');
         }
         const timestamp = this.safeNumber (info, 'ts');
+        const marginMode = (instId === undefined) ? 'cross' : 'isolated';
         return {
             'account': account, // deprecated
             'symbol': this.safeString (market, 'symbol'),
-            'marginType': (instId === undefined) ? 'cross' : 'isolated',
+            'marginType': marginMode, // ! deprecated
+            'marginMode': marginMode,
             'currency': this.safeCurrencyCode (this.safeString (info, 'ccy')),
             'interest': this.safeNumber (info, 'interest'),
             'interestRate': this.safeNumber (info, 'interestRate'),

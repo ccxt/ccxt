@@ -33,6 +33,7 @@ module.exports = class binanceusdm extends binance {
                 // tier amount, maintenance margin, initial margin
                 'leverageBrackets': undefined,
                 'marginTypes': {},
+                'marginModes': {},
             },
         });
     }
