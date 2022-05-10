@@ -1147,32 +1147,6 @@ module.exports = class gateio extends Exchange {
         return [ request, query ];
     }
 
-    multiOrderSpotPrepareRequest (market = undefined, stop = false, params = {}) {
-        /**
-         * @ignore
-         * @method
-         * @name gateio#multiOrderSpotPrepareRequest
-         * @description Fills request params currency_pair, market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
-         * @param {dict} market CCXT market
-         * @param {bool} stop true if for a stop order
-         * @param {dict} params request parameters
-         * @returns the api request object, and the new params object with non-needed parameters removed
-         */
-        const [ marginType, query ] = this.getMarginType (stop, params);
-        const request = {
-            'account': marginType,
-        };
-        if (market !== undefined) {
-            if (stop) {
-                // gateio spot and margin stop orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single stop order, but createOrder does not call this method
-                request['market'] = market['id'];
-            } else {
-                request['currency_pair'] = market['id'];
-            }
-        }
-        return [ request, query ];
-    }
-
     getMarginType (stop, params) {
         /**
          * @ignore
@@ -3511,11 +3485,27 @@ module.exports = class gateio extends Exchange {
 
     async cancelAllOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        let type = undefined;
+        let request = {};
         const market = (symbol === undefined) ? undefined : this.market (symbol);
         const stop = this.safeValue (params, 'stop');
         params = this.omit (params, 'stop');
-        const [ type, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        const [ request, requestParams ] = (type === 'spot') ? this.multiOrderSpotPrepareRequest (market, stop, query) : this.prepareRequest (market, type, query);
+        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        if (type === 'spot' || type === 'margin') { // 'margin' is deprecated, use 'spot'
+            let marginType = undefined;
+            [ marginType, params ] = this.getMarginType (stop, params);
+            request['account'] = marginType;
+            if (market !== undefined) {
+                if (stop) {
+                    // gateio spot and margin stop orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single stop order, but createOrder does not call this method
+                    request['market'] = market['id'];
+                } else {
+                    request['currency_pair'] = market['id'];
+                }
+            }
+        } else {
+            [ request, params ] = this.prepareRequest (market, type, params);
+        }
         const methodTail = stop ? 'PriceOrders' : 'Orders';
         const method = this.getSupportedMapping (type, {
             'spot': 'privateSpotDelete' + methodTail,
@@ -3523,7 +3513,7 @@ module.exports = class gateio extends Exchange {
             'swap': 'privateFuturesDeleteSettle' + methodTail,
             'future': 'privateDeliveryDeleteSettle' + methodTail,
         });
-        const response = await this[method] (this.extend (request, requestParams));
+        const response = await this[method] (this.extend (request, params));
         //
         //    [
         //        {
