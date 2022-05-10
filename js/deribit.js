@@ -1928,7 +1928,7 @@ module.exports = class deribit extends Exchange {
             'markPrice': markPrice,
             'collateral': undefined,
             'marginMode': undefined,
-            'marginType': undefined, // ! deprecated
+            'marginType': undefined, // deprecated
             'side': side,
             'percentage': this.parseNumber (percentage),
         };

@@ -4632,7 +4632,7 @@ module.exports = class binance extends Exchange {
             'markPrice': undefined,
             'collateral': collateral,
             'marginMode': marginMode,
-            'marginType': marginMode, // ! deprecated
+            'marginType': marginMode, // deprecated
             'side': side,
             'hedged': hedged,
             'percentage': percentage,
@@ -4801,7 +4801,7 @@ module.exports = class binance extends Exchange {
             'marginRatio': marginRatio,
             'datetime': this.iso8601 (timestamp),
             'marginMode': marginMode,
-            'marginType': marginMode, // ! deprecated
+            'marginType': marginMode, // deprecated
             'side': side,
             'hedged': hedged,
             'percentage': percentage,
@@ -5642,7 +5642,7 @@ module.exports = class binance extends Exchange {
         return {
             'account': (symbol === undefined) ? 'cross' : symbol,
             'symbol': symbol,
-            'marginType': marginMode, // ! deprecated
+            'marginType': marginMode, // deprecated
             'marginMode': marginMode,
             'currency': this.safeCurrencyCode (this.safeString (info, 'asset')),
             'interest': this.safeNumber (info, 'interest'),

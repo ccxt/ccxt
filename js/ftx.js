@@ -2166,7 +2166,7 @@ module.exports = class ftx extends Exchange {
             'markPrice': this.parseNumber (markPriceString),
             'collateral': this.parseNumber (collateral),
             'marginMode': 'cross',
-            'marginType': 'cross', // ! deprecated
+            'marginType': 'cross', // deprecated
             'side': side,
             'percentage': percentage,
         };
@@ -2779,7 +2779,7 @@ module.exports = class ftx extends Exchange {
             'account': 'cross',
             'symbol': undefined,
             'marginMode': 'cross',
-            'marginType': 'cross', // ! deprecated
+            'marginType': 'cross', // deprecated
             'currency': this.safeCurrencyCode (coin),
             'interest': this.safeNumber (info, 'cost'),
             'interestRate': this.safeNumber (info, 'rate'),

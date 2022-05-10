@@ -3821,7 +3821,7 @@ module.exports = class okx extends Exchange {
             'symbol': symbol,
             'notional': notional,
             'marginMode': marginMode,
-            'marginType': marginMode, // ! deprecated
+            'marginType': marginMode, // deprecated
             'liquidationPrice': liquidationPrice,
             'entryPrice': this.parseNumber (entryPriceString),
             'unrealizedPnl': this.parseNumber (unrealizedPnlString),
@@ -4738,7 +4738,7 @@ module.exports = class okx extends Exchange {
         return {
             'account': account, // deprecated
             'symbol': this.safeString (market, 'symbol'),
-            'marginType': marginMode, // ! deprecated
+            'marginType': marginMode, // deprecated
             'marginMode': marginMode,
             'currency': this.safeCurrencyCode (this.safeString (info, 'ccy')),
             'interest': this.safeNumber (info, 'interest'),

@@ -2494,7 +2494,7 @@ module.exports = class aax extends Exchange {
             'markPrice': this.safeNumber (position, 'marketPrice'),
             'collateral': this.safeNumber (position, 'posMargin'),
             'marginMode': marginMode,
-            'marginType': marginMode, // ! deprecated
+            'marginType': marginMode, // deprecated
             'side': side,
             'percentage': undefined,
         };

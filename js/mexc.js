@@ -1721,7 +1721,7 @@ module.exports = class mexc extends Exchange {
             'leverage': this.parseNumber (leverage),
             'percentage': undefined,
             'marginMode': marginMode,
-            'marginType': marginMode, // ! deprecated
+            'marginType': marginMode, // deprecated
             'notional': undefined,
             'markPrice': undefined,
             'liquidationPrice': liquidationPrice,

@@ -3588,7 +3588,7 @@ module.exports = class zb extends Exchange {
             'leverage': this.parseNumber (leverage),
             'percentage': percentage,
             'marginMode': marginMode,
-            'marginType': marginMode, // ! deprecated
+            'marginType': marginMode, // deprecated
             'notional': notional,
             'markPrice': undefined,
             'liquidationPrice': liquidationPrice,

@@ -5122,7 +5122,7 @@ module.exports = class huobi extends Exchange {
             'leverage': this.parseNumber (leverage),
             'percentage': this.parseNumber (percentage),
             'marginMode': marginMode,
-            'marginType': marginMode, // ! deprecated
+            'marginType': marginMode, // deprecated
             'notional': this.parseNumber (notional),
             'markPrice': undefined,
             'liquidationPrice': liquidationPrice,
