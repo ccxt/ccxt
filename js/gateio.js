@@ -3229,174 +3229,169 @@ module.exports = class gateio extends Exchange {
          * @param {int} since earliest time in ms for orders in the response
          * @param {int} limit max number of order structures to return
          * @param {dict} params exchange specific params
+         * @param {bool} params.stop true for fetching stop orders
          * @param {str} params.type spot, margin, swap or future, if not provided this.options['defaultType'] is used
-         * @param {str} params.marginType 'cross' or 'isolated' - marginType for type='margin', if not provided this.options['defaultMarginType'] is used
+         * @param {str} params.marginType 'cross' or 'isolated' - marginType for margin trading if not provided this.options['defaultMarginType'] is used
          * @returns An array of order structures
          */
-        await this.loadMarkets ();
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', undefined, params);
-        if (symbol === undefined && (type === 'spot') || type === 'margin' || type === 'cross_margin') {
-            const request = {
-                // 'page': 1,
-                // 'limit': limit,
-                'account': type, // spot/margin (default), cross_margin
-            };
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
-            const response = await this.privateSpotGetOpenOrders (this.extend (request, params));
-            //
-            //     [
-            //         {
-            //             "currency_pair": "ETH_BTC",
-            //             "total": 1,
-            //             "orders": [
-            //                 {
-            //                     "id": "12332324",
-            //                     "text": "t-123456",
-            //                     "create_time": "1548000000",
-            //                     "update_time": "1548000100",
-            //                     "currency_pair": "ETH_BTC",
-            //                     "status": "open",
-            //                     "type": "limit",
-            //                     "account": "spot",
-            //                     "side": "buy",
-            //                     "amount": "1",
-            //                     "price": "5.00032",
-            //                     "time_in_force": "gtc",
-            //                     "left": "0.5",
-            //                     "filled_total": "2.50016",
-            //                     "fee": "0.005",
-            //                     "fee_currency": "ETH",
-            //                     "point_fee": "0",
-            //                     "gt_fee": "0",
-            //                     "gt_discount": false,
-            //                     "rebated_fee": "0",
-            //                     "rebated_fee_currency": "BTC"
-            //                 }
-            //             ]
-            //         },
-            //         ...
-            //     ]
-            //
-            // price_orders
-            //
-            //    [
-            //        {
-            //            "market": "ADA_USDT",
-            //            "user": 6693577,
-            //            "trigger": {
-            //                "price": "0.9",
-            //                "rule": "\u003c=",
-            //                "expiration": 86400
-            //            },
-            //            "put": {
-            //                "type": "limit",
-            //                "side": "sell",
-            //                "price": "0.9",
-            //                "amount": "2.00000000000000000000",
-            //                "account": "margin",
-            //                "time_in_force": "gtc"
-            //            },
-            //            "id": 8308730,
-            //            "ctime": 1650434238,
-            //            "status": "open"
-            //        }
-            //    ]
-            //
-            let allOrders = [];
-            for (let i = 0; i < response.length; i++) {
-                const entry = response[i];
-                const orders = this.safeValue (entry, 'orders', []);
-                const parsed = this.parseOrders (orders, undefined, since, limit);
-                allOrders = this.arrayConcat (allOrders, parsed);
-            }
-            return this.filterBySinceLimit (allOrders, since, limit);
-        }
         return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gateio#fetchClosedOrders
+         * @description fetches all closed orders
+         * @param {str} symbol Unified market symbol of the market to fetch orders for
+         * @param {int} since earliest time in ms for orders in the response
+         * @param {int} limit max number of order structures to return
+         * @param {dict} params exchange specific params
+         * @param {bool} params.stop true for fetching stop orders
+         * @param {str} params.type spot, swap or future, if not provided this.options['defaultType'] is used
+         * @param {str} params.marginType 'cross' or 'isolated' - marginType for margin trading if not provided this.options['defaultMarginType'] is used
+         * @returns An array of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         return await this.fetchOrdersByStatus ('finished', symbol, since, limit, params);
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const [ request, query ] = this.prepareRequest (market, undefined, params);
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        let marginType = undefined;
+        const stop = this.safeValue (params, 'stop');
+        params = this.omit (params, 'stop');
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
+        const spot = (type === 'spot') || (type === 'margin');
+        let request = {};
+        if (spot) {
+            [ marginType, params ] = this.getMarginType (stop, params);
+            request['account'] = marginType;
+            if (market !== undefined) {
+                if (stop) {
+                    // gateio spot and margin stop orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single stop order, but createOrder does not call this method
+                    request['market'] = market['id'];
+                } else {
+                    request['currency_pair'] = market['id'];
+                }
+            } else {
+                if (!stop) {
+                    throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus requires a symbol argument for spot non-stop orders');
+                }
+            }
+        } else {
+            [ request, params ] = this.prepareRequest (market, type, query);
+        }
+        if (status === 'closed') {
+            status = 'finished';
+        }
         request['status'] = status;
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (since !== undefined && (market['spot'] || market['margin'])) {
+        if (since !== undefined && spot) {
             request['from'] = parseInt (since / 1000);
         }
-        const method = this.getSupportedMapping (market['type'], {
-            'spot': 'privateSpotGetOrders',
-            'margin': 'privateSpotGetOrders',
-            'swap': 'privateFuturesGetSettleOrders',
-            'future': 'privateDeliveryGetSettleOrders',
+        const methodTail = stop ? 'PriceOrders' : 'Orders';
+        const method = this.getSupportedMapping (type, {
+            'spot': 'privateSpotGet' + methodTail,
+            'margin': 'privateSpotGet' + methodTail,
+            'swap': 'privateFuturesGetSettle' + methodTail,
+            'future': 'privateDeliveryGetSettle' + methodTail,
         });
-        if (market['type'] === 'margin' || market['type'] === 'cross_margin') {
-            request['account'] = market['type'];
-        }
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
         //
         // SPOT
         //
-        //    {
-        //        "id": "8834234273",
-        //        "text": "3",
-        //        "create_time": "1635406193",
-        //        "update_time": "1635406193",
-        //        "create_time_ms": 1635406193361,
-        //        "update_time_ms": 1635406193361,
-        //        "status": "closed",
-        //        "currency_pair": "BTC_USDT",
-        //        "type": "limit",
-        //        "account": "spot",
-        //        "side": "sell",
-        //        "amount": "0.0002",
-        //        "price": "58904.01",
-        //        "time_in_force": "gtc",
-        //        "iceberg": "0",
-        //        "left": "0.0000",
-        //        "fill_price": "11.790516",
-        //        "filled_total": "11.790516",
-        //        "fee": "0.023581032",
-        //        "fee_currency": "USDT",
-        //        "point_fee": "0",
-        //        "gt_fee": "0",
-        //        "gt_discount": false,
-        //        "rebated_fee_currency": "BTC"
-        //    }
+        //    [
+        //        {
+        //           "id": "8834234273",
+        //           "text": "3",
+        //           "create_time": "1635406193",
+        //           "update_time": "1635406193",
+        //           "create_time_ms": 1635406193361,
+        //           "update_time_ms": 1635406193361,
+        //           "status": "closed",
+        //           "currency_pair": "BTC_USDT",
+        //           "type": "limit",
+        //           "account": "spot", // margin for margin orders
+        //           "side": "sell",
+        //           "amount": "0.0002",
+        //           "price": "58904.01",
+        //           "time_in_force": "gtc",
+        //           "iceberg": "0",
+        //           "left": "0.0000",
+        //           "fill_price": "11.790516",
+        //           "filled_total": "11.790516",
+        //           "fee": "0.023581032",
+        //           "fee_currency": "USDT",
+        //           "point_fee": "0",
+        //           "gt_fee": "0",
+        //           "gt_discount": false,
+        //           "rebated_fee_currency": "BTC"
+        //        }
+        //    ]
+        //
+        // Spot Stop
+        //
+        //    [
+        //        {
+        //            "market": "ADA_USDT",
+        //            "user": 10406147,
+        //            "trigger": {
+        //                "price": "0.65",
+        //                "rule": "\u003c=",
+        //                "expiration": 86400
+        //            },
+        //            "put": {
+        //                "type": "limit",
+        //                "side": "sell",
+        //                "price": "0.65",
+        //                "amount": "2.00000000000000000000",
+        //                "account": "normal",  // margin for margin orders
+        //                "time_in_force": "gtc"
+        //            },
+        //            "id": 8449909,
+        //            "ctime": 1652188982,
+        //            "status": "open"
+        //        }
+        //    ]
         //
         // Perpetual Swap
         //
-        //    {
-        //        "status": "finished",
-        //        "size": -1,
-        //        "left": 0,
-        //        "id": 82750739203,
-        //        "is_liq": false,
-        //        "is_close": false,
-        //        "contract": "BTC_USDT",
-        //        "text": "web",
-        //        "fill_price": "60721.3",
-        //        "finish_as": "filled",
-        //        "iceberg": 0,
-        //        "tif": "ioc",
-        //        "is_reduce_only": true,
-        //        "create_time": 1635403475.412,
-        //        "finish_time": 1635403475.4127,
-        //        "price": "0"
-        //    }
+        //    [
+        //        {
+        //           "status": "finished",
+        //           "size": -1,
+        //           "left": 0,
+        //           "id": 82750739203,
+        //           "is_liq": false,
+        //           "is_close": false,
+        //           "contract": "BTC_USDT",
+        //           "text": "web",
+        //           "fill_price": "60721.3",
+        //           "finish_as": "filled",
+        //           "iceberg": 0,
+        //           "tif": "ioc",
+        //           "is_reduce_only": true,
+        //           "create_time": 1635403475.412,
+        //           "finish_time": 1635403475.4127,
+        //           "price": "0"
+        //        }
+        //    ]
         //
-        return this.parseOrders (response, market, since, limit);
+        let filteredResponse = [];
+        if (spot && !stop) {
+            for (let i = 0; i < response.length; i++) {
+                const order = response[i];
+                const account = this.safeString (order, 'account');
+                if (account === marginType) {
+                    filteredResponse.push (order);
+                }
+            }
+        } else {
+            filteredResponse = response;
+        }
+        return this.parseOrders (filteredResponse, market, since, limit);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
