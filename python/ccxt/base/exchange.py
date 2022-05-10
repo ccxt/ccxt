@@ -359,7 +359,6 @@ class Exchange(object):
     commonCurrencies = {
         'XBT': 'BTC',
         'BCC': 'BCH',
-        'DRK': 'DASH',
         'BCHABC': 'BCH',
         'BCHSV': 'BSV',
     }
