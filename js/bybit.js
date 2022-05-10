@@ -2167,21 +2167,20 @@ module.exports = class bybit extends Exchange {
     parseOrderStatus (status) {
         const statuses = {
             // basic orders
-            'Created': 'open',
-            'Rejected': 'rejected', // order is triggered but failed upon being placed
-            'New': 'open',
-            'NEW': 'open',
-            'PartiallyFilled': 'open',
-            'Filled': 'closed',
-            'Cancelled': 'canceled',
-            'PendingCancel': 'canceling', // the engine has received the cancellation but there is no guarantee that it will be successful
+            'created': 'open',
+            'rejected': 'rejected', // order is triggered but failed upon being placed
+            'new': 'open',
+            'partiallyfilled': 'open',
+            'filled': 'closed',
+            'cancelled': 'canceled',
+            'pendingcancel': 'canceling', // the engine has received the cancellation but there is no guarantee that it will be successful
             // conditional orders
-            'Active': 'open', // order is triggered and placed successfully
-            'Untriggered': 'open', // order waits to be triggered
-            'Triggered': 'closed', // order is triggered
+            'active': 'open', // order is triggered and placed successfully
+            'untriggered': 'open', // order waits to be triggered
+            'triggered': 'closed', // order is triggered
             // 'Cancelled': 'canceled', // order is cancelled
             // 'Rejected': 'rejected', // order is triggered but fail to be placed
-            'Deactivated': 'canceled', // conditional order was cancelled before triggering
+            'deactivated': 'canceled', // conditional order was cancelled before triggering
         };
         return this.safeString (statuses, status, status);
     }
@@ -2393,9 +2392,9 @@ module.exports = class bybit extends Exchange {
                 lastTradeTimestamp = this.safeNumber (order, 'updateTime');
             }
         }
-        let raw_status = this.safeString2 (order, 'order_status', 'stop_order_status');
+        let raw_status = this.safeStringLower2 (order, 'order_status', 'stop_order_status');
         if (raw_status === undefined) {
-            raw_status = this.safeString (order, 'status');
+            raw_status = this.safeStringLower (order, 'status');
         }
         const status = this.parseOrderStatus (raw_status);
         const side = this.safeStringLower (order, 'side');
@@ -2906,7 +2905,9 @@ module.exports = class bybit extends Exchange {
             throw new NotSupported (this.id + ' fetchOrders() does not support market ' + market['symbol']);
         }
         let method = undefined;
-        const isConditionalOrder = false; // to do
+        const type = this.safeStringLower (params, 'type');
+        params = this.omit (params, 'type');
+        const isConditionalOrder = (type === 'stop') || (type === 'conditional');
         if (market['linear']) {
             method = !isConditionalOrder ? 'privateGetPrivateLinearOrderList' : 'privateGetPrivateLinearStopOrderList';
         } else if (market['future']) {
@@ -3044,7 +3045,7 @@ module.exports = class bybit extends Exchange {
             const type = this.safeStringLower (params, 'type');
             const isConditional = (type === 'stop') || (type === 'conditional');
             let defaultStatuses = undefined;
-            if (isConditional) {
+            if (!isConditional) {
                 defaultStatuses = [
                     'Rejected',
                     'Filled',
@@ -3073,10 +3074,13 @@ module.exports = class bybit extends Exchange {
         } else {
             // usdc
             method = 'privatePostOptionUsdcOpenapiPrivateV1QueryOrderHistory';
-            request['category'] = (type === 'swap') ? 'perpertual' : 'option';
+            request['category'] = (type === 'swap') ? 'perpetual' : 'option';
         }
-        const orders = await this[method] (symbol, since, limit, this.extend (request, params));
-        const result = this.safeValue2 (orders, 'result', 'dataList', []);
+        const orders = await this[method] (this.extend (request, params));
+        let result = this.safeValue (orders, 'result', []);
+        if (!Array.isArray (result)) {
+            result = this.safeValue (result, 'dataList', []);
+        }
         return this.parseOrders (result, market, since, limit);
     }
 
@@ -3125,10 +3129,13 @@ module.exports = class bybit extends Exchange {
         } else {
             // usdc
             method = 'privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders';
-            request['category'] = (type === 'swap') ? 'perpertual' : 'option';
+            request['category'] = (type === 'swap') ? 'perpetual' : 'option';
         }
-        const orders = await this[method] (symbol, since, limit, this.extend (request, params));
-        const result = this.safeValue (orders, 'result', []);
+        const orders = await this[method] (this.extend (request, params));
+        let result = this.safeValue (orders, 'result', []);
+        if (!Array.isArray (result)) {
+            result = this.safeValue (result, 'dataList', []);
+        }
         // {
         //     "ret_code":0,
         //     "ret_msg":"",
