@@ -501,6 +501,8 @@ module.exports = class fairdesk extends Exchange {
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const last = this.safeNumber (ticker, 'close');
         const open = this.safeNumber (ticker, 'open');
+        const change = last - open;
+        const percentage = ((last - open) / open) * 100;
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -516,8 +518,8 @@ module.exports = class fairdesk extends Exchange {
             'askVolume': undefined,
             'vwap': undefined,
             'previousClose': undefined, // previous day close
-            'change': (last - open).toString (),
-            'percentage': ((last - open) / open * 100).toString (),
+            'change': change.toString (),
+            'percentage': percentage.toString (),
             'average': this.safeString (ticker, 'averagePrice'),
             'baseVolume': this.safeString (ticker, 'baseVolume'),
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),
@@ -641,6 +643,12 @@ module.exports = class fairdesk extends Exchange {
         const isMaker = this.safeValue (trade, 'maker');
         const side = this.safeStringLower (trade, 'side');
         const positionSide = this.safeStringLower (trade, 'positionSide');
+        let takerOrMaker = '';
+        if (isMaker) {
+            takerOrMaker = 'maker';
+        } else {
+            takerOrMaker = 'taker';
+        }
         return {
             'info': trade,
             'id': this.safeString (trade, 'tradeId'),
@@ -649,7 +657,7 @@ module.exports = class fairdesk extends Exchange {
             'type': undefined,
             'side': side,
             'positionSide': positionSide,
-            'takerOrMaker': isMaker ? 'maker' : 'taker',
+            'takerOrMaker': takerOrMaker,
             'price': this.safeString (trade, 'lastPrice'),
             'amount': this.safeString (trade, 'lastQty'),
             'cost': undefined,
