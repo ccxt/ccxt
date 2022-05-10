@@ -17,7 +17,10 @@ module.exports = class oceanex extends Exchange {
             'rateLimit': 3000,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg',
-                'api': 'https://api.oceanex.pro',
+                'api': {
+                    'spot': 'https://api.oceanex.pro',
+                    'contract': 'https://contract.oceanex.cc/api/',
+                },
                 'www': 'https://www.oceanex.pro.com',
                 'doc': 'https://api.oceanex.pro/doc/v1',
                 'referral': 'https://oceanex.pro/signup?referral=VE24QX',
@@ -56,6 +59,9 @@ module.exports = class oceanex extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTradingLimits': undefined,
+                'fetchTransfer': false,
+                'fetchTransfers': true,
+                'transfer': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -72,35 +78,69 @@ module.exports = class oceanex extends Exchange {
                 '1w': '10080',
             },
             'api': {
-                'public': {
-                    'get': [
-                        'markets',
-                        'tickers/{pair}',
-                        'tickers_multi',
-                        'order_book',
-                        'order_book/multi',
-                        'fees/trading',
-                        'trades',
-                        'timestamp',
-                    ],
-                    'post': [
-                        'k',
-                    ],
+                'spot': {
+                    'public': {
+                        'get': [
+                            'markets',
+                            'tickers/{pair}',
+                            'tickers_multi',
+                            'order_book',
+                            'order_book/multi',
+                            'fees/trading',
+                            'trades',
+                            'timestamp',
+                        ],
+                        'post': [
+                            'k',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'key',
+                            'members/me',
+                            'orders',
+                            'orders/filter',
+                        ],
+                        'post': [
+                            'orders',
+                            'orders/multi',
+                            'order/delete',
+                            'order/delete/multi',
+                            'orders/clear',
+                        ],
+                    },
                 },
-                'private': {
-                    'get': [
-                        'key',
-                        'members/me',
-                        'orders',
-                        'orders/filter',
-                    ],
-                    'post': [
-                        'orders',
-                        'orders/multi',
-                        'order/delete',
-                        'order/delete/multi',
-                        'orders/clear',
-                    ],
+                'contract': {
+                    'public': {
+                        'get': [
+                            'ifcontract/quote',
+                            'ifcontract/tickers',
+                            'ifcontract/trades',
+                            'ifcontract/depth',
+                            'ifcontract/contracts',
+                            'ifcontract/fundingrate',
+                            'ifcontract/insuranceBalance',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'ifcontract/userLiqRecords',
+                            'ifcontract/orderTrades',
+                            'ifcontract/userTrades',
+                            'ifcontract/accounts',
+                            'ifcontract/userOrders',
+                            'ifcontract/userPositions',
+                            'ifcontract/profile',
+                            'ifcontract/funds/transfer',
+                        ],
+                        'post': [
+                            'ifcontract/marginOper',
+                            'ifcontract/cancelOrder',
+                            'ifcontract/submitOrder',
+                            'ifcontract/funds/transfer',
+                            'ifcontract/createContractAccount',
+                        ],
+                    },
                 },
             },
             'fees': {
@@ -136,12 +176,21 @@ module.exports = class oceanex extends Exchange {
                     'The account does not exist': AuthenticationError,
                 },
             },
+            'options': {
+                'accountsByType': {
+                    'spot': 'exchange',
+                    'future': 'futures',
+                },
+                'fetchTransfers': {
+                    'defaultCategory': 'withdraw', // or 'deposit'
+                },
+            },
         });
     }
 
     async fetchMarkets (params = {}) {
         const request = { 'show_details': true };
-        const response = await this.publicGetMarkets (this.extend (request, params));
+        const response = await this.spotPublicGetMarkets (this.extend (request, params));
         //
         //    {
         //        id: 'xtzusdt',
@@ -157,6 +206,71 @@ module.exports = class oceanex extends Exchange {
         //
         const result = [];
         const markets = this.safeValue (response, 'data');
+        // const contractResponse = await this.contractPublicGetContracts (params);
+        //
+        //     {
+        //         "code": 0,
+        //         "message": "Operation is successful",
+        //         "data": {
+        //             "contracts": [{
+        //                 "contract": {
+        //                     "contract_id": 1,
+        //                     "index_id": 1,
+        //                     "name": "BTCUSDT(USDT)",
+        //                     "display_name": "BTCUSDT(USDT)",
+        //                     "contract_type": 1,
+        //                     "base_coin": "btc",
+        //                     "quote_coin": "usdt",
+        //                     "price_coin": "btc",
+        //                     "contract_size": "0.0001",
+        //                     "delivery_cycle": "28800.0",
+        //                     "min_leverage": "10.0",
+        //                     "max_leverage": "100.0",
+        //                     "leverage_step": "0.1",
+        //                     "price_unit": "0.01",
+        //                     "vol_unit": "1.0",
+        //                     "value_unit": "0.0001",
+        //                     "price_precision": 2,
+        //                     "volume_precision": 0,
+        //                     "value_precision": 4,
+        //                     "min_vol": "1.0",
+        //                     "max_vol": "300000.0",
+        //                     "liquidation_warn_ratio": "0.85",
+        //                     "fast_liquidation_ratio": "0.8",
+        //                     "settle_type": 1,
+        //                     "open_type": 3,
+        //                     "compensate_type": 1,
+        //                     "status": 1,
+        //                     "display_index": 1,
+        //                     "index_sources": {
+        //                         "binance": 50,
+        //                         "coinbase": 50
+        //                     },
+        //                     "created_at": "2020-06-11T18:13:34Z",
+        //                     "updated_at": "2020-06-11T18:13:34Z"
+        //                 },
+        //                 "risk_limit": {
+        //                     "contract_id": 1,
+        //                     "base_limit": "1000000.0",
+        //                     "step": "500000.0",
+        //                     "maintenance_margin": "0.005",
+        //                     "initial_margin": "0.01"
+        //                 },
+        //                 "fee_config": {
+        //                     "contract_id": 1,
+        //                     "maker_fee": "-0.0003",
+        //                     "taker_fee": "0.001",
+        //                     "settlement_fee": "0.0"
+        //                 },
+        //                 "plan_order_config": {
+        //                     "contract_id": 1
+        //                 }
+        //             }]
+        //         }
+        //     }
+        //
+        // const data = this.safeValue (contractResponse, 'data', {});
+        // const contracts = this.safeValue (data, 'contracts', []);
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeValue (market, 'id');
@@ -256,7 +370,7 @@ module.exports = class oceanex extends Exchange {
         }
         const marketIds = this.marketIds (symbols);
         const request = { 'markets': marketIds };
-        const response = await this.publicGetTickersMulti (this.extend (request, params));
+        const response = await this.spotPublicGetTickersMulti (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -336,7 +450,7 @@ module.exports = class oceanex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetOrderBook (this.extend (request, params));
+        const response = await this.spotPublicGetOrderBook (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -373,7 +487,7 @@ module.exports = class oceanex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetOrderBookMulti (this.extend (request, params));
+        const response = await this.spotPublicGetOrderBookMulti (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -418,7 +532,7 @@ module.exports = class oceanex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetTrades (this.extend (request, params));
+        const response = await this.spotPublicGetTrades (this.extend (request, params));
         //
         //      {
         //          "code":0,
@@ -488,7 +602,7 @@ module.exports = class oceanex extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const response = await this.publicGetTimestamp (params);
+        const response = await this.spotPublicGetTimestamp (params);
         //
         //     {"code":0,"message":"Operation successful","data":1559433420}
         //
@@ -517,7 +631,7 @@ module.exports = class oceanex extends Exchange {
     }
 
     async fetchKey (params = {}) {
-        const response = await this.privateGetKey (params);
+        const response = await this.spotPrivateGetKey (params);
         return this.safeValue (response, 'data');
     }
 
@@ -539,7 +653,7 @@ module.exports = class oceanex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetMembersMe (params);
+        const response = await this.spotPrivateGetMembersMe (params);
         return this.parseBalance (response);
     }
 
@@ -555,7 +669,7 @@ module.exports = class oceanex extends Exchange {
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.privatePostOrders (this.extend (request, params));
+        const response = await this.spotPrivatePostOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrder (data, market);
     }
@@ -571,7 +685,7 @@ module.exports = class oceanex extends Exchange {
             market = this.market (symbol);
         }
         const request = { 'ids': ids };
-        const response = await this.privateGetOrders (this.extend (request, params));
+        const response = await this.spotPrivateGetOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         const dataLength = data.length;
         if (data === undefined) {
@@ -616,7 +730,7 @@ module.exports = class oceanex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetOrdersFilter (this.extend (request, query));
+        const response = await this.spotPrivateGetOrdersFilter (this.extend (request, query));
         const data = this.safeValue (response, 'data', []);
         let result = [];
         for (let i = 0; i < data.length; i++) {
@@ -660,7 +774,7 @@ module.exports = class oceanex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicPostK (this.extend (request, params));
+        const response = await this.spotPublicPostK (this.extend (request, params));
         const ohlcvs = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
@@ -737,36 +851,157 @@ module.exports = class oceanex extends Exchange {
             'orders': orders,
         };
         // orders: [{"side":"buy", "volume":.2, "price":1001}, {"side":"sell", "volume":0.2, "price":1002}]
-        const response = await this.privatePostOrdersMulti (this.extend (request, params));
+        const response = await this.spotPrivatePostOrdersMulti (this.extend (request, params));
         const data = response['data'];
         return this.parseOrders (data);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostOrderDelete (this.extend ({ 'id': id }, params));
+        const response = await this.spotPrivatePostOrderDelete (this.extend ({ 'id': id }, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrder (data);
     }
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostOrderDeleteMulti (this.extend ({ 'ids': ids }, params));
+        const response = await this.spotPrivatePostOrderDeleteMulti (this.extend ({ 'ids': ids }, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrders (data);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostOrdersClear (params);
+        const response = await this.spotPrivatePostOrdersClear (params);
         const data = this.safeValue (response, 'data');
         return this.parseOrders (data);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const fetchTransfers = this.safeString2 (this.options, 'fetchTransfers', {});
+        const defaultCategory = this.safeString (fetchTransfers, 'defaultCategory');
+        const request = {
+            'category': defaultCategory,
+            'coinCode': currency['id'],
+            'status': 3, // Status of position. holding: 1, system_in: 2, holding + system_in: 3, closed: 4
+        };
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this.contractPrivateGetIfcontractFundsTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "message": "Operation is successful",
+        //         "data": {
+        //             "num_of_resources": 2,
+        //             "account_transfers": [{
+        //                 "id": 3,
+        //                 "order_num": "contract_b51982d7-3afa-45c4-9927-e510734d45b0",
+        //                 "currency_id": "btc",
+        //                 "category": "deposit",
+        //                 "state": "completed",
+        //                 "amount": "950.0",
+        //                 "created_at": 1582748967,
+        //                 "updated_at": 1582748968
+        //             }]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const transfers = this.safeValue (data, 'account_transfers', []);
+        return this.parseTransfers (transfers, currency, since, limit, params);
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        let category = 'withdraw';
+        if (fromId === 'exchange' && toId === 'futures') {
+            category = 'deposit';
+        } else if (fromId === 'futures' && toId === 'exchange') {
+            category = 'withdraw';
+        } else {
+            throw new ExchangeError (this.id + ' transfer() allows from spot to future or from future to spot');
+        }
+        const request = {
+            'coinCode': currency['id'],
+            'amount': amount,
+            'category': category,
+        };
+        const response = await this.contractPrivatePostIfcontractFundsTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "code":0,
+        //         "message":"Operation is successful",
+        //         "data": {
+        //             "id": 1,
+        //             "order_num": "contract_a78cce70-4226-44ac-b416-246d506ff167",
+        //             "currency_id": "usd",
+        //             "category": "withdraw",
+        //             "state": "processing",
+        //             "amount": "20.0",
+        //             "created_at": 1578688239,
+        //             "updated_at": 1578688239
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseTransfer (data, currency);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         "id": 1,
+        //         "order_num": "contract_a78cce70-4226-44ac-b416-246d506ff167",
+        //         "currency_id": "usd",
+        //         "category": "withdraw",
+        //         "state": "processing",
+        //         "amount": "20.0",
+        //         "created_at": 1578688239,
+        //         "updated_at": 1578688239
+        //     }
+        //
+        const currencyId = this.safeNumber (transfer, 'currency_id');
+        const timestamp = this.safeTimestamp (transfer, 'created_at');
+        const category = this.safeString (transfer, 'category');
+        const status = this.safeString (transfer, 'state');
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'code': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': category === 'withdraw' ? 'spot' : 'future',
+            'toAccount': category === 'withdraw' ? 'future' : 'spot',
+            'status': this.parseTransferStatus (status),
+        };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'processing': 'pending',
+            'completed': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    sign (path, api = [ 'spot', 'public' ], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const [ type, access ] = api;
+        let url = this.urls['api'][type] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
+        headers = { 'Content-Type': 'application/json' };
+        if (type === 'spot' && access === 'public') {
             if (path === 'tickers_multi' || path === 'order_book/multi') {
                 let request = '?';
                 const markets = this.safeValue (params, 'markets');
@@ -781,7 +1016,7 @@ module.exports = class oceanex extends Exchange {
             } else if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (api === 'private') {
+        } else if (type === 'spot' && access === 'private') {
             this.checkRequiredCredentials ();
             const request = {
                 'uid': this.apiKey,
@@ -792,8 +1027,15 @@ module.exports = class oceanex extends Exchange {
             // exchange.secret = fs.readFileSync ('oceanex.pem', 'utf8')
             const jwt_token = this.jwt (request, this.encode (this.secret), 'RS256');
             url += '?user_jwt=' + jwt_token;
+        } else if (type === 'contract' && access === 'public') {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        } else if (type === 'contract' && access === 'private') {
+            this.checkRequiredCredentials ();
+            headers['X-API-KEY'] = this.apiKey;
+            headers['Authorization'] = this.jwt;
         }
-        headers = { 'Content-Type': 'application/json' };
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
