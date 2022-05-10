@@ -1012,6 +1012,7 @@ module.exports = class phemex extends Exchange {
         };
         const duration = this.parseTimeframe (timeframe);
         const now = this.seconds ();
+        // the exchange does not return the current 1m candle
         if (since !== undefined) {
             if (limit === undefined) {
                 limit = 2000; // max 2000
