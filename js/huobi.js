@@ -132,7 +132,17 @@ module.exports = class huobi extends Exchange {
                 'hostnames': {
                     'contract': 'api.hbdm.com',
                     'spot': 'api.huobi.pro',
-                    'statusSpot': 'status.huobigroup.com',
+                    'status': {
+                        'spot': 'status.huobigroup.com',
+                        'future': {
+                            'inverse': 'status-dm.huobigroup.com',
+                            'linear': '',
+                        },
+                        'swap': {
+                            'inverse': '',
+                            'linear': '',
+                        },
+                    },
                     'statusFutures': 'status-dm.huobigroup.com',
                     'statusInverseSwap': 'status-swap.huobigroup.com',
                     'statusLinearSwap': 'status-linear-swap.huobigroup.com',
