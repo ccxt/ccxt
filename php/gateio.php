@@ -3765,7 +3765,7 @@ class gateio extends Exchange {
             'markPrice' => $this->safe_number($position, 'mark_price'),
             'collateral' => $this->safe_number($position, 'margin'),
             'marginMode' => $marginMode,
-            'marginType' => $marginMode, // ! deprecated
+            'marginType' => $marginMode, // deprecated
             'side' => $side,
             'percentage' => $this->parse_number($percentage),
         );

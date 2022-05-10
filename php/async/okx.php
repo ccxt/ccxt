@@ -3823,7 +3823,7 @@ class okx extends Exchange {
             'symbol' => $symbol,
             'notional' => $notional,
             'marginMode' => $marginMode,
-            'marginType' => $marginMode, // ! deprecated
+            'marginType' => $marginMode, // deprecated
             'liquidationPrice' => $liquidationPrice,
             'entryPrice' => $this->parse_number($entryPriceString),
             'unrealizedPnl' => $this->parse_number($unrealizedPnlString),
@@ -4737,7 +4737,7 @@ class okx extends Exchange {
         return array(
             'account' => $account, // deprecated
             'symbol' => $this->safe_string($market, 'symbol'),
-            'marginType' => $marginMode, // ! deprecated
+            'marginType' => $marginMode, // deprecated
             'marginMode' => $marginMode,
             'currency' => $this->safe_currency_code($this->safe_string($info, 'ccy')),
             'interest' => $this->safe_number($info, 'interest'),

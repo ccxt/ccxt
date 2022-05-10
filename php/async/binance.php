@@ -4640,7 +4640,7 @@ class binance extends Exchange {
             'markPrice' => null,
             'collateral' => $collateral,
             'marginMode' => $marginMode,
-            'marginType' => $marginMode, // ! deprecated
+            'marginType' => $marginMode, // deprecated
             'side' => $side,
             'hedged' => $hedged,
             'percentage' => $percentage,
@@ -4809,7 +4809,7 @@ class binance extends Exchange {
             'marginRatio' => $marginRatio,
             'datetime' => $this->iso8601($timestamp),
             'marginMode' => $marginMode,
-            'marginType' => $marginMode, // ! deprecated
+            'marginType' => $marginMode, // deprecated
             'side' => $side,
             'hedged' => $hedged,
             'percentage' => $percentage,
@@ -5649,7 +5649,7 @@ class binance extends Exchange {
         return array(
             'account' => ($symbol === null) ? 'cross' : $symbol,
             'symbol' => $symbol,
-            'marginType' => $marginMode, // ! deprecated
+            'marginType' => $marginMode, // deprecated
             'marginMode' => $marginMode,
             'currency' => $this->safe_currency_code($this->safe_string($info, 'asset')),
             'interest' => $this->safe_number($info, 'interest'),

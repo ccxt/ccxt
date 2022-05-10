@@ -1726,7 +1726,7 @@ class mexc extends Exchange {
             'leverage' => $this->parse_number($leverage),
             'percentage' => null,
             'marginMode' => $marginMode,
-            'marginType' => $marginMode, // ! deprecated
+            'marginType' => $marginMode, // deprecated
             'notional' => null,
             'markPrice' => null,
             'liquidationPrice' => $liquidationPrice,
