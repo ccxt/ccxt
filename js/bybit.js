@@ -2467,7 +2467,8 @@ module.exports = class bybit extends Exchange {
         if (isUsdcSettled || market['future'] || market['inverse']) {
             return this.fetchOpenOrders (symbol, undefined, undefined, params);
         } else {
-            // only linear swaps allow filtering by id using fetchOrders endpoint
+            // only linear swap markets allow using all purpose
+            // fetchOrders endpoint filtering by id
             return this.fetchOrders (symbol, undefined, undefined, params);
         }
     }
@@ -3154,7 +3155,11 @@ module.exports = class bybit extends Exchange {
         const orders = await this[method] (this.extend (request, params));
         let result = this.safeValue (orders, 'result', []);
         if (!Array.isArray (result)) {
-            result = this.safeValue (result, 'dataList', []);
+            const dataList = this.safeValue (result, 'dataList');
+            if (dataList === undefined) {
+                return this.parseOrder (result, market);
+            }
+            result = dataList;
         }
         // {
         //     "ret_code":0,
