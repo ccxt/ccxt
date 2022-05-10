@@ -949,7 +949,7 @@ module.exports = class Exchange {
                 ],
             },
         };
-        return [ apikeySet, initialPermissions, privatePermissionsTree];
+        return [ apikeySet, initialPermissions, privatePermissionsTree ];
     }
 
     safePermissions (permissionsMap = {}) {
