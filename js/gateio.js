@@ -3274,8 +3274,8 @@ module.exports = class gateio extends Exchange {
                     request['currency_pair'] = market['id'];
                 }
             } else {
-                if (!stop) {
-                    throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus requires a symbol argument for spot non-stop orders');
+                if (!stop && (status === 'open')) {
+                    throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus requires a symbol argument for spot non-stop open orders');
                 }
             }
         } else {
