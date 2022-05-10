@@ -2931,7 +2931,7 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
         //
         // linear swap
         //
@@ -3024,55 +3024,94 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const defaultStatuses = [
-            'Rejected',
-            'Filled',
-            'Cancelled',
-            // conditional orders
-            // 'Active',
-            // 'Triggered',
-            // 'Cancelled',
-            // 'Rejected',
-            // 'Deactivated',
-        ];
-        const options = this.safeValue (this.options, 'fetchClosedOrders', {});
-        let status = this.safeValue (options, 'order_status', defaultStatuses);
-        if (Array.isArray (status)) {
-            status = status.join (',');
+        let market = undefined;
+        let isUsdcSettled = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            isUsdcSettled = market['settle'] === 'USDC';
+        } else {
+            let settle = this.safeString (this.options, 'defaultSettle');
+            settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
+            params = this.omit (params, [ 'settle', 'defaultSettle' ]);
+            isUsdcSettled = settle === 'USDC';
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
+        if ((type === 'swap' || type === 'future') && !isUsdcSettled) {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a symbol argument for ' + symbol + ' markets');
+            }
+            const type = this.safeStringLower (params, 'type');
+            const isConditional = (type === 'stop') || (type === 'conditional');
+            let defaultStatuses = undefined;
+            if (isConditional) {
+                defaultStatuses = [
+                    'Rejected',
+                    'Filled',
+                    'Cancelled',
+                ];
+            } else {
+                // conditional orders
+                defaultStatuses = [
+                    'Active',
+                    'Triggered',
+                    'Cancelled',
+                    'Rejected',
+                    'Deactivated',
+                ];
+            }
+            const closeStatus = defaultStatuses.join (',');
+            const status = this.safeString2 (params, 'order_status', 'status', closeStatus);
+            params = this.omit (params, [ 'order_status', 'status' ]);
+            params['order_status'] = status;
+            return await this.fetchOrders (symbol, since, limit, params);
         }
         const request = {};
-        const stopOrderStatus = this.safeValue (params, 'stop_order_status');
-        if (stopOrderStatus === undefined) {
-            request['order_status'] = status;
+        let method = undefined;
+        if (type === 'spot') {
+            method = 'privateGetSpotV1HistoryOrders';
         } else {
-            request['stop_order_status'] = stopOrderStatus;
+            // usdc
+            method = 'privatePostOptionUsdcOpenapiPrivateV1QueryOrderHistory';
+            request['category'] = (type === 'swap') ? 'perpertual' : 'option';
         }
-        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+        const orders = await this[method] (symbol, since, limit, this.extend (request, params));
+        const result = this.safeValue2 (orders, 'result', 'dataList', []);
+        return this.parseOrders (result, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // usdc ->privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders [category perpertual/option] // symbol not required
-        // inverse swap -> privateGetV2PrivateOrderList [can get status here too] -> use fetchOrders
-        // linear swap => privateGetPrivateLinearOrderList -> requires Symbol, can get statuses here -> use fetchOrders
-        // spot -> peivateGetSpotV1OpenOrders -> symbol not required
         let market = undefined;
+        let isUsdcSettled = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            isUsdcSettled = market['settle'] === 'USDC';
+        } else {
+            let settle = this.safeString (this.options, 'defaultSettle');
+            settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
+            params = this.omit (params, [ 'settle', 'defaultSettle' ]);
+            isUsdcSettled = settle === 'USDC';
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        if (type === 'swap' || type === 'future') {
+        if ((type === 'swap' || type === 'future') && !isUsdcSettled) {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument for ' + type + ' markets');
+                throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument for ' + symbol + ' markets');
             }
-            const defaultStatuses = [
-                'Created',
-                'New',
-                'PartiallyFilled',
-                'PendingCancel',
+            const type = this.safeStringLower (params, 'type');
+            const isConditional = (type === 'stop') || (type === 'conditional');
+            let defaultStatuses = undefined;
+            if (isConditional) {
+                defaultStatuses = [
+                    'Created',
+                    'New',
+                    'PartiallyFilled',
+                    'PendingCancel',
+                ];
+            } else {
                 // conditional orders
-                // 'Untriggered',
-            ];
+                defaultStatuses = [ 'Untriggered' ];
+            }
             const openStatus = defaultStatuses.join (',');
             const status = this.safeString2 (params, 'order_status', 'status', openStatus);
             params = this.omit (params, [ 'order_status', 'status' ]);
@@ -3120,7 +3159,7 @@ module.exports = class bybit extends Exchange {
         //        }
         //     ]
         //  }
-        return this.parseOrders (result);
+        return this.parseOrders (result, market, since, limit);
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
