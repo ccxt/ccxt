@@ -1868,7 +1868,8 @@ class deribit(Exchange):
             'liquidationPrice': self.safe_number(position, 'estimated_liquidation_price'),
             'markPrice': markPrice,
             'collateral': None,
-            'marginType': None,
+            'marginMode': None,
+            'marginType': None,  # ! deprecated
             'side': side,
             'percentage': self.parse_number(percentage),
         }

@@ -2335,13 +2335,13 @@ class ascendex extends Exchange {
         return yield $this->v2PrivateAccountGroupPostFuturesLeverage (array_merge($request, $params));
     }
 
-    public function set_margin_mode($marginType, $symbol = null, $params = array ()) {
-        $marginType = strtolower($marginType);
-        if ($marginType === 'cross') {
-            $marginType = 'crossed';
+    public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
+        $marginMode = strtolower($marginMode);
+        if ($marginMode === 'cross') {
+            $marginMode = 'crossed';
         }
-        if ($marginType !== 'isolated' && $marginType !== 'crossed') {
-            throw new BadRequest($this->id . ' setMarginMode() $marginType argument should be isolated or cross');
+        if ($marginMode !== 'isolated' && $marginMode !== 'crossed') {
+            throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');
         }
         yield $this->load_markets();
         yield $this->load_accounts();
@@ -2351,7 +2351,7 @@ class ascendex extends Exchange {
         $request = array(
             'account-group' => $accountGroup,
             'symbol' => $market['id'],
-            'marginType' => $marginType,
+            'marginMode' => $marginMode,
         );
         if ($market['type'] !== 'future') {
             throw new BadSymbol($this->id . ' setMarginMode() supports futures contracts only');

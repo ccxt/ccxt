@@ -1625,7 +1625,8 @@ class currencycom(Exchange):
             'unrealizedProfit': unrealizedProfit,
             'leverage': leverage,
             'percentage': None,
-            'marginType': None,
+            'marginMode': None,
+            'marginType': None,  # ! deprecated
             'notional': None,
             'markPrice': None,
             'liquidationPrice': None,

@@ -2334,20 +2334,20 @@ class bitget extends Exchange {
         return $this->privateMixPostAccountSetLeverage (array_merge($request, $params));
     }
 
-    public function set_margin_mode($marginType, $symbol = null, $params = array ()) {
+    public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
         }
-        $marginType = strtolower($marginType);
-        if (($marginType !== 'fixed') && ($marginType !== 'crossed')) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() $marginType must be "fixed" or "crossed"');
+        $marginMode = strtolower($marginMode);
+        if (($marginMode !== 'fixed') && ($marginMode !== 'crossed')) {
+            throw new ArgumentsRequired($this->id . ' setMarginMode() $marginMode must be "fixed" or "crossed"');
         }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'marginCoin' => $market['settleId'],
-            'marginMode' => $marginType,
+            'marginMode' => $marginMode,
         );
         return $this->privateMixPostAccountSetMarginMode (array_merge($request, $params));
     }

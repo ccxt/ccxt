@@ -3569,7 +3569,7 @@ class bybit extends Exchange {
         return $this->safe_value($response, 'result');
     }
 
-    public function set_margin_mode($marginType, $symbol = null, $params = array ()) {
+    public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
         //
         // {
         //     "ret_code" => 0,
@@ -3587,12 +3587,12 @@ class bybit extends Exchange {
         if ($leverage === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $leverage parameter');
         }
-        $marginType = strtoupper($marginType);
-        if ($marginType === 'CROSSED') { // * Deprecated, use 'CROSS' instead
-            $marginType = 'CROSS';
+        $marginMode = strtoupper($marginMode);
+        if ($marginMode === 'CROSSED') { // * Deprecated, use 'CROSS' instead
+            $marginMode = 'CROSS';
         }
-        if (($marginType !== 'ISOLATED') && ($marginType !== 'CROSS')) {
-            throw new BadRequest($this->id . ' setMarginMode() $marginType must be either isolated or cross');
+        if (($marginMode !== 'ISOLATED') && ($marginMode !== 'CROSS')) {
+            throw new BadRequest($this->id . ' setMarginMode() $marginMode must be either isolated or cross');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -3610,7 +3610,7 @@ class bybit extends Exchange {
         } else if ($future) {
             $method = 'privateFuturesPostPositionSwitchIsolated';
         }
-        $isIsolated = ($marginType === 'ISOLATED');
+        $isIsolated = ($marginMode === 'ISOLATED');
         $request = array(
             'symbol' => $market['id'],
             'is_isolated' => $isIsolated,

@@ -4319,15 +4319,15 @@ class binance(Exchange):
         if timestamp == 0:
             timestamp = None
         isolated = self.safe_value(position, 'isolated')
-        marginType = None
+        marginMode = None
         collateralString = None
         walletBalance = None
         if isolated:
-            marginType = 'isolated'
+            marginMode = 'isolated'
             walletBalance = self.safe_string(position, 'isolatedWallet')
             collateralString = Precise.string_add(walletBalance, unrealizedPnlString)
         else:
-            marginType = 'cross'
+            marginMode = 'cross'
             walletBalance = self.safe_string(position, 'crossWalletBalance')
             collateralString = self.safe_string(position, 'crossMargin')
         collateral = self.parse_number(collateralString)
@@ -4412,7 +4412,8 @@ class binance(Exchange):
             'liquidationPrice': liquidationPrice,
             'markPrice': None,
             'collateral': collateral,
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode,  # ! deprecated
             'side': side,
             'hedged': hedged,
             'percentage': percentage,
@@ -4480,7 +4481,7 @@ class binance(Exchange):
         liquidationPriceString = self.omit_zero(self.safe_string(position, 'liquidationPrice'))
         liquidationPrice = self.parse_number(liquidationPriceString)
         collateralString = None
-        marginType = self.safe_string(position, 'marginType')
+        marginMode = self.safe_string(position, 'marginType')
         side = None
         if Precise.string_gt(notionalString, '0'):
             side = 'long'
@@ -4492,7 +4493,7 @@ class binance(Exchange):
         contractSizeString = self.number_to_string(contractSize)
         # as oppose to notionalValue
         linear = ('notional' in position)
-        if marginType == 'cross':
+        if marginMode == 'cross':
             # calculate collateral
             precision = self.safe_value(market, 'precision', {})
             if linear:
@@ -4567,7 +4568,8 @@ class binance(Exchange):
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
             'marginRatio': marginRatio,
             'datetime': self.iso8601(timestamp),
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode,  # ! deprecated
             'side': side,
             'hedged': hedged,
             'percentage': percentage,
@@ -4859,7 +4861,7 @@ class binance(Exchange):
         }
         return getattr(self, method)(self.extend(request, params))
 
-    def set_margin_mode(self, marginType, symbol=None, params={}):
+    def set_margin_mode(self, marginMode, symbol=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
         #
@@ -4869,11 +4871,11 @@ class binance(Exchange):
         #
         # {"code": 200, "msg": "success"}
         #
-        marginType = marginType.upper()
-        if marginType == 'CROSS':
-            marginType = 'CROSSED'
-        if (marginType != 'ISOLATED') and (marginType != 'CROSSED'):
-            raise BadRequest(self.id + ' marginType must be either isolated or cross')
+        marginMode = marginMode.upper()
+        if marginMode == 'CROSS':
+            marginMode = 'CROSSED'
+        if (marginMode != 'ISOLATED') and (marginMode != 'CROSSED'):
+            raise BadRequest(self.id + ' marginMode must be either isolated or cross')
         self.load_markets()
         market = self.market(symbol)
         method = None
@@ -4885,7 +4887,7 @@ class binance(Exchange):
             raise NotSupported(self.id + ' setMarginMode() supports linear and inverse contracts only')
         request = {
             'symbol': market['id'],
-            'marginType': marginType,
+            'marginType': marginMode,
         }
         response = None
         try:
@@ -5304,10 +5306,12 @@ class binance(Exchange):
     def parse_borrow_interest(self, info, market):
         symbol = self.safe_string(info, 'isolatedSymbol')
         timestamp = self.safe_number(info, 'interestAccuredTime')
+        marginMode = 'cross' if (symbol is None) else 'isolated'
         return {
             'account': 'cross' if (symbol is None) else symbol,
             'symbol': symbol,
-            'marginType': 'cross' if (symbol is None) else 'isolated',
+            'marginType': marginMode,  # ! deprecated
+            'marginMode': marginMode,
             'currency': self.safe_currency_code(self.safe_string(info, 'asset')),
             'interest': self.safe_number(info, 'interest'),
             'interestRate': self.safe_number(info, 'interestRate'),

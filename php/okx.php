@@ -3787,17 +3787,17 @@ class okx extends Exchange {
             $notionalString = Precise::string_div(Precise::string_mul($contractsAbs, $contractSizeString), $markPriceString);
         }
         $notional = $this->parse_number($notionalString);
-        $marginType = $this->safe_string($position, 'mgnMode');
+        $marginMode = $this->safe_string($position, 'mgnMode');
         $initialMarginString = null;
         $entryPriceString = $this->safe_string($position, 'avgPx');
         $unrealizedPnlString = $this->safe_string($position, 'upl');
         $leverageString = $this->safe_string($position, 'lever');
         $initialMarginPercentage = null;
         $collateralString = null;
-        if ($marginType === 'cross') {
+        if ($marginMode === 'cross') {
             $initialMarginString = $this->safe_string($position, 'imr');
             $collateralString = Precise::string_add($initialMarginString, $unrealizedPnlString);
-        } else if ($marginType === 'isolated') {
+        } else if ($marginMode === 'isolated') {
             $initialMarginPercentage = Precise::string_div('1', $leverageString);
             $collateralString = $this->safe_string($position, 'margin');
         }
@@ -3820,7 +3820,8 @@ class okx extends Exchange {
             'info' => $position,
             'symbol' => $symbol,
             'notional' => $notional,
-            'marginType' => $marginType,
+            'marginMode' => $marginMode,
+            'marginType' => $marginMode, // ! deprecated
             'liquidationPrice' => $liquidationPrice,
             'entryPrice' => $this->parse_number($entryPriceString),
             'unrealizedPnl' => $this->parse_number($unrealizedPnlString),
@@ -4298,15 +4299,15 @@ class okx extends Exchange {
         return $response;
     }
 
-    public function set_margin_mode($marginType, $symbol = null, $params = array ()) {
+    public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
         // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        $marginType = strtolower($marginType);
-        if (($marginType !== 'cross') && ($marginType !== 'isolated')) {
-            throw new BadRequest($this->id . ' setMarginMode() $marginType must be either cross or isolated');
+        $marginMode = strtolower($marginMode);
+        if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
+            throw new BadRequest($this->id . ' setMarginMode() $marginMode must be either cross or isolated');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -4317,7 +4318,7 @@ class okx extends Exchange {
         $params = $this->omit($params, array( 'lever' ));
         $request = array(
             'lever' => $lever,
-            'mgnMode' => $marginType,
+            'mgnMode' => $marginMode,
             'instId' => $market['id'],
         );
         $response = $this->privatePostAccountSetLeverage (array_merge($request, $params));
@@ -4724,16 +4725,18 @@ class okx extends Exchange {
 
     public function parse_borrow_interest($info, $market = null) {
         $instId = $this->safe_string($info, 'instId');
-        $account = 'cross'; // todo rename it to margin/marginType and separate it from the symbol
+        $account = 'cross'; // todo rename it to margin/marginMode and separate it from the symbol
         if ($instId !== null) {
             $market = $this->safe_market($instId, $market);
             $account = $this->safe_string($market, 'symbol');
         }
         $timestamp = $this->safe_number($info, 'ts');
+        $marginMode = ($instId === null) ? 'cross' : 'isolated';
         return array(
             'account' => $account, // deprecated
             'symbol' => $this->safe_string($market, 'symbol'),
-            'marginType' => ($instId === null) ? 'cross' : 'isolated',
+            'marginType' => $marginMode, // ! deprecated
+            'marginMode' => $marginMode,
             'currency' => $this->safe_currency_code($this->safe_string($info, 'ccy')),
             'interest' => $this->safe_number($info, 'interest'),
             'interestRate' => $this->safe_number($info, 'interestRate'),

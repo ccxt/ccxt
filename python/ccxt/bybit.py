@@ -3400,7 +3400,7 @@ class bybit(Exchange):
         #
         return self.safe_value(response, 'result')
 
-    def set_margin_mode(self, marginType, symbol=None, params={}):
+    def set_margin_mode(self, marginMode, symbol=None, params={}):
         #
         # {
         #     "ret_code": 0,
@@ -3417,11 +3417,11 @@ class bybit(Exchange):
         leverage = self.safe_value(params, 'leverage')
         if leverage is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a leverage parameter')
-        marginType = marginType.upper()
-        if marginType == 'CROSSED':  # * Deprecated, use 'CROSS' instead
-            marginType = 'CROSS'
-        if (marginType != 'ISOLATED') and (marginType != 'CROSS'):
-            raise BadRequest(self.id + ' setMarginMode() marginType must be either isolated or cross')
+        marginMode = marginMode.upper()
+        if marginMode == 'CROSSED':  # * Deprecated, use 'CROSS' instead
+            marginMode = 'CROSS'
+        if (marginMode != 'ISOLATED') and (marginMode != 'CROSS'):
+            raise BadRequest(self.id + ' setMarginMode() marginMode must be either isolated or cross')
         self.load_markets()
         market = self.market(symbol)
         method = None
@@ -3437,7 +3437,7 @@ class bybit(Exchange):
             method = 'v2PrivatePostPositionSwitchIsolated'
         elif future:
             method = 'privateFuturesPostPositionSwitchIsolated'
-        isIsolated = (marginType == 'ISOLATED')
+        isIsolated = (marginMode == 'ISOLATED')
         request = {
             'symbol': market['id'],
             'is_isolated': isIsolated,

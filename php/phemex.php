@@ -2789,7 +2789,8 @@ class phemex extends Exchange {
             'maintenanceMarginPercentage' => $this->parse_number($maintenanceMarginPercentageString),
             'marginRatio' => $this->parse_number($marginRatio),
             'datetime' => null,
-            'marginType' => null,
+            'marginMode' => null,
+            'marginType' => null, // ! deprecated
             'side' => $side,
             'hedged' => false,
             'percentage' => $this->parse_number($percentage),

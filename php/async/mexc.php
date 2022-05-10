@@ -1711,7 +1711,7 @@ class mexc extends Exchange {
         $rawSide = $this->safe_string($position, 'positionType');
         $side = ($rawSide === '1') ? 'long' : 'short';
         $openType = $this->safe_string($position, 'margin_mode');
-        $marginType = ($openType === '1') ? 'isolated' : 'cross';
+        $marginMode = ($openType === '1') ? 'isolated' : 'cross';
         $leverage = $this->safe_string($position, 'leverage');
         $liquidationPrice = $this->safe_number($position, 'liquidatePrice');
         $timestamp = $this->safe_number($position, 'updateTime');
@@ -1726,7 +1726,8 @@ class mexc extends Exchange {
             'unrealizedProfit' => null,
             'leverage' => $this->parse_number($leverage),
             'percentage' => null,
-            'marginType' => $marginType,
+            'marginMode' => $marginMode,
+            'marginType' => $marginMode, // ! deprecated
             'notional' => null,
             'markPrice' => null,
             'liquidationPrice' => $liquidationPrice,

@@ -1704,7 +1704,8 @@ class currencycom extends Exchange {
             'unrealizedProfit' => $unrealizedProfit,
             'leverage' => $leverage,
             'percentage' => null,
-            'marginType' => null,
+            'marginMode' => null,
+            'marginType' => null, // ! deprecated
             'notional' => null,
             'markPrice' => null,
             'liquidationPrice' => null,

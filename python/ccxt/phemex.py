@@ -2663,7 +2663,8 @@ class phemex(Exchange):
             'maintenanceMarginPercentage': self.parse_number(maintenanceMarginPercentageString),
             'marginRatio': self.parse_number(marginRatio),
             'datetime': None,
-            'marginType': None,
+            'marginMode': None,
+            'marginType': None,  # ! deprecated
             'side': side,
             'hedged': False,
             'percentage': self.parse_number(percentage),

@@ -2363,6 +2363,7 @@ class aax(Exchange):
         notional = Precise.string_mul(initialQuote, marketPrice)
         timestamp = self.safe_integer(position, 'ts')
         liquidationPrice = self.safe_string(position, 'liquidationPrice')
+        marginMode = self.safe_string(position, 'settleType')
         return {
             'info': position,
             'symbol': self.safe_string(market, 'symbol'),
@@ -2382,7 +2383,8 @@ class aax(Exchange):
             'liquidationPrice': liquidationPrice,
             'markPrice': self.safe_number(position, 'marketPrice'),
             'collateral': self.safe_number(position, 'posMargin'),
-            'marginType': self.safe_string(position, 'settleType'),
+            'marginMode': marginMode,
+            'marginType': marginMode,  # ! deprecated
             'side': side,
             'percentage': None,
         }

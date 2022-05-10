@@ -1139,13 +1139,13 @@ class gateio extends Exchange {
          * @param {dict} $params $request parameters
          * @return the api $request object, and the new $params object with non-needed parameters removed
          */
-        list($marginType, $query) = $this->get_margin_type($stop, $params);
+        list($marginMode, $query) = $this->get_margin_mode($stop, $params);
         $request = array();
         if (!$stop) {
             if ($market === null) {
                 throw new ArgumentsRequired($this->id . ' spotOrderPrepareRequest() requires a $market argument for non-$stop orders');
             }
-            $request['account'] = $marginType;
+            $request['account'] = $marginMode;
             $request['currency_pair'] = $market['id']; // Should always be set for non-$stop
         }
         return array( $request, $query );
@@ -1160,9 +1160,9 @@ class gateio extends Exchange {
          * @param {dict} $params $request parameters
          * @return the api $request object, and the new $params object with non-needed parameters removed
          */
-        list($marginType, $query) = $this->get_margin_type($stop, $params);
+        list($marginMode, $query) = $this->get_margin_mode($stop, $params);
         $request = array(
-            'account' => $marginType,
+            'account' => $marginMode,
         );
         if ($market !== null) {
             if ($stop) {
@@ -1175,34 +1175,34 @@ class gateio extends Exchange {
         return array( $request, $query );
     }
 
-    public function get_margin_type($stop, $params) {
+    public function get_margin_mode($stop, $params) {
         /**
          * @ignore
          * Gets the margin type for this api call
          * @param {bool} $stop True if for a $stop order
          * @param {dict} $params Request $params
-         * @return The $marginType and the updated request $params with $marginType removed, $marginType value is the value that can be read by the "account" property specified in gateios api docs
+         * @return The $marginMode and the updated request $params with $marginMode removed, $marginMode value is the value that can be read by the "account" property specified in gateios api docs
          */
-        $defaultMarginType = $this->safe_string_lower_2($this->options, 'defaultMarginType', 'marginType', 'spot'); // 'margin' is isolated margin on gateio's api
-        $marginType = $this->safe_string_lower_2($params, 'marginType', 'account', $defaultMarginType);
-        $params = $this->omit($params, array( 'marginType', 'account' ));
-        if ($marginType === 'cross') {
-            $marginType = 'cross_margin';
-        } else if ($marginType === 'isolated') {
-            $marginType = 'margin';
-        } else if ($marginType === '') {
-            $marginType = 'spot';
+        $defaultMarginMode = $this->safe_string_lower_2($this->options, 'defaultMarginMode', 'marginMode', 'spot'); // 'margin' is isolated margin on gateio's api
+        $marginMode = $this->safe_string_lower_2($params, 'marginMode', 'account', $defaultMarginMode);
+        $params = $this->omit($params, array( 'marginMode', 'account' ));
+        if ($marginMode === 'cross') {
+            $marginMode = 'cross_margin';
+        } else if ($marginMode === 'isolated') {
+            $marginMode = 'margin';
+        } else if ($marginMode === '') {
+            $marginMode = 'spot';
         }
         if ($stop) {
-            if ($marginType === 'spot') {
+            if ($marginMode === 'spot') {
                 // gateio spot $stop orders use the term normal instead of spot
-                $marginType = 'normal';
+                $marginMode = 'normal';
             }
-            if ($marginType === 'cross_margin') {
-                throw new BadRequest($this->id . ' getMarginType() does not support $stop orders for cross margin');
+            if ($marginMode === 'cross_margin') {
+                throw new BadRequest($this->id . ' getMarginMode() does not support $stop orders for cross margin');
             }
         }
-        return array( $marginType, $params );
+        return array( $marginMode, $params );
     }
 
     public function get_settlement_currencies($type, $method) {
@@ -1934,7 +1934,7 @@ class gateio extends Exchange {
          * @param {dict} $params exchange specific parameters
          * @param {str} $params->type spot, $margin, swap or future, if not provided $this->options['defaultType'] is used
          * @param {str} $params->settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
-         * @param {str} $params->marginType 'cross' or 'isolated' - $marginType for $margin trading if not provided $this->options['defaultMarginType'] is used
+         * @param {str} $params->marginMode 'cross' or 'isolated' - $marginMode for $margin trading if not provided $this->options['defaultMarginMode'] is used
          * @param {str} $params->symbol $margin only - unified ccxt $symbol
          */
         yield $this->load_markets();
@@ -1942,13 +1942,13 @@ class gateio extends Exchange {
         $params = $this->omit($params, 'symbol');
         list($type, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         list($request, $requestParams) = $this->prepare_request(null, $type, $query);
-        list($marginType, $requestQuery) = $this->get_margin_type(false, $requestParams);
+        list($marginMode, $requestQuery) = $this->get_margin_mode(false, $requestParams);
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['currency_pair'] = $market['id'];
         }
         $method = $this->get_supported_mapping($type, array(
-            'spot' => $this->get_supported_mapping($marginType, array(
+            'spot' => $this->get_supported_mapping($marginMode, array(
                 'spot' => 'privateSpotGetAccounts',
                 'margin' => 'privateMarginGetAccounts',
                 'cross_margin' => 'privateMarginGetCrossAccounts',
@@ -2074,8 +2074,8 @@ class gateio extends Exchange {
         $result = array(
             'info' => $response,
         );
-        $crossMargin = $marginType === 'cross_margin';
-        $margin = $marginType === 'margin';
+        $crossMargin = $marginMode === 'cross_margin';
+        $margin = $marginMode === 'margin';
         $data = $response;
         if (is_array($data) && array_key_exists('balances', $data)) { // True for cross_margin
             $flatBalances = array();
@@ -2692,7 +2692,7 @@ class gateio extends Exchange {
          * @param {dict} $params  Extra parameters specific to the exchange API endpoint
          * @param {float} $params->stopPrice The $price at which a $trigger order is triggered at
          * @param {str} $params->timeInForce "GTC", "IOC", or "PO"
-         * @param {str} $params->marginType 'cross' or 'isolated' - $marginType for margin trading if not provided $this->options['defaultMarginType'] is used
+         * @param {str} $params->marginMode 'cross' or 'isolated' - $marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
          * @param {int} $params->iceberg Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
          * @param {str} $params->text User defined information
          * @param {str} $params->account *spot and margin only* "spot", "margin" or "cross_margin"
@@ -2758,14 +2758,14 @@ class gateio extends Exchange {
                     $request['tif'] = $timeInForce;
                 }
             } else {
-                $marginType = null;
-                list($marginType, $params) = $this->get_margin_type(false, $params);
+                $marginMode = null;
+                list($marginMode, $params) = $this->get_margin_mode(false, $params);
                 // spot order
                 $request = array(
                     // 'text' => $clientOrderId, // 't-abcdef1234567890',
                     'currency_pair' => $market['id'], // filled in prepareRequest above
                     'type' => $type,
-                    'account' => $marginType, // 'spot', 'margin', 'cross_margin'
+                    'account' => $marginMode, // 'spot', 'margin', 'cross_margin'
                     'side' => $side,
                     'amount' => $this->amount_to_precision($symbol, $amount),
                     'price' => $this->price_to_precision($symbol, $price),
@@ -2830,8 +2830,8 @@ class gateio extends Exchange {
             } else {
                 // spot conditional order
                 $options = $this->safe_value($this->options, 'createOrder', array());
-                $marginType = null;
-                list($marginType, $params) = $this->get_margin_type(true, $params);
+                $marginMode = null;
+                list($marginMode, $params) = $this->get_margin_mode(true, $params);
                 $defaultExpiration = $this->safe_integer($options, 'expiration');
                 $expiration = $this->safe_integer($params, 'expiration', $defaultExpiration);
                 $rule = ($side === 'buy') ? '>=' : '<=';
@@ -2847,7 +2847,7 @@ class gateio extends Exchange {
                         'side' => $side,
                         'price' => $this->price_to_precision($symbol, $price),
                         'amount' => $this->amount_to_precision($symbol, $amount),
-                        'account' => $marginType,
+                        'account' => $marginMode,
                         'time_in_force' => $timeInForce, // gtc, ioc for taker only
                     ),
                     'market' => $market['id'],
@@ -3185,8 +3185,8 @@ class gateio extends Exchange {
          * @param {str} $symbol Unified $market $symbol, *required for spot and margin*
          * @param {dict} $params Parameters specified by the exchange api
          * @param {bool} $params->stop True if the order being fetched is a trigger order
-         * @param {str} $params->marginType 'cross' or 'isolated' - marginType for margin trading if not provided $this->options['defaultMarginType'] is used
-         * @param {str} $params->type 'spot', 'swap', or 'future', if not provided $this->options['defaultMarginType'] is used
+         * @param {str} $params->marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
+         * @param {str} $params->type 'spot', 'swap', or 'future', if not provided $this->options['defaultMarginMode'] is used
          * @param {str} $params->settle 'btc' or 'usdt' - settle currency for perpetual swap and future - $market settle currency is used if $symbol !== null, default="usdt" for swap and "btc" for future
          * @return An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -3226,7 +3226,7 @@ class gateio extends Exchange {
          * @param {int} $limit max number of order structures to return
          * @param {dict} $params exchange specific $params
          * @param {str} $params->type spot, margin, swap or future, if not provided $this->options['defaultType'] is used
-         * @param {str} $params->marginType 'cross' or 'isolated' - marginType for $type='margin', if not provided $this->options['defaultMarginType'] is used
+         * @param {str} $params->marginMode 'cross' or 'isolated' - marginMode for $type='margin', if not provided $this->options['defaultMarginMode'] is used
          * @return An array of order structures
          */
         yield $this->load_markets();
@@ -3643,14 +3643,14 @@ class gateio extends Exchange {
             'future' => 'privateDeliveryPostSettlePositionsContractLeverage',
         ));
         list($request, $query) = $this->prepare_request($market, null, $params);
-        $defaultMarginType = $this->safe_string_2($this->options, 'marginType', 'defaultMarginType');
+        $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
         $crossLeverageLimit = $this->safe_string($query, 'cross_leverage_limit');
-        $marginType = $this->safe_string($query, 'marginType', $defaultMarginType);
+        $marginMode = $this->safe_string($query, 'marginMode', $defaultMarginMode);
         if ($crossLeverageLimit !== null) {
-            $marginType = 'cross';
+            $marginMode = 'cross';
             $leverage = $crossLeverageLimit;
         }
-        if ($marginType === 'cross' || $marginType === 'cross_margin') {
+        if ($marginMode === 'cross' || $marginMode === 'cross_margin') {
             $request['query'] = array(
                 'cross_leverage_limit' => (string) $leverage,
                 'leverage' => '0',
@@ -3731,11 +3731,11 @@ class gateio extends Exchange {
         $maintenanceRate = $this->safe_string($position, 'maintenance_rate');
         $notional = $this->safe_string($position, 'value');
         $leverage = $this->safe_string($position, 'leverage');
-        $marginType = null;
+        $marginMode = null;
         if ($leverage === '0') {
-            $marginType = 'cross';
+            $marginMode = 'cross';
         } else {
-            $marginType = 'isolated';
+            $marginMode = 'isolated';
         }
         $unrealisedPnl = $this->safe_string($position, 'unrealised_pnl');
         // Initial Position Margin = ( Position Value / Leverage ) . Close Position Fee
@@ -3765,7 +3765,8 @@ class gateio extends Exchange {
             'liquidationPrice' => $this->safe_number($position, 'liq_price'),
             'markPrice' => $this->safe_number($position, 'mark_price'),
             'collateral' => $this->safe_number($position, 'margin'),
-            'marginType' => $marginType,
+            'marginMode' => $marginMode,
+            'marginType' => $marginMode, // ! deprecated
             'side' => $side,
             'percentage' => $this->parse_number($percentage),
         );
