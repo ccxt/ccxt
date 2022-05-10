@@ -2931,17 +2931,6 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let query = params;
-        if (('stop_order_id' in params) || ('stop_order_status' in params)) {
-            let stopOrderStatus = this.safeValue (params, 'stop_order_status');
-            if (stopOrderStatus !== undefined) {
-                if (Array.isArray (stopOrderStatus)) {
-                    stopOrderStatus = stopOrderStatus.join (',');
-                }
-                request['stop_order_status'] = stopOrderStatus;
-                query = this.omit (params, 'stop_order_status');
-            }
-        }
         const response = await this[method] (this.extend (request, query));
         //
         // linear swap
@@ -3076,20 +3065,18 @@ module.exports = class bybit extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument for ' + type + ' markets');
             }
-            // const defaultStatuses = [
-            //     'Created',
-            //     'New',
-            //     'PartiallyFilled',
-            //     'PendingCancel',
-            //     // conditional orders
-            //     // 'Untriggered',
-            // ];
-            // const stopOrderStatus = this.safeValue (params, 'stop_order_status');
-            // if (stopOrderStatus === undefined) {
-            //     request['order_status'] = status;
-            // } else {
-            //     request['stop_order_status'] = stopOrderStatus;
-            // }
+            const defaultStatuses = [
+                'Created',
+                'New',
+                'PartiallyFilled',
+                'PendingCancel',
+                // conditional orders
+                // 'Untriggered',
+            ];
+            const openStatus = defaultStatuses.join (',');
+            const status = this.safeString2 (params, 'order_status', 'status', openStatus);
+            params = this.omit (params, [ 'order_status', 'status' ]);
+            params['order_status'] = status;
             return await this.fetchOrders (symbol, since, limit, params);
         }
         const request = {};
