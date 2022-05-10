@@ -2811,6 +2811,15 @@ module.exports = class bybit extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        // inverse swap -> privatePostV2PrivateOrderCancel // requires symbol, order_id
+        // inverse swap conditional -> privatePostV2PrivateStopOrderCancel // requires symbol, stop_order_id not required
+        // linear swap -> privatePostPrivateLinearOrderCancel // symbol required, order_id
+        // linear swap conditional -> privatePostPrivateLinearStopOrderCancel // symbol required, stop_order_id not required
+        // inverse future -> privatePostFuturesPrivateOrderCancel // order_id
+        // inverse future conditional -> privatePostFuturesPrivateStopOrderCancel // stop_order_id
+        // spot -> privateDeleteSpotV1Order --> orderId
+        // usdc option -> privatePostOptionUsdcOpenapiPrivateV1CancelOrder // orderId, symbol required
+        // usdc perpetual -> privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder // orderId, orderFilter -> Order or StopOrder
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -2823,32 +2832,37 @@ module.exports = class bybit extends Exchange {
             // 'order_id': id, // one of order_id or order_link_id is required for regular orders
             // conditional orders ---------------------------------------------
             // 'stop_order_id': id, // one of stop_order_id or order_link_id is required for conditional orders
+            // spot orders
+            // 'orderId': id
         };
+        const orderType = this.safeStringLower (params, 'orderType');
+        const isConditional = (orderType === 'stop') || (orderType === 'conditional');
+        const isUsdcSettled = market['settle'] === 'USDC';
         let method = undefined;
-        if (market['swap']) {
-            if (market['linear']) {
-                method = 'privateLinearPostOrderCancel';
-            } else if (market['inverse']) {
-                method = 'v2PrivatePostOrderCancel';
+        if (market['spot']) {
+            method = 'privateDeleteSpotV1Order';
+            request['orderId'] = id;
+        } else if (isUsdcSettled) {
+            request['orderId'] = id;
+            if (market['option']) {
+                method = 'privatePostOptionUsdcOpenapiPrivateV1CancelOrder';
+            } else {
+                method = 'privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder';
+                request['orderFilter'] = isConditional ? 'StopOrder' : 'Order';
             }
+        } else if (market['linear']) {
+            method = isConditional ? 'privatePostPrivateLinearStopOrderCancel' : 'privatePostPrivateLinearOrderCancel';
         } else if (market['future']) {
-            method = 'futuresPrivatePostOrderCancel';
-        }
-        const stopOrderId = this.safeString (params, 'stop_order_id');
-        if (stopOrderId === undefined) {
-            const orderLinkId = this.safeString (params, 'order_link_id');
-            if (orderLinkId === undefined) {
-                request['order_id'] = id;
-            }
+            method = isConditional ? 'privatePostFuturesPrivateStopOrderCancel' : 'privatePostFuturesPrivateOrderCancel';
         } else {
-            if (market['swap']) {
-                if (market['linear']) {
-                    method = 'privateLinearPostStopOrderCancel';
-                } else if (market['inverse']) {
-                    method = 'v2PrivatePostStopOrderCancel';
-                }
-            } else if (market['future']) {
-                method = 'futuresPrivatePostStopOrderCancel';
+            // inverse swaps
+            method = isConditional ? 'privatePostFuturesPrivateStopOrderCancel' : 'privatePostFuturesPrivateOrderCancel';
+        }
+        if (market['contract'] && !isUsdcSettled) {
+            if (!isConditional) {
+                request['order_id'] = id;
+            } else {
+                request['stop_order_id'] = id;
             }
         }
         const response = await this[method] (this.extend (request, params));
@@ -2920,6 +2934,43 @@ module.exports = class bybit extends Exchange {
         //       "rate_limit_status":90,
         //       "rate_limit_reset_ms":1652182444010,
         //       "rate_limit":100
+        //    }
+        //
+        // conditional futures
+        //    {
+        //        "ret_code":0,
+        //        "ret_msg":"OK",
+        //        "ext_code":"",
+        //        "ext_info":"",
+        //        "result":[
+        //           {
+        //              "clOrdID":"a14aea1e-9148-4a34-871a-f935f7cdb654",
+        //              "user_id":24478789,
+        //              "symbol":"ETHUSDM22",
+        //              "side":"Buy",
+        //              "order_type":"Limit",
+        //              "price":"2001",
+        //              "qty":10,
+        //              "time_in_force":"GoodTillCancel",
+        //              "create_type":"CreateByStopOrder",
+        //              "cancel_type":"CancelByUser",
+        //              "order_status":"",
+        //              "leaves_value":"0",
+        //              "created_at":"2022-05-10T11:43:29.705138839Z",
+        //              "updated_at":"2022-05-10T11:43:37.988493739Z",
+        //              "cross_status":"Deactivated",
+        //              "cross_seq":-1,
+        //              "stop_order_type":"Stop",
+        //              "trigger_by":"LastPrice",
+        //              "base_price":"2410.65",
+        //              "trail_value":"0",
+        //              "expected_direction":"Falling"
+        //           }
+        //        ],
+        //        "time_now":"1652183017.988764",
+        //        "rate_limit_status":97,
+        //        "rate_limit_reset_ms":1652183017986,
+        //        "rate_limit":100
         //    }
         //
         const result = this.safeValue (response, 'result', []);
