@@ -593,6 +593,7 @@ module.exports = class bybit extends Exchange {
                     // '30084': BadRequest, // Isolated not modified, see handleErrors below
                     '33004': AuthenticationError, // apikey already expired
                     '34026': ExchangeError, // the limit is no change
+                    '35015': BadRequest, // {"ret_code":35015,"ret_msg":"Qty not in range","ext_code":"","ext_info":"","result":null,"time_now":"1652277215.821362","rate_limit_status":99,"rate_limit_reset_ms":1652277215819,"rate_limit":100}
                     '130021': InsufficientFunds, // {"ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100}
                     '3100116': BadRequest, // {"retCode":3100116,"retMsg":"Order quantity below the lower limit 0.01.","result":null,"retExtMap":{"key0":"0.01"}}
                     '3100198': BadRequest, // {"retCode":3100198,"retMsg":"orderLinkId can not be empty.","result":null,"retExtMap":{}}
@@ -2402,10 +2403,7 @@ module.exports = class bybit extends Exchange {
         if (type === undefined) {
             type = this.safeStringLower (order, 'orderType');
         }
-        let price = undefined;
-        if (type !== 'market') {
-            price = this.safeString2 (order, 'price', 'orderPrice');
-        }
+        const price = this.safeString2 (order, 'price', 'orderPrice');
         const average = this.safeString2 (order, 'average_price', 'avgPrice');
         let amount = this.safeString2 (order, 'qty', 'origQty');
         if (amount === undefined) {
@@ -2826,6 +2824,103 @@ module.exports = class bybit extends Exchange {
         //            "slTriggerBy":"UNKNOWN",
         //            "tpTriggerBy":"UNKNOWN"
         //     }
+        //
+        const order = this.safeValue (response, 'result', {});
+        return this.parseOrder (order);
+    }
+
+    async createContractOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (price === undefined && type === 'limit') {
+            throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
+        }
+        const request = {
+            'symbol': market['id'],
+            'side': this.capitalize (side),
+            'order_type': this.capitalize (type), // limit
+            'time_in_force': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
+            'qty': amount.toString (),
+        };
+        if (market['future']) {
+            const positionIdx = this.safeInteger (params, 'position_idx', 0); // 0 One-Way Mode, 1 Buy-side, 2 Sell-side
+            request['position_idx'] = positionIdx;
+            params = this.omit (params, 'position_idx');
+        }
+        if (market['linear']) {
+            const reduceOnly = this.safeValue2 (params, 'reduce_only', 'reduceOnly', false);
+            const closeOnTrigger = this.safeValue2 (params, 'reduce_only', 'reduceOnly', false);
+            request['reduce_only'] = reduceOnly;
+            request['close_on_trigger'] = closeOnTrigger;
+        }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const stopPx = this.safeValue2 (params, 'stop_px', 'stopPrice');
+        const basePrice = this.safeValue2 (params, 'base_price', 'basePrice');
+        let isConditionalOrder = false;
+        if (stopPx !== undefined) {
+            isConditionalOrder = true;
+            if (basePrice === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires both the stop_px and base_price params for a conditional ' + type + ' order');
+            }
+            request['stop_px'] = parseFloat (this.priceToPrecision (symbol, stopPx));
+            request['base_price'] = parseFloat (this.priceToPrecision (symbol, basePrice, 'basePrice'));
+            const triggerBy = this.safeString2 (params, 'trigger_by', 'triggerBy', 'LastPrice');
+            request['trigger_by'] = triggerBy;
+            params = this.omit (params, [ 'stop_px', 'stopPrice', 'base_price', 'triggerBy', 'trigger_by' ]);
+        }
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'orderLinkId');
+        if (clientOrderId !== undefined) {
+            request['orderLinkId'] = clientOrderId;
+        }
+        params = this.omit (params, [ 'clientOrderId', 'orderLinkId' ]);
+        let method = undefined;
+        if (market['future']) {
+            method = isConditionalOrder ? 'privatePostFuturesPrivateStopOrderCreate' : 'privatePostFuturesPrivateOrderCreate';
+        } else if (market['linear']) {
+            method = isConditionalOrder ? 'privatePostPrivateLinearStopOrderCreate' : 'privatePostPrivateLinearOrderCreate';
+        } else {
+            // inverse swaps
+            method = isConditionalOrder ? 'privatePostV2PrivateStopOrderCreate' : 'privatePostV2PrivateOrderCreate';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //    {
+        //        "ret_code":0,
+        //        "ret_msg":"OK",
+        //        "ext_code":"",
+        //        "ext_info":"",
+        //        "result":{
+        //           "order_id":"f016f912-68c2-4da9-a289-1bb9b62b5c3b",
+        //           "user_id":24478789,
+        //           "symbol":"LTCUSDT",
+        //           "side":"Buy",
+        //           "order_type":"Market",
+        //           "price":79.72,
+        //           "qty":1,
+        //           "time_in_force":"ImmediateOrCancel",
+        //           "order_status":"Created",
+        //           "last_exec_price":0,
+        //           "cum_exec_qty":0,
+        //           "cum_exec_value":0,
+        //           "cum_exec_fee":0,
+        //           "reduce_only":false,
+        //           "close_on_trigger":false,
+        //           "order_link_id":"",
+        //           "created_time":"2022-05-11T13:56:29Z",
+        //           "updated_time":"2022-05-11T13:56:29Z",
+        //           "take_profit":0,
+        //           "stop_loss":0,
+        //           "tp_trigger_by":"UNKNOWN",
+        //           "sl_trigger_by":"UNKNOWN",
+        //           "position_idx":1
+        //        },
+        //        "time_now":"1652277389.122038",
+        //        "rate_limit_status":98,
+        //        "rate_limit_reset_ms":1652277389119,
+        //        "rate_limit":100
+        //    }
         //
         const order = this.safeValue (response, 'result', {});
         return this.parseOrder (order);
