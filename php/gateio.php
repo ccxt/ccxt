@@ -3569,28 +3569,29 @@ class gateio extends Exchange {
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
-        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
-        if ($fromId === null) {
-            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' $transfer() $fromAccount must be one of ' . implode(', ', $keys));
-        }
-        if ($toId === null) {
-            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' $transfer() $toAccount must be one of ' . implode(', ', $keys));
-        }
+        $fromId = $this->parse_account($fromAccount);
+        $toId = $this->parse_account($toAccount);
         $truncated = $this->currency_to_precision($code, $amount);
         $request = array(
             'currency' => $currency['id'],
-            'from' => $fromId,
-            'to' => $toId,
             'amount' => $truncated,
         );
-        if ($fromAccount === 'margin' || $toAccount === 'margin') {
+        if (!(is_array($this->options['accountsByType']) && array_key_exists($fromId, $this->options['accountsByType']))) {
+            $request['from'] = 'margin';
+            $request['currency_pair'] = $fromId;
+        } else {
+            $request['from'] = $fromId;
+        }
+        if (!(is_array($this->options['accountsByType']) && array_key_exists($toId, $this->options['accountsByType']))) {
+            $request['to'] = 'margin';
+            $request['currency_pair'] = $toId;
+        } else {
+            $request['to'] = $toId;
+        }
+        if ($fromId === 'margin' || $toId === 'margin') {
             $symbol = $this->safe_string_2($params, 'symbol', 'currency_pair');
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' $transfer() requires $params->symbol for isolated margin transfers');
+                throw new ArgumentsRequired($this->id . ' $transfer requires $params["symbol"] for isolated margin transfers');
             }
             $market = $this->market($symbol);
             $request['currency_pair'] = $market['id'];
@@ -3617,6 +3618,19 @@ class gateio extends Exchange {
             'toAccount' => $toAccount,
             'amount' => $this->parse_number($truncated),
         ));
+    }
+
+    public function parse_account($account) {
+        $accountsByType = $this->options['accountsByType'];
+        if (is_array($accountsByType) && array_key_exists($account, $accountsByType)) {
+            return $accountsByType[$account];
+        } else if (is_array($this->markets) && array_key_exists($account, $this->markets)) {
+            $market = $this->market($account);
+            return $market['id'];
+        } else {
+            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+            throw new ExchangeError($this->id . ' accounts must be one of ' . implode(', ', $keys) . ' or an isolated margin symbol');
+        }
     }
 
     public function parse_transfer($transfer, $currency = null) {

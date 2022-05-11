@@ -3416,26 +3416,27 @@ class gateio(Exchange):
         """
         await self.load_markets()
         currency = self.currency(code)
-        accountsByType = self.safe_value(self.options, 'accountsByType', {})
-        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
-        toId = self.safe_string(accountsByType, toAccount, toAccount)
-        if fromId is None:
-            keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' transfer() fromAccount must be one of ' + ', '.join(keys))
-        if toId is None:
-            keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' transfer() toAccount must be one of ' + ', '.join(keys))
+        fromId = self.parse_account(fromAccount)
+        toId = self.parse_account(toAccount)
         truncated = self.currency_to_precision(code, amount)
         request = {
             'currency': currency['id'],
-            'from': fromId,
-            'to': toId,
             'amount': truncated,
         }
-        if fromAccount == 'margin' or toAccount == 'margin':
+        if not (fromId in self.options['accountsByType']):
+            request['from'] = 'margin'
+            request['currency_pair'] = fromId
+        else:
+            request['from'] = fromId
+        if not (toId in self.options['accountsByType']):
+            request['to'] = 'margin'
+            request['currency_pair'] = toId
+        else:
+            request['to'] = toId
+        if fromId == 'margin' or toId == 'margin':
             symbol = self.safe_string_2(params, 'symbol', 'currency_pair')
             if symbol is None:
-                raise ArgumentsRequired(self.id + ' transfer() requires params.symbol for isolated margin transfers')
+                raise ArgumentsRequired(self.id + ' transfer requires params["symbol"] for isolated margin transfers')
             market = self.market(symbol)
             request['currency_pair'] = market['id']
             params = self.omit(params, 'symbol')
@@ -3459,6 +3460,17 @@ class gateio(Exchange):
             'toAccount': toAccount,
             'amount': self.parse_number(truncated),
         })
+
+    def parse_account(self, account):
+        accountsByType = self.options['accountsByType']
+        if account in accountsByType:
+            return accountsByType[account]
+        elif account in self.markets:
+            market = self.market(account)
+            return market['id']
+        else:
+            keys = list(accountsByType.keys())
+            raise ExchangeError(self.id + ' accounts must be one of ' + ', '.join(keys) + ' or an isolated margin symbol')
 
     def parse_transfer(self, transfer, currency=None):
         timestamp = self.milliseconds()
