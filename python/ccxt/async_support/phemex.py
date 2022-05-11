@@ -84,6 +84,7 @@ class phemex(Exchange):
                 'fetchTradingFees': False,
                 'fetchWithdrawals': True,
                 'setLeverage': True,
+                'setMarginMode': True,
                 'setPositionMode': False,
                 'transfer': True,
                 'withdraw': None,
@@ -2802,6 +2803,27 @@ class phemex(Exchange):
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
         }
+
+    async def set_margin_mode(self, marginMode, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        marginMode = marginMode.lower()
+        if marginMode != 'isolated' and marginMode != 'cross':
+            raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
+        await self.load_markets()
+        market = self.market(symbol)
+        if market['type'] != 'swap':
+            raise BadSymbol(self.id + ' setMarginMode() supports swap contracts only')
+        leverage = self.safe_integer(params, 'leverage')
+        if marginMode == 'cross':
+            leverage = 0
+        if leverage is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a leverage parameter')
+        request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        }
+        return await self.privatePutPositionsLeverage(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))

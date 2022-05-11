@@ -74,6 +74,7 @@ class phemex extends Exchange {
                 'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
+                'setMarginMode' => true,
                 'setPositionMode' => false,
                 'transfer' => true,
                 'withdraw' => null,
@@ -2936,6 +2937,33 @@ class phemex extends Exchange {
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
         );
+    }
+
+    public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+        }
+        $marginMode = strtolower($marginMode);
+        if ($marginMode !== 'isolated' && $marginMode !== 'cross') {
+            throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if ($market['type'] !== 'swap') {
+            throw new BadSymbol($this->id . ' setMarginMode() supports swap contracts only');
+        }
+        $leverage = $this->safe_integer($params, 'leverage');
+        if ($marginMode === 'cross') {
+            $leverage = 0;
+        }
+        if ($leverage === null) {
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $leverage parameter');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'leverage' => $leverage,
+        );
+        return $this->privatePutPositionsLeverage (array_merge($request, $params));
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
