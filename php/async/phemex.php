@@ -32,6 +32,7 @@ class phemex extends Exchange {
                 'swap' => true,
                 'future' => false,
                 'option' => false,
+                'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
@@ -74,6 +75,7 @@ class phemex extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
                 'setPositionMode' => false,
@@ -2940,6 +2942,59 @@ class phemex extends Exchange {
         );
     }
 
+    public function modify_margin_helper($symbol, $amount, $addOrReduce, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'posBalanceEv' => $this->to_ev($amount, $market),
+        );
+        $response = yield $this->privatePostPositionsAssign (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "",
+        //         "data" => "OK"
+        //     }
+        //
+        return array_merge($this->parse_modify_margin($response, $market), array(
+            'amount' => $amount,
+            'type' => $addOrReduce,
+        ));
+    }
+
+    public function parse_margin_status($status) {
+        $statuses = array(
+            '0' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_modify_margin($data, $market = null) {
+        $market = $this->safe_market(null, $market);
+        $inverse = $this->safe_value($market, 'inverse');
+        $codeCurrency = $inverse ? 'base' : 'quote';
+        return array(
+            'info' => $data,
+            'type' => null,
+            'amount' => null,
+            'code' => $market[$codeCurrency],
+            'symbol' => $this->safe_symbol(null, $market),
+            'status' => $this->parse_margin_status($this->safe_string($data, 'code')),
+        );
+    }
+
+    public function add_margin($symbol, $amount, $params = array ()) {
+        return yield $this->modify_margin_helper($symbol, $amount, 'add', $params);
+    }
+
+    public function reduce_margin($symbol, $amount, $params = array ()) {
+        if ($amount > 0) {
+            throw new BadRequest($this->id . ' reduceMargin() $amount parameter must be a negative value');
+        }
+        return yield $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
+    }
+
     public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
@@ -2972,7 +3027,7 @@ class phemex extends Exchange {
         $requestPath = '/' . $this->implode_params($path, $params);
         $url = $requestPath;
         $queryString = '';
-        if (($method === 'GET') || ($method === 'DELETE') || ($method === 'PUT')) {
+        if (($method === 'GET') || ($method === 'DELETE') || ($method === 'PUT') || ($url === '/positions/assign')) {
             if ($query) {
                 $queryString = $this->urlencode_with_array_repeat($query);
                 $url .= '?' . $queryString;

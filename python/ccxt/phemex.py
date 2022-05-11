@@ -41,6 +41,7 @@ class phemex(Exchange):
                 'swap': True,
                 'future': False,
                 'option': False,
+                'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
@@ -83,6 +84,7 @@ class phemex(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchWithdrawals': True,
+                'reduceMargin': True,
                 'setLeverage': True,
                 'setMarginMode': True,
                 'setPositionMode': False,
@@ -2804,6 +2806,53 @@ class phemex(Exchange):
             'previousFundingDatetime': None,
         }
 
+    def modify_margin_helper(self, symbol, amount, addOrReduce, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'posBalanceEv': self.to_ev(amount, market),
+        }
+        response = self.privatePostPositionsAssign(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "data": "OK"
+        #     }
+        #
+        return self.extend(self.parse_modify_margin(response, market), {
+            'amount': amount,
+            'type': addOrReduce,
+        })
+
+    def parse_margin_status(self, status):
+        statuses = {
+            '0': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_modify_margin(self, data, market=None):
+        market = self.safe_market(None, market)
+        inverse = self.safe_value(market, 'inverse')
+        codeCurrency = 'base' if inverse else 'quote'
+        return {
+            'info': data,
+            'type': None,
+            'amount': None,
+            'code': market[codeCurrency],
+            'symbol': self.safe_symbol(None, market),
+            'status': self.parse_margin_status(self.safe_string(data, 'code')),
+        }
+
+    def add_margin(self, symbol, amount, params={}):
+        return self.modify_margin_helper(symbol, amount, 'add', params)
+
+    def reduce_margin(self, symbol, amount, params={}):
+        if amount > 0:
+            raise BadRequest(self.id + ' reduceMargin() amount parameter must be a negative value')
+        return self.modify_margin_helper(symbol, amount, 'reduce', params)
+
     def set_margin_mode(self, marginMode, symbol=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
@@ -2830,7 +2879,7 @@ class phemex(Exchange):
         requestPath = '/' + self.implode_params(path, params)
         url = requestPath
         queryString = ''
-        if (method == 'GET') or (method == 'DELETE') or (method == 'PUT'):
+        if (method == 'GET') or (method == 'DELETE') or (method == 'PUT') or (url == '/positions/assign'):
             if query:
                 queryString = self.urlencode_with_array_repeat(query)
                 url += '?' + queryString
