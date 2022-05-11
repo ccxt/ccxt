@@ -829,12 +829,12 @@ class zb(Exchange):
             result[code] = account
         return self.safe_balance(result)
 
-    def parse_margin_balance(self, response, marginType):
+    def parse_margin_balance(self, response, marginMode):
         result = {
             'info': response,
         }
         levers = None
-        if marginType == 'isolated':
+        if marginMode == 'isolated':
             message = self.safe_value(response, 'message', {})
             data = self.safe_value(message, 'datas', {})
             levers = self.safe_value(data, 'levers', [])
@@ -916,7 +916,7 @@ class zb(Exchange):
             #     ],
             #
             account = self.account()
-            if marginType == 'isolated':
+            if marginMode == 'isolated':
                 code = self.safe_currency_code(self.safe_string(balance, 'fShowName'))
                 account['total'] = self.safe_string(balance, 'fAvailableUSD')  # total amount in USD
                 account['free'] = self.safe_string(balance, 'couldTransferOutFiat')
@@ -937,10 +937,10 @@ class zb(Exchange):
         swap = (marketType == 'swap')
         marginMethod = None
         defaultMargin = 'isolated' if margin else 'cross'
-        marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
-        if marginType == 'isolated':
+        marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+        if marginMode == 'isolated':
             marginMethod = 'spotV1PrivateGetGetLeverAssetsInfo'
-        elif marginType == 'cross':
+        elif marginMode == 'cross':
             marginMethod = 'spotV1PrivateGetGetCrossAssets'
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotV1PrivateGetGetAccountInfo',
@@ -1113,7 +1113,7 @@ class zb(Exchange):
         if swap:
             return self.parse_swap_balance(response)
         elif margin:
-            return self.parse_margin_balance(response, marginType)
+            return self.parse_margin_balance(response, marginMode)
         else:
             return self.parse_balance(response)
 
@@ -3411,7 +3411,7 @@ class zb(Exchange):
         rawSide = self.safe_string(position, 'side')
         side = 'long' if (rawSide == '1') else 'short'
         openType = self.safe_string(position, 'marginMode')
-        marginType = 'isolated' if (openType == '1') else 'cross'
+        marginMode = 'isolated' if (openType == '1') else 'cross'
         leverage = self.safe_string(position, 'leverage')
         liquidationPrice = self.safe_number(position, 'liquidatePrice')
         unrealizedProfit = self.safe_number(position, 'unrealizedPnl')
@@ -3431,7 +3431,8 @@ class zb(Exchange):
             'unrealizedProfit': unrealizedProfit,
             'leverage': self.parse_number(leverage),
             'percentage': percentage,
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode,  # deprecated
             'notional': notional,
             'markPrice': None,
             'liquidationPrice': liquidationPrice,
@@ -3618,14 +3619,14 @@ class zb(Exchange):
             request['side'] = side
         else:
             defaultMargin = 'isolated' if margin else 'cross'
-            marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
-            if marginType == 'isolated':
+            marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+            if marginMode == 'isolated':
                 if fromAccount == 'spot' or toAccount == 'isolated':
                     marginMethod = 'spotV1PrivateGetTransferInLever'
                 else:
                     marginMethod = 'spotV1PrivateGetTransferOutLever'
                 request['marketName'] = self.safe_string(params, 'marketName')
-            elif marginType == 'cross':
+            elif marginMode == 'cross':
                 if fromAccount == 'spot' or toAccount == 'cross':
                     marginMethod = 'spotV1PrivateGetTransferInCross'
                 else:

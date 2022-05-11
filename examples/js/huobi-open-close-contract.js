@@ -5,7 +5,7 @@ const exchange = new ccxt.huobi ({
     'secret': 'YOUR_SECRET',
     'options': {
         'defaultType': 'swap',
-        'marginType': 'cross'
+        'marginMode': 'cross'
     },
 })
 

@@ -35,6 +35,7 @@ class binanceusdm extends binance {
                 // tier amount, maintenance margin, initial margin
                 'leverageBrackets' => null,
                 'marginTypes' => array(),
+                'marginModes' => array(),
             ),
         ));
     }
