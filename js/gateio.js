@@ -3580,28 +3580,29 @@ module.exports = class gateio extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
-        const toId = this.safeString (accountsByType, toAccount, toAccount);
-        if (fromId === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' transfer() fromAccount must be one of ' + keys.join (', '));
-        }
-        if (toId === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' transfer() toAccount must be one of ' + keys.join (', '));
-        }
+        const fromId = this.parseAccount (fromAccount);
+        const toId = this.parseAccount (toAccount);
         const truncated = this.currencyToPrecision (code, amount);
         const request = {
             'currency': currency['id'],
-            'from': fromId,
-            'to': toId,
             'amount': truncated,
         };
-        if (fromAccount === 'margin' || toAccount === 'margin') {
+        if (!(fromId in this.options['accountsByType'])) {
+            request['from'] = 'margin';
+            request['currency_pair'] = fromId;
+        } else {
+            request['from'] = fromId;
+        }
+        if (!(toId in this.options['accountsByType'])) {
+            request['to'] = 'margin';
+            request['currency_pair'] = toId;
+        } else {
+            request['to'] = toId;
+        }
+        if (fromId === 'margin' || toId === 'margin') {
             const symbol = this.safeString2 (params, 'symbol', 'currency_pair');
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' transfer() requires params.symbol for isolated margin transfers');
+                throw new ArgumentsRequired (this.id + ' transfer requires params["symbol"] for isolated margin transfers');
             }
             const market = this.market (symbol);
             request['currency_pair'] = market['id'];
@@ -3628,6 +3629,19 @@ module.exports = class gateio extends Exchange {
             'toAccount': toAccount,
             'amount': this.parseNumber (truncated),
         });
+    }
+
+    parseAccount (account) {
+        const accountsByType = this.options['accountsByType'];
+        if (account in accountsByType) {
+            return accountsByType[account];
+        } else if (account in this.markets) {
+            const market = this.market (account);
+            return market['id'];
+        } else {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' accounts must be one of ' + keys.join (', ') + ' or an isolated margin symbol');
+        }
     }
 
     parseTransfer (transfer, currency = undefined) {
