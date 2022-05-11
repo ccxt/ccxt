@@ -828,12 +828,12 @@ class zb extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_margin_balance($response, $marginType) {
+    public function parse_margin_balance($response, $marginMode) {
         $result = array(
             'info' => $response,
         );
         $levers = null;
-        if ($marginType === 'isolated') {
+        if ($marginMode === 'isolated') {
             $message = $this->safe_value($response, 'message', array());
             $data = $this->safe_value($message, 'datas', array());
             $levers = $this->safe_value($data, 'levers', array());
@@ -916,7 +916,7 @@ class zb extends Exchange {
             //     ),
             //
             $account = $this->account();
-            if ($marginType === 'isolated') {
+            if ($marginMode === 'isolated') {
                 $code = $this->safe_currency_code($this->safe_string($balance, 'fShowName'));
                 $account['total'] = $this->safe_string($balance, 'fAvailableUSD'); // total amount in USD
                 $account['free'] = $this->safe_string($balance, 'couldTransferOutFiat');
@@ -940,10 +940,10 @@ class zb extends Exchange {
         $swap = ($marketType === 'swap');
         $marginMethod = null;
         $defaultMargin = $margin ? 'isolated' : 'cross';
-        $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', $defaultMargin);
-        if ($marginType === 'isolated') {
+        $marginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', $defaultMargin);
+        if ($marginMode === 'isolated') {
             $marginMethod = 'spotV1PrivateGetGetLeverAssetsInfo';
-        } else if ($marginType === 'cross') {
+        } else if ($marginMode === 'cross') {
             $marginMethod = 'spotV1PrivateGetGetCrossAssets';
         }
         $method = $this->get_supported_mapping($marketType, array(
@@ -1118,7 +1118,7 @@ class zb extends Exchange {
         if ($swap) {
             return $this->parse_swap_balance($response);
         } else if ($margin) {
-            return $this->parse_margin_balance($response, $marginType);
+            return $this->parse_margin_balance($response, $marginMode);
         } else {
             return $this->parse_balance($response);
         }
@@ -3575,7 +3575,7 @@ class zb extends Exchange {
         $rawSide = $this->safe_string($position, 'side');
         $side = ($rawSide === '1') ? 'long' : 'short';
         $openType = $this->safe_string($position, 'marginMode');
-        $marginType = ($openType === '1') ? 'isolated' : 'cross';
+        $marginMode = ($openType === '1') ? 'isolated' : 'cross';
         $leverage = $this->safe_string($position, 'leverage');
         $liquidationPrice = $this->safe_number($position, 'liquidatePrice');
         $unrealizedProfit = $this->safe_number($position, 'unrealizedPnl');
@@ -3595,7 +3595,8 @@ class zb extends Exchange {
             'unrealizedProfit' => $unrealizedProfit,
             'leverage' => $this->parse_number($leverage),
             'percentage' => $percentage,
-            'marginType' => $marginType,
+            'marginMode' => $marginMode,
+            'marginType' => $marginMode, // deprecated
             'notional' => $notional,
             'markPrice' => null,
             'liquidationPrice' => $liquidationPrice,
@@ -3795,15 +3796,15 @@ class zb extends Exchange {
             $request['side'] = $side;
         } else {
             $defaultMargin = $margin ? 'isolated' : 'cross';
-            $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', $defaultMargin);
-            if ($marginType === 'isolated') {
+            $marginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', $defaultMargin);
+            if ($marginMode === 'isolated') {
                 if ($fromAccount === 'spot' || $toAccount === 'isolated') {
                     $marginMethod = 'spotV1PrivateGetTransferInLever';
                 } else {
                     $marginMethod = 'spotV1PrivateGetTransferOutLever';
                 }
                 $request['marketName'] = $this->safe_string($params, 'marketName');
-            } else if ($marginType === 'cross') {
+            } else if ($marginMode === 'cross') {
                 if ($fromAccount === 'spot' || $toAccount === 'cross') {
                     $marginMethod = 'spotV1PrivateGetTransferInCross';
                 } else {

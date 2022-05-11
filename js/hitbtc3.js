@@ -1996,7 +1996,7 @@ module.exports = class hitbtc3 extends Exchange {
         //         },
         //     ]
         //
-        const marginType = this.safeString (position, 'type');
+        const marginMode = this.safeString (position, 'type');
         const leverage = this.safeNumber (position, 'leverage');
         const datetime = this.safeString (position, 'updated_at');
         const positions = this.safeValue (position, 'positions', []);
@@ -2022,7 +2022,8 @@ module.exports = class hitbtc3 extends Exchange {
             'info': position,
             'symbol': symbol,
             'notional': undefined,
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode,
             'liquidationPrice': liquidationPrice,
             'entryPrice': entryPrice,
             'unrealizedPnl': undefined,

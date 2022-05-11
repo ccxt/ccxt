@@ -2018,7 +2018,7 @@ Turn on/off the built-in rate-limiter with ``.enableRateLimit`` property, like s
 
    // enable built-in rate limiting upon instantiation of the exchange
    const exchange = new ccxt.bitfinex ({
-       'enableRateLimit': true,
+       // 'enableRateLimit': true, // enabled by default
    })
 
    // or switch the built-in rate-limiter on or off later after instantiation
@@ -2031,7 +2031,7 @@ Turn on/off the built-in rate-limiter with ``.enableRateLimit`` property, like s
 
    # enable built-in rate limiting upon instantiation of the exchange
    exchange = ccxt.bitfinex({
-       'enableRateLimit': True,
+       # 'enableRateLimit': True,  # enabled by default
    })
 
    # or switch the built-in rate-limiter on or off later after instantiation
@@ -2044,7 +2044,7 @@ Turn on/off the built-in rate-limiter with ``.enableRateLimit`` property, like s
 
    // enable built-in rate limiting upon instantiation of the exchange
    $exchange = new \ccxt\bitfinex (array (
-       'enableRateLimit' => true,
+       // 'enableRateLimit' => true, // enabled by default
    ));
 
    // or switch the built-in rate-limiter on or off later after instantiation
@@ -3425,7 +3425,7 @@ Order Book
 
 Exchanges expose information on open orders with bid (buy) and ask (sell) prices, volumes and other data. Usually there is a separate endpoint for querying current state (stack frame) of the *order book* for a particular market. An order book is also often called *market depth*. The order book information is used in the trading decision making process.
 
-To get data on order books, you can use 
+To get data on order books, you can use
 
 
  * ``fetchOrderBook ()`` // for a single markets order books
@@ -4107,8 +4107,8 @@ You can access those limits by using
 
 
  * ``fetchMarketLeverageTiers()`` (single symbol)
- * ``fetchLeverageTiers([symbol1, symbol2, ...])`` (multiple symbols) 
- * ``fetchLeverageTiers()`` (all market symbols) 
+ * ``fetchLeverageTiers([symbol1, symbol2, ...])`` (multiple symbols)
+ * ``fetchLeverageTiers()`` (all market symbols)
 
 .. code-block:: Javascript
 
@@ -4427,7 +4427,7 @@ Positions Risk Structure
        maintenanceMarginPercentage: 0.01,
        marginRatio: 0.4881,
        datetime: "2022-03-16T08:45:54.000Z",
-       marginType: 'cross',
+       marginMode: 'cross',
        side: "long",
        hedged: false,
        percentage: 78
@@ -4724,7 +4724,7 @@ The ``fetchAccounts()`` method will return a structure like shown below:
 .. code-block:: JavaScript
 
    [
-       {       
+       {
            id: "s32kj302lasli3930",
            type: "main",
            currency: "USDT",
@@ -5084,7 +5084,7 @@ Most of methods returning orders within ccxt unified API will yield an order str
 timeInForce
 ~~~~~~~~~~~
 
-The ``timeInForce`` field may be ``undefined/None/null`` if not specified by the exchange. The unification of ``timeInForce`` is a work in progress. 
+The ``timeInForce`` field may be ``undefined/None/null`` if not specified by the exchange. The unification of ``timeInForce`` is a work in progress.
 
 Possible values for the\ ``timeInForce`` field:
 
@@ -5110,7 +5110,7 @@ Parameters
 
   * Make sure the symbol in question exists with the target exchange and is available for trading.
 
- * **side** *required* a string literal for the direction of your order. 
+ * **side** *required* a string literal for the direction of your order.
   **Unified sides:**
 
   * ``buy`` give quote currency and receive base currency; for example, buying ``BTC/USD`` means that you will receive bitcoins for your dollars.
@@ -5119,7 +5119,7 @@ Parameters
  * **type** a string literal type of order
   **Unified types:**
 
-  * :doc:`market <market orders>` not allowed by some exchanges, see :ref:`their docs <exchanges>` for details 
+  * :doc:`market <market orders>` not allowed by some exchanges, see :ref:`their docs <exchanges>` for details
   * :doc:`limit <limit orders>`
   * see #custom-order-params and #other-order-types for non-unified types
 
@@ -5135,7 +5135,7 @@ Returns
  **Notes on createOrder**
 
 
- * Some exchanges will allow to trade with limit orders only. 
+ * Some exchanges will allow to trade with limit orders only.
 
 Some fields from the returned order structure may be ``undefined / None / null`` if that information is not returned from the exchange API's response. The user is guaranteed that the ``createOrder`` method will return a unified :ref:`order structure <order structure>` that will contain at least the order ``id`` and the ``info`` (a raw response from the exchange "as is"):
 
@@ -5149,7 +5149,7 @@ Some fields from the returned order structure may be ``undefined / None / null``
 Limit Orders
 ~~~~~~~~~~~~
 
-Limit orders placed on the order book of the exchange for a price specified by the trader. They are fullfilled(closed) when there are no orders in the same market at a better price, and another trader creates a :doc:`market order <market orders>` or an opposite order for a price that matches or exceeds the price of the limit order. 
+Limit orders placed on the order book of the exchange for a price specified by the trader. They are fullfilled(closed) when there are no orders in the same market at a better price, and another trader creates a :doc:`market order <market orders>` or an opposite order for a price that matches or exceeds the price of the limit order.
 
 Limit orders may not be fully filled. This happens when the filling order is for a smaller amount than the amount specified by the limit order.
 
@@ -5178,8 +5178,8 @@ Market Orders
 
 
  * market price orders
- * spot price orders 
- * instant orders 
+ * spot price orders
+ * instant orders
 
 Market orders are executed immediately by fulfilling one of more already existing orders from the ask side of the exchanges order book. The orders that your market order fulfills are chosen from th top of the order book stack, meaning your market order is fulfilled at the best price available. When placing a market order you don't need to specify the price of the order, and if the price is specified, it will be ignored.
 
@@ -5259,7 +5259,6 @@ The first is the default and if you specify the ``price`` along with the ``amoun
    const exchange = new ccxt.cex ({
        'apiKey': YOUR_API_KEY,
        'secret': 'YOUR_SECRET',
-       'enableRateLimit': true,
        // 'options': {
        //     'createMarketBuyOrderRequiresPrice': true, // default
        // },
@@ -5291,7 +5290,6 @@ The second alternative is useful in cases when the user wants to calculate and s
    const exchange = new ccxt.cex ({
        'apiKey': YOUR_API_KEY,
        'secret': 'YOUR_SECRET',
-       'enableRateLimit': true,
        'options': {
            'createMarketBuyOrderRequiresPrice': false, // switch off
        },
@@ -5465,7 +5463,7 @@ Parameters
 
  * **id** (String) *required* Order id (e.g. ``1645807945000``\ )
  * **symbol** (String) *required* Unified CCXT market symbol
- * **side** (String) *required* the direction of your order. 
+ * **side** (String) *required* the direction of your order.
   **Unified sides:**
 
   * ``buy`` give quote currency and receive base currency; for example, buying ``BTC/USD`` means that you will receive bitcoins for your dollars.
@@ -5474,7 +5472,7 @@ Parameters
  * **type** (String) *required* type of order
   **Unified types:**
 
-  * :doc:`\ ``market`` <market orders>` not allowed by some exchanges, see :ref:`their docs <exchanges>` for details 
+  * :doc:`\ ``market`` <market orders>` not allowed by some exchanges, see :ref:`their docs <exchanges>` for details
   * :doc:`\ ``limit`` <limit orders>`
   * see #custom-order-params and #other-order-types for non-unified types
 
@@ -5761,7 +5759,7 @@ Trades By Order Id
 Ledger
 ------
 
-The ledger is simply the history of changes, actions done by the user or operations that altered the user's balance in any way, that is, the history of movements of all funds from/to all accounts of the user which includes 
+The ledger is simply the history of changes, actions done by the user or operations that altered the user's balance in any way, that is, the history of movements of all funds from/to all accounts of the user which includes
 
 
  * deposits and withdrawals (funding)
@@ -6615,7 +6613,7 @@ Margin
 
  *margin and contract only*
 
-To increase or reduce your margin balance (collateral) in an open leveraged position, use ``addMargin``  and ``reduceMargin`` respectively. This is kind of like adjusting the amount of leverage you're using with a position that's already open. 
+To increase or reduce your margin balance (collateral) in an open leveraged position, use ``addMargin``  and ``reduceMargin`` respectively. This is kind of like adjusting the amount of leverage you're using with a position that's already open.
 
 Some scenarios to use these methods include
 
@@ -6659,7 +6657,7 @@ Margin Mode
 
  *margin and contract only*
 
-Updates the type of margin used to be either 
+Updates the type of margin used to be either
 
 
  * ``cross`` One account is used to share collateral between markets. Margin is taken from total account balance to avoid liquidation when needed.
@@ -6667,12 +6665,12 @@ Updates the type of margin used to be either
 
 .. code-block:: Javascript
 
-   setMarginMode (marginType, symbol = undefined, params = {})
+   setMarginMode (marginMode, symbol = undefined, params = {})
 
 Parameters
 
 
- * **marginType** (String) *required* the type of margin used 
+ * **marginMode** (String) *required* the type of margin used
     **Unified margin types:**
 
   * ``"cross"``
@@ -6689,7 +6687,7 @@ Returns
 Exchanges without setMarginMode
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Common reasons for why an exchange might have 
+Common reasons for why an exchange might have
 
 .. code-block:: JavaScript
 
@@ -6737,7 +6735,7 @@ Contract trading
 
 This can include futures with a set expiry date, perpetual swaps with funding payments, and inverse futures or swaps.
 Information about the positions can be served from different endpoints depending on the exchange.
-In the case that there are multiple endpoints serving different types of derivatives CCXT will default to just loading the "linear" (as oppose to the "inverse") contracts or the "swap" (as opposed to the "future") contracts. 
+In the case that there are multiple endpoints serving different types of derivatives CCXT will default to just loading the "linear" (as oppose to the "inverse") contracts or the "swap" (as opposed to the "future") contracts.
 
 Positions
 ---------
@@ -6809,7 +6807,7 @@ Position Structure
       'maintenanceMarginPercentage': 0.01,  // float, the maintenanceMargin as a percentage of the notional
       'unrealizedPnl': 300,        // float, the difference between the market price and the entry price times the number of contracts, can be negative
       'liquidationPrice': 19850,   // float, the price at which collateral becomes less than maintenanceMargin
-      'marginType': 'cross',       // string, can be cross or isolated
+      'marginMode': 'cross',       // string, can be cross or isolated
       'percentage': 3.32,          // float, represents unrealizedPnl / initialMargin * 100
    }
 
@@ -6846,7 +6844,7 @@ Funding History
 
  *contract only*
 
-Perpetual swap (also known as perpetual future) contracts maintain a market price that mirrors the price of the asset they are based on because funding fees are exchanged between traders who hold positions in perpetual swap markets. 
+Perpetual swap (also known as perpetual future) contracts maintain a market price that mirrors the price of the asset they are based on because funding fees are exchanged between traders who hold positions in perpetual swap markets.
 
 If the contract is being traded at a price that is higher than the price of the asset they represent, then traders in long positions pay a funding fee to traders in short positions at specific times of day, which encourages more traders to enter short positions prior to these times.
 
@@ -7229,7 +7227,7 @@ In case you experience any difficulty connecting to a particular exchange, do th
   .. code-block:: Python
 
      import ccxt
-     exchange = ccxt.binance({'enableRateLimit': True})
+     exchange = ccxt.binance()
      exchange.load_markets()
      exchange.verbose = True  # enable verbose mode after loading the markets
   Your `code to reproduce the issue + verbose output is required <https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help>`__ in order to get help.

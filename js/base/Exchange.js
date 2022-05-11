@@ -221,7 +221,6 @@ module.exports = class Exchange {
             'commonCurrencies': { // gets extended/overwritten in subclasses
                 'XBT': 'BTC',
                 'BCC': 'BCH',
-                'DRK': 'DASH',
                 'BCHABC': 'BCH',
                 'BCHSV': 'BSV',
             },

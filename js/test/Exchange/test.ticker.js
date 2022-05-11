@@ -68,6 +68,7 @@ module.exports = (exchange, ticker, method, symbol) => {
         'btcturk',
         'bybit',
         'coss',
+        'cryptocom',
         'ftx',
         'ftxus',
         'gateio', // some ticker bids are greaters than asks

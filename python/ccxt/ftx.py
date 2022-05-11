@@ -2076,7 +2076,8 @@ class ftx(Exchange):
             'liquidationPrice': self.parse_number(liquidationPriceString),
             'markPrice': self.parse_number(markPriceString),
             'collateral': self.parse_number(collateral),
-            'marginType': 'cross',
+            'marginMode': 'cross',
+            'marginType': 'cross',  # deprecated
             'side': side,
             'percentage': percentage,
         }
@@ -2626,7 +2627,8 @@ class ftx(Exchange):
         return {
             'account': 'cross',
             'symbol': None,
-            'marginType': 'cross',
+            'marginMode': 'cross',
+            'marginType': 'cross',  # deprecated
             'currency': self.safe_currency_code(coin),
             'interest': self.safe_number(info, 'cost'),
             'interestRate': self.safe_number(info, 'rate'),

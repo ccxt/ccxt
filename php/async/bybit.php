@@ -1965,6 +1965,11 @@ class bybit extends Exchange {
     }
 
     public function parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'Buy', $asksKey = 'Sell', $priceKey = 'price', $amountKey = 'size') {
+        $market = $this->market($symbol);
+        if ($market['spot']) {
+            $timestamp = $this->safe_integer($orderbook, 'time');
+            return parent::parse_order_book($orderbook, $symbol, $timestamp, 'bids', 'asks');
+        }
         $bids = array();
         $asks = array();
         for ($i = 0; $i < count($orderbook); $i++) {
@@ -1994,7 +1999,40 @@ class bybit extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = yield $this->publicGetV2PublicOrderBookL2 (array_merge($request, $params));
+        $isUsdcSettled = $market['settle'] === 'USDC';
+        $method = null;
+        if ($market['spot']) {
+            $method = 'publicGetSpotQuoteV1Depth';
+        } else if (!$isUsdcSettled) {
+            // inverse perpetual // usdt linear // inverse futures
+            $method = 'publicGetV2PublicOrderBookL2';
+        } else {
+            // usdc option/ swap
+            $method = $market['option'] ? 'publicGetOptionUsdcOpenapiPublicV1OrderBook' : 'publicGetPerpetualUsdcOpenapiPublicV1OrderBook';
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        // spot
+        //     {
+        //         "ret_code" => 0,
+        //         "ret_msg" => null,
+        //         "result" => array(
+        //             "time" => 1620886105740,
+        //             "bids" => [
+        //                 ["50005.12","403.0416"]
+        //             ],
+        //             "asks" => array(
+        //                 ["50006.34", "0.2297" )
+        //             ]
+        //         ),
+        //         "ext_code" => null,
+        //         "ext_info" => null
+        //     }
+        //
+        // linear/inverse swap/futures
         //
         //     {
         //         ret_code => 0,
@@ -2005,12 +2043,28 @@ class bybit extends Exchange {
         //             array( $symbol => 'BTCUSD', price => '7767.5', size => 677956, side => 'Buy' ),
         //             array( $symbol => 'BTCUSD', price => '7767', size => 580690, side => 'Buy' ),
         //             array( $symbol => 'BTCUSD', price => '7766.5', size => 475252, side => 'Buy' ),
-        //             array( $symbol => 'BTCUSD', price => '7768', size => 330847, side => 'Sell' ),
-        //             array( $symbol => 'BTCUSD', price => '7768.5', size => 97159, side => 'Sell' ),
-        //             array( $symbol => 'BTCUSD', price => '7769', size => 6508, side => 'Sell' ),
         //         ),
         //         time_now => '1583954829.874823'
         //     }
+        //
+        // usdc markets
+        //
+        //     {
+        //         "retCode" => 0,
+        //           "retMsg" => "SUCCESS",
+        //           "result" => array(
+        //           array(
+        //             "price" => "5000.00000000",
+        //             "size" => "2.0000",
+        //             "side" => "Buy" // bids
+        //           ),
+        //           {
+        //             "price" => "5900.00000000",
+        //             "size" => "0.9000",
+        //             "side" => "Sell" // asks
+        //           }
+        //         )
+        //    }
         //
         $result = $this->safe_value($response, 'result', array());
         $timestamp = $this->safe_timestamp($response, 'time_now');
@@ -3515,7 +3569,7 @@ class bybit extends Exchange {
         return $this->safe_value($response, 'result');
     }
 
-    public function set_margin_mode($marginType, $symbol = null, $params = array ()) {
+    public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
         //
         // {
         //     "ret_code" => 0,
@@ -3533,12 +3587,12 @@ class bybit extends Exchange {
         if ($leverage === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $leverage parameter');
         }
-        $marginType = strtoupper($marginType);
-        if ($marginType === 'CROSSED') { // * Deprecated, use 'CROSS' instead
-            $marginType = 'CROSS';
+        $marginMode = strtoupper($marginMode);
+        if ($marginMode === 'CROSSED') { // * Deprecated, use 'CROSS' instead
+            $marginMode = 'CROSS';
         }
-        if (($marginType !== 'ISOLATED') && ($marginType !== 'CROSS')) {
-            throw new BadRequest($this->id . ' setMarginMode() $marginType must be either isolated or cross');
+        if (($marginMode !== 'ISOLATED') && ($marginMode !== 'CROSS')) {
+            throw new BadRequest($this->id . ' setMarginMode() $marginMode must be either isolated or cross');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -3556,7 +3610,7 @@ class bybit extends Exchange {
         } else if ($future) {
             $method = 'privateFuturesPostPositionSwitchIsolated';
         }
-        $isIsolated = ($marginType === 'ISOLATED');
+        $isIsolated = ($marginMode === 'ISOLATED');
         $request = array(
             'symbol' => $market['id'],
             'is_isolated' => $isIsolated,
