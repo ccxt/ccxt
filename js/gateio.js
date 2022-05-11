@@ -3258,7 +3258,7 @@ module.exports = class gateio extends Exchange {
          * @param {dict} params exchange specific params
          * @param {bool} params.stop true for fetching stop orders
          * @param {str} params.type spot, swap or future, if not provided this.options['defaultType'] is used
-         * @param {str} params.marginType 'cross' or 'isolated' - marginType for margin trading if not provided this.options['defaultMarginType'] is used
+         * @param {str} params.marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
          * @returns An array of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByStatus ('finished', symbol, since, limit, params);
