@@ -2512,6 +2512,8 @@ module.exports = class bybit extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        amount = this.amountToPrecision (symbol, amount);
+        price = this.priceToPrecision (symbol, price);
         const isUsdcSettled = (market['settle'] === 'USDC');
         if (market['spot']) {
             return await this.createSpotOrder (symbol, type, side, amount, price, params);
@@ -2542,13 +2544,13 @@ module.exports = class bybit extends Exchange {
             'side': this.capitalize (side),
             'type': type.toUpperCase (), // limit, market or limit_maker
             'timeInForce': 'GTC', // FOK, IOC
-            'qty': amount.toString (),
+            'qty': amount,
         };
         if (type === 'limit' || type === 'limit_maker') {
             if (price === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder requires a price argument for a ' + type + ' order');
             }
-            request['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = price;
         }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'orderLinkId');
         if (clientOrderId !== undefined) {
@@ -2595,10 +2597,10 @@ module.exports = class bybit extends Exchange {
             'side': this.capitalize (side),
             'orderType': this.capitalize (type), // limit
             'timeInForce': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
-            'orderQty': amount.toString (),
+            'orderQty': amount,
         };
         if (price !== undefined) {
-            request['orderPrice'] = this.priceToPrecision (symbol, price);
+            request['orderPrice'] = price;
         }
         if (market['swap']) {
             const stopPx = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
@@ -2664,7 +2666,7 @@ module.exports = class bybit extends Exchange {
             'side': this.capitalize (side),
             'order_type': this.capitalize (type), // limit
             'time_in_force': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
-            'qty': amount.toString (),
+            'qty': amount,
         };
         if (market['future']) {
             const positionIdx = this.safeInteger (params, 'position_idx', 0); // 0 One-Way Mode, 1 Buy-side, 2 Sell-side
@@ -2678,7 +2680,7 @@ module.exports = class bybit extends Exchange {
             request['close_on_trigger'] = closeOnTrigger;
         }
         if (price !== undefined) {
-            request['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = price;
         }
         const stopPx = this.safeValue2 (params, 'stop_px', 'stopPrice');
         const basePrice = this.safeValue2 (params, 'base_price', 'basePrice');
@@ -2758,10 +2760,10 @@ module.exports = class bybit extends Exchange {
             'orderId': id,
         };
         if (amount !== undefined) {
-            request['orderQty'] = amount.toString ();
+            request['orderQty'] = amount;
         }
         if (price !== undefined) {
-            request['orderPrice'] = this.priceToPrecision (symbol, price);
+            request['orderPrice'] = price;
         }
         const method = market['option'] ? 'privatePostOptionUsdcOpenApiPrivateV1ReplaceOrder' : 'privatePostPerpetualUsdcOpenApiPrivateV1ReplaceOrder';
         const response = await this[method] (this.extend (request, params));
@@ -2784,16 +2786,7 @@ module.exports = class bybit extends Exchange {
         };
     }
 
-    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        // -> spot not supported
-        // -> usdc option -> privatePostOptionUsdcOpenApiPrivateV1ReplaceOrder
-        // -> usdc swap -> privatePostPerpetualUsdcOpenApiPrivateV1ReplaceOrder
-        // inver swap -> privatePostV2PrivateOrderReplace
-        // inverse swap conditional -> privatePostV2PrivateSpotOrderReplace
-        // linear swap -> privatePostPrivateLinearOrderCreate
-        // linear swap conditional -> privatePostPrivateLinearStopOrderReplace
-        // future -> privatePostFuturesPrivateOrderReplace
-        // future conditional ->privatePostFuturesPrivateStopOrderReplace
+    async editContractOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an symbol argument');
         }
@@ -2809,43 +2802,24 @@ module.exports = class bybit extends Exchange {
             // 'stop_order_id': id, // only for conditional orders
             // 'p_r_trigger_price': 123.45, // new trigger price also known as stop_px
         };
-        let method = undefined;
-        if (market['swap']) {
-            if (market['linear']) {
-                method = 'privateLinearPostOrderReplace';
-            } else if (market['inverse']) {
-                method = 'v2PrivatePostOrderReplace';
-            }
-        } else if (market['future']) {
-            method = 'futuresPrivatePostOrderReplace';
-        }
-        const stopOrderId = this.safeString (params, 'stop_order_id');
-        if (stopOrderId !== undefined) {
-            if (market['swap']) {
-                if (market['linear']) {
-                    method = 'privateLinearPostStopOrderReplace';
-                } else if (market['inverse']) {
-                    method = 'v2PrivatePostStopOrderReplace';
-                }
-            } else if (market['future']) {
-                method = 'futuresPrivatePostStopOrderReplace';
-            }
-            request['stop_order_id'] = stopOrderId;
-            params = this.omit (params, [ 'stop_order_id' ]);
-        } else {
-            request['order_id'] = id;
-        }
+        const orderType = this.safeString (params, 'orderType');
+        const isConditionalOrder = (orderType === 'stop' || orderType === 'conditional');
+        const idKey = isConditionalOrder ? 'stop_order_id' : 'order_id';
+        request[idKey] = id;
         if (amount !== undefined) {
-            let qty = this.amountToPrecision (symbol, amount);
-            if (market['inverse']) {
-                qty = parseInt (qty);
-            } else {
-                qty = parseFloat (qty);
-            }
-            request['p_r_qty'] = qty;
+            request['p_r_qty'] = amount;
         }
         if (price !== undefined) {
-            request['p_r_price'] = parseFloat (this.priceToPrecision (symbol, price));
+            request['p_r_price'] = price;
+        }
+        let method = undefined;
+        if (market['linear']) {
+            method = isConditionalOrder ? 'privatePostPrivateLinearStopOrderReplace' : 'privatePostPrivateLinearOrderReplace';
+        } else if (market['future']) {
+            method = isConditionalOrder ? 'privatePostFuturesPrivateStopOrderReplace' : 'privatePostFuturesPrivateOrderReplace';
+        } else {
+            // inverse swaps
+            method = isConditionalOrder ? 'privatePostV2PrivateSpotOrderReplace' : 'privatePostV2PrivateOrderReplace';
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -2881,6 +2855,24 @@ module.exports = class bybit extends Exchange {
             'order_id': this.safeString (result, 'order_id'),
             'stop_order_id': this.safeString (result, 'stop_order_id'),
         };
+    }
+
+    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires an symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        amount = this.amountToPrecision (symbol, amount);
+        price = this.priceToPrecision (symbol, price);
+        const isUsdcSettled = market['settle'] === 'USDC';
+        if (market['spot']) {
+            throw new NotSupported (this.id + ' editOrder() does not support spot markets');
+        } else if (isUsdcSettled) {
+            return await this.editUsdcOrder (id, symbol, type, side, amount, price, params);
+        } else {
+            return await this.editContractOrder (id, symbol, type, side, amount, price, params);
+        }
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
