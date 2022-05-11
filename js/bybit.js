@@ -496,8 +496,10 @@ module.exports = class bybit extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    '-1004': BadRequest, // {"ret_code":-1004,"ret_msg":"Missing required parameter \u0027symbol\u0027","ext_code":null,"ext_info":null,"result":null}
                     '-2015': AuthenticationError, // Invalid API-key, IP, or permissions for action.
                     '-10009': BadRequest, // {"ret_code":-10009,"ret_msg":"Invalid period!","result":null,"token":null}
+                    '7001': BadRequest, // {"retCode":7001,"retMsg":"request params type error"}
                     '10001': BadRequest, // parameter error
                     '10002': InvalidNonce, // request expired, check your timestamp and recv_window
                     '10003': AuthenticationError, // Invalid apikey
@@ -2355,6 +2357,28 @@ module.exports = class bybit extends Exchange {
         //        "isWorking":true
         //     }
         //
+        // create order usdc
+        //      {
+        //            "orderId":"34450a59-325e-4296-8af0-63c7c524ae33",
+        //            "orderLinkId":"",
+        //            "mmp":false,
+        //            "symbol":"BTCPERP",
+        //            "orderType":"Limit",
+        //            "side":"Buy",
+        //            "orderQty":"0.00100000",
+        //            "orderPrice":"20000.00",
+        //            "iv":"0",
+        //            "timeInForce":"GoodTillCancel",
+        //            "orderStatus":"Created",
+        //            "createdAt":"1652261746007873",
+        //            "basePrice":"0.00",
+        //            "triggerPrice":"0.00",
+        //            "takeProfit":"0.00",
+        //            "stopLoss":"0.00",
+        //            "slTriggerBy":"UNKNOWN",
+        //            "tpTriggerBy":"UNKNOWN"
+        //     }
+        //
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -2362,18 +2386,27 @@ module.exports = class bybit extends Exchange {
         let timestamp = this.parse8601 (this.safeString2 (order, 'created_at', 'created_time'));
         if (timestamp === undefined) {
             timestamp = this.safeNumber (order, 'time');
+            if (timestamp === undefined) {
+                timestamp = this.safeIntegerProduct (order, 'createdAt', 0.001);
+            }
         }
         let id = this.safeString2 (order, 'order_id', 'stop_order_id');
         if (id === undefined) {
             id = this.safeString (order, 'orderId');
         }
-        const type = this.safeStringLower2 (order, 'order_type', 'type');
+        let type = this.safeStringLower2 (order, 'order_type', 'type');
+        if (type === undefined) {
+            type = this.safeStringLower (order, 'orderType');
+        }
         let price = undefined;
         if (type !== 'market') {
-            price = this.safeString (order, 'price');
+            price = this.safeString2 (order, 'price', 'orderPrice');
         }
         const average = this.safeString2 (order, 'average_price', 'avgPrice');
-        const amount = this.safeString2 (order, 'qty', 'origQty');
+        let amount = this.safeString2 (order, 'qty', 'origQty');
+        if (amount === undefined) {
+            amount = this.safeString (order, 'orderQty');
+        }
         const cost = this.safeString (order, 'cum_exec_value');
         const filled = this.safeString2 (order, 'cum_exec_qty', 'executedQty');
         const remaining = this.safeString (order, 'leaves_qty');
@@ -2395,7 +2428,7 @@ module.exports = class bybit extends Exchange {
         }
         let raw_status = this.safeStringLower2 (order, 'order_status', 'stop_order_status');
         if (raw_status === undefined) {
-            raw_status = this.safeStringLower (order, 'status');
+            raw_status = this.safeStringLower2 (order, 'status', 'orderStatus');
         }
         const status = this.parseOrderStatus (raw_status);
         const side = this.safeStringLower (order, 'side');
@@ -2414,7 +2447,7 @@ module.exports = class bybit extends Exchange {
         const timeInForce = this.parseTimeInForce (this.safeString2 (order, 'time_in_force', 'timeInForce'));
         let stopPrice = this.safeString2 (order, 'trigger_price', 'stop_px');
         if (stopPrice === undefined) {
-            stopPrice = this.safeString (order, 'stopPrice');
+            stopPrice = this.safeString2 (order, 'stopPrice', 'triggerPrice');
         }
         const postOnly = (timeInForce === 'PO');
         return this.safeOrder ({
@@ -2679,13 +2712,16 @@ module.exports = class bybit extends Exchange {
             }
         }
         const request = {
-            'side': this.capitalize (side),
             'symbol': market['id'],
-            'order_type': this.capitalize (type), // limit, market or limit_maker
-            'timeInForce': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
+            'side': this.capitalize (side),
+            'type': type.toUpperCase (), // limit, market or limit_maker
+            'timeInForce': 'GTC', // FOK, IOC
             'qty': amount,
         };
         if (type === 'limit' || type === 'limit_maker') {
+            if (price === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder requires a price argument for a ' + type + ' order');
+            }
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'orderLinkId');
@@ -2695,6 +2731,71 @@ module.exports = class bybit extends Exchange {
         params = this.omit (params, [ 'clientOrderId', 'orderLinkId' ]);
         const response = await this.privatePostSpotV1Order (this.extend (request, params));
         return this.parseOrder (response);
+    }
+
+    async createUsdcOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (type === 'market') {
+            throw NotSupported (this.id + 'createOrder does not allow market orders for ' + symbol + ' markets');
+        }
+        if (price === undefined && type === 'limit') {
+            throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
+        }
+        const request = {
+            'symbol': market['id'],
+            'side': this.capitalize (side),
+            'orderType': this.capitalize (type), // limit
+            'timeInForce': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
+            'orderQty': amount.toString (),
+        };
+        if (price !== undefined) {
+            request['orderPrice'] = this.priceToPrecision (symbol, price);
+        }
+        if (market['swap']) {
+            const stopPx = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
+            params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
+            if (stopPx !== undefined) {
+                request['orderFilter'] = 'StopOrder';
+                request['triggerPrice'] = this.priceToPrecision (symbol, stopPx);
+            } else {
+                request['orderFilter'] = 'Order';
+            }
+        }
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'orderLinkId');
+        if (clientOrderId !== undefined) {
+            request['orderLinkId'] = clientOrderId;
+        }
+        params = this.omit (params, [ 'clientOrderId', 'orderLinkId' ]);
+        const method = market['option'] ? 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' : 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder';
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "retCode":0,
+        //         "retMsg":"",
+        //         "result":{
+        //            "orderId":"34450a59-325e-4296-8af0-63c7c524ae33",
+        //            "orderLinkId":"",
+        //            "mmp":false,
+        //            "symbol":"BTCPERP",
+        //            "orderType":"Limit",
+        //            "side":"Buy",
+        //            "orderQty":"0.00100000",
+        //            "orderPrice":"20000.00",
+        //            "iv":"0",
+        //            "timeInForce":"GoodTillCancel",
+        //            "orderStatus":"Created",
+        //            "createdAt":"1652261746007873",
+        //            "basePrice":"0.00",
+        //            "triggerPrice":"0.00",
+        //            "takeProfit":"0.00",
+        //            "stopLoss":"0.00",
+        //            "slTriggerBy":"UNKNOWN",
+        //            "tpTriggerBy":"UNKNOWN"
+        //     }
+        //
+        const order = this.safeValue (response, 'result', {});
+        return this.parseOrder (order);
     }
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
