@@ -4427,7 +4427,7 @@ Positions Risk Structure
        maintenanceMarginPercentage: 0.01,
        marginRatio: 0.4881,
        datetime: "2022-03-16T08:45:54.000Z",
-       marginType: 'cross',
+       marginMode: 'cross',
        side: "long",
        hedged: false,
        percentage: 78
@@ -6665,12 +6665,12 @@ Updates the type of margin used to be either
 
 .. code-block:: Javascript
 
-   setMarginMode (marginType, symbol = undefined, params = {})
+   setMarginMode (marginMode, symbol = undefined, params = {})
 
 Parameters
 
 
- * **marginType** (String) *required* the type of margin used
+ * **marginMode** (String) *required* the type of margin used
     **Unified margin types:**
 
   * ``"cross"``
@@ -6807,7 +6807,7 @@ Position Structure
       'maintenanceMarginPercentage': 0.01,  // float, the maintenanceMargin as a percentage of the notional
       'unrealizedPnl': 300,        // float, the difference between the market price and the entry price times the number of contracts, can be negative
       'liquidationPrice': 19850,   // float, the price at which collateral becomes less than maintenanceMargin
-      'marginType': 'cross',       // string, can be cross or isolated
+      'marginMode': 'cross',       // string, can be cross or isolated
       'percentage': 3.32,          // float, represents unrealizedPnl / initialMargin * 100
    }
 
