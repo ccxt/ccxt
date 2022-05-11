@@ -2274,7 +2274,7 @@ module.exports = class ascendex extends Exchange {
             'symbol': market['symbol'],
             'notional': notional,
             'marginMode': marginMode,
-            'marginType': undefined, // deprecated
+            'marginType': marginMode, // deprecated
             'liquidationPrice': undefined,
             'entryPrice': this.safeNumber (position, 'avgOpenPrice'),
             'unrealizedPnl': this.safeNumber (position, 'unrealizedPnl'),
