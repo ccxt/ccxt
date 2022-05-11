@@ -2190,7 +2190,115 @@ class ascendex extends Exchange {
         $request = array(
             'account-group' => $accountGroup,
         );
-        return yield $this->v2PrivateAccountGroupGetFuturesPosition (array_merge($request, $params));
+        $response = yield $this->v2PrivateAccountGroupGetFuturesPosition (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => {
+        //             "accountId" => "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //             "ac" => "FUTURES",
+        //             "collaterals" => array(
+        //                 {
+        //                     "asset" => "USDT",
+        //                     "balance" => "44.570287262",
+        //                     "referencePrice" => "1",
+        //                     "discountFactor" => "1"
+        //                 }
+        //             ),
+        //             "contracts" => array(
+        //                 array(
+        //                     "symbol" => "BTC-PERP",
+        //                     "side" => "LONG",
+        //                     "position" => "0.0001",
+        //                     "referenceCost" => "-3.12277254",
+        //                     "unrealizedPnl" => "-0.001700233",
+        //                     "realizedPnl" => "0",
+        //                     "avgOpenPrice" => "31209",
+        //                     "marginType" => "isolated",
+        //                     "isolatedMargin" => "1.654972977",
+        //                     "leverage" => "2",
+        //                     "takeProfitPrice" => "0",
+        //                     "takeProfitTrigger" => "market",
+        //                     "stopLossPrice" => "0",
+        //                     "stopLossTrigger" => "market",
+        //                     "buyOpenOrderNotional" => "0",
+        //                     "sellOpenOrderNotional" => "0",
+        //                     "markPrice" => "31210.723063672",
+        //                     "indexPrice" => "31223.148857925"
+        //                 ),
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $position = $this->safe_value($data, 'contracts', array());
+        $result = array();
+        for ($i = 0; $i < count($position); $i++) {
+            $result[] = $this->parse_position($position[$i]);
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols, false);
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        //     array(
+        //         "symbol" => "BTC-PERP",
+        //         "side" => "LONG",
+        //         "position" => "0.0001",
+        //         "referenceCost" => "-3.12277254",
+        //         "unrealizedPnl" => "-0.001700233",
+        //         "realizedPnl" => "0",
+        //         "avgOpenPrice" => "31209",
+        //         "marginType" => "isolated",
+        //         "isolatedMargin" => "1.654972977",
+        //         "leverage" => "2",
+        //         "takeProfitPrice" => "0",
+        //         "takeProfitTrigger" => "market",
+        //         "stopLossPrice" => "0",
+        //         "stopLossTrigger" => "market",
+        //         "buyOpenOrderNotional" => "0",
+        //         "sellOpenOrderNotional" => "0",
+        //         "markPrice" => "31210.723063672",
+        //         "indexPrice" => "31223.148857925"
+        //     ),
+        //
+        $marketId = $this->safe_string($position, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $notional = $this->safe_number($position, 'buyOpenOrderNotional');
+        if ($notional === 0) {
+            $notional = $this->safe_number($position, 'sellOpenOrderNotional');
+        }
+        $marginMode = $this->safe_string($position, 'marginType');
+        $collateral = null;
+        if ($marginMode === 'isolated') {
+            $collateral = $this->safe_number($position, 'isolatedMargin');
+        }
+        return array(
+            'info' => $position,
+            'id' => null,
+            'symbol' => $market['symbol'],
+            'notional' => $notional,
+            'marginMode' => $marginMode,
+            'marginType' => $marginMode, // deprecated
+            'liquidationPrice' => null,
+            'entryPrice' => $this->safe_number($position, 'avgOpenPrice'),
+            'unrealizedPnl' => $this->safe_number($position, 'unrealizedPnl'),
+            'percentage' => null,
+            'contracts' => null,
+            'contractSize' => $this->safe_number($position, 'position'),
+            'markPrice' => $this->safe_number($position, 'markPrice'),
+            'side' => $this->safe_string_lower($position, 'side'),
+            'hedged' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'maintenanceMargin' => null,
+            'maintenanceMarginPercentage' => null,
+            'collateral' => $collateral,
+            'initialMargin' => null,
+            'initialMarginPercentage' => null,
+            'leverage' => $this->safe_integer($position, 'leverage'),
+            'marginRatio' => null,
+        );
     }
 
     public function parse_funding_rate($fundingRate, $market = null) {
@@ -2335,13 +2443,13 @@ class ascendex extends Exchange {
         return yield $this->v2PrivateAccountGroupPostFuturesLeverage (array_merge($request, $params));
     }
 
-    public function set_margin_mode($marginType, $symbol = null, $params = array ()) {
-        $marginType = strtolower($marginType);
-        if ($marginType === 'cross') {
-            $marginType = 'crossed';
+    public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
+        $marginMode = strtolower($marginMode);
+        if ($marginMode === 'cross') {
+            $marginMode = 'crossed';
         }
-        if ($marginType !== 'isolated' && $marginType !== 'crossed') {
-            throw new BadRequest($this->id . ' setMarginMode() $marginType argument should be isolated or cross');
+        if ($marginMode !== 'isolated' && $marginMode !== 'crossed') {
+            throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');
         }
         yield $this->load_markets();
         yield $this->load_accounts();
@@ -2351,7 +2459,7 @@ class ascendex extends Exchange {
         $request = array(
             'account-group' => $accountGroup,
             'symbol' => $market['id'],
-            'marginType' => $marginType,
+            'marginMode' => $marginMode,
         );
         if ($market['type'] !== 'future') {
             throw new BadSymbol($this->id . ' setMarginMode() supports futures contracts only');

@@ -2262,18 +2262,18 @@ class bitget(Exchange):
         }
         return await self.privateMixPostAccountSetLeverage(self.extend(request, params))
 
-    async def set_margin_mode(self, marginType, symbol=None, params={}):
+    async def set_margin_mode(self, marginMode, symbol=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
-        marginType = marginType.lower()
-        if (marginType != 'fixed') and (marginType != 'crossed'):
-            raise ArgumentsRequired(self.id + ' setMarginMode() marginType must be "fixed" or "crossed"')
+        marginMode = marginMode.lower()
+        if (marginMode != 'fixed') and (marginMode != 'crossed'):
+            raise ArgumentsRequired(self.id + ' setMarginMode() marginMode must be "fixed" or "crossed"')
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
-            'marginMode': marginType,
+            'marginMode': marginMode,
         }
         return await self.privateMixPostAccountSetMarginMode(self.extend(request, params))
 

@@ -58,7 +58,11 @@ module.exports = class xena extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
+                'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
+                'transfer': false,
                 'withdraw': true,
             },
             'urls': {

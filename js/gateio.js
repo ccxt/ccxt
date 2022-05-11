@@ -1091,51 +1091,118 @@ module.exports = class gateio extends Exchange {
         return underlyings;
     }
 
-    prepareRequest (market) {
-        if (market !== undefined) {
-            if (market['contract']) {
-                return {
-                    'contract': market['id'],
-                    'settle': market['settleId'],
-                };
-            } else {
-                return {
-                    'currency_pair': market['id'],
-                };
-            }
-        }
-    }
-
-    getMarginType (stop, params) {
+    prepareRequest (market = undefined, type = undefined, params = {}) {
         /**
          * @ignore
          * @method
-         * @name gateio#getMarginType
+         * @name gateio#prepareRequest
+         * @description Fills request params contract, settle, currency_pair, market and account where applicable
+         * @param {dict} market CCXT market, required when type is undefined
+         * @param {str} type 'spot', 'swap', or 'future', required when market is undefined
+         * @param {dict} params request parameters
+         * @returns the api request object, and the new params object with non-needed parameters removed
+         */
+        // * Do not call for multi spot order methods like cancelAllOrders and fetchOpenOrders. Use multiOrderSpotPrepareRequest instead
+        const request = {};
+        if (market !== undefined) {
+            if (market['contract']) {
+                request['contract'] = market['id'];
+                request['settle'] = market['settleId'];
+            } else {
+                request['currency_pair'] = market['id'];
+            }
+        } else {
+            const swap = type === 'swap';
+            const future = type === 'future';
+            if (swap || future) {
+                const defaultSettle = swap ? 'usdt' : 'btc';
+                const settle = this.safeStringLower (params, 'settle', defaultSettle);
+                params = this.omit (params, 'settle');
+                request['settle'] = settle;
+            }
+        }
+        return [ request, params ];
+    }
+
+    spotOrderPrepareRequest (market = undefined, stop = false, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @name gateio#multiOrderSpotPrepareRequest
+         * @description Fills request params currency_pair, market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
+         * @param {dict} market CCXT market
+         * @param {bool} stop true if for a stop order
+         * @param {dict} params request parameters
+         * @returns the api request object, and the new params object with non-needed parameters removed
+         */
+        const [ marginMode, query ] = this.getMarginMode (stop, params);
+        const request = {};
+        if (!stop) {
+            if (market === undefined) {
+                throw new ArgumentsRequired (this.id + ' spotOrderPrepareRequest() requires a market argument for non-stop orders');
+            }
+            request['account'] = marginMode;
+            request['currency_pair'] = market['id']; // Should always be set for non-stop
+        }
+        return [ request, query ];
+    }
+
+    multiOrderSpotPrepareRequest (market = undefined, stop = false, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @name gateio#multiOrderSpotPrepareRequest
+         * @description Fills request params currency_pair, market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
+         * @param {dict} market CCXT market
+         * @param {bool} stop true if for a stop order
+         * @param {dict} params request parameters
+         * @returns the api request object, and the new params object with non-needed parameters removed
+         */
+        const [ marginMode, query ] = this.getMarginMode (stop, params);
+        const request = {
+            'account': marginMode,
+        };
+        if (market !== undefined) {
+            if (stop) {
+                // gateio spot and margin stop orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single stop order, but createOrder does not call this method
+                request['market'] = market['id'];
+            } else {
+                request['currency_pair'] = market['id'];
+            }
+        }
+        return [ request, query ];
+    }
+
+    getMarginMode (stop, params) {
+        /**
+         * @ignore
+         * @method
+         * @name gateio#getMarginMode
          * @description Gets the margin type for this api call
          * @param {bool} stop True if for a stop order
          * @param {dict} params Request params
-         * @returns The marginType and the updated request params with marginType removed, marginType value is the value that can be read by the "account" property specified in gateios api docs
+         * @returns The marginMode and the updated request params with marginMode removed, marginMode value is the value that can be read by the "account" property specified in gateios api docs
          */
-        const defaultMarginType = this.safeStringLower2 (this.options, 'defaultMarginType', 'marginType', 'spot'); // 'margin' is isolated margin on gateio's api
-        let marginType = this.safeStringLower2 (params, 'marginType', 'account', defaultMarginType);
-        params = this.omit (params, [ 'marginType' ]);
-        if (marginType === 'cross') {
-            marginType = 'cross_margin';
-        } else if (marginType === 'isolated') {
-            marginType = 'margin';
-        } else if (marginType === '') {
-            marginType = 'spot';
+        const defaultMarginMode = this.safeStringLower2 (this.options, 'defaultMarginMode', 'marginMode', 'spot'); // 'margin' is isolated margin on gateio's api
+        let marginMode = this.safeStringLower2 (params, 'marginMode', 'account', defaultMarginMode);
+        params = this.omit (params, [ 'marginMode', 'account' ]);
+        if (marginMode === 'cross') {
+            marginMode = 'cross_margin';
+        } else if (marginMode === 'isolated') {
+            marginMode = 'margin';
+        } else if (marginMode === '') {
+            marginMode = 'spot';
         }
         if (stop) {
-            if (marginType === 'spot') {
-                marginType = 'normal';
-                // gateio spot and margin stop orders use the term normal instead of spot
+            if (marginMode === 'spot') {
+                // gateio spot stop orders use the term normal instead of spot
+                marginMode = 'normal';
             }
-            if (marginType === 'cross_margin') {
-                throw new BadRequest (this.id + ' getMarginType() does not support stop orders for cross margin');
+            if (marginMode === 'cross_margin') {
+                throw new BadRequest (this.id + ' getMarginMode() does not support stop orders for cross margin');
             }
         }
-        return [ marginType, params ];
+        return [ marginMode, params ];
     }
 
     getSettlementCurrencies (type, method) {
@@ -1201,10 +1268,10 @@ module.exports = class gateio extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['swap']) {
-            throw new BadRequest ('Funding rates only exist for swap contracts');
+            throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
         }
-        const request = this.prepareRequest (market);
-        const response = await this.publicFuturesGetSettleContractsContract (this.extend (request, params));
+        const [ request, query ] = this.prepareRequest (market, undefined, params);
+        const response = await this.publicFuturesGetSettleContractsContract (this.extend (request, query));
         //
         //    [
         //        {
@@ -1254,11 +1321,8 @@ module.exports = class gateio extends Exchange {
 
     async fetchFundingRates (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const settle = this.safeStringLower (params, 'settle');
-        const request = {
-            'settle': settle,
-        };
-        const response = await this.publicFuturesGetSettleContracts (this.extend (request, params));
+        const [ request, query ] = this.prepareRequest (undefined, 'swap', params);
+        const response = await this.publicFuturesGetSettleContracts (this.extend (request, query));
         //
         //    [
         //        {
@@ -1591,20 +1655,11 @@ module.exports = class gateio extends Exchange {
         await this.loadMarkets ();
         // let defaultType = 'future';
         let market = undefined;
-        let request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbol = market['symbol'];
-            request = this.prepareRequest (market);
         }
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchFundingHistory', market, params);
-        if (market === undefined) {
-            const defaultSettle = (type === 'swap') ? 'usdt' : 'btc';
-            const settle = this.safeString (params, 'settle', defaultSettle);
-            request['settle'] = settle;
-            params = this.omit (params, 'settle');
-        }
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchFundingHistory', market, params);
+        const [ request, requestParams ] = this.prepareRequest (market, type, query);
         request['type'] = 'fund';  // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
         if (since !== undefined) {
             request['from'] = since / 1000;
@@ -1616,7 +1671,7 @@ module.exports = class gateio extends Exchange {
             'swap': 'privateFuturesGetSettleAccountBook',
             'future': 'privateDeliveryGetSettleAccountBook',
         });
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, requestParams));
         //
         //    [
         //        {
@@ -1678,8 +1733,7 @@ module.exports = class gateio extends Exchange {
         //         'with_id': true, // return order book ID
         //     };
         //
-        const request = this.prepareRequest (market);
-        const spotOrMargin = market['spot'] || market['margin'];
+        const [ request, query ] = this.prepareRequest (market, undefined, params);
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetOrderBook',
             'margin': 'publicSpotGetOrderBook',
@@ -1690,7 +1744,7 @@ module.exports = class gateio extends Exchange {
             request['limit'] = limit; // default 10, max 100
         }
         request['with_id'] = true;
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         // SPOT
         //
@@ -1756,11 +1810,11 @@ module.exports = class gateio extends Exchange {
         //     }
         //
         let timestamp = this.safeInteger (response, 'current');
-        if (!spotOrMargin) {
+        if (!market['spot']) {
             timestamp = timestamp * 1000;
         }
-        const priceKey = spotOrMargin ? 0 : 'p';
-        const amountKey = spotOrMargin ? 1 : 's';
+        const priceKey = market['spot'] ? 0 : 'p';
+        const amountKey = market['spot'] ? 1 : 's';
         const nonce = this.safeInteger (response, 'id');
         const result = this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey);
         result['nonce'] = nonce;
@@ -1770,14 +1824,14 @@ module.exports = class gateio extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = this.prepareRequest (market);
+        const [ request, query ] = this.prepareRequest (market, undefined, params);
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetTickers',
             'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'future': 'publicDeliveryGetSettleTickers',
         });
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         const ticker = this.safeValue (response, 0);
         return this.parseTicker (ticker, market);
     }
@@ -1855,23 +1909,15 @@ module.exports = class gateio extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
         const method = this.getSupportedMapping (type, {
             'spot': 'publicSpotGetTickers',
             'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'future': 'publicDeliveryGetSettleTickers',
         });
-        const request = {};
-        const future = type === 'future';
-        const swap = type === 'swap';
-        const defaultSettle = swap ? 'usdt' : 'btc';
-        const settle = this.safeStringLower (params, 'settle', defaultSettle);
-        if (swap || future) {
-            request['settle'] = settle;
-        }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, requestParams));
         return this.parseTickers (response, symbols);
     }
 
@@ -1888,48 +1934,31 @@ module.exports = class gateio extends Exchange {
          * @param {dict} params exchange specific parameters
          * @param {str} params.type spot, margin, swap or future, if not provided this.options['defaultType'] is used
          * @param {str} params.settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
-         * @param {str} params.marginType 'cross' or 'isolated' - marginType for margin trading if not provided this.options['defaultMarginType'] is used
+         * @param {str} params.marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
          * @param {str} params.symbol margin only - unified ccxt symbol
          */
         await this.loadMarkets ();
-        let type = undefined;
-        let marginType = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        const spot = type === 'spot';
-        const swap = type === 'swap';
-        const future = type === 'future';
-        const contract = swap || future;
-        const request = {};
-        if (contract) {
-            const defaultSettle = swap ? 'usdt' : 'btc';
-            const settle = this.safeStringLower (params, 'settle', defaultSettle);
-            params = this.omit (params, 'settle');
-            request['settle'] = settle;
-        } else {
-            [ marginType, params ] = this.getMarginType (false, params);
-            const symbol = this.safeString (params, 'symbol');
-            if (symbol !== undefined) {
-                const market = this.market (symbol);
-                request['currency_pair'] = market['id'];
-            }
+        const symbol = this.safeString (params, 'symbol');
+        params = this.omit (params, 'symbol');
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
+        const [ marginMode, requestQuery ] = this.getMarginMode (false, requestParams);
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['currency_pair'] = market['id'];
         }
-        const crossMargin = marginType === 'cross_margin';
-        const margin = marginType === 'margin';
-        let spotMethod = 'privateSpotGetAccounts';
-        if (spot) {
-            spotMethod = this.getSupportedMapping (marginType, {
+        const method = this.getSupportedMapping (type, {
+            'spot': this.getSupportedMapping (marginMode, {
                 'spot': 'privateSpotGetAccounts',
                 'margin': 'privateMarginGetAccounts',
                 'cross_margin': 'privateMarginGetCrossAccounts',
-            });
-        }
-        const method = this.getSupportedMapping (type, {
-            'spot': spotMethod,
+            }),
             'funding': 'privateMarginGetFundingAccounts',
             'swap': 'privateFuturesGetSettleAccounts',
             'future': 'privateDeliveryGetSettleAccounts',
         });
-        let response = await this[method] (this.extend (request, params));
+        let response = await this[method] (this.extend (request, requestQuery));
+        const contract = (type === 'swap' || type === 'future');
         if (contract) {
             response = [ response ];
         }
@@ -2045,6 +2074,8 @@ module.exports = class gateio extends Exchange {
         const result = {
             'info': response,
         };
+        const crossMargin = marginMode === 'cross_margin';
+        const margin = marginMode === 'margin';
         let data = response;
         if ('balances' in data) { // True for cross_margin
             const flatBalances = [];
@@ -2085,7 +2116,8 @@ module.exports = class gateio extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const price = this.safeString (params, 'price');
-        const request = this.prepareRequest (market);
+        let request = {};
+        [ request, params ] = this.prepareRequest (market, undefined, params);
         request['interval'] = this.timeframes[timeframe];
         let method = 'publicSpotGetCandlesticks';
         if (market['contract']) {
@@ -2132,17 +2164,14 @@ module.exports = class gateio extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['swap']) {
-            throw new BadRequest ('Funding rates only exist for swap contracts');
+            throw new BadSymbol (this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
-        const request = {
-            'contract': market['id'],
-            'settle': market['settleId'],
-        };
+        const [ request, query ] = this.prepareRequest (market, undefined, params);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         const method = 'publicFuturesGetSettleFundingRate';
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //         "r": "0.00063521",
@@ -2241,7 +2270,7 @@ module.exports = class gateio extends Exchange {
         //         'to': this.seconds (), // end time in seconds, default to current time
         //     };
         //
-        const request = this.prepareRequest (market);
+        const [ request, query ] = this.prepareRequest (market, undefined, params);
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetTrades',
             'margin': 'publicSpotGetTrades',
@@ -2254,7 +2283,7 @@ module.exports = class gateio extends Exchange {
         if (since !== undefined && (market['contract'])) {
             request['from'] = parseInt (since / 1000);
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
@@ -2287,41 +2316,51 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gateio#fetchMyTrades
+         * @description Fetch personal trading history
+         * @param {str} symbol The symbol for the market to fetch trades for
+         * @param {int} since The earliest timestamp, in ms, that fetched trades were made
+         * @param {int} limit The max number of trades to fetch
+         * @param {dict} params Exchange specific parameters
+         * @param {str} params.marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+         * @param {str} params.type 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
+         * @param {int} params.till The latest timestamp, in ms, that fetched trades were made
+         * @param {int} params.page *spot only* Page number
+         * @param {str} params.order_id *spot only* Filter trades with specified order ID. symbol is also required if this field is present
+         * @param {str} params.order *contract only* Futures order ID, return related data only if specified
+         * @param {int} params.offset *contract only* list offset, starting from 0
+         * @param {str} params.last_id *contract only* specify list staring point using the id of last record in previous list-query results
+         * @param {int} params.count_total *contract only* whether to return total number matched, default to 0(no return)
+         * @returns a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
-        let market = undefined;
-        let request = {};
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', undefined, params);
-        if (symbol) {
-            market = this.market (symbol);
-            request = this.prepareRequest (market);
-            type = market['type'];
+        let marginMode = undefined;
+        let request = {};
+        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        const till = this.safeNumber (params, 'till');
+        params = this.omit (params, 'till');
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        const contract = (type === 'swap') || (type === 'future');
+        if (contract) {
+            [ request, params ] = this.prepareRequest (market, type, params);
         } else {
-            if (type === 'swap' || type === 'future') {
-                const settle = this.safeStringLower (params, 'settle');
-                if (!settle) {
-                    throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument or a settle parameter for ' + type + ' markets');
-                }
-                request['settle'] = settle;
+            if (market !== undefined) {
+                request['currency_pair'] = market['id']; // Should always be set for non-stop
             }
+            [ marginMode, params ] = this.getMarginMode (false, params);
+            request['account'] = marginMode;
         }
-        //
-        //     const request = {
-        //         'currency_pair': market['id'],
-        //         // 'limit': limit,
-        //         // 'page': 0,
-        //         // 'order_id': 'Order ID',
-        //         // 'account': 'spot', // default to spot and margin account if not specified, set to cross_margin to operate against margin account
-        //         // 'from': since, // default to 7 days before current time
-        //         // 'to': this.milliseconds (), // default to current time
-        //     };
-        //
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
         if (since !== undefined) {
             request['from'] = parseInt (since / 1000);
-            // request['to'] = since + 7 * 24 * 60 * 60;
+        }
+        if (till !== undefined) {
+            request['to'] = parseInt (till / 1000);
         }
         const method = this.getSupportedMapping (type, {
             'spot': 'privateSpotGetMyTrades',
@@ -2665,7 +2704,7 @@ module.exports = class gateio extends Exchange {
          * @param {dict} params  Extra parameters specific to the exchange API endpoint
          * @param {float} params.stopPrice The price at which a trigger order is triggered at
          * @param {str} params.timeInForce "GTC", "IOC", or "PO"
-         * @param {str} params.marginType 'cross' or 'isolated' - marginType for margin trading if not provided this.options['defaultMarginType'] is used
+         * @param {str} params.marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
          * @param {int} params.iceberg Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
          * @param {str} params.text User defined information
          * @param {str} params.account *spot and margin only* "spot", "margin" or "cross_margin"
@@ -2731,15 +2770,14 @@ module.exports = class gateio extends Exchange {
                     request['tif'] = timeInForce;
                 }
             } else {
-                let marginType = undefined;
-                [ marginType, params ] = this.getMarginType (false, params);
-                params = this.omit (params, 'account');
+                let marginMode = undefined;
+                [ marginMode, params ] = this.getMarginMode (false, params);
                 // spot order
                 request = {
                     // 'text': clientOrderId, // 't-abcdef1234567890',
                     'currency_pair': market['id'], // filled in prepareRequest above
                     'type': type,
-                    'account': marginType, // 'spot', 'margin', 'cross_margin'
+                    'account': marginMode, // 'spot', 'margin', 'cross_margin'
                     'side': side,
                     'amount': this.amountToPrecision (symbol, amount),
                     'price': this.priceToPrecision (symbol, price),
@@ -2804,8 +2842,8 @@ module.exports = class gateio extends Exchange {
             } else {
                 // spot conditional order
                 const options = this.safeValue (this.options, 'createOrder', {});
-                let marginType = undefined;
-                [ marginType, params ] = this.getMarginType (true, params);
+                let marginMode = undefined;
+                [ marginMode, params ] = this.getMarginMode (true, params);
                 const defaultExpiration = this.safeInteger (options, 'expiration');
                 const expiration = this.safeInteger (params, 'expiration', defaultExpiration);
                 const rule = (side === 'buy') ? '>=' : '<=';
@@ -2821,7 +2859,7 @@ module.exports = class gateio extends Exchange {
                         'side': side,
                         'price': this.priceToPrecision (symbol, price),
                         'amount': this.amountToPrecision (symbol, amount),
-                        'account': marginType,
+                        'account': marginMode,
                         'time_in_force': timeInForce, // gtc, ioc for taker only
                     },
                     'market': market['id'],
@@ -3158,11 +3196,11 @@ module.exports = class gateio extends Exchange {
          * @name gateio#fetchOrder
          * @description Retrieves information on an order
          * @param {str} id Order id
-         * @param {str} symbol Unified market symbol
+         * @param {str} symbol Unified market symbol, *required for spot and margin*
          * @param {dict} params Parameters specified by the exchange api
          * @param {bool} params.stop True if the order being fetched is a trigger order
-         * @param {str} params.marginType 'cross' or 'isolated' - marginType for margin trading if not provided this.options['defaultMarginType'] is used
-         * @param {str} params.type 'spot', 'swap', or 'future', if not provided this.options['defaultMarginType'] is used
+         * @param {str} params.marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+         * @param {str} params.type 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
          * @param {str} params.settle 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future
          * @returns An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -3178,55 +3216,19 @@ module.exports = class gateio extends Exchange {
             }
             orderId = clientOrderId;
         }
-        const request = {
-            'order_id': orderId,
-        };
-        let market = undefined;
-        let settle = undefined;
-        let type = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            if (market['spot']) {
-                request['currency_pair'] = market['id'];
-            } else {
-                settle = market['settle'];
-            }
-        }
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        if (!stop && type === 'spot' && symbol === undefined) {
-            // Symbol not required for stop orders
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument for spot orders');
-        }
-        const swap = type === 'swap';
-        if (swap || type === 'future') {
-            if (settle === undefined) {
-                const defaultSettle = swap ? 'usdt' : 'btc';
-                settle = this.safeStringLower (params, 'settle', defaultSettle);
-                params = this.omit (params, 'settle');
-            }
-            request['settle'] = settle;
-        } else {
-            let marginType = undefined;
-            [ marginType, params ] = this.getMarginType (stop, params);
-            request['account'] = marginType;
-        }
-        let method = undefined;
-        if (stop) {
-            method = this.getSupportedMapping (type, {
-                'spot': 'privateSpotGetPriceOrdersOrderId',
-                'margin': 'privateSpotGetPriceOrdersOrderId',
-                'swap': 'privateFuturesGetSettlePriceOrdersOrderId',
-                'future': 'privateDeliveryGetSettlePriceOrdersOrderId',
-            });
-        } else {
-            method = this.getSupportedMapping (type, {
-                'spot': 'privateSpotGetOrdersOrderId',
-                'margin': 'privateSpotGetOrdersOrderId',
-                'swap': 'privateFuturesGetSettleOrdersOrderId',
-                'future': 'privateDeliveryGetSettleOrdersOrderId',
-            });
-        }
-        const response = await this[method] (this.extend (request, params));
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const contract = (type === 'swap') || (type === 'future');
+        const [ request, requestParams ] = contract ? this.prepareRequest (market, type, query) : this.spotOrderPrepareRequest (market, stop, query);
+        request['order_id'] = orderId;
+        const methodMiddle = stop ? 'PriceOrders' : 'Orders';
+        const method = this.getSupportedMapping (type, {
+            'spot': 'privateSpotGet' + methodMiddle + 'OrderId',
+            'margin': 'privateSpotGet' + methodMiddle + 'OrderId',
+            'swap': 'privateFuturesGetSettle' + methodMiddle + 'OrderId',
+            'future': 'privateDeliveryGetSettle' + methodMiddle + 'OrderId',
+        });
+        const response = await this[method] (this.extend (request, requestParams));
         return this.parseOrder (response, market);
     }
 
@@ -3237,174 +3239,142 @@ module.exports = class gateio extends Exchange {
          * @param {int} since earliest time in ms for orders in the response
          * @param {int} limit max number of order structures to return
          * @param {dict} params exchange specific params
+         * @param {bool} params.stop true for fetching stop orders
          * @param {str} params.type spot, margin, swap or future, if not provided this.options['defaultType'] is used
-         * @param {str} params.marginType 'cross' or 'isolated' - marginType for type='margin', if not provided this.options['defaultMarginType'] is used
+         * @param {str} params.marginMode 'cross' or 'isolated' - marginMode for type='margin', if not provided this.options['defaultMarginMode'] is used
          * @returns An array of order structures
          */
-        await this.loadMarkets ();
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', undefined, params);
-        if (symbol === undefined && (type === 'spot') || type === 'margin' || type === 'cross_margin') {
-            const request = {
-                // 'page': 1,
-                // 'limit': limit,
-                'account': type, // spot/margin (default), cross_margin
-            };
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
-            const response = await this.privateSpotGetOpenOrders (this.extend (request, params));
-            //
-            //     [
-            //         {
-            //             "currency_pair": "ETH_BTC",
-            //             "total": 1,
-            //             "orders": [
-            //                 {
-            //                     "id": "12332324",
-            //                     "text": "t-123456",
-            //                     "create_time": "1548000000",
-            //                     "update_time": "1548000100",
-            //                     "currency_pair": "ETH_BTC",
-            //                     "status": "open",
-            //                     "type": "limit",
-            //                     "account": "spot",
-            //                     "side": "buy",
-            //                     "amount": "1",
-            //                     "price": "5.00032",
-            //                     "time_in_force": "gtc",
-            //                     "left": "0.5",
-            //                     "filled_total": "2.50016",
-            //                     "fee": "0.005",
-            //                     "fee_currency": "ETH",
-            //                     "point_fee": "0",
-            //                     "gt_fee": "0",
-            //                     "gt_discount": false,
-            //                     "rebated_fee": "0",
-            //                     "rebated_fee_currency": "BTC"
-            //                 }
-            //             ]
-            //         },
-            //         ...
-            //     ]
-            //
-            // price_orders
-            //
-            //    [
-            //        {
-            //            "market": "ADA_USDT",
-            //            "user": 6693577,
-            //            "trigger": {
-            //                "price": "0.9",
-            //                "rule": "\u003c=",
-            //                "expiration": 86400
-            //            },
-            //            "put": {
-            //                "type": "limit",
-            //                "side": "sell",
-            //                "price": "0.9",
-            //                "amount": "2.00000000000000000000",
-            //                "account": "margin",
-            //                "time_in_force": "gtc"
-            //            },
-            //            "id": 8308730,
-            //            "ctime": 1650434238,
-            //            "status": "open"
-            //        }
-            //    ]
-            //
-            let allOrders = [];
-            for (let i = 0; i < response.length; i++) {
-                const entry = response[i];
-                const orders = this.safeValue (entry, 'orders', []);
-                const parsed = this.parseOrders (orders, undefined, since, limit);
-                allOrders = this.arrayConcat (allOrders, parsed);
-            }
-            return this.filterBySinceLimit (allOrders, since, limit);
-        }
         return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gateio#fetchClosedOrders
+         * @description fetches all closed orders
+         * @param {str} symbol Unified market symbol of the market to fetch orders for
+         * @param {int} since earliest time in ms for orders in the response
+         * @param {int} limit max number of order structures to return
+         * @param {dict} params exchange specific params
+         * @param {bool} params.stop true for fetching stop orders
+         * @param {str} params.type spot, swap or future, if not provided this.options['defaultType'] is used
+         * @param {str} params.marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+         * @returns An array of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         return await this.fetchOrdersByStatus ('finished', symbol, since, limit, params);
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = this.prepareRequest (market);
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        const stop = this.safeValue (params, 'stop');
+        params = this.omit (params, 'stop');
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
+        const spot = (type === 'spot') || (type === 'margin');
+        const [ request, requestParams ] = spot ? this.multiOrderSpotPrepareRequest (market, stop, query) : this.prepareRequest (market, type, query);
+        if (spot && !stop && (market === undefined) && (status === 'open')) {
+            throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus requires a symbol argument for spot non-stop open orders');
+        }
+        if (status === 'closed') {
+            status = 'finished';
+        }
         request['status'] = status;
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (since !== undefined && (market['spot'] || market['margin'])) {
+        if (since !== undefined && spot) {
             request['from'] = parseInt (since / 1000);
         }
-        const method = this.getSupportedMapping (market['type'], {
-            'spot': 'privateSpotGetOrders',
-            'margin': 'privateSpotGetOrders',
-            'swap': 'privateFuturesGetSettleOrders',
-            'future': 'privateDeliveryGetSettleOrders',
+        const methodTail = stop ? 'PriceOrders' : 'Orders';
+        const method = this.getSupportedMapping (type, {
+            'spot': 'privateSpotGet' + methodTail,
+            'margin': 'privateSpotGet' + methodTail,
+            'swap': 'privateFuturesGetSettle' + methodTail,
+            'future': 'privateDeliveryGetSettle' + methodTail,
         });
-        if (market['type'] === 'margin' || market['type'] === 'cross_margin') {
-            request['account'] = market['type'];
-        }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, requestParams));
         //
         // SPOT
         //
-        //    {
-        //        "id": "8834234273",
-        //        "text": "3",
-        //        "create_time": "1635406193",
-        //        "update_time": "1635406193",
-        //        "create_time_ms": 1635406193361,
-        //        "update_time_ms": 1635406193361,
-        //        "status": "closed",
-        //        "currency_pair": "BTC_USDT",
-        //        "type": "limit",
-        //        "account": "spot",
-        //        "side": "sell",
-        //        "amount": "0.0002",
-        //        "price": "58904.01",
-        //        "time_in_force": "gtc",
-        //        "iceberg": "0",
-        //        "left": "0.0000",
-        //        "fill_price": "11.790516",
-        //        "filled_total": "11.790516",
-        //        "fee": "0.023581032",
-        //        "fee_currency": "USDT",
-        //        "point_fee": "0",
-        //        "gt_fee": "0",
-        //        "gt_discount": false,
-        //        "rebated_fee_currency": "BTC"
-        //    }
+        //    [
+        //        {
+        //           "id": "8834234273",
+        //           "text": "3",
+        //           "create_time": "1635406193",
+        //           "update_time": "1635406193",
+        //           "create_time_ms": 1635406193361,
+        //           "update_time_ms": 1635406193361,
+        //           "status": "closed",
+        //           "currency_pair": "BTC_USDT",
+        //           "type": "limit",
+        //           "account": "spot", // margin for margin orders
+        //           "side": "sell",
+        //           "amount": "0.0002",
+        //           "price": "58904.01",
+        //           "time_in_force": "gtc",
+        //           "iceberg": "0",
+        //           "left": "0.0000",
+        //           "fill_price": "11.790516",
+        //           "filled_total": "11.790516",
+        //           "fee": "0.023581032",
+        //           "fee_currency": "USDT",
+        //           "point_fee": "0",
+        //           "gt_fee": "0",
+        //           "gt_discount": false,
+        //           "rebated_fee_currency": "BTC"
+        //        }
+        //    ]
+        //
+        // Spot Stop
+        //
+        //    [
+        //        {
+        //            "market": "ADA_USDT",
+        //            "user": 10406147,
+        //            "trigger": {
+        //                "price": "0.65",
+        //                "rule": "\u003c=",
+        //                "expiration": 86400
+        //            },
+        //            "put": {
+        //                "type": "limit",
+        //                "side": "sell",
+        //                "price": "0.65",
+        //                "amount": "2.00000000000000000000",
+        //                "account": "normal",  // margin for margin orders
+        //                "time_in_force": "gtc"
+        //            },
+        //            "id": 8449909,
+        //            "ctime": 1652188982,
+        //            "status": "open"
+        //        }
+        //    ]
         //
         // Perpetual Swap
         //
-        //    {
-        //        "status": "finished",
-        //        "size": -1,
-        //        "left": 0,
-        //        "id": 82750739203,
-        //        "is_liq": false,
-        //        "is_close": false,
-        //        "contract": "BTC_USDT",
-        //        "text": "web",
-        //        "fill_price": "60721.3",
-        //        "finish_as": "filled",
-        //        "iceberg": 0,
-        //        "tif": "ioc",
-        //        "is_reduce_only": true,
-        //        "create_time": 1635403475.412,
-        //        "finish_time": 1635403475.4127,
-        //        "price": "0"
-        //    }
+        //    [
+        //        {
+        //           "status": "finished",
+        //           "size": -1,
+        //           "left": 0,
+        //           "id": 82750739203,
+        //           "is_liq": false,
+        //           "is_close": false,
+        //           "contract": "BTC_USDT",
+        //           "text": "web",
+        //           "fill_price": "60721.3",
+        //           "finish_as": "filled",
+        //           "iceberg": 0,
+        //           "tif": "ioc",
+        //           "is_reduce_only": true,
+        //           "create_time": 1635403475.412,
+        //           "finish_time": 1635403475.4127,
+        //           "price": "0"
+        //        }
+        //    ]
         //
-        return this.parseOrders (response, market, since, limit);
+        const orders = this.parseOrders (response, market, since, limit);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -3418,29 +3388,21 @@ module.exports = class gateio extends Exchange {
          * @param {bool} params.stop True if the order to be cancelled is a trigger order
          * @returns An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'order_id': id,
-        };
-        if (market['contract']) {
-            request['settle'] = market['settleId'];
-        } else {
-            request['currency_pair'] = market['id'];
-        }
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
         const stop = this.safeValue2 (params, 'is_stop_order', 'stop', false);
         params = this.omit (params, [ 'is_stop_order', 'stop' ]);
+        const [ type, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        const [ request, requestParams ] = (type === 'spot' || type === 'margin') ? this.spotOrderPrepareRequest (market, stop, query) : this.prepareRequest (market, type, query);
+        request['order_id'] = id;
         const pathMiddle = stop ? 'Price' : '';
-        const method = this.getSupportedMapping (market['type'], {
+        const method = this.getSupportedMapping (type, {
             'spot': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
             'margin': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
             'swap': 'privateFuturesDeleteSettle' + pathMiddle + 'OrdersOrderId',
             'future': 'privateDeliveryDeleteSettle' + pathMiddle + 'OrdersOrderId',
         });
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, requestParams));
         //
         // spot
         //
@@ -3527,27 +3489,19 @@ module.exports = class gateio extends Exchange {
 
     async cancelAllOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {};
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request = this.prepareRequest (market);
-        }
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        const stop = this.safeValue (params, 'stop');
+        params = this.omit (params, 'stop');
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        const swap = type === 'swap';
-        const future = type === 'future';
-        if (symbol === undefined && (swap || future)) {
-            const defaultSettle = swap ? 'usdt' : 'btc';
-            const settle = this.safeStringLower (params, 'settle', defaultSettle);
-            request['settle'] = settle;
-        }
+        const [ request, requestParams ] = (type === 'spot') ? this.multiOrderSpotPrepareRequest (market, stop, query) : this.prepareRequest (market, type, query);
+        const methodTail = stop ? 'PriceOrders' : 'Orders';
         const method = this.getSupportedMapping (type, {
-            'spot': 'privateSpotDeleteOrders',
-            'margin': 'privateSpotDeleteOrders',
-            'swap': 'privateFuturesDeleteSettleOrders',
-            'future': 'privateDeliveryDeleteSettleOrders',
+            'spot': 'privateSpotDelete' + methodTail,
+            'margin': 'privateSpotDelete' + methodTail,
+            'swap': 'privateFuturesDeleteSettle' + methodTail,
+            'future': 'privateDeliveryDeleteSettle' + methodTail,
         });
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, requestParams));
         //
         //    [
         //        {
@@ -3594,28 +3548,29 @@ module.exports = class gateio extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
-        const toId = this.safeString (accountsByType, toAccount, toAccount);
-        if (fromId === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' transfer() fromAccount must be one of ' + keys.join (', '));
-        }
-        if (toId === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' transfer() toAccount must be one of ' + keys.join (', '));
-        }
+        const fromId = this.parseAccount (fromAccount);
+        const toId = this.parseAccount (toAccount);
         const truncated = this.currencyToPrecision (code, amount);
         const request = {
             'currency': currency['id'],
-            'from': fromId,
-            'to': toId,
             'amount': truncated,
         };
-        if (fromAccount === 'margin' || toAccount === 'margin') {
+        if (!(fromId in this.options['accountsByType'])) {
+            request['from'] = 'margin';
+            request['currency_pair'] = fromId;
+        } else {
+            request['from'] = fromId;
+        }
+        if (!(toId in this.options['accountsByType'])) {
+            request['to'] = 'margin';
+            request['currency_pair'] = toId;
+        } else {
+            request['to'] = toId;
+        }
+        if (fromId === 'margin' || toId === 'margin') {
             const symbol = this.safeString2 (params, 'symbol', 'currency_pair');
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' transfer() requires params.symbol for isolated margin transfers');
+                throw new ArgumentsRequired (this.id + ' transfer requires params["symbol"] for isolated margin transfers');
             }
             const market = this.market (symbol);
             request['currency_pair'] = market['id'];
@@ -3642,6 +3597,19 @@ module.exports = class gateio extends Exchange {
             'toAccount': toAccount,
             'amount': this.parseNumber (truncated),
         });
+    }
+
+    parseAccount (account) {
+        const accountsByType = this.options['accountsByType'];
+        if (account in accountsByType) {
+            return accountsByType[account];
+        } else if (account in this.markets) {
+            const market = this.market (account);
+            return market['id'];
+        } else {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' accounts must be one of ' + keys.join (', ') + ' or an isolated margin symbol');
+        }
     }
 
     parseTransfer (transfer, currency = undefined) {
@@ -3674,15 +3642,15 @@ module.exports = class gateio extends Exchange {
             'swap': 'privateFuturesPostSettlePositionsContractLeverage',
             'future': 'privateDeliveryPostSettlePositionsContractLeverage',
         });
-        const request = this.prepareRequest (market);
-        const defaultMarginType = this.safeString2 (this.options, 'marginType', 'defaultMarginType');
-        const crossLeverageLimit = this.safeString (params, 'cross_leverage_limit');
-        let marginType = this.safeString (params, 'marginType', defaultMarginType);
+        const [ request, query ] = this.prepareRequest (market, undefined, params);
+        const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode');
+        const crossLeverageLimit = this.safeString (query, 'cross_leverage_limit');
+        let marginMode = this.safeString (query, 'marginMode', defaultMarginMode);
         if (crossLeverageLimit !== undefined) {
-            marginType = 'cross';
+            marginMode = 'cross';
             leverage = crossLeverageLimit;
         }
-        if (marginType === 'cross') {
+        if (marginMode === 'cross' || marginMode === 'cross_margin') {
             request['query'] = {
                 'cross_leverage_limit': leverage.toString (),
                 'leverage': '0',
@@ -3692,7 +3660,7 @@ module.exports = class gateio extends Exchange {
                 'leverage': leverage.toString (),
             };
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //         "value": "0",
@@ -3763,11 +3731,11 @@ module.exports = class gateio extends Exchange {
         const maintenanceRate = this.safeString (position, 'maintenance_rate');
         const notional = this.safeString (position, 'value');
         const leverage = this.safeString (position, 'leverage');
-        let marginType = undefined;
+        let marginMode = undefined;
         if (leverage === '0') {
-            marginType = 'cross';
+            marginMode = 'cross';
         } else {
-            marginType = 'isolated';
+            marginMode = 'isolated';
         }
         const unrealisedPnl = this.safeString (position, 'unrealised_pnl');
         // Initial Position Margin = ( Position Value / Leverage ) + Close Position Fee
@@ -3792,12 +3760,13 @@ module.exports = class gateio extends Exchange {
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (Precise.stringAbs (size)),
             'contractSize': this.safeValue (market, 'contractSize'),
-            //     realisedPnl: position['realised_pnl'],
+            // 'realisedPnl': position['realised_pnl'],
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liq_price'),
             'markPrice': this.safeNumber (position, 'mark_price'),
             'collateral': this.safeNumber (position, 'margin'),
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode, // deprecated
             'side': side,
             'percentage': this.parseNumber (percentage),
         };
@@ -3823,18 +3792,13 @@ module.exports = class gateio extends Exchange {
          * @returns An array of [position structures]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType', 'swap');
-        const type = this.safeString (params, 'type', defaultType);
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
+        const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
         const method = this.getSupportedMapping (type, {
             'swap': 'privateFuturesGetSettlePositions',
             'future': 'privateDeliveryGetSettlePositions',
         });
-        const defaultSettle = (type === 'swap') ? 'usdt' : 'btc';
-        const settle = this.safeStringLower (params, 'settle', defaultSettle);
-        const request = {
-            'settle': settle,
-        };
-        const response = await this[method] (request);
+        const response = await this[method] (this.extend (request, requestParams));
         //
         //     [
         //         {
@@ -3870,20 +3834,16 @@ module.exports = class gateio extends Exchange {
 
     async fetchLeverageTiers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const methodName = 'fetchLeverageTiers';
-        const [ type, query ] = this.handleMarketTypeAndParams (methodName, undefined, params);
-        const swap = type === 'swap';
-        const defaultSettle = swap ? 'usdt' : 'btc';
-        const settle = this.safeStringLower (query, 'settle', defaultSettle);
-        query['settle'] = settle;
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
+        const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
         if (type !== 'future' && type !== 'swap') {
-            throw new BadRequest (this.id + ' ' + methodName + '() only supports swap and future');
+            throw new BadRequest (this.id + ' fetchLeverageTiers only supports swap and future');
         }
         const method = this.getSupportedMapping (type, {
             'swap': 'publicFuturesGetSettleContracts',
             'future': 'publicDeliveryGetSettleContracts',
         });
-        const response = await this[method] (query);
+        const response = await this[method] (this.extend (request, requestParams));
         //
         // Perpetual swap
         //

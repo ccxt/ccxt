@@ -4,7 +4,6 @@ const log = require ('ololog')
     , ccxt = require ('../../ccxt.js')
 
 const exchange = new ccxt.coinone ({
-    'enableRateLimit': true,
     'verbose': process.argv.includes ('--verbose'),
 })
 

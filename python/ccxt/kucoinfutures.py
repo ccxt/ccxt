@@ -283,6 +283,7 @@ class kucoinfutures(kucoin):
                 'symbolSeparator': '-',
                 'defaultType': 'swap',
                 'code': 'USDT',
+                'marginModes': {},
                 'marginTypes': {},
                 # endpoint versions
                 'versions': {
@@ -883,7 +884,7 @@ class kucoinfutures(kucoin):
         unrealisedPnl = self.safe_string(position, 'unrealisedPnl')
         crossMode = self.safe_value(position, 'crossMode')
         # currently crossMode is always set to False and only isolated positions are supported
-        marginType = 'cross' if crossMode else 'isolated'
+        marginMode = 'cross' if crossMode else 'isolated'
         return {
             'info': position,
             'symbol': self.safe_string(market, 'symbol'),
@@ -904,7 +905,8 @@ class kucoinfutures(kucoin):
             'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
             'markPrice': self.safe_number(position, 'markPrice'),
             'collateral': self.safe_number(position, 'maintMargin'),
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode,
             'side': side,
             'percentage': self.parse_number(Precise.string_div(unrealisedPnl, initialMargin)),
         }

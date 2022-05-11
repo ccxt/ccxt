@@ -529,6 +529,7 @@ declare module 'ccxt' {
     export class kuna extends Exchange {}
     export class latoken extends Exchange {}
     export class lbank extends Exchange {}
+    export class lbank2 extends Exchange {}
     export class liquid extends Exchange {}
     export class luno extends Exchange {}
     export class lykke extends Exchange {}
@@ -651,6 +652,7 @@ declare module 'ccxt' {
         | 'kuna'
         | 'latoken'
         | 'lbank'
+        | 'lbank2'
         | 'liquid'
         | 'luno'
         | 'lykke'

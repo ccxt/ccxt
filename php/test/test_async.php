@@ -60,7 +60,7 @@ $args = array_values(array_filter($argv, function ($option) { return strstr($opt
 
 foreach (Exchange::$exchanges as $id) {
     $exchange = '\\ccxt\\async\\' . $id;
-    $exchanges[$id] = new $exchange(array('enableRateLimit' => true));
+    $exchanges[$id] = new $exchange();
 }
 
 $keys_global = './keys.json';

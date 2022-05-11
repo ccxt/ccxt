@@ -66,11 +66,13 @@ class coinex(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
+                'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
                 'setLeverage': True,
                 'setMarginMode': True,
                 'setPositionMode': False,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -258,7 +260,7 @@ class coinex(Exchange):
                 'createMarketBuyOrderRequiresPrice': True,
                 'defaultType': 'spot',  # spot, swap, margin
                 'defaultSubType': 'linear',  # linear, inverse
-                'defaultMarginType': 'isolated',  # isolated, cross
+                'defaultMarginMode': 'isolated',  # isolated, cross
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',
@@ -2430,8 +2432,8 @@ class coinex(Exchange):
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         positionId = self.safe_integer(position, 'position_id')
-        marginTypeInteger = self.safe_integer(position, 'type')
-        marginType = 'isolated' if (marginTypeInteger == 1) else 'cross'
+        marginModeInteger = self.safe_integer(position, 'type')
+        marginMode = 'isolated' if (marginModeInteger == 1) else 'cross'
         liquidationPrice = self.safe_string(position, 'liq_price')
         entryPrice = self.safe_string(position, 'open_price')
         unrealizedPnl = self.safe_string(position, 'profit_unreal')
@@ -2448,7 +2450,8 @@ class coinex(Exchange):
             'id': positionId,
             'symbol': symbol,
             'notional': None,
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode,  # deprecated
             'liquidationPrice': liquidationPrice,
             'entryPrice': entryPrice,
             'unrealizedPnl': unrealizedPnl,
@@ -2469,21 +2472,21 @@ class coinex(Exchange):
             'marginRatio': None,
         }
 
-    async def set_margin_mode(self, marginType, symbol=None, params={}):
+    async def set_margin_mode(self, marginMode, symbol=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
-        marginType = marginType.lower()
-        if marginType != 'isolated' and marginType != 'cross':
-            raise BadRequest(self.id + ' setMarginMode() marginType argument should be isolated or cross')
+        marginMode = marginMode.lower()
+        if marginMode != 'isolated' and marginMode != 'cross':
+            raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
         await self.load_markets()
         market = self.market(symbol)
         if market['type'] != 'swap':
             raise BadSymbol(self.id + ' setMarginMode() supports swap contracts only')
-        defaultMarginType = self.safe_string_2(self.options, 'defaultMarginType', marginType)
+        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', marginMode)
         defaultPositionType = None
-        if defaultMarginType == 'isolated':
+        if defaultMarginMode == 'isolated':
             defaultPositionType = 1
-        elif defaultMarginType == 'cross':
+        elif defaultMarginMode == 'cross':
             defaultPositionType = 2
         leverage = self.safe_integer(params, 'leverage')
         maxLeverage = self.safe_integer(market['limits']['leverage'], 'max', 100)
@@ -2505,11 +2508,11 @@ class coinex(Exchange):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         await self.load_markets()
-        defaultMarginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType')
+        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode')
         defaultPositionType = None
-        if defaultMarginType == 'isolated':
+        if defaultMarginMode == 'isolated':
             defaultPositionType = 1
-        elif defaultMarginType == 'cross':
+        elif defaultMarginMode == 'cross':
             defaultPositionType = 2
         positionType = self.safe_integer(params, 'position_type', defaultPositionType)
         if positionType is None:
@@ -2956,6 +2959,115 @@ class coinex(Exchange):
             'updated': None,
             'fee': fee,
         }
+
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        await self.load_markets()
+        marketType, query = self.handle_market_type_and_params('transfer', None, params)
+        if marketType != 'spot':
+            raise BadRequest(self.id + ' transfer() requires defaultType to be spot')
+        currency = self.safe_currency_code(code)
+        amountToPrecision = self.currency_to_precision(code, amount)
+        transfer = None
+        if (fromAccount == 'spot') and (toAccount == 'swap'):
+            transfer = 'in'
+        elif (fromAccount == 'swap') and (toAccount == 'spot'):
+            transfer = 'out'
+        request = {
+            'amount': amountToPrecision,
+            'coin_type': currency,
+            'transfer_side': transfer,  # 'in': spot to swap, 'out': swap to spot
+        }
+        response = await self.privatePostContractBalanceTransfer(self.extend(request, query))
+        #
+        #     {"code": 0, "data": null, "message": "Success"}
+        #
+        return self.extend(self.parse_transfer(response, currency), {
+            'amount': self.parse_number(amountToPrecision),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        })
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            '0': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        # fetchTransfers
+        #
+        #     {
+        #         "amount": "10",
+        #         "asset": "USDT",
+        #         "transfer_type": "transfer_out",  # from swap to spot
+        #         "created_at": 1651633422
+        #     },
+        #
+        timestamp = self.safe_timestamp(transfer, 'created_at')
+        transferType = self.safe_string(transfer, 'transfer_type')
+        fromAccount = None
+        toAccount = None
+        if transferType == 'transfer_out':
+            fromAccount = 'swap'
+            toAccount = 'spot'
+        elif transferType == 'transfer_in':
+            fromAccount = 'spot'
+            toAccount = 'swap'
+        currencyId = self.safe_string(transfer, 'asset')
+        currencyCode = self.safe_currency_code(currencyId, currency)
+        return {
+            'id': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': currencyCode,
+            'amount': self.safe_number(transfer, 'amount'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': self.parse_transfer_status(self.safe_string(transfer, 'code')),
+        }
+
+    async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        currency = None
+        request = {
+            'page': 1,
+            'limit': limit,
+            # 'asset': 'USDT',
+            # 'start_time': since,
+            # 'end_time': 1515806440,
+            # 'transfer_type': 'transfer_in',  # transfer_in: from Spot to Swap Account, transfer_out: from Swap to Spot Account
+        }
+        page = self.safe_integer(params, 'page')
+        if page is not None:
+            request['page'] = page
+        if code is not None:
+            currency = self.safe_currency_code(code)
+            request['asset'] = currency['id']
+        if since is not None:
+            request['start_time'] = since
+        params = self.omit(params, 'page')
+        response = await self.privateGetContractTransferHistory(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "records": [
+        #                 {
+        #                     "amount": "10",
+        #                     "asset": "USDT",
+        #                     "transfer_type": "transfer_out",
+        #                     "created_at": 1651633422
+        #                 },
+        #             ],
+        #             "total": 5
+        #         },
+        #         "message": "Success"
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        transfers = self.safe_value(data, 'records', [])
+        return self.parse_transfers(transfers, currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         if code is None:

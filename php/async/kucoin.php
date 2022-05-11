@@ -314,6 +314,7 @@ class kucoin extends Exchange {
                     '400370' => '\\ccxt\\InvalidOrder', // array("code":"400370","msg":"Max. price => 0.02500000000000000000")
                     '400500' => '\\ccxt\\InvalidOrder', // array("code":"400500","msg":"Your located country/region is currently not supported for the trading of this token")
                     '400600' => '\\ccxt\\BadSymbol', // array("code":"400600","msg":"validation.createOrder.symbolNotAvailable")
+                    '400760' => '\\ccxt\\InvalidOrder', // array("code":"400760","msg":"order price should be more than XX")
                     '401000' => '\\ccxt\\BadRequest', // array("code":"401000","msg":"The interface has been deprecated")
                     '411100' => '\\ccxt\\AccountSuspended',
                     '415000' => '\\ccxt\\BadRequest', // array("code":"415000","msg":"Unsupported Media Type")
@@ -390,6 +391,7 @@ class kucoin extends Exchange {
                 'versions' => array(
                     'public' => array(
                         'GET' => array(
+                            'currencies/{currency}' => 'v2',
                             'status' => 'v1',
                             'market/orderbook/level2_20' => 'v1',
                             'market/orderbook/level2_100' => 'v1',
@@ -996,6 +998,7 @@ class kucoin extends Exchange {
         return array(
             'info' => $response,
             'currency' => $code,
+            'network' => $this->safe_string($data, 'chain'),
             'address' => $address,
             'tag' => $tag,
         );
@@ -1024,6 +1027,9 @@ class kucoin extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $address = $this->safe_string($data, 'address');
         $tag = $this->safe_string($data, 'memo');
+        if ($tag === '') {
+            $tag = null;
+        }
         if ($code !== 'NIM') {
             // contains spaces
             $this->check_address($address);
@@ -1033,7 +1039,7 @@ class kucoin extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'network' => null,
+            'network' => $network,
         );
     }
 
@@ -2500,7 +2506,7 @@ class kucoin extends Exchange {
         $headers = ($headers !== null) ? $headers : array();
         if ($query) {
             if (($method === 'GET') || ($method === 'DELETE')) {
-                $endpoint .= '?' . $this->urlencode($query);
+                $endpoint .= '?' . $this->rawencode($query);
             } else {
                 $body = $this->json($query);
                 $endpart = $body;

@@ -1927,7 +1927,8 @@ module.exports = class deribit extends Exchange {
             'liquidationPrice': this.safeNumber (position, 'estimated_liquidation_price'),
             'markPrice': markPrice,
             'collateral': undefined,
-            'marginType': undefined,
+            'marginMode': undefined,
+            'marginType': undefined, // deprecated
             'side': side,
             'percentage': this.parseNumber (percentage),
         };

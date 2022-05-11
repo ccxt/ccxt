@@ -79,7 +79,7 @@ class bkex extends Exchange {
                 'fetchPositions' => null,
                 'fetchPositionsRisk' => null,
                 'fetchPremiumIndexOHLCV' => null,
-                'fetchStatus' => null,
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -369,6 +369,26 @@ class bkex extends Exchange {
         // }
         //
         return $this->safe_integer($response, 'data');
+    }
+
+    public function fetch_status($params = array ()) {
+        $response = $this->publicGetCommonTimestamp ($params);
+        //
+        //     {
+        //         "code" => '0',
+        //         "data" => 1573542445411,
+        //         "msg" => "success",
+        //         "status" => 0
+        //     }
+        //
+        $statusRaw = $this->safe_integer($response, 'status');
+        $codeRaw = $this->safe_integer($response, 'code');
+        return array(
+            'status' => ($statusRaw === 0 && $codeRaw === 0) ? 'ok' : $statusRaw,
+            'updated' => $this->milliseconds(),
+            'eta' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {

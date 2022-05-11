@@ -328,6 +328,7 @@ class kucoin(Exchange):
                     '400370': InvalidOrder,  # {"code":"400370","msg":"Max. price: 0.02500000000000000000"}
                     '400500': InvalidOrder,  # {"code":"400500","msg":"Your located country/region is currently not supported for the trading of self token"}
                     '400600': BadSymbol,  # {"code":"400600","msg":"validation.createOrder.symbolNotAvailable"}
+                    '400760': InvalidOrder,  # {"code":"400760","msg":"order price should be more than XX"}
                     '401000': BadRequest,  # {"code":"401000","msg":"The interface has been deprecated"}
                     '411100': AccountSuspended,
                     '415000': BadRequest,  # {"code":"415000","msg":"Unsupported Media Type"}
@@ -404,6 +405,7 @@ class kucoin(Exchange):
                 'versions': {
                     'public': {
                         'GET': {
+                            'currencies/{currency}': 'v2',
                             'status': 'v1',
                             'market/orderbook/level2_20': 'v1',
                             'market/orderbook/level2_100': 'v1',
@@ -984,6 +986,7 @@ class kucoin(Exchange):
         return {
             'info': response,
             'currency': code,
+            'network': self.safe_string(data, 'chain'),
             'address': address,
             'tag': tag,
         }
@@ -1010,6 +1013,8 @@ class kucoin(Exchange):
         data = self.safe_value(response, 'data', {})
         address = self.safe_string(data, 'address')
         tag = self.safe_string(data, 'memo')
+        if tag == '':
+            tag = None
         if code != 'NIM':
             # contains spaces
             self.check_address(address)
@@ -1018,7 +1023,7 @@ class kucoin(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': None,
+            'network': network,
         }
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -2391,7 +2396,7 @@ class kucoin(Exchange):
         headers = headers if (headers is not None) else {}
         if query:
             if (method == 'GET') or (method == 'DELETE'):
-                endpoint += '?' + self.urlencode(query)
+                endpoint += '?' + self.rawencode(query)
             else:
                 body = self.json(query)
                 endpart = body

@@ -1640,7 +1640,7 @@ class mexc(Exchange):
         rawSide = self.safe_string(position, 'positionType')
         side = 'long' if (rawSide == '1') else 'short'
         openType = self.safe_string(position, 'margin_mode')
-        marginType = 'isolated' if (openType == '1') else 'cross'
+        marginMode = 'isolated' if (openType == '1') else 'cross'
         leverage = self.safe_string(position, 'leverage')
         liquidationPrice = self.safe_number(position, 'liquidatePrice')
         timestamp = self.safe_number(position, 'updateTime')
@@ -1655,7 +1655,8 @@ class mexc(Exchange):
             'unrealizedProfit': None,
             'leverage': self.parse_number(leverage),
             'percentage': None,
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode,  # deprecated
             'notional': None,
             'markPrice': None,
             'liquidationPrice': liquidationPrice,

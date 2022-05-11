@@ -1892,10 +1892,10 @@ class huobi(Exchange):
             request['trade_type'] = 0  # 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
             if market['linear']:
                 defaultMargin = 'cross' if market['future'] else 'isolated'
-                marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
-                if marginType == 'isolated':
+                marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+                if marginMode == 'isolated':
                     method = 'contractPrivatePostLinearSwapApiV1SwapMatchresultsExact'
-                elif marginType == 'cross':
+                elif marginMode == 'cross':
                     method = 'contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact'
             elif market['inverse']:
                 if marketType == 'future':
@@ -2333,16 +2333,16 @@ class huobi(Exchange):
         subType = self.safe_string(params, 'subType', subType)
         inverse = (subType == 'inverse')
         linear = (subType == 'linear')
-        marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
-        isolated = (marginType == 'isolated')
-        cross = (marginType == 'cross')
+        marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'isolated')
+        isolated = (marginMode == 'isolated')
+        cross = (marginMode == 'cross')
         if spot:
             self.load_accounts()
             accountId = self.fetch_account_id_by_type(type, params)
             request['account-id'] = accountId
             method = 'spotPrivateGetV1AccountAccountsAccountIdBalance'
         elif linear:
-            if marginType == 'isolated':
+            if marginMode == 'isolated':
                 method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo'
             else:
                 method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo'
@@ -2548,10 +2548,10 @@ class huobi(Exchange):
             request['contract_code'] = market['id']
             if market['linear']:
                 defaultMargin = 'cross' if market['future'] else 'isolated'
-                marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
-                if marginType == 'isolated':
+                marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+                if marginMode == 'isolated':
                     method = 'contractPrivatePostLinearSwapApiV1SwapOrderInfo'
-                elif marginType == 'cross':
+                elif marginMode == 'cross':
                     method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrderInfo'
             elif market['inverse']:
                 if marketType == 'future':
@@ -2793,8 +2793,8 @@ class huobi(Exchange):
         request['contract_code'] = market['id']
         if market['linear']:
             defaultMargin = 'cross' if market['future'] else 'isolated'
-            marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
-            method = self.get_supported_mapping(marginType, {
+            marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+            method = self.get_supported_mapping(marginMode, {
                 'isolated': 'contractPrivatePostLinearSwapApiV1SwapHisorders',
                 'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossHisorders',
             })
@@ -2941,10 +2941,10 @@ class huobi(Exchange):
             request['contract_code'] = market['id']
             if market['linear']:
                 defaultMargin = 'cross' if market['future'] else 'isolated'
-                marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
-                if marginType == 'isolated':
+                marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+                if marginMode == 'isolated':
                     method = 'contractPrivatePostLinearSwapApiV1SwapOpenorders'
-                elif marginType == 'cross':
+                elif marginMode == 'cross':
                     method = 'contractPrivatePostLinearSwapApiV1SwapCrossOpenorders'
             elif market['inverse']:
                 if market['future']:
@@ -3450,10 +3450,10 @@ class huobi(Exchange):
         method = None
         if market['linear']:
             defaultMargin = 'cross' if market['future'] else 'isolated'
-            marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
-            if marginType == 'isolated':
+            marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+            if marginMode == 'isolated':
                 method = 'contractPrivatePostLinearSwapApiV1SwapOrder'
-            elif marginType == 'cross':
+            elif marginMode == 'cross':
                 method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrder'
         elif market['inverse']:
             if market['swap']:
@@ -3510,10 +3510,10 @@ class huobi(Exchange):
             request['contract_code'] = market['id']
             if market['linear']:
                 defaultMargin = 'cross' if market['future'] else 'isolated'
-                marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
-                if marginType == 'isolated':
+                marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+                if marginMode == 'isolated':
                     method = 'contractPrivatePostLinearSwapApiV1SwapCancel'
-                elif marginType == 'cross':
+                elif marginMode == 'cross':
                     method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel'
             elif market['inverse']:
                 if market['future']:
@@ -3591,10 +3591,10 @@ class huobi(Exchange):
             request['contract_code'] = market['id']
             if market['linear']:
                 defaultMargin = 'cross' if market['future'] else 'isolated'
-                marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
-                if marginType == 'isolated':
+                marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+                if marginMode == 'isolated':
                     method = 'contractPrivatePostLinearSwapApiV1SwapCancel'
-                elif marginType == 'cross':
+                elif marginMode == 'cross':
                     method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel'
             elif market['inverse']:
                 if market['future']:
@@ -3697,10 +3697,10 @@ class huobi(Exchange):
             request['contract_code'] = market['id']
             if market['linear']:
                 defaultMargin = 'cross' if market['future'] else 'isolated'
-                marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
-                if marginType == 'isolated':
+                marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+                if marginMode == 'isolated':
                     method = 'contractPrivatePostLinearSwapApiV1SwapCancelallall'
-                elif marginType == 'cross':
+                elif marginMode == 'cross':
                     method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancelall'
             elif market['inverse']:
                 if marketType == 'future':
@@ -4375,8 +4375,8 @@ class huobi(Exchange):
 
     def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        defaultMargin = self.safe_string(params, 'marginType', 'cross')  # cross or isolated
-        marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
+        defaultMargin = self.safe_string(params, 'marginMode', 'cross')  # cross or isolated
+        marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
         request = {}
         if since is not None:
             request['start-date'] = self.yyyymmdd(since)
@@ -4384,7 +4384,7 @@ class huobi(Exchange):
             request['size'] = limit
         market = None
         method = None
-        if marginType == 'isolated':
+        if marginMode == 'isolated':
             method = 'privateGetMarginLoanOrders'
             if symbol is not None:
                 market = self.market(symbol)
@@ -4464,14 +4464,15 @@ class huobi(Exchange):
         #   }
         #
         marketId = self.safe_string(info, 'symbol')
-        marginType = 'cross' if (marketId is None) else 'isolated'
+        marginMode = 'cross' if (marketId is None) else 'isolated'
         market = self.safe_market(marketId)
         symbol = self.safe_string(market, 'symbol')
         timestamp = self.safe_number(info, 'accrued-at')
         return {
-            'account': symbol if (marginType == 'isolated') else 'cross',  # deprecated
+            'account': symbol if (marginMode == 'isolated') else 'cross',  # deprecated
             'symbol': symbol,
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode,
             'currency': self.safe_currency_code(self.safe_string(info, 'currency')),
             'interest': self.safe_number(info, 'interest-amount'),
             'interestRate': self.safe_number(info, 'interest-rate'),
@@ -4620,8 +4621,8 @@ class huobi(Exchange):
             #   ts: '1641189898425'
             # }
             defaultMargin = 'cross' if market['future'] else 'isolated'
-            marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
-            if marginType == 'isolated':
+            marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+            if marginMode == 'isolated':
                 request['margin_account'] = market['id']
             else:
                 request['margin_account'] = market['quoteId']
@@ -4666,8 +4667,8 @@ class huobi(Exchange):
         method = None
         if market['linear']:
             defaultMargin = 'cross' if market['future'] else 'isolated'
-            marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
-            method = self.get_supported_mapping(marginType, {
+            marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+            method = self.get_supported_mapping(marginMode, {
                 'isolated': 'contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate',
                 'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate',
             })
@@ -4792,7 +4793,7 @@ class huobi(Exchange):
         rawSide = self.safe_string(position, 'direction')
         side = 'long' if (rawSide == 'buy') else 'short'
         unrealizedProfit = self.safe_number(position, 'profit_unreal')
-        marginType = self.safe_string(position, 'margin_mode')
+        marginMode = self.safe_string(position, 'margin_mode')
         leverage = self.safe_string(position, 'lever_rate')
         percentage = Precise.string_mul(self.safe_string(position, 'profit_rate'), '100')
         lastPrice = self.safe_string(position, 'last_price')
@@ -4802,7 +4803,7 @@ class huobi(Exchange):
             notional = Precise.string_mul(faceValue, lastPrice)
         else:
             notional = Precise.string_div(faceValue, lastPrice)
-            marginType = 'cross'
+            marginMode = 'cross'
         intialMarginPercentage = Precise.string_div(initialMargin, notional)
         collateral = self.safe_string(position, 'margin_balance')
         liquidationPrice = self.safe_number(position, 'liquidation_price')
@@ -4821,7 +4822,8 @@ class huobi(Exchange):
             'unrealizedProfit': unrealizedProfit,
             'leverage': self.parse_number(leverage),
             'percentage': self.parse_number(percentage),
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode,  # deprecated
             'notional': self.parse_number(notional),
             'markPrice': None,
             'liquidationPrice': liquidationPrice,
@@ -4836,12 +4838,12 @@ class huobi(Exchange):
 
     def fetch_positions(self, symbols=None, params={}):
         self.load_markets()
-        marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
+        marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'isolated')
         defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
         marketType, query = self.handle_market_type_and_params('fetchPositions', None, params)
         method = None
         if defaultSubType == 'linear':
-            method = self.get_supported_mapping(marginType, {
+            method = self.get_supported_mapping(marginMode, {
                 'isolated': 'contractPrivatePostLinearSwapApiV1SwapPositionInfo',
                 'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo',
             })
@@ -4943,13 +4945,13 @@ class huobi(Exchange):
     def fetch_position(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
-        marginType = self.safe_string_2(params, 'marginType', 'defaultMarginType', marginType)
-        params = self.omit(params, ['defaultMarginType', 'marginType'])
+        marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'isolated')
+        marginMode = self.safe_string_2(params, 'marginMode', 'defaultMarginMode', marginMode)
+        params = self.omit(params, ['defaultMarginMode', 'marginMode'])
         marketType, query = self.handle_market_type_and_params('fetchPosition', market, params)
         method = None
         if market['linear']:
-            method = self.get_supported_mapping(marginType, {
+            method = self.get_supported_mapping(marginMode, {
                 'isolated': 'contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo',
                 'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo',
             })
@@ -5126,13 +5128,13 @@ class huobi(Exchange):
         if market['future'] and market['inverse']:
             request['symbol'] = market['settleId']
         else:
-            if marginType == 'cross':
+            if marginMode == 'cross':
                 request['margin_account'] = 'USDT'  # only allowed value
             request['contract_code'] = market['id']
         response = getattr(self, method)(self.extend(request, query))
         data = self.safe_value(response, 'data')
         account = None
-        if marginType == 'cross':
+        if marginMode == 'cross':
             account = data
         else:
             account = self.safe_value(data, 0)

@@ -73,6 +73,7 @@ class ndax extends Exchange {
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'signIn' => true,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(

@@ -61,11 +61,13 @@ class coinex extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
+                'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
                 'setPositionMode' => false,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -253,7 +255,7 @@ class coinex extends Exchange {
                 'createMarketBuyOrderRequiresPrice' => true,
                 'defaultType' => 'spot', // spot, swap, margin
                 'defaultSubType' => 'linear', // linear, inverse
-                'defaultMarginType' => 'isolated', // isolated, cross
+                'defaultMarginMode' => 'isolated', // isolated, cross
             ),
             'commonCurrencies' => array(
                 'ACM' => 'Actinium',
@@ -2531,8 +2533,8 @@ class coinex extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $positionId = $this->safe_integer($position, 'position_id');
-        $marginTypeInteger = $this->safe_integer($position, 'type');
-        $marginType = ($marginTypeInteger === 1) ? 'isolated' : 'cross';
+        $marginModeInteger = $this->safe_integer($position, 'type');
+        $marginMode = ($marginModeInteger === 1) ? 'isolated' : 'cross';
         $liquidationPrice = $this->safe_string($position, 'liq_price');
         $entryPrice = $this->safe_string($position, 'open_price');
         $unrealizedPnl = $this->safe_string($position, 'profit_unreal');
@@ -2549,7 +2551,8 @@ class coinex extends Exchange {
             'id' => $positionId,
             'symbol' => $symbol,
             'notional' => null,
-            'marginType' => $marginType,
+            'marginMode' => $marginMode,
+            'marginType' => $marginMode, // deprecated
             'liquidationPrice' => $liquidationPrice,
             'entryPrice' => $entryPrice,
             'unrealizedPnl' => $unrealizedPnl,
@@ -2571,24 +2574,24 @@ class coinex extends Exchange {
         );
     }
 
-    public function set_margin_mode($marginType, $symbol = null, $params = array ()) {
+    public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
         }
-        $marginType = strtolower($marginType);
-        if ($marginType !== 'isolated' && $marginType !== 'cross') {
-            throw new BadRequest($this->id . ' setMarginMode() $marginType argument should be isolated or cross');
+        $marginMode = strtolower($marginMode);
+        if ($marginMode !== 'isolated' && $marginMode !== 'cross') {
+            throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
         if ($market['type'] !== 'swap') {
             throw new BadSymbol($this->id . ' setMarginMode() supports swap contracts only');
         }
-        $defaultMarginType = $this->safe_string_2($this->options, 'defaultMarginType', $marginType);
+        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', $marginMode);
         $defaultPositionType = null;
-        if ($defaultMarginType === 'isolated') {
+        if ($defaultMarginMode === 'isolated') {
             $defaultPositionType = 1;
-        } else if ($defaultMarginType === 'cross') {
+        } else if ($defaultMarginMode === 'cross') {
             $defaultPositionType = 2;
         }
         $leverage = $this->safe_integer($params, 'leverage');
@@ -2616,11 +2619,11 @@ class coinex extends Exchange {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
         yield $this->load_markets();
-        $defaultMarginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType');
+        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode');
         $defaultPositionType = null;
-        if ($defaultMarginType === 'isolated') {
+        if ($defaultMarginMode === 'isolated') {
             $defaultPositionType = 1;
-        } else if ($defaultMarginType === 'cross') {
+        } else if ($defaultMarginMode === 'cross') {
             $defaultPositionType = 2;
         }
         $positionType = $this->safe_integer($params, 'position_type', $defaultPositionType);
@@ -3096,6 +3099,125 @@ class coinex extends Exchange {
             'updated' => null,
             'fee' => $fee,
         );
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        yield $this->load_markets();
+        list($marketType, $query) = $this->handle_market_type_and_params('transfer', null, $params);
+        if ($marketType !== 'spot') {
+            throw new BadRequest($this->id . ' $transfer() requires defaultType to be spot');
+        }
+        $currency = $this->safe_currency_code($code);
+        $amountToPrecision = $this->currency_to_precision($code, $amount);
+        $transfer = null;
+        if (($fromAccount === 'spot') && ($toAccount === 'swap')) {
+            $transfer = 'in';
+        } else if (($fromAccount === 'swap') && ($toAccount === 'spot')) {
+            $transfer = 'out';
+        }
+        $request = array(
+            'amount' => $amountToPrecision,
+            'coin_type' => $currency,
+            'transfer_side' => $transfer, // 'in' => spot to swap, 'out' => swap to spot
+        );
+        $response = yield $this->privatePostContractBalanceTransfer (array_merge($request, $query));
+        //
+        //     array("code" => 0, "data" => null, "message" => "Success")
+        //
+        return array_merge($this->parse_transfer($response, $currency), array(
+            'amount' => $this->parse_number($amountToPrecision),
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+        ));
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            '0' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        // fetchTransfers
+        //
+        //     array(
+        //         "amount" => "10",
+        //         "asset" => "USDT",
+        //         "transfer_type" => "transfer_out", // from swap to spot
+        //         "created_at" => 1651633422
+        //     ),
+        //
+        $timestamp = $this->safe_timestamp($transfer, 'created_at');
+        $transferType = $this->safe_string($transfer, 'transfer_type');
+        $fromAccount = null;
+        $toAccount = null;
+        if ($transferType === 'transfer_out') {
+            $fromAccount = 'swap';
+            $toAccount = 'spot';
+        } else if ($transferType === 'transfer_in') {
+            $fromAccount = 'spot';
+            $toAccount = 'swap';
+        }
+        $currencyId = $this->safe_string($transfer, 'asset');
+        $currencyCode = $this->safe_currency_code($currencyId, $currency);
+        return array(
+            'id' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $currencyCode,
+            'amount' => $this->safe_number($transfer, 'amount'),
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'status' => $this->parse_transfer_status($this->safe_string($transfer, 'code')),
+        );
+    }
+
+    public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $currency = null;
+        $request = array(
+            'page' => 1,
+            'limit' => $limit,
+            // 'asset' => 'USDT',
+            // 'start_time' => $since,
+            // 'end_time' => 1515806440,
+            // 'transfer_type' => 'transfer_in', // transfer_in => from Spot to Swap Account, transfer_out => from Swap to Spot Account
+        );
+        $page = $this->safe_integer($params, 'page');
+        if ($page !== null) {
+            $request['page'] = $page;
+        }
+        if ($code !== null) {
+            $currency = $this->safe_currency_code($code);
+            $request['asset'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['start_time'] = $since;
+        }
+        $params = $this->omit($params, 'page');
+        $response = yield $this->privateGetContractTransferHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             "records" => array(
+        //                 array(
+        //                     "amount" => "10",
+        //                     "asset" => "USDT",
+        //                     "transfer_type" => "transfer_out",
+        //                     "created_at" => 1651633422
+        //                 ),
+        //             ),
+        //             "total" => 5
+        //         ),
+        //         "message" => "Success"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $transfers = $this->safe_value($data, 'records', array());
+        return $this->parse_transfers($transfers, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {

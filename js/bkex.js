@@ -75,7 +75,7 @@ module.exports = class bkex extends Exchange {
                 'fetchPositions': undefined,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
-                'fetchStatus': undefined,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -365,6 +365,26 @@ module.exports = class bkex extends Exchange {
         // }
         //
         return this.safeInteger (response, 'data');
+    }
+
+    async fetchStatus (params = {}) {
+        const response = await this.publicGetCommonTimestamp (params);
+        //
+        //     {
+        //         "code": '0',
+        //         "data": 1573542445411,
+        //         "msg": "success",
+        //         "status": 0
+        //     }
+        //
+        const statusRaw = this.safeInteger (response, 'status');
+        const codeRaw = this.safeInteger (response, 'code');
+        return {
+            'status': (statusRaw === 0 && codeRaw === 0) ? 'ok' : statusRaw,
+            'updated': this.milliseconds (),
+            'eta': undefined,
+            'info': response,
+        };
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {

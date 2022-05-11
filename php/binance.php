@@ -4539,15 +4539,15 @@ class binance extends Exchange {
             $timestamp = null;
         }
         $isolated = $this->safe_value($position, 'isolated');
-        $marginType = null;
+        $marginMode = null;
         $collateralString = null;
         $walletBalance = null;
         if ($isolated) {
-            $marginType = 'isolated';
+            $marginMode = 'isolated';
             $walletBalance = $this->safe_string($position, 'isolatedWallet');
             $collateralString = Precise::string_add($walletBalance, $unrealizedPnlString);
         } else {
-            $marginType = 'cross';
+            $marginMode = 'cross';
             $walletBalance = $this->safe_string($position, 'crossWalletBalance');
             $collateralString = $this->safe_string($position, 'crossMargin');
         }
@@ -4638,7 +4638,8 @@ class binance extends Exchange {
             'liquidationPrice' => $liquidationPrice,
             'markPrice' => null,
             'collateral' => $collateral,
-            'marginType' => $marginType,
+            'marginMode' => $marginMode,
+            'marginType' => $marginMode, // deprecated
             'side' => $side,
             'hedged' => $hedged,
             'percentage' => $percentage,
@@ -4709,7 +4710,7 @@ class binance extends Exchange {
         $liquidationPriceString = $this->omit_zero($this->safe_string($position, 'liquidationPrice'));
         $liquidationPrice = $this->parse_number($liquidationPriceString);
         $collateralString = null;
-        $marginType = $this->safe_string($position, 'marginType');
+        $marginMode = $this->safe_string($position, 'marginType');
         $side = null;
         if (Precise::string_gt($notionalString, '0')) {
             $side = 'long';
@@ -4722,7 +4723,7 @@ class binance extends Exchange {
         $contractSizeString = $this->number_to_string($contractSize);
         // as oppose to notionalValue
         $linear = (is_array($position) && array_key_exists('notional', $position));
-        if ($marginType === 'cross') {
+        if ($marginMode === 'cross') {
             // calculate $collateral
             $precision = $this->safe_value($market, 'precision', array());
             if ($linear) {
@@ -4806,7 +4807,8 @@ class binance extends Exchange {
             'maintenanceMarginPercentage' => $maintenanceMarginPercentage,
             'marginRatio' => $marginRatio,
             'datetime' => $this->iso8601($timestamp),
-            'marginType' => $marginType,
+            'marginMode' => $marginMode,
+            'marginType' => $marginMode, // deprecated
             'side' => $side,
             'hedged' => $hedged,
             'percentage' => $percentage,
@@ -5129,7 +5131,7 @@ class binance extends Exchange {
         return $this->$method (array_merge($request, $params));
     }
 
-    public function set_margin_mode($marginType, $symbol = null, $params = array ()) {
+    public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
         }
@@ -5140,12 +5142,12 @@ class binance extends Exchange {
         //
         // array( "code" => 200, "msg" => "success" )
         //
-        $marginType = strtoupper($marginType);
-        if ($marginType === 'CROSS') {
-            $marginType = 'CROSSED';
+        $marginMode = strtoupper($marginMode);
+        if ($marginMode === 'CROSS') {
+            $marginMode = 'CROSSED';
         }
-        if (($marginType !== 'ISOLATED') && ($marginType !== 'CROSSED')) {
-            throw new BadRequest($this->id . ' $marginType must be either isolated or cross');
+        if (($marginMode !== 'ISOLATED') && ($marginMode !== 'CROSSED')) {
+            throw new BadRequest($this->id . ' $marginMode must be either isolated or cross');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -5159,7 +5161,7 @@ class binance extends Exchange {
         }
         $request = array(
             'symbol' => $market['id'],
-            'marginType' => $marginType,
+            'marginType' => $marginMode,
         );
         $response = null;
         try {
@@ -5642,10 +5644,12 @@ class binance extends Exchange {
     public function parse_borrow_interest($info, $market) {
         $symbol = $this->safe_string($info, 'isolatedSymbol');
         $timestamp = $this->safe_number($info, 'interestAccuredTime');
+        $marginMode = ($symbol === null) ? 'cross' : 'isolated';
         return array(
             'account' => ($symbol === null) ? 'cross' : $symbol,
             'symbol' => $symbol,
-            'marginType' => ($symbol === null) ? 'cross' : 'isolated',
+            'marginType' => $marginMode, // deprecated
+            'marginMode' => $marginMode,
             'currency' => $this->safe_currency_code($this->safe_string($info, 'asset')),
             'interest' => $this->safe_number($info, 'interest'),
             'interestRate' => $this->safe_number($info, 'interestRate'),

@@ -28,8 +28,11 @@ module.exports = class bitmart extends Exchange {
                 'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': true,
+                'cancelOrders': false,
                 'createOrder': true,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
@@ -48,7 +51,7 @@ module.exports = class bitmart extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -905,22 +908,16 @@ module.exports = class bitmart extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {};
-        let method = undefined;
         if (market['spot']) {
-            method = 'publicSpotGetSymbolsBook';
             request['symbol'] = market['id'];
             if (limit !== undefined) {
                 request['size'] = limit; // default 50, max 200
             }
             // request['precision'] = 4; // optional price precision / depth level whose range is defined in symbol details
         } else if (market['swap'] || market['future']) {
-            method = 'publicContractGetDepth';
-            request['contractID'] = market['id'];
-            if (limit !== undefined) {
-                request['count'] = limit; // returns all records if size is omitted
-            }
+            throw new NotSupported (this.id + ' fetchOrderBook () does not accept swap or future markets, only spot markets are allowed');
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.publicSpotGetSymbolsBook (this.extend (request, params));
         //
         // spot
         //
@@ -964,11 +961,7 @@ module.exports = class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        if (market['spot']) {
-            return this.parseOrderBook (data, symbol, undefined, 'buys', 'sells', 'price', 'amount');
-        } else if (market['swap'] || market['future']) {
-            return this.parseOrderBook (data, symbol, undefined, 'buys', 'sells', 'price', 'vol');
-        }
+        return this.parseOrderBook (data, symbol, undefined, 'buys', 'sells', 'price', 'amount');
     }
 
     parseTrade (trade, market = undefined) {
@@ -1081,15 +1074,12 @@ module.exports = class bitmart extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let method = undefined;
         if (market['spot']) {
             request['symbol'] = market['id'];
-            method = 'publicSpotGetSymbolsTrades';
         } else if (market['swap'] || market['future']) {
-            method = 'publicContractGetTrades';
-            request['contractID'] = market['id'];
+            throw new NotSupported (this.id + ' fetchTrades () does not accept swap or future markets, only spot markets are allowed');
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.publicSpotGetSymbolsTrades (this.extend (request, params));
         //
         // spot
         //
@@ -1207,11 +1197,9 @@ module.exports = class bitmart extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const type = market['type'];
-        let method = undefined;
         const request = {};
         const duration = this.parseTimeframe (timeframe);
         if (type === 'spot') {
-            method = 'publicSpotGetSymbolsKline';
             request['symbol'] = market['id'];
             request['step'] = this.timeframes[timeframe];
             // the exchange will return an empty array if more than 500 candles is requested
@@ -1232,27 +1220,9 @@ module.exports = class bitmart extends Exchange {
                 request['to'] = end;
             }
         } else if ((type === 'swap') || (type === 'future')) {
-            method = 'publicContractGetQuote';
-            request['contractID'] = market['id'];
-            const defaultLimit = 500;
-            if (limit === undefined) {
-                limit = defaultLimit;
-            }
-            if (since === undefined) {
-                const end = parseInt (this.milliseconds () / 1000);
-                const start = end - limit * duration;
-                request['startTime'] = start;
-                request['endTime'] = end;
-            } else {
-                const start = parseInt (since / 1000) - 1;
-                const end = this.sum (start, limit * duration);
-                request['startTime'] = start;
-                request['endTime'] = end;
-            }
-            request['unit'] = this.timeframes[timeframe];
-            request['resolution'] = 'M';
+            throw new NotSupported (this.id + ' fetchOHLCV () does not accept swap or future markets, only spot markets are allowed');
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.publicSpotGetSymbolsKline (this.extend (request, params));
         //
         // spot
         //
@@ -1284,21 +1254,20 @@ module.exports = class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        if (Array.isArray (data)) {
-            return this.parseOHLCVs (data, market, timeframe, since, limit);
-        } else {
-            const klines = this.safeValue (data, 'klines', []);
-            return this.parseOHLCVs (klines, market, timeframe, since, limit);
-        }
+        const klines = this.safeValue (data, 'klines', []);
+        return this.parseOHLCVs (klines, market, timeframe, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades () requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        if ((marketType === 'swap') || (marketType === 'future')) {
+            throw new NotSupported (this.id + ' fetchMyTrades () does not accept swap or future markets, only spot markets are allowed');
+        }
         const request = {};
         if (market['spot']) {
             request['symbol'] = market['id'];
@@ -1308,18 +1277,9 @@ module.exports = class bitmart extends Exchange {
             }
             request['limit'] = limit;
         } else if (market['swap'] || market['future']) {
-            request['contractID'] = market['id'];
-            // request['offset'] = 1;
-            if (limit !== undefined) {
-                request['size'] = limit; // max 60
-            }
+            throw new NotSupported (this.id + ' fetchMyTrades () does not accept swap or future markets, only spot markets are allowed');
         }
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'privateSpotGetTrades',
-            'swap': 'privateContractGetUserTrades',
-            'future': 'privateContractGetUserTrades',
-        });
-        const response = await this[method] (this.extend (request, query));
+        const response = await this.privateSpotGetTrades (this.extend (request, query));
         //
         // spot
         //
@@ -1383,20 +1343,17 @@ module.exports = class bitmart extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
+        if ((marketType === 'swap') || (marketType === 'future')) {
+            throw new NotSupported (this.id + ' fetchOrderTrades () does not accept swap or future orders, only spot orders are allowed');
+        }
         const request = {};
         if (market['spot']) {
             request['symbol'] = market['id'];
             request['order_id'] = id;
         } else if (market['swap'] || market['future']) {
-            request['contractID'] = market['id'];
-            request['orderID'] = id;
+            throw new NotSupported (this.id + ' fetchOrderTrades () does not accept swap or future orders, only spot orders are allowed');
         }
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'privateSpotGetTrades',
-            'swap': 'privateContractGetOrderTrades',
-            'future': 'privateContractGetOrderTrades',
-        });
-        const response = await this[method] (this.extend (request, query));
+        const response = await this.privateSpotGetTrades (this.extend (request, query));
         //
         // spot
         //
@@ -1473,11 +1430,11 @@ module.exports = class bitmart extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        if ((marketType === 'swap') || (marketType === 'future')) {
+            throw new NotSupported (this.id + ' fetchBalance () does not accept swap or future balances, only spot and account balances are allowed');
+        }
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateSpotGetWallet',
-            'swap': 'privateContractGetAccounts',
-            'future': 'privateContractGetAccounts',
-            'contract': 'privateContractGetAccounts',
             'account': 'privateAccountGetWallet',
         });
         const response = await this[method] (query);
@@ -1691,7 +1648,7 @@ module.exports = class bitmart extends Exchange {
                                 notional = amount * price;
                             }
                         } else if (notional === undefined) {
-                            throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter (the exchange-specific behaviour)");
+                            throw new InvalidOrder (this.id + " createOrder () requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter (the exchange-specific behaviour)");
                         }
                     } else {
                         notional = (notional === undefined) ? amount : notional;
@@ -1703,33 +1660,21 @@ module.exports = class bitmart extends Exchange {
                 }
             }
         } else if (market['swap'] || market['future']) {
-            method = 'privateContractPostSubmitOrder';
-            request['contractID'] = market['id'];
-            if (type === 'limit') {
-                request['category'] = 1;
-            } else if (type === 'market') {
-                request['category'] = 2;
-            }
-            request['way'] = side; // 1 = open long, 2 = close short, 3 = close long, 4 = open short
-            request['custom_id'] = this.nonce ();
-            request['open_type'] = 1; // 1 = cross margin, 2 = fixed margin
-            request['leverage'] = 1; // must meet the effective range of leverage configured in the contract
-            request['price'] = this.priceToPrecision (symbol, price);
-            request['vol'] = this.amountToPrecision (symbol, amount);
+            throw new NotSupported (this.id + ' createOrder () does not accept swap or future orders, only spot orders are allowed');
         }
         const timeInForce = this.safeString (params, 'timeInForce');
         const postOnly = this.safeValue (params, 'postOnly', false);
         if ((timeInForce !== undefined) || postOnly || (type === 'limit_maker') || (type === 'ioc')) {
             if (timeInForce === 'FOK') {
-                throw new InvalidOrder (this.id + ' createOrder() only accepts timeInForce parameter values of IOC or PO');
+                throw new InvalidOrder (this.id + ' createOrder () only accepts timeInForce parameter values of IOC or PO');
             }
             const maker = ((timeInForce === 'PO') || postOnly || (type === 'limit_maker'));
             const ioc = ((timeInForce === 'IOC') || (type === 'ioc'));
             if (maker && ioc) {
-                throw new InvalidOrder (this.id + ' createOrder() does not accept IOC postOnly orders, the order cannot be both postOnly and IOC');
+                throw new InvalidOrder (this.id + ' createOrder () does not accept IOC postOnly orders, the order cannot be both postOnly and IOC');
             }
             if (type === 'market') {
-                throw new InvalidOrder (this.id + ' createOrder() does not accept market postOnly orders or market IOC orders, only limit postOnly order or limit IOC orders are allowed');
+                throw new InvalidOrder (this.id + ' createOrder () does not accept market postOnly orders or market IOC orders, only limit postOnly order or limit IOC orders are allowed');
             }
             if (maker) {
                 request['type'] = 'limit_maker';
@@ -1757,22 +1702,18 @@ module.exports = class bitmart extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder () requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {};
-        let method = undefined;
         if (market['spot']) {
-            method = 'privateSpotPostCancelOrder';
             request['order_id'] = parseInt (id);
             request['symbol'] = market['id'];
         } else if (market['swap'] || market['future']) {
-            method = 'privateContractPostCancelOrders';
-            request['contractID'] = market['id'];
-            request['orders'] = [ parseInt (id) ];
+            throw new NotSupported (this.id + ' cancelOrder () does not accept swap or future orders, only spot orders are allowed');
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.privateSpotPostCancelOrder (this.extend (request, params));
         //
         // spot
         //
@@ -1857,52 +1798,6 @@ module.exports = class bitmart extends Exchange {
         return response;
     }
 
-    async cancelOrders (ids, symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' canelOrders() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (!market['contract']) {
-            throw new NotSupported (this.id + ' cancelOrders() does not support ' + market['type'] + ' orders, only contract orders are accepted');
-        }
-        const orders = [];
-        for (let i = 0; i < ids.length; i++) {
-            orders.push (parseInt (ids[i]));
-        }
-        const request = {
-            'orders': orders,
-        };
-        const response = await this.privateContractPostCancelOrders (this.extend (request, params));
-        //
-        // spot
-        //
-        //     {
-        //         "code": 1000,
-        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
-        //         "message": "OK",
-        //         "data": {
-        //             "result": true
-        //         }
-        //     }
-        //
-        // contract
-        //
-        //     {
-        //         "code": 1000,
-        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
-        //         "message": "OK",
-        //         "data": {
-        //             "succeed": [
-        //                 2707219612
-        //             ],
-        //             "failed": []
-        //         }
-        //     }
-        //
-        return response;
-    }
-
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus() requires a symbol argument');
@@ -1910,6 +1805,9 @@ module.exports = class bitmart extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
+        if ((marketType === 'swap') || (marketType === 'future')) {
+            throw new NotSupported (this.id + ' fetchOrdersByStatus () does not support swap or futures orders, only spot orders are allowed');
+        }
         const request = {};
         if (market['spot']) {
             request['symbol'] = market['id'];
@@ -1935,30 +1833,9 @@ module.exports = class bitmart extends Exchange {
                 request['status'] = status;
             }
         } else if (market['swap'] || market['future']) {
-            request['contractID'] = market['id'];
-            // request['offset'] = 1;
-            if (limit !== undefined) {
-                request['size'] = limit; // max 60
-            }
-            // 0 = All
-            // 1 = Submitting
-            // 2 = Commissioned
-            // 3 = 1 and 2
-            // 4 = Completed
-            if (status === 'open') {
-                request['status'] = 3;
-            } else if (status === 'closed') {
-                request['status'] = 4;
-            } else {
-                request['status'] = status;
-            }
+            throw new NotSupported (this.id + ' fetchOrdersByStatus () does not support swap or futures orders, only spot orders are allowed');
         }
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'privateSpotGetOrders',
-            'swap': 'privateContractGetUserOrders',
-            'future': 'privateContractGetUserOrders',
-        });
-        const response = await this[method] (this.extend (request, query));
+        const response = await this.privateSpotGetOrders (this.extend (request, query));
         //
         // spot
         //
@@ -2034,18 +1911,6 @@ module.exports = class bitmart extends Exchange {
         return await this.fetchOrdersByStatus ('canceled', symbol, since, limit, params);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (!(market['swap'] || market['future'])) {
-            throw new NotSupported (this.id + ' fetchOrders() does not support ' + market['type'] + ' markets, only contracts are supported');
-        }
-        return await this.fetchOrdersByStatus (0, symbol, since, limit, params);
-    }
-
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
@@ -2057,19 +1922,16 @@ module.exports = class bitmart extends Exchange {
             id = id.toString ();
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        if ((marketType === 'swap') || (marketType === 'future')) {
+            throw new NotSupported (this.id + ' fetchOrder () does not support swap or futures orders, only spot orders are allowed');
+        }
         if (market['spot']) {
             request['symbol'] = market['id'];
             request['order_id'] = id;
         } else if (market['swap'] || market['future']) {
-            request['contractID'] = market['id'];
-            request['orderID'] = id;
+            throw new NotSupported (this.id + ' fetchOrder () does not support swap or futures orders, only spot orders are allowed');
         }
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'privateSpotGetOrderDetail',
-            'swap': 'privateContractGetUserOrderInfo',
-            'future': 'privateContractGetUserOrderInfo',
-        });
-        const response = await this[method] (this.extend (request, query));
+        const response = await this.privateSpotGetOrderDetail (this.extend (request, query));
         //
         // spot
         //

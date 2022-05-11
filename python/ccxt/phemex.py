@@ -38,12 +38,14 @@ class phemex(Exchange):
                 'CORS': None,
                 'spot': True,
                 'margin': False,
-                'swap': None,  # has but not fully implemented
+                'swap': True,
                 'future': False,
                 'option': False,
+                'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
@@ -58,7 +60,13 @@ class phemex(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': True,
+                'fetchFundingRate': True,
+                'fetchFundingRateHistories': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
@@ -69,13 +77,17 @@ class phemex(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPositions': True,
+                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchWithdrawals': True,
+                'reduceMargin': True,
                 'setLeverage': True,
+                'setMarginMode': True,
+                'setPositionMode': False,
                 'transfer': True,
                 'withdraw': None,
             },
@@ -148,6 +160,7 @@ class phemex(Exchange):
                         # swap
                         'accounts/accountPositions',  # ?currency=<currency>
                         'accounts/positions',  # ?currency=<currency>
+                        'api-data/futures/funding-fees',  # ?symbol=<symbol>
                         'orders/activeList',  # ?symbol=<symbol>
                         'exchange/order/list',  # ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
                         'exchange/order',  # ?symbol=<symbol>&orderID=<orderID1,orderID2>
@@ -386,6 +399,7 @@ class phemex(Exchange):
                 },
             },
             'options': {
+                'brokerId': 'ccxt2022',
                 'x-phemex-request-expiry': 60,  # in seconds
                 'createOrderByQuoteRequiresPrice': True,
                 'networks': {
@@ -980,6 +994,7 @@ class phemex(Exchange):
         }
         duration = self.parse_timeframe(timeframe)
         now = self.seconds()
+        # the exchange does not return the last 1m candle
         if since is not None:
             if limit is None:
                 limit = 2000  # max 2000
@@ -1738,7 +1753,8 @@ class phemex(Exchange):
         #         "pegOffsetValueEp":0,
         #         "execStatus":"PendingNew",
         #         "pegPriceType":"UNSPECIFIED",
-        #         "ordStatus":"Created"
+        #         "ordStatus":"Created",
+        #         "execInst": "ReduceOnly"
         #     }
         #
         id = self.safe_string(order, 'orderID')
@@ -1796,6 +1812,7 @@ class phemex(Exchange):
         market = self.market(symbol)
         side = self.capitalize(side)
         type = self.capitalize(type)
+        reduceOnly = self.safe_value(params, 'reduceOnly')
         request = {
             # common
             'symbol': market['id'],
@@ -1823,6 +1840,14 @@ class phemex(Exchange):
             # 'pegPriceType': 'TrailingStopPeg',  # TrailingTakeProfitPeg
             # 'text': 'comment',
         }
+        clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
+        if clientOrderId is None:
+            brokerId = self.safe_string(self.options, 'brokerId')
+            if brokerId is not None:
+                request['clOrdID'] = brokerId + self.uuid16()
+        else:
+            request['clOrdID'] = clientOrderId
+            params = self.omit(params, ['clOrdID', 'clientOrderId'])
         stopPrice = self.safe_string_2(params, 'stopPx', 'stopPrice')
         if stopPrice is not None:
             request['stopPxEp'] = self.to_ep(stopPrice, market)
@@ -1848,6 +1873,8 @@ class phemex(Exchange):
                 amountString = str(amount)
                 request['baseQtyEv'] = self.to_ev(amountString, market)
         elif market['swap']:
+            if reduceOnly is not None:
+                request['reduceOnly'] = reduceOnly
             request['orderQty'] = int(amount)
             if stopPrice is not None:
                 triggerType = self.safe_string(params, 'triggerType', 'ByMarkPrice')
@@ -1864,6 +1891,7 @@ class phemex(Exchange):
             request['stopLossEp'] = self.to_ep(stopLossPrice, market)
             params = self.omit(params, 'stopLossPrice')
         method = 'privatePostSpotOrders' if market['spot'] else 'privatePostOrders'
+        params = self.omit(params, 'reduceOnly')
         response = getattr(self, method)(self.extend(request, params))
         #
         # spot
@@ -1943,6 +1971,12 @@ class phemex(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
+
+    def create_reduce_only_order(self, symbol, type, side, amount, price=None, params={}):
+        request = {
+            'reduceOnly': True,
+        }
+        return self.create_order(symbol, type, side, amount, price, self.extend(request, params))
 
     def edit_order(self, id, symbol, type=None, side=None, amount=None, price=None, params={}):
         if symbol is None:
@@ -2633,18 +2667,219 @@ class phemex(Exchange):
             'maintenanceMarginPercentage': self.parse_number(maintenanceMarginPercentageString),
             'marginRatio': self.parse_number(marginRatio),
             'datetime': None,
-            'marginType': None,
+            'marginMode': None,
+            'marginType': None,  # deprecated
             'side': side,
             'hedged': False,
             'percentage': self.parse_number(percentage),
         }
+
+    def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            # 'limit': 20,  # Page size default 20, max 200
+            # 'offset': 0,  # Page start default 0
+        }
+        if limit > 200:
+            raise BadRequest(self.id + ' fetchFundingHistory() limit argument cannot exceed 200')
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privateGetApiDataFuturesFundingFees(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "OK",
+        #         "data": {
+        #             "rows": [
+        #                 {
+        #                     "symbol": "BTCUSD",
+        #                     "currency": "BTC",
+        #                     "execQty": 18,
+        #                     "side": "Buy",
+        #                     "execPriceEp": 360086455,
+        #                     "execValueEv": 49987,
+        #                     "fundingRateEr": 10000,
+        #                     "feeRateEr": 10000,
+        #                     "execFeeEv": 5,
+        #                     "createTime": 1651881600000
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        rows = self.safe_value(data, 'rows', [])
+        result = []
+        for i in range(0, len(rows)):
+            entry = rows[i]
+            timestamp = self.safe_integer(entry, 'createTime')
+            result.append({
+                'info': entry,
+                'symbol': self.safe_string(entry, 'symbol'),
+                'code': self.safe_currency_code(self.safe_string(entry, 'currency')),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'id': None,
+                'amount': self.from_ev(self.safe_string(entry, 'execFeeEv'), market),
+            })
+        return result
+
+    def fetch_funding_rate(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.v1GetMdTicker24hr(self.extend(request, params))
+        #
+        #     {
+        #         "error": null,
+        #         "id": 0,
+        #         "result": {
+        #             "askEp": 2332500,
+        #             "bidEp": 2331000,
+        #             "fundingRateEr": 10000,
+        #             "highEp": 2380000,
+        #             "indexEp": 2329057,
+        #             "lastEp": 2331500,
+        #             "lowEp": 2274000,
+        #             "markEp": 2329232,
+        #             "openEp": 2337500,
+        #             "openInterest": 1298050,
+        #             "predFundingRateEr": 19921,
+        #             "symbol": "ETHUSD",
+        #             "timestamp": 1592474241582701416,
+        #             "turnoverEv": 47228362330,
+        #             "volume": 4053863
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        return self.parse_funding_rate(result, market)
+
+    def parse_funding_rate(self, contract, market=None):
+        #
+        #     {
+        #         "askEp": 2332500,
+        #         "bidEp": 2331000,
+        #         "fundingRateEr": 10000,
+        #         "highEp": 2380000,
+        #         "indexEp": 2329057,
+        #         "lastEp": 2331500,
+        #         "lowEp": 2274000,
+        #         "markEp": 2329232,
+        #         "openEp": 2337500,
+        #         "openInterest": 1298050,
+        #         "predFundingRateEr": 19921,
+        #         "symbol": "ETHUSD",
+        #         "timestamp": 1592474241582701416,
+        #         "turnoverEv": 47228362330,
+        #         "volume": 4053863
+        #     }
+        #
+        marketId = self.safe_string(contract, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        timestamp = self.safe_integer_product(contract, 'timestamp', 0.000001)
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': self.from_ep(self.safe_string(contract, 'markEp'), market),
+            'indexPrice': self.from_ep(self.safe_string(contract, 'indexEp'), market),
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fundingRate': self.from_er(self.safe_string(contract, 'fundingRateEr'), market),
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': self.from_er(self.safe_string(contract, 'predFundingRateEr'), market),
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+        }
+
+    def modify_margin_helper(self, symbol, amount, addOrReduce, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'posBalanceEv': self.to_ev(amount, market),
+        }
+        response = self.privatePostPositionsAssign(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "data": "OK"
+        #     }
+        #
+        return self.extend(self.parse_modify_margin(response, market), {
+            'amount': amount,
+            'type': addOrReduce,
+        })
+
+    def parse_margin_status(self, status):
+        statuses = {
+            '0': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_modify_margin(self, data, market=None):
+        market = self.safe_market(None, market)
+        inverse = self.safe_value(market, 'inverse')
+        codeCurrency = 'base' if inverse else 'quote'
+        return {
+            'info': data,
+            'type': None,
+            'amount': None,
+            'code': market[codeCurrency],
+            'symbol': self.safe_symbol(None, market),
+            'status': self.parse_margin_status(self.safe_string(data, 'code')),
+        }
+
+    def add_margin(self, symbol, amount, params={}):
+        return self.modify_margin_helper(symbol, amount, 'add', params)
+
+    def reduce_margin(self, symbol, amount, params={}):
+        if amount > 0:
+            raise BadRequest(self.id + ' reduceMargin() amount parameter must be a negative value')
+        return self.modify_margin_helper(symbol, amount, 'reduce', params)
+
+    def set_margin_mode(self, marginMode, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        marginMode = marginMode.lower()
+        if marginMode != 'isolated' and marginMode != 'cross':
+            raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
+        self.load_markets()
+        market = self.market(symbol)
+        if market['type'] != 'swap':
+            raise BadSymbol(self.id + ' setMarginMode() supports swap contracts only')
+        leverage = self.safe_integer(params, 'leverage')
+        if marginMode == 'cross':
+            leverage = 0
+        if leverage is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a leverage parameter')
+        request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        }
+        return self.privatePutPositionsLeverage(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
         requestPath = '/' + self.implode_params(path, params)
         url = requestPath
         queryString = ''
-        if (method == 'GET') or (method == 'DELETE') or (method == 'PUT'):
+        if (method == 'GET') or (method == 'DELETE') or (method == 'PUT') or (url == '/positions/assign'):
             if query:
                 queryString = self.urlencode_with_array_repeat(query)
                 url += '?' + queryString
