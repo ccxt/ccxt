@@ -3257,29 +3257,13 @@ module.exports = class gateio extends Exchange {
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = (symbol === undefined) ? undefined : this.market (symbol);
-        let marginType = undefined;
         const stop = this.safeValue (params, 'stop');
         params = this.omit (params, 'stop');
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         const spot = (type === 'spot') || (type === 'margin');
-        let request = {};
-        if (spot) {
-            [ marginType, params ] = this.getMarginType (stop, params);
-            request['account'] = marginType;
-            if (market !== undefined) {
-                if (stop) {
-                    // gateio spot and margin stop orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single stop order, but createOrder does not call this method
-                    request['market'] = market['id'];
-                } else {
-                    request['currency_pair'] = market['id'];
-                }
-            } else {
-                if (!stop && (status === 'open')) {
-                    throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus requires a symbol argument for spot non-stop open orders');
-                }
-            }
-        } else {
-            [ request, params ] = this.prepareRequest (market, type, query);
+        const [ request, requestParams ] = spot ? this.multiOrderSpotPrepareRequest (market, stop, query) : this.prepareRequest (market, type, query);
+        if (spot && !stop && (market === undefined) && (status === 'open')) {
+            throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus requires a symbol argument for spot non-stop open orders');
         }
         if (status === 'closed') {
             status = 'finished';
@@ -3298,7 +3282,7 @@ module.exports = class gateio extends Exchange {
             'swap': 'privateFuturesGetSettle' + methodTail,
             'future': 'privateDeliveryGetSettle' + methodTail,
         });
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, requestParams));
         //
         // SPOT
         //
