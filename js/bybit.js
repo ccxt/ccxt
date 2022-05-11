@@ -496,9 +496,10 @@ module.exports = class bybit extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '-1004': BadRequest, // {"ret_code":-1004,"ret_msg":"Missing required parameter \u0027symbol\u0027","ext_code":null,"ext_info":null,"result":null}
-                    '-2015': AuthenticationError, // Invalid API-key, IP, or permissions for action.
                     '-10009': BadRequest, // {"ret_code":-10009,"ret_msg":"Invalid period!","result":null,"token":null}
+                    '-2015': AuthenticationError, // Invalid API-key, IP, or permissions for action.
+                    '-1021': BadRequest, // {"ret_code":-1021,"ret_msg":"Timestamp for this request is outside of the recvWindow.","ext_code":null,"ext_info":null,"result":null}
+                    '-1004': BadRequest, // {"ret_code":-1004,"ret_msg":"Missing required parameter \u0027symbol\u0027","ext_code":null,"ext_info":null,"result":null}
                     '7001': BadRequest, // {"retCode":7001,"retMsg":"request params type error"}
                     '10001': BadRequest, // parameter error
                     '10002': InvalidNonce, // request expired, check your timestamp and recv_window
@@ -2388,7 +2389,7 @@ module.exports = class bybit extends Exchange {
         let feeCurrency = undefined;
         let timestamp = this.parse8601 (this.safeString2 (order, 'created_at', 'created_time'));
         if (timestamp === undefined) {
-            timestamp = this.safeNumber (order, 'time');
+            timestamp = this.safeNumber2 (order, 'time', 'transactTime');
             if (timestamp === undefined) {
                 timestamp = this.safeIntegerProduct (order, 'createdAt', 0.001);
             }
@@ -2719,7 +2720,7 @@ module.exports = class bybit extends Exchange {
             'side': this.capitalize (side),
             'type': type.toUpperCase (), // limit, market or limit_maker
             'timeInForce': 'GTC', // FOK, IOC
-            'qty': amount,
+            'qty': amount.toString (),
         };
         if (type === 'limit' || type === 'limit_maker') {
             if (price === undefined) {
@@ -2733,7 +2734,29 @@ module.exports = class bybit extends Exchange {
         }
         params = this.omit (params, [ 'clientOrderId', 'orderLinkId' ]);
         const response = await this.privatePostSpotV1Order (this.extend (request, params));
-        return this.parseOrder (response);
+        //    {
+        //        "ret_code":0,
+        //        "ret_msg":"",
+        //        "ext_code":null,
+        //        "ext_info":null,
+        //        "result":{
+        //           "accountId":"24478790",
+        //           "symbol":"ETHUSDT",
+        //           "symbolName":"ETHUSDT",
+        //           "orderLinkId":"1652266305358517",
+        //           "orderId":"1153687819821127168",
+        //           "transactTime":"1652266305365",
+        //           "price":"80",
+        //           "origQty":"0.05",
+        //           "executedQty":"0",
+        //           "status":"NEW",
+        //           "timeInForce":"GTC",
+        //           "type":"LIMIT",
+        //           "side":"BUY"
+        //        }
+        //    }
+        const order = this.safeValue (response, 'result', {});
+        return this.parseOrder (order);
     }
 
     async createUsdcOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -4089,12 +4112,19 @@ module.exports = class bybit extends Exchange {
                     const auth = this.rawencode (sortedQuery);
                     const signature = this.hmac (this.encode (auth), this.encode (this.secret));
                     if (method === 'POST') {
-                        body = this.json (this.extend (query, {
+                        const isSpot = url.indexOf ('spot') >= 0;
+                        const extendedQuery = this.extend (query, {
                             'sign': signature,
-                        }));
-                        headers = {
-                            'Content-Type': 'application/json',
-                        };
+                        });
+                        if (!isSpot) {
+                            body = this.json (extendedQuery);
+                            headers = {
+                                'Content-Type': 'application/json',
+                            };
+                        } else {
+                            body = this.urlencode (extendedQuery);
+                            headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+                        }
                     } else {
                         url += '?' + this.urlencode (sortedQuery) + '&sign=' + signature;
                     }
