@@ -2501,7 +2501,7 @@ module.exports = class ascendex extends Exchange {
         return 'failed';
     }
 
-    async fetchPermissions (params) {
+    async fetchPermissions (params = {}) {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPermissions', undefined, params);
         const [ apikeysSet, initialPermissions, privateTree ] = this.getInitialPermissions ();
         if (!apikeysSet) {
@@ -2510,46 +2510,49 @@ module.exports = class ascendex extends Exchange {
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PrivateGetInfo',
             'margin': 'v1PrivateGetInfo',
-            //
-            //    {
-            //        "code": "0",
-            //        "data": {
-            //            "email": "example@gmail.com",
-            //            "accountGroup": "4",
-            //            "viewPermission": true,
-            //            "tradePermission": true,
-            //            "transferPermission": false,
-            //            "cashAccount": [ "cshICjfhO38493rKOUSFj3fFerkf3fsd" ],
-            //            "marginAccount": [ "marktgj9038ISDFFjkf03erdkflw0f3r" ],
-            //            "futuresAccount": [ "futFGef3908USFOjkfpefIOjfefeewer" ],
-            //            "userUID": "U7257879201",
-            //            "expireTime": "1666355898714",
-            //            "allowedIps": [],
-            //            "limitQuota": "1000"
-            //        }
-            //    }
-            //
             'swap': 'v2PrivateGetAccountInfo',
-            //
-            //    {
-            //        "code": "0",
-            //        "data": {
-            //            "email": "example@gmail.com",
-            //            "accountGroup": "4",
-            //            "viewPermission": true,
-            //            "tradePermission": true,
-            //            "transferPermission": false,
-            //            "cashAccount": [ "cshICjfhO38493rKOUSFj3fFerkf3fsd" ],
-            //            "marginAccount": [ "marktgj9038ISDFFjkf03erdkflw0f3r" ],
-            //            "futuresAccount": [ "futFGef3908USFOjkfpefIOjfefeewer" ],
-            //            "userUID": "U7257879201",
-            //            "expireTime": "1666355898317",
-            //            "allowedIps": [],
-            //            "limitQuota": "1000"
-            //        }
-            //    }
-            //
         });
+        //
+        // v1PrivateGetInfo
+        //
+        //    {
+        //        "code": "0",
+        //        "data": {
+        //            "email": "example@gmail.com",
+        //            "accountGroup": "4",
+        //            "viewPermission": true,
+        //            "tradePermission": true,
+        //            "transferPermission": false,
+        //            "cashAccount": [ "cshICjfhO38493rKOUSFj3fFerkf3fsd" ],
+        //            "marginAccount": [ "marktgj9038ISDFFjkf03erdkflw0f3r" ],
+        //            "futuresAccount": [ "futFGef3908USFOjkfpefIOjfefeewer" ],
+        //            "userUID": "U7257879201",
+        //            "expireTime": "1666355898714",
+        //            "allowedIps": [],
+        //            "limitQuota": "1000"
+        //        }
+        //    }
+        //
+        // v2PrivateGetAccountInfo
+        //
+        //    {
+        //        "code": "0",
+        //        "data": {
+        //            "email": "example@gmail.com",
+        //            "accountGroup": "4",
+        //            "viewPermission": true,
+        //            "tradePermission": true,
+        //            "transferPermission": false,
+        //            "cashAccount": [ "cshICjfhO38493rKOUSFj3fFerkf3fsd" ],
+        //            "marginAccount": [ "marktgj9038ISDFFjkf03erdkflw0f3r" ],
+        //            "futuresAccount": [ "futFGef3908USFOjkfpefIOjfefeewer" ],
+        //            "userUID": "U7257879201",
+        //            "expireTime": "1666355898317",
+        //            "allowedIps": [],
+        //            "limitQuota": "1000"
+        //        }
+        //    }
+        //
         const response = await this[method] (query);
         const data = this.safeValue (response, 'data');
         return this.safePermissions ([
