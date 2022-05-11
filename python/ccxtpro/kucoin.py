@@ -210,10 +210,10 @@ class kucoin(Exchange, ccxt.kucoin):
         period = self.timeframes[timeframe]
         topic = '/market/candles:' + market['id'] + '_' + period
         messageHash = topic
-        trades = await self.subscribe(negotiation, topic, messageHash, None, symbol, params)
+        ohlcv = await self.subscribe(negotiation, topic, messageHash, None, symbol, params)
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limit = ohlcv.getLimit(symbol, limit)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client, message):
         #

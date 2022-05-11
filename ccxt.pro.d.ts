@@ -123,7 +123,7 @@ declare module 'ccxt.pro' {
     export class kucoin extends Exchange {}
     export class ndax extends Exchange {}
     export class okcoin extends Exchange {}
-    export class okex extends Exchange {}
+    export class okex extends okx {}
     export class okx extends Exchange {}
     export class phemex extends Exchange {}
     export class poloniex extends Exchange {}
