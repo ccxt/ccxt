@@ -3091,165 +3091,134 @@ class gateio(Exchange):
         :param int since: earliest time in ms for orders in the response
         :param int limit: max number of order structures to return
         :param dict params: exchange specific params
+        :param bool params['stop']: True for fetching stop orders
         :param str params['type']: spot, margin, swap or future, if not provided self.options['defaultType'] is used
         :param str params['marginMode']: 'cross' or 'isolated' - marginMode for type='margin', if not provided self.options['defaultMarginMode'] is used
         :returns: An array of order structures
         """
-        self.load_markets()
-        type = None
-        type, params = self.handle_market_type_and_params('fetchOpenOrders', None, params)
-        if symbol is None and (type == 'spot') or type == 'margin' or type == 'cross_margin':
-            request = {
-                # 'page': 1,
-                # 'limit': limit,
-                'account': type,  # spot/margin(default), cross_margin
-            }
-            if limit is not None:
-                request['limit'] = limit
-            response = self.privateSpotGetOpenOrders(self.extend(request, params))
-            #
-            #     [
-            #         {
-            #             "currency_pair": "ETH_BTC",
-            #             "total": 1,
-            #             "orders": [
-            #                 {
-            #                     "id": "12332324",
-            #                     "text": "t-123456",
-            #                     "create_time": "1548000000",
-            #                     "update_time": "1548000100",
-            #                     "currency_pair": "ETH_BTC",
-            #                     "status": "open",
-            #                     "type": "limit",
-            #                     "account": "spot",
-            #                     "side": "buy",
-            #                     "amount": "1",
-            #                     "price": "5.00032",
-            #                     "time_in_force": "gtc",
-            #                     "left": "0.5",
-            #                     "filled_total": "2.50016",
-            #                     "fee": "0.005",
-            #                     "fee_currency": "ETH",
-            #                     "point_fee": "0",
-            #                     "gt_fee": "0",
-            #                     "gt_discount": False,
-            #                     "rebated_fee": "0",
-            #                     "rebated_fee_currency": "BTC"
-            #                 }
-            #             ]
-            #         },
-            #         ...
-            #     ]
-            #
-            # price_orders
-            #
-            #    [
-            #        {
-            #            "market": "ADA_USDT",
-            #            "user": 6693577,
-            #            "trigger": {
-            #                "price": "0.9",
-            #                "rule": "\u003c=",
-            #                "expiration": 86400
-            #            },
-            #            "put": {
-            #                "type": "limit",
-            #                "side": "sell",
-            #                "price": "0.9",
-            #                "amount": "2.00000000000000000000",
-            #                "account": "margin",
-            #                "time_in_force": "gtc"
-            #            },
-            #            "id": 8308730,
-            #            "ctime": 1650434238,
-            #            "status": "open"
-            #        }
-            #    ]
-            #
-            allOrders = []
-            for i in range(0, len(response)):
-                entry = response[i]
-                orders = self.safe_value(entry, 'orders', [])
-                parsed = self.parse_orders(orders, None, since, limit)
-                allOrders = self.array_concat(allOrders, parsed)
-            return self.filter_by_since_limit(allOrders, since, limit)
         return self.fetch_orders_by_status('open', symbol, since, limit, params)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches all closed orders
+        :param str symbol: Unified market symbol of the market to fetch orders for
+        :param int since: earliest time in ms for orders in the response
+        :param int limit: max number of order structures to return
+        :param dict params: exchange specific params
+        :param bool params['stop']: True for fetching stop orders
+        :param str params['type']: spot, swap or future, if not provided self.options['defaultType'] is used
+        :param str params['marginMode']: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
+        :returns: An array of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         return self.fetch_orders_by_status('finished', symbol, since, limit, params)
 
     def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrdersByStatus() requires a symbol argument')
         self.load_markets()
-        market = self.market(symbol)
-        request, query = self.prepare_request(market, None, params)
+        market = None if (symbol is None) else self.market(symbol)
+        stop = self.safe_value(params, 'stop')
+        params = self.omit(params, 'stop')
+        type, query = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)
+        spot = (type == 'spot') or (type == 'margin')
+        request, requestParams = self.multi_order_spot_prepare_request(market, stop, query) if spot else self.prepare_request(market, type, query)
+        if spot and not stop and (market is None) and (status == 'open'):
+            raise ArgumentsRequired(self.id + ' fetchOrdersByStatus requires a symbol argument for spot non-stop open orders')
+        if status == 'closed':
+            status = 'finished'
         request['status'] = status
         if limit is not None:
             request['limit'] = limit
-        if since is not None and (market['spot'] or market['margin']):
+        if since is not None and spot:
             request['from'] = int(since / 1000)
-        method = self.get_supported_mapping(market['type'], {
-            'spot': 'privateSpotGetOrders',
-            'margin': 'privateSpotGetOrders',
-            'swap': 'privateFuturesGetSettleOrders',
-            'future': 'privateDeliveryGetSettleOrders',
+        methodTail = 'PriceOrders' if stop else 'Orders'
+        method = self.get_supported_mapping(type, {
+            'spot': 'privateSpotGet' + methodTail,
+            'margin': 'privateSpotGet' + methodTail,
+            'swap': 'privateFuturesGetSettle' + methodTail,
+            'future': 'privateDeliveryGetSettle' + methodTail,
         })
-        if market['type'] == 'margin' or market['type'] == 'cross_margin':
-            request['account'] = market['type']
-        response = getattr(self, method)(self.extend(request, query))
+        response = getattr(self, method)(self.extend(request, requestParams))
         #
         # SPOT
         #
-        #    {
-        #        "id": "8834234273",
-        #        "text": "3",
-        #        "create_time": "1635406193",
-        #        "update_time": "1635406193",
-        #        "create_time_ms": 1635406193361,
-        #        "update_time_ms": 1635406193361,
-        #        "status": "closed",
-        #        "currency_pair": "BTC_USDT",
-        #        "type": "limit",
-        #        "account": "spot",
-        #        "side": "sell",
-        #        "amount": "0.0002",
-        #        "price": "58904.01",
-        #        "time_in_force": "gtc",
-        #        "iceberg": "0",
-        #        "left": "0.0000",
-        #        "fill_price": "11.790516",
-        #        "filled_total": "11.790516",
-        #        "fee": "0.023581032",
-        #        "fee_currency": "USDT",
-        #        "point_fee": "0",
-        #        "gt_fee": "0",
-        #        "gt_discount": False,
-        #        "rebated_fee_currency": "BTC"
-        #    }
+        #    [
+        #        {
+        #           "id": "8834234273",
+        #           "text": "3",
+        #           "create_time": "1635406193",
+        #           "update_time": "1635406193",
+        #           "create_time_ms": 1635406193361,
+        #           "update_time_ms": 1635406193361,
+        #           "status": "closed",
+        #           "currency_pair": "BTC_USDT",
+        #           "type": "limit",
+        #           "account": "spot",  # margin for margin orders
+        #           "side": "sell",
+        #           "amount": "0.0002",
+        #           "price": "58904.01",
+        #           "time_in_force": "gtc",
+        #           "iceberg": "0",
+        #           "left": "0.0000",
+        #           "fill_price": "11.790516",
+        #           "filled_total": "11.790516",
+        #           "fee": "0.023581032",
+        #           "fee_currency": "USDT",
+        #           "point_fee": "0",
+        #           "gt_fee": "0",
+        #           "gt_discount": False,
+        #           "rebated_fee_currency": "BTC"
+        #        }
+        #    ]
+        #
+        # Spot Stop
+        #
+        #    [
+        #        {
+        #            "market": "ADA_USDT",
+        #            "user": 10406147,
+        #            "trigger": {
+        #                "price": "0.65",
+        #                "rule": "\u003c=",
+        #                "expiration": 86400
+        #            },
+        #            "put": {
+        #                "type": "limit",
+        #                "side": "sell",
+        #                "price": "0.65",
+        #                "amount": "2.00000000000000000000",
+        #                "account": "normal",  # margin for margin orders
+        #                "time_in_force": "gtc"
+        #            },
+        #            "id": 8449909,
+        #            "ctime": 1652188982,
+        #            "status": "open"
+        #        }
+        #    ]
         #
         # Perpetual Swap
         #
-        #    {
-        #        "status": "finished",
-        #        "size": -1,
-        #        "left": 0,
-        #        "id": 82750739203,
-        #        "is_liq": False,
-        #        "is_close": False,
-        #        "contract": "BTC_USDT",
-        #        "text": "web",
-        #        "fill_price": "60721.3",
-        #        "finish_as": "filled",
-        #        "iceberg": 0,
-        #        "tif": "ioc",
-        #        "is_reduce_only": True,
-        #        "create_time": 1635403475.412,
-        #        "finish_time": 1635403475.4127,
-        #        "price": "0"
-        #    }
+        #    [
+        #        {
+        #           "status": "finished",
+        #           "size": -1,
+        #           "left": 0,
+        #           "id": 82750739203,
+        #           "is_liq": False,
+        #           "is_close": False,
+        #           "contract": "BTC_USDT",
+        #           "text": "web",
+        #           "fill_price": "60721.3",
+        #           "finish_as": "filled",
+        #           "iceberg": 0,
+        #           "tif": "ioc",
+        #           "is_reduce_only": True,
+        #           "create_time": 1635403475.412,
+        #           "finish_time": 1635403475.4127,
+        #           "price": "0"
+        #        }
+        #    ]
         #
-        return self.parse_orders(response, market, since, limit)
+        orders = self.parse_orders(response, market, since, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def cancel_order(self, id, symbol=None, params={}):
         """
