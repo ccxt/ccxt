@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, InsufficientFunds, OrderNotFound, InvalidOrder, ArgumentsRequired, BadRequest, PermissionDenied, DuplicateOrderId } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 // ----------------------------------------------------------------------------
 
@@ -403,8 +404,7 @@ module.exports = class fairdesk extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const symbolId = this.parseSymbol (symbol);
-        const market = this.market (symbolId);
+        const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
@@ -467,8 +467,7 @@ module.exports = class fairdesk extends Exchange {
         request['from'] = startTime * 1000;
         request['to'] = endTime * 1000;
         await this.loadMarkets ();
-        const symbolId = this.parseSymbol (symbol);
-        const market = this.market (symbolId);
+        const market = this.market (symbol);
         request['symbol'] = market['id'];
         const response = await this.publicGetMdKline (this.extend (request, params));
         // {
@@ -499,27 +498,28 @@ module.exports = class fairdesk extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (ticker, 'timestamp');
-        const last = this.safeNumber (ticker, 'close');
-        const open = this.safeNumber (ticker, 'open');
-        const change = last - open;
-        const percentage = ((last - open) / open) * 100;
+        const last = this.safeString (ticker, 'close');
+        const open = this.safeString (ticker, 'open');
+        const change = Precise.stringSub (last, open);
+        const ratio = Precise.stringDiv (change, open);
+        const percentage = Precise.stringMul (ratio, '100');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeString (ticker, 'high'),
             'low': this.safeString (ticker, 'low'),
-            'open': open.toString (),
-            'close': last.toString (),
-            'last': last.toString (),
+            'open': open,
+            'close': last,
+            'last': last,
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
             'previousClose': undefined, // previous day close
-            'change': change.toString (),
-            'percentage': percentage.toString (),
+            'change': change,
+            'percentage': percentage,
             'average': this.safeString (ticker, 'averagePrice'),
             'baseVolume': this.safeString (ticker, 'baseVolume'),
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),
@@ -527,15 +527,9 @@ module.exports = class fairdesk extends Exchange {
         }, market, false);
     }
 
-    parseSymbol (symbol) {
-        const str = symbol.replace ('/', '');
-        return str.toLowerCase ();
-    }
-
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        const symbolId = this.parseSymbol (symbol);
-        const market = this.market (symbolId);
+        const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
@@ -564,9 +558,8 @@ module.exports = class fairdesk extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const symbolId = this.parseSymbol (symbol);
         await this.loadMarkets ();
-        const market = this.market (symbolId);
+        const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
@@ -596,82 +589,48 @@ module.exports = class fairdesk extends Exchange {
         // }
         const result = this.safeValue (response, 'data', {});
         const trades = this.safeValue (result, 'trades', []);
-        return this.parsePubTrades (trades, market, since, limit);
+        return this.parseTrades (trades, market, since, limit);
     }
 
-    parsePubTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+    parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
         const result = [];
         for (let i = 0; i < trades.length; i++) {
             const item = trades[i];
-            result.push (this.parsePubTrade (item, market));
+            result.push (this.parseTrade (item, market));
         }
         return result;
     }
 
-    parseMyTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
-        const result = [];
-        for (let i = 0; i < trades.length; i++) {
-            const item = trades[i];
-            result.push (this.parseMyTrade (item, market));
+    parseTrade (trade, market = undefined) {
+        const timestamp = this.safeInteger (trade, 'transactionTime');
+        const isMaker = this.safeString (trade, 'maker');
+        const side = this.safeStringLower (trade, 'side');
+        let takerOrMaker = 'taker';
+        if (isMaker === 'true') {
+            takerOrMaker = 'maker';
         }
-        return result;
-    }
-
-    parsePubTrade (trade, market = undefined) {
-        const symbol = market['symbol'];
-        const timestamp = this.safeInteger (trade, 'timestamp');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'tradeId'),
-            'symbol': symbol,
-            'order': this.safeString (trade, 'orderId'),
-            'price': this.safeNumber (trade, 'price'),
-            'amount': this.safeNumber (trade, 'qty'),
-            'takerOrMaker': 'taker',
-            'type': undefined,
-            'side': undefined,
-            'cost': undefined,
-            'fee': undefined,
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-        };
-    }
-
-    parseMyTrade (trade, market = undefined) {
-        const symbol = market['symbol'];
-        const timestamp = this.safeInteger (trade, 'timestamp');
-        const isMaker = this.safeValue (trade, 'maker');
-        const side = this.safeStringLower (trade, 'side');
-        const positionSide = this.safeStringLower (trade, 'positionSide');
-        let takerOrMaker = '';
-        if (isMaker) {
-            takerOrMaker = 'maker';
-        } else {
-            takerOrMaker = 'taker';
-        }
-        return {
-            'info': trade,
-            'id': this.safeString (trade, 'tradeId'),
-            'symbol': symbol,
             'order': this.safeString (trade, 'orderId'),
             'type': undefined,
             'side': side,
-            'positionSide': positionSide,
             'takerOrMaker': takerOrMaker,
-            'price': this.safeString (trade, 'lastPrice'),
-            'amount': this.safeString (trade, 'lastQty'),
+            'price': this.safeNumber (trade, 'price'),
+            'amount': this.safeNumber (trade, 'qty'),
             'cost': undefined,
             'fee': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
+        }, market);
     }
 
     parseSwapBalance (response) {
         const balance = this.safeValue (response, 'data', [])[0];
         const total = this.safeNumber (balance, 'balance');
         const free = this.safeNumber (balance, 'crossBalance');
-        const used = total - free;
+        const used = Precise.stringSub (this.safeString (balance, 'balance'), this.safeString (balance, 'crossBalance'));
         return {
             'info': balance,
             'USDT': {
@@ -764,12 +723,16 @@ module.exports = class fairdesk extends Exchange {
         const side = this.safeStringLower (order, 'side');
         const positionSide = this.safeStringLower (order, 'positionSide');
         const type = this.parseOrderType (this.safeString (order, 'type'));
-        const price = this.parseNumber (this.safeString (order, 'price') === '--' ? '' : this.safeString (order, 'price'));
+        const price = this.safeNumber (order, 'price');
         const amount = this.safeNumber (order, 'origQty');
-        const remaining = amount - this.safeNumber (order, 'executedQty');
+        const remaining = Precise.stringSub (this.safeString (order, 'origQty'), this.safeString (order, 'executedQty'));
         const timestamp = this.safeInteger (order, 'transactTime');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
-        return {
+        let postOnly = false;
+        if (timeInForce === 'PO') {
+            postOnly = true;
+        }
+        return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'orderId'),
             'clientOrderId': this.safeString (order, 'clientOrderId'),
@@ -779,7 +742,7 @@ module.exports = class fairdesk extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
-            'postOnly': (timeInForce === 'PO'),
+            'postOnly': postOnly,
             'side': side,
             'positionSide': positionSide,
             'price': price,
@@ -792,32 +755,42 @@ module.exports = class fairdesk extends Exchange {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        };
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type.toLocaleUpperCase () !== 'MARKET' && type.toLocaleUpperCase () !== 'LIMIT') {
-            throw new ArgumentsRequired (this.id + ' createOrder() only support Market or Limit type');
+        if (type !== 'limit' && type !== 'market') {
+            throw new ArgumentsRequired (this.id + ' createOrder() only support market or limit type');
         }
         await this.loadMarkets ();
-        const symbolId = this.parseSymbol (symbol);
-        const market = this.market (symbolId);
-        const sideValue = side.toLocaleUpperCase ();
+        const market = this.market (symbol);
+        const sideValue = side.toUpperCase ();
+        let positionSide = this.safeString (params, 'positionSide');
+        if (positionSide === 'undefined' && sideValue === 'BUY') {
+            positionSide = 'LONG';
+        }
+        if (positionSide === 'undefined' && sideValue === 'SELL') {
+            positionSide = 'SHORT';
+        }
+        let timeInForce = this.safeString (params, 'timeInForce');
+        if (timeInForce === 'undefined') {
+            timeInForce = 'GTC';
+        }
+        let isolated = false;
+        if (this.safeString (params, 'isolated') === 'true') {
+            isolated = true;
+        }
         const request = {
             'symbol': market['id'],
             'price': price,
             'quantity': amount,
             'side': sideValue, // SELL, BUY
-            'type': type.toLocaleUpperCase (), // MARKET, LIMIT
+            'type': type.toUpperCase (), // MARKET, LIMIT
             'clientOrderId': 'CCXT_' + this.uuid (),
             'orderRespType': 'ACK',
-            'positionSide': params.positionSide || (sideValue === 'BUY' ? 'LONG' : 'SHORT'),
-            'isolated': params.isolated || false,
-            'slTriggerPrice': params.slTriggerPrice || null,
-            'slTriggerType': params.slTriggerType || null,
-            'tpTriggerPrice': params.tpTriggerPrice || null,
-            'tpTriggerType': params.tpTriggerType || null,
-            'timeInForce': params.timeInForce || 'GTC',
+            'positionSide': positionSide,
+            'isolated': isolated,
+            'timeInForce': timeInForce,
         };
         if (type === 'Market') {
             request['timeInForce'] = null;
@@ -864,9 +837,8 @@ module.exports = class fairdesk extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        const symbolId = this.parseSymbol (symbol);
         await this.loadMarkets ();
-        const market = this.market (symbolId);
+        const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
             'orderId': id,
@@ -962,9 +934,8 @@ module.exports = class fairdesk extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
-        const symbolId = this.parseSymbol (symbol);
         await this.loadMarkets ();
-        const market = this.market (symbolId);
+        const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
@@ -1023,8 +994,7 @@ module.exports = class fairdesk extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const symbolId = this.parseSymbol (symbol);
-        const market = this.market (symbolId);
+        const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
@@ -1068,9 +1038,8 @@ module.exports = class fairdesk extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
-        const symbolId = this.parseSymbol (symbol);
         await this.loadMarkets ();
-        const market = this.market (symbolId);
+        const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
             'status': 'CANCELED',
@@ -1128,8 +1097,7 @@ module.exports = class fairdesk extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const symbolId = this.parseSymbol (symbol);
-        const market = this.market (symbolId);
+        const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
@@ -1167,7 +1135,7 @@ module.exports = class fairdesk extends Exchange {
         // }
         const data = this.safeValue (response, 'data', {});
         const rows = this.safeValue (data, 'rows', []);
-        return this.parseMyTrades (rows, market, since, limit);
+        return this.parseTrades (rows, market, since, limit);
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -1344,26 +1312,37 @@ module.exports = class fairdesk extends Exchange {
         const symbol = market['symbol'];
         const margin = this.safeString (position, 'margin');
         const positionSide = this.safeStringLower (position, 'positionSide');
-        const marginType = this.safeString (position, 'isolated') === 'true' ? 'isolated' : 'cross';
+        let marginType = 'cross';
+        if (this.safeString (position, 'isolated') === 'true') {
+            marginType = 'isolated';
+        }
         const timestamp = this.safeInteger (position, 'lastTxTime');
-        const qty = this.parseNumber (this.safeString (position, 'quantity'));
-        const entryPrice = this.parseNumber (this.safeString (position, 'avgEntryPrice'));
-        const markPrice = this.parseNumber (this.safeString (position, 'markPrice'));
-        const notional = qty * markPrice;
-        const sign = positionSide === 'long' ? 1 : -1;
-        const unrealizedPnl = (markPrice - entryPrice) * qty * sign;
+        const qty = this.safeString (position, 'quantity');
+        const entryPrice = this.safeString (position, 'avgEntryPrice');
+        const markPrice = this.safeString (position, 'markPrice');
+        const notional = Precise.stringMul (qty, markPrice);
+        let sign = '-1';
+        if (positionSide === 'long') {
+            sign = '1';
+        }
+        const between = Precise.stringSub (markPrice, entryPrice);
+        const unrealizedPnl = Precise.stringMul (Precise.stringMul (between, qty), sign);
+        let initialMargin = undefined;
+        if (marginType === 'isolated') {
+            initialMargin = this.safeString (position, 'isolatedMargin');
+        }
         return {
             'info': position,
             'symbol': symbol,
             'positionSide': positionSide,
-            'quantity': qty,
+            'quantity': this.parseNumber (qty),
             'unrealizedPnl': unrealizedPnl,
             'margin': this.parseNumber (margin),
             'notional': notional,
-            'markPrice': this.parseNumber (this.safeString (position, 'markPrice')),
-            'entryPrice': entryPrice,
+            'markPrice': this.parseNumber (markPrice),
+            'entryPrice': this.parseNumber (entryPrice),
             'timestamp': timestamp,
-            'initialMargin': marginType === 'isolated' ? this.safeString (position, 'isolatedMargin') : undefined,
+            'initialMargin': initialMargin,
             'datetime': this.iso8601 (timestamp),
             'marginType': marginType,
         };
@@ -1410,8 +1389,7 @@ module.exports = class fairdesk extends Exchange {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const symbolId = this.parseSymbol (symbol);
-        const market = this.market (symbolId);
+        const market = this.market (symbol);
         if ((this.parseNumber (leverage) < 1) || (this.parseNumber (leverage) > this.parseNumber (market.info['maxLeverage']))) {
             throw new BadRequest (this.id + ' ' + symbol + ' leverage should be between 1 and ' + market.info['maxLeverage']);
         }
