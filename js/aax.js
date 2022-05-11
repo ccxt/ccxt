@@ -15,7 +15,6 @@ module.exports = class aax extends Exchange {
             'id': 'aax',
             'name': 'AAX',
             'countries': [ 'MT' ], // Malta
-            'enableRateLimit': true,
             // 6000 /  hour => 100 per minute => 1.66 requests per second => rateLimit = 600
             // market endpoints ratelimits arent mentioned in docs so they are also set to "all other authenticated endpoints"
             // 5000 / hour => weight = 1.2 ("all other authenticated endpoints")
