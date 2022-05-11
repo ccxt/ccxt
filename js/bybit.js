@@ -2512,8 +2512,9 @@ module.exports = class bybit extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         amount = this.amountToPrecision (symbol, amount);
-        price = this.priceToPrecision (symbol, price);
+        price = (price !== undefined) ? this.priceToPrecision (symbol, price) : undefined;
         const isUsdcSettled = (market['settle'] === 'USDC');
         if (market['spot']) {
             return await this.createSpotOrder (symbol, type, side, amount, price, params);
@@ -2863,8 +2864,8 @@ module.exports = class bybit extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        amount = this.amountToPrecision (symbol, amount);
-        price = this.priceToPrecision (symbol, price);
+        amount = (amount !== undefined) ? this.amountToPrecision (symbol, amount) : undefined;
+        price = (price !== undefined) ? this.priceToPrecision (symbol, price) : undefined;
         const isUsdcSettled = market['settle'] === 'USDC';
         if (market['spot']) {
             throw new NotSupported (this.id + ' editOrder() does not support spot markets');
@@ -2971,7 +2972,7 @@ module.exports = class bybit extends Exchange {
             let settle = this.safeString (this.options, 'defaultSettle');
             settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
             params = this.omit (params, [ 'settle', 'defaultSettle' ]);
-            isUsdcSettled = settle === 'USDC';
+            isUsdcSettled = (settle === 'USDC');
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
@@ -2983,7 +2984,6 @@ module.exports = class bybit extends Exchange {
         if (!isUsdcSettled) {
             request['symbol'] = market['id'];
         }
-        const isLinear = this.safeValue (market, 'linear', false);
         const orderType = this.safeStringLower (params, 'orderType');
         const isConditional = (orderType === 'stop') || (orderType === 'conditional');
         let method = undefined;
@@ -2993,12 +2993,12 @@ module.exports = class bybit extends Exchange {
             method = (type === 'option') ? 'privatePostOptionUsdcOpenapiPrivateV1CancelAll' : 'privatePostPerpetualUsdcOpenapiPrivateV1CancelAll';
         } else if (type === 'future') {
             method = isConditional ? 'privatePostFuturesPrivateStopOrderCancelAll' : 'privatePostFuturesPrivateOrderCancelAll';
-        } else if (isLinear) {
+        } else if (market['linear']) {
             // linear swap
             method = isConditional ? 'privatePostPrivateLinearStopOrderCancelAll' : 'privatePostPrivateLinearOrderCancelAll';
         } else {
-            // futures
-            method = isConditional ? 'privatePostFuturesPrivateStopOrderCancelAll' : 'privatePostFuturesPrivateOrderCancelAll';
+            // inverse swap
+            method = isConditional ? 'privatePostV2PrivateStopOrderCancelAll' : 'privatePostV2PrivateOrderCancelAll';
         }
         const response = await this[method] (this.extend (request, params));
         // spot
