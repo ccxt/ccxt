@@ -2241,12 +2241,12 @@ class ascendex(Exchange):
         }
         return await self.v2PrivateAccountGroupPostFuturesLeverage(self.extend(request, params))
 
-    async def set_margin_mode(self, marginType, symbol=None, params={}):
-        marginType = marginType.lower()
-        if marginType == 'cross':
-            marginType = 'crossed'
-        if marginType != 'isolated' and marginType != 'crossed':
-            raise BadRequest(self.id + ' setMarginMode() marginType argument should be isolated or cross')
+    async def set_margin_mode(self, marginMode, symbol=None, params={}):
+        marginMode = marginMode.lower()
+        if marginMode == 'cross':
+            marginMode = 'crossed'
+        if marginMode != 'isolated' and marginMode != 'crossed':
+            raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
         await self.load_markets()
         await self.load_accounts()
         market = self.market(symbol)
@@ -2255,7 +2255,7 @@ class ascendex(Exchange):
         request = {
             'account-group': accountGroup,
             'symbol': market['id'],
-            'marginType': marginType,
+            'marginMode': marginMode,
         }
         if market['type'] != 'future':
             raise BadSymbol(self.id + ' setMarginMode() supports futures contracts only')

@@ -1,10 +1,10 @@
 <?php
 
-$root = dirname (dirname (dirname (__FILE__)));
+$root = dirname(dirname(dirname(__FILE__)));
 
 include $root . '/ccxt.php';
 
-date_default_timezone_set ('UTC');
+date_default_timezone_set('UTC');
 
 $exchanges = \ccxt\Exchange::$exchanges;
 
@@ -27,7 +27,7 @@ if (count ($argv) > 2) {
 
         // instantiate the exchange by id
         $exchange = '\\ccxt\\' . $id;
-        $exchange = new $exchange (array (
+        $exchange = new $exchange(array(
             // 'verbose' => true, // uncomment for debug output
             // set custom headers if needed
             // 'headers' => array(

@@ -1705,7 +1705,7 @@ module.exports = class mexc extends Exchange {
         const rawSide = this.safeString (position, 'positionType');
         const side = (rawSide === '1') ? 'long' : 'short';
         const openType = this.safeString (position, 'margin_mode');
-        const marginType = (openType === '1') ? 'isolated' : 'cross';
+        const marginMode = (openType === '1') ? 'isolated' : 'cross';
         const leverage = this.safeString (position, 'leverage');
         const liquidationPrice = this.safeNumber (position, 'liquidatePrice');
         const timestamp = this.safeNumber (position, 'updateTime');
@@ -1720,7 +1720,8 @@ module.exports = class mexc extends Exchange {
             'unrealizedProfit': undefined,
             'leverage': this.parseNumber (leverage),
             'percentage': undefined,
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode, // deprecated
             'notional': undefined,
             'markPrice': undefined,
             'liquidationPrice': liquidationPrice,

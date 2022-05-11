@@ -263,7 +263,6 @@ The cache is a fixed-size deque aka array/list with two ends. The CCXT Pro libra
 
 ```Python
 ccxtpro.ftx({
-    'enableRateLimit': True,
     'options': {
         'tradesLimit': 1000,
         'OHLCVLimit': 1000,
@@ -392,7 +391,7 @@ Creating a CCXT Pro exchange instance is pretty much identical to creating a CCX
 ```JavaScript
 // JavaScript
 const ccxtpro = require ('ccxt.pro')
-const exchange = new ccxtpro.binance ({ enableRateLimit: true, newUpdates: false })
+const exchange = new ccxtpro.binance ({ newUpdates: false })
 ```
 
 The Python implementation of CCXT Pro relies on builtin [asyncio](https://docs.python.org/3/library/asyncio.html) and [Event Loop](https://docs.python.org/3/library/asyncio-eventloop.html) in particular. In Python it is possible to supply an asyncio's event loop instance in the constructor arguments as shown below (identical to `ccxt.async support`):
@@ -400,17 +399,17 @@ The Python implementation of CCXT Pro relies on builtin [asyncio](https://docs.p
 ```Python
 # Python
 import ccxtpro
-import asyncio
+from asyncio import run
 
-async def main(loop):
-    exchange = ccxtpro.kraken({'enableRateLimit': True, 'asyncio_loop': loop, 'newUpdates': False })
+async def main():
+    exchange = ccxtpro.kraken({'newUpdates': False})
     while True:
         orderbook = await exchange.watch_order_book('BTC/USD')
         print(orderbook['asks'][0], orderbook['bids'][0])
     await exchange.close()
 
-loop = asyncio.new_event_loop()
-loop.run_until_complete(main(loop))
+
+run(main())
 ```
 
 In PHP the async primitives are borrowed from [ReactPHP](https://reactphp.org). The PHP implementation of CCXT Pro relies on [Promise](https://github.com/reactphp/promise) and [EventLoop](https://github.com/reactphp/event-loop) in particular. In PHP the user is required to supply a ReactPHP's event loop instance in the constructor arguments as shown below:
@@ -422,7 +421,7 @@ date_default_timezone_set('UTC');
 require_once 'vendor/autoload.php';
 
 $loop = \React\EventLoop\Factory::create(); // the event loop goes here ↓
-$exchange = new \ccxtpro\kucoin(array('enableRateLimit' => true, 'loop' => $loop, 'newUpdates': false ));
+$exchange = new \ccxtpro\kucoin(array('loop' => $loop, 'newUpdates': false ));
 ```
 
 ## Exchange Properties

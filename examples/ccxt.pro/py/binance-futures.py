@@ -1,16 +1,18 @@
 import ccxtpro
-from asyncio import get_event_loop
+from asyncio import run
 
 print('CCXT Pro Version:', ccxtpro.__version__)
 
-async def main(loop):
+async def main():
     exchange = ccxtpro.binance({
-        'asyncio_loop': loop,
-        'enableRateLimit': True,
         'options': {
             'defaultType': 'future',  # spot, margin, future, delivery
         },
     })
+    # or
+    # exchange = ccxtpro.binanceusdm()
+    # or
+    # exchange = ccxtpro.binancecoinm()
     symbol = 'BTC/USDT'
     while True:
         try:
@@ -21,5 +23,5 @@ async def main(loop):
             break
     await exchange.close()
 
-loop = get_event_loop()
-loop.run_until_complete(main(loop))
+
+run(main())

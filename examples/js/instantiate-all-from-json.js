@@ -3,8 +3,6 @@
 const ccxt     = require ('../../ccxt')
     , settings = require ('./credentials.json')
 
-const enableRateLimit = true
-
 async function test () {
 
     const ids = ccxt.exchanges.filter (id => id in settings)
@@ -12,7 +10,7 @@ async function test () {
     const exchanges = ccxt.indexBy (await Promise.all (ids.map (async id => {
 
         // instantiate the exchange
-        let exchange = new ccxt[id] (ccxt.extend ({ enableRateLimit }, settings[id]))
+        let exchange = new ccxt[id] (settings[id])
 
         // load markets
         await exchange.loadMarkets ()
