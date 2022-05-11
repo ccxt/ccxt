@@ -3379,19 +3379,7 @@ module.exports = class gateio extends Exchange {
         //        }
         //    ]
         //
-        let filteredResponse = [];
-        if (spot && !stop) {
-            for (let i = 0; i < response.length; i++) {
-                const order = response[i];
-                const account = this.safeString (order, 'account');
-                if (account === marginType) {
-                    filteredResponse.push (order);
-                }
-            }
-        } else {
-            filteredResponse = response;
-        }
-        const orders = this.parseOrders (filteredResponse, market, since, limit);
+        const orders = this.parseOrders (response, market, since, limit);
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
