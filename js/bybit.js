@@ -593,6 +593,9 @@ module.exports = class bybit extends Exchange {
                     '33004': AuthenticationError, // apikey already expired
                     '34026': ExchangeError, // the limit is no change
                     '130021': InsufficientFunds, // {"ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100}
+                    '3100116': BadRequest, // {"retCode":3100116,"retMsg":"Order quantity below the lower limit 0.01.","result":null,"retExtMap":{"key0":"0.01"}}
+                    '3100198': BadRequest, // {"retCode":3100198,"retMsg":"orderLinkId can not be empty.","result":null,"retExtMap":{}}
+                    '3200300': InsufficientFunds, // {"retCode":3200300,"retMsg":"Insufficient margin balance.","result":null,"retExtMap":{}}
                 },
                 'broad': {
                     'unknown orderInfo': OrderNotFound, // {"ret_code":-1,"ret_msg":"unknown orderInfo","ext_code":"","ext_info":"","result":null,"time_now":"1584030414.005545","rate_limit_status":99,"rate_limit_reset_ms":1584030414003,"rate_limit":100}
@@ -2756,6 +2759,10 @@ module.exports = class bybit extends Exchange {
             const stopPx = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
             params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
             if (stopPx !== undefined) {
+                const basePrice = this.safeValue (params, 'basePrice');
+                if (basePrice === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires both the triggerPrice and basePrice params for a conditional ' + type + ' order');
+                }
                 request['orderFilter'] = 'StopOrder';
                 request['triggerPrice'] = this.priceToPrecision (symbol, stopPx);
             } else {
@@ -2765,6 +2772,9 @@ module.exports = class bybit extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'orderLinkId');
         if (clientOrderId !== undefined) {
             request['orderLinkId'] = clientOrderId;
+        } else if (market['option']) {
+            // mandatory field for options
+            request['orderLinkId'] = this.uuid16 ();
         }
         params = this.omit (params, [ 'clientOrderId', 'orderLinkId' ]);
         const method = market['option'] ? 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' : 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder';
