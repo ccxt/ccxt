@@ -2510,192 +2510,16 @@ module.exports = class bybit extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        // inverse swap -> privatePostV2PrivateOrderCreate
-        // inverse swap conditional -> privatePostV2PrivateStopOrderCreate
-        // linear swap -> privatePostPrivateLinearOrderCreate
-        // linear swap conditional -> privatePostPrivateLinearStopOrderCreate
-        // future -> privatePostFuturesPrivateOrderCreate
-        // future conditional -> privatePostFuturesPrivateStopOrderCreate
-        // spot -> privatePostSpotV1Order
-        // usdc perpetual -> privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder
-        // usdc option -> privatePostOptionUsdcOpenapiPrivateV1PlaceOrder
-        //
-        // ---- ORDER TYPE ----
-        // Limit and Market (market not available for options)
-        // spot also supports limit maker
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let qty = this.amountToPrecision (symbol, amount);
-        if (market['inverse']) {
-            qty = parseInt (qty);
-        } else {
-            qty = parseFloat (qty);
-        }
-        const isUsdcSettled = market['settle'] === 'USDC';
-        const orderTypeKey = isUsdcSettled ? 'orderType' : 'order_type';
-        const quantityKey = isUsdcSettled ? 'orderQty' : 'qty';
-        const priceKey = isUsdcSettled ? 'orderPrice' : 'price';
-        const timeInForceKey = isUsdcSettled ? 'timeInForce' : 'time_in_force';
-        const request = {
-            // orders ---------------------------------------------------------
-            'side': this.capitalize (side),
-            'symbol': market['id'],
-            // 'order_type': this.capitalize (type),
-            // 'qty': qty, // order quantity in USD, integer only
-            // 'price': parseFloat (this.priceToPrecision (symbol, price)), // required for limit orders
-            // 'time_in_force': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
-            // 'take_profit': 123.45, // take profit price, only take effect upon opening the position
-            // 'stop_loss': 123.45, // stop loss price, only take effect upon opening the position
-            // 'reduce_only': false, // reduce only, required for linear orders
-            // when creating a closing order, bybit recommends a True value for
-            // close_on_trigger to avoid failing due to insufficient available margin
-            // 'close_on_trigger': false, required for linear orders
-            // 'order_link_id': 'string', // unique client order id, max 36 characters
-            // conditional orders ---------------------------------------------
-            // base_price is used to compare with the value of stop_px, to decide
-            // whether your conditional order will be triggered by crossing trigger
-            // price from upper side or lower side, mainly used to identify the
-            // expected direction of the current conditional order
-            // 'base_price': 123.45, // required for conditional orders
-            // 'stop_px': 123.45, // trigger price, required for conditional orders
-            // 'trigger_by': 'LastPrice', // IndexPrice, MarkPrice
-        };
-        request[orderTypeKey] = this.capitalize (type);
-        request[timeInForceKey] = 'GoodTillCancel';
-        request[quantityKey] = qty;
-        let priceIsRequired = false;
-        if (type === 'limit' || type === 'limit_maker') {
-            priceIsRequired = true;
-        }
-        if (priceIsRequired) {
-            if (price !== undefined) {
-                request['price'] = parseFloat (this.priceToPrecision (symbol, price));
-            } else {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
-            }
-        }
-        const clientOrderId = this.safeString2 (params, 'order_link_id', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['order_link_id'] = clientOrderId;
-            params = this.omit (params, [ 'order_link_id', 'clientOrderId' ]);
-        }
-        const stopPx = this.safeValue2 (params, 'stop_px', 'stopPrice');
-        const basePrice = this.safeValue (params, 'base_price');
-        let method = undefined;
+        const isUsdcSettled = (market['settle'] === 'USDC');
         if (market['spot']) {
-            method = 'privatePostSpotV1Order';
-        } else if (market['swap']) {
-            if (market['linear']) {
-                method = 'privatePostPrivateLinearOrderCreate';
-                request['reduce_only'] = false;
-                request['close_on_trigger'] = false;
-            } else if (market['inverse']) {
-                method = 'privatePostV2PrivateOrderCreate';
-            }
-        } else if (market['future']) {
-            method = 'privatePostFuturesPrivateOrderCreate';
+            return await this.createSpotOrder (symbol, type, side, amount, price, params);
+        } else if (isUsdcSettled) {
+            return await this.createUsdcOrder (symbol, type, side, amount, price, params);
+        } else {
+            return await this.createContractOrder (symbol, type, side, amount, price, params);
         }
-        if (stopPx !== undefined) {
-            if (basePrice === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires both the stop_px and base_price params for a conditional ' + type + ' order');
-            } else {
-                if (market['swap']) {
-                    if (market['linear']) {
-                        method = 'privatePostPrivateLinearStopOrderCreate';
-                    } else if (market['inverse']) {
-                        method = 'privatePostV2PrivateStopOrderCreate';
-                    }
-                } else if (market['future']) {
-                    method = 'privatePostFuturesPrivateStopOrderCreate';
-                }
-                request['stop_px'] = parseFloat (this.priceToPrecision (symbol, stopPx));
-                request['base_price'] = parseFloat (this.priceToPrecision (symbol, basePrice));
-                request['trigger_by'] = 'LastPrice';
-                params = this.omit (params, [ 'stop_px', 'stopPrice', 'base_price', 'trigger_by' ]);
-            }
-        } else if (basePrice !== undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires both the stop_px and base_price params for a conditional ' + type + ' order');
-        }
-        const response = await this[method] (this.extend (request, params));
-        //
-        //     {
-        //         "ret_code": 0,
-        //         "ret_msg": "OK",
-        //         "ext_code": "",
-        //         "ext_info": "",
-        //         "result": {
-        //             "user_id": 1,
-        //             "order_id": "335fd977-e5a5-4781-b6d0-c772d5bfb95b",
-        //             "symbol": "BTCUSD",
-        //             "side": "Buy",
-        //             "order_type": "Limit",
-        //             "price": 8800,
-        //             "qty": 1,
-        //             "time_in_force": "GoodTillCancel",
-        //             "order_status": "Created",
-        //             "last_exec_time": 0,
-        //             "last_exec_price": 0,
-        //             "leaves_qty": 1,
-        //             "cum_exec_qty": 0,
-        //             "cum_exec_value": 0,
-        //             "cum_exec_fee": 0,
-        //             "reject_reason": "",
-        //             "order_link_id": "",
-        //             "created_at": "2019-11-30T11:03:43.452Z",
-        //             "updated_at": "2019-11-30T11:03:43.455Z"
-        //         },
-        //         "time_now": "1575111823.458705",
-        //         "rate_limit_status": 98,
-        //         "rate_limit_reset_ms": 1580885703683,
-        //         "rate_limit": 100
-        //     }
-        //
-        // conditional orders
-        //
-        //     {
-        //         "ret_code": 0,
-        //         "ret_msg": "ok",
-        //         "ext_code": "",
-        //         "result": {
-        //             "user_id": 1,
-        //             "symbol": "BTCUSD",
-        //             "side": "Buy",
-        //             "order_type": "Limit",
-        //             "price": 8000,
-        //             "qty": 1,
-        //             "time_in_force": "GoodTillCancel",
-        //             "stop_order_type": "Stop",
-        //             "trigger_by": "LastPrice",
-        //             "base_price": 7000,
-        //             "order_status": "Untriggered",
-        //             "ext_fields": {
-        //                 "stop_order_type": "Stop",
-        //                 "trigger_by": "LastPrice",
-        //                 "base_price": 7000,
-        //                 "expected_direction": "Rising",
-        //                 "trigger_price": 7500,
-        //                 "op_from": "api",
-        //                 "remark": "127.0.01",
-        //                 "o_req_num": 0
-        //             },
-        //             "leaves_qty": 1,
-        //             "leaves_value": 0.00013333,
-        //             "reject_reason": null,
-        //             "cross_seq": -1,
-        //             "created_at": "2019-12-27T12:48:24.000Z",
-        //             "updated_at": "2019-12-27T12:48:24.000Z",
-        //             "stop_px": 7500,
-        //             "stop_order_id": "a85cd1c0-a9a4-49d3-a1bd-bab5ebe946d5"
-        //         },
-        //         "ext_info": null,
-        //         "time_now": "1577450904.327654",
-        //         "rate_limit_status": 99,
-        //         "rate_limit_reset_ms": 1577450904335,
-        //         "rate_limit": "100"
-        //     }
-        //
-        const result = this.safeValue (response, 'result');
-        return this.parseOrder (result, market);
     }
 
     async createSpotOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -2926,7 +2750,50 @@ module.exports = class bybit extends Exchange {
         return this.parseOrder (order);
     }
 
+    async editUsdcOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'orderId': id,
+        };
+        if (amount !== undefined) {
+            request['orderQty'] = amount.toString ();
+        }
+        if (price !== undefined) {
+            request['orderPrice'] = this.priceToPrecision (symbol, price);
+        }
+        const method = market['option'] ? 'privatePostOptionUsdcOpenApiPrivateV1ReplaceOrder' : 'privatePostPerpetualUsdcOpenApiPrivateV1ReplaceOrder';
+        const response = await this[method] (this.extend (request, params));
+        //
+        //    {
+        //        "retCode": 0,
+        //        "retMsg": "OK",
+        //        "result": {
+        //            "outRequestId": "",
+        //            "symbol": "BTC-13MAY22-40000-C",
+        //            "orderId": "8c65df91-91fc-461d-9b14-786379ef138c",
+        //            "orderLinkId": "AAAAA41133"
+        //        },
+        //        "retExtMap": {}
+        //   }
+        //
+        return {
+            'info': response,
+            'id': id,
+        };
+    }
+
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        // -> spot not supported
+        // -> usdc option -> privatePostOptionUsdcOpenApiPrivateV1ReplaceOrder
+        // -> usdc swap -> privatePostPerpetualUsdcOpenApiPrivateV1ReplaceOrder
+        // inver swap -> privatePostV2PrivateOrderReplace
+        // inverse swap conditional -> privatePostV2PrivateSpotOrderReplace
+        // linear swap -> privatePostPrivateLinearOrderCreate
+        // linear swap conditional -> privatePostPrivateLinearStopOrderReplace
+        // future -> privatePostFuturesPrivateOrderReplace
+        // future conditional ->privatePostFuturesPrivateStopOrderReplace
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an symbol argument');
         }
