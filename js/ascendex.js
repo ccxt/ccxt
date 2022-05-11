@@ -2282,7 +2282,7 @@ module.exports = class ascendex extends Exchange {
             'contracts': undefined,
             'contractSize': this.safeNumber (position, 'position'),
             'markPrice': this.safeNumber (position, 'markPrice'),
-            'side': this.safeString (position, 'side'),
+            'side': this.safeStringLower (position, 'side'),
             'hedged': undefined,
             'timestamp': undefined,
             'datetime': undefined,
