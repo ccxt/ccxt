@@ -3227,179 +3227,145 @@ class gateio extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
-         * fetches all open $orders
+         * fetches all open orders
          * @param {str} $symbol Unified market $symbol
-         * @param {int} $since earliest time in ms for $orders in the $response
+         * @param {int} $since earliest time in ms for orders in the response
          * @param {int} $limit max number of order structures to return
          * @param {dict} $params exchange specific $params
+         * @param {bool} $params->stop true for fetching stop orders
          * @param {str} $params->type spot, margin, swap or future, if not provided $this->options['defaultType'] is used
-         * @param {str} $params->marginMode 'cross' or 'isolated' - marginMode for $type='margin', if not provided $this->options['defaultMarginMode'] is used
+         * @param {str} $params->marginMode 'cross' or 'isolated' - marginMode for type='margin', if not provided $this->options['defaultMarginMode'] is used
          * @return An array of order structures
          */
-        $this->load_markets();
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchOpenOrders', null, $params);
-        if ($symbol === null && ($type === 'spot') || $type === 'margin' || $type === 'cross_margin') {
-            $request = array(
-                // 'page' => 1,
-                // 'limit' => $limit,
-                'account' => $type, // spot/margin (default), cross_margin
-            );
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $response = $this->privateSpotGetOpenOrders (array_merge($request, $params));
-            //
-            //     array(
-            //         {
-            //             "currency_pair" => "ETH_BTC",
-            //             "total" => 1,
-            //             "orders" => array(
-            //                 array(
-            //                     "id" => "12332324",
-            //                     "text" => "t-123456",
-            //                     "create_time" => "1548000000",
-            //                     "update_time" => "1548000100",
-            //                     "currency_pair" => "ETH_BTC",
-            //                     "status" => "open",
-            //                     "type" => "limit",
-            //                     "account" => "spot",
-            //                     "side" => "buy",
-            //                     "amount" => "1",
-            //                     "price" => "5.00032",
-            //                     "time_in_force" => "gtc",
-            //                     "left" => "0.5",
-            //                     "filled_total" => "2.50016",
-            //                     "fee" => "0.005",
-            //                     "fee_currency" => "ETH",
-            //                     "point_fee" => "0",
-            //                     "gt_fee" => "0",
-            //                     "gt_discount" => false,
-            //                     "rebated_fee" => "0",
-            //                     "rebated_fee_currency" => "BTC"
-            //                 }
-            //             )
-            //         ),
-            //         ...
-            //     )
-            //
-            // price_orders
-            //
-            //    array(
-            //        {
-            //            "market" => "ADA_USDT",
-            //            "user" => 6693577,
-            //            "trigger" => array(
-            //                "price" => "0.9",
-            //                "rule" => "\u003c=",
-            //                "expiration" => 86400
-            //            ),
-            //            "put" => array(
-            //                "type" => "limit",
-            //                "side" => "sell",
-            //                "price" => "0.9",
-            //                "amount" => "2.00000000000000000000",
-            //                "account" => "margin",
-            //                "time_in_force" => "gtc"
-            //            ),
-            //            "id" => 8308730,
-            //            "ctime" => 1650434238,
-            //            "status" => "open"
-            //        }
-            //    )
-            //
-            $allOrders = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $entry = $response[$i];
-                $orders = $this->safe_value($entry, 'orders', array());
-                $parsed = $this->parse_orders($orders, null, $since, $limit);
-                $allOrders = $this->array_concat($allOrders, $parsed);
-            }
-            return $this->filter_by_since_limit($allOrders, $since, $limit);
-        }
         return $this->fetch_orders_by_status('open', $symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches all closed orders
+         * @param {str} $symbol Unified market $symbol of the market to fetch orders for
+         * @param {int} $since earliest time in ms for orders in the response
+         * @param {int} $limit max number of order structures to return
+         * @param {dict} $params exchange specific $params
+         * @param {bool} $params->stop true for fetching stop orders
+         * @param {str} $params->type spot, swap or future, if not provided $this->options['defaultType'] is used
+         * @param {str} $params->marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
+         * @return An array of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         return $this->fetch_orders_by_status('finished', $symbol, $since, $limit, $params);
     }
 
     public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus() requires a $symbol argument');
-        }
         $this->load_markets();
-        $market = $this->market($symbol);
-        list($request, $query) = $this->prepare_request($market, null, $params);
+        $market = ($symbol === null) ? null : $this->market($symbol);
+        $stop = $this->safe_value($params, 'stop');
+        $params = $this->omit($params, 'stop');
+        list($type, $query) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
+        $spot = ($type === 'spot') || ($type === 'margin');
+        list($request, $requestParams) = $spot ? $this->multi_order_spot_prepare_request($market, $stop, $query) : $this->prepare_request($market, $type, $query);
+        if ($spot && !$stop && ($market === null) && ($status === 'open')) {
+            throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus requires a $symbol argument for $spot non-$stop open orders');
+        }
+        if ($status === 'closed') {
+            $status = 'finished';
+        }
         $request['status'] = $status;
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        if ($since !== null && ($market['spot'] || $market['margin'])) {
+        if ($since !== null && $spot) {
             $request['from'] = intval($since / 1000);
         }
-        $method = $this->get_supported_mapping($market['type'], array(
-            'spot' => 'privateSpotGetOrders',
-            'margin' => 'privateSpotGetOrders',
-            'swap' => 'privateFuturesGetSettleOrders',
-            'future' => 'privateDeliveryGetSettleOrders',
+        $methodTail = $stop ? 'PriceOrders' : 'Orders';
+        $method = $this->get_supported_mapping($type, array(
+            'spot' => 'privateSpotGet' . $methodTail,
+            'margin' => 'privateSpotGet' . $methodTail,
+            'swap' => 'privateFuturesGetSettle' . $methodTail,
+            'future' => 'privateDeliveryGetSettle' . $methodTail,
         ));
-        if ($market['type'] === 'margin' || $market['type'] === 'cross_margin') {
-            $request['account'] = $market['type'];
-        }
-        $response = $this->$method (array_merge($request, $query));
+        $response = $this->$method (array_merge($request, $requestParams));
         //
         // SPOT
         //
-        //    {
-        //        "id" => "8834234273",
-        //        "text" => "3",
-        //        "create_time" => "1635406193",
-        //        "update_time" => "1635406193",
-        //        "create_time_ms" => 1635406193361,
-        //        "update_time_ms" => 1635406193361,
-        //        "status" => "closed",
-        //        "currency_pair" => "BTC_USDT",
-        //        "type" => "limit",
-        //        "account" => "spot",
-        //        "side" => "sell",
-        //        "amount" => "0.0002",
-        //        "price" => "58904.01",
-        //        "time_in_force" => "gtc",
-        //        "iceberg" => "0",
-        //        "left" => "0.0000",
-        //        "fill_price" => "11.790516",
-        //        "filled_total" => "11.790516",
-        //        "fee" => "0.023581032",
-        //        "fee_currency" => "USDT",
-        //        "point_fee" => "0",
-        //        "gt_fee" => "0",
-        //        "gt_discount" => false,
-        //        "rebated_fee_currency" => "BTC"
-        //    }
+        //    array(
+        //        {
+        //           "id" => "8834234273",
+        //           "text" => "3",
+        //           "create_time" => "1635406193",
+        //           "update_time" => "1635406193",
+        //           "create_time_ms" => 1635406193361,
+        //           "update_time_ms" => 1635406193361,
+        //           "status" => "closed",
+        //           "currency_pair" => "BTC_USDT",
+        //           "type" => "limit",
+        //           "account" => "spot", // margin for margin $orders
+        //           "side" => "sell",
+        //           "amount" => "0.0002",
+        //           "price" => "58904.01",
+        //           "time_in_force" => "gtc",
+        //           "iceberg" => "0",
+        //           "left" => "0.0000",
+        //           "fill_price" => "11.790516",
+        //           "filled_total" => "11.790516",
+        //           "fee" => "0.023581032",
+        //           "fee_currency" => "USDT",
+        //           "point_fee" => "0",
+        //           "gt_fee" => "0",
+        //           "gt_discount" => false,
+        //           "rebated_fee_currency" => "BTC"
+        //        }
+        //    )
+        //
+        // Spot Stop
+        //
+        //    array(
+        //        {
+        //            "market" => "ADA_USDT",
+        //            "user" => 10406147,
+        //            "trigger" => array(
+        //                "price" => "0.65",
+        //                "rule" => "\u003c=",
+        //                "expiration" => 86400
+        //            ),
+        //            "put" => array(
+        //                "type" => "limit",
+        //                "side" => "sell",
+        //                "price" => "0.65",
+        //                "amount" => "2.00000000000000000000",
+        //                "account" => "normal",  // margin for margin $orders
+        //                "time_in_force" => "gtc"
+        //            ),
+        //            "id" => 8449909,
+        //            "ctime" => 1652188982,
+        //            "status" => "open"
+        //        }
+        //    )
         //
         // Perpetual Swap
         //
-        //    {
-        //        "status" => "finished",
-        //        "size" => -1,
-        //        "left" => 0,
-        //        "id" => 82750739203,
-        //        "is_liq" => false,
-        //        "is_close" => false,
-        //        "contract" => "BTC_USDT",
-        //        "text" => "web",
-        //        "fill_price" => "60721.3",
-        //        "finish_as" => "filled",
-        //        "iceberg" => 0,
-        //        "tif" => "ioc",
-        //        "is_reduce_only" => true,
-        //        "create_time" => 1635403475.412,
-        //        "finish_time" => 1635403475.4127,
-        //        "price" => "0"
-        //    }
+        //    array(
+        //        {
+        //           "status" => "finished",
+        //           "size" => -1,
+        //           "left" => 0,
+        //           "id" => 82750739203,
+        //           "is_liq" => false,
+        //           "is_close" => false,
+        //           "contract" => "BTC_USDT",
+        //           "text" => "web",
+        //           "fill_price" => "60721.3",
+        //           "finish_as" => "filled",
+        //           "iceberg" => 0,
+        //           "tif" => "ioc",
+        //           "is_reduce_only" => true,
+        //           "create_time" => 1635403475.412,
+        //           "finish_time" => 1635403475.4127,
+        //           "price" => "0"
+        //        }
+        //    )
         //
-        return $this->parse_orders($response, $market, $since, $limit);
+        $orders = $this->parse_orders($response, $market, $since, $limit);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
