@@ -322,7 +322,6 @@ async def test():
 
     exchange = ccxt.binance({
         'session': session,
-        'enableRateLimit': True,
         # ...
     })
 
