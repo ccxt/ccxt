@@ -2316,41 +2316,51 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gateio#fetchMyTrades
+         * @description Fetch personal trading history
+         * @param {str} symbol The symbol for the market to fetch trades for
+         * @param {int} since The earliest timestamp, in ms, that fetched trades were made
+         * @param {int} limit The max number of trades to fetch
+         * @param {dict} params Exchange specific parameters
+         * @param {str} params.marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+         * @param {str} params.type 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
+         * @param {int} params.till The latest timestamp, in ms, that fetched trades were made
+         * @param {int} params.page *spot only* Page number
+         * @param {str} params.order_id *spot only* Filter trades with specified order ID. symbol is also required if this field is present
+         * @param {str} params.order *contract only* Futures order ID, return related data only if specified
+         * @param {int} params.offset *contract only* list offset, starting from 0
+         * @param {str} params.last_id *contract only* specify list staring point using the id of last record in previous list-query results
+         * @param {int} params.count_total *contract only* whether to return total number matched, default to 0(no return)
+         * @returns a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
-        let market = undefined;
-        let request = {};
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', undefined, params);
-        if (symbol) {
-            market = this.market (symbol);
-            [ request, params ] = this.prepareRequest (market, undefined, params);
-            type = market['type'];
+        let marginMode = undefined;
+        let request = {};
+        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        const till = this.safeNumber (params, 'till');
+        params = this.omit (params, 'till');
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        const contract = (type === 'swap') || (type === 'future');
+        if (contract) {
+            [ request, params ] = this.prepareRequest (market, type, params);
         } else {
-            if (type === 'swap' || type === 'future') {
-                const settle = this.safeStringLower (params, 'settle');
-                if (!settle) {
-                    throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument or a settle parameter for ' + type + ' markets');
-                }
-                request['settle'] = settle;
+            if (market !== undefined) {
+                request['currency_pair'] = market['id']; // Should always be set for non-stop
             }
+            [ marginMode, params ] = this.getMarginMode (false, params);
+            request['account'] = marginMode;
         }
-        //
-        //     const request = {
-        //         'currency_pair': market['id'],
-        //         // 'limit': limit,
-        //         // 'page': 0,
-        //         // 'order_id': 'Order ID',
-        //         // 'account': 'spot', // default to spot and margin account if not specified, set to cross_margin to operate against margin account
-        //         // 'from': since, // default to 7 days before current time
-        //         // 'to': this.milliseconds (), // default to current time
-        //     };
-        //
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
         if (since !== undefined) {
             request['from'] = parseInt (since / 1000);
-            // request['to'] = since + 7 * 24 * 60 * 60;
+        }
+        if (till !== undefined) {
+            request['to'] = parseInt (till / 1000);
         }
         const method = this.getSupportedMapping (type, {
             'spot': 'privateSpotGetMyTrades',
@@ -3570,28 +3580,29 @@ module.exports = class gateio extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
-        const toId = this.safeString (accountsByType, toAccount, toAccount);
-        if (fromId === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' transfer() fromAccount must be one of ' + keys.join (', '));
-        }
-        if (toId === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' transfer() toAccount must be one of ' + keys.join (', '));
-        }
+        const fromId = this.parseAccount (fromAccount);
+        const toId = this.parseAccount (toAccount);
         const truncated = this.currencyToPrecision (code, amount);
         const request = {
             'currency': currency['id'],
-            'from': fromId,
-            'to': toId,
             'amount': truncated,
         };
-        if (fromAccount === 'margin' || toAccount === 'margin') {
+        if (!(fromId in this.options['accountsByType'])) {
+            request['from'] = 'margin';
+            request['currency_pair'] = fromId;
+        } else {
+            request['from'] = fromId;
+        }
+        if (!(toId in this.options['accountsByType'])) {
+            request['to'] = 'margin';
+            request['currency_pair'] = toId;
+        } else {
+            request['to'] = toId;
+        }
+        if (fromId === 'margin' || toId === 'margin') {
             const symbol = this.safeString2 (params, 'symbol', 'currency_pair');
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' transfer() requires params.symbol for isolated margin transfers');
+                throw new ArgumentsRequired (this.id + ' transfer requires params["symbol"] for isolated margin transfers');
             }
             const market = this.market (symbol);
             request['currency_pair'] = market['id'];
@@ -3618,6 +3629,19 @@ module.exports = class gateio extends Exchange {
             'toAccount': toAccount,
             'amount': this.parseNumber (truncated),
         });
+    }
+
+    parseAccount (account) {
+        const accountsByType = this.options['accountsByType'];
+        if (account in accountsByType) {
+            return accountsByType[account];
+        } else if (account in this.markets) {
+            const market = this.market (account);
+            return market['id'];
+        } else {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' accounts must be one of ' + keys.join (', ') + ' or an isolated margin symbol');
+        }
     }
 
     parseTransfer (transfer, currency = undefined) {
@@ -3768,7 +3792,7 @@ module.exports = class gateio extends Exchange {
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (Precise.stringAbs (size)),
             'contractSize': this.safeValue (market, 'contractSize'),
-            //     realisedPnl: position['realised_pnl'],
+            // 'realisedPnl': position['realised_pnl'],
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liq_price'),
             'markPrice': this.safeNumber (position, 'mark_price'),
