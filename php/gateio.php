@@ -551,7 +551,7 @@ class gateio extends \ccxt\async\gateio {
         yield $this->load_markets();
         $subType = null;
         $type = null;
-        $marketId = '!all';
+        $marketId = '!' . 'all';
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];

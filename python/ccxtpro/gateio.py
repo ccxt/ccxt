@@ -507,7 +507,7 @@ class gateio(Exchange, ccxt.gateio):
         await self.load_markets()
         subType = None
         type = None
-        marketId = 'not all'
+        marketId = '!' + 'all'
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
