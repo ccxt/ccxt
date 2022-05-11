@@ -606,6 +606,8 @@ module.exports = class fairdesk extends Exchange {
         if (isMaker === 'true') {
             takerOrMaker = 'maker';
         }
+        const price = this.safeNumber (trade, 'lastPrice');
+        const amount = this.safeNumber (trade, 'lastQty');
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'tradeId'),
@@ -616,8 +618,8 @@ module.exports = class fairdesk extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': this.safeNumber (trade, 'lastPrice'),
-            'amount': this.safeNumber (trade, 'lastQty'),
+            'price': price,
+            'amount': amount,
             'cost': undefined,
             'fee': undefined,
         }, market);
