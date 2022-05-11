@@ -4823,7 +4823,7 @@ class huobi(Exchange):
             'leverage': self.parse_number(leverage),
             'percentage': self.parse_number(percentage),
             'marginMode': marginMode,
-            'marginType': marginMode,  # ! deprecated
+            'marginType': marginMode,  # deprecated
             'notional': self.parse_number(notional),
             'markPrice': None,
             'liquidationPrice': liquidationPrice,

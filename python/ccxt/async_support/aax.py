@@ -2384,7 +2384,7 @@ class aax(Exchange):
             'markPrice': self.safe_number(position, 'marketPrice'),
             'collateral': self.safe_number(position, 'posMargin'),
             'marginMode': marginMode,
-            'marginType': marginMode,  # ! deprecated
+            'marginType': marginMode,  # deprecated
             'side': side,
             'percentage': None,
         }

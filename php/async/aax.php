@@ -2498,7 +2498,7 @@ class aax extends Exchange {
             'markPrice' => $this->safe_number($position, 'marketPrice'),
             'collateral' => $this->safe_number($position, 'posMargin'),
             'marginMode' => $marginMode,
-            'marginType' => $marginMode, // ! deprecated
+            'marginType' => $marginMode, // deprecated
             'side' => $side,
             'percentage' => null,
         );

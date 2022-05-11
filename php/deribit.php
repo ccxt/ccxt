@@ -1931,7 +1931,7 @@ class deribit extends Exchange {
             'markPrice' => $markPrice,
             'collateral' => null,
             'marginMode' => null,
-            'marginType' => null, // ! deprecated
+            'marginType' => null, // deprecated
             'side' => $side,
             'percentage' => $this->parse_number($percentage),
         );

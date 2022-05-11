@@ -1656,7 +1656,7 @@ class mexc(Exchange):
             'leverage': self.parse_number(leverage),
             'percentage': None,
             'marginMode': marginMode,
-            'marginType': marginMode,  # ! deprecated
+            'marginType': marginMode,  # deprecated
             'notional': None,
             'markPrice': None,
             'liquidationPrice': liquidationPrice,

@@ -5128,7 +5128,7 @@ class huobi extends Exchange {
             'leverage' => $this->parse_number($leverage),
             'percentage' => $this->parse_number($percentage),
             'marginMode' => $marginMode,
-            'marginType' => $marginMode, // ! deprecated
+            'marginType' => $marginMode, // deprecated
             'notional' => $this->parse_number($notional),
             'markPrice' => null,
             'liquidationPrice' => $liquidationPrice,

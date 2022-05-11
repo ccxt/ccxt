@@ -3663,7 +3663,7 @@ class okx(Exchange):
             'symbol': symbol,
             'notional': notional,
             'marginMode': marginMode,
-            'marginType': marginMode,  # ! deprecated
+            'marginType': marginMode,  # deprecated
             'liquidationPrice': liquidationPrice,
             'entryPrice': self.parse_number(entryPriceString),
             'unrealizedPnl': self.parse_number(unrealizedPnlString),
@@ -4514,7 +4514,7 @@ class okx(Exchange):
         return {
             'account': account,  # deprecated
             'symbol': self.safe_string(market, 'symbol'),
-            'marginType': marginMode,  # ! deprecated
+            'marginType': marginMode,  # deprecated
             'marginMode': marginMode,
             'currency': self.safe_currency_code(self.safe_string(info, 'ccy')),
             'interest': self.safe_number(info, 'interest'),

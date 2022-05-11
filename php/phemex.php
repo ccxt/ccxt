@@ -1016,6 +1016,7 @@ class phemex extends Exchange {
         );
         $duration = $this->parse_timeframe($timeframe);
         $now = $this->seconds();
+        // the exchange does not return the last 1m candle
         if ($since !== null) {
             if ($limit === null) {
                 $limit = 2000; // max 2000
@@ -2790,7 +2791,7 @@ class phemex extends Exchange {
             'marginRatio' => $this->parse_number($marginRatio),
             'datetime' => null,
             'marginMode' => null,
-            'marginType' => null, // ! deprecated
+            'marginType' => null, // deprecated
             'side' => $side,
             'hedged' => false,
             'percentage' => $this->parse_number($percentage),

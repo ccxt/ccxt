@@ -1869,7 +1869,7 @@ class deribit(Exchange):
             'markPrice': markPrice,
             'collateral': None,
             'marginMode': None,
-            'marginType': None,  # ! deprecated
+            'marginType': None,  # deprecated
             'side': side,
             'percentage': self.parse_number(percentage),
         }

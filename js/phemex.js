@@ -70,6 +70,7 @@ module.exports = class phemex extends Exchange {
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
+                'setMarginMode': true,
                 'setPositionMode': false,
                 'transfer': true,
                 'withdraw': undefined,
@@ -2932,6 +2933,33 @@ module.exports = class phemex extends Exchange {
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
         };
+    }
+
+    async setMarginMode (marginMode, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
+        marginMode = marginMode.toLowerCase ();
+        if (marginMode !== 'isolated' && marginMode !== 'cross') {
+            throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['type'] !== 'swap') {
+            throw new BadSymbol (this.id + ' setMarginMode() supports swap contracts only');
+        }
+        let leverage = this.safeInteger (params, 'leverage');
+        if (marginMode === 'cross') {
+            leverage = 0;
+        }
+        if (leverage === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter');
+        }
+        const request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        };
+        return await this.privatePutPositionsLeverage (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

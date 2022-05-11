@@ -991,6 +991,7 @@ class phemex(Exchange):
         }
         duration = self.parse_timeframe(timeframe)
         now = self.seconds()
+        # the exchange does not return the last 1m candle
         if since is not None:
             if limit is None:
                 limit = 2000  # max 2000
@@ -2664,7 +2665,7 @@ class phemex(Exchange):
             'marginRatio': self.parse_number(marginRatio),
             'datetime': None,
             'marginMode': None,
-            'marginType': None,  # ! deprecated
+            'marginType': None,  # deprecated
             'side': side,
             'hedged': False,
             'percentage': self.parse_number(percentage),
