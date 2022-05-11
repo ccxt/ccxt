@@ -500,9 +500,6 @@ module.exports = class fairdesk extends Exchange {
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const last = this.safeString (ticker, 'close');
         const open = this.safeString (ticker, 'open');
-        const change = Precise.stringSub (last, open);
-        const ratio = Precise.stringDiv (change, open);
-        const percentage = Precise.stringMul (ratio, '100');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -518,8 +515,8 @@ module.exports = class fairdesk extends Exchange {
             'askVolume': undefined,
             'vwap': undefined,
             'previousClose': undefined, // previous day close
-            'change': change,
-            'percentage': percentage,
+            'change': undefined,
+            'percentage': undefined,
             'average': this.safeString (ticker, 'averagePrice'),
             'baseVolume': this.safeString (ticker, 'baseVolume'),
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),
@@ -619,8 +616,8 @@ module.exports = class fairdesk extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': this.safeNumber (trade, 'price'),
-            'amount': this.safeNumber (trade, 'qty'),
+            'price': this.safeNumber (trade, 'lastPrice'),
+            'amount': this.safeNumber (trade, 'lastQty'),
             'cost': undefined,
             'fee': undefined,
         }, market);
