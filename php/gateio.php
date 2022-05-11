@@ -2315,41 +2315,49 @@ class gateio extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * Fetch personal trading history
+         * @param {str} $symbol The $symbol for the $market to fetch trades for
+         * @param {int} $since The earliest timestamp, in ms, that fetched trades were made
+         * @param {int} $limit The max number of trades to fetch
+         * @param {dict} $params Exchange specific parameters
+         * @param {str} $params->marginMode 'cross' or 'isolated' - $marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
+         * @param {str} $params->type 'spot', 'swap', or 'future', if not provided $this->options['defaultMarginMode'] is used
+         * @param {int} $params->till The latest timestamp, in ms, that fetched trades were made
+         * @param {int} $params->page *spot only* Page number
+         * @param {str} $params->order_id *spot only* Filter trades with specified order ID. $symbol is also required if this field is present
+         * @param {str} $params->order *$contract only* Futures order ID, return related data only if specified
+         * @param {int} $params->offset *$contract only* list offset, starting from 0
+         * @param {str} $params->last_id *$contract only* specify list staring point using the id of last record in previous list-query results
+         * @param {int} $params->count_total *$contract only* whether to return total number matched, default to 0(no return)
+         * @return a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $this->load_markets();
-        $market = null;
-        $request = array();
         $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', null, $params);
-        if ($symbol) {
-            $market = $this->market($symbol);
-            list($request, $params) = $this->prepare_request($market, null, $params);
-            $type = $market['type'];
+        $marginMode = null;
+        $request = array();
+        $market = ($symbol !== null) ? $this->market($symbol) : null;
+        $till = $this->safe_number($params, 'till');
+        $params = $this->omit($params, 'till');
+        list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
+        $contract = ($type === 'swap') || ($type === 'future');
+        if ($contract) {
+            list($request, $params) = $this->prepare_request($market, $type, $params);
         } else {
-            if ($type === 'swap' || $type === 'future') {
-                $settle = $this->safe_string_lower($params, 'settle');
-                if (!$settle) {
-                    throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument or a $settle parameter for ' . $type . ' markets');
-                }
-                $request['settle'] = $settle;
+            if ($market !== null) {
+                $request['currency_pair'] = $market['id']; // Should always be set for non-stop
             }
+            list($marginMode, $params) = $this->get_margin_mode(false, $params);
+            $request['account'] = $marginMode;
         }
-        //
-        //     $request = array(
-        //         'currency_pair' => $market['id'],
-        //         // 'limit' => $limit,
-        //         // 'page' => 0,
-        //         // 'order_id' => 'Order ID',
-        //         // 'account' => 'spot', // default to spot and margin account if not specified, set to cross_margin to operate against margin account
-        //         // 'from' => $since, // default to 7 days before current time
-        //         // 'to' => $this->milliseconds(), // default to current time
-        //     );
-        //
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 1000
         }
         if ($since !== null) {
             $request['from'] = intval($since / 1000);
-            // $request['to'] = $since + 7 * 24 * 60 * 60;
+        }
+        if ($till !== null) {
+            $request['to'] = intval($till / 1000);
         }
         $method = $this->get_supported_mapping($type, array(
             'spot' => 'privateSpotGetMyTrades',
@@ -3759,7 +3767,7 @@ class gateio extends Exchange {
             'unrealizedPnl' => $this->parse_number($unrealisedPnl),
             'contracts' => $this->parse_number(Precise::string_abs($size)),
             'contractSize' => $this->safe_value($market, 'contractSize'),
-            //     realisedPnl => $position['realised_pnl'],
+            // 'realisedPnl' => $position['realised_pnl'],
             'marginRatio' => null,
             'liquidationPrice' => $this->safe_number($position, 'liq_price'),
             'markPrice' => $this->safe_number($position, 'mark_price'),
