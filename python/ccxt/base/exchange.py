@@ -827,10 +827,10 @@ class Exchange(object):
     def safe_value_2(dictionary, key1, key2, default_value=None):
         return Exchange.safe_either(Exchange.safe_value, dictionary, key1, key2, default_value)
     
-    # safe_method_N methods family
+    # safe_method_n methods family
 
     @staticmethod
-    def safe_float_N(dictionary, key_list, default_value=None):
+    def safe_float_n(dictionary, key_list, default_value=None):
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
         if value is None:
             return default_value
@@ -841,22 +841,22 @@ class Exchange(object):
         return value
 
     @staticmethod
-    def safe_string_N(dictionary, key_list, default_value=None):
+    def safe_string_n(dictionary, key_list, default_value=None):
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
         return str(value) if value is not None else default_value
 
     @staticmethod
-    def safe_string_lower_N(dictionary, key_list, default_value=None):
+    def safe_string_lower_n(dictionary, key_list, default_value=None):
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
         return str(value).lower() if value is not None else default_value
 
     @staticmethod
-    def safe_string_upper_N(dictionary, key_list, default_value=None):
+    def safe_string_upper_n(dictionary, key_list, default_value=None):
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
         return str(value).upper()  if value is not None else default_value
 
     @staticmethod
-    def safe_integer_N(dictionary, key_list, default_value=None):
+    def safe_integer_n(dictionary, key_list, default_value=None):
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
         if value is None:
             return default_value
@@ -870,7 +870,7 @@ class Exchange(object):
             return default_value
 
     @staticmethod
-    def safe_integer_product_N(dictionary, key_list, factor, default_value=None):
+    def safe_integer_product_n(dictionary, key_list, factor, default_value=None):
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
         if value is None:
             return default_value
@@ -884,11 +884,11 @@ class Exchange(object):
         return default_value
 
     @staticmethod
-    def safe_timestamp_N(dictionary, key, default_value=None):
+    def safe_timestamp_n(dictionary, key, default_value=None):
         return Exchange.safe_integer_product(dictionary, key, 1000, default_value)
 
     @staticmethod
-    def safe_value_N(dictionary, key_list, default_value=None):
+    def safe_value_n(dictionary, key_list, default_value=None):
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
         return value if value is not None else default_value
     
@@ -2874,8 +2874,8 @@ class Exchange(object):
         value = self.safe_string_2(dictionary, key1, key2)
         return self.parse_number(value, default)
     
-    def safe_number_N(self, dictionary, key_list, default=None):
-        value = self.safe_string_N(dictionary, key_list)
+    def safe_number_n(self, dictionary, key_list, default=None):
+        value = self.safe_string_n(dictionary, key_list)
         return self.parse_number(value, default)
 
     def parse_precision(self, precision):
