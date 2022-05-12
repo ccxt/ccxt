@@ -975,11 +975,19 @@ module.exports = class Exchange {
     }
 
     fetchFundingFee (code, params = {}) {
-        throw new NotSupported (this.id + ' fetchFundingFee() has been deprecated, please use fetchTransactionFee() instead');
+        const warnOnFetchFundingFees = this.safeValue (this.options, 'warnOnFetchFundingFee', true);
+        if (warnOnFetchFundingFees) {
+            throw new NotSupported (this.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
+        }
+        return this.fetchTransactionFee (code, params);
     }
 
-    fetchFundingFees (codes = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchFundingFees() has been deprecated, please use fetchTransactionFees() instead');
+    fetchFundingFee (code, params = {}) {
+        const warnOnFetchFundingFees = this.safeValue (this.options, 'warnOnFetchFundingFees', true);
+        if (warnOnFetchFundingFees) {
+            throw new NotSupported (this.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
+        }
+        return this.fetchTransactionFee (code, params);
     }
 
     fetchTransactionFee (code, params = {}) {
