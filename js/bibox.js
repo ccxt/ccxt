@@ -74,66 +74,198 @@ module.exports = class bibox extends Exchange {
                 'referral': 'https://w2.bibox365.com/login/register?invite_code=05Kj3I',
             },
             'api': {
-                'public': {
-                    'get': [
-                        'mdata/ping', // v3
-                        'mdata/pairList', // v3
-                        'mdata/kline', // v3
-                        'mdata/marketAll', // v3
-                        'mdata/market', // v3
-                        'mdata/depth', // v3
-                        'mdata/deals', // v3
-                        'mdata/ticker', // v3
-                        'cquery', // v1
-                        'mdata', // v1
-                        'cdata', // v1
-                        'orderpending', // v1
-                    ],
-                    'post': [
-                        'mdata', // v1
-                    ],
+                'v1': {
+                    'public': {
+                        'get': [
+                            'cquery',
+                            'mdata',
+                            'cdata',
+                            'orderpending',
+                        ],
+                        'post': [
+                            'mdata',
+                        ],
+                    },
+                    'private': {
+                        'post': [
+                            'credit',
+                            'cquery',
+                            'ctrade',
+                            'user',
+                            'orderpending',
+                            'transfer',
+                        ],
+                    },
                 },
-                'private': {
-                    'get': [
-                        'orderpending/tradeLimit',
-                    ],
-                    'post': [
-                        'cquery', // v1,
-                        'ctrade', // v1,
-                        'user', // v1,
-                        'orderpending', // v1,
-                        'transfer', // v1,
-                        'transfer/mainAssets',
-                        'spot/account/assets',
-                        'transfer/transferIn',
-                        'transfer/transferOut',
-                        'transfer/transferInList',
-                        'transfer/transferOutList',
-                        'transfer/coinConfig',
-                        'transfer/withdrawInfo',
-                        'orderpending/trade',
-                        'orderpending/cancelTrade',
-                        'orderpending/orderPendingList',
-                        'orderpending/pendingHistoryList',
-                        'orderpending/orderDetail',
-                        'orderpending/order',
-                        'orderpending/orderHistoryList',
-                        'orderpending/orderDetailsLast',
-                        'assets/transfer/spot',
-                        'credit/transferAssets/base2credit',
-                        'credit/transferAssets/credit2base',
-                        'credit/lendOrder/get',
-                        'credit/borrowOrder/get',
-                        'credit/lendOrderbook/get',
-                        'credit/transferAssets/lendAssets',
-                        'credit/transferAssets/borrowAssets',
-                        'credit/borrowOrder/autobook',
-                        'credit/borrowOrder/refund',
-                        'credit/lendOrderbook/publish',
-                        'credit/lendOrderbook/cancel',
-                        'credit/trade/trade',
-                        'credit/trade/cancel',
-                    ],
+                'v1.1': {
+                    'public': {
+                        'get': [
+                            'cquery',
+                        ],
+                    },
+                    'private': {
+                        'post': [
+                            'cquery',
+                            'ctrade',
+                        ],
+                    },
+                },
+                'v2': {
+                    'public': {
+                        'get': [
+                            'mdata/kline',
+                            'mdata/depth',
+                        ],
+                    },
+                    'private': {
+                        'post': [
+                            'assets/transfer/spot',
+                        ],
+                    },
+                },
+                'v3': {
+                    'public': {
+                        'get': [
+                            'mdata/ping',
+                            'mdata/pairList',
+                            'mdata/kline',
+                            'mdata/marketAll',
+                            'mdata/market',
+                            'mdata/depth',
+                            'mdata/deals',
+                            'mdata/ticker',
+                            'cbc/timestamp',
+                            'cbu/timestamp',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                        ],
+                        'post': [
+                            'assets/transfer/spot',
+                            'assets/transfer/cbc',
+                            'cbc/order/open',
+                            'cbc/order/close',
+                            'cbc/order/closeBatch',
+                            'cbc/order/closeAll',
+                            'cbc/changeMargin',
+                            'cbc/changeMode',
+                            'cbc/assets',
+                            'cbc/position',
+                            'cbc/order/list',
+                            'cbc/order/detail',
+                            'cbc/order/listBatch',
+                            'cbc/order/listBatchByClientOid',
+                            'cbuassets/transfer',
+                            'cbu/order/open',
+                            'cbu/order/close',
+                            'cbu/order/closeBatch',
+                            'cbu/order/closeAll',
+                            'cbu/order/planOpen',
+                            'cbu/order/planOrderList',
+                            'cbu/order/planClose',
+                            'cbu/order/planCloseAll',
+                            'cbu/changeMargin',
+                            'cbu/changeMode',
+                            'cbu/assets',
+                            'cbu/position',
+                            'cbu/order/list',
+                            'bu/order/detail',
+                            'cbu/order/listBatch',
+                            'cbu/order/listBatchByClientOid',
+
+                        ],
+                    },
+                },
+                'v3.1': {
+                    'public': {
+                        'get': [
+                            'mdata/ping',
+                            'cquery/buFundRate',
+                            'cquery/buTagPrice',
+                            'cquery/buValue',
+                            'cquery/buUnit',
+                            'cquery/bcFundRate',
+                            'cquery/bcTagPrice',
+                            'cquery/bcValue',
+                            'cquery/bcUnit',
+
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'orderpending/tradeLimit',
+                        ],
+                        'post': [
+                            'transfer/mainAssets',
+                            'spot/account/assets',
+                            'transfer/transferIn',
+                            'transfer/transferOut',
+                            'transfer/transferInList',
+                            'transfer/transferOutList',
+                            'transfer/coinConfig',
+                            'transfer/withdrawInfo',
+                            'orderpending/trade',
+                            'orderpending/cancelTrade',
+                            'orderpending/orderPendingList',
+                            'orderpending/pendingHistoryList',
+                            'orderpending/orderDetail',
+                            'orderpending/order',
+                            'orderpending/orderHistoryList',
+                            'orderpending/orderDetailsLast',
+                            'credit/transferAssets/base2credit',
+                            'credit/transferAssets/credit2base',
+                            'credit/lendOrder/get',
+                            'credit/borrowOrder/get',
+                            'credit/lendOrderbook/get',
+                            'credit/transferAssets/lendAssets',
+                            'credit/transferAssets/borrowAssets',
+                            'credit/borrowOrder/autobook',
+                            'credit/borrowOrder/refund',
+                            'credit/lendOrderbook/publish',
+                            'credit/lendOrderbook/cancel',
+                            'credit/trade/trade',
+                            'credit/trade/cancel',
+                            'cquery/base_u/dealLog',
+                            'cquery/base_u/orderDetail',
+                            'cquery/base_u/orderHistory',
+                            'cquery/base_u/orderById',
+                            'cquery/base_coin/dealLog',
+                            'cquery/base_coin/orderDetail',
+                            'cquery/base_coin/orderHistory',
+                            'cquery/base_coin/orderById',
+                            '',
+
+                        ],
+                    },
+                },
+                'v4': {
+                    'public': {
+                        'get': [
+                            'marketdata/pairs',
+                            'marketdata/order_book',
+                            'marketdata/candles',
+                            'marketdata/trades',
+                            'marketdata/tickers',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'userdata/accounts',
+                            'userdata/ledger',
+                            'userdata/order',
+                            'userdata/orders',
+                        ],
+                        'post': [
+                            'userdata/order',
+                            '',
+                        ],
+                        'delete': [
+                            'userdata/order',
+                            'userdata/orders',
+                            'userdata/fills',
+                        ],
+                    },
                 },
             },
             'fees': {
@@ -187,40 +319,6 @@ module.exports = class bibox extends Exchange {
                 'STAR': 'Starbase',
                 'TERN': 'Ternio-ERC20',
             },
-            'options': {
-                'versions': {
-                    'public': {
-                        'GET': {
-                            'cquery': 'v1',
-                            'mdata': 'v1',
-                            'cdata': 'v1',
-                            'orderpending': 'v1',
-                            'mdata/ping': 'v3',
-                            'mdata/pairList': 'v3',
-                            'mdata/kline': 'v3',
-                            'mdata/marketAll': 'v3',
-                            'mdata/market': 'v3',
-                            'mdata/depth': 'v3',
-                            'mdata/deals': 'v3',
-                            'mdata/ticker': 'v3',
-                        },
-                        'POST': {
-                            // TODO: rework for full endpoint/cmd paths here
-                            'mdata': 'v1',
-                        },
-                    },
-                    'private': {
-                        'POST': {
-                            'cquery': 'v1',
-                            'ctrade': 'v1',
-                            'user': 'v1',
-                            'orderpending': 'v1',
-                            'transfer': 'v1',
-                            'assets/transfer/spot': 'v3',
-                        },
-                    },
-                },
-            },
         });
     }
 
@@ -235,7 +333,7 @@ module.exports = class bibox extends Exchange {
         const request = {
             'cmd': 'pairList',
         };
-        const response = await this.publicGetMdata (this.extend (request, params));
+        const response = await this.v1PublicGetMdata (this.extend (request, params));
         //
         //     {
         //         "result": [
@@ -257,7 +355,7 @@ module.exports = class bibox extends Exchange {
         const request2 = {
             'cmd': 'tradeLimit',
         };
-        const response2 = await this.publicGetOrderpending (this.extend (request2, params));
+        const response2 = await this.v1PublicGetOrderpending (this.extend (request2, params));
         //
         //    {
         //         result: {
@@ -409,7 +507,7 @@ module.exports = class bibox extends Exchange {
             'cmd': 'ticker',
             'pair': market['id'],
         };
-        const response = await this.publicGetMdata (this.extend (request, params));
+        const response = await this.v1PublicGetMdata (this.extend (request, params));
         return this.parseTicker (response['result'], market);
     }
 
@@ -425,7 +523,7 @@ module.exports = class bibox extends Exchange {
         const request = {
             'cmd': 'marketAll',
         };
-        const response = await this.publicGetMdata (this.extend (request, params));
+        const response = await this.v1PublicGetMdata (this.extend (request, params));
         const tickers = this.parseTickers (response['result'], symbols);
         const result = this.indexBy (tickers, 'symbol');
         return this.filterByArray (result, 'symbol', symbols);
@@ -494,7 +592,7 @@ module.exports = class bibox extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // default = 200
         }
-        const response = await this.publicGetMdata (this.extend (request, params));
+        const response = await this.v1PublicGetMdata (this.extend (request, params));
         return this.parseTrades (response['result'], market, since, limit);
     }
 
@@ -517,7 +615,7 @@ module.exports = class bibox extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // default = 200
         }
-        const response = await this.publicGetMdata (this.extend (request, params));
+        const response = await this.v1PublicGetMdata (this.extend (request, params));
         return this.parseOrderBook (response['result'], symbol, this.safeNumber (response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
 
@@ -562,7 +660,7 @@ module.exports = class bibox extends Exchange {
             'period': this.timeframes[timeframe],
             'size': limit,
         };
-        const response = await this.publicGetMdata (this.extend (request, params));
+        const response = await this.v1PublicGetMdata (this.extend (request, params));
         //
         //     {
         //         "result":[
@@ -597,9 +695,9 @@ module.exports = class bibox extends Exchange {
         const request = {
             'cmd': 'currencies',
         };
-        const response = await this.publicGetCdata (this.extend (request, params));
+        const response = await this.v1PublicGetCdata (this.extend (request, params));
         //
-        // publicGetCdata
+        // v1PublicGetCdata
         //
         //     {
         //         "result":[
@@ -662,7 +760,7 @@ module.exports = class bibox extends Exchange {
             'cmd': 'transfer/coinList',
             'body': {},
         };
-        const response = await this.privatePostTransfer (this.extend (request, params));
+        const response = await this.v1PrivatePostTransfer (this.extend (request, params));
         //
         //     {
         //         "result":[
@@ -785,7 +883,7 @@ module.exports = class bibox extends Exchange {
                 'select': 1, // return full info
             }, params),
         };
-        const response = await this.privatePostTransfer (request);
+        const response = await this.v1PrivatePostTransfer (request);
         //
         //     {
         //         "result":[
@@ -822,7 +920,7 @@ module.exports = class bibox extends Exchange {
             currency = this.currency (code);
             request['symbol'] = currency['id'];
         }
-        const response = await this.privatePostTransfer ({
+        const response = await this.v1PrivatePostTransfer ({
             'cmd': 'transfer/transferInList',
             'body': this.extend (request, params),
         });
@@ -881,7 +979,7 @@ module.exports = class bibox extends Exchange {
             currency = this.currency (code);
             request['symbol'] = currency['id'];
         }
-        const response = await this.privatePostTransfer ({
+        const response = await this.v1PrivatePostTransfer ({
             'cmd': 'transfer/transferOutList',
             'body': this.extend (request, params),
         });
@@ -1029,7 +1127,7 @@ module.exports = class bibox extends Exchange {
                 'price': price,
             }, params),
         };
-        const response = await this.privatePostOrderpending (request);
+        const response = await this.v1PrivatePostOrderpending (request);
         //
         //     {
         //         "result":[
@@ -1057,7 +1155,7 @@ module.exports = class bibox extends Exchange {
                 'orders_id': id,
             }, params),
         };
-        const response = await this.privatePostOrderpending (request);
+        const response = await this.v1PrivatePostOrderpending (request);
         //
         //     {
         //         "result":[
@@ -1083,7 +1181,7 @@ module.exports = class bibox extends Exchange {
                 'account_type': 0, // 0 = spot account
             }, params),
         };
-        const response = await this.privatePostOrderpending (request);
+        const response = await this.v1PrivatePostOrderpending (request);
         //
         //     {
         //         "result":[
@@ -1202,7 +1300,7 @@ module.exports = class bibox extends Exchange {
                 'size': size,
             }, params),
         };
-        const response = await this.privatePostOrderpending (request);
+        const response = await this.v1PrivatePostOrderpending (request);
         //
         //     {
         //         "result":[
@@ -1256,7 +1354,7 @@ module.exports = class bibox extends Exchange {
                 'size': limit,
             }, params),
         };
-        const response = await this.privatePostOrderpending (request);
+        const response = await this.v1PrivatePostOrderpending (request);
         //
         //     {
         //         "result":[
@@ -1313,7 +1411,7 @@ module.exports = class bibox extends Exchange {
                 'currency_symbol': market['quoteId'],
             }, params),
         };
-        const response = await this.privatePostOrderpending (request);
+        const response = await this.v1PrivatePostOrderpending (request);
         //
         //     {
         //         "result":[
@@ -1358,7 +1456,7 @@ module.exports = class bibox extends Exchange {
                 'coin_symbol': currency['id'],
             }, params),
         };
-        const response = await this.privatePostTransfer (request);
+        const response = await this.v1PrivatePostTransfer (request);
         //
         //     {
         //         "result":[
@@ -1419,7 +1517,7 @@ module.exports = class bibox extends Exchange {
         if (tag !== undefined) {
             request['address_remark'] = tag;
         }
-        const response = await this.privatePostTransfer ({
+        const response = await this.v1PrivatePostTransfer ({
             'cmd': 'transfer/transferOut',
             'body': this.extend (request, params),
         });
@@ -1456,7 +1554,7 @@ module.exports = class bibox extends Exchange {
                     'coin_symbol': currency['id'],
                 }, params),
             };
-            const response = await this.privatePostTransfer (request);
+            const response = await this.v1PrivatePostTransfer (request);
             //     {
             //         "result":[
             //             {
@@ -1492,18 +1590,13 @@ module.exports = class bibox extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const versions = this.safeValue (this.options, 'versions', {});
-        const apiVersions = this.safeValue (versions, api, {});
-        const methodVersions = this.safeValue (apiVersions, method, {});
-        const defaultVersion = this.safeString (methodVersions, path, this.version);
-        const version = this.safeString (params, 'version', defaultVersion);
-        params = this.omit (params, 'version');
+    sign (path, api = [ 'v1', 'public' ], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const [ version, access ] = api;
         let url = this.implodeHostname (this.urls['api']) + '/' + version + '/' + path;
         const v1 = (version === 'v1');
         const json_params = v1 ? this.json ([ params ]) : this.json (params);
         headers = { 'content-type': 'application/json' };
-        if (api === 'public') {
+        if (access === 'public') {
             if (method !== 'GET') {
                 if (v1) {
                     body = { 'cmds': json_params };
@@ -1515,7 +1608,7 @@ module.exports = class bibox extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            if (version === 'v3' || version === 'v3.1') {
+            if (version === 'v3' || version === 'v3.1' || version === 'v4') {
                 const timestamp = this.numberToString (this.milliseconds ());
                 let strToSign = timestamp;
                 if (json_params !== '{}') {
