@@ -974,6 +974,22 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' fetchTransactions() is not supported yet');
     }
 
+    fetchFundingFee (code, params = {}) {
+        throw new NotSupported (this.id + ' fetchFundingFee() has been deprecated, please use fetchTransactionFee() instead');
+    }
+
+    fetchFundingFees (codes = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchFundingFees() has been deprecated, please use fetchTransactionFees() instead');
+    }
+
+    fetchTransactionFee (code, params = {}) {
+        throw new NotSupported (this.id + ' fetchTransactionFee() is not supported yet');
+    }
+
+    fetchTransactionFees (codes = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchTransactionFees() is not supported yet');
+    }
+
     fetchDeposits (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchDeposits() is not supported yet');
     }
