@@ -2210,7 +2210,7 @@ class bitget extends Exchange {
         //       code => '00000',
         //       msg => 'success',
         //       requestTime => '1645933957584',
-        //       data => array(
+        //       $data => array(
         //         {
         //           marginCoin => 'USDT',
         //           $symbol => 'BTCUSDT_UMCBL',
@@ -2233,7 +2233,8 @@ class bitget extends Exchange {
         //       )
         //     }
         //
-        return $response;
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_position($data[0], $market);
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
@@ -2270,7 +2271,86 @@ class bitget extends Exchange {
         //         }
         //       )
         //     }
-        return $response;
+        //
+        $position = $this->safe_value($response, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($position); $i++) {
+            $result[] = $this->parse_position($position[$i]);
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols, false);
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        //     {
+        //         marginCoin => 'USDT',
+        //         symbol => 'BTCUSDT_UMCBL',
+        //         holdSide => 'long',
+        //         openDelegateCount => '0',
+        //         margin => '1.921475',
+        //         available => '0.001',
+        //         locked => '0',
+        //         total => '0.001',
+        //         leverage => '20',
+        //         achievedProfits => '0',
+        //         averageOpenPrice => '38429.5',
+        //         $marginMode => 'fixed',
+        //         holdMode => 'double_hold',
+        //         unrealizedPL => '0.14869',
+        //         liquidationPrice => '0',
+        //         keepMarginRate => '0.004',
+        //         cTime => '1645922194988'
+        //     }
+        //
+        $marketId = $this->safe_string($position, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_integer($position, 'cTime');
+        $marginMode = $this->safe_string($position, 'marginMode');
+        if ($marginMode === 'fixed') {
+            $marginMode = 'isolated';
+        } else if ($marginMode === 'crossed') {
+            $marginMode = 'cross';
+        }
+        $hedged = $this->safe_string($position, 'holdMode');
+        if ($hedged === 'double_hold') {
+            $hedged = true;
+        } else if ($hedged === 'single_hold') {
+            $hedged = false;
+        }
+        $contracts = $this->safe_integer($position, 'openDelegateCount');
+        $liquidation = $this->safe_number($position, 'liquidationPrice');
+        if ($contracts === 0) {
+            $contracts = null;
+        }
+        if ($liquidation === 0) {
+            $liquidation = null;
+        }
+        return array(
+            'info' => $position,
+            'id' => null,
+            'symbol' => $market['symbol'],
+            'notional' => null,
+            'marginMode' => $marginMode,
+            'marginType' => null, // deprecated
+            'liquidationPrice' => $liquidation,
+            'entryPrice' => $this->safe_number($position, 'averageOpenPrice'),
+            'unrealizedPnl' => $this->safe_number($position, 'unrealizedPL'),
+            'percentage' => null,
+            'contracts' => $contracts,
+            'contractSize' => $this->safe_number($position, 'total'),
+            'markPrice' => null,
+            'side' => $this->safe_string($position, 'holdSide'),
+            'hedged' => $hedged,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'maintenanceMargin' => null,
+            'maintenanceMarginPercentage' => $this->safe_number($position, 'keepMarginRate'),
+            'collateral' => $this->safe_number($position, 'margin'),
+            'initialMargin' => null,
+            'initialMarginPercentage' => null,
+            'leverage' => $this->safe_number($position, 'leverage'),
+            'marginRatio' => null,
+        );
     }
 
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
