@@ -50,6 +50,7 @@ module.exports = class therock extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactions': 'emulated',
                 'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
@@ -134,6 +135,11 @@ module.exports = class therock extends Exchange {
                     'Address allocation limit reached for currency': InvalidAddress,
                     'is not a valid value for param currency': BadRequest,
                     ' is invalid': InvalidAddress,
+                },
+            },
+            'options': {
+                'withdraw': {
+                    'fillResponseFromRequest': true,
                 },
             },
         });
@@ -779,7 +785,10 @@ module.exports = class therock extends Exchange {
         //         }
         //     }
         //
-        const id = this.safeString (transaction, 'id');
+        // privatePostAtmsWithdraw
+        //    { "transaction_id": 65088485 }
+        //
+        const id = this.safeString2 (transaction, 'id', 'transaction_id');
         const type = this.parseTransactionType (this.safeString (transaction, 'type'));
         const detail = this.safeValue (transaction, 'transfer_detail', {});
         const method = this.safeString (detail, 'method');
@@ -920,6 +929,46 @@ module.exports = class therock extends Exchange {
         const transactionTypes = [ 'withdraw', 'atm_payment' ];
         const depositsAndWithdrawals = this.filterByArray (transactions, 'type', transactionTypes, false);
         return this.parseTransactions (depositsAndWithdrawals, currency, since, limit);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'destination_address': address,
+            'amount': amount,
+        };
+        if (tag !== undefined) {
+            request['destination_tag'] = tag;
+        }
+        // requires write permission on the wallet
+        const response = await this.privatePostAtmsWithdraw (this.extend (request, params));
+        //
+        //    { "transaction_id": 65088485 }
+        //
+        const transaction = this.parseTransaction (response, currency);
+        const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
+        const fillResponseFromRequest = this.safeValue (withdrawOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            if (transaction['addressTo'] === address) {
+                transaction['addressTo'] = address;
+            }
+            if (transaction['address'] === undefined) {
+                transaction['address'] = address;
+            }
+            if (transaction['tagTo'] === undefined) {
+                transaction['tagTo'] = tag;
+            }
+            if (transaction['tag'] === undefined) {
+                transaction['tag'] = tag;
+            }
+            if (transaction['amount'] === undefined) {
+                transaction['amount'] = amount;
+            }
+        }
+        return transaction;
     }
 
     parseOrderStatus (status) {
