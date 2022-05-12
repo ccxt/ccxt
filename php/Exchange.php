@@ -222,6 +222,14 @@ class Exchange {
         'safeString2' => 'safe_string2',
         'safeStringLower2' => 'safe_string_lower2',
         'safeStringUpper2' => 'safe_string_upper2',
+        'safeFloatN' => 'safe_float_n',
+        'safeIntegerN' => 'safe_integer_n',
+        'safeIntegerProductN' => 'safe_integer_product_n',
+        'safeTimestampN' => 'safe_timestamp_n',
+        'safeValueN' => 'safe_value_n',
+        'safeStringN' => 'safe_string_n',
+        'safeStringLowerN' => 'safe_string_lower_n',
+        'safeStringUpperN' => 'safe_string_upper_n',
         'numberToString' => 'number_to_string',
         'precisionFromString' => 'precision_from_string',
         'decimalToPrecision' => 'decimal_to_precision',
@@ -374,6 +382,7 @@ class Exchange {
         'parseNumber' => 'parse_number',
         'safeNumber' => 'safe_number',
         'safeNumber2' => 'safe_number2',
+        'safeNumberN' => 'safe_number_n',
         'parsePrecision' => 'parse_precision',
         'handleWithdrawTagAndParams' => 'handle_withdraw_tag_and_params',
         'getSupportedMapping' => 'get_supported_mapping',
@@ -3751,6 +3760,11 @@ class Exchange {
 
     public function safe_number_2($object, $key1, $key2, $default = null) {
         $value = $this->safe_string_2($object, $key1, $key2);
+        return $this->parse_number($value, $default);
+    }
+
+    public function safe_number_n($object, $array, $default = null) {
+        $value = $this->safe_string_n($object, $array);
         return $this->parse_number($value, $default);
     }
 
