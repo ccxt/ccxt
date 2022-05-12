@@ -3120,8 +3120,6 @@ class gateio(Exchange):
         type, query = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)
         spot = (type == 'spot') or (type == 'margin')
         request, requestParams = self.multi_order_spot_prepare_request(market, stop, query) if spot else self.prepare_request(market, type, query)
-        if spot and not stop and (market is None) and (status == 'open'):
-            raise ArgumentsRequired(self.id + ' fetchOrdersByStatus requires a symbol argument for spot non-stop open orders')
         if status == 'closed':
             status = 'finished'
         request['status'] = status
@@ -3130,6 +3128,8 @@ class gateio(Exchange):
         if since is not None and spot:
             request['from'] = int(since / 1000)
         methodTail = 'PriceOrders' if stop else 'Orders'
+        if spot and (status == 'open') and not stop:
+            methodTail = 'OpenOrders'
         method = self.get_supported_mapping(type, {
             'spot': 'privateSpotGet' + methodTail,
             'margin': 'privateSpotGet' + methodTail,
