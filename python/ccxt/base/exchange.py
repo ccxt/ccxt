@@ -826,7 +826,7 @@ class Exchange(object):
     @staticmethod
     def safe_value_2(dictionary, key1, key2, default_value=None):
         return Exchange.safe_either(Exchange.safe_value, dictionary, key1, key2, default_value)
-    
+
     # safe_method_n methods family
 
     @staticmethod
@@ -853,7 +853,7 @@ class Exchange(object):
     @staticmethod
     def safe_string_upper_n(dictionary, key_list, default_value=None):
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
-        return str(value).upper()  if value is not None else default_value
+        return str(value).upper() if value is not None else default_value
 
     @staticmethod
     def safe_integer_n(dictionary, key_list, default_value=None):
@@ -891,7 +891,7 @@ class Exchange(object):
     def safe_value_n(dictionary, key_list, default_value=None):
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
         return value if value is not None else default_value
-    
+
     @staticmethod
     def get_object_value_from_key_list(dictionary, key_list):
         filtered_list = list(filter(lambda el: el in dictionary, key_list))
@@ -2873,7 +2873,7 @@ class Exchange(object):
     def safe_number_2(self, dictionary, key1, key2, default=None):
         value = self.safe_string_2(dictionary, key1, key2)
         return self.parse_number(value, default)
-    
+
     def safe_number_n(self, dictionary, key_list, default=None):
         value = self.safe_string_n(dictionary, key_list)
         return self.parse_number(value, default)
