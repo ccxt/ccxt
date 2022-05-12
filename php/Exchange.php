@@ -487,32 +487,32 @@ class Exchange {
 
     // safe_method_n family
     public static function safe_float_n($object, $array, $default_value = null) {
-        $value = static::get_object_value_from_key_array($array, $array);
+        $value = static::get_object_value_from_key_array($object, $array);
         return (isset($object[$key]) && is_numeric($object[$key])) ? floatval($object[$key]) : $default_value;
     }
 
     public static function safe_string_n($object, $array, $default_value = null) {
-        $value = static::get_object_value_from_key_array($array, $array);
+        $value = static::get_object_value_from_key_array($object, $array);
         return (isset($value) && is_scalar($value)) ? strval($value) : $default_value;
     }
 
     public static function safe_string_lower_n($object, $array, $default_value = null) {
-        $value = static::get_object_value_from_key_array($array, $array);
+        $value = static::get_object_value_from_key_array($object, $array);
         return (isset($value) && is_scalar($value)) ? strtolower(strval($value)) : $default_value;
     }
 
     public static function safe_string_upper_n($object, $array, $default_value = null) {
-        $value = static::get_object_value_from_key_array($array, $array);
+        $value = static::get_object_value_from_key_array($object, $array);
         return (isset($value) && is_scalar($value)) ? strtoupper(strval($value)) : $default_value;
     }
 
     public static function safe_integer_n($object, $array, $default_value = null) {
-        $value = static::get_object_value_from_key_array($array, $array);
+        $value = static::get_object_value_from_key_array($object, $array);
         return (isset($value) && is_numeric($value)) ? intval($value) : $default_value;
     }
 
     public static function safe_integer_product_n($object, $array, $factor, $default_value = null) {
-        $value = static::get_object_value_from_key_array($array, $array);
+        $value = static::get_object_value_from_key_array($object, $array);
         return (isset($value) && is_numeric($value)) ? (intval($value * $factor)) : $default_value;
     }
 
@@ -521,14 +521,14 @@ class Exchange {
     }
 
     public static function safe_value_n($object, $array, $default_value = null) {
-        $value = get_object_value_from_key_array($array, $array);
+        $value = static::get_object_value_from_key_array($object, $array);
         return (isset($value) && is_scalar($value)) ? $value : $default_value;
     }
 
-    public static function get_object_value_from_key_array($array, $key) {
+    public static function get_object_value_from_key_array($object, $array) {
         foreach($array as $key) {
-            if (isset($array[$key])) {
-                return $array[$key];
+            if (isset($object[$key])) {
+                return $object[$key];
             }
         }
         return null;
