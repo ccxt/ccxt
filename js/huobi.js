@@ -6315,7 +6315,7 @@ module.exports = class huobi extends Exchange {
         }
         const response = await this[method] (this.extend (request, query));
         //
-        // linear swap
+        // linear swap, coin-m swap
         //
         //    {
         //        "status": "ok",
@@ -6373,7 +6373,7 @@ module.exports = class huobi extends Exchange {
 
     parseSettlements (settlements, market) {
         //
-        // linear swap, fetchSettlementHistory
+        // linear swap, coin-m swap, fetchSettlementHistory
         //
         //    [
         //        {
@@ -6432,7 +6432,7 @@ module.exports = class huobi extends Exchange {
 
     parseSettlement (settlement, market) {
         //
-        // linear swap, fetchSettlementHistory
+        // linear swap, coin-m swap, fetchSettlementHistory
         //
         //    {
         //        "symbol": "ADA",
