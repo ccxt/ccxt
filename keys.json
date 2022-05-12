@@ -10,6 +10,7 @@
     "dsx": { "skip": true },
     "gateio": { "skip": true },
     "huobipro": { "skip": true },
+    "hollaex": { "skip": true },
     "idex": { "skip": true },
     "kucoin": { "skip": true },
     "ndax": { "skip": true },
