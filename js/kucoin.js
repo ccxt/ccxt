@@ -216,11 +216,11 @@ module.exports = class kucoin extends ccxt.kucoin {
         const period = this.timeframes[timeframe];
         const topic = '/market/candles:' + market['id'] + '_' + period;
         const messageHash = topic;
-        const trades = await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
+        const ohlcv = await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleOHLCV (client, message) {
