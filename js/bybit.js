@@ -508,6 +508,7 @@ module.exports = class bybit extends Exchange {
                     '10006': RateLimitExceeded, // too many requests
                     '10007': AuthenticationError, // api_key not found in your request parameters
                     '10010': PermissionDenied, // request ip mismatch
+                    '10016': ExchangeError, // {"retCode":10016,"retMsg":"System error. Please try again later."}
                     '10017': BadRequest, // request path not found or request method is invalid
                     '10018': RateLimitExceeded, // exceed ip rate limit
                     '20001': OrderNotFound, // Order not exists
@@ -2068,37 +2069,144 @@ module.exports = class bybit extends Exchange {
     }
 
     parseBalance (response) {
+        //
+        // spot balance
+        //    {
+        //        "ret_code": "0",
+        //        "ret_msg": "",
+        //        "ext_code": null,
+        //        "ext_info": null,
+        //        "result": {
+        //            "balances": [
+        //                {
+        //                    "coin": "LTC",
+        //                    "coinId": "LTC",
+        //                    "coinName": "LTC",
+        //                    "total": "0.00000783",
+        //                    "free": "0.00000783",
+        //                    "locked": "0"
+        //                }
+        //            ]
+        //        }
+        //    }
+        //
+        // linear/inverse swap/futures
+        //    {
+        //        "ret_code": "0",
+        //        "ret_msg": "OK",
+        //        "ext_code": "",
+        //        "ext_info": "",
+        //        "result": {
+        //            "ADA": {
+        //                "equity": "0",
+        //                "available_balance": "0",
+        //                "used_margin": "0",
+        //                "order_margin": "0",
+        //                "position_margin": "0",
+        //                "occ_closing_fee": "0",
+        //                "occ_funding_fee": "0",
+        //                "wallet_balance": "0",
+        //                "realised_pnl": "0",
+        //                "unrealised_pnl": "0",
+        //                "cum_realised_pnl": "0",
+        //                "given_cash": "0",
+        //                "service_cash": "0"
+        //            },
+        //        },
+        //        "time_now": "1651772170.050566",
+        //        "rate_limit_status": "119",
+        //        "rate_limit_reset_ms": "1651772170042",
+        //        "rate_limit": "120"
+        //    }
+        //
+        // usdc wallet
+        //    {
+        //      "result": {
+        //           "walletBalance": "10.0000",
+        //           "accountMM": "0.0000",
+        //           "bonus": "0.0000",
+        //           "accountIM": "0.0000",
+        //           "totalSessionRPL": "0.0000",
+        //           "equity": "10.0000",
+        //           "totalRPL": "0.0000",
+        //           "marginBalance": "10.0000",
+        //           "availableBalance": "10.0000",
+        //           "totalSessionUPL": "0.0000"
+        //       },
+        //       "retCode": "0",
+        //       "retMsg": "Success."
+        //    }
+        //
         const result = {
             'info': response,
         };
-        const balances = this.safeValue (response, 'result', {});
-        const currencyIds = Object.keys (balances);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const balance = balances[currencyId];
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (balance, 'available_balance');
-            account['used'] = this.safeString (balance, 'used_margin');
-            account['total'] = this.safeString (balance, 'equity');
-            result[code] = account;
+        const data = this.safeValue (response, 'result', {});
+        const balances = this.safeValue (data, 'balances');
+        if (Array.isArray (balances)) {
+            // spot balances
+            for (let i = 0; i < balances.length; i++) {
+                const balance = balances[i];
+                const currencyId = this.safeString (balance, 'coin');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'availableBalance');
+                account['used'] = this.safeString (balance, 'locked');
+                account['total'] = this.safeString (balance, 'total');
+                result[code] = account;
+            }
+        } else {
+            if ('walletBalance' in data) {
+                // usdc wallet
+                const code = 'USDC';
+                const account = this.account ();
+                account['free'] = this.safeString (data, 'availableBalance');
+                account['total'] = this.safeString (data, 'walletBalance');
+                result[code] = account;
+            } else {
+                // linear/inverse swap/futures
+                const currencyIds = Object.keys (data);
+                for (let i = 0; i < currencyIds.length; i++) {
+                    const currencyId = currencyIds[i];
+                    const balance = data[currencyId];
+                    const code = this.safeCurrencyCode (currencyId);
+                    const account = this.account ();
+                    account['free'] = this.safeString (balance, 'available_balance');
+                    account['total'] = this.safeString (balance, 'wallet_balance');
+                    result[code] = account;
+                }
+            }
         }
         return this.safeBalance (result);
     }
 
     async fetchBalance (params = {}) {
-        // note: any funds in the 'spot' account will not be returned or visible from this endpoint
-        await this.loadMarkets ();
         const request = {};
-        const coin = this.safeString (params, 'coin');
-        const code = this.safeString (params, 'code');
-        if (coin !== undefined) {
-            request['coin'] = coin;
-        } else if (code !== undefined) {
-            const currency = this.currency (code);
-            request['coin'] = currency['id'];
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        let method = undefined;
+        if (type === 'spot') {
+            method = 'privateGetSpotV1Account';
+        } else {
+            let settle = this.safeString (this.options, 'defaultSettle');
+            settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
+            params = this.omit (params, [ 'settle', 'defaultSettle' ]);
+            const isUsdcSettled = settle === 'USDC';
+            if (!isUsdcSettled) {
+                // linear/inverse future/swap
+                method = 'privateGetV2PrivateWalletBalance';
+                const coin = this.safeString2 (params, 'coin', 'code');
+                params = this.omit (params, [ 'coin', 'code' ]);
+                if (coin !== undefined) {
+                    const currency = this.currency (coin);
+                    request['coin'] = currency['id'];
+                }
+            } else {
+                // usdc account
+                method = 'privatePostOptionUsdcOpenapiPrivateV1QueryWalletBalance';
+            }
         }
-        const response = await this.v2PrivateGetWalletBalance (this.extend (request, params));
+        await this.loadMarkets ();
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         ret_code: 0,
@@ -3734,24 +3842,47 @@ module.exports = class bybit extends Exchange {
                 }
             } else if (api === 'private') {
                 this.checkRequiredCredentials ();
-                const timestamp = this.nonce ();
-                const query = this.extend (params, {
-                    'api_key': this.apiKey,
-                    'recv_window': this.options['recvWindow'],
-                    'timestamp': timestamp,
-                });
-                const sortedQuery = this.keysort (query);
-                const auth = this.rawencode (sortedQuery);
-                const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-                if (method === 'POST') {
-                    body = this.json (this.extend (query, {
-                        'sign': signature,
-                    }));
+                const isOpenapi = url.indexOf ('openapi') >= 0;
+                const timestamp = this.milliseconds ();
+                if (isOpenapi) {
+                    let query = {};
+                    if (Object.keys (params).length) {
+                        query = params;
+                    }
+                    // this is a PHP specific check
+                    const queryLength = query.length;
+                    if (Array.isArray (query) && queryLength === 0) {
+                        query = '';
+                    } else {
+                        query = this.json (query);
+                    }
+                    body = query;
+                    const payload = timestamp.toString () + this.apiKey + query;
+                    const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'hex');
                     headers = {
-                        'Content-Type': 'application/json',
+                        'X-BAPI-API-KEY': this.apiKey,
+                        'X-BAPI-TIMESTAMP': timestamp.toString (),
+                        'X-BAPI-SIGN': signature,
                     };
                 } else {
-                    url += '?' + this.urlencode (sortedQuery) + '&sign=' + signature;
+                    const query = this.extend (params, {
+                        'api_key': this.apiKey,
+                        'recv_window': this.options['recvWindow'],
+                        'timestamp': timestamp,
+                    });
+                    const sortedQuery = this.keysort (query);
+                    const auth = this.rawencode (sortedQuery);
+                    const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+                    if (method === 'POST') {
+                        body = this.json (this.extend (query, {
+                            'sign': signature,
+                        }));
+                        headers = {
+                            'Content-Type': 'application/json',
+                        };
+                    } else {
+                        url += '?' + this.urlencode (sortedQuery) + '&sign=' + signature;
+                    }
                 }
             }
         }
