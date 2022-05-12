@@ -38,6 +38,7 @@ module.exports = class bitget extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposits': false,
                 'fetchLedger': true,
+                'fetchLeverage': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -2311,6 +2312,28 @@ module.exports = class bitget extends Exchange {
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    async fetchLeverage (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicMixGetMarketSymbolLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1652347673483,
+        //         "data": {
+        //             "symbol": "BTCUSDT_UMCBL",
+        //             "minLeverage": "1",
+        //             "maxLeverage": "125"
+        //         }
+        //     }
+        //
+        return response;
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
