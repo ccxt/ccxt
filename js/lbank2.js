@@ -35,7 +35,6 @@ module.exports = class lbank2 extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': false,
-                'fetchTransactionFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -60,6 +59,7 @@ module.exports = class lbank2 extends Exchange {
                 'fetchTickers': false,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
+                'fetchTransactionFees': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -1678,7 +1678,7 @@ module.exports = class lbank2 extends Exchange {
         return this.parseTransactions (withdraws, code, since, limit);
     }
 
-    async fetchTransactionFees (params = {}) {
+    async fetchTransactionFees (codes = undefined, params = {}) {
         // private only returns information for currencies with non-zero balance
         await this.loadMarkets ();
         const isAuthorized = this.checkRequiredCredentials (false);

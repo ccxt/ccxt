@@ -37,7 +37,6 @@ module.exports = class whitebit extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchTransactionFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -56,6 +55,7 @@ module.exports = class whitebit extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransactionFees': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -368,7 +368,7 @@ module.exports = class whitebit extends Exchange {
         return result;
     }
 
-    async fetchTransactionFees (params = {}) {
+    async fetchTransactionFees (codes = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.v4PublicGetFee (params);
         //
