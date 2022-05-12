@@ -4175,6 +4175,57 @@ module.exports = class gateio extends Exchange {
         return tiers;
     }
 
+    async fetchSettlementHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchSettlementHistory
+         * @description Fetches historical settlement records
+         * @param {str} symbol unified symbol of the market to fetch the settlement history for
+         * @param {int} since settlement timestamp in ms
+         * @param {int} limit maximum number of records to be returned in a single list
+         * @param {dict} params exchange specific params
+         * @param {int} params.settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
+         * @param {int} params.till *option only* end timestamp in ms
+         * @param {int} params.offset *option only* list offset, starting from 0
+         * @returns A list of settlement history objects
+         */
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        const till = this.safeString (params, 'till');
+        params = this.omit (params, 'till');
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchSettlementHistory', market, params);
+        const [ request, requestParams ] = this.prepareRequest (market, type, query);
+        const option = type === 'option';
+        if (since !== undefined) {
+            if (option) {
+                request['from'] = since;
+            } else {
+                request['at'] = since;
+            }
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (option) {
+            request['to'] = till;
+        }
+        const response = await this.publicOptionGetSettlements (this.extend (request, requestParams));
+        //
+        //    [
+        //        {
+        //            "time": 1598839200,
+        //            "profit": "312.35",
+        //            "fee": "0.3284",
+        //            "settle_price": "11687.65",
+        //            "contract": "BTC-WEEKLY-200824-11000-P",
+        //            "strike_price": "12000"
+        //        }
+        //    ]
+        //
+        const data = this.safeValue (response, 'data');
+        const settlementRecord = this.safeValue (data, 'settlement_record');
+        return this.parseSettlements (settlementRecord, market);
+    }
+
     async fetchSettlements (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
