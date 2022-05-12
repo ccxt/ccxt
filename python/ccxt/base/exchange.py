@@ -1776,7 +1776,7 @@ class Exchange(object):
 
     def fetch_funding_fee(self, code, params={}):
         warnOnFetchFundingFee = self.safeValue(self.options, 'warnOnFetchFundingFee', True)
-        if (warnOnFetchFundingFee)
+        if (warnOnFetchFundingFee):
             raise NotSupported(self.id + ' fetch_funding_fee() method is deprecated, it will be removed in July 2022, please, use fetch_transaction_fee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning')
         return self.fetch_transaction_fee(code, params)
 
