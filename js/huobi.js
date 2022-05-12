@@ -6263,4 +6263,99 @@ module.exports = class huobi extends Exchange {
             'info': interest,
         };
     }
+
+    async fetchSettlementHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchSettlementHistory
+         * @description Fetches historical settlement records
+         * @param {str} symbol unified symbol of the market to fetch the settlement history for
+         * @param {int} since timestamp in ms, value range = current time - 90 days，default = current time - 90 days
+         * @param {int} limit page items, default 20, shall not exceed 50
+         * @param {dict} params exchange specific params
+         * @param {int} params.till timestamp in ms, value range = start_time -> current time，default = current time
+         * @param {int} params.page_index page index, default page 1 if not filled
+         * @returns A list of settlement history objects
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a symbol argument for fetchSettlementHistory');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'contract_code': market['id'],
+        };
+        if (since !== undefined) {
+            request['start_at'] = since;
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        const till = this.safeInteger (params, 'till');
+        if (till !== undefined) {
+            request['end_at'] = till;
+            params = this.omit (params, 'till');
+        }
+        const response = await this.contractPublicGetLinearSwapApiV1SwapSettlementRecords (this.extend (request, params));
+        //
+        //    {
+        //        "status": "ok",
+        //        "data": {
+        //        "total_page": 14,
+        //        "current_page": 1,
+        //        "total_size": 270,
+        //        "settlement_record": [
+        //            {
+        //                "symbol": "ADA",
+        //                "contract_code": "ADA-USDT",
+        //                "settlement_time": 1652313600000,
+        //                "clawback_ratio": 0E-18,
+        //                "settlement_price": 0.512303000000000000,
+        //                "settlement_type": "settlement",
+        //                "business_type": "swap",
+        //                "pair": "ADA-USDT",
+        //                "trade_partition": "USDT"
+        //            },
+        //            ...
+        //        ],
+        //        "ts": 1652338693256
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        const settlementRecord = this.safeValue (data, 'settlement_record');
+        return this.parseSettlements (settlementRecord, market);
+    }
+
+    parseSettlements (settlements, market) {
+        const result = [];
+        for (let i = 0; i < settlements.length; i++) {
+            const settlement = this.parseSettlement (settlements[i], market);
+            result.push (settlement);
+        }
+        return result;
+    }
+
+    parseSettlement (settlement, market) {
+        //
+        //    {
+        //        "symbol": "ADA",
+        //        "contract_code": "ADA-USDT",
+        //        "settlement_time": 1652313600000,
+        //        "clawback_ratio": 0E-18,
+        //        "settlement_price": 0.512303000000000000,
+        //        "settlement_type": "settlement",
+        //        "business_type": "swap",
+        //        "pair": "ADA-USDT",
+        //        "trade_partition": "USDT"
+        //    }
+        //
+        const timestamp = this.safeInteger (settlement, 'settlement_time');
+        const marketId = this.safeString (settlement, 'contract_code');
+        return {
+            'info': settlement,
+            'symbol': this.safeSymbol (marketId, market),
+            'price': this.safeNumber (settlement, 'settlement_price'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+    }
 };
