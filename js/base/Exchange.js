@@ -131,6 +131,7 @@ module.exports = class Exchange {
                 'fetchPositions': undefined,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
+                'fetchSettlementHistory': undefined,
                 'fetchStatus': 'emulated',
                 'fetchTicker': true,
                 'fetchTickers': undefined,

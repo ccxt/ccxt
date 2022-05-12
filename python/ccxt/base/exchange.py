@@ -308,6 +308,7 @@ class Exchange(object):
         'fetchPositions': None,
         'fetchPositionsRisk': None,
         'fetchPremiumIndexOHLCV': None,
+        'fetchSettlementHistory': None,
         'fetchStatus': 'emulated',
         'fetchTicker': True,
         'fetchTickers': None,
