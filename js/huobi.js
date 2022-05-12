@@ -4998,6 +4998,7 @@ module.exports = class huobi extends Exchange {
             'account': (marginMode === 'isolated') ? symbol : 'cross',  // deprecated
             'symbol': symbol,
             'marginMode': marginMode,
+            'marginType': marginMode, // deprecated
             'currency': this.safeCurrencyCode (this.safeString (info, 'currency')),
             'interest': this.safeNumber (info, 'interest-amount'),
             'interestRate': this.safeNumber (info, 'interest-rate'),
@@ -5387,6 +5388,7 @@ module.exports = class huobi extends Exchange {
             'leverage': this.parseNumber (leverage),
             'percentage': this.parseNumber (percentage),
             'marginMode': marginMode,
+            'marginType': marginMode, // deprecated
             'notional': this.parseNumber (notional),
             'markPrice': undefined,
             'liquidationPrice': liquidationPrice,
