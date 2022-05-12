@@ -592,6 +592,7 @@ module.exports = class bybit extends Exchange {
                     // '30084': BadRequest, // Isolated not modified, see handleErrors below
                     '33004': AuthenticationError, // apikey already expired
                     '34026': ExchangeError, // the limit is no change
+                    '34036': BadRequest, // {"ret_code":34036,"ret_msg":"leverage not modified","ext_code":"","ext_info":"","result":null,"time_now":"1652376449.258918","rate_limit_status":74,"rate_limit_reset_ms":1652376449255,"rate_limit":75}
                     '130021': InsufficientFunds, // {"ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100}
                 },
                 'broad': {
@@ -3761,9 +3762,9 @@ module.exports = class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        leverage = parseInt (leverage);
+        leverage = isUsdcSettled ? leverage.toString () : parseInt (leverage);
         const isLinearSwap = market['swap'] && market['linear'];
-        const requiresBuyAndSellLeverage = isLinearSwap || market['future'];
+        const requiresBuyAndSellLeverage = !isUsdcSettled && (isLinearSwap || market['future']);
         if (requiresBuyAndSellLeverage) {
             const buyLeverage = this.safeNumber (params, 'buy_leverage');
             const sellLeverage = this.safeNumber (params, 'sell_leverage');
