@@ -79,7 +79,6 @@ module.exports = class gateio extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchFundingFees': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -104,6 +103,7 @@ module.exports = class gateio extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
+                'fetchTransactionFees': true,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
                 'setMarginMode': false,
@@ -1607,7 +1607,7 @@ module.exports = class gateio extends Exchange {
         };
     }
 
-    async fetchFundingFees (params = {}) {
+    async fetchTransactionFees (codes = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateWalletGetWithdrawStatus (params);
         //

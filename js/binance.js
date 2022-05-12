@@ -54,8 +54,6 @@ module.exports = class binance extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
-                'fetchFundingFee': undefined,
-                'fetchFundingFees': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -91,6 +89,8 @@ module.exports = class binance extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTradingLimits': undefined,
+                'fetchTransactionFee': undefined,
+                'fetchTransactionFees': true,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
                 'fetchWithdrawal': false,
@@ -3893,7 +3893,7 @@ module.exports = class binance extends Exchange {
         };
     }
 
-    async fetchFundingFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.sapiGetCapitalConfigGetall (params);
         //

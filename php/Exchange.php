@@ -321,6 +321,10 @@ class Exchange {
         'fetchStatus' => 'fetch_status',
         'fetchTradingFees' => 'fetch_trading_fees',
         'fetchTradingFee' => 'fetch_trading_fee',
+        'fetchFundingFee' => 'fetch_funding_fee',
+        'fetchFundingFees' => 'fetch_funding_fees',
+        'fetchTransactionFee' => 'fetch_transaction_fee',
+        'fetchTransactionFees' => 'fetch_transaction_fees',
         'loadTradingLimits' => 'load_trading_limits',
         'filterBySinceLimit' => 'filter_by_since_limit',
         'filterByValueSinceLimit' => 'filter_by_value_since_limit',
@@ -2079,6 +2083,33 @@ class Exchange {
             throw new NotSupported($this->id . ' fetch_trading_fee not supported yet');
         }
         return $this->fetch_trading_fees($params);
+    }
+
+    public function fetch_funding_fee($code, $params = array()) {
+        $warnOnFetchFundingFee = $this->safeValue($this->options, 'warnOnFetchFundingFee', true);
+        if ($warnOnFetchFundingFee) {
+            throw new NotSupported($this->id + ' fetch_funding_fee() method is deprecated, it will be removed in July 2022, please, use fetch_transaction_fee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
+        }
+        return $this->fetch_transaction_fee($code, $params);
+    }
+
+    public function fetchFundingFees ($codes = null, $params = array()) {
+        $warnOnFetchFundingFees = $this->safeValue($this->options, 'warnOnFetchFundingFees', true);
+        if ($warnOnFetchFundingFees) {
+            throw new NotSupported($this->id + ' fetch_funding_fees() method is deprecated, it will be removed in July 2022, please, use fetch_transaction_fees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
+        }
+        return $this->fetch_transaction_fees ($codes, $params);
+    }
+
+    public function fetch_transaction_fee($code, $params = array()) {
+        if (!$this->has['fetch_transaction_fees']) {
+            throw new NotSupported ($this->id + ' fetch_transaction_fee() is not supported yet');
+        }
+        return $this->fetch_transaction_fees([$code], $params);
+    }
+
+    public function fetch_transaction_fees($codes = null, $params = array()) {
+        throw new NotSupported ($this->id + ' fetchTransactionFees() is not supported yet');
     }
 
     public function load_trading_limits($symbols = null, $reload = false, $params = array()) {
