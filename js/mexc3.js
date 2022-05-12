@@ -1807,7 +1807,7 @@ module.exports = class mexc3 extends Exchange {
                 request['start_time'] = since;
                 const end = this.safeInteger (params, 'end_time');
                 if (end === undefined) {
-                    request['end_time'] = since + this.options['maxTimeTillEnd'];
+                    request['end_time'] = this.sum (since, this.options['maxTimeTillEnd']);
                 }
             }
             if (limit !== undefined) {
