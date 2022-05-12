@@ -31,7 +31,7 @@ module.exports = class exmo extends Exchange {
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchFundingFees': true,
+                'fetchTransactionFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -162,7 +162,7 @@ module.exports = class exmo extends Exchange {
                 },
                 'funding': {
                     'tierBased': false,
-                    'percentage': false, // fixed funding fees for crypto, see fetchFundingFees below
+                    'percentage': false, // fixed funding fees for crypto, see fetchTransactionFees below
                 },
             },
             'options': {
@@ -325,7 +325,7 @@ module.exports = class exmo extends Exchange {
         return result;
     }
 
-    async fetchFundingFees (params = {}) {
+    async fetchTransactionFees (params = {}) {
         await this.loadMarkets ();
         const currencyList = await this.publicGetCurrencyListExtended (params);
         //

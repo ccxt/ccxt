@@ -31,7 +31,7 @@ module.exports = class cryptocom extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
-                'fetchFundingFees': false,
+                'fetchTransactionFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRates': false,

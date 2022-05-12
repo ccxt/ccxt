@@ -47,7 +47,7 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchCurrencies': false,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchFundingFee': true,
+                'fetchTransactionFee': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
@@ -1698,8 +1698,8 @@ module.exports = class kucoinfutures extends kucoin {
         return this.parseTransactions (responseData, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    async fetchFundingFee (code, params = {}) {
-        throw new BadRequest (this.id + ' fetchFundingFee() is not supported yet');
+    async fetchTransactionFee (code, params = {}) {
+        throw new BadRequest (this.id + ' fetchTransactionFee() is not supported yet');
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {

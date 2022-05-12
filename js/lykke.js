@@ -38,7 +38,7 @@ module.exports = class lykke extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': false,
-                'fetchFundingFees': false,
+                'fetchTransactionFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,

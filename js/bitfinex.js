@@ -36,7 +36,7 @@ module.exports = class bitfinex extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': undefined,
-                'fetchFundingFees': true,
+                'fetchTransactionFees': true,
                 'fetchIndexOHLCV': false,
                 'fetchLeverageTiers': false,
                 'fetchMarkets': true,
@@ -385,7 +385,7 @@ module.exports = class bitfinex extends Exchange {
         });
     }
 
-    async fetchFundingFees (params = {}) {
+    async fetchTransactionFees (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostAccountFees (params);
         const fees = response['withdraw'];

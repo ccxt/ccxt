@@ -36,7 +36,7 @@ module.exports = class bw extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchFundingFees': undefined,
+                'fetchTransactionFees': undefined,
                 'fetchL2OrderBook': undefined,
                 'fetchLedger': undefined,
                 'fetchMarkets': true,

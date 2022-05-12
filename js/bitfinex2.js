@@ -40,7 +40,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchFundingFees': undefined,
+                'fetchTransactionFees': undefined,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
                 'fetchMarkOHLCV': false,

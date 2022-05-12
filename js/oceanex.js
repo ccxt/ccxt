@@ -41,7 +41,7 @@ module.exports = class oceanex extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
-                'fetchFundingFees': undefined,
+                'fetchTransactionFees': undefined,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,

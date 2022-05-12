@@ -35,7 +35,7 @@ module.exports = class lbank2 extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': false,
-                'fetchFundingFees': true,
+                'fetchTransactionFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -178,7 +178,7 @@ module.exports = class lbank2 extends Exchange {
                 'fetchTrades': {
                     'method': 'publicGetTrades', // or 'publicGetTradesSupplement'
                 },
-                'fetchFundingFees': {
+                'fetchTransactionFees': {
                     'method': 'fetchPrivateFundingFees', // or 'fetchPublicFundingFees'
                 },
                 'fetchDepositAddress': {
@@ -1433,14 +1433,14 @@ module.exports = class lbank2 extends Exchange {
         const fee = this.safeString (params, 'fee');
         params = this.omit (params, 'fee');
         if (fee === undefined) {
-            throw new ArgumentsRequired (this.id + ' withdraw () requires a fee argument to be supplied in params, the relevant coin network fee can be found by calling fetchFundingFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchFundingFees ()');
+            throw new ArgumentsRequired (this.id + ' withdraw () requires a fee argument to be supplied in params, the relevant coin network fee can be found by calling fetchTransactionFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchTransactionFees ()');
         }
         const currency = this.currency (code);
         const request = {
             'address': address,
             'coin': currency['id'],
             'amount': amount,
-            'fee': fee, // the correct coin-network fee must be supplied, which can be found by calling fetchFundingFees (private)
+            'fee': fee, // the correct coin-network fee must be supplied, which can be found by calling fetchTransactionFees (private)
             // 'networkName': defaults to the defaultNetwork of the coin which can be found in the /supplement/user_info endpoint
             // 'memo': memo: memo word of bts and dct
             // 'mark': Withdrawal Notes
@@ -1678,7 +1678,7 @@ module.exports = class lbank2 extends Exchange {
         return this.parseTransactions (withdraws, code, since, limit);
     }
 
-    async fetchFundingFees (params = {}) {
+    async fetchTransactionFees (params = {}) {
         // private only returns information for currencies with non-zero balance
         await this.loadMarkets ();
         const isAuthorized = this.checkRequiredCredentials (false);
@@ -1687,7 +1687,7 @@ module.exports = class lbank2 extends Exchange {
             let method = this.safeString (params, 'method');
             params = this.omit (params, 'method');
             if (method === undefined) {
-                const options = this.safeValue (this.options, 'fetchFundingFees', {});
+                const options = this.safeValue (this.options, 'fetchTransactionFees', {});
                 method = this.safeString (options, 'method', 'fetchPrivateFundingFees');
             }
             result = await this[method] (params);

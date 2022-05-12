@@ -39,7 +39,7 @@ module.exports = class bitstamp extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchFundingFees': true,
+                'fetchTransactionFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -1028,7 +1028,7 @@ module.exports = class bitstamp extends Exchange {
         };
     }
 
-    async fetchFundingFees (params = {}) {
+    async fetchTransactionFees (params = {}) {
         await this.loadMarkets ();
         const balance = await this.privatePostBalance (params);
         return this.parseFundingFees (balance);

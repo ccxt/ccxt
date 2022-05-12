@@ -46,7 +46,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchFundingFee': true,
+                'fetchTransactionFee': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -705,7 +705,7 @@ module.exports = class kucoin extends Exchange {
         return result;
     }
 
-    async fetchFundingFee (code, params = {}) {
+    async fetchTransactionFee (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
