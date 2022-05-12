@@ -3631,10 +3631,6 @@ module.exports = class bybit extends Exchange {
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
-        // invers swap -> privatePostV2PositionLeverageSave // symbol and leverage
-        // linear swap -> privatePostPrivateLinearPositionSetLeverage // symbol, buy_leverage ans sell_leverage
-        // futures -> privatePostFuturesPrivatePositionLeverageSave // symbol, buy and sell leverage
-        // usdc perpetual -> privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave // symbol and leverage
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
