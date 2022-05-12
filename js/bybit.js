@@ -3631,6 +3631,10 @@ module.exports = class bybit extends Exchange {
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
+        // invers swap -> privatePostV2PositionLeverageSave // symbol and leverage
+        // linear swap -> privatePostPrivateLinearPositionSetLeverage // symbol, buy_leverage ans sell_leverage
+        // futures -> privatePostFuturesPrivatePositionLeverageSave // symbol, buy and sell leverage
+        // usdc perpetual -> privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave // symbol and leverage
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3638,44 +3642,41 @@ module.exports = class bybit extends Exchange {
         const market = this.market (symbol);
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
-        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
-        const marketType = this.safeString (marketTypes, symbol, defaultType);
-        const linear = market['linear'] || (marketType === 'linear');
-        const inverse = (market['swap'] && market['inverse']) || (marketType === 'inverse');
-        const future = market['future'] || ((marketType === 'future') || (marketType === 'futures')); // * (marketType === 'futures') deprecated, use (marketType === 'future')
+        const isUsdcSettled = market['settle'] === 'USDC';
         let method = undefined;
-        if (linear) {
-            method = 'privateLinearPostPositionSetLeverage';
-        } else if (inverse) {
-            method = 'v2PrivatePostPositionLeverageSave';
-        } else if (future) {
-            method = 'privateFuturesPostPositionLeverageSave';
-        }
-        let buy_leverage = leverage;
-        let sell_leverage = leverage;
-        if (params['buy_leverage'] && params['sell_leverage'] && linear) {
-            buy_leverage = params['buy_leverage'];
-            sell_leverage = params['sell_leverage'];
-        } else if (!leverage) {
-            if (linear) {
-                throw new ArgumentsRequired (this.id + ' setLeverage() requires either the parameter leverage or params["buy_leverage"] and params["sell_leverage"] for linear contracts');
-            } else {
-                throw new ArgumentsRequired (this.id + ' setLeverage() requires parameter leverage for inverse and futures contracts');
-            }
-        }
-        if ((buy_leverage < 1) || (buy_leverage > 100) || (sell_leverage < 1) || (sell_leverage > 100)) {
-            throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 100');
+        if (isUsdcSettled) {
+            method = 'privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave';
+        } else if (market['future']) {
+            method = 'privatePostFuturesPrivatePositionLeverageSave';
+        } else if (market['linear']) {
+            method = 'privatePostPrivateLinearPositionSetLeverage';
+        } else {
+            // inverse swaps
+            method = 'privatePostV2PositionLeverageSave';
         }
         const request = {
             'symbol': market['id'],
-            'leverage_only': true,
         };
-        if (!linear) {
-            request['leverage'] = buy_leverage;
+        leverage = parseInt (leverage);
+        const isLinearSwap = market['swap'] && market['linear'];
+        if (isLinearSwap || market['future']) {
+            // requires buy_leverage and sell_leverage
+            const buyLeverage = this.safeNumber (params, 'buy_leverage');
+            const sellLeverage = this.safeNumber (params, 'sell_leverage');
+            if (buyLeverage !== undefined && sellLeverage !== undefined) {
+                if ((buyLeverage < 1) || (buyLeverage > 100) || (sellLeverage < 1) || (sellLeverage > 100)) {
+                    throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 100');
+                }
+            } else {
+                request['buy_leverage'] = leverage;
+                request['sell_leverage'] = leverage;
+            }
         } else {
-            request['buy_leverage'] = buy_leverage;
-            request['sell_leverage'] = sell_leverage;
+            // requires leverage
+            request['leverage'] = leverage;
+        }
+        if ((leverage < 1) || (leverage > 100)) {
+            throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 100');
         }
         return await this[method] (this.extend (request, params));
     }
