@@ -61,8 +61,6 @@ class binance extends Exchange {
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
-                'fetchFundingFee' => null,
-                'fetchFundingFees' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -98,6 +96,8 @@ class binance extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchTradingLimits' => null,
+                'fetchTransactionFee' => null,
+                'fetchTransactionFees' => true,
                 'fetchTransactions' => false,
                 'fetchTransfers' => true,
                 'fetchWithdrawal' => false,
@@ -3900,7 +3900,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_funding_fees($codes = null, $params = array ()) {
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
         $this->load_markets();
         $response = $this->sapiGetCapitalConfigGetall ($params);
         //

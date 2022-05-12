@@ -50,7 +50,6 @@ class kucoinfutures extends kucoin {
                 'fetchCurrencies' => false,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
-                'fetchFundingFee' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
@@ -73,6 +72,7 @@ class kucoinfutures extends kucoin {
                 'fetchTickers' => false,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTransactionFee' => true,
                 'fetchWithdrawals' => true,
                 'setMarginMode' => false,
                 'transfer' => true,
@@ -1693,8 +1693,8 @@ class kucoinfutures extends kucoin {
         return $this->parse_transactions($responseData, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function fetch_funding_fee($code, $params = array ()) {
-        throw new BadRequest($this->id . ' fetchFundingFee() is not supported yet');
+    public function fetch_transaction_fee($code, $params = array ()) {
+        throw new BadRequest($this->id . ' fetchTransactionFee() is not supported yet');
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {

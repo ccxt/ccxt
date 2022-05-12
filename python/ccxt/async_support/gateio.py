@@ -96,7 +96,6 @@ class gateio(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -121,6 +120,7 @@ class gateio(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
+                'fetchTransactionFees': True,
                 'fetchWithdrawals': True,
                 'setLeverage': True,
                 'setMarginMode': False,
@@ -1562,7 +1562,7 @@ class gateio(Exchange):
             'taker': self.safe_number(info, takerKey),
         }
 
-    async def fetch_funding_fees(self, params={}):
+    async def fetch_transaction_fees(self, codes=None, params={}):
         await self.load_markets()
         response = await self.privateWalletGetWithdrawStatus(params)
         #

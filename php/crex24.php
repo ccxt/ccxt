@@ -54,7 +54,6 @@ class crex24 extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
-                'fetchFundingFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -80,6 +79,7 @@ class crex24 extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchTransactionFees' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
@@ -472,7 +472,7 @@ class crex24 extends Exchange {
         return $result;
     }
 
-    public function fetch_funding_fees($codes = null, $params = array ()) {
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetCurrenciesWithdrawalFees ($params);
         //

@@ -39,7 +39,6 @@ class bitfinex extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => null,
-                'fetchFundingFees' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
@@ -57,6 +56,7 @@ class bitfinex extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchTransactionFees' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => null,
                 'transfer' => true,
@@ -388,7 +388,7 @@ class bitfinex extends Exchange {
         ));
     }
 
-    public function fetch_funding_fees($params = array ()) {
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
         yield $this->load_markets();
         $response = yield $this->privatePostAccountFees ($params);
         $fees = $response['withdraw'];
