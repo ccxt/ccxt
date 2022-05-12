@@ -82,6 +82,7 @@ module.exports = class okx extends Exchange {
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -4975,5 +4976,135 @@ module.exports = class okx extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+    }
+
+    async fetchSettlementHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchSettlementHistory
+         * @description Fetches historical settlement records
+         * @param {str} symbol unified symbol of the market to fetch the settlement history for
+         * @param {int} since timestamp in ms, value range = current time - 90 days，default = current time - 90 days
+         * @param {int} limit page items, default 20, shall not exceed 50
+         * @param {dict} params exchange specific params
+         * @param {str} params.uly Underlying
+         * @param {str} params.type future or option
+         * @returns A list of settlement history objects
+         */
+        const request = {};
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        let uly = this.safeString (params, 'uly');
+        let type = this.safeStringUpper (params, 'type', 'instType');
+        if (symbol !== undefined) {
+            type = market['type'].toUpperCase ();
+            uly = market['info']['uly'];
+        } else {
+            if (uly === undefined || type === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchSettlementHistory () requires either a symbol argument or the arguments params["uly"] and params["type"]');
+            }
+        }
+        if (type === 'FUTURE') {
+            type = 'FUTURES';
+        }
+        if (type !== 'FUTURES' && type !== 'OPTION') {
+            throw new BadRequest (this.id + ' fetchSettlementHistory () is only valid for future and option markets');
+        }
+        request['instType'] = type;
+        request['uly'] = uly;
+        if (since !== undefined) {
+            request['after'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const till = this.safeInteger (params, 'till');
+        if (till !== undefined) {
+            request['before'] = till;
+            params = this.omit (params, 'till');
+        }
+        const response = await this.publicGetPublicDeliveryExerciseHistory (this.extend (request, params));
+        //
+        //    {
+        //        "code": "0",
+        //        "msg": "",
+        //        "data": [
+        //            {
+        //                "ts": "1597026383085",
+        //                "details": [
+        //                    {
+        //                        "instId": "BTC-USD-200529",
+        //                        "type": "delivery", // "exercised" for option
+        //                        "px": "0.016"
+        //                    },
+        //                    ...
+        //                ]
+        //            }
+        //            ...
+        //        ]
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        const settlements = this.parseSettlements (data, market);
+        return this.filterBySymbolSinceLimit (settlements, symbol, since, limit);
+    }
+
+    parseSettlements (settlements, market) {
+        //
+        //    [
+        //        {
+        //            "ts": "1597026383085",
+        //            "details": [
+        //                {
+        //                    "instId": "BTC-USD-200529",
+        //                    "type": "delivery", // "exercised" for option
+        //                    "px": "0.016"
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //        ...
+        //    ]
+        //
+        const result = [];
+        for (let i = 0; i < settlements.length; i++) {
+            const settlement = settlements[i];
+            const details = this.safeValue (settlement, 'details');
+            const timestamp = this.safeInteger (settlement, 'ts');
+            const timestampDetails = {
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            };
+            for (let j = 0; j < details.length; j++) {
+                const detail = details[j];
+                const parsedSettlement = this.parseSettlement (detail, market);
+                result.push (this.extend (parsedSettlement, timestampDetails));
+            }
+        }
+        return result;
+    }
+
+    parseSettlement (settlement, market) {
+        //
+        // fetchSettlementHistory
+        //
+        //    {
+        //        "instId": "BTC-USD-200529",
+        //        "type": "delivery", // "exercised" for option
+        //        "px": "0.016"
+        //    }
+        //
+        const marketId = this.safeString (settlement, 'instId', 'insId');
+        return {
+            'info': settlement,
+            'symbol': this.safeSymbol (marketId, market),
+            'entryPrice': undefined,
+            'price': this.safeNumber (settlement, 'px'),
+            'pnl': undefined,
+            'fee': undefined,
+            'size': undefined,
+            'side': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
     }
 };
