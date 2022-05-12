@@ -5242,10 +5242,14 @@ module.exports = class binance extends Exchange {
         } else if ((api === 'private') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV3') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
             this.checkRequiredCredentials ();
             let query = undefined;
-            const recvWindow = this.safeInteger (this.options, 'recvWindow');
+            const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
             const extendedParams = this.extend ({
                 'timestamp': this.nonce (),
             }, params);
+            if (defaultRecvWindow !== undefined) {
+                extendedParams['recvWindow'] = defaultRecvWindow;
+            }
+            const recvWindow = this.safeInteger (params, 'recvWindow');
             if (recvWindow !== undefined) {
                 extendedParams['recvWindow'] = recvWindow;
             }

@@ -4961,10 +4961,13 @@ class binance(Exchange):
         elif (api == 'private') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV3') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
             self.check_required_credentials()
             query = None
-            recvWindow = self.safe_integer(self.options, 'recvWindow')
+            defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
             extendedParams = self.extend({
                 'timestamp': self.nonce(),
             }, params)
+            if defaultRecvWindow is not None:
+                extendedParams['recvWindow'] = defaultRecvWindow
+            recvWindow = self.safe_integer(params, 'recvWindow')
             if recvWindow is not None:
                 extendedParams['recvWindow'] = recvWindow
             if (api == 'sapi') and (path == 'asset/dust'):

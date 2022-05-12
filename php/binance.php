@@ -5248,10 +5248,14 @@ class binance extends Exchange {
         } else if (($api === 'private') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV3') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
             $this->check_required_credentials();
             $query = null;
-            $recvWindow = $this->safe_integer($this->options, 'recvWindow');
+            $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
             $extendedParams = array_merge(array(
                 'timestamp' => $this->nonce(),
             ), $params);
+            if ($defaultRecvWindow !== null) {
+                $extendedParams['recvWindow'] = $defaultRecvWindow;
+            }
+            $recvWindow = $this->safe_integer($params, 'recvWindow');
             if ($recvWindow !== null) {
                 $extendedParams['recvWindow'] = $recvWindow;
             }
