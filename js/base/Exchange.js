@@ -2495,4 +2495,13 @@ module.exports = class Exchange {
             throw new NotSupported (this.id + ' fetchPremiumIndexOHLCV () is not supported yet');
         }
     }
+
+    parseSettlements (settlements, market) {
+        const result = [];
+        for (let i = 0; i < settlements.length; i++) {
+            const settlement = this.parseSettlement (settlements[i], market);
+            result.push (settlement);
+        }
+        return result;
+    }
 }

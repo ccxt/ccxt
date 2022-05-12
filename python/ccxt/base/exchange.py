@@ -3115,3 +3115,10 @@ class Exchange(object):
             return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
         else:
             raise NotSupported(self.id + ' fetchPremiumIndexOHLCV() is not supported yet')
+
+    def parse_settlements(self, settlements, market):
+        result = []
+        for i in range(0, len(settlements)):
+            settlement = self.parse_settlement(settlements[i], market)
+            result.append(settlement)
+        return result

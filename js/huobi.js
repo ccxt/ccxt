@@ -6326,15 +6326,6 @@ module.exports = class huobi extends Exchange {
         return this.parseSettlements (settlementRecord, market);
     }
 
-    parseSettlements (settlements, market) {
-        const result = [];
-        for (let i = 0; i < settlements.length; i++) {
-            const settlement = this.parseSettlement (settlements[i], market);
-            result.push (settlement);
-        }
-        return result;
-    }
-
     parseSettlement (settlement, market) {
         //
         //    {

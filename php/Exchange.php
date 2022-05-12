@@ -330,7 +330,6 @@ class Exchange {
         'fetchUsedBalance' => 'fetch_used_balance',
         'fetchTotalBalance' => 'fetch_total_balance',
         'fetchStatus' => 'fetch_status',
-        'fetchSettlementHistory' => 'fetch_settlement_history',
         'fetchTradingFees' => 'fetch_trading_fees',
         'fetchTradingFee' => 'fetch_trading_fee',
         'fetchFundingFee' => 'fetch_funding_fee',
@@ -4113,5 +4112,14 @@ class Exchange {
         } else {
             throw new NotSupported($this->id . ' fetchPremiumIndexOHLCV () is not supported yet');
         }
+    }
+
+    public function parse_settlements($settlements, $market) {
+        $result = array();
+        for ($i = 0; $i < count($settlements); $i++) {
+            $settlement = $this->parse_settlement($settlements[$i], $market);
+            $result[] = $settlement;
+        }
+        return $result;
     }
 }
