@@ -1646,6 +1646,18 @@ class Exchange(object):
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetch_transactions() is not supported yet')
 
+    def fetch_funding_fee (self, code, params={}):
+        raise NotSupported(self.id + ' fetch_funding_fee() has been deprecated, use fetch_transaction_fee() instead')
+
+    def fetch_funding_fees (self, codes=None, params={}):
+        raise NotSupported(self.id + ' fetch_funding_fees() has been deprecated, use fetch_transaction_fees() instead');
+
+    def fetch_transaction_fee (self, code, params={}):
+        raise NotSupported(self.id + ' fetch_transaction_fee() is not supported yet')
+
+    def fetch_transaction_fees (self, code=None, params={}):
+        raise NotSupported(self.id + ' fetch_transaction_fees() is not supported yet')
+
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetch_deposits() is not supported yet')
 

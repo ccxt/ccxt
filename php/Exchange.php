@@ -2572,6 +2572,22 @@ class Exchange {
         throw new NotSupported($this->id . ' fetch_transactions() not supported yet');
     }
 
+    public function fetch_funding_fee ($code, $params = array()) {
+        throw new NotSupported ($this->id . ' fetch_funding_fee() has been deprecated, use fetch_transaction_fee() instead');
+    }
+
+    public function fetch_funding_fees ($codes = null, $params = array()) {
+        throw new NotSupported ($this->id . ' fetch_funding_fees() has been deprecated, use fetch_transaction_fees() instead');
+    }
+
+    public function fetch_transaction_fee ($code, $params = array()) {
+        throw new NotSupported ($this->id . ' fetch_transaction_fee() is not supported yet');
+    }
+
+    public function fetch_transaction_fees ($codes = null, $params = array()) {
+        throw new NotSupported ($this->id . ' fetch_transaction_fees() is not supported yet');
+    }
+
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array()) {
         throw new NotSupported($this->id . ' fetch_deposits() not supported yet');
     }
