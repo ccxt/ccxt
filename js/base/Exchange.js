@@ -1201,7 +1201,7 @@ module.exports = class Exchange {
         return this.fetchTransactionFee (code, params);
     }
 
-    async fetchFundingFees (codes, params = {}) {
+    async fetchFundingFees (codes = undefined, params = {}) {
         const warnOnFetchFundingFees = this.safeValue (this.options, 'warnOnFetchFundingFees', true);
         if (warnOnFetchFundingFees) {
             throw new NotSupported (this.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');

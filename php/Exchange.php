@@ -2081,6 +2081,33 @@ class Exchange {
         return $this->fetch_trading_fees($params);
     }
 
+    public function fetch_funding_fee($code, $params = array()) {
+        $warnOnFetchFundingFee = $this->safeValue($this->options, 'warnOnFetchFundingFee', true);
+        if ($warnOnFetchFundingFee) {
+            throw new NotSupported($this->id + ' fetch_funding_fee() method is deprecated, it will be removed in July 2022, please, use fetch_transaction_fee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
+        }
+        return $this->fetch_transaction_fee($code, $params);
+    }
+
+    public function fetchFundingFees ($codes = null, $params = array()) {
+        $warnOnFetchFundingFees = $this->safeValue($this->options, 'warnOnFetchFundingFees', true);
+        if ($warnOnFetchFundingFees) {
+            throw new NotSupported($this->id + ' fetch_funding_fees() method is deprecated, it will be removed in July 2022, please, use fetch_transaction_fees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
+        }
+        return $this->fetch_transaction_fees ($codes, $params);
+    }
+
+    public function fetch_transaction_fee($code, $params = array() {
+        if (!$this->has['fetch_transaction_fees']) {
+            throw new NotSupported ($this->id + ' fetch_transaction_fee() is not supported yet');
+        }
+        return $this->fetch_transaction_fees([$code], $params);
+    }
+
+    public function fetch_transaction_fees($codes = null, $params = array()) {
+        throw new NotSupported ($this->id + ' fetchTransactionFees() is not supported yet');
+    }
+
     public function load_trading_limits($symbols = null, $reload = false, $params = array()) {
         if ($this->has['fetchTradingLimits']) {
             if ($reload || !(is_array($this->options) && array_key_exists('limitsLoaded', $this->options))) {
@@ -2570,22 +2597,6 @@ class Exchange {
 
     public function fetch_transactions($code = null, $since = null, $limit = null, $params = array()) {
         throw new NotSupported($this->id . ' fetch_transactions() not supported yet');
-    }
-
-    public function fetch_funding_fee ($code, $params = array()) {
-        throw new NotSupported ($this->id . ' fetch_funding_fee() has been deprecated, use fetch_transaction_fee() instead');
-    }
-
-    public function fetch_funding_fees ($codes = null, $params = array()) {
-        throw new NotSupported ($this->id . ' fetch_funding_fees() has been deprecated, use fetch_transaction_fees() instead');
-    }
-
-    public function fetch_transaction_fee ($code, $params = array()) {
-        throw new NotSupported ($this->id . ' fetch_transaction_fee() is not supported yet');
-    }
-
-    public function fetch_transaction_fees ($codes = null, $params = array()) {
-        throw new NotSupported ($this->id . ' fetch_transaction_fees() is not supported yet');
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array()) {
