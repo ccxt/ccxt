@@ -884,8 +884,8 @@ class Exchange(object):
         return default_value
 
     @staticmethod
-    def safe_timestamp_n(dictionary, key, default_value=None):
-        return Exchange.safe_integer_product(dictionary, key, 1000, default_value)
+    def safe_timestamp_n(dictionary, key_list, default_value=None):
+        return Exchange.safe_integer_product_n(dictionary, key_list, 1000, default_value)
 
     @staticmethod
     def safe_value_n(dictionary, key_list, default_value=None):
