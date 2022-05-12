@@ -6278,25 +6278,42 @@ module.exports = class huobi extends Exchange {
          * @param {int} params.page_index page index, default page 1 if not filled
          * @returns A list of settlement history objects
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' requires a symbol argument for fetchSettlementHistory');
+        const code = this.safeString (params, 'code');
+        const till = this.safeInteger (params, 'till');
+        params = this.omit (params, 'till');
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchSettlementHistory', market, params);
+        if (type === 'future') {
+            if (symbol === undefined && code === undefined) {
+                throw new ArgumentsRequired (this.id + ' requires a symbol argument or params["code"] for fetchSettlementHistory future');
+            }
+        } else if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a symbol argument for fetchSettlementHistory swap');
         }
-        const market = this.market (symbol);
-        const request = {
-            'contract_code': market['id'],
-        };
+        const request = {};
+        if (market['future']) {
+            request['symbol'] = market['baseId'];
+        } else {
+            request['contract_code'] = market['id'];
+        }
         if (since !== undefined) {
             request['start_at'] = since;
         }
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const till = this.safeInteger (params, 'till');
         if (till !== undefined) {
             request['end_at'] = till;
-            params = this.omit (params, 'till');
         }
-        const response = await this.contractPublicGetLinearSwapApiV1SwapSettlementRecords (this.extend (request, params));
+        let method = 'contractPublicGetApiV1ContractSettlementRecords';
+        if (market['swap']) {
+            if (market['linear']) {
+                method = 'contractPublicGetLinearSwapApiV1SwapSettlementRecords';
+            } else {
+                method = 'contractPublicGetSwapApiV1SwapSettlementRecords';
+            }
+        }
+        const response = await this[method] (this.extend (request, query));
         //
         // linear swap
         //
@@ -6323,9 +6340,94 @@ module.exports = class huobi extends Exchange {
         //        "ts": 1652338693256
         //    }
         //
+        // coin-m future
+        //
+        //    {
+        //        "status": "ok",
+        //        "data": {
+        //            "total_page": 5,
+        //            "current_page": 1,
+        //            "total_size": 90,
+        //            "settlement_record": [
+        //                {
+        //                    "symbol": "FIL",
+        //                    "settlement_time": 1652342400000,
+        //                    "clawback_ratio": 0E-18,
+        //                    "list": [
+        //                        {
+        //                            "contract_code": "FIL220513",
+        //                            "settlement_price": 7.016000000000000000,
+        //                            "settlement_type": "settlement"
+        //                        },
+        //                        ...
+        //                    ]
+        //                },
+        //            ]
+        //        }
+        //    }
+        //
         const data = this.safeValue (response, 'data');
         const settlementRecord = this.safeValue (data, 'settlement_record');
         return this.parseSettlements (settlementRecord, market);
+    }
+
+    parseSettlements (settlements, market) {
+        //
+        // linear swap, fetchSettlementHistory
+        //
+        //    [
+        //        {
+        //            "symbol": "ADA",
+        //            "contract_code": "ADA-USDT",
+        //            "settlement_time": 1652313600000,
+        //            "clawback_ratio": 0E-18,
+        //            "settlement_price": 0.512303000000000000,
+        //            "settlement_type": "settlement",
+        //            "business_type": "swap",
+        //            "pair": "ADA-USDT",
+        //            "trade_partition": "USDT"
+        //        },
+        //        ...
+        //    ]
+        //
+        // coin-m future, fetchSettlementHistory
+        //
+        //    [
+        //        {
+        //            "symbol": "FIL",
+        //            "settlement_time": 1652342400000,
+        //            "clawback_ratio": 0E-18,
+        //            "list": [
+        //                {
+        //                    "contract_code": "FIL220513",
+        //                    "settlement_price": 7.016000000000000000,
+        //                    "settlement_type": "settlement"
+        //                },
+        //                ...
+        //            ]
+        //        },
+        //    ]
+        //
+        const result = [];
+        for (let i = 0; i < settlements.length; i++) {
+            const settlement = settlements[i];
+            const list = this.safeValue (settlement, 'list');
+            if (list !== undefined) {
+                const timestamp = this.safeInteger (settlement, 'settlement_time');
+                const timestampDetails = {
+                    'timestamp': timestamp,
+                    'datetime': this.iso8601 (timestamp),
+                };
+                for (let j = 0; j < list.length; j++) {
+                    const item = list[j];
+                    const parsedSettlement = this.parseSettlement (item, market);
+                    result.push (this.extend (parsedSettlement, timestampDetails));
+                }
+            } else {
+                result.push (this.parseSettlement (settlements[i], market));
+            }
+        }
+        return result;
     }
 
     parseSettlement (settlement, market) {
@@ -6342,6 +6444,14 @@ module.exports = class huobi extends Exchange {
         //        "business_type": "swap",
         //        "pair": "ADA-USDT",
         //        "trade_partition": "USDT"
+        //    }
+        //
+        // coin-m future, fetchSettlementHistory
+        //
+        //    {
+        //        "contract_code": "FIL220513",
+        //        "settlement_price": 7.016000000000000000,
+        //        "settlement_type": "settlement"
         //    }
         //
         const timestamp = this.safeInteger (settlement, 'settlement_time');
