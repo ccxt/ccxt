@@ -4175,6 +4175,121 @@ module.exports = class gateio extends Exchange {
         return tiers;
     }
 
+    async fetchSettlements (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchSettlementHistory
+         * @description Fetches historical settlement records
+         * @param {str} symbol unified symbol of the market to fetch the settlement history for
+         * @param {int} since *future only* settlement timestamp in ms
+         * @param {int} limit *future only* maximum number of records to be returned in a single list
+         * @param {dict} params exchange specific params
+         * @param {int} params.settle *future only* 'btc' or 'usdt' - settle currency - default="btc"
+         * @returns A list of settlement history objects
+         */
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchSettlements', market, params);
+        const [ request, requestParams ] = this.prepareRequest (market, type, query);
+        if (type === 'future') {
+            if (since !== undefined) {
+                request['at'] = since;
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+        }
+        const method = this.getSupportedMapping (market['type'], {
+            'future': 'privateDeliveryGetSettleSettlements',
+            // 'option': 'privateOptionsGetPositionsClose', // TODO: Edit prepareRequest for option
+        });
+        const response = await this[method] (this.extend (request, requestParams));
+        //
+        // future
+        //
+        //    [
+        //        {
+        //            "time": 1548654951,
+        //            "contract": "BTC_USDT",
+        //            "size": 600,
+        //            "leverage": "25",
+        //            "margin": "0.006705256878",
+        //            "entry_price": "3536.123",
+        //            "settle_price": "3421.54",
+        //            "profit": "-6.87498",
+        //            "fee": "0.03079386"
+        //        }
+        //    ]
+        //
+        // option
+        //
+        //    [
+        //        {
+        //            "time": 1631764800,
+        //            "pnl": "-42914.291",
+        //            "settle_size": "-10001",
+        //            "side": "short",
+        //            "contract": "BTC_USDT-20210916-5000-C",
+        //            "text": "settled"
+        //        }
+        //    ]
+        //
+        return this.parseSettlements (response, market);
+    }
+
+    parseSettlement (settlement, market) {
+        //
+        // future, getSettlements
+        //
+        //    {
+        //        "time": 1548654951,
+        //        "contract": "BTC_USDT",
+        //        "size": 600,
+        //        "leverage": "25",
+        //        "margin": "0.006705256878",
+        //        "entry_price": "3536.123",
+        //        "settle_price": "3421.54",
+        //        "profit": "-6.87498",
+        //        "fee": "0.03079386"
+        //    }
+        //
+        // option, fetchSettlementHistory
+        //
+        //    {
+        //        "time": 1598839200,
+        //        "profit": "312.35",
+        //        "fee": "0.3284",
+        //        "settle_price": "11687.65",
+        //        "contract": "BTC-WEEKLY-200824-11000-P",
+        //        "strike_price": "12000"
+        //    }
+        //
+        // option, fetchSettlements
+        //
+        //    {
+        //        "time": 1631764800,
+        //        "pnl": "-42914.291",
+        //        "settle_size": "-10001",
+        //        "side": "short",
+        //        "contract": "BTC_USDT-20210916-5000-C",
+        //        "text": "settled"
+        //    }
+        //
+        const timestamp = this.safeInteger (settlement, 'time') * 1000;
+        const marketId = this.safeString (settlement, 'contract');
+        return {
+            'info': settlement,
+            'symbol': this.safeSymbol (marketId, market),
+            'entryPrice': this.safeNumber (settlement, 'entry_price'),
+            'price': this.safeNumber (settlement, 'settle_price'),
+            'pnl': this.safeNumber (settlement, 'profit', 'pnl'),
+            'fee': this.safeNumber (settlement, 'fee'),
+            'size': this.safeNumber (settlement, 'size', 'settle_size'),
+            'side': this.safeNumber (settlement, 'side'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+    }
+
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, future, delivery
