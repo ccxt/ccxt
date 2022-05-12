@@ -40,6 +40,7 @@ class bitget extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDeposits' => false,
                 'fetchLedger' => true,
+                'fetchLeverage' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -2393,6 +2394,28 @@ class bitget extends Exchange {
             }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function fetch_leverage($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicMixGetMarketSymbolLeverage (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1652347673483,
+        //         "data" => {
+        //             "symbol" => "BTCUSDT_UMCBL",
+        //             "minLeverage" => "1",
+        //             "maxLeverage" => "125"
+        //         }
+        //     }
+        //
+        return $response;
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {

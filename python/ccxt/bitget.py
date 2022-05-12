@@ -57,6 +57,7 @@ class bitget(Exchange):
                 'fetchCurrencies': True,
                 'fetchDeposits': False,
                 'fetchLedger': True,
+                'fetchLeverage': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -2319,6 +2320,27 @@ class bitget(Exchange):
             if method == 'POST':
                 headers['Content-Type'] = 'application/json'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def fetch_leverage(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.publicMixGetMarketSymbolLeverage(self.extend(request, params))
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1652347673483,
+        #         "data": {
+        #             "symbol": "BTCUSDT_UMCBL",
+        #             "minLeverage": "1",
+        #             "maxLeverage": "125"
+        #         }
+        #     }
+        #
+        return response
 
     def set_leverage(self, leverage, symbol=None, params={}):
         if symbol is None:
