@@ -50,6 +50,7 @@ Exchange::$exchanges = array(
     'idex',
     'kraken',
     'kucoin',
+    'mexc',
     'ndax',
     'okcoin',
     'okex',
