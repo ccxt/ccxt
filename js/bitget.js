@@ -2315,6 +2315,14 @@ module.exports = class bitget extends Exchange {
         } else if (hedged === 'single_hold') {
             hedged = false;
         }
+        let contracts = this.safeInteger (position, 'openDelegateCount');
+        let liquidation = this.safeNumber (position, 'liquidationPrice');
+        if (contracts === 0) {
+            contracts = undefined;
+        }
+        if (liquidation === 0) {
+            liquidation = undefined;
+        }
         return {
             'info': position,
             'id': undefined,
@@ -2322,11 +2330,11 @@ module.exports = class bitget extends Exchange {
             'notional': undefined,
             'marginMode': marginMode,
             'marginType': undefined, // deprecated
-            'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
+            'liquidationPrice': liquidation,
             'entryPrice': this.safeNumber (position, 'averageOpenPrice'),
             'unrealizedPnl': this.safeNumber (position, 'unrealizedPL'),
             'percentage': undefined,
-            'contracts': undefined,
+            'contracts': contracts,
             'contractSize': this.safeNumber (position, 'total'),
             'markPrice': undefined,
             'side': this.safeString (position, 'holdSide'),
