@@ -321,6 +321,10 @@ class Exchange {
         'fetchStatus' => 'fetch_status',
         'fetchTradingFees' => 'fetch_trading_fees',
         'fetchTradingFee' => 'fetch_trading_fee',
+        'fetchFundingFee' => 'fetch_funding_fee',
+        'fetchFundingFees' => 'fetch_funding_fees',
+        'fetchTransactionFee' => 'fetch_transaction_fee',
+        'fetchTransactionFees' => 'fetch_transaction_fees',
         'loadTradingLimits' => 'load_trading_limits',
         'filterBySinceLimit' => 'filter_by_since_limit',
         'filterByValueSinceLimit' => 'filter_by_value_since_limit',
@@ -2097,7 +2101,7 @@ class Exchange {
         return $this->fetch_transaction_fees ($codes, $params);
     }
 
-    public function fetch_transaction_fee($code, $params = array() {
+    public function fetch_transaction_fee($code, $params = array()) {
         if (!$this->has['fetch_transaction_fees']) {
             throw new NotSupported ($this->id + ' fetch_transaction_fee() is not supported yet');
         }
