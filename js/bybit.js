@@ -3648,15 +3648,15 @@ module.exports = class bybit extends Exchange {
             method = 'privatePostPrivateLinearPositionSetLeverage';
         } else {
             // inverse swaps
-            method = 'privatePostV2PositionLeverageSave';
+            method = 'privatePostV2PrivatePositionLeverageSave';
         }
         const request = {
             'symbol': market['id'],
         };
         leverage = parseInt (leverage);
         const isLinearSwap = market['swap'] && market['linear'];
-        if (isLinearSwap || market['future']) {
-            // requires buy_leverage and sell_leverage
+        const requiresBuyAndSellLeverage = isLinearSwap || market['future'];
+        if (requiresBuyAndSellLeverage) {
             const buyLeverage = this.safeNumber (params, 'buy_leverage');
             const sellLeverage = this.safeNumber (params, 'sell_leverage');
             if (buyLeverage !== undefined && sellLeverage !== undefined) {
