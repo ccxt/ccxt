@@ -49,7 +49,6 @@ class bibox(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -61,6 +60,7 @@ class bibox(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchTransactionFees': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
@@ -1254,7 +1254,7 @@ class bibox(Exchange):
         firstResult = self.safe_value(outerResults, 0, {})
         return self.parse_transaction(firstResult, currency)
 
-    def fetch_funding_fees(self, codes=None, params={}):
+    def fetch_transaction_fees(self, codes=None, params={}):
         # by default it will try load withdrawal fees of all currencies(with separate requests)
         # however if you define codes = ['ETH', 'BTC'] in args it will only load those
         self.load_markets()

@@ -58,8 +58,6 @@ class bitmart(Exchange):
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
-                'fetchFundingFee': True,
-                'fetchFundingFees': False,
                 'fetchFundingHistory': None,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -76,6 +74,8 @@ class bitmart(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchTransactionFee': True,
+                'fetchTransactionFees': False,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'fetchWithdrawAddressesByNetwork': False,
@@ -649,7 +649,7 @@ class bitmart(Exchange):
         contract = await self.fetch_contract_markets(params)
         return self.array_concat(spot, contract)
 
-    async def fetch_funding_fee(self, code, params={}):
+    async def fetch_transaction_fee(self, code, params={}):
         await self.load_markets()
         currency = self.currency(code)
         request = {

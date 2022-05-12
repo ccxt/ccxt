@@ -76,8 +76,6 @@ class binance(Exchange):
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
-                'fetchFundingFee': None,
-                'fetchFundingFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -113,6 +111,8 @@ class binance(Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTradingLimits': None,
+                'fetchTransactionFee': None,
+                'fetchTransactionFees': True,
                 'fetchTransactions': False,
                 'fetchTransfers': True,
                 'fetchWithdrawal': False,
@@ -3721,7 +3721,7 @@ class binance(Exchange):
             'info': response,
         }
 
-    async def fetch_funding_fees(self, codes=None, params={}):
+    async def fetch_transaction_fees(self, codes=None, params={}):
         await self.load_markets()
         response = await self.sapiGetCapitalConfigGetall(params)
         #

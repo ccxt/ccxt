@@ -43,7 +43,6 @@ class exmo(Exchange):
                 'fetchBalance': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
-                'fetchFundingFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -64,6 +63,7 @@ class exmo(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransactionFees': True,
                 'fetchTransactions': True,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
@@ -174,7 +174,7 @@ class exmo(Exchange):
                 },
                 'funding': {
                     'tierBased': False,
-                    'percentage': False,  # fixed funding fees for crypto, see fetchFundingFees below
+                    'percentage': False,  # fixed funding fees for crypto, see fetchTransactionFees below
                 },
             },
             'options': {
@@ -326,7 +326,7 @@ class exmo(Exchange):
             raise ExchangeError(self.id + ' parseFixedFloatValue() detected an unsupported non-zero percentage-based fee ' + input)
         return result
 
-    def fetch_funding_fees(self, params={}):
+    def fetch_transaction_fees(self, codes=None, params={}):
         self.load_markets()
         currencyList = self.publicGetCurrencyListExtended(params)
         #

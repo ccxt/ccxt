@@ -49,7 +49,6 @@ class kucoin extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
-                'fetchFundingFee' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -73,6 +72,7 @@ class kucoin extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
+                'fetchTransactionFee' => true,
                 'fetchWithdrawals' => true,
                 'transfer' => true,
                 'withdraw' => true,
@@ -708,7 +708,7 @@ class kucoin extends Exchange {
         return $result;
     }
 
-    public function fetch_funding_fee($code, $params = array ()) {
+    public function fetch_transaction_fee($code, $params = array ()) {
         yield $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
