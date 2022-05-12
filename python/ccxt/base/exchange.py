@@ -826,6 +826,78 @@ class Exchange(object):
     @staticmethod
     def safe_value_2(dictionary, key1, key2, default_value=None):
         return Exchange.safe_either(Exchange.safe_value, dictionary, key1, key2, default_value)
+    
+    # safe_method_N methods family
+
+    @staticmethod
+    def safe_float_N(dictionary, key_list, default_value=None):
+        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
+        if value is None:
+            return default_value
+        try:
+            value = float(value)
+        except ValueError as e:
+            value = default_value
+        return value
+
+    @staticmethod
+    def safe_string_N(dictionary, key_list, default_value=None):
+        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
+        return str(value) if value is not None else default_value
+
+    @staticmethod
+    def safe_string_lower_N(dictionary, key_list, default_value=None):
+        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
+        return str(value).lower() if value is not None else default_value
+
+    @staticmethod
+    def safe_string_upper_N(dictionary, key_list, default_value=None):
+        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
+        return str(value).upper()  if value is not None else default_value
+
+    @staticmethod
+    def safe_integer_N(dictionary, key_list, default_value=None):
+        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
+        if value is None:
+            return default_value
+        try:
+            # needed to avoid breaking on "100.0"
+            # https://stackoverflow.com/questions/1094717/convert-a-string-to-integer-with-decimal-in-python#1094721
+            return int(float(value))
+        except ValueError:
+            return default_value
+        except TypeError:
+            return default_value
+
+    @staticmethod
+    def safe_integer_product_N(dictionary, key_list, factor, default_value=None):
+        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
+        if value is None:
+            return default_value
+        if isinstance(value, Number):
+            return int(value * factor)
+        elif isinstance(value, str):
+            try:
+                return int(float(value) * factor)
+            except ValueError:
+                pass
+        return default_value
+
+    @staticmethod
+    def safe_timestamp_N(dictionary, key, default_value=None):
+        return Exchange.safe_integer_product(dictionary, key, 1000, default_value)
+
+    @staticmethod
+    def safe_value_N(dictionary, key_list, default_value=None):
+        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
+        return value if value is not None else default_value
+    
+    @staticmethod
+    def get_object_value_from_key_list(dictionary, key_list):
+        filtered_list = list(filter(lambda el: el in object, key_list))
+        if (len(filtered_list) == 0):
+            return None
+        return dictionary[filtered_list[0]]
 
     @staticmethod
     def safe_either(method, dictionary, key1, key2, default_value=None):
@@ -2800,6 +2872,10 @@ class Exchange(object):
 
     def safe_number_2(self, dictionary, key1, key2, default=None):
         value = self.safe_string_2(dictionary, key1, key2)
+        return self.parse_number(value, default)
+    
+    def safe_number_N(self, dictionary, key_list, default=None):
+        value = self.safe_string_N(dictionary, key_list)
         return self.parse_number(value, default)
 
     def parse_precision(self, precision):
