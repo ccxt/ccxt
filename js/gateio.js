@@ -1113,9 +1113,11 @@ module.exports = class gateio extends Exchange {
         // * Do not call for multi spot order methods like cancelAllOrders and fetchOpenOrders. Use multiOrderSpotPrepareRequest instead
         const request = {};
         if (market !== undefined) {
-            if (market['contract']) {
+            if (market['swap'] || market['future']) {
                 request['contract'] = market['id'];
                 request['settle'] = market['settleId'];
+            } else if (market['option']) {
+                request['underlying'] = market['id'];
             } else {
                 request['currency_pair'] = market['id'];
             }
