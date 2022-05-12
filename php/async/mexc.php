@@ -24,6 +24,7 @@ class mexc extends Exchange {
             'rateLimit' => 50, // default rate limit is 20 times per second
             'version' => 'v2',
             'certified' => true,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
