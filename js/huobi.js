@@ -6298,6 +6298,8 @@ module.exports = class huobi extends Exchange {
         }
         const response = await this.contractPublicGetLinearSwapApiV1SwapSettlementRecords (this.extend (request, params));
         //
+        // linear swap
+        //
         //    {
         //        "status": "ok",
         //        "data": {
@@ -6328,6 +6330,8 @@ module.exports = class huobi extends Exchange {
 
     parseSettlement (settlement, market) {
         //
+        // linear swap, fetchSettlementHistory
+        //
         //    {
         //        "symbol": "ADA",
         //        "contract_code": "ADA-USDT",
@@ -6345,7 +6349,12 @@ module.exports = class huobi extends Exchange {
         return {
             'info': settlement,
             'symbol': this.safeSymbol (marketId, market),
+            'entryPrice': undefined,
             'price': this.safeNumber (settlement, 'settlement_price'),
+            'pnl': undefined,
+            'fee': undefined,
+            'size': undefined,
+            'side': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
