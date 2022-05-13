@@ -3693,7 +3693,102 @@ module.exports = class bybit extends Exchange {
         //         result: [] or {} depending on the request
         //     }
         //
-        return this.safeValue (response, 'result');
+        let result = this.safeValue (response, 'result', {});
+        if ('dataList' in result) {
+            result = this.safeValue (result, 'dataList', []);
+        }
+        let positions = undefined;
+        if (!Array.isArray (result)) {
+            positions = [ result ];
+        } else {
+            positions = result;
+        }
+        return this.parsePositions (positions, market);
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //    {
+        //        "user_id":"24478789",
+        //        "symbol":"LTCUSDT",
+        //        "side":"Buy",
+        //        "size":"0.1",
+        //        "position_value":"7.083",
+        //        "entry_price":"70.83",
+        //        "liq_price":"0.01",
+        //        "bust_price":"0.01",
+        //        "leverage":"1",
+        //        "auto_add_margin":"0",
+        //        "is_isolated":false,
+        //        "position_margin":"13.8407674",
+        //        "occ_closing_fee":"6e-07",
+        //        "realised_pnl":"-0.0042498",
+        //        "cum_realised_pnl":"-0.159232",
+        //        "free_qty":"-0.1",
+        //        "tp_sl_mode":"Full",
+        //        "unrealised_pnl":"0.008",
+        //        "deleverage_indicator":"2",
+        //        "risk_id":"71",
+        //        "stop_loss":"0",
+        //        "take_profit":"0",
+        //        "trailing_stop":"0",
+        //        "position_idx":"1",
+        //        "mode":"BothSide"
+        //    }
+        //
+        const contract = this.safeString (position, 'symbol');
+        market = this.safeMarket (contract, market);
+        const size = this.safeString (position, 'size');
+        let side = this.safeString (position, 'side');
+        side = (side === 'Buy') ? 'long' : 'short';
+        // const maintenanceRate = this.safeString (position, 'maintenance_margin');
+        // const maintenanceMargin = this.safeString (position, 'position_margin');
+        const markPrice = this.safeString (position, 'mark_price');
+        const notional = this.safeString (position, 'position_value');
+        const unrealisedPnl = this.safeString (position, 'unrealised_pnl');
+        const initialMarginString = this.safeString (position, 'position_margin');
+        const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
+        const currentTime = this.milliseconds ();
+        const isIsolated = this.safeValue (position, 'is_isolated');
+        const marginMode = isIsolated ? 'isolated' : 'cross';
+        return {
+            'info': position,
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': currentTime,
+            'datetime': this.iso8601 (currentTime),
+            'initialMargin': this.parseNumber (initialMarginString),
+            'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notional)),
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'entryPrice': this.safeString (position, 'entry_price'),
+            'notional': this.parseNumber (notional),
+            'leverage': this.safeNumber (position, 'leverage'),
+            'unrealizedPnl': this.parseNumber (unrealisedPnl),
+            'contracts': this.parseNumber (size),
+            'contractSize': this.safeValue (market, 'contractSize'),
+            'marginRatio': undefined,
+            'liquidationPrice': this.safeNumber (position, 'liq_price'),
+            'markPrice': markPrice,
+            'collateral': undefined,
+            'marginMode': marginMode,
+            'side': side,
+            'percentage': this.parseNumber (percentage),
+        };
+    }
+
+    parsePositions (positions, market = undefined) {
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            const rawPosition = positions[i];
+            const size = this.safeNumber (rawPosition, 'size');
+            // Bybit returns all positions possibilities so we have to
+            // filter only the real ones and ignore the positions with
+            // default values only
+            if (size !== undefined && size !== 0) {
+                result.push (this.parsePosition (rawPosition, market));
+            }
+        }
+        return result;
     }
 
     async setMarginMode (marginMode, symbol = undefined, params = {}) {
