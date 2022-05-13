@@ -3419,7 +3419,7 @@ module.exports = class gateio extends Exchange {
             result = [];
             for (let i = 0; i < response.length; i++) {
                 const orders = this.safeValue (response[i], 'orders');
-                result = result.concat (orders);
+                result = this.arrayConcat (orders);
             }
         }
         const orders = this.parseOrders (result, market, since, limit);
