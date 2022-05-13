@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.1.22'
+__version__ = '1.1.23'
 
 # -----------------------------------------------------------------------------
 
@@ -117,7 +117,6 @@ from ccxt.async_support.liquid import liquid                              # noqa
 from ccxt.async_support.luno import luno                                  # noqa: F401
 from ccxt.async_support.lykke import lykke                                # noqa: F401
 from ccxt.async_support.mercado import mercado                            # noqa: F401
-from ccxt.async_support.mexc import mexc                                  # noqa: F401
 from ccxt.async_support.novadax import novadax                            # noqa: F401
 from ccxt.async_support.oceanex import oceanex                            # noqa: F401
 from ccxt.async_support.okex5 import okex5                                # noqa: F401
@@ -170,6 +169,7 @@ from ccxtpro.huobipro import huobipro                                     # noqa
 from ccxtpro.idex import idex                                             # noqa: F401
 from ccxtpro.kraken import kraken                                         # noqa: F401
 from ccxtpro.kucoin import kucoin                                         # noqa: F401
+from ccxtpro.mexc import mexc                                             # noqa: F401
 from ccxtpro.ndax import ndax                                             # noqa: F401
 from ccxtpro.okcoin import okcoin                                         # noqa: F401
 from ccxtpro.okex import okex                                             # noqa: F401
