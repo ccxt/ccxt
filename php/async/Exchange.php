@@ -338,7 +338,7 @@ class Exchange extends \ccxt\Exchange {
                 return $deposit_address;
             }
         } else {
-            throw new NotSupported ($this->id . ' fetchDepositAddress not supported yet');
+            throw new NotSupported ($this->id . ' fetchDepositAddress() is not supported yet');
         }
     }
 
@@ -347,12 +347,12 @@ class Exchange extends \ccxt\Exchange {
             $tickers = yield $this->fetch_tickers(array( $symbol ), $params);
             $ticker = $this->safe_value($tickers, $symbol);
             if ($ticker === null) {
-                throw new BadSymbol($this->id . ' fetchTickers could not find a $ticker for ' . $symbol);
+                throw new BadSymbol($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
             } else {
                 return $ticker;
             }
         } else {
-            throw new NotSupported($this->id . ' fetchTicker not supported yet');
+            throw new NotSupported($this->id . ' fetchTicker() is not supported yet');
         }
     }
 

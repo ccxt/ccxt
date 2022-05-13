@@ -10,7 +10,7 @@ const assert = require ('assert')
 module.exports = async (exchange, symbol) => {
 
     if (!exchange.has.createOrder) {
-        console.log ('createOrder not supported -> test skipped')
+        console.log ('createOrder() is not supported')
         return
     }
 

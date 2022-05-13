@@ -558,7 +558,7 @@ module.exports = class Exchange {
                     } else if (typeof config === 'number') {
                         this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, { cost: config })
                     } else {
-                        throw new NotSupported (this.id + ' defineRestApi() API format not supported, API leafs must strings, objects or numbers');
+                        throw new NotSupported (this.id + ' defineRestApi() API format is not supported, API leafs must strings, objects or numbers');
                     }
                 }
             } else {

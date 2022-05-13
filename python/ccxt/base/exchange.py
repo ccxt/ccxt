@@ -1681,11 +1681,11 @@ class Exchange(object):
             tickers = self.fetch_tickers([symbol], params)
             ticker = self.safe_value(tickers, symbol)
             if ticker is None:
-                raise BadSymbol(self.id + ' fetchTickers could not find a ticker for ' + symbol)
+                raise BadSymbol(self.id + ' fetchTickers() could not find a ticker for ' + symbol)
             else:
                 return ticker
         else:
-            raise NotSupported(self.id + ' fetchTicker not supported yet')
+            raise NotSupported(self.id + ' fetchTicker() is not supported yet')
 
     def fetch_tickers(self, symbols=None, params={}):
         raise NotSupported(self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now')
@@ -1736,7 +1736,7 @@ class Exchange(object):
             else:
                 return deposit_address
         else:
-            raise NotSupported(self.id + ' fetchDepositAddress not supported yet')
+            raise NotSupported(self.id + ' fetchDepositAddress() not supported yet')
 
     def parse_funding_rate(self, contract, market=None):
         raise NotSupported(self.id + ' parse_funding_rate() is not supported yet')
