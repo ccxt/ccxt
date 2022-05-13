@@ -31,6 +31,6 @@ module.exports = async (exchange) => {
 
     } else {
 
-        console.log (method +'() is not supported')
+        console.log (method + '() is not supported')
     }
 }
