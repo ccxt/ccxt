@@ -76,8 +76,6 @@ class binance(Exchange):
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
-                'fetchFundingFee': None,
-                'fetchFundingFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -113,6 +111,8 @@ class binance(Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTradingLimits': None,
+                'fetchTransactionFee': None,
+                'fetchTransactionFees': True,
                 'fetchTransactions': False,
                 'fetchTransfers': True,
                 'fetchWithdrawal': False,
@@ -350,6 +350,7 @@ class binance(Exchange):
                         'nft/user/getAsset': 20.001,
                         'pay/transactions': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'giftcard/verify': 0.1,
+                        'giftcard/cryptography/rsa-public-key': 0.1,
                         'algo/futures/openOrders': 0.1,
                         'algo/futures/historicalOrders': 0.1,
                         'algo/futures/subOrders': 0.1,
@@ -3721,7 +3722,7 @@ class binance(Exchange):
             'info': response,
         }
 
-    async def fetch_funding_fees(self, codes=None, params={}):
+    async def fetch_transaction_fees(self, codes=None, params={}):
         await self.load_markets()
         response = await self.sapiGetCapitalConfigGetall(params)
         #

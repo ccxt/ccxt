@@ -61,8 +61,6 @@ class binance extends Exchange {
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
-                'fetchFundingFee' => null,
-                'fetchFundingFees' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -98,6 +96,8 @@ class binance extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchTradingLimits' => null,
+                'fetchTransactionFee' => null,
+                'fetchTransactionFees' => true,
                 'fetchTransactions' => false,
                 'fetchTransfers' => true,
                 'fetchWithdrawal' => false,
@@ -335,6 +335,7 @@ class binance extends Exchange {
                         'nft/user/getAsset' => 20.001,
                         'pay/transactions' => 20.001, // Weight(UID) => 3000 => cost = 0.006667 * 3000 = 20.001
                         'giftcard/verify' => 0.1,
+                        'giftcard/cryptography/rsa-public-key' => 0.1,
                         'algo/futures/openOrders' => 0.1,
                         'algo/futures/historicalOrders' => 0.1,
                         'algo/futures/subOrders' => 0.1,
@@ -3900,7 +3901,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_funding_fees($codes = null, $params = array ()) {
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
         $this->load_markets();
         $response = $this->sapiGetCapitalConfigGetall ($params);
         //

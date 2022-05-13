@@ -3272,9 +3272,6 @@ module.exports = class gateio extends Exchange {
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         const spot = (type === 'spot') || (type === 'margin');
         const [ request, requestParams ] = spot ? this.multiOrderSpotPrepareRequest (market, stop, query) : this.prepareRequest (market, type, query);
-        if (spot && !stop && (market === undefined) && (status === 'open')) {
-            throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus requires a symbol argument for spot non-stop open orders');
-        }
         if (status === 'closed') {
             status = 'finished';
         }
@@ -3285,7 +3282,10 @@ module.exports = class gateio extends Exchange {
         if (since !== undefined && spot) {
             request['from'] = parseInt (since / 1000);
         }
-        const methodTail = stop ? 'PriceOrders' : 'Orders';
+        let methodTail = stop ? 'PriceOrders' : 'Orders';
+        if (spot && (status === 'open') && !stop) {
+            methodTail = 'OpenOrders';
+        }
         const method = this.getSupportedMapping (type, {
             'spot': 'privateSpotGet' + methodTail,
             'margin': 'privateSpotGet' + methodTail,

@@ -1771,13 +1771,26 @@ class mexc extends Exchange {
             $orderSide = 'ASK';
         }
         $orderType = strtoupper($type);
-        $postOnly = $this->safe_value($params, 'postOnly', false);
-        if ($postOnly) {
-            $orderType = 'POST_ONLY';
-        } else if ($orderType === 'LIMIT') {
+        if ($orderType === 'MARKET') {
+            throw new InvalidOrder($this->id . ' createOrder () does not support $market orders, only limit orders are allowed');
+        }
+        if ($orderType === 'LIMIT') {
             $orderType = 'LIMIT_ORDER';
-        } else if (($orderType !== 'POST_ONLY') && ($orderType !== 'IMMEDIATE_OR_CANCEL')) {
-            throw new InvalidOrder($this->id . ' createOrder() does not support ' . $type . ' order $type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL');
+        }
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        $timeInForce = $this->safe_string($params, 'timeInForce');
+        $maker = ($postOnly || ($timeInForce === 'PO'));
+        $ioc = ($timeInForce === 'IOC');
+        if ($maker) {
+            $orderType = 'POST_ONLY';
+        } else if ($ioc) {
+            $orderType = 'IMMEDIATE_OR_CANCEL';
+        }
+        if ($timeInForce === 'FOK') {
+            throw new InvalidOrder($this->id . ' createOrder () does not support $timeInForce FOK, only IOC, PO, and GTC are allowed');
+        }
+        if ((($orderType !== 'POST_ONLY') && ($orderType !== 'IMMEDIATE_OR_CANCEL') && ($orderType !== 'LIMIT_ORDER'))) {
+            throw new InvalidOrder($this->id . ' createOrder () does not support ' . $type . ' order $type, only LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL are allowed');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -1790,7 +1803,7 @@ class mexc extends Exchange {
         if ($clientOrderId !== null) {
             $request['client_order_id'] = $clientOrderId;
         }
-        $params = $this->omit($params, array( 'type', 'clientOrderId', 'client_order_id', 'postOnly' ));
+        $params = $this->omit($params, array( 'type', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce' ));
         $response = yield $this->spotPrivatePostOrderPlace (array_merge($request, $params));
         //
         //     array("code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4")
@@ -1803,21 +1816,30 @@ class mexc extends Exchange {
         $market = $this->market($symbol);
         $openType = $this->safe_integer($params, 'openType');
         if ($openType === null) {
-            throw new ArgumentsRequired($this->id . ' createSwapOrder() requires an integer $openType parameter, 1 for isolated margin, 2 for cross margin');
+            throw new ArgumentsRequired($this->id . ' createSwapOrder () requires an integer $openType parameter, 1 for isolated margin, 2 for cross margin');
         }
         if (($type !== 'limit') && ($type !== 'market') && ($type !== 1) && ($type !== 2) && ($type !== 3) && ($type !== 4) && ($type !== 5) && ($type !== 6)) {
-            throw new InvalidOrder($this->id . ' createSwapOrder() order $type must either limit, $market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for $market orders or 6 to convert $market $price to current price');
+            throw new InvalidOrder($this->id . ' createSwapOrder () order $type must either limit, $market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for $market orders or 6 to convert $market $price to current price');
         }
+        $timeInForce = $this->safe_string($params, 'timeInForce');
         $postOnly = $this->safe_value($params, 'postOnly', false);
-        if ($postOnly) {
+        $maker = (($timeInForce === 'PO') || ($postOnly));
+        if ($maker) {
             $type = 2;
         } else if ($type === 'limit') {
             $type = 1;
         } else if ($type === 'market') {
             $type = 6;
         }
+        $ioc = ($timeInForce === 'IOC');
+        $fok = ($timeInForce === 'FOK');
+        if ($ioc) {
+            $type = 3;
+        } else if ($fok) {
+            $type = 4;
+        }
         if (($side !== 1) && ($side !== 2) && ($side !== 3) && ($side !== 4)) {
-            throw new InvalidOrder($this->id . ' createSwapOrder() order $side must be 1 open long, 2 close short, 3 open short or 4 close long');
+            throw new InvalidOrder($this->id . ' createSwapOrder () order $side must be 1 open long, 2 close short, 3 open short or 4 close long');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -1829,7 +1851,7 @@ class mexc extends Exchange {
             // supported order types
             //
             //     1 limit
-            //     2 post only maker (PO)
+            //     2 post only $maker (PO)
             //     3 transact or cancel instantly (IOC)
             //     4 transact completely or cancel completely (FOK)
             //     5 $market orders
@@ -1847,7 +1869,7 @@ class mexc extends Exchange {
         );
         $method = 'contractPrivatePostOrderSubmit';
         $stopPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
-        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice' ));
+        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'timeInForce', 'postOnly' ));
         if ($stopPrice !== null) {
             $method = 'contractPrivatePostPlanorderPlace';
             $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
@@ -1862,7 +1884,7 @@ class mexc extends Exchange {
         if ($openType === 1) {
             $leverage = $this->safe_integer($params, 'leverage');
             if ($leverage === null) {
-                throw new ArgumentsRequired($this->id . ' createSwapOrder() requires a $leverage parameter for isolated margin orders');
+                throw new ArgumentsRequired($this->id . ' createSwapOrder () requires a $leverage parameter for isolated margin orders');
             }
         }
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'externalOid');
@@ -1982,6 +2004,7 @@ class mexc extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        // TODO update parseOrder to reflect type, $timeInForce, and $postOnly from fetchOrder ()
         //
         // createOrder
         //
@@ -2009,7 +2032,7 @@ class mexc extends Exchange {
         //         "order_type":"LIMIT_ORDER"
         //     }
         //
-        // swap fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        // swap fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, fetchOrder
         //
         //     {
         //         "orderId" => "266578267438402048",
@@ -2134,9 +2157,40 @@ class mexc extends Exchange {
         if ($clientOrderId === '') {
             $clientOrderId = null;
         }
-        $orderType = $this->safe_string_lower($order, 'order_type');
-        if ($orderType !== null) {
-            $orderType = str_replace('_order', '', $orderType);
+        $rawOrderType = $this->safe_string_2($order, 'orderType', 'order_type');
+        $orderType = null;
+        // swap => 1:$price limited $order, 2:Post Only Maker, 3:transact or cancel instantly, 4:transact completely or cancel completely，5:$market orders, 6:convert $market $price to current $price
+        // spot => LIMIT_ORDER, POST_ONLY, IMMEDIATE_OR_CANCEL
+        $timeInForce = null;
+        $postOnly = false;
+        if ($rawOrderType !== null) {
+            if ($rawOrderType === '1') {
+                $orderType = 'limit';
+                $timeInForce = 'GTC';
+            } else if ($rawOrderType === '2') {
+                $orderType = 'limit';
+                $timeInForce = 'PO';
+                $postOnly = true;
+            } else if ($rawOrderType === '3') {
+                $orderType = 'limit';
+                $timeInForce = 'IOC';
+            } else if ($rawOrderType === '4') {
+                $orderType = 'limit';
+                $timeInForce = 'FOK';
+            } else if (($rawOrderType === '5') || ($rawOrderType === '6')) {
+                $orderType = 'market';
+                $timeInForce = 'GTC';
+            } else if ($rawOrderType === 'LIMIT_ORDER') {
+                $orderType = 'limit';
+                $timeInForce = 'GTC';
+            } else if ($rawOrderType === 'POST_ONLY') {
+                $orderType = 'limit';
+                $timeInForce = 'PO';
+                $postOnly = true;
+            } else if ($rawOrderType === 'IMMEDIATE_OR_CANCEL') {
+                $orderType = 'limit';
+                $timeInForce = 'IOC';
+            }
         }
         return $this->safe_order(array(
             'id' => $id,
@@ -2147,10 +2201,11 @@ class mexc extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $orderType,
-            'timeInForce' => null,
+            'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
+            'stopPrice' => $this->safe_string($order, 'triggerPrice'),
             'average' => null,
             'amount' => $amount,
             'cost' => $cost,

@@ -87,7 +87,6 @@ class gateio extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
-                'fetchFundingFees' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -112,6 +111,7 @@ class gateio extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
+                'fetchTransactionFees' => true,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
                 'setMarginMode' => false,
@@ -1607,7 +1607,7 @@ class gateio extends Exchange {
         );
     }
 
-    public function fetch_funding_fees($params = array ()) {
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
         yield $this->load_markets();
         $response = yield $this->privateWalletGetWithdrawStatus ($params);
         //
@@ -3264,9 +3264,6 @@ class gateio extends Exchange {
         list($type, $query) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
         $spot = ($type === 'spot') || ($type === 'margin');
         list($request, $requestParams) = $spot ? $this->multi_order_spot_prepare_request($market, $stop, $query) : $this->prepare_request($market, $type, $query);
-        if ($spot && !$stop && ($market === null) && ($status === 'open')) {
-            throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus requires a $symbol argument for $spot non-$stop open orders');
-        }
         if ($status === 'closed') {
             $status = 'finished';
         }
@@ -3278,6 +3275,9 @@ class gateio extends Exchange {
             $request['from'] = intval($since / 1000);
         }
         $methodTail = $stop ? 'PriceOrders' : 'Orders';
+        if ($spot && ($status === 'open') && !$stop) {
+            $methodTail = 'OpenOrders';
+        }
         $method = $this->get_supported_mapping($type, array(
             'spot' => 'privateSpotGet' . $methodTail,
             'margin' => 'privateSpotGet' . $methodTail,
