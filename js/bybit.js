@@ -3828,7 +3828,7 @@ module.exports = class bybit extends Exchange {
             const size = this.safeNumber (rawPosition, 'size');
             // Bybit returns all positions possibilities so we have to
             // filter only the real ones and ignore the positions with
-            // default values only
+            // default values
             if (size !== undefined && size !== 0) {
                 result.push (this.parsePosition (rawPosition, market));
             }
