@@ -57,6 +57,8 @@ class bitget(Exchange):
                 'fetchCurrencies': True,
                 'fetchDeposits': False,
                 'fetchFundingRate': True,
+                'fetchFundingRateHistory': True,
+                'fetchFundingRates': False,
                 'fetchLedger': True,
                 'fetchLeverage': True,
                 'fetchMarkets': True,
@@ -2286,6 +2288,51 @@ class bitget(Exchange):
             'leverage': self.safe_number(position, 'leverage'),
             'marginRatio': None,
         }
+
+    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            # 'pageSize': limit,  # default 20
+            # 'pageNo': 1,
+            # 'nextPage': False,
+        }
+        if limit is not None:
+            request['pageSize'] = limit
+        response = await self.publicMixGetMarketHistoryFundRate(self.extend(request, params))
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1652406728393,
+        #         "data": [
+        #             {
+        #                 "symbol": "BTCUSDT",
+        #                 "fundingRate": "-0.0003",
+        #                 "settleTime": "1652396400000"
+        #             },
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        rates = []
+        for i in range(0, len(data)):
+            entry = data[i]
+            marketId = self.safe_string(entry, 'symbol')
+            symbol = self.safe_symbol(marketId, market)
+            timestamp = self.safe_integer(entry, 'settleTime')
+            rates.append({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': self.safe_string(entry, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            })
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     async def fetch_funding_rate(self, symbol, params={}):
         await self.load_markets()

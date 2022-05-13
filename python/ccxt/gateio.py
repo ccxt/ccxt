@@ -3263,7 +3263,7 @@ class gateio(Exchange):
             result = []
             for i in range(0, len(response)):
                 orders = self.safe_value(response[i], 'orders')
-                result = result.concat(orders)
+                result = self.array_concat(result, orders)
         orders = self.parse_orders(result, market, since, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 

@@ -3410,7 +3410,7 @@ class gateio extends Exchange {
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
                 $orders = $this->safe_value($response[$i], 'orders');
-                $result = $result->concat ($orders);
+                $result = $this->array_concat($result, $orders);
             }
         }
         $orders = $this->parse_orders($result, $market, $since, $limit);

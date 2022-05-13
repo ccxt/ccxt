@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.82.32';
+$version = '1.82.36';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.82.32';
+    const VERSION = '1.82.36';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -223,6 +223,14 @@ class Exchange {
         'safeString2' => 'safe_string2',
         'safeStringLower2' => 'safe_string_lower2',
         'safeStringUpper2' => 'safe_string_upper2',
+        'safeFloatN' => 'safe_float_n',
+        'safeIntegerN' => 'safe_integer_n',
+        'safeIntegerProductN' => 'safe_integer_product_n',
+        'safeTimestampN' => 'safe_timestamp_n',
+        'safeValueN' => 'safe_value_n',
+        'safeStringN' => 'safe_string_n',
+        'safeStringLowerN' => 'safe_string_lower_n',
+        'safeStringUpperN' => 'safe_string_upper_n',
         'numberToString' => 'number_to_string',
         'precisionFromString' => 'precision_from_string',
         'decimalToPrecision' => 'decimal_to_precision',
@@ -379,6 +387,7 @@ class Exchange {
         'parseNumber' => 'parse_number',
         'safeNumber' => 'safe_number',
         'safeNumber2' => 'safe_number2',
+        'safeNumberN' => 'safe_number_n',
         'parsePrecision' => 'parse_precision',
         'handleWithdrawTagAndParams' => 'handle_withdraw_tag_and_params',
         'getSupportedMapping' => 'get_supported_mapping',
@@ -479,6 +488,55 @@ class Exchange {
     public static function safe_value_2($object, $key1, $key2, $default_value = null) {
         $value = static::safe_value($object, $key1);
         return isset($value) ? $value : static::safe_value($object, $key2, $default_value);
+    }
+
+    // safe_method_n family
+    public static function safe_float_n($object, $array, $default_value = null) {
+        $value = static::get_object_value_from_key_array($object, $array);
+        return (isset($object[$key]) && is_numeric($object[$key])) ? floatval($object[$key]) : $default_value;
+    }
+
+    public static function safe_string_n($object, $array, $default_value = null) {
+        $value = static::get_object_value_from_key_array($object, $array);
+        return (isset($value) && is_scalar($value)) ? strval($value) : $default_value;
+    }
+
+    public static function safe_string_lower_n($object, $array, $default_value = null) {
+        $value = static::get_object_value_from_key_array($object, $array);
+        return (isset($value) && is_scalar($value)) ? strtolower(strval($value)) : $default_value;
+    }
+
+    public static function safe_string_upper_n($object, $array, $default_value = null) {
+        $value = static::get_object_value_from_key_array($object, $array);
+        return (isset($value) && is_scalar($value)) ? strtoupper(strval($value)) : $default_value;
+    }
+
+    public static function safe_integer_n($object, $array, $default_value = null) {
+        $value = static::get_object_value_from_key_array($object, $array);
+        return (isset($value) && is_numeric($value)) ? intval($value) : $default_value;
+    }
+
+    public static function safe_integer_product_n($object, $array, $factor, $default_value = null) {
+        $value = static::get_object_value_from_key_array($object, $array);
+        return (isset($value) && is_numeric($value)) ? (intval($value * $factor)) : $default_value;
+    }
+
+    public static function safe_timestamp_n($object, $array, $default_value = null) {
+        return static::safe_integer_product_n($object, $array, 1000, $default_value);
+    }
+
+    public static function safe_value_n($object, $array, $default_value = null) {
+        $value = static::get_object_value_from_key_array($object, $array);
+        return (isset($value) && is_scalar($value)) ? $value : $default_value;
+    }
+
+    public static function get_object_value_from_key_array($object, $array) {
+        foreach($array as $key) {
+            if (isset($object[$key])) {
+                return $object[$key];
+            }
+        }
+        return null;
     }
 
     public static function truncate($number, $precision = 0) {
@@ -3734,6 +3792,11 @@ class Exchange {
 
     public function safe_number_2($object, $key1, $key2, $default = null) {
         $value = $this->safe_string_2($object, $key1, $key2);
+        return $this->parse_number($value, $default);
+    }
+
+    public function safe_number_n($object, $array, $default = null) {
+        $value = $this->safe_string_n($object, $array);
         return $this->parse_number($value, $default);
     }
 

@@ -3290,7 +3290,7 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v2PrivateGetWalletWithdrawList (this.extend (request, params));
+        const response = await this.privateGetV2PrivateWalletWithdrawList (this.extend (request, params));
         //
         //     {
         //         "ret_code": 0,
