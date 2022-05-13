@@ -57,7 +57,7 @@ module.exports = class mexc3 extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': undefined,
                 'fetchIndexOHLCV': true,
-                'fetchL2OrderBook': undefined,
+                'fetchL2OrderBook': true,
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverageTiers': true,
