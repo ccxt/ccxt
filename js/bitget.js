@@ -38,6 +38,8 @@ module.exports = class bitget extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposits': false,
                 'fetchFundingRate': true,
+                'fetchFundingRateHistory': true,
+                'fetchFundingRates': false,
                 'fetchLedger': true,
                 'fetchLeverage': true,
                 'fetchMarkets': true,
@@ -2351,6 +2353,55 @@ module.exports = class bitget extends Exchange {
             'leverage': this.safeNumber (position, 'leverage'),
             'marginRatio': undefined,
         };
+    }
+
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = 100, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            // 'pageSize': limit, // default 20
+            // 'pageNo': 1,
+            // 'nextPage': false,
+        };
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const response = await this.publicMixGetMarketHistoryFundRate (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1652406728393,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "fundingRate": "-0.0003",
+        //                 "settleTime": "1652396400000"
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const rates = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString (entry, 'symbol');
+            const symbol = this.safeSymbol (marketId, market);
+            const timestamp = this.safeInteger (entry, 'settleTime');
+            rates.push ({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': this.safeString (entry, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
     async fetchFundingRate (symbol, params = {}) {
