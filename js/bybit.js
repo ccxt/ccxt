@@ -3566,53 +3566,46 @@ module.exports = class bybit extends Exchange {
     }
 
     async setMarginMode (marginMode, symbol = undefined, params = {}) {
-        //
-        // {
-        //     "ret_code": 0,
-        //     "ret_msg": "ok",
-        //     "ext_code": "",
-        //     "result": null,
-        //     "ext_info": null,
-        //     "time_now": "1577477968.175013",
-        //     "rate_limit_status": 74,
-        //     "rate_limit_reset_ms": 1577477968183,
-        //     "rate_limit": 75
-        // }
-        //
-        const leverage = this.safeValue (params, 'leverage');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
+        const leverage = this.safeNumber (params, 'leverage');
+        let sellLeverage = undefined;
+        let buyLeverage = undefined;
         if (leverage === undefined) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter');
+            sellLeverage = this.safeNumber (params, 'sell_leverage', 'sellLeverage');
+            buyLeverage = this.safeNumber (params, 'buy_leverage', 'buyLeverage');
+            if (sellLeverage === undefined || buyLeverage === undefined) {
+                throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters');
+            }
+            params = this.omit (params, [ 'buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage' ]);
+        } else {
+            params = this.omit (params, 'leverage');
+            sellLeverage = leverage;
+            buyLeverage = leverage;
         }
         marginMode = marginMode.toUpperCase ();
-        if (marginMode === 'CROSSED') { // * Deprecated, use 'CROSS' instead
-            marginMode = 'CROSS';
-        }
         if ((marginMode !== 'ISOLATED') && (marginMode !== 'CROSS')) {
             throw new BadRequest (this.id + ' setMarginMode() marginMode must be either isolated or cross');
         }
+        const isIsolated = (marginMode === 'ISOLATED');
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = undefined;
-        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
-        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
-        const marketType = this.safeString (marketTypes, symbol, defaultType);
-        const linear = market['linear'] || (marketType === 'linear');
-        const inverse = (market['swap'] && market['inverse']) || (marketType === 'inverse');
-        const future = market['future'] || ((marketType === 'future') || (marketType === 'futures')); // * (marketType === 'futures') deprecated, use (marketType === 'future')
-        if (linear) {
-            method = 'privateLinearPostPositionSwitchIsolated';
-        } else if (inverse) {
-            method = 'v2PrivatePostPositionSwitchIsolated';
-        } else if (future) {
-            method = 'privateFuturesPostPositionSwitchIsolated';
-        }
-        const isIsolated = (marginMode === 'ISOLATED');
         const request = {
             'symbol': market['id'],
             'is_isolated': isIsolated,
             'buy_leverage': leverage,
             'sell_leverage': leverage,
         };
+        let method = undefined;
+        if (market['future']) {
+            method = 'privateFuturesPostPositionSwitchIsolated';
+        } else if (market['inverse']) {
+            method = 'privatePostV2PrivatePositionSwitchIsolated';
+        } else {
+            // linear
+            method = 'privatePostPrivateLinearPositionSwitchIsolated';
+        }
         const response = await this[method] (this.extend (request, params));
         //
         //     {
