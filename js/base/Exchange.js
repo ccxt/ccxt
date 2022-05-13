@@ -2218,6 +2218,11 @@ module.exports = class Exchange {
         return this.parseNumber (value, d)
     }
 
+    safeNumberN (object, arr, d = undefined) {
+        const value = this.safeStringN (object, arr)
+        return this.parseNumber(value, d)
+    }
+
     parsePrecision (precision) {
         if (precision === undefined) {
             return undefined
