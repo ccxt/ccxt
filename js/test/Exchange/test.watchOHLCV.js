@@ -24,7 +24,7 @@ module.exports = async (exchange, symbol) => {
     ]
 
     if (skippedExchanges.includes (exchange.id)) {
-        log (exchange.id, method, 'test skipped')
+        log (exchange.id, method + '() test skipped')
         return
     }
 
