@@ -3582,8 +3582,8 @@ module.exports = class bybit extends Exchange {
         let sellLeverage = undefined;
         let buyLeverage = undefined;
         if (leverage === undefined) {
-            sellLeverage = this.safeNumber (params, 'sell_leverage', 'sellLeverage');
-            buyLeverage = this.safeNumber (params, 'buy_leverage', 'buyLeverage');
+            sellLeverage = this.safeNumber2 (params, 'sell_leverage', 'sellLeverage');
+            buyLeverage = this.safeNumber2 (params, 'buy_leverage', 'buyLeverage');
             if (sellLeverage === undefined || buyLeverage === undefined) {
                 throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters');
             }
@@ -3602,7 +3602,7 @@ module.exports = class bybit extends Exchange {
         };
         let method = undefined;
         if (market['future']) {
-            method = 'privateFuturesPostPositionSwitchIsolated';
+            method = 'privatePostFuturesPrivatePositionSwitchIsolated';
         } else if (market['inverse']) {
             method = 'privatePostV2PrivatePositionSwitchIsolated';
         } else {
