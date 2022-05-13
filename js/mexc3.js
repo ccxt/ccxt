@@ -16,7 +16,6 @@ module.exports = class mexc3 extends Exchange {
             'countries': [ 'SC' ], // Seychelles
             'rateLimit': 50, // default rate limit is 20 times per second
             'version': 'v3',
-            'certified': true,
             'has': {
                 'CORS': undefined,
                 'spot': undefined,
