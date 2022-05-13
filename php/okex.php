@@ -12,7 +12,7 @@ class okex extends okx {
     public function describe() {
         return $this->deep_extend(parent::describe (), array(
             'alias' => true,
-            'id' => 'huobipro',
+            'id' => 'okex',
         ));
     }
 }
