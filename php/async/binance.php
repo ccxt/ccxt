@@ -4314,7 +4314,7 @@ class binance extends Exchange {
             }
         }
         if ($method === null) {
-            throw new NotSupported($this->id . ' fetchFundingRateHistory() not supported for ' . $type . ' markets');
+            throw new NotSupported($this->id . ' fetchFundingRateHistory() is not supported for ' . $type . ' markets');
         }
         if ($since !== null) {
             $request['startTime'] = $since;

@@ -4112,7 +4112,7 @@ class binance(Exchange):
             elif market['inverse']:
                 method = 'dapiPublicGetFundingRate'
         if method is None:
-            raise NotSupported(self.id + ' fetchFundingRateHistory() not supported for ' + type + ' markets')
+            raise NotSupported(self.id + ' fetchFundingRateHistory() is not supported for ' + type + ' markets')
         if since is not None:
             request['startTime'] = since
         till = self.safe_integer(params, 'till')  # unified in milliseconds
