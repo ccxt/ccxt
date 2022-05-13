@@ -2134,12 +2134,12 @@ class Exchange {
     }
 
     public function fetch_trading_fees($params = array()) {
-        throw new NotSupported($this->id . ' fetch_trading_fees not supported yet');
+        throw new NotSupported($this->id . ' fetch_trading_fees() is not supported yet');
     }
 
     public function fetch_trading_fee($symbol, $params = array()) {
         if (!$this->has['fetchTradingFees']) {
-            throw new NotSupported($this->id . ' fetch_trading_fee not supported yet');
+            throw new NotSupported($this->id . ' fetch_trading_fee() is not supported yet');
         }
         return $this->fetch_trading_fees($params);
     }
@@ -2612,12 +2612,12 @@ class Exchange {
             $tickers = $this->fetch_tickers(array( $symbol ), $params);
             $ticker = $this->safe_value($tickers, $symbol);
             if ($ticker === null) {
-                throw new BadSymbol($this->id . ' fetchTickers could not find a $ticker for ' . $symbol);
+                throw new BadSymbol($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
             } else {
                 return $ticker;
             }
         } else {
-            throw new NotSupported($this->id . ' fetchTicker not supported yet');
+            throw new NotSupported($this->id . ' fetchTicker() not supported yet');
         }
     }
 
