@@ -24,19 +24,59 @@ module.exports = class bybit extends ccxt.bybit {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://api.hollaex.com/stream',
+                    'ws': {
+                        'inverse': {
+                            'public': 'wss://stream.{hostname}/realtime',
+                            'private': 'wss://stream.{hostname}/realtime',
+                        },
+                        'linear': {
+                            'public': 'wss://stream.{hostname}/realtime_public',
+                            'private': 'wss://stream.{hostname}/realtime_private',
+                        },
+                        'spot': {
+                            'public': 'wss://stream.{hostname}/spot/quote/ws/v2',
+                            'private': 'wss://stream.{hostname}/spot/ws',
+                        },
+                        'usdc': {
+                            'option': {
+                                'public': 'wss://stream.{hostname}/trade/option/usdc/public/v1',
+                                'private': 'wss://stream.{hostname}/trade/option/usdc/private/v1',
+                            },
+                            'swap': {
+                                'public': 'wss://stream.{hostname}/perpetual/ws/v1/realtime_public',
+                                'private': 'wss://stream.{hostname}/trade/option/usdc/private/v1', // check this
+                            },
+                        },
+                    },
                 },
                 'test': {
-                    'ws': 'wss://api.sandbox.hollaex.com/stream',
+                    'ws': {
+                        'inverse': {
+                            'public': 'wss://stream-testnet.{hostname}/realtime',
+                            'private': 'wss://stream-testnet.{hostname}/realtime',
+                        },
+                        'linear': {
+                            'public': 'wss://stream-testnet.{hostname}/realtime_public',
+                            'private': 'wss://stream-testnet.{hostname}/realtime_private',
+                        },
+                        'spot': {
+                            'public': 'wss://stream-testnet.{hostname}/spot/quote/ws/v2',
+                            'private': 'wss://stream-testnet.{hostname}/spot/ws',
+                        },
+                        'usdc': {
+                            'option': {
+                                'public': 'wss://stream-testnet.{hostname}/trade/option/usdc/public/v1',
+                                'private': 'wss://stream-testnet.{hostname}/trade/option/usdc/private/v1',
+                            },
+                            'swap': {
+                                'public': 'wss://stream-testnet.{hostname}/perpetual/ws/v1/realtime_public',
+                                'private': 'wss://stream-testnet.{hostname}/trade/option/usdc/private/v1', // check this
+                            },
+                        },
+                    },
                 },
             },
             'options': {
-                'watchBalance': {
-                    // 'api-expires': undefined,
-                },
-                'watchOrders': {
-                    // 'api-expires': undefined,
-                },
             },
             'streaming': {
                 'ping': this.ping,
