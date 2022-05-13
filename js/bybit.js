@@ -3663,15 +3663,24 @@ module.exports = class bybit extends Exchange {
             let subType = this.safeString (options, 'subType', defaultSubType);
             subType = this.safeString (params, 'subType', subType);
             isLinear = (subType === 'linear');
+            let defaultSettle = this.safeString (this.options, 'defaultSettle');
+            defaultSettle = this.safeString2 (params, 'settle', 'defaultSettle', defaultSettle);
+            isUsdcSettled = (defaultSettle === 'USDC');
+            params = this.omit (params, [ 'settle', 'defaultSettle', 'subType' ]);
         }
-        let response = undefined;
-        if (type === 'linear') {
-            response = await this.privateLinearGetPositionList (this.extend (request, params));
-        } else if (type === 'inverse') {
-            response = await this.v2PrivateGetPositionList (this.extend (request, params));
-        } else if (type === 'inverseFuture') {
-            response = await this.futuresPrivateGetPositionList (this.extend (request, params));
+        let method = undefined;
+        if (isUsdcSettled) {
+            method = 'privatePostOptionUsdcOpenapiPrivateV1QueryPosition';
+            request['category'] = (type === 'option') ? 'OPTION' : 'PERPETUAL';
+        } else if (type === 'future') {
+            method = 'privateGetFuturesPrivatePositionList';
+        } else if (isLinear) {
+            method = 'privateGetPrivateLinearPositionList';
+        } else {
+            // inverse swaps
+            method = 'privateGetV2PrivatePositionList';
         }
+        let response = await this[method] (this.extend (request, params));
         if ((typeof response === 'string') && this.isJsonEncodedObject (response)) {
             response = JSON.parse (response);
         }
