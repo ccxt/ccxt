@@ -37,7 +37,7 @@ async def test_watch_trades(exchange, symbol):
                 now = exchange.milliseconds()
         return response
     else:
-        print(exchange.id, method, 'is not supported or not implemented yet')
+        print(exchange.id, method + '() is not supported or not implemented yet')
 
 
 __all__ = ['test_watch_trades']
