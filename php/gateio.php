@@ -3274,7 +3274,8 @@ class gateio extends Exchange {
             $request['from'] = intval($since / 1000);
         }
         $methodTail = $stop ? 'PriceOrders' : 'Orders';
-        if ($spot && ($status === 'open') && !$stop) {
+        $openSpotOrders = $spot && ($status === 'open') && !$stop;
+        if ($openSpotOrders) {
             $methodTail = 'OpenOrders';
         }
         $method = $this->get_supported_mapping($type, array(
@@ -3284,6 +3285,46 @@ class gateio extends Exchange {
             'future' => 'privateDeliveryGetSettle' . $methodTail,
         ));
         $response = $this->$method (array_merge($request, $requestParams));
+        //
+        // SPOT Open Orders
+        //
+        //    array(
+        //        array(
+        //            "currency_pair" => "ADA_USDT",
+        //            "total" => 2,
+        //            "orders" => array(
+        //                array(
+        //                    "id" => "155498539874",
+        //                    "text" => "apiv4",
+        //                    "create_time" => "1652406843",
+        //                    "update_time" => "1652406843",
+        //                    "create_time_ms" => 1652406843295,
+        //                    "update_time_ms" => 1652406843295,
+        //                    "status" => "open",
+        //                    "currency_pair" => "ADA_USDT",
+        //                    "type" => "limit",
+        //                    "account" => "spot",
+        //                    "side" => "buy",
+        //                    "amount" => "3",
+        //                    "price" => "0.35",
+        //                    "time_in_force" => "gtc",
+        //                    "iceberg" => "0",
+        //                    "left" => "3",
+        //                    "fill_price" => "0",
+        //                    "filled_total" => "0",
+        //                    "fee" => "0",
+        //                    "fee_currency" => "ADA",
+        //                    "point_fee" => "0",
+        //                    "gt_fee" => "0",
+        //                    "gt_discount" => false,
+        //                    "rebated_fee" => "0",
+        //                    "rebated_fee_currency" => "USDT"
+        //                ),
+        //                ...
+        //            )
+        //        ),
+        //        ...
+        //    )
         //
         // SPOT
         //
@@ -3364,7 +3405,15 @@ class gateio extends Exchange {
         //        }
         //    )
         //
-        $orders = $this->parse_orders($response, $market, $since, $limit);
+        $result = $response;
+        if ($openSpotOrders) {
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $orders = $this->safe_value($response[$i], 'orders');
+                $result = $result->concat ($orders);
+            }
+        }
+        $orders = $this->parse_orders($result, $market, $since, $limit);
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 

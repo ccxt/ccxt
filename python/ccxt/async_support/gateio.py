@@ -3128,7 +3128,8 @@ class gateio(Exchange):
         if since is not None and spot:
             request['from'] = int(since / 1000)
         methodTail = 'PriceOrders' if stop else 'Orders'
-        if spot and (status == 'open') and not stop:
+        openSpotOrders = spot and (status == 'open') and not stop
+        if openSpotOrders:
             methodTail = 'OpenOrders'
         method = self.get_supported_mapping(type, {
             'spot': 'privateSpotGet' + methodTail,
@@ -3137,6 +3138,46 @@ class gateio(Exchange):
             'future': 'privateDeliveryGetSettle' + methodTail,
         })
         response = await getattr(self, method)(self.extend(request, requestParams))
+        #
+        # SPOT Open Orders
+        #
+        #    [
+        #        {
+        #            "currency_pair": "ADA_USDT",
+        #            "total": 2,
+        #            "orders": [
+        #                {
+        #                    "id": "155498539874",
+        #                    "text": "apiv4",
+        #                    "create_time": "1652406843",
+        #                    "update_time": "1652406843",
+        #                    "create_time_ms": 1652406843295,
+        #                    "update_time_ms": 1652406843295,
+        #                    "status": "open",
+        #                    "currency_pair": "ADA_USDT",
+        #                    "type": "limit",
+        #                    "account": "spot",
+        #                    "side": "buy",
+        #                    "amount": "3",
+        #                    "price": "0.35",
+        #                    "time_in_force": "gtc",
+        #                    "iceberg": "0",
+        #                    "left": "3",
+        #                    "fill_price": "0",
+        #                    "filled_total": "0",
+        #                    "fee": "0",
+        #                    "fee_currency": "ADA",
+        #                    "point_fee": "0",
+        #                    "gt_fee": "0",
+        #                    "gt_discount": False,
+        #                    "rebated_fee": "0",
+        #                    "rebated_fee_currency": "USDT"
+        #                },
+        #                ...
+        #            ]
+        #        },
+        #        ...
+        #    ]
         #
         # SPOT
         #
@@ -3217,7 +3258,13 @@ class gateio(Exchange):
         #        }
         #    ]
         #
-        orders = self.parse_orders(response, market, since, limit)
+        result = response
+        if openSpotOrders:
+            result = []
+            for i in range(0, len(response)):
+                orders = self.safe_value(response[i], 'orders')
+                result = result.concat(orders)
+        orders = self.parse_orders(result, market, since, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     async def cancel_order(self, id, symbol=None, params={}):
