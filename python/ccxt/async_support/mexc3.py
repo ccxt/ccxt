@@ -7,9 +7,6 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import PermissionDenied
-from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -17,7 +14,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.precise import Precise
 
 
@@ -30,7 +26,6 @@ class mexc3(Exchange):
             'countries': ['SC'],  # Seychelles
             'rateLimit': 50,  # default rate limit is 20 times per second
             'version': 'v3',
-            'certified': True,
             'has': {
                 'CORS': None,
                 'spot': None,
@@ -406,31 +401,6 @@ class mexc3(Exchange):
                     '2003': InvalidOrder,
                     '2005': InsufficientFunds,
                     '600': BadRequest,
-                    # below are old v2 codes, I am not sure if they still apply.
-                    # '400': BadRequest,  # Invalid parameter
-                    # '401': AuthenticationError,  # Invalid signature, fail to pass the validation
-                    # '403': PermissionDenied,  # {"msg":"no permission to access the endpoint","code":403}
-                    # '429': RateLimitExceeded,  # too many requests, rate limit rule is violated
-                    # '1000': AccountNotEnabled,  # {"success":false,"code":1000,"message":"Please open contract account first!"}
-                    # '1002': InvalidOrder,
-                    # '10072': AuthenticationError,  # Invalid access key
-                    # '10073': AuthenticationError,  # Invalid request time
-                    # '10075': PermissionDenied,  # {"msg":"IP [xxx.xxx.xxx.xxx] not in the ip white list","code":10075}
-                    # '10101': InsufficientFunds,  # {"code":10101,"msg":"Insufficient balance"}
-                    # '10216': InvalidAddress,  # {"code":10216,"msg":"No available deposit address"}
-                    # '10232': BadSymbol,  # {"code":10232,"msg":"The currency not exist"}
-                    # '30000': BadSymbol,  # Trading is suspended for the requested symbol
-                    # '30001': InvalidOrder,  # Current trading type(bid or ask) is not allowed
-                    # '30002': InvalidOrder,  # Invalid trading amount, smaller than the symbol minimum trading amount
-                    # '30003': InvalidOrder,  # Invalid trading amount, greater than the symbol maximum trading amount
-                    # '30004': InsufficientFunds,  # Insufficient balance
-                    # '30005': InvalidOrder,  # Oversell error
-                    # '30010': InvalidOrder,  # Price out of allowed range
-                    # '30016': BadSymbol,  # Market is closed
-                    # '30019': InvalidOrder,  # Orders count over limit for batch processing
-                    # '30020': BadSymbol,  # Restricted symbol, API access is not allowed for the time being
-                    # '30021': BadSymbol,  # Invalid symbol
-                    # '33333': BadSymbol,  # {"code":33333,"msg":"currency can not be null"}
                 },
                 'broad': {
                     'Order quantity error, please try to modify.': BadRequest,  # code:2011
@@ -443,9 +413,6 @@ class mexc3(Exchange):
                     'Bid price is great than max allow price': InvalidOrder,  # code:2003
                     'Invalid symbol.': BadSymbol,  # code:-1121
                     'Param error!': BadRequest,  # code:600
-                    # below are v2
-                    # 'Insufficient balance': InsufficientFunds,
-                    # 'Unknown order sent': BadRequest,
                 },
             },
         })
@@ -1197,59 +1164,55 @@ class mexc3(Exchange):
         if marketType == 'spot':
             tickers = await self.spotPublicGetTicker24hr(self.extend(request, query))
             #
-            #(Note: for single symbol, only one object is returned, instead of array)
-            #
             #     [
-            #       {
-            #         "symbol": "BTCUSDT",
-            #         "priceChange": "184.34",
-            #         "priceChangePercent": "0.00400048",
-            #         "prevClosePrice": "46079.37",
-            #         "lastPrice": "46263.71",
-            #         "lastQty": "",
-            #         "bidPrice": "46260.38",
-            #         "bidQty": "",
-            #         "askPrice": "46260.41",
-            #         "askQty": "",
-            #         "openPrice": "46079.37",
-            #         "highPrice": "47550.01",
-            #         "lowPrice": "45555.5",
-            #         "volume": "1732.461487",
-            #         "quoteVolume": null,
-            #         "openTime": 1641349500000,
-            #         "closeTime": 1641349582808,
-            #         "count": null
-            #       }
+            #         {
+            #             "symbol": "BTCUSDT",
+            #             "priceChange": "184.34",
+            #             "priceChangePercent": "0.00400048",
+            #             "prevClosePrice": "46079.37",
+            #             "lastPrice": "46263.71",
+            #             "lastQty": "",
+            #             "bidPrice": "46260.38",
+            #             "bidQty": "",
+            #             "askPrice": "46260.41",
+            #             "askQty": "",
+            #             "openPrice": "46079.37",
+            #             "highPrice": "47550.01",
+            #             "lowPrice": "45555.5",
+            #             "volume": "1732.461487",
+            #             "quoteVolume": null,
+            #             "openTime": 1641349500000,
+            #             "closeTime": 1641349582808,
+            #             "count": null
+            #         }
             #     ]
             #
         elif marketType == 'swap':
             response = await self.contractPublicGetTicker(self.extend(request, query))
             #
-            #(Note: for single symbol, only one object is returned, instead of array)
-            #
             #     {
             #         "success":true,
             #         "code":0,
             #         "data":[
-            #           {
-            #             "symbol":"ETH_USDT",
-            #             "lastPrice":3581.3,
-            #             "bid1":3581.25,
-            #             "ask1":3581.5,
-            #             "volume24":4045530,
-            #             "amount24":141331823.5755,
-            #             "holdVol":5832946,
-            #             "lower24Price":3413.4,
-            #             "high24Price":3588.7,
-            #             "riseFallRate":0.0275,
-            #             "riseFallValue":95.95,
-            #             "indexPrice":3580.7852,
-            #             "fairPrice":3581.08,
-            #             "fundingRate":0.000063,
-            #             "maxBidPrice":3938.85,
-            #             "minAskPrice":3222.7,
-            #             "timestamp":1634162885016
-            #           },
+            #             {
+            #                 "symbol":"ETH_USDT",
+            #                 "lastPrice":3581.3,
+            #                 "bid1":3581.25,
+            #                 "ask1":3581.5,
+            #                 "volume24":4045530,
+            #                 "amount24":141331823.5755,
+            #                 "holdVol":5832946,
+            #                 "lower24Price":3413.4,
+            #                 "high24Price":3588.7,
+            #                 "riseFallRate":0.0275,
+            #                 "riseFallValue":95.95,
+            #                 "indexPrice":3580.7852,
+            #                 "fairPrice":3581.08,
+            #                 "fundingRate":0.000063,
+            #                 "maxBidPrice":3938.85,
+            #                 "minAskPrice":3222.7,
+            #                 "timestamp":1634162885016
+            #             },
             #         ]
             #     }
             #
@@ -1270,9 +1233,7 @@ class mexc3(Exchange):
         if marketType == 'spot':
             ticker = await self.spotPublicGetTicker24hr(self.extend(request, query))
             #
-            #(Note: for single symbol, only one object is returned, instead of array)
-            #
-            #       {
+            #     {
             #         "symbol": "BTCUSDT",
             #         "priceChange": "184.34",
             #         "priceChangePercent": "0.00400048",
@@ -1291,7 +1252,7 @@ class mexc3(Exchange):
             #         "openTime": 1641349500000,
             #         "closeTime": 1641349582808,
             #         "count": null
-            #       }
+            #     }
             #
         elif marketType == 'swap':
             response = await self.contractPublicGetTicker(self.extend(request, query))
@@ -1773,7 +1734,7 @@ class mexc3(Exchange):
                 #
                 ordersOfRegular = self.safe_value(response, 'data')
             else:
-                #(due to bug in their API, the Planorder endpoints works not only for stop-market orders, but also for STOP-LIMIT orders, which were supposed to have separate endpoint)
+                # the Planorder endpoints work not only for stop-market orders, but also for stop-limit orders that were supposed to have a separate endpoint
                 response = await self.contractPrivateGetPlanorderListOrders(self.extend(request, query))
                 #
                 #     {
@@ -2026,7 +1987,7 @@ class mexc3(Exchange):
             if symbol is not None:
                 request['symbol'] = market['id']
             # method can be either: contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
-            #(due to bug in their API, the Planorder endpoints works not only for stop-market orders, but also for STOP-LIMIT orders, which were supposed to have separate endpoint)
+            # the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             method = self.safe_string(self.options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll')
             method = self.safe_string(query, 'method', method)
             response = await getattr(self, method)(self.extend(request, query))

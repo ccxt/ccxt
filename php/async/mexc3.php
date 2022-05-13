@@ -23,7 +23,6 @@ class mexc3 extends Exchange {
             'countries' => array( 'SC' ), // Seychelles
             'rateLimit' => 50, // default rate limit is 20 times per second
             'version' => 'v3',
-            'certified' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => null,
@@ -399,31 +398,6 @@ class mexc3 extends Exchange {
                     '2003' => '\\ccxt\\InvalidOrder',
                     '2005' => '\\ccxt\\InsufficientFunds',
                     '600' => '\\ccxt\\BadRequest',
-                    // below are old v2 codes, I am not sure if they still apply.
-                    // '400' => '\\ccxt\\BadRequest', // Invalid parameter
-                    // '401' => '\\ccxt\\AuthenticationError', // Invalid signature, fail to pass the validation
-                    // '403' => '\\ccxt\\PermissionDenied', // array("msg":"no permission to access the endpoint","code":403)
-                    // '429' => '\\ccxt\\RateLimitExceeded', // too many requests, rate limit rule is violated
-                    // '1000' => '\\ccxt\\AccountNotEnabled', // array("success":false,"code":1000,"message":"Please open contract account first!")
-                    // '1002' => '\\ccxt\\InvalidOrder',
-                    // '10072' => '\\ccxt\\AuthenticationError', // Invalid access key
-                    // '10073' => '\\ccxt\\AuthenticationError', // Invalid request time
-                    // '10075' => '\\ccxt\\PermissionDenied', // array("msg":"IP [xxx.xxx.xxx.xxx] not in the ip white list","code":10075)
-                    // '10101' => '\\ccxt\\InsufficientFunds', // array("code":10101,"msg":"Insufficient balance")
-                    // '10216' => '\\ccxt\\InvalidAddress', // array("code":10216,"msg":"No available deposit address")
-                    // '10232' => '\\ccxt\\BadSymbol', // array("code":10232,"msg":"The currency not exist")
-                    // '30000' => '\\ccxt\\BadSymbol', // Trading is suspended for the requested symbol
-                    // '30001' => '\\ccxt\\InvalidOrder', // Current trading type (bid or ask) is not allowed
-                    // '30002' => '\\ccxt\\InvalidOrder', // Invalid trading amount, smaller than the symbol minimum trading amount
-                    // '30003' => '\\ccxt\\InvalidOrder', // Invalid trading amount, greater than the symbol maximum trading amount
-                    // '30004' => '\\ccxt\\InsufficientFunds', // Insufficient balance
-                    // '30005' => '\\ccxt\\InvalidOrder', // Oversell error
-                    // '30010' => '\\ccxt\\InvalidOrder', // Price out of allowed range
-                    // '30016' => '\\ccxt\\BadSymbol', // Market is closed
-                    // '30019' => '\\ccxt\\InvalidOrder', // Orders count over limit for batch processing
-                    // '30020' => '\\ccxt\\BadSymbol', // Restricted symbol, API access is not allowed for the time being
-                    // '30021' => '\\ccxt\\BadSymbol', // Invalid symbol
-                    // '33333' => '\\ccxt\\BadSymbol', // array("code":33333,"msg":"currency can not be null")
                 ),
                 'broad' => array(
                     'Order quantity error, please try to modify.' => '\\ccxt\\BadRequest', // code:2011
@@ -436,9 +410,6 @@ class mexc3 extends Exchange {
                     'Bid price is great than max allow price' => '\\ccxt\\InvalidOrder', // code:2003
                     'Invalid symbol.' => '\\ccxt\\BadSymbol', // code:-1121
                     'Param error!' => '\\ccxt\\BadRequest', // code:600
-                    // below are v2
-                    // 'Insufficient balance' => '\\ccxt\\InsufficientFunds',
-                    // 'Unknown order sent' => '\\ccxt\\BadRequest',
                 ),
             ),
         ));
@@ -1242,59 +1213,55 @@ class mexc3 extends Exchange {
         if ($marketType === 'spot') {
             $tickers = yield $this->spotPublicGetTicker24hr (array_merge($request, $query));
             //
-            // (Note => for single symbol, only one object is returned, instead of array)
-            //
             //     array(
-            //       {
-            //         "symbol" => "BTCUSDT",
-            //         "priceChange" => "184.34",
-            //         "priceChangePercent" => "0.00400048",
-            //         "prevClosePrice" => "46079.37",
-            //         "lastPrice" => "46263.71",
-            //         "lastQty" => "",
-            //         "bidPrice" => "46260.38",
-            //         "bidQty" => "",
-            //         "askPrice" => "46260.41",
-            //         "askQty" => "",
-            //         "openPrice" => "46079.37",
-            //         "highPrice" => "47550.01",
-            //         "lowPrice" => "45555.5",
-            //         "volume" => "1732.461487",
-            //         "quoteVolume" => null,
-            //         "openTime" => 1641349500000,
-            //         "closeTime" => 1641349582808,
-            //         "count" => null
-            //       }
+            //         {
+            //             "symbol" => "BTCUSDT",
+            //             "priceChange" => "184.34",
+            //             "priceChangePercent" => "0.00400048",
+            //             "prevClosePrice" => "46079.37",
+            //             "lastPrice" => "46263.71",
+            //             "lastQty" => "",
+            //             "bidPrice" => "46260.38",
+            //             "bidQty" => "",
+            //             "askPrice" => "46260.41",
+            //             "askQty" => "",
+            //             "openPrice" => "46079.37",
+            //             "highPrice" => "47550.01",
+            //             "lowPrice" => "45555.5",
+            //             "volume" => "1732.461487",
+            //             "quoteVolume" => null,
+            //             "openTime" => 1641349500000,
+            //             "closeTime" => 1641349582808,
+            //             "count" => null
+            //         }
             //     )
             //
         } else if ($marketType === 'swap') {
             $response = yield $this->contractPublicGetTicker (array_merge($request, $query));
             //
-            // (Note => for single symbol, only one object is returned, instead of array)
-            //
             //     {
             //         "success":true,
             //         "code":0,
             //         "data":array(
-            //           array(
-            //             "symbol":"ETH_USDT",
-            //             "lastPrice":3581.3,
-            //             "bid1":3581.25,
-            //             "ask1":3581.5,
-            //             "volume24":4045530,
-            //             "amount24":141331823.5755,
-            //             "holdVol":5832946,
-            //             "lower24Price":3413.4,
-            //             "high24Price":3588.7,
-            //             "riseFallRate":0.0275,
-            //             "riseFallValue":95.95,
-            //             "indexPrice":3580.7852,
-            //             "fairPrice":3581.08,
-            //             "fundingRate":0.000063,
-            //             "maxBidPrice":3938.85,
-            //             "minAskPrice":3222.7,
-            //             "timestamp":1634162885016
-            //           ),
+            //             array(
+            //                 "symbol":"ETH_USDT",
+            //                 "lastPrice":3581.3,
+            //                 "bid1":3581.25,
+            //                 "ask1":3581.5,
+            //                 "volume24":4045530,
+            //                 "amount24":141331823.5755,
+            //                 "holdVol":5832946,
+            //                 "lower24Price":3413.4,
+            //                 "high24Price":3588.7,
+            //                 "riseFallRate":0.0275,
+            //                 "riseFallValue":95.95,
+            //                 "indexPrice":3580.7852,
+            //                 "fairPrice":3581.08,
+            //                 "fundingRate":0.000063,
+            //                 "maxBidPrice":3938.85,
+            //                 "minAskPrice":3222.7,
+            //                 "timestamp":1634162885016
+            //             ),
             //         )
             //     }
             //
@@ -1318,9 +1285,7 @@ class mexc3 extends Exchange {
         if ($marketType === 'spot') {
             $ticker = yield $this->spotPublicGetTicker24hr (array_merge($request, $query));
             //
-            // (Note => for single $symbol, only one object is returned, instead of array)
-            //
-            //       {
+            //     {
             //         "symbol" => "BTCUSDT",
             //         "priceChange" => "184.34",
             //         "priceChangePercent" => "0.00400048",
@@ -1339,7 +1304,7 @@ class mexc3 extends Exchange {
             //         "openTime" => 1641349500000,
             //         "closeTime" => 1641349582808,
             //         "count" => null
-            //       }
+            //     }
             //
         } else if ($marketType === 'swap') {
             $response = yield $this->contractPublicGetTicker (array_merge($request, $query));
@@ -1862,7 +1827,7 @@ class mexc3 extends Exchange {
                 //
                 $ordersOfRegular = $this->safe_value($response, 'data');
             } else {
-                // (due to bug in their API, the Planorder endpoints works not only for stop-$market orders, but also for STOP-LIMIT orders, which were supposed to have separate endpoint)
+                // the Planorder endpoints work not only for stop-$market orders, but also for stop-$limit orders that were supposed to have a separate endpoint
                 $response = yield $this->contractPrivateGetPlanorderListOrders (array_merge($request, $query));
                 //
                 //     {
@@ -2140,7 +2105,7 @@ class mexc3 extends Exchange {
                 $request['symbol'] = $market['id'];
             }
             // $method can be either => contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
-            // (due to bug in their API, the Planorder endpoints works not only for stop-$market orders, but also for STOP-LIMIT orders, which were supposed to have separate endpoint)
+            // the Planorder endpoints work not only for stop-$market orders but also for stop-limit orders that are supposed to have separate endpoint
             $method = $this->safe_string($this->options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll');
             $method = $this->safe_string($query, 'method', $method);
             $response = yield $this->$method (array_merge($request, $query));

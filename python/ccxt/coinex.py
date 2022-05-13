@@ -140,7 +140,6 @@ class coinex(Exchange):
                         'margin/config': 1,
                         'margin/loan/history': 1,
                         'margin/transfer/history': 1,
-                        'order': 1,
                         'order/deals': 1,
                         'order/finished': 1,
                         'order/pending': 1,
@@ -1816,7 +1815,7 @@ class coinex(Exchange):
         if swap:
             method = 'perpetualPrivateGetOrderStopStatus' if stop else 'perpetualPrivateGetOrderStatus'
         else:
-            method = 'privateGetOrder'
+            method = 'privateGetOrderStatus'
         params = self.omit(params, 'stop')
         response = getattr(self, method)(self.extend(request, params))
         #

@@ -135,7 +135,6 @@ class coinex extends Exchange {
                         'margin/config' => 1,
                         'margin/loan/history' => 1,
                         'margin/transfer/history' => 1,
-                        'order' => 1,
                         'order/deals' => 1,
                         'order/finished' => 1,
                         'order/pending' => 1,
@@ -1894,7 +1893,7 @@ class coinex extends Exchange {
         if ($swap) {
             $method = $stop ? 'perpetualPrivateGetOrderStopStatus' : 'perpetualPrivateGetOrderStatus';
         } else {
-            $method = 'privateGetOrder';
+            $method = 'privateGetOrderStatus';
         }
         $params = $this->omit($params, 'stop');
         $response = yield $this->$method (array_merge($request, $params));
