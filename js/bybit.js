@@ -3532,16 +3532,30 @@ module.exports = class bybit extends Exchange {
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
+        let market = undefined;
+        let type = undefined;
+        let isLinear = undefined;
+        let isUsdcSettled = undefined;
         if (Array.isArray (symbols)) {
             const length = symbols.length;
             if (length !== 1) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() takes an array with exactly one symbol');
             }
-            request['symbol'] = this.marketId (symbols[0]);
+            const symbol = this.safeString (symbols, 0);
+            market = this.market (symbol);
+            type = market['type'];
+            isLinear = market['linear'];
+            isUsdcSettled = market['settle'] === 'USDC';
+            request['symbol'] = market['id'];
+        } else {
+            // market undefined
+            [ type, params ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
+            const options = this.safeValue (this.options, 'fetchPositions', {});
+            const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
+            let subType = this.safeString (options, 'subType', defaultSubType);
+            subType = this.safeString (params, 'subType', subType);
+            isLinear = (subType === 'linear');
         }
-        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
-        const type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
         let response = undefined;
         if (type === 'linear') {
             response = await this.privateLinearGetPositionList (this.extend (request, params));
