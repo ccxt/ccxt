@@ -260,7 +260,7 @@ class Exchange(BaseExchange):
         })
 
     async def perform_order_book_request(self, market, limit=None, params={}):
-        raise NotSupported(self.id + ' performOrderBookRequest() not supported yet')
+        raise NotSupported(self.id + ' performOrderBookRequest() is not supported yet')
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -295,10 +295,10 @@ class Exchange(BaseExchange):
         return await self.create_order(symbol, *args)
 
     async def fetch_balance(self, params={}):
-        raise NotSupported(self.id + ' fetch_balance() not supported yet')
+        raise NotSupported(self.id + ' fetch_balance() is not supported yet')
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        raise NotSupported(self.id + 'create_order() not supported yet')
+        raise NotSupported(self.id + 'create_order() is not supported yet')
 
     def create_limit_order(self, symbol, side, amount, price, params={}) -> Coroutine:
         return self.create_order(symbol, 'limit', side, amount, price, params)
@@ -319,14 +319,14 @@ class Exchange(BaseExchange):
         return self.create_order(symbol, 'market', 'sell', amount, None, params)
 
     async def cancel_order(self, id, symbol=None, params={}):
-        raise NotSupported(self.id + 'cancel_order() not supported yet')
+        raise NotSupported(self.id + 'cancel_order() is not supported yet')
 
     async def fetch_trading_fees(self, params={}):
-        raise NotSupported(self.id + ' fetch_trading_fees() not supported yet')
+        raise NotSupported(self.id + ' fetch_trading_fees() is not supported yet')
 
     async def fetch_trading_fee(self, symbol, params={}):
         if not self.has['fetchTradingFees']:
-            raise NotSupported(self.id + ' fetch_trading_fee() not supported yet')
+            raise NotSupported(self.id + ' fetch_trading_fee() is not supported yet')
         return await self.fetch_trading_fees(params)
 
     async def load_trading_limits(self, symbols=None, reload=False, params={}):
@@ -359,7 +359,7 @@ class Exchange(BaseExchange):
             else:
                 return ticker
         else:
-            raise NotSupported(self.id + ' fetch_ticker() not supported yet')
+            raise NotSupported(self.id + ' fetch_ticker() is not supported yet')
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetch_transactions() is not supported yet')
@@ -379,7 +379,7 @@ class Exchange(BaseExchange):
             else:
                 return deposit_address
         else:
-            raise NotSupported(self.id + ' fetch_deposit_address() not supported yet')
+            raise NotSupported(self.id + ' fetch_deposit_address() is not supported yet')
 
     async def sleep(self, milliseconds):
         return await asyncio.sleep(milliseconds / 1000)

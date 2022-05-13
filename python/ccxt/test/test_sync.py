@@ -219,7 +219,7 @@ def test_ticker(exchange, symbol):
             'ask: ' + str(ticker['ask']),
             'volume: ' + str(ticker['quoteVolume']))
     else:
-        dump(green(exchange.id), green(symbol), 'fetch_ticker() not supported')
+        dump(green(exchange.id), green(symbol), 'fetch_ticker() is not supported')
 
 # ------------------------------------------------------------------------------
 
@@ -234,7 +234,7 @@ def test_trades(exchange, symbol):
             test_trade(exchange, trades[0], symbol, int(time.time() * 1000))
         dump(green(exchange.id), green(symbol), 'fetched', green(len(trades)), 'trades')
     else:
-        dump(green(exchange.id), green(symbol), 'fetch_trades() not supported')
+        dump(green(exchange.id), green(symbol), 'fetch_trades() is not supported')
 
 # ------------------------------------------------------------------------------
 
@@ -256,7 +256,7 @@ def test_orders(exchange, symbol):
             test_order(exchange, order, symbol, int(time.time() * 1000))
         dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'orders')
     else:
-        dump(green(exchange.id), green(symbol), 'fetch_orders() not supported')
+        dump(green(exchange.id), green(symbol), 'fetch_orders() is not supported')
 
 # ------------------------------------------------------------------------------
 
@@ -284,7 +284,7 @@ def test_positions(exchange, symbol):
             test_position(exchange, position, symbol, int(time.time() * 1000))
         dump(green(exchange.id), green(symbol), 'fetched', green(len(positions)), 'positions')
     else:
-        dump(green(exchange.id), green(symbol), 'fetch_positions() not supported')
+        dump(green(exchange.id), green(symbol), 'fetch_positions() is not supported')
 
 # ------------------------------------------------------------------------------
 
@@ -300,7 +300,7 @@ def test_closed_orders(exchange, symbol):
             assert order['status'] == 'closed' or order['status'] == 'canceled'
         dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'closed orders')
     else:
-        dump(green(exchange.id), green(symbol), 'fetch_closed_orders() not supported')
+        dump(green(exchange.id), green(symbol), 'fetch_closed_orders() is not supported')
 
 # ------------------------------------------------------------------------------
 
@@ -316,7 +316,7 @@ def test_open_orders(exchange, symbol):
             assert order['status'] == 'open'
         dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'open orders')
     else:
-        dump(green(exchange.id), green(symbol), 'fetch_open_orders() not supported')
+        dump(green(exchange.id), green(symbol), 'fetch_open_orders() is not supported')
 
 # ------------------------------------------------------------------------------
 
@@ -331,7 +331,7 @@ def test_transactions(exchange, code):
             test_transaction(exchange, transaction, code, int(time.time() * 1000))
         dump(green(exchange.id), green(code), 'fetched', green(len(transactions)), 'transactions')
     else:
-        dump(green(exchange.id), green(code), 'fetch_transactions() not supported')
+        dump(green(exchange.id), green(code), 'fetch_transactions() is not supported')
 
 # ------------------------------------------------------------------------------
 
@@ -344,7 +344,7 @@ def test_balance(exchange):
         exchange.fetch_balance()
         dump(green(exchange.id), 'fetched balance')
     else:
-        dump(green(exchange.id), 'fetch_balance() not supported')
+        dump(green(exchange.id), 'fetch_balance() is not supported')
 
 # ------------------------------------------------------------------------------
 
