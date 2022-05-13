@@ -3401,42 +3401,28 @@ class bybit(Exchange):
         return self.safe_value(response, 'result')
 
     def set_margin_mode(self, marginMode, symbol=None, params={}):
-        #
-        # {
-        #     "ret_code": 0,
-        #     "ret_msg": "ok",
-        #     "ext_code": "",
-        #     "result": null,
-        #     "ext_info": null,
-        #     "time_now": "1577477968.175013",
-        #     "rate_limit_status": 74,
-        #     "rate_limit_reset_ms": 1577477968183,
-        #     "rate_limit": 75
-        # }
-        #
-        leverage = self.safe_value(params, 'leverage')
-        if leverage is None:
-            raise ArgumentsRequired(self.id + ' setMarginMode() requires a leverage parameter')
-        marginMode = marginMode.upper()
-        if marginMode == 'CROSSED':  # * Deprecated, use 'CROSS' instead
-            marginMode = 'CROSS'
-        if (marginMode != 'ISOLATED') and (marginMode != 'CROSS'):
-            raise BadRequest(self.id + ' setMarginMode() marginMode must be either isolated or cross')
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        method = None
-        defaultType = self.safe_string(self.options, 'defaultType', 'linear')
-        marketTypes = self.safe_value(self.options, 'marketTypes', {})
-        marketType = self.safe_string(marketTypes, symbol, defaultType)
-        linear = market['linear'] or (marketType == 'linear')
-        inverse = (market['swap'] and market['inverse']) or (marketType == 'inverse')
-        future = market['future'] or ((marketType == 'future') or (marketType == 'futures'))  # * (marketType == 'futures') deprecated, use(marketType == 'future')
-        if linear:
-            method = 'privateLinearPostPositionSwitchIsolated'
-        elif inverse:
-            method = 'v2PrivatePostPositionSwitchIsolated'
-        elif future:
-            method = 'privateFuturesPostPositionSwitchIsolated'
+        if market['settle'] == 'USDC':
+            raise NotSupported(self.id + ' setMarginMode() does not support market ' + symbol + '')
+        marginMode = marginMode.upper()
+        if (marginMode != 'ISOLATED') and (marginMode != 'CROSS'):
+            raise BadRequest(self.id + ' setMarginMode() marginMode must be either isolated or cross')
+        leverage = self.safe_number(params, 'leverage')
+        sellLeverage = None
+        buyLeverage = None
+        if leverage is None:
+            sellLeverage = self.safe_number_2(params, 'sell_leverage', 'sellLeverage')
+            buyLeverage = self.safe_number_2(params, 'buy_leverage', 'buyLeverage')
+            if sellLeverage is None or buyLeverage is None:
+                raise ArgumentsRequired(self.id + ' setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters')
+            params = self.omit(params, ['buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage'])
+        else:
+            params = self.omit(params, 'leverage')
+            sellLeverage = leverage
+            buyLeverage = leverage
         isIsolated = (marginMode == 'ISOLATED')
         request = {
             'symbol': market['id'],
@@ -3444,6 +3430,14 @@ class bybit(Exchange):
             'buy_leverage': leverage,
             'sell_leverage': leverage,
         }
+        method = None
+        if market['future']:
+            method = 'privatePostFuturesPrivatePositionSwitchIsolated'
+        elif market['inverse']:
+            method = 'privatePostV2PrivatePositionSwitchIsolated'
+        else:
+            # linear
+            method = 'privatePostPrivateLinearPositionSwitchIsolated'
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {

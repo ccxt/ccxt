@@ -3570,45 +3570,32 @@ class bybit extends Exchange {
     }
 
     public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
-        //
-        // {
-        //     "ret_code" => 0,
-        //     "ret_msg" => "ok",
-        //     "ext_code" => "",
-        //     "result" => null,
-        //     "ext_info" => null,
-        //     "time_now" => "1577477968.175013",
-        //     "rate_limit_status" => 74,
-        //     "rate_limit_reset_ms" => 1577477968183,
-        //     "rate_limit" => 75
-        // }
-        //
-        $leverage = $this->safe_value($params, 'leverage');
-        if ($leverage === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $leverage parameter');
-        }
-        $marginMode = strtoupper($marginMode);
-        if ($marginMode === 'CROSSED') { // * Deprecated, use 'CROSS' instead
-            $marginMode = 'CROSS';
-        }
-        if (($marginMode !== 'ISOLATED') && ($marginMode !== 'CROSS')) {
-            throw new BadRequest($this->id . ' setMarginMode() $marginMode must be either isolated or cross');
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
-        $method = null;
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'linear');
-        $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
-        $marketType = $this->safe_string($marketTypes, $symbol, $defaultType);
-        $linear = $market['linear'] || ($marketType === 'linear');
-        $inverse = ($market['swap'] && $market['inverse']) || ($marketType === 'inverse');
-        $future = $market['future'] || (($marketType === 'future') || ($marketType === 'futures')); // * ($marketType === 'futures') deprecated, use ($marketType === 'future')
-        if ($linear) {
-            $method = 'privateLinearPostPositionSwitchIsolated';
-        } else if ($inverse) {
-            $method = 'v2PrivatePostPositionSwitchIsolated';
-        } else if ($future) {
-            $method = 'privateFuturesPostPositionSwitchIsolated';
+        if ($market['settle'] === 'USDC') {
+            throw new NotSupported($this->id . ' setMarginMode() does not support $market ' . $symbol . '');
+        }
+        $marginMode = strtoupper($marginMode);
+        if (($marginMode !== 'ISOLATED') && ($marginMode !== 'CROSS')) {
+            throw new BadRequest($this->id . ' setMarginMode() $marginMode must be either isolated or cross');
+        }
+        $leverage = $this->safe_number($params, 'leverage');
+        $sellLeverage = null;
+        $buyLeverage = null;
+        if ($leverage === null) {
+            $sellLeverage = $this->safe_number_2($params, 'sell_leverage', 'sellLeverage');
+            $buyLeverage = $this->safe_number_2($params, 'buy_leverage', 'buyLeverage');
+            if ($sellLeverage === null || $buyLeverage === null) {
+                throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $leverage parameter or sell_leverage and buy_leverage parameters');
+            }
+            $params = $this->omit($params, array( 'buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage' ));
+        } else {
+            $params = $this->omit($params, 'leverage');
+            $sellLeverage = $leverage;
+            $buyLeverage = $leverage;
         }
         $isIsolated = ($marginMode === 'ISOLATED');
         $request = array(
@@ -3617,6 +3604,15 @@ class bybit extends Exchange {
             'buy_leverage' => $leverage,
             'sell_leverage' => $leverage,
         );
+        $method = null;
+        if ($market['future']) {
+            $method = 'privatePostFuturesPrivatePositionSwitchIsolated';
+        } else if ($market['inverse']) {
+            $method = 'privatePostV2PrivatePositionSwitchIsolated';
+        } else {
+            // linear
+            $method = 'privatePostPrivateLinearPositionSwitchIsolated';
+        }
         $response = yield $this->$method (array_merge($request, $params));
         //
         //     {
