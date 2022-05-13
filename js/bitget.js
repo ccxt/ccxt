@@ -37,6 +37,7 @@ module.exports = class bitget extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDeposits': false,
+                'fetchFundingRate': true,
                 'fetchLedger': true,
                 'fetchLeverage': true,
                 'fetchMarkets': true,
@@ -2349,6 +2350,61 @@ module.exports = class bitget extends Exchange {
             'initialMarginPercentage': undefined,
             'leverage': this.safeNumber (position, 'leverage'),
             'marginRatio': undefined,
+        };
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicMixGetMarketCurrentFundRate (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1652401684275,
+        //         "data": {
+        //             "symbol": "BTCUSDT_UMCBL",
+        //             "fundingRate": "-0.000182"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseFundingRate (data, market);
+    }
+
+    parseFundingRate (contract, market = undefined) {
+        //
+        //     {
+        //         "symbol": "BTCUSDT_UMCBL",
+        //         "fundingRate": "-0.000182"
+        //     }
+        //
+        const marketId = this.safeString (contract, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber (contract, 'fundingRate'),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
         };
     }
 
