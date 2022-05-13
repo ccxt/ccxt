@@ -190,9 +190,10 @@ module.exports = class hollaex extends ccxt.hollaex {
         // }
         //
         const channel = this.safeString (message, 'topic');
-        const data = this.safeValue (message, 'data');
+        const rawTrades = this.safeValue (message, 'data');
         // usually the first message is an empty array
-        const dataLength = data.length;
+        // when the user does not have any trades yet
+        const dataLength = rawTrades.length;
         if (dataLength === 0) {
             return 0;
         }
@@ -201,12 +202,6 @@ module.exports = class hollaex extends ccxt.hollaex {
             this.myTrades = new ArrayCache (limit);
         }
         const stored = this.myTrades;
-        let rawTrades = undefined;
-        if (!Array.isArray (data)) {
-            rawTrades = [ data ];
-        } else {
-            rawTrades = data;
-        }
         const marketIds = {};
         for (let i = 0; i < rawTrades.length; i++) {
             const trade = rawTrades[i];
