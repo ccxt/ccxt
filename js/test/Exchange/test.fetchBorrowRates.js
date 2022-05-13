@@ -24,6 +24,6 @@ module.exports = async (exchange) => {
 
     } else {
 
-        console.log (method + '() : fetching all borrow rates at once is not supported')
+        console.log (method + '() fetching all borrow rates at once is not supported')
     }
 }
