@@ -1206,59 +1206,55 @@ module.exports = class mexc3 extends Exchange {
         if (marketType === 'spot') {
             tickers = await this.spotPublicGetTicker24hr (this.extend (request, query));
             //
-            // (Note: for single symbol, only one object is returned, instead of array)
-            //
             //     [
-            //       {
-            //         "symbol": "BTCUSDT",
-            //         "priceChange": "184.34",
-            //         "priceChangePercent": "0.00400048",
-            //         "prevClosePrice": "46079.37",
-            //         "lastPrice": "46263.71",
-            //         "lastQty": "",
-            //         "bidPrice": "46260.38",
-            //         "bidQty": "",
-            //         "askPrice": "46260.41",
-            //         "askQty": "",
-            //         "openPrice": "46079.37",
-            //         "highPrice": "47550.01",
-            //         "lowPrice": "45555.5",
-            //         "volume": "1732.461487",
-            //         "quoteVolume": null,
-            //         "openTime": 1641349500000,
-            //         "closeTime": 1641349582808,
-            //         "count": null
-            //       }
+            //         {
+            //             "symbol": "BTCUSDT",
+            //             "priceChange": "184.34",
+            //             "priceChangePercent": "0.00400048",
+            //             "prevClosePrice": "46079.37",
+            //             "lastPrice": "46263.71",
+            //             "lastQty": "",
+            //             "bidPrice": "46260.38",
+            //             "bidQty": "",
+            //             "askPrice": "46260.41",
+            //             "askQty": "",
+            //             "openPrice": "46079.37",
+            //             "highPrice": "47550.01",
+            //             "lowPrice": "45555.5",
+            //             "volume": "1732.461487",
+            //             "quoteVolume": null,
+            //             "openTime": 1641349500000,
+            //             "closeTime": 1641349582808,
+            //             "count": null
+            //         }
             //     ]
             //
         } else if (marketType === 'swap') {
             const response = await this.contractPublicGetTicker (this.extend (request, query));
             //
-            // (Note: for single symbol, only one object is returned, instead of array)
-            //
             //     {
             //         "success":true,
             //         "code":0,
             //         "data":[
-            //           {
-            //             "symbol":"ETH_USDT",
-            //             "lastPrice":3581.3,
-            //             "bid1":3581.25,
-            //             "ask1":3581.5,
-            //             "volume24":4045530,
-            //             "amount24":141331823.5755,
-            //             "holdVol":5832946,
-            //             "lower24Price":3413.4,
-            //             "high24Price":3588.7,
-            //             "riseFallRate":0.0275,
-            //             "riseFallValue":95.95,
-            //             "indexPrice":3580.7852,
-            //             "fairPrice":3581.08,
-            //             "fundingRate":0.000063,
-            //             "maxBidPrice":3938.85,
-            //             "minAskPrice":3222.7,
-            //             "timestamp":1634162885016
-            //           },
+            //             {
+            //                 "symbol":"ETH_USDT",
+            //                 "lastPrice":3581.3,
+            //                 "bid1":3581.25,
+            //                 "ask1":3581.5,
+            //                 "volume24":4045530,
+            //                 "amount24":141331823.5755,
+            //                 "holdVol":5832946,
+            //                 "lower24Price":3413.4,
+            //                 "high24Price":3588.7,
+            //                 "riseFallRate":0.0275,
+            //                 "riseFallValue":95.95,
+            //                 "indexPrice":3580.7852,
+            //                 "fairPrice":3581.08,
+            //                 "fundingRate":0.000063,
+            //                 "maxBidPrice":3938.85,
+            //                 "minAskPrice":3222.7,
+            //                 "timestamp":1634162885016
+            //             },
             //         ]
             //     }
             //
@@ -1282,9 +1278,7 @@ module.exports = class mexc3 extends Exchange {
         if (marketType === 'spot') {
             ticker = await this.spotPublicGetTicker24hr (this.extend (request, query));
             //
-            // (Note: for single symbol, only one object is returned, instead of array)
-            //
-            //       {
+            //     {
             //         "symbol": "BTCUSDT",
             //         "priceChange": "184.34",
             //         "priceChangePercent": "0.00400048",
@@ -1303,7 +1297,7 @@ module.exports = class mexc3 extends Exchange {
             //         "openTime": 1641349500000,
             //         "closeTime": 1641349582808,
             //         "count": null
-            //       }
+            //     }
             //
         } else if (marketType === 'swap') {
             const response = await this.contractPublicGetTicker (this.extend (request, query));
@@ -1826,7 +1820,7 @@ module.exports = class mexc3 extends Exchange {
                 //
                 ordersOfRegular = this.safeValue (response, 'data');
             } else {
-                // (due to bug in their API, the Planorder endpoints works not only for stop-market orders, but also for STOP-LIMIT orders, which were supposed to have separate endpoint)
+                // the Planorder endpoints work not only for stop-market orders, but also for stop-limit orders that were supposed to have a separate endpoint
                 const response = await this.contractPrivateGetPlanorderListOrders (this.extend (request, query));
                 //
                 //     {
@@ -2104,7 +2098,7 @@ module.exports = class mexc3 extends Exchange {
                 request['symbol'] = market['id'];
             }
             // method can be either: contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
-            // (due to bug in their API, the Planorder endpoints works not only for stop-market orders, but also for STOP-LIMIT orders, which were supposed to have separate endpoint)
+            // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             let method = this.safeString (this.options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll');
             method = this.safeString (query, 'method', method);
             const response = await this[method] (this.extend (request, query));
