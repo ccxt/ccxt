@@ -3738,6 +3738,7 @@ module.exports = class bybit extends Exchange {
         //        "position_idx":"1",
         //        "mode":"BothSide"
         //    }
+        //
         // inverse swap / future
         //    {
         //        "id":0,
@@ -3777,18 +3778,52 @@ module.exports = class bybit extends Exchange {
         //        "tp_sl_mode":"Full"
         //    }
         //
+        // usdc
+        //    {
+        //       "symbol":"BTCPERP",
+        //       "leverage":"1.00",
+        //       "occClosingFee":"0.0000",
+        //       "liqPrice":"",
+        //       "positionValue":"30.8100",
+        //       "takeProfit":"0.0",
+        //       "riskId":"10001",
+        //       "trailingStop":"0.0000",
+        //       "unrealisedPnl":"0.0000",
+        //       "createdAt":"1652451795305",
+        //       "markPrice":"30809.41",
+        //       "cumRealisedPnl":"0.0000",
+        //       "positionMM":"0.1541",
+        //       "positionIM":"30.8100",
+        //       "updatedAt":"1652451795305",
+        //       "tpSLMode":"UNKNOWN",
+        //       "side":"Buy",
+        //       "bustPrice":"",
+        //       "deleverageIndicator":"0",
+        //       "entryPrice":"30810.0",
+        //       "size":"0.001",
+        //       "sessionRPL":"0.0000",
+        //       "positionStatus":"NORMAL",
+        //       "sessionUPL":"-0.0006",
+        //       "stopLoss":"0.0",
+        //       "orderMargin":"0.0000",
+        //       "sessionAvgPrice":"30810.0"
+        //    }
+        //
         const contract = this.safeString (position, 'symbol');
         market = this.safeMarket (contract, market);
         const size = this.safeString (position, 'size');
         let side = this.safeString (position, 'side');
         side = (side === 'Buy') ? 'long' : 'short';
-        const notional = this.safeString (position, 'position_value');
-        const unrealisedPnl = this.safeString (position, 'unrealised_pnl');
-        const initialMarginString = this.safeString (position, 'position_margin');
+        const notional = this.safeString2 (position, 'position_value', 'positionValue');
+        const unrealisedPnl = this.safeString2 (position, 'unrealised_pnl', 'unrealisedPnl');
+        const initialMarginString = this.safeString2 (position, 'position_margin', 'orderMargin');
         const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
         let timestamp = this.parse8601 (this.safeString (position, 'updated_at'));
         if (timestamp === undefined) {
-            timestamp = this.milliseconds ();
+            timestamp = this.safeInteger (position, 'createdAt');
+            if (timestamp === undefined) {
+                timestamp = this.milliseconds ();
+            }
         }
         const isIsolated = this.safeValue (position, 'is_isolated');
         const marginMode = isIsolated ? 'isolated' : 'cross';
@@ -3801,15 +3836,15 @@ module.exports = class bybit extends Exchange {
             'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notional)),
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'entryPrice': this.safeString (position, 'entry_price'),
+            'entryPrice': this.safeNumber2 (position, 'entry_price', 'entryPrice'),
             'notional': this.parseNumber (notional),
             'leverage': this.safeNumber (position, 'leverage'),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (size), // in USD for inverse swaps
-            'contractSize': this.safeValue (market, 'contractSize'),
+            'contractSize': this.safeNumber (market, 'contractSize'),
             'marginRatio': undefined,
-            'liquidationPrice': this.safeNumber (position, 'liq_price'),
-            'markPrice': undefined,
+            'liquidationPrice': this.safeNumber2 (position, 'liq_price', 'liqPrice'),
+            'markPrice': this.safeNumber (position, 'markPrice'),
             'collateral': undefined,
             'marginMode': marginMode,
             'side': side,
