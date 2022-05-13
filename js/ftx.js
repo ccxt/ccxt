@@ -2868,4 +2868,67 @@ module.exports = class ftx extends Exchange {
             'info': info,
         };
     }
+
+    async fetchSettlementHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ftx#fetchSettlementHistory
+         * @description Fetches historical settlement records
+         * @param {str} symbol unified symbol of the market to fetch the settlement history for
+         * @param {int} since not used by FTX
+         * @param {int} limit not used by FTX
+         * @param {dict} params exchange specific params
+         * @returns A list of settlement history objects
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchSettlementHistory () requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'future_name': market['id'],
+        };
+        const response = await this.publicGetFuturesFutureNameStats (this.extend (request, params));
+        //
+        //    {
+        //        "success": true,
+        //        "result": {
+        //            "volume": 1000.23,
+        //            "nextFundingRate": 0.00025,
+        //            "nextFundingTime": "2019-03-29T03:00:00+00:00",
+        //            "expirationPrice": 3992.1,
+        //            "predictedExpirationPrice": 3993.6,
+        //            "strikePrice": 8182.35,
+        //            "openInterest": 21124.583
+        //        }
+        //    }
+        //
+        const result = this.safeValue (response, 'result');
+        return [ this.parseSettlement (result, market) ];
+    }
+
+    parseSettlement (settlement, market) {
+        //
+        //    {
+        //        "volume": 1000.23,
+        //        "nextFundingRate": 0.00025,
+        //        "nextFundingTime": "2019-03-29T03:00:00+00:00",
+        //        "expirationPrice": 3992.1,
+        //        "predictedExpirationPrice": 3993.6,
+        //        "strikePrice": 8182.35,
+        //        "openInterest": 21124.583
+        //    }
+        //
+        return {
+            'info': settlement,
+            'symbol': this.safeString (market, 'symbol'),
+            'entryPrice': undefined,
+            'price': this.safeNumber (settlement, 'expirationPrice'),
+            'pnl': undefined,
+            'fee': undefined,
+            'size': undefined,
+            'side': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+    }
 };
