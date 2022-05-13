@@ -493,10 +493,15 @@ module.exports = class aax extends Exchange {
             let symbol = base + '/' + quote;
             let type = 'spot';
             let contractSize = undefined;
+            let minLeverage = undefined;
+            let maxLeverage = undefined;
             if (swap) {
                 symbol = symbol + ':' + settle;
                 type = 'swap';
                 contractSize = this.safeNumber (market, 'multiplier');
+                minLeverage = '1';
+                const imRate = this.safeString (market, 'imRate');
+                maxLeverage = Precise.stringDiv ('1', imRate);
             }
             result.push ({
                 'id': id,
@@ -517,6 +522,7 @@ module.exports = class aax extends Exchange {
                 'contract': swap,
                 'linear': linear,
                 'inverse': inverse,
+                'quanto': quanto,
                 'taker': this.safeNumber (market, 'takerFee'),
                 'maker': this.safeNumber (market, 'makerFee'),
                 'contractSize': contractSize,
@@ -524,23 +530,22 @@ module.exports = class aax extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'quanto': quanto,
                 'precision': {
                     'amount': this.safeNumber (market, 'lotSize'),
                     'price': this.safeNumber (market, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.parseNumber (minLeverage),
+                        'max': this.parseNumber (maxLeverage),
                     },
                     'amount': {
-                        'min': this.safeString (market, 'minQuantity'),
-                        'max': this.safeString (market, 'maxQuantity'),
+                        'min': this.safeNumber (market, 'minQuantity'),
+                        'max': this.safeNumber (market, 'maxQuantity'),
                     },
                     'price': {
-                        'min': this.safeString (market, 'minPrice'),
-                        'max': this.safeString (market, 'maxPrice'),
+                        'min': this.safeNumber (market, 'minPrice'),
+                        'max': this.safeNumber (market, 'maxPrice'),
                     },
                     'cost': {
                         'min': undefined,
