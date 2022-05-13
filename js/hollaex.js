@@ -245,7 +245,7 @@ module.exports = class hollaex extends ccxt.hollaex {
         const marketIds = {};
         for (let i = 0; i < rawOrders.length; i++) {
             const order = rawOrders[i];
-            const parsed = this.parseOrder (data);
+            const parsed = this.parseOrder (order);
             stored.append (parsed);
             const symbol = order['symbol'];
             const market = this.market (symbol);
