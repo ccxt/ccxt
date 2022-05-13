@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.82.26'
+__version__ = '1.82.27'
 
 # ----------------------------------------------------------------------------
 
@@ -162,6 +162,7 @@ from ccxt.luno import luno                                  # noqa: F401
 from ccxt.lykke import lykke                                # noqa: F401
 from ccxt.mercado import mercado                            # noqa: F401
 from ccxt.mexc import mexc                                  # noqa: F401
+from ccxt.mexc3 import mexc3                                # noqa: F401
 from ccxt.ndax import ndax                                  # noqa: F401
 from ccxt.novadax import novadax                            # noqa: F401
 from ccxt.oceanex import oceanex                            # noqa: F401
@@ -283,6 +284,7 @@ exchanges = [
     'lykke',
     'mercado',
     'mexc',
+    'mexc3',
     'ndax',
     'novadax',
     'oceanex',
