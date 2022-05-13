@@ -221,11 +221,11 @@ class kucoin extends \ccxt\async\kucoin {
         $period = $this->timeframes[$timeframe];
         $topic = '/market/candles:' . $market['id'] . '_' . $period;
         $messageHash = $topic;
-        $trades = yield $this->subscribe($negotiation, $topic, $messageHash, null, $symbol, $params);
+        $ohlcv = yield $this->subscribe($negotiation, $topic, $messageHash, null, $symbol, $params);
         if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
+            $limit = $ohlcv->getLimit ($symbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
     public function handle_ohlcv($client, $message) {

@@ -545,7 +545,7 @@ module.exports = class gateio extends ccxt.gateio {
         await this.loadMarkets ();
         let subType = undefined;
         let type = undefined;
-        let marketId = '!all';
+        let marketId = '!' + 'all';
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbol = market['symbol'];
