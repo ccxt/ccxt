@@ -118,7 +118,7 @@ function test_trades($exchange, $symbol) {
         }
         dump(green($symbol), 'fetched', green(count($trades)), 'trades');
     } else {
-        dump(green($symbol), 'fetchTrades() not supported');
+        dump(green($symbol), 'fetchTrades() is not supported');
     }
 }
 
@@ -141,7 +141,7 @@ function test_orders($exchange, $symbol) {
         }
         dump(green($symbol), 'fetched', green(count($orders)), 'orders');
     } else {
-        dump(green($symbol), 'fetchOrders() not supported');
+        dump(green($symbol), 'fetchOrders() is not supported');
     }
 }
 
@@ -172,7 +172,7 @@ function test_positions($exchange, $symbol) {
         }
         dump(green($symbol), 'fetched', green(count($positions)), 'positions');
     } else {
-        dump(green($symbol), 'fetchPositions() not supported');
+        dump(green($symbol), 'fetchPositions() is not supported');
     }
 }
 
@@ -190,7 +190,7 @@ function test_closed_orders($exchange, $symbol) {
         }
         dump(green($symbol), 'fetched', green(count($orders)), 'closed orders');
     } else {
-        dump(green($symbol), 'fetchClosedOrders() not supported');
+        dump(green($symbol), 'fetchClosedOrders() is not supported');
     }
 }
 
@@ -207,7 +207,7 @@ function test_open_orders($exchange, $symbol) {
         }
         dump(green($symbol), 'fetched', green(count($orders)), 'open orders');
     } else {
-        dump(green($symbol), 'fetchOpenOrders() not supported');
+        dump(green($symbol), 'fetchOpenOrders() is not supported');
     }
 }
 
@@ -223,7 +223,7 @@ function test_transactions($exchange, $code) {
         }
         dump(green($code), 'fetched', green(count($transactions)), 'transactions');
     } else {
-        dump(green($code), 'fetchTransactions() not supported');
+        dump(green($code), 'fetchTransactions() is not supported');
     }
 }
 
@@ -252,7 +252,7 @@ function test_ohlcvs($exchange, $symbol) {
         }
         dump(green($symbol), 'fetched', green(count($ohlcvs)), 'ohlcvs');
     } else {
-        dump(green($symbol), 'fetchOHLCV() not supported');
+        dump(green($symbol), 'fetchOHLCV() is not supported');
     }
 }
 
