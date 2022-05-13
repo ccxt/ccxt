@@ -391,31 +391,6 @@ module.exports = class mexc3 extends Exchange {
                     '2003': InvalidOrder,
                     '2005': InsufficientFunds,
                     '600': BadRequest,
-                    // below are old v2 codes, I am not sure if they still apply.
-                    // '400': BadRequest, // Invalid parameter
-                    // '401': AuthenticationError, // Invalid signature, fail to pass the validation
-                    // '403': PermissionDenied, // {"msg":"no permission to access the endpoint","code":403}
-                    // '429': RateLimitExceeded, // too many requests, rate limit rule is violated
-                    // '1000': AccountNotEnabled, // {"success":false,"code":1000,"message":"Please open contract account first!"}
-                    // '1002': InvalidOrder,
-                    // '10072': AuthenticationError, // Invalid access key
-                    // '10073': AuthenticationError, // Invalid request time
-                    // '10075': PermissionDenied, // {"msg":"IP [xxx.xxx.xxx.xxx] not in the ip white list","code":10075}
-                    // '10101': InsufficientFunds, // {"code":10101,"msg":"Insufficient balance"}
-                    // '10216': InvalidAddress, // {"code":10216,"msg":"No available deposit address"}
-                    // '10232': BadSymbol, // {"code":10232,"msg":"The currency not exist"}
-                    // '30000': BadSymbol, // Trading is suspended for the requested symbol
-                    // '30001': InvalidOrder, // Current trading type (bid or ask) is not allowed
-                    // '30002': InvalidOrder, // Invalid trading amount, smaller than the symbol minimum trading amount
-                    // '30003': InvalidOrder, // Invalid trading amount, greater than the symbol maximum trading amount
-                    // '30004': InsufficientFunds, // Insufficient balance
-                    // '30005': InvalidOrder, // Oversell error
-                    // '30010': InvalidOrder, // Price out of allowed range
-                    // '30016': BadSymbol, // Market is closed
-                    // '30019': InvalidOrder, // Orders count over limit for batch processing
-                    // '30020': BadSymbol, // Restricted symbol, API access is not allowed for the time being
-                    // '30021': BadSymbol, // Invalid symbol
-                    // '33333': BadSymbol, // {"code":33333,"msg":"currency can not be null"}
                 },
                 'broad': {
                     'Order quantity error, please try to modify.': BadRequest, // code:2011
@@ -428,9 +403,6 @@ module.exports = class mexc3 extends Exchange {
                     'Bid price is great than max allow price': InvalidOrder, // code:2003
                     'Invalid symbol.': BadSymbol, // code:-1121
                     'Param error!': BadRequest, // code:600
-                    // below are v2
-                    // 'Insufficient balance': InsufficientFunds,
-                    // 'Unknown order sent': BadRequest,
                 },
             },
         });
