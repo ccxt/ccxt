@@ -3569,6 +3569,15 @@ module.exports = class bybit extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['settle'] === 'USDC') {
+            throw new NotSupported (this.id + ' setMarginMode() does not support market ' + symbol + '');
+        }
+        marginMode = marginMode.toUpperCase ();
+        if ((marginMode !== 'ISOLATED') && (marginMode !== 'CROSS')) {
+            throw new BadRequest (this.id + ' setMarginMode() marginMode must be either isolated or cross');
+        }
         const leverage = this.safeNumber (params, 'leverage');
         let sellLeverage = undefined;
         let buyLeverage = undefined;
@@ -3584,13 +3593,7 @@ module.exports = class bybit extends Exchange {
             sellLeverage = leverage;
             buyLeverage = leverage;
         }
-        marginMode = marginMode.toUpperCase ();
-        if ((marginMode !== 'ISOLATED') && (marginMode !== 'CROSS')) {
-            throw new BadRequest (this.id + ' setMarginMode() marginMode must be either isolated or cross');
-        }
         const isIsolated = (marginMode === 'ISOLATED');
-        await this.loadMarkets ();
-        const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
             'is_isolated': isIsolated,
