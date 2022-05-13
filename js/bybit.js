@@ -3,7 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { AuthenticationError, BadSymbol, BadRequest } = require ('ccxt/js/base/errors');
+// BadSymbol, BadRequest
+const { AuthenticationError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -84,12 +85,45 @@ module.exports = class bybit extends ccxt.bybit {
             'exceptions': {
                 'ws': {
                     'exact': {
-                        'Bearer or HMAC authentication required': BadSymbol, // { error: 'Bearer or HMAC authentication required' }
-                        'Error: wrong input': BadRequest, // { error: 'Error: wrong input' }
                     },
                 },
             },
         });
+    }
+
+    async getUrlByMarketType (symbol = undefined, isPrivate = false, params = {}) {
+        await this.loadMarkets ();
+        const accessibility = isPrivate ? 'private' : 'public';
+        let url = this.urls['api']['ws'];
+        const market = this.market (symbol);
+        const isUsdcSettled = market['settle'] === 'USDC';
+        const isSpot = market['spot'];
+        const type = market['type'];
+        const isLinear = market['linear'];
+        if (isSpot) {
+            url = url['spot'][accessibility];
+        } else if (isUsdcSettled) {
+            url = url['usdc'][type][accessibility];
+        } else if (isLinear) {
+            url = url['linear'][accessibility];
+        } else {
+            // inverse
+            url = url['inverse'][accessibility];
+        }
+        return [url, params];
+    }
+
+    async watchTicker (symbol, params = {}) {
+        const channel = 'realtimes';
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = 'channel' + market['symbol'];
+        const reqParams = {
+            'symbol': market['id'],
+        };
+        let url = undefined;
+        [ url, params ] = this.getUrlByMarketType (symbol, false, params);
+        return await this.watchPublic (url, channel, messageHash, reqParams, params);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -294,11 +328,14 @@ module.exports = class bybit extends ccxt.bybit {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchPublic (messageHash, params = {}) {
-        const url = this.urls['api']['ws'];
+    async watchPublic (url, channel, messageHash, reqParams = {}, params = {}) {
+        reqParams = this.extend (reqParams, {
+            'binary': false,
+        });
         const request = {
-            'op': 'subscribe',
-            'args': [ messageHash ],
+            'topic': channel,
+            'event': 'sub',
+            'params': reqParams,
         };
         const message = this.extend (request, params);
         return await this.watch (url, messageHash, message, messageHash);
@@ -354,89 +391,6 @@ module.exports = class bybit extends ccxt.bybit {
 
     handleMessage (client, message) {
         //
-        // pong
-        //
-        //     { message: 'pong' }
-        //
-        // trade
-        //
-        //     {
-        //         topic: 'trade',
-        //         action: 'partial',
-        //         symbol: 'btc-usdt',
-        //         data: [
-        //             {
-        //                 size: 0.05145,
-        //                 price: 41977.9,
-        //                 side: 'buy',
-        //                 timestamp: '2022-04-11T09:40:10.881Z'
-        //             },
-        //         ]
-        //     }
-        //
-        // orderbook
-        //
-        //     {
-        //         topic: 'orderbook',
-        //         action: 'partial',
-        //         symbol: 'ltc-usdt',
-        //         data: {
-        //             bids: [
-        //                 [104.29, 5.2264],
-        //                 [103.86,1.3629],
-        //                 [101.82,0.5942]
-        //             ],
-        //             asks: [
-        //                 [104.81,9.5531],
-        //                 [105.54,0.6416],
-        //                 [106.18,1.4141],
-        //             ],
-        //             timestamp: '2022-04-11T10:37:01.227Z'
-        //         },
-        //         time: 1649673421
-        //     }
-        //
-        // order
-        //
-        //     {
-        //         topic: 'order',
-        //         action: 'insert',
-        //         user_id: 155328,
-        //         symbol: 'ltc-usdt',
-        //         data: {
-        //             symbol: 'ltc-usdt',
-        //             side: 'buy',
-        //             size: 0.05,
-        //             type: 'market',
-        //             price: 0,
-        //             fee_structure: { maker: 0.1, taker: 0.1 },
-        //             fee_coin: 'ltc',
-        //             id: 'ce38fd48-b336-400b-812b-60c636454231',
-        //             created_by: 155328,
-        //             filled: 0.05,
-        //             method: 'market',
-        //             created_at: '2022-04-11T14:09:00.760Z',
-        //             updated_at: '2022-04-11T14:09:00.760Z',
-        //             status: 'filled'
-        //         },
-        //         time: 1649686140
-        //     }
-        //
-        // balance
-        //
-        //     {
-        //         topic: 'wallet',
-        //         action: 'partial',
-        //         user_id: 155328,
-        //         data: {
-        //             eth_balance: 0,
-        //             eth_available: 0,
-        //             usdt_balance: 18.94344188,
-        //             usdt_available: 18.94344188,
-        //             ltc_balance: 0.00005,
-        //             ltc_available: 0.00005,
-        //         }
-        //     }
         //
         if (!this.handleErrorMessage (client, message)) {
             return;
@@ -460,8 +414,8 @@ module.exports = class bybit extends ccxt.bybit {
     }
 
     ping (client) {
-        // hollaex does not support built-in ws protocol-level ping-pong
-        return { 'op': 'ping' };
+        const timestamp = this.milliseconds ();
+        return { 'ping': timestamp.toString () };
     }
 
     handlePong (client, message) {
