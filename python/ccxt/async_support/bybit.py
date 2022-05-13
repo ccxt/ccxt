@@ -3141,7 +3141,7 @@ class bybit(Exchange):
             request['start_date'] = self.yyyymmdd(since)
         if limit is not None:
             request['limit'] = limit
-        response = await self.v2PrivateGetWalletWithdrawList(self.extend(request, params))
+        response = await self.privateGetV2PrivateWalletWithdrawList(self.extend(request, params))
         #
         #     {
         #         "ret_code": 0,

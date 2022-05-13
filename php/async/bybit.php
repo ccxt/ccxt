@@ -3294,7 +3294,7 @@ class bybit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = yield $this->v2PrivateGetWalletWithdrawList (array_merge($request, $params));
+        $response = yield $this->privateGetV2PrivateWalletWithdrawList (array_merge($request, $params));
         //
         //     {
         //         "ret_code" => 0,
