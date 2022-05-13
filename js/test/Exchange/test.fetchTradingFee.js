@@ -16,6 +16,6 @@ module.exports = async (exchange, symbol) => {
         testTradingFee (exchange, symbol, fee)
         return fee
     } else {
-        console.log (method +'() is not supported')
+        console.log (method + '() is not supported')
     }
 }

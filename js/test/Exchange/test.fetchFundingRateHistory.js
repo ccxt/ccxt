@@ -36,6 +36,6 @@ module.exports = async (exchange) => {
         return fundingRates
 
     } else {
-        console.log (method +'() is not supported')
+        console.log (method + '() is not supported')
     }
 }
