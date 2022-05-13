@@ -24,6 +24,7 @@ module.exports = class bitget extends Exchange {
                 'swap': undefined, // has but unimplemented
                 'future': undefined, // has but unimplemented
                 'option': false,
+                'addMargin': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
@@ -61,6 +62,7 @@ module.exports = class bitget extends Exchange {
                 'fetchTransfers': undefined,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': false,
+                'reduceMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'transfer': false,
@@ -2457,6 +2459,68 @@ module.exports = class bitget extends Exchange {
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
         };
+    }
+
+    async modifyMarginHelper (symbol, amount, type, params = {}) {
+        await this.loadMarkets ();
+        const holdSide = this.safeString (params, 'holdSide');
+        const market = this.market (symbol);
+        const marginCoin = (market['linear']) ? market['quote'] : market['base'];
+        const request = {
+            'symbol': market['id'],
+            'marginCoin': marginCoin,
+            'amount': this.amountToPrecision (symbol, amount), // positive value for adding margin, negative for reducing
+            'holdSide': holdSide, // long or short
+        };
+        params = this.omit (params, 'holdSide');
+        const response = await this.privateMixPostAccountSetMargin (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1652483636792,
+        //         "data": {
+        //             "result": true
+        //         }
+        //     }
+        //
+        return this.extend (this.parseModifyMargin (response, market), {
+            'amount': this.parseNumber (amount),
+            'type': type,
+        });
+    }
+
+    parseModifyMargin (data, market = undefined) {
+        const errorCode = this.safeString (data, 'code');
+        const status = (errorCode === '00000') ? 'ok' : 'failed';
+        const code = (market['linear']) ? market['quote'] : market['base'];
+        return {
+            'info': data,
+            'type': undefined,
+            'amount': undefined,
+            'code': code,
+            'symbol': market['symbol'],
+            'status': status,
+        };
+    }
+
+    async reduceMargin (symbol, amount, params = {}) {
+        if (amount > 0) {
+            throw new BadRequest (this.id + ' reduceMargin() amount parameter must be a negative value');
+        }
+        const holdSide = this.safeString (params, 'holdSide');
+        if (holdSide === undefined) {
+            throw new ArgumentsRequired (this.id + ' reduceMargin() requires a holdSide parameter, either long or short');
+        }
+        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
+    }
+
+    async addMargin (symbol, amount, params = {}) {
+        const holdSide = this.safeString (params, 'holdSide');
+        if (holdSide === undefined) {
+            throw new ArgumentsRequired (this.id + ' addMargin() requires a holdSide parameter, either long or short');
+        }
+        return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
