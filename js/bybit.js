@@ -3694,6 +3694,7 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         let result = this.safeValue (response, 'result', {});
+        // usdc contracts
         if ('dataList' in result) {
             result = this.safeValue (result, 'dataList', []);
         }
@@ -3707,6 +3708,8 @@ module.exports = class bybit extends Exchange {
     }
 
     parsePosition (position, market = undefined) {
+        //
+        // linear swap
         //
         //    {
         //        "user_id":"24478789",
@@ -3735,27 +3738,65 @@ module.exports = class bybit extends Exchange {
         //        "position_idx":"1",
         //        "mode":"BothSide"
         //    }
+        // inverse swap / future
+        //    {
+        //        "id":0,
+        //        "position_idx":0,
+        //        "mode":0,
+        //        "user_id":24478789,
+        //        "risk_id":11,
+        //        "symbol":"ETHUSD",
+        //        "side":"Buy",
+        //        "size":10, // USD amount
+        //        "position_value":"0.0047808",
+        //        "entry_price":"2091.70013387",
+        //        "is_isolated":false,
+        //        "auto_add_margin":1,
+        //        "leverage":"10",
+        //        "effective_leverage":"0.9",
+        //        "position_margin":"0.00048124",
+        //        "liq_price":"992.75",
+        //        "bust_price":"990.4",
+        //        "occ_closing_fee":"0.00000606",
+        //        "occ_funding_fee":"0",
+        //        "take_profit":"0",
+        //        "stop_loss":"0",
+        //        "trailing_stop":"0",
+        //        "position_status":"Normal",
+        //        "deleverage_indicator":3,
+        //        "oc_calc_data":"{\"blq\":0,\"slq\":0,\"bmp\":0,\"smp\":0,\"fq\":-10,\"bv2c\":0.10126,\"sv2c\":0.10114}",
+        //        "order_margin":"0",
+        //        "wallet_balance":"0.0053223",
+        //        "realised_pnl":"-0.00000287",
+        //        "unrealised_pnl":0.00001847,
+        //        "cum_realised_pnl":"-0.00001611",
+        //        "cross_seq":8301155878,
+        //        "position_seq":0,
+        //        "created_at":"2022-05-05T15:06:17.949997224Z",
+        //        "updated_at":"2022-05-13T13:40:29.793570924Z",
+        //        "tp_sl_mode":"Full"
+        //    }
         //
         const contract = this.safeString (position, 'symbol');
         market = this.safeMarket (contract, market);
         const size = this.safeString (position, 'size');
         let side = this.safeString (position, 'side');
         side = (side === 'Buy') ? 'long' : 'short';
-        // const maintenanceRate = this.safeString (position, 'maintenance_margin');
-        // const maintenanceMargin = this.safeString (position, 'position_margin');
-        const markPrice = this.safeString (position, 'mark_price');
         const notional = this.safeString (position, 'position_value');
         const unrealisedPnl = this.safeString (position, 'unrealised_pnl');
         const initialMarginString = this.safeString (position, 'position_margin');
         const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
-        const currentTime = this.milliseconds ();
+        let timestamp = this.parse8601 (this.safeString (position, 'updated_at'));
+        if (timestamp === undefined) {
+            timestamp = this.milliseconds ();
+        }
         const isIsolated = this.safeValue (position, 'is_isolated');
         const marginMode = isIsolated ? 'isolated' : 'cross';
         return {
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
-            'timestamp': currentTime,
-            'datetime': this.iso8601 (currentTime),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notional)),
             'maintenanceMargin': undefined,
@@ -3764,11 +3805,11 @@ module.exports = class bybit extends Exchange {
             'notional': this.parseNumber (notional),
             'leverage': this.safeNumber (position, 'leverage'),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
-            'contracts': this.parseNumber (size),
+            'contracts': this.parseNumber (size), // in USD for inverse swaps
             'contractSize': this.safeValue (market, 'contractSize'),
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liq_price'),
-            'markPrice': markPrice,
+            'markPrice': undefined,
             'collateral': undefined,
             'marginMode': marginMode,
             'side': side,
@@ -3779,7 +3820,11 @@ module.exports = class bybit extends Exchange {
     parsePositions (positions, market = undefined) {
         const result = [];
         for (let i = 0; i < positions.length; i++) {
-            const rawPosition = positions[i];
+            let rawPosition = positions[i];
+            if ('data' in rawPosition && 'is_valid' in rawPosition) {
+                // futures only
+                rawPosition = this.safeValue (rawPosition, 'data');
+            }
             const size = this.safeNumber (rawPosition, 'size');
             // Bybit returns all positions possibilities so we have to
             // filter only the real ones and ignore the positions with
