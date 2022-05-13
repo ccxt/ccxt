@@ -40,6 +40,8 @@ class bitget extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDeposits' => false,
                 'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => true,
+                'fetchFundingRates' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
                 'fetchMarkets' => true,
@@ -2353,6 +2355,55 @@ class bitget extends Exchange {
             'leverage' => $this->safe_number($position, 'leverage'),
             'marginRatio' => null,
         );
+    }
+
+    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            // 'pageSize' => $limit, // default 20
+            // 'pageNo' => 1,
+            // 'nextPage' => false,
+        );
+        if ($limit !== null) {
+            $request['pageSize'] = $limit;
+        }
+        $response = $this->publicMixGetMarketHistoryFundRate (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1652406728393,
+        //         "data" => array(
+        //             array(
+        //                 "symbol" => "BTCUSDT",
+        //                 "fundingRate" => "-0.0003",
+        //                 "settleTime" => "1652396400000"
+        //             ),
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $rates = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $marketId = $this->safe_string($entry, 'symbol');
+            $symbol = $this->safe_symbol($marketId, $market);
+            $timestamp = $this->safe_integer($entry, 'settleTime');
+            $rates[] = array(
+                'info' => $entry,
+                'symbol' => $symbol,
+                'fundingRate' => $this->safe_string($entry, 'fundingRate'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+            );
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
