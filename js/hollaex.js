@@ -192,26 +192,74 @@ module.exports = class hollaex extends ccxt.hollaex {
         //         time: 1649686140
         //     }
         //
+        //    {
+        //        "topic":"order",
+        //        "action":"partial",
+        //        "user_id":155328,
+        //        "data":[
+        //           {
+        //              "created_at":"2022-05-13T08:19:07.694Z",
+        //              "fee":0,
+        //              "meta":{
+        //
+        //              },
+        //              "symbol":"ltc-usdt",
+        //              "side":"buy",
+        //              "size":0.1,
+        //              "type":"limit",
+        //              "price":55,
+        //              "fee_structure":{
+        //                 "maker":0.1,
+        //                 "taker":0.1
+        //              },
+        //              "fee_coin":"ltc",
+        //              "id":"d5e77182-ad4c-4ac9-8ce4-a97f9b43e33c",
+        //              "created_by":155328,
+        //              "filled":0,
+        //              "status":"new",
+        //              "updated_at":"2022-05-13T08:19:07.694Z",
+        //              "stop":null
+        //           }
+        //        ],
+        //        "time":1652430035
+        //       }
+        //
         const channel = this.safeString (message, 'topic');
-        const marketId = this.safeString (message, 'symbol');
         const data = this.safeValue (message, 'data', {});
         // usually the first message is an empty array
         const dataLength = data.length;
         if (dataLength === 0) {
             return 0;
         }
-        const parsed = this.parseOrder (data);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
         }
-        const orders = this.orders;
-        orders.append (parsed);
-        client.resolve (orders);
+        const stored = this.orders;
+        let rawOrders = undefined;
+        if (!Array.isArray (data)) {
+            rawOrders = [ data ];
+        } else {
+            rawOrders = data;
+        }
+        const marketIds = {};
+        for (let i = 0; i < rawOrders.length; i++) {
+            const order = rawOrders[i];
+            const parsed = this.parseOrder (data);
+            stored.append (parsed);
+            const symbol = order['symbol'];
+            const market = this.market (symbol);
+            const marketId = market['id'];
+            marketIds[marketId] = true;
+        }
         // non-symbol specific
-        client.resolve (orders, channel);
-        const messageHash = channel + ':' + marketId;
-        client.resolve (orders, messageHash);
+        client.resolve (this.orders, channel);
+        const keys = Object.keys (marketIds);
+        for (let i = 0; i < keys.length; i++) {
+            const marketId = keys[i];
+            const messageHash = channel + ':' + marketId;
+            client.resolve (this.orders, messageHash);
+        }
     }
 
     async watchBalance (params = {}) {
