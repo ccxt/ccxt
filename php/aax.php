@@ -496,10 +496,15 @@ class aax extends Exchange {
             $symbol = $base . '/' . $quote;
             $type = 'spot';
             $contractSize = null;
+            $minLeverage = null;
+            $maxLeverage = null;
             if ($swap) {
                 $symbol = $symbol . ':' . $settle;
                 $type = 'swap';
                 $contractSize = $this->safe_number($market, 'multiplier');
+                $minLeverage = '1';
+                $imRate = $this->safe_string($market, 'imRate');
+                $maxLeverage = Precise::string_div('1', $imRate);
             }
             $result[] = array(
                 'id' => $id,
@@ -520,6 +525,7 @@ class aax extends Exchange {
                 'contract' => $swap,
                 'linear' => $linear,
                 'inverse' => $inverse,
+                'quanto' => $quanto,
                 'taker' => $this->safe_number($market, 'takerFee'),
                 'maker' => $this->safe_number($market, 'makerFee'),
                 'contractSize' => $contractSize,
@@ -527,23 +533,22 @@ class aax extends Exchange {
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
-                'quanto' => $quanto,
                 'precision' => array(
                     'amount' => $this->safe_number($market, 'lotSize'),
                     'price' => $this->safe_number($market, 'tickSize'),
                 ),
                 'limits' => array(
                     'leverage' => array(
-                        'min' => null,
-                        'max' => null,
+                        'min' => $this->parse_number($minLeverage),
+                        'max' => $this->parse_number($maxLeverage),
                     ),
                     'amount' => array(
-                        'min' => $this->safe_string($market, 'minQuantity'),
-                        'max' => $this->safe_string($market, 'maxQuantity'),
+                        'min' => $this->safe_number($market, 'minQuantity'),
+                        'max' => $this->safe_number($market, 'maxQuantity'),
                     ),
                     'price' => array(
-                        'min' => $this->safe_string($market, 'minPrice'),
-                        'max' => $this->safe_string($market, 'maxPrice'),
+                        'min' => $this->safe_number($market, 'minPrice'),
+                        'max' => $this->safe_number($market, 'maxPrice'),
                     ),
                     'cost' => array(
                         'min' => null,
