@@ -992,7 +992,7 @@ module.exports = class Exchange {
                 return depositAddress;
             }
         } else {
-            throw new NotSupported (this.id + ' fetchDepositAddress() not supported yet');
+            throw new NotSupported (this.id + ' fetchDepositAddress() is not supported yet');
         }
     }
 
@@ -1152,7 +1152,7 @@ module.exports = class Exchange {
     }
 
     async fetchBalance (params = {}) {
-        throw new NotSupported (this.id + ' fetchBalance() not supported yet')
+        throw new NotSupported (this.id + ' fetchBalance() is not supported yet')
     }
 
     async fetchPartialBalance (part, params = {}) {
@@ -1183,12 +1183,12 @@ module.exports = class Exchange {
     }
 
     async fetchTradingFees (params = {}) {
-        throw new NotSupported (this.id + ' fetchTradingFees() not supported yet')
+        throw new NotSupported (this.id + ' fetchTradingFees() is not supported yet')
     }
 
     async fetchTradingFee (symbol, params = {}) {
         if (!this.has['fetchTradingFees']) {
-            throw new NotSupported (this.id + ' fetchTradingFee() not supported yet')
+            throw new NotSupported (this.id + ' fetchTradingFee() is not supported yet')
         }
         return await this.fetchTradingFees (params)
     }
@@ -1627,7 +1627,7 @@ module.exports = class Exchange {
     }
 
     parseFundingRate (contract, market = undefined) {
-        throw new NotSupported (this.id + ' parseFundingRate() not supported yet')
+        throw new NotSupported (this.id + ' parseFundingRate() is not supported yet')
     }
 
     parseFundingRates (response, market = undefined) {

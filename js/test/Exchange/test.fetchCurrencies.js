@@ -8,16 +8,17 @@ const testCurrency = require ('./test.currency.js')
 
 module.exports = async (exchange) => {
 
+    const method = 'fetchCurrencies'
+
     const skippedExchanges = []
 
     if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, 'found in ignored exchanges, skipping fetchCurrencies...')
+        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...')
         return
     }
 
-    if (exchange.has.fetchCurrencies === true || exchange.has.fetchCurrencies === 'emulated') {
+    if (exchange.has[method] === true || exchange.has[method] === 'emulated') {
 
-        const method = 'fetchCurrencies'
         const currencies = await exchange[method] ()
         if (currencies !== undefined) {
             const values = Object.values (currencies)
@@ -30,6 +31,6 @@ module.exports = async (exchange) => {
 
     } else {
 
-        console.log ('fetching currencies not supported')
+        console.log (method +'() is not supported')
     }
 }

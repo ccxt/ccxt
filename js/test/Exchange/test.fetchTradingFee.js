@@ -3,16 +3,19 @@
 const testTradingFee = require ('./test.tradingFee.js')
 
 module.exports = async (exchange, symbol) => {
+
+    const method = 'fetchTradingFee'
+
     const skippedExchanges = []
     if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, 'found in ignored exchanges, skipping fetchTradingFee...')
+        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...')
         return
     }
-    if (exchange.has.fetchTradingFee) {
-        const fee = await exchange.fetchTradingFee (symbol)
+    if (exchange.has[method]) {
+        const fee = await exchange[method] (symbol)
         testTradingFee (exchange, symbol, fee)
         return fee
     } else {
-        console.log ('fetching trading fees not supported')
+        console.log (method +'() is not supported')
     }
 }

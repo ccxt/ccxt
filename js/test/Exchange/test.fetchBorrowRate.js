@@ -27,6 +27,6 @@ module.exports = async (exchange, code) => {
 
     } else {
 
-        console.log (code, 'fetchBorrowRate () not supported')
+        console.log (code, method + '() is not supported')
     }
 }

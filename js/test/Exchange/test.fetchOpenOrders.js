@@ -9,11 +9,13 @@ const assert = require ('assert')
 
 module.exports = async (exchange, symbol) => {
 
-    if (exchange.has.fetchOpenOrders) {
+    const method = 'fetchOpenOrders'
+
+    if (exchange.has[method]) {
 
         // log ('fetching open orders...')
 
-        const orders = await exchange.fetchOpenOrders (symbol)
+        const orders = await exchange[method] (symbol)
 
         assert (orders instanceof Array)
 
@@ -31,6 +33,6 @@ module.exports = async (exchange, symbol) => {
 
     } else {
 
-        console.log ('fetching open orders not supported')
+        console.log (method + '() is not supported')
     }
 }

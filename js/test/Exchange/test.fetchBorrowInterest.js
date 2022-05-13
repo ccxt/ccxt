@@ -54,6 +54,6 @@ module.exports = async (exchange, code, symbol) => {
         return interest
 
     } else {
-        console.log (code, 'fetchBorrowInterest () not supported')
+        console.log (code, method + '() is not supported')
     }
 }
