@@ -153,6 +153,78 @@ class hollaex extends \ccxt\async\hollaex {
         $client->resolve ($stored, $channel);
     }
 
+    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $messageHash = 'usertrade';
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $messageHash .= ':' . $market['id'];
+        }
+        $trades = yield $this->watch_private($messageHash, 'watchOrders', $params);
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit ($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+    }
+
+    public function handle_my_trades($client, $message, $subscription = null) {
+        //
+        // {
+        //     "topic":"usertrade",
+        //     "action":"insert",
+        //     "user_id":"103",
+        //     "symbol":"xht-usdt",
+        //     "data":array(
+        //        {
+        //           "size":1,
+        //           "side":"buy",
+        //           "price":0.24,
+        //           "symbol":"xht-usdt",
+        //           "timestamp":"2022-05-13T09:30:15.014Z",
+        //           "order_id":"6065a66e-e9a4-44a3-9726-4f8fa54b6bb6",
+        //           "fee":0.001,
+        //           "fee_coin":"xht",
+        //           "is_same":true
+        //        }
+        //     ),
+        //     "time":1652434215
+        // }
+        //
+        $channel = $this->safe_string($message, 'topic');
+        $rawTrades = $this->safe_value($message, 'data');
+        // usually the first $message is an empty array
+        // when the user does not have any trades yet
+        $dataLength = is_array($rawTrades) ? count($rawTrades) : 0;
+        if ($dataLength === 0) {
+            return 0;
+        }
+        if ($this->myTrades === null) {
+            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $this->myTrades = new ArrayCache ($limit);
+        }
+        $stored = $this->myTrades;
+        $marketIds = array();
+        for ($i = 0; $i < count($rawTrades); $i++) {
+            $trade = $rawTrades[$i];
+            $parsed = $this->parse_trade($trade);
+            $stored->append ($parsed);
+            $symbol = $trade['symbol'];
+            $market = $this->market($symbol);
+            $marketId = $market['id'];
+            $marketIds[$marketId] = true;
+        }
+        // non-$symbol specific
+        $client->resolve ($this->myTrades, $channel);
+        $keys = is_array($marketIds) ? array_keys($marketIds) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $marketId = $keys[$i];
+            $messageHash = $channel . ':' . $marketId;
+            $client->resolve ($this->myTrades, $messageHash);
+        }
+    }
+
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $messageHash = 'order';
@@ -175,9 +247,9 @@ class hollaex extends \ccxt\async\hollaex {
         //         topic => 'order',
         //         action => 'insert',
         //         user_id => 155328,
-        //         symbol => 'ltc-usdt',
+        //         $symbol => 'ltc-usdt',
         //         $data => array(
-        //             symbol => 'ltc-usdt',
+        //             $symbol => 'ltc-usdt',
         //             side => 'buy',
         //             size => 0.05,
         //             type => 'market',
@@ -195,26 +267,74 @@ class hollaex extends \ccxt\async\hollaex {
         //         time => 1649686140
         //     }
         //
+        //    {
+        //        "topic":"order",
+        //        "action":"partial",
+        //        "user_id":155328,
+        //        "data":array(
+        //           {
+        //              "created_at":"2022-05-13T08:19:07.694Z",
+        //              "fee":0,
+        //              "meta":array(
+        //
+        //              ),
+        //              "symbol":"ltc-usdt",
+        //              "side":"buy",
+        //              "size":0.1,
+        //              "type":"limit",
+        //              "price":55,
+        //              "fee_structure":array(
+        //                 "maker":0.1,
+        //                 "taker":0.1
+        //              ),
+        //              "fee_coin":"ltc",
+        //              "id":"d5e77182-ad4c-4ac9-8ce4-a97f9b43e33c",
+        //              "created_by":155328,
+        //              "filled":0,
+        //              "status":"new",
+        //              "updated_at":"2022-05-13T08:19:07.694Z",
+        //              "stop":null
+        //           }
+        //        ),
+        //        "time":1652430035
+        //       }
+        //
         $channel = $this->safe_string($message, 'topic');
-        $marketId = $this->safe_string($message, 'symbol');
         $data = $this->safe_value($message, 'data', array());
         // usually the first $message is an empty array
         $dataLength = is_array($data) ? count($data) : 0;
         if ($dataLength === 0) {
             return 0;
         }
-        $parsed = $this->parse_order($data);
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById ($limit);
         }
-        $orders = $this->orders;
-        $orders->append ($parsed);
-        $client->resolve ($orders);
-        // non-symbol specific
-        $client->resolve ($orders, $channel);
-        $messageHash = $channel . ':' . $marketId;
-        $client->resolve ($orders, $messageHash);
+        $stored = $this->orders;
+        $rawOrders = null;
+        if (gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) != 0) {
+            $rawOrders = array( $data );
+        } else {
+            $rawOrders = $data;
+        }
+        $marketIds = array();
+        for ($i = 0; $i < count($rawOrders); $i++) {
+            $order = $rawOrders[$i];
+            $parsed = $this->parse_order($order);
+            $stored->append ($parsed);
+            $symbol = $order['symbol'];
+            $market = $this->market($symbol);
+            $marketId = $market['id'];
+            $marketIds[$marketId] = true;
+        }
+        // non-$symbol specific
+        $client->resolve ($this->orders, $channel);
+        $keys = is_array($marketIds) ? array_keys($marketIds) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $marketId = $keys[$i];
+            $messageHash = $channel . ':' . $marketId;
+            $client->resolve ($this->orders, $messageHash);
+        }
     }
 
     public function watch_balance($params = array ()) {
@@ -414,6 +534,7 @@ class hollaex extends \ccxt\async\hollaex {
             'orderbook' => array($this, 'handle_order_book'),
             'order' => array($this, 'handle_order'),
             'wallet' => array($this, 'handle_balance'),
+            'usertrade' => array($this, 'handle_my_trades'),
         );
         $topic = $this->safe_value($message, 'topic');
         $method = $this->safe_value($methods, $topic);
