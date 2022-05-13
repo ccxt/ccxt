@@ -13,7 +13,7 @@ module.exports = async (exchange, code) => {
 
     if (exchange.has[method]) {
 
-        const borrowRate = await exchange.fetchBorrowRate (code)
+        const borrowRate = await exchange[method] (code)
 
         testBorrowRate (exchange, borrowRate, method, code)
 
