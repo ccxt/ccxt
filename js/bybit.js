@@ -3825,7 +3825,7 @@ module.exports = class bybit extends Exchange {
                 timestamp = this.milliseconds ();
             }
         }
-        const isIsolated = this.safeValue (position, 'is_isolated');
+        const isIsolated = this.safeValue (position, 'is_isolated', false); // if not present it is cross
         const marginMode = isIsolated ? 'isolated' : 'cross';
         return {
             'info': position,
