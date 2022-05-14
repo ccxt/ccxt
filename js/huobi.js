@@ -58,8 +58,6 @@ module.exports = class huobi extends Exchange {
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
-                'fetchFundingFee': undefined,
-                'fetchFundingFees': undefined,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -96,6 +94,8 @@ module.exports = class huobi extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchTradingLimits': true,
+                'fetchTransactionFee': undefined,
+                'fetchTransactionFees': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
                 'fetchWithdrawAddressesByNetwork': true,
@@ -1944,10 +1944,10 @@ module.exports = class huobi extends Exchange {
             request['trade_type'] = 0; // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
             if (market['linear']) {
                 const defaultMargin = market['future'] ? 'cross' : 'isolated';
-                const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
-                if (marginType === 'isolated') {
+                const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+                if (marginMode === 'isolated') {
                     method = 'contractPrivatePostLinearSwapApiV1SwapMatchresultsExact';
-                } else if (marginType === 'cross') {
+                } else if (marginMode === 'cross') {
                     method = 'contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact';
                 }
             } else if (market['inverse']) {
@@ -2427,16 +2427,16 @@ module.exports = class huobi extends Exchange {
         subType = this.safeString (params, 'subType', subType);
         const inverse = (subType === 'inverse');
         const linear = (subType === 'linear');
-        const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
-        const isolated = (marginType === 'isolated');
-        const cross = (marginType === 'cross');
+        const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'isolated');
+        const isolated = (marginMode === 'isolated');
+        const cross = (marginMode === 'cross');
         if (spot) {
             await this.loadAccounts ();
             const accountId = await this.fetchAccountIdByType (type, params);
             request['account-id'] = accountId;
             method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
         } else if (linear) {
-            if (marginType === 'isolated') {
+            if (marginMode === 'isolated') {
                 method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
             } else {
                 method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo';
@@ -2657,10 +2657,10 @@ module.exports = class huobi extends Exchange {
             request['contract_code'] = market['id'];
             if (market['linear']) {
                 const defaultMargin = market['future'] ? 'cross' : 'isolated';
-                const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
-                if (marginType === 'isolated') {
+                const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+                if (marginMode === 'isolated') {
                     method = 'contractPrivatePostLinearSwapApiV1SwapOrderInfo';
-                } else if (marginType === 'cross') {
+                } else if (marginMode === 'cross') {
                     method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrderInfo';
                 }
             } else if (market['inverse']) {
@@ -2918,8 +2918,8 @@ module.exports = class huobi extends Exchange {
         request['contract_code'] = market['id'];
         if (market['linear']) {
             const defaultMargin = market['future'] ? 'cross' : 'isolated';
-            const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
-            method = this.getSupportedMapping (marginType, {
+            const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+            method = this.getSupportedMapping (marginMode, {
                 'isolated': 'contractPrivatePostLinearSwapApiV1SwapHisorders',
                 'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossHisorders',
             });
@@ -3083,10 +3083,10 @@ module.exports = class huobi extends Exchange {
             request['contract_code'] = market['id'];
             if (market['linear']) {
                 const defaultMargin = market['future'] ? 'cross' : 'isolated';
-                const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
-                if (marginType === 'isolated') {
+                const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+                if (marginMode === 'isolated') {
                     method = 'contractPrivatePostLinearSwapApiV1SwapOpenorders';
-                } else if (marginType === 'cross') {
+                } else if (marginMode === 'cross') {
                     method = 'contractPrivatePostLinearSwapApiV1SwapCrossOpenorders';
                 }
             } else if (market['inverse']) {
@@ -3629,10 +3629,10 @@ module.exports = class huobi extends Exchange {
         let method = undefined;
         if (market['linear']) {
             const defaultMargin = market['future'] ? 'cross' : 'isolated';
-            const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
-            if (marginType === 'isolated') {
+            const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+            if (marginMode === 'isolated') {
                 method = 'contractPrivatePostLinearSwapApiV1SwapOrder';
-            } else if (marginType === 'cross') {
+            } else if (marginMode === 'cross') {
                 method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrder';
             }
         } else if (market['inverse']) {
@@ -3695,10 +3695,10 @@ module.exports = class huobi extends Exchange {
             request['contract_code'] = market['id'];
             if (market['linear']) {
                 const defaultMargin = market['future'] ? 'cross' : 'isolated';
-                const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
-                if (marginType === 'isolated') {
+                const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+                if (marginMode === 'isolated') {
                     method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
-                } else if (marginType === 'cross') {
+                } else if (marginMode === 'cross') {
                     method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel';
                 }
             } else if (market['inverse']) {
@@ -3786,10 +3786,10 @@ module.exports = class huobi extends Exchange {
             request['contract_code'] = market['id'];
             if (market['linear']) {
                 const defaultMargin = market['future'] ? 'cross' : 'isolated';
-                const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
-                if (marginType === 'isolated') {
+                const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+                if (marginMode === 'isolated') {
                     method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
-                } else if (marginType === 'cross') {
+                } else if (marginMode === 'cross') {
                     method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel';
                 }
             } else if (market['inverse']) {
@@ -3900,10 +3900,10 @@ module.exports = class huobi extends Exchange {
             request['contract_code'] = market['id'];
             if (market['linear']) {
                 const defaultMargin = market['future'] ? 'cross' : 'isolated';
-                const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
-                if (marginType === 'isolated') {
+                const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+                if (marginMode === 'isolated') {
                     method = 'contractPrivatePostLinearSwapApiV1SwapCancelallall';
-                } else if (marginType === 'cross') {
+                } else if (marginMode === 'cross') {
                     method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancelall';
                 }
             } else if (market['inverse']) {
@@ -4639,8 +4639,8 @@ module.exports = class huobi extends Exchange {
 
     async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const defaultMargin = this.safeString (params, 'marginType', 'cross'); // cross or isolated
-        const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
+        const defaultMargin = this.safeString (params, 'marginMode', 'cross'); // cross or isolated
+        const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
         const request = {};
         if (since !== undefined) {
             request['start-date'] = this.yyyymmdd (since);
@@ -4650,7 +4650,7 @@ module.exports = class huobi extends Exchange {
         }
         let market = undefined;
         let method = undefined;
-        if (marginType === 'isolated') {
+        if (marginMode === 'isolated') {
             method = 'privateGetMarginLoanOrders';
             if (symbol !== undefined) {
                 market = this.market (symbol);
@@ -4734,14 +4734,15 @@ module.exports = class huobi extends Exchange {
         //   }
         //
         const marketId = this.safeString (info, 'symbol');
-        const marginType = (marketId === undefined) ? 'cross' : 'isolated';
+        const marginMode = (marketId === undefined) ? 'cross' : 'isolated';
         market = this.safeMarket (marketId);
         const symbol = this.safeString (market, 'symbol');
         const timestamp = this.safeNumber (info, 'accrued-at');
         return {
-            'account': (marginType === 'isolated') ? symbol : 'cross',  // deprecated
+            'account': (marginMode === 'isolated') ? symbol : 'cross',  // deprecated
             'symbol': symbol,
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode,
             'currency': this.safeCurrencyCode (this.safeString (info, 'currency')),
             'interest': this.safeNumber (info, 'interest-amount'),
             'interestRate': this.safeNumber (info, 'interest-rate'),
@@ -4907,8 +4908,8 @@ module.exports = class huobi extends Exchange {
             //   ts: '1641189898425'
             // }
             const defaultMargin = market['future'] ? 'cross' : 'isolated';
-            const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
-            if (marginType === 'isolated') {
+            const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+            if (marginMode === 'isolated') {
                 request['margin_account'] = market['id'];
             } else {
                 request['margin_account'] = market['quoteId'];
@@ -4958,8 +4959,8 @@ module.exports = class huobi extends Exchange {
         let method = undefined;
         if (market['linear']) {
             const defaultMargin = market['future'] ? 'cross' : 'isolated';
-            const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
-            method = this.getSupportedMapping (marginType, {
+            const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+            method = this.getSupportedMapping (marginMode, {
                 'isolated': 'contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate',
                 'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate',
             });
@@ -5090,7 +5091,7 @@ module.exports = class huobi extends Exchange {
         const rawSide = this.safeString (position, 'direction');
         const side = (rawSide === 'buy') ? 'long' : 'short';
         const unrealizedProfit = this.safeNumber (position, 'profit_unreal');
-        let marginType = this.safeString (position, 'margin_mode');
+        let marginMode = this.safeString (position, 'margin_mode');
         const leverage = this.safeString (position, 'lever_rate');
         const percentage = Precise.stringMul (this.safeString (position, 'profit_rate'), '100');
         const lastPrice = this.safeString (position, 'last_price');
@@ -5100,7 +5101,7 @@ module.exports = class huobi extends Exchange {
             notional = Precise.stringMul (faceValue, lastPrice);
         } else {
             notional = Precise.stringDiv (faceValue, lastPrice);
-            marginType = 'cross';
+            marginMode = 'cross';
         }
         const intialMarginPercentage = Precise.stringDiv (initialMargin, notional);
         const collateral = this.safeString (position, 'margin_balance');
@@ -5120,7 +5121,8 @@ module.exports = class huobi extends Exchange {
             'unrealizedProfit': unrealizedProfit,
             'leverage': this.parseNumber (leverage),
             'percentage': this.parseNumber (percentage),
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode, // deprecated
             'notional': this.parseNumber (notional),
             'markPrice': undefined,
             'liquidationPrice': liquidationPrice,
@@ -5136,12 +5138,12 @@ module.exports = class huobi extends Exchange {
 
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
+        const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'isolated');
         const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
         let method = undefined;
         if (defaultSubType === 'linear') {
-            method = this.getSupportedMapping (marginType, {
+            method = this.getSupportedMapping (marginMode, {
                 'isolated': 'contractPrivatePostLinearSwapApiV1SwapPositionInfo',
                 'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo',
             });
@@ -5246,13 +5248,13 @@ module.exports = class huobi extends Exchange {
     async fetchPosition (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
-        marginType = this.safeString2 (params, 'marginType', 'defaultMarginType', marginType);
-        params = this.omit (params, [ 'defaultMarginType', 'marginType' ]);
+        let marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'isolated');
+        marginMode = this.safeString2 (params, 'marginMode', 'defaultMarginMode', marginMode);
+        params = this.omit (params, [ 'defaultMarginMode', 'marginMode' ]);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPosition', market, params);
         let method = undefined;
         if (market['linear']) {
-            method = this.getSupportedMapping (marginType, {
+            method = this.getSupportedMapping (marginMode, {
                 'isolated': 'contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo',
                 'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo',
             });
@@ -5430,7 +5432,7 @@ module.exports = class huobi extends Exchange {
         if (market['future'] && market['inverse']) {
             request['symbol'] = market['settleId'];
         } else {
-            if (marginType === 'cross') {
+            if (marginMode === 'cross') {
                 request['margin_account'] = 'USDT'; // only allowed value
             }
             request['contract_code'] = market['id'];
@@ -5438,7 +5440,7 @@ module.exports = class huobi extends Exchange {
         const response = await this[method] (this.extend (request, query));
         const data = this.safeValue (response, 'data');
         let account = undefined;
-        if (marginType === 'cross') {
+        if (marginMode === 'cross') {
             account = data;
         } else {
             account = this.safeValue (data, 0);

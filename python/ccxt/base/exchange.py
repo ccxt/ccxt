@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.81.86'
+__version__ = '1.82.43'
 
 # -----------------------------------------------------------------------------
 
@@ -359,7 +359,6 @@ class Exchange(object):
     commonCurrencies = {
         'XBT': 'BTC',
         'BCC': 'BCH',
-        'DRK': 'DASH',
         'BCHABC': 'BCH',
         'BCHSV': 'BSV',
     }
@@ -827,6 +826,78 @@ class Exchange(object):
     @staticmethod
     def safe_value_2(dictionary, key1, key2, default_value=None):
         return Exchange.safe_either(Exchange.safe_value, dictionary, key1, key2, default_value)
+
+    # safe_method_n methods family
+
+    @staticmethod
+    def safe_float_n(dictionary, key_list, default_value=None):
+        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
+        if value is None:
+            return default_value
+        try:
+            value = float(value)
+        except ValueError as e:
+            value = default_value
+        return value
+
+    @staticmethod
+    def safe_string_n(dictionary, key_list, default_value=None):
+        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
+        return str(value) if value is not None else default_value
+
+    @staticmethod
+    def safe_string_lower_n(dictionary, key_list, default_value=None):
+        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
+        return str(value).lower() if value is not None else default_value
+
+    @staticmethod
+    def safe_string_upper_n(dictionary, key_list, default_value=None):
+        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
+        return str(value).upper() if value is not None else default_value
+
+    @staticmethod
+    def safe_integer_n(dictionary, key_list, default_value=None):
+        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
+        if value is None:
+            return default_value
+        try:
+            # needed to avoid breaking on "100.0"
+            # https://stackoverflow.com/questions/1094717/convert-a-string-to-integer-with-decimal-in-python#1094721
+            return int(float(value))
+        except ValueError:
+            return default_value
+        except TypeError:
+            return default_value
+
+    @staticmethod
+    def safe_integer_product_n(dictionary, key_list, factor, default_value=None):
+        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
+        if value is None:
+            return default_value
+        if isinstance(value, Number):
+            return int(value * factor)
+        elif isinstance(value, str):
+            try:
+                return int(float(value) * factor)
+            except ValueError:
+                pass
+        return default_value
+
+    @staticmethod
+    def safe_timestamp_n(dictionary, key_list, default_value=None):
+        return Exchange.safe_integer_product_n(dictionary, key_list, 1000, default_value)
+
+    @staticmethod
+    def safe_value_n(dictionary, key_list, default_value=None):
+        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
+        return value if value is not None else default_value
+
+    @staticmethod
+    def get_object_value_from_key_list(dictionary, key_list):
+        filtered_list = list(filter(lambda el: el in dictionary, key_list))
+        if (len(filtered_list) == 0):
+            return None
+        return dictionary[filtered_list[0]]
 
     @staticmethod
     def safe_either(method, dictionary, key1, key2, default_value=None):
@@ -1610,11 +1681,11 @@ class Exchange(object):
             tickers = self.fetch_tickers([symbol], params)
             ticker = self.safe_value(tickers, symbol)
             if ticker is None:
-                raise BadSymbol(self.id + ' fetchTickers could not find a ticker for ' + symbol)
+                raise BadSymbol(self.id + ' fetchTickers() could not find a ticker for ' + symbol)
             else:
                 return ticker
         else:
-            raise NotSupported(self.id + ' fetchTicker not supported yet')
+            raise NotSupported(self.id + ' fetchTicker() is not supported yet')
 
     def fetch_tickers(self, symbols=None, params={}):
         raise NotSupported(self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now')
@@ -1665,7 +1736,7 @@ class Exchange(object):
             else:
                 return deposit_address
         else:
-            raise NotSupported(self.id + ' fetchDepositAddress not supported yet')
+            raise NotSupported(self.id + ' fetchDepositAddress() not supported yet')
 
     def parse_funding_rate(self, contract, market=None):
         raise NotSupported(self.id + ' parse_funding_rate() is not supported yet')
@@ -1775,13 +1846,25 @@ class Exchange(object):
             raise NotSupported(self.id + ' fetch_trading_fee() is not supported yet')
         return self.fetch_trading_fees(params)
 
-    def fetch_funding_fees(self, params={}):
-        raise NotSupported(self.id + ' fetch_funding_fees() is not supported yet')
-
     def fetch_funding_fee(self, code, params={}):
-        if not self.has['fetchFundingFees']:
-            raise NotSupported(self.id + ' fetch_funding_fee() is not supported yet')
-        return self.fetch_funding_fees(params)
+        warnOnFetchFundingFee = self.safeValue(self.options, 'warnOnFetchFundingFee', True)
+        if warnOnFetchFundingFee:
+            raise NotSupported(self.id + ' fetch_funding_fee() method is deprecated, it will be removed in July 2022, please, use fetch_transaction_fee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning')
+        return self.fetch_transaction_fee(code, params)
+
+    def fetchFundingFees(self, codes=None, params={}):
+        warnOnFetchFundingFees = self.safeValue(self.options, 'warnOnFetchFundingFees', True)
+        if warnOnFetchFundingFees:
+            raise NotSupported(self.id + ' fetch_funding_fees() method is deprecated, it will be removed in July 2022, please, use fetch_transaction_fees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning')
+        return self.fetch_transaction_fees(codes, params)
+
+    def fetch_transaction_fee(self, code, params={}):
+        if not self.has['fetch_transaction_fees']:
+            raise NotSupported(self.id + ' fetch_transaction_fee() is not supported yet')
+        return self.fetch_transaction_fees([code], params)
+
+    def fetch_transaction_fees(self, codes=None, params={}):
+        raise NotSupported(self.id + ' fetch_transaction_fees() is not supported yet')
 
     def load_trading_limits(self, symbols=None, reload=False, params={}):
         if self.has['fetchTradingLimits']:
@@ -2801,6 +2884,10 @@ class Exchange(object):
 
     def safe_number_2(self, dictionary, key1, key2, default=None):
         value = self.safe_string_2(dictionary, key1, key2)
+        return self.parse_number(value, default)
+
+    def safe_number_n(self, dictionary, key_list, default=None):
+        value = self.safe_string_n(dictionary, key_list)
         return self.parse_number(value, default)
 
     def parse_precision(self, precision):

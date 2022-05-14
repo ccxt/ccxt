@@ -55,8 +55,6 @@ module.exports = class currencycom extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
-                'fetchFundingFee': undefined,
-                'fetchFundingFees': undefined,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -89,6 +87,8 @@ module.exports = class currencycom extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTradingLimits': undefined,
+                'fetchTransactionFee': undefined,
+                'fetchTransactionFees': undefined,
                 'fetchTransactions': true,
                 'fetchTransfers': undefined,
                 'fetchWithdrawal': undefined,
@@ -255,6 +255,7 @@ module.exports = class currencycom extends Exchange {
                     '-1013': InvalidOrder, // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                     '-1021': InvalidNonce, // 'your time is ahead of server'
                     '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
+                    '-1030': InvalidOrder, // {"code":"-1030","msg":"You mentioned an invalid value for the price parameter."}
                     '-1100': InvalidOrder, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                     '-1104': ExchangeError, // Not all sent parameters were read, read 8 parameters but was sent 9
                     '-1025': AuthenticationError, // {"code":-1025,"msg":"Invalid API-key, IP, or permissions for action"}
@@ -1699,7 +1700,8 @@ module.exports = class currencycom extends Exchange {
             'unrealizedProfit': unrealizedProfit,
             'leverage': leverage,
             'percentage': undefined,
-            'marginType': undefined,
+            'marginMode': undefined,
+            'marginType': undefined, // deprecated
             'notional': undefined,
             'markPrice': undefined,
             'liquidationPrice': undefined,

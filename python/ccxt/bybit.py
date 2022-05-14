@@ -269,6 +269,7 @@ class bybit(Exchange):
                         'v2/public/account-ratio': 1,
                         'v2/public/funding-rate': 1,
                         'v2/public/elite-ratio': 1,
+                        'v2/public/funding/prev-funding-rate': 1,
                         'v2/public/risk-limit/list': 1,
                         # linear swap USDT
                         'public/linear/kline': 3,
@@ -308,6 +309,7 @@ class bybit(Exchange):
                         'perpetual/usdc/openapi/public/v1/open-interest': 1,
                         'perpetual/usdc/openapi/public/v1/big-deal': 1,
                         'perpetual/usdc/openapi/public/v1/account-ratio': 1,
+                        'perpetual/usdc/openapi/public/v1/prev-funding-rate': 1,
                         'perpetual/usdc/openapi/public/v1/risk-limit/list': 1,
                     },
                     # outdated endpoints--------------------------------------
@@ -1610,8 +1612,12 @@ class bybit(Exchange):
         request = {
             'symbol': market['id'],
         }
-        method = 'publicLinearGetFundingPrevFundingRate' if market['linear'] else 'v2PublicGetFundingPrevFundingRate'
-        # TODO method = 'publicGetPublicLinearFundingPrevFundingRate' if market['linear'] else 'publicGetV2PublicFundingRate ???? throws ExchangeError'
+        isUsdcSettled = market['settle'] == 'USDC'
+        method = None
+        if isUsdcSettled:
+            method = 'publicGetPerpetualUsdcOpenapiPublicV1PrevFundingRate'
+        else:
+            method = 'publicLinearGetFundingPrevFundingRate' if market['linear'] else 'publicGetV2PublicFundingPrevFundingRate'
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -1639,11 +1645,24 @@ class bybit(Exchange):
         #         },
         #         "time_now":"1647040852.515724"
         #     }
+        # usdc
+        #     {
+        #         "retCode":0,
+        #         "retMsg":"",
+        #         "result":{
+        #            "symbol":"BTCPERP",
+        #            "fundingRate":"0.00010000",
+        #            "fundingRateTimestamp":"1652112000000"
+        #         }
+        #     }
         #
         result = self.safe_value(response, 'result')
-        fundingRate = self.safe_number(result, 'funding_rate')
+        fundingRate = self.safe_number_2(result, 'funding_rate', 'fundingRate')
         fundingTimestamp = self.parse8601(self.safe_string(result, 'funding_rate_timestamp'))
-        fundingTimestamp = self.safe_timestamp(result, 'funding_rate_timestamp', fundingTimestamp)
+        if fundingTimestamp is None:
+            fundingTimestamp = self.safe_timestamp_2(result, 'funding_rate_timestamp', fundingTimestamp)
+            if fundingTimestamp is None:
+                fundingTimestamp = self.safe_integer(result, 'fundingRateTimestamp')
         currentTime = self.milliseconds()
         return {
             'info': result,
@@ -1887,6 +1906,10 @@ class bybit(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='Buy', asksKey='Sell', priceKey='price', amountKey='size'):
+        market = self.market(symbol)
+        if market['spot']:
+            timestamp = self.safe_integer(orderbook, 'time')
+            return super(bybit, self).parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks')
         bids = []
         asks = []
         for i in range(0, len(orderbook)):
@@ -1913,7 +1936,38 @@ class bybit(Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = self.publicGetV2PublicOrderBookL2(self.extend(request, params))
+        isUsdcSettled = market['settle'] == 'USDC'
+        method = None
+        if market['spot']:
+            method = 'publicGetSpotQuoteV1Depth'
+        elif not isUsdcSettled:
+            # inverse perpetual  # usdt linear  # inverse futures
+            method = 'publicGetV2PublicOrderBookL2'
+        else:
+            # usdc option/ swap
+            method = 'publicGetOptionUsdcOpenapiPublicV1OrderBook' if market['option'] else 'publicGetPerpetualUsdcOpenapiPublicV1OrderBook'
+        if limit is not None:
+            request['limit'] = limit
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # spot
+        #     {
+        #         "ret_code": 0,
+        #         "ret_msg": null,
+        #         "result": {
+        #             "time": 1620886105740,
+        #             "bids": [
+        #                 ["50005.12","403.0416"]
+        #             ],
+        #             "asks": [
+        #                 ["50006.34", "0.2297"]
+        #             ]
+        #         },
+        #         "ext_code": null,
+        #         "ext_info": null
+        #     }
+        #
+        # linear/inverse swap/futures
         #
         #     {
         #         ret_code: 0,
@@ -1924,12 +1978,28 @@ class bybit(Exchange):
         #             {symbol: 'BTCUSD', price: '7767.5', size: 677956, side: 'Buy'},
         #             {symbol: 'BTCUSD', price: '7767', size: 580690, side: 'Buy'},
         #             {symbol: 'BTCUSD', price: '7766.5', size: 475252, side: 'Buy'},
-        #             {symbol: 'BTCUSD', price: '7768', size: 330847, side: 'Sell'},
-        #             {symbol: 'BTCUSD', price: '7768.5', size: 97159, side: 'Sell'},
-        #             {symbol: 'BTCUSD', price: '7769', size: 6508, side: 'Sell'},
         #         ],
         #         time_now: '1583954829.874823'
         #     }
+        #
+        # usdc markets
+        #
+        #     {
+        #         "retCode": 0,
+        #           "retMsg": "SUCCESS",
+        #           "result": [
+        #           {
+        #             "price": "5000.00000000",
+        #             "size": "2.0000",
+        #             "side": "Buy"  # bids
+        #           },
+        #           {
+        #             "price": "5900.00000000",
+        #             "size": "0.9000",
+        #             "side": "Sell"  # asks
+        #           }
+        #         ]
+        #    }
         #
         result = self.safe_value(response, 'result', [])
         timestamp = self.safe_timestamp(response, 'time_now')
@@ -3071,7 +3141,7 @@ class bybit(Exchange):
             request['start_date'] = self.yyyymmdd(since)
         if limit is not None:
             request['limit'] = limit
-        response = self.v2PrivateGetWalletWithdrawList(self.extend(request, params))
+        response = self.privateGetV2PrivateWalletWithdrawList(self.extend(request, params))
         #
         #     {
         #         "ret_code": 0,
@@ -3330,50 +3400,44 @@ class bybit(Exchange):
         #
         return self.safe_value(response, 'result')
 
-    def set_margin_mode(self, marginType, symbol=None, params={}):
-        #
-        # {
-        #     "ret_code": 0,
-        #     "ret_msg": "ok",
-        #     "ext_code": "",
-        #     "result": null,
-        #     "ext_info": null,
-        #     "time_now": "1577477968.175013",
-        #     "rate_limit_status": 74,
-        #     "rate_limit_reset_ms": 1577477968183,
-        #     "rate_limit": 75
-        # }
-        #
-        leverage = self.safe_value(params, 'leverage')
-        if leverage is None:
-            raise ArgumentsRequired(self.id + ' setMarginMode() requires a leverage parameter')
-        marginType = marginType.upper()
-        if marginType == 'CROSSED':  # * Deprecated, use 'CROSS' instead
-            marginType = 'CROSS'
-        if (marginType != 'ISOLATED') and (marginType != 'CROSS'):
-            raise BadRequest(self.id + ' setMarginMode() marginType must be either isolated or cross')
+    def set_margin_mode(self, marginMode, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        method = None
-        defaultType = self.safe_string(self.options, 'defaultType', 'linear')
-        marketTypes = self.safe_value(self.options, 'marketTypes', {})
-        marketType = self.safe_string(marketTypes, symbol, defaultType)
-        linear = market['linear'] or (marketType == 'linear')
-        inverse = (market['swap'] and market['inverse']) or (marketType == 'inverse')
-        future = market['future'] or ((marketType == 'future') or (marketType == 'futures'))  # * (marketType == 'futures') deprecated, use(marketType == 'future')
-        if linear:
-            method = 'privateLinearPostPositionSwitchIsolated'
-        elif inverse:
-            method = 'v2PrivatePostPositionSwitchIsolated'
-        elif future:
-            method = 'privateFuturesPostPositionSwitchIsolated'
-        isIsolated = (marginType == 'ISOLATED')
+        if market['settle'] == 'USDC':
+            raise NotSupported(self.id + ' setMarginMode() does not support market ' + symbol + '')
+        marginMode = marginMode.upper()
+        if (marginMode != 'ISOLATED') and (marginMode != 'CROSS'):
+            raise BadRequest(self.id + ' setMarginMode() marginMode must be either isolated or cross')
+        leverage = self.safe_number(params, 'leverage')
+        sellLeverage = None
+        buyLeverage = None
+        if leverage is None:
+            sellLeverage = self.safe_number_2(params, 'sell_leverage', 'sellLeverage')
+            buyLeverage = self.safe_number_2(params, 'buy_leverage', 'buyLeverage')
+            if sellLeverage is None or buyLeverage is None:
+                raise ArgumentsRequired(self.id + ' setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters')
+            params = self.omit(params, ['buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage'])
+        else:
+            params = self.omit(params, 'leverage')
+            sellLeverage = leverage
+            buyLeverage = leverage
+        isIsolated = (marginMode == 'ISOLATED')
         request = {
             'symbol': market['id'],
             'is_isolated': isIsolated,
             'buy_leverage': leverage,
             'sell_leverage': leverage,
         }
+        method = None
+        if market['future']:
+            method = 'privatePostFuturesPrivatePositionSwitchIsolated'
+        elif market['inverse']:
+            method = 'privatePostV2PrivatePositionSwitchIsolated'
+        else:
+            # linear
+            method = 'privatePostPrivateLinearPositionSwitchIsolated'
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {

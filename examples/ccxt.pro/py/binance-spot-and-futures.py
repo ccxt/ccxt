@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import ccxtpro
-from asyncio import gather, get_event_loop
+from asyncio import gather, run
 
 
 orderbooks = {}
@@ -39,11 +39,9 @@ async def symbol_loop(exchange, id, symbol):
             break  # you can break just this one loop if it fails
 
 
-async def exchange_loop(asyncio_loop, id, config):
+async def exchange_loop(id, config):
     print('Starting', id)
     exchange = getattr(ccxtpro, config['id'])({
-        'enableRateLimit': True,
-        'asyncio_loop': asyncio_loop,
         'options': config['options'],
     })
     loops = [symbol_loop(exchange, id, symbol) for symbol in config['symbols']]
@@ -51,7 +49,7 @@ async def exchange_loop(asyncio_loop, id, config):
     await exchange.close()
 
 
-async def main(asyncio_loop):
+async def main():
     configs = {
         'Exchange A (Binance spot)': {
             'id': 'binance',
@@ -68,10 +66,8 @@ async def main(asyncio_loop):
             },
         },
     }
-    loops = [exchange_loop(asyncio_loop, id, config) for id, config in configs.items()]
+    loops = [exchange_loop(id, config) for id, config in configs.items()]
     await gather(*loops)
 
 
-if __name__ == '__main__':
-    asyncio_loop = get_event_loop()
-    asyncio_loop.run_until_complete(main(asyncio_loop))
+run(main())

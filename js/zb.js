@@ -14,7 +14,14 @@ module.exports = class zb extends Exchange {
             'id': 'zb',
             'name': 'ZB',
             'countries': [ 'CN' ],
-            'rateLimit': 100,
+            // previously rateLimit = 100
+            // Trading and Margin 10 000 per minute (IP) => 10000 / 60 = 166.66666... per second => rateLimit = 1000/166.66666 = 6
+            // Trade and Margin 60 per second (apiKey) => weight = 166.666 / 60 = 2.778 (2.7777777...)
+            // Kline 1 per second => weight = 166.667
+            // v2 Futures API 100 per 2 seconds => 50 per second => weight = 3.334 (3.3333333...)
+            // for endpoints not mentioned in docs
+            // previous rateLimit was 100 translating to 10 requests per second => weight = 166.666 / 10 = 16.667 (16.666666...)
+            'rateLimit': 6,
             'version': 'v1',
             'certified': true,
             'pro': true,
@@ -124,133 +131,134 @@ module.exports = class zb extends Exchange {
                 'spot': {
                     'v1': {
                         'public': {
-                            'get': [
-                                'markets',
-                                'ticker',
-                                'allTicker',
-                                'depth',
-                                'trades',
-                                'kline',
-                                'getGroupMarkets',
-                                'getFeeInfo',
-                            ],
+                            'get': {
+                                'markets': 16.667,
+                                'ticker': 16.667,
+                                'allTicker': 16.667,
+                                'depth': 16.667,
+                                'trades': 16.667,
+                                'kline': 166.667, // Kline 1 per second
+                                'getGroupMarkets': 16.667,
+                                'getFeeInfo': 16.667,
+                            },
                         },
                         'private': {
-                            'get': [
+                            'get': {
                                 // spot API
-                                'order',
-                                'orderMoreV2',
-                                'cancelOrder',
-                                'getOrder',
-                                'getOrders',
-                                'getOrdersNew',
-                                'getOrdersIgnoreTradeType',
-                                'getUnfinishedOrdersIgnoreTradeType',
-                                'getFinishedAndPartialOrders',
-                                'getAccountInfo',
-                                'getUserAddress',
-                                'getPayinAddress',
-                                'getWithdrawAddress',
-                                'getWithdrawRecord',
-                                'getChargeRecord',
-                                'getCnyWithdrawRecord',
-                                'getCnyChargeRecord',
-                                'withdraw',
+                                'order': 1, // Trade API
+                                'orderMoreV2': 1, // Trade API
+                                'cancelOrder': 1, // Trade API
+                                'cancelAllOrdersAfter': 1,  // Trade API TODO add cancelAllOrders
+                                'getOrder': 1, // Trade API
+                                'getOrders': 1, // Trade API
+                                'getOrdersNew': 16.667,
+                                'getOrdersIgnoreTradeType': 1, // Trade API
+                                'getUnfinishedOrdersIgnoreTradeType': 1, // Trade API
+                                'getFinishedAndPartialOrders': 1, // Trade API
+                                'getAccountInfo': 16.667,
+                                'getUserAddress': 16.667,
+                                'getPayinAddress': 16.667,
+                                'getWithdrawAddress': 16.667,
+                                'getWithdrawRecord': 16.667,
+                                'getChargeRecord': 16.667,
+                                'getCnyWithdrawRecord': 16.667,
+                                'getCnyChargeRecord': 16.667,
+                                'withdraw': 16.667,
                                 // sub accounts
-                                'addSubUser',
-                                'getSubUserList',
-                                'doTransferFunds',
-                                'createSubUserKey', // removed on 2021-03-16 according to the update log in the API doc
+                                'addSubUser': 16.667,
+                                'getSubUserList': 16.667,
+                                'doTransferFunds': 16.667,
+                                'createSubUserKey': 16.667, // removed on 2021-03-16 according to the update log in the API doc
                                 // leverage API
-                                'getLeverAssetsInfo',
-                                'getLeverBills',
-                                'transferInLever',
-                                'transferOutLever',
-                                'loan',
-                                'cancelLoan',
-                                'getLoans',
-                                'getLoanRecords',
-                                'borrow',
-                                'autoBorrow',
-                                'repay',
-                                'doAllRepay',
-                                'getRepayments',
-                                'getFinanceRecords',
-                                'changeInvestMark',
-                                'changeLoop',
+                                'getLeverAssetsInfo': 16.667,
+                                'getLeverBills': 16.667,
+                                'transferInLever': 16.667,
+                                'transferOutLever': 16.667,
+                                'loan': 16.667,
+                                'cancelLoan': 16.667,
+                                'getLoans': 16.667,
+                                'getLoanRecords': 16.667,
+                                'borrow': 16.667,
+                                'autoBorrow': 16.667,
+                                'repay': 16.667,
+                                'doAllRepay': 16.667,
+                                'getRepayments': 16.667,
+                                'getFinanceRecords': 16.667,
+                                'changeInvestMark': 16.667,
+                                'changeLoop': 16.667,
                                 // cross API
-                                'getCrossAssets',
-                                'getCrossBills',
-                                'transferInCross',
-                                'transferOutCross',
-                                'doCrossLoan',
-                                'doCrossRepay',
-                                'getCrossRepayRecords',
-                            ],
+                                'getCrossAssets': 16.667,
+                                'getCrossBills': 16.667,
+                                'transferInCross': 16.667,
+                                'transferOutCross': 16.667,
+                                'doCrossLoan': 16.667,
+                                'doCrossRepay': 16.667,
+                                'getCrossRepayRecords': 16.667,
+                            },
                         },
                     },
                 },
                 'contract': {
                     'v1': {
                         'public': {
-                            'get': [
-                                'depth',
-                                'fundingRate',
-                                'indexKline',
-                                'indexPrice',
-                                'kline',
-                                'markKline',
-                                'markPrice',
-                                'ticker',
-                                'trade',
-                            ],
+                            'get': {
+                                'depth': 16.667,
+                                'fundingRate': 16.667,
+                                'indexKline': 16.667,
+                                'indexPrice': 16.667,
+                                'kline': 16.667,
+                                'markKline': 16.667,
+                                'markPrice': 16.667,
+                                'ticker': 16.667,
+                                'trade': 16.667,
+                            },
                         },
                     },
                     'v2': {
                         'public': {
-                            'get': [
-                                'allForceOrders',
-                                'config/marketList',
-                                'topLongShortAccountRatio',
-                                'topLongShortPositionRatio',
-                                'fundingRate',
-                                'premiumIndex',
-                            ],
+                            'get': {
+                                'allForceOrders': 3.334,
+                                'config/marketList': 3.334,
+                                'topLongShortAccountRatio': 3.334,
+                                'topLongShortPositionRatio': 3.334,
+                                'fundingRate': 3.334,
+                                'premiumIndex': 3.334,
+                            },
                         },
                         'private': {
-                            'get': [
-                                'Fund/balance',
-                                'Fund/getAccount',
-                                'Fund/getBill',
-                                'Fund/getBillTypeList',
-                                'Fund/marginHistory',
-                                'Positions/getPositions',
-                                'Positions/getNominalValue',
-                                'Positions/marginInfo',
-                                'setting/get',
-                                'trade/getAllOrders',
-                                'trade/getOrder',
-                                'trade/getOrderAlgos',
-                                'trade/getTradeList',
-                                'trade/getUndoneOrders',
-                                'trade/tradeHistory',
-                            ],
-                            'post': [
-                                'activity/buyTicket',
-                                'Fund/transferFund',
-                                'Positions/setMarginCoins',
-                                'Positions/updateAppendUSDValue',
-                                'Positions/updateMargin',
-                                'setting/setLeverage',
-                                'trade/batchOrder',
-                                'trade/batchCancelOrder',
-                                'trade/cancelAlgos',
-                                'trade/cancelAllOrders',
-                                'trade/cancelOrder',
-                                'trade/order',
-                                'trade/orderAlgo',
-                                'trade/updateOrderAlgo',
-                            ],
+                            'get': {
+                                'Fund/balance': 3.334,
+                                'Fund/getAccount': 3.334,
+                                'Fund/getBill': 3.334,
+                                'Fund/getBillTypeList': 3.334,
+                                'Fund/marginHistory': 3.334,
+                                'Positions/getPositions': 3.334,
+                                'Positions/getNominalValue': 3.334,
+                                'Positions/marginInfo': 3.334,
+                                'setting/get': 3.334,
+                                'trade/getAllOrders': 3.334,
+                                'trade/getOrder': 3.334,
+                                'trade/getOrderAlgos': 3.334,
+                                'trade/getTradeList': 3.334,
+                                'trade/getUndoneOrders': 3.334,
+                                'trade/tradeHistory': 3.334,
+                            },
+                            'post': {
+                                'activity/buyTicket': 3.334,
+                                'Fund/transferFund': 3.334,
+                                'Positions/setMarginCoins': 3.334,
+                                'Positions/updateAppendUSDValue': 3.334,
+                                'Positions/updateMargin': 3.334,
+                                'setting/setLeverage': 3.334,
+                                'trade/batchOrder': 3.334,
+                                'trade/batchCancelOrder': 3.334,
+                                'trade/cancelAlgos': 3.334,
+                                'trade/cancelAllOrders': 3.334,
+                                'trade/cancelOrder': 3.334,
+                                'trade/order': 3.334,
+                                'trade/orderAlgo': 3.334,
+                                'trade/updateOrderAlgo': 3.334,
+                            },
                         },
                     },
                 },
@@ -812,12 +820,12 @@ module.exports = class zb extends Exchange {
         return this.safeBalance (result);
     }
 
-    parseMarginBalance (response, marginType) {
+    parseMarginBalance (response, marginMode) {
         const result = {
             'info': response,
         };
         let levers = undefined;
-        if (marginType === 'isolated') {
+        if (marginMode === 'isolated') {
             const message = this.safeValue (response, 'message', {});
             const data = this.safeValue (message, 'datas', {});
             levers = this.safeValue (data, 'levers', []);
@@ -900,7 +908,7 @@ module.exports = class zb extends Exchange {
             //     ],
             //
             const account = this.account ();
-            if (marginType === 'isolated') {
+            if (marginMode === 'isolated') {
                 const code = this.safeCurrencyCode (this.safeString (balance, 'fShowName'));
                 account['total'] = this.safeString (balance, 'fAvailableUSD'); // total amount in USD
                 account['free'] = this.safeString (balance, 'couldTransferOutFiat');
@@ -924,10 +932,10 @@ module.exports = class zb extends Exchange {
         const swap = (marketType === 'swap');
         let marginMethod = undefined;
         const defaultMargin = margin ? 'isolated' : 'cross';
-        const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
-        if (marginType === 'isolated') {
+        const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+        if (marginMode === 'isolated') {
             marginMethod = 'spotV1PrivateGetGetLeverAssetsInfo';
-        } else if (marginType === 'cross') {
+        } else if (marginMode === 'cross') {
             marginMethod = 'spotV1PrivateGetGetCrossAssets';
         }
         const method = this.getSupportedMapping (marketType, {
@@ -1102,7 +1110,7 @@ module.exports = class zb extends Exchange {
         if (swap) {
             return this.parseSwapBalance (response);
         } else if (margin) {
-            return this.parseMarginBalance (response, marginType);
+            return this.parseMarginBalance (response, marginMode);
         } else {
             return this.parseBalance (response);
         }
@@ -3559,7 +3567,7 @@ module.exports = class zb extends Exchange {
         const rawSide = this.safeString (position, 'side');
         const side = (rawSide === '1') ? 'long' : 'short';
         const openType = this.safeString (position, 'marginMode');
-        const marginType = (openType === '1') ? 'isolated' : 'cross';
+        const marginMode = (openType === '1') ? 'isolated' : 'cross';
         const leverage = this.safeString (position, 'leverage');
         const liquidationPrice = this.safeNumber (position, 'liquidatePrice');
         const unrealizedProfit = this.safeNumber (position, 'unrealizedPnl');
@@ -3579,7 +3587,8 @@ module.exports = class zb extends Exchange {
             'unrealizedProfit': unrealizedProfit,
             'leverage': this.parseNumber (leverage),
             'percentage': percentage,
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode, // deprecated
             'notional': notional,
             'markPrice': undefined,
             'liquidationPrice': liquidationPrice,
@@ -3779,15 +3788,15 @@ module.exports = class zb extends Exchange {
             request['side'] = side;
         } else {
             const defaultMargin = margin ? 'isolated' : 'cross';
-            const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
-            if (marginType === 'isolated') {
+            const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+            if (marginMode === 'isolated') {
                 if (fromAccount === 'spot' || toAccount === 'isolated') {
                     marginMethod = 'spotV1PrivateGetTransferInLever';
                 } else {
                     marginMethod = 'spotV1PrivateGetTransferOutLever';
                 }
                 request['marketName'] = this.safeString (params, 'marketName');
-            } else if (marginType === 'cross') {
+            } else if (marginMode === 'cross') {
                 if (fromAccount === 'spot' || toAccount === 'cross') {
                     marginMethod = 'spotV1PrivateGetTransferInCross';
                 } else {

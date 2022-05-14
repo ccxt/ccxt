@@ -62,7 +62,6 @@ module.exports = class ftx extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchFundingFees': undefined,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -89,6 +88,7 @@ module.exports = class ftx extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransactionFees': undefined,
                 'fetchTransfer': undefined,
                 'fetchTransfers': undefined,
                 'fetchWithdrawals': true,
@@ -357,6 +357,7 @@ module.exports = class ftx extends Exchange {
                     'No such future': BadSymbol,
                     'No such market': BadSymbol,
                     'Do not send more than': RateLimitExceeded,
+                    'Cannot send more than': RateLimitExceeded, // {"success":false,"error":"Cannot send more than 1500 requests per minute"}
                     'An unexpected error occurred': ExchangeNotAvailable, // {"error":"An unexpected error occurred, please try again later (58BC21C795).","success":false}
                     'Please retry request': ExchangeNotAvailable, // {"error":"Please retry request","success":false}
                     'Please try again': ExchangeNotAvailable, // {"error":"Please try again","success":false}
@@ -2165,7 +2166,8 @@ module.exports = class ftx extends Exchange {
             'liquidationPrice': this.parseNumber (liquidationPriceString),
             'markPrice': this.parseNumber (markPriceString),
             'collateral': this.parseNumber (collateral),
-            'marginType': 'cross',
+            'marginMode': 'cross',
+            'marginType': 'cross', // deprecated
             'side': side,
             'percentage': percentage,
         };
@@ -2777,7 +2779,8 @@ module.exports = class ftx extends Exchange {
         return {
             'account': 'cross',
             'symbol': undefined,
-            'marginType': 'cross',
+            'marginMode': 'cross',
+            'marginType': 'cross', // deprecated
             'currency': this.safeCurrencyCode (coin),
             'interest': this.safeNumber (info, 'cost'),
             'interestRate': this.safeNumber (info, 'rate'),

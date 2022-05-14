@@ -45,7 +45,6 @@ class oceanex extends Exchange {
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
-                'fetchFundingFees' => null,
                 'fetchMarkets' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -60,6 +59,7 @@ class oceanex extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTradingLimits' => null,
+                'fetchTransactionFees' => null,
             ),
             'timeframes' => array(
                 '1m' => '1',

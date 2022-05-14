@@ -53,8 +53,6 @@ class ascendex(Exchange):
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
-                'fetchFundingFee': False,
-                'fetchFundingFees': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -79,6 +77,8 @@ class ascendex(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransactionFee': False,
+                'fetchTransactionFees': False,
                 'fetchTransactions': True,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
@@ -2108,7 +2108,111 @@ class ascendex(Exchange):
         request = {
             'account-group': accountGroup,
         }
-        return self.v2PrivateAccountGroupGetFuturesPosition(self.extend(request, params))
+        response = self.v2PrivateAccountGroupGetFuturesPosition(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        #             "ac": "FUTURES",
+        #             "collaterals": [
+        #                 {
+        #                     "asset": "USDT",
+        #                     "balance": "44.570287262",
+        #                     "referencePrice": "1",
+        #                     "discountFactor": "1"
+        #                 }
+        #             ],
+        #             "contracts": [
+        #                 {
+        #                     "symbol": "BTC-PERP",
+        #                     "side": "LONG",
+        #                     "position": "0.0001",
+        #                     "referenceCost": "-3.12277254",
+        #                     "unrealizedPnl": "-0.001700233",
+        #                     "realizedPnl": "0",
+        #                     "avgOpenPrice": "31209",
+        #                     "marginType": "isolated",
+        #                     "isolatedMargin": "1.654972977",
+        #                     "leverage": "2",
+        #                     "takeProfitPrice": "0",
+        #                     "takeProfitTrigger": "market",
+        #                     "stopLossPrice": "0",
+        #                     "stopLossTrigger": "market",
+        #                     "buyOpenOrderNotional": "0",
+        #                     "sellOpenOrderNotional": "0",
+        #                     "markPrice": "31210.723063672",
+        #                     "indexPrice": "31223.148857925"
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        position = self.safe_value(data, 'contracts', [])
+        result = []
+        for i in range(0, len(position)):
+            result.append(self.parse_position(position[i]))
+        return self.filter_by_array(result, 'symbol', symbols, False)
+
+    def parse_position(self, position, market=None):
+        #
+        #     {
+        #         "symbol": "BTC-PERP",
+        #         "side": "LONG",
+        #         "position": "0.0001",
+        #         "referenceCost": "-3.12277254",
+        #         "unrealizedPnl": "-0.001700233",
+        #         "realizedPnl": "0",
+        #         "avgOpenPrice": "31209",
+        #         "marginType": "isolated",
+        #         "isolatedMargin": "1.654972977",
+        #         "leverage": "2",
+        #         "takeProfitPrice": "0",
+        #         "takeProfitTrigger": "market",
+        #         "stopLossPrice": "0",
+        #         "stopLossTrigger": "market",
+        #         "buyOpenOrderNotional": "0",
+        #         "sellOpenOrderNotional": "0",
+        #         "markPrice": "31210.723063672",
+        #         "indexPrice": "31223.148857925"
+        #     },
+        #
+        marketId = self.safe_string(position, 'symbol')
+        market = self.safe_market(marketId, market)
+        notional = self.safe_number(position, 'buyOpenOrderNotional')
+        if notional == 0:
+            notional = self.safe_number(position, 'sellOpenOrderNotional')
+        marginMode = self.safe_string(position, 'marginType')
+        collateral = None
+        if marginMode == 'isolated':
+            collateral = self.safe_number(position, 'isolatedMargin')
+        return {
+            'info': position,
+            'id': None,
+            'symbol': market['symbol'],
+            'notional': notional,
+            'marginMode': marginMode,
+            'marginType': marginMode,  # deprecated
+            'liquidationPrice': None,
+            'entryPrice': self.safe_number(position, 'avgOpenPrice'),
+            'unrealizedPnl': self.safe_number(position, 'unrealizedPnl'),
+            'percentage': None,
+            'contracts': None,
+            'contractSize': self.safe_number(position, 'position'),
+            'markPrice': self.safe_number(position, 'markPrice'),
+            'side': self.safe_string_lower(position, 'side'),
+            'hedged': None,
+            'timestamp': None,
+            'datetime': None,
+            'maintenanceMargin': None,
+            'maintenanceMarginPercentage': None,
+            'collateral': collateral,
+            'initialMargin': None,
+            'initialMarginPercentage': None,
+            'leverage': self.safe_integer(position, 'leverage'),
+            'marginRatio': None,
+        }
 
     def parse_funding_rate(self, fundingRate, market=None):
         #
@@ -2241,12 +2345,12 @@ class ascendex(Exchange):
         }
         return self.v2PrivateAccountGroupPostFuturesLeverage(self.extend(request, params))
 
-    def set_margin_mode(self, marginType, symbol=None, params={}):
-        marginType = marginType.lower()
-        if marginType == 'cross':
-            marginType = 'crossed'
-        if marginType != 'isolated' and marginType != 'crossed':
-            raise BadRequest(self.id + ' setMarginMode() marginType argument should be isolated or cross')
+    def set_margin_mode(self, marginMode, symbol=None, params={}):
+        marginMode = marginMode.lower()
+        if marginMode == 'cross':
+            marginMode = 'crossed'
+        if marginMode != 'isolated' and marginMode != 'crossed':
+            raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
         self.load_markets()
         self.load_accounts()
         market = self.market(symbol)
@@ -2255,7 +2359,7 @@ class ascendex(Exchange):
         request = {
             'account-group': accountGroup,
             'symbol': market['id'],
-            'marginType': marginType,
+            'marginMode': marginMode,
         }
         if market['type'] != 'future':
             raise BadSymbol(self.id + ' setMarginMode() supports futures contracts only')

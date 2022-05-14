@@ -260,7 +260,7 @@ class poloniex(Exchange):
                     'This account is locked.': AccountSuspended,  # {"error":"This account is locked."}
                     'Not enough': InsufficientFunds,
                     'Nonce must be greater': InvalidNonce,
-                    'You have already called cancelOrder or moveOrder on self order.': CancelPending,
+                    'You have already called cancelOrder': CancelPending,  # {"error":"You have already called cancelOrder, moveOrder, or cancelReplace on self order. Please wait for that call's response."}
                     'Amount must be at least': InvalidOrder,  # {"error":"Amount must be at least 0.000001."}
                     'is either completed or does not exist': OrderNotFound,  # {"error":"Order 587957810791 is either completed or does not exist."}
                     'Error pulling ': ExchangeError,  # {"error":"Error pulling order book"}

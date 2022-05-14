@@ -54,8 +54,6 @@ module.exports = class binance extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
-                'fetchFundingFee': undefined,
-                'fetchFundingFees': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -91,6 +89,8 @@ module.exports = class binance extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTradingLimits': undefined,
+                'fetchTransactionFee': undefined,
+                'fetchTransactionFees': true,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
                 'fetchWithdrawal': false,
@@ -328,6 +328,7 @@ module.exports = class binance extends Exchange {
                         'nft/user/getAsset': 20.001,
                         'pay/transactions': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'giftcard/verify': 0.1,
+                        'giftcard/cryptography/rsa-public-key': 0.1,
                         'algo/futures/openOrders': 0.1,
                         'algo/futures/historicalOrders': 0.1,
                         'algo/futures/subOrders': 0.1,
@@ -3893,7 +3894,7 @@ module.exports = class binance extends Exchange {
         };
     }
 
-    async fetchFundingFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.sapiGetCapitalConfigGetall (params);
         //
@@ -4305,7 +4306,7 @@ module.exports = class binance extends Exchange {
             }
         }
         if (method === undefined) {
-            throw new NotSupported (this.id + ' fetchFundingRateHistory() not supported for ' + type + ' markets');
+            throw new NotSupported (this.id + ' fetchFundingRateHistory() is not supported for ' + type + ' markets');
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -4532,15 +4533,15 @@ module.exports = class binance extends Exchange {
             timestamp = undefined;
         }
         const isolated = this.safeValue (position, 'isolated');
-        let marginType = undefined;
+        let marginMode = undefined;
         let collateralString = undefined;
         let walletBalance = undefined;
         if (isolated) {
-            marginType = 'isolated';
+            marginMode = 'isolated';
             walletBalance = this.safeString (position, 'isolatedWallet');
             collateralString = Precise.stringAdd (walletBalance, unrealizedPnlString);
         } else {
-            marginType = 'cross';
+            marginMode = 'cross';
             walletBalance = this.safeString (position, 'crossWalletBalance');
             collateralString = this.safeString (position, 'crossMargin');
         }
@@ -4631,7 +4632,8 @@ module.exports = class binance extends Exchange {
             'liquidationPrice': liquidationPrice,
             'markPrice': undefined,
             'collateral': collateral,
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode, // deprecated
             'side': side,
             'hedged': hedged,
             'percentage': percentage,
@@ -4702,7 +4704,7 @@ module.exports = class binance extends Exchange {
         const liquidationPriceString = this.omitZero (this.safeString (position, 'liquidationPrice'));
         const liquidationPrice = this.parseNumber (liquidationPriceString);
         let collateralString = undefined;
-        const marginType = this.safeString (position, 'marginType');
+        const marginMode = this.safeString (position, 'marginType');
         let side = undefined;
         if (Precise.stringGt (notionalString, '0')) {
             side = 'long';
@@ -4715,7 +4717,7 @@ module.exports = class binance extends Exchange {
         const contractSizeString = this.numberToString (contractSize);
         // as oppose to notionalValue
         const linear = ('notional' in position);
-        if (marginType === 'cross') {
+        if (marginMode === 'cross') {
             // calculate collateral
             const precision = this.safeValue (market, 'precision', {});
             if (linear) {
@@ -4799,7 +4801,8 @@ module.exports = class binance extends Exchange {
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
             'marginRatio': marginRatio,
             'datetime': this.iso8601 (timestamp),
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode, // deprecated
             'side': side,
             'hedged': hedged,
             'percentage': percentage,
@@ -5123,7 +5126,7 @@ module.exports = class binance extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async setMarginMode (marginType, symbol = undefined, params = {}) {
+    async setMarginMode (marginMode, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -5134,12 +5137,12 @@ module.exports = class binance extends Exchange {
         //
         // { "code": 200, "msg": "success" }
         //
-        marginType = marginType.toUpperCase ();
-        if (marginType === 'CROSS') {
-            marginType = 'CROSSED';
+        marginMode = marginMode.toUpperCase ();
+        if (marginMode === 'CROSS') {
+            marginMode = 'CROSSED';
         }
-        if ((marginType !== 'ISOLATED') && (marginType !== 'CROSSED')) {
-            throw new BadRequest (this.id + ' marginType must be either isolated or cross');
+        if ((marginMode !== 'ISOLATED') && (marginMode !== 'CROSSED')) {
+            throw new BadRequest (this.id + ' marginMode must be either isolated or cross');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -5153,7 +5156,7 @@ module.exports = class binance extends Exchange {
         }
         const request = {
             'symbol': market['id'],
-            'marginType': marginType,
+            'marginType': marginMode,
         };
         let response = undefined;
         try {
@@ -5240,10 +5243,14 @@ module.exports = class binance extends Exchange {
         } else if ((api === 'private') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV3') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
             this.checkRequiredCredentials ();
             let query = undefined;
-            const recvWindow = this.safeInteger (this.options, 'recvWindow');
+            const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
             const extendedParams = this.extend ({
                 'timestamp': this.nonce (),
             }, params);
+            if (defaultRecvWindow !== undefined) {
+                extendedParams['recvWindow'] = defaultRecvWindow;
+            }
+            const recvWindow = this.safeInteger (params, 'recvWindow');
             if (recvWindow !== undefined) {
                 extendedParams['recvWindow'] = recvWindow;
             }
@@ -5636,10 +5643,12 @@ module.exports = class binance extends Exchange {
     parseBorrowInterest (info, market) {
         const symbol = this.safeString (info, 'isolatedSymbol');
         const timestamp = this.safeNumber (info, 'interestAccuredTime');
+        const marginMode = (symbol === undefined) ? 'cross' : 'isolated';
         return {
             'account': (symbol === undefined) ? 'cross' : symbol,
             'symbol': symbol,
-            'marginType': (symbol === undefined) ? 'cross' : 'isolated',
+            'marginType': marginMode, // deprecated
+            'marginMode': marginMode,
             'currency': this.safeCurrencyCode (this.safeString (info, 'asset')),
             'interest': this.safeNumber (info, 'interest'),
             'interestRate': this.safeNumber (info, 'interestRate'),

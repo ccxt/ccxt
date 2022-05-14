@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
 use \ccxt\BadSymbol;
 
 class bitget extends Exchange {
@@ -23,12 +24,14 @@ class bitget extends Exchange {
                 'CORS' => null,
                 'spot' => true,
                 'margin' => false,
-                'swap' => null, // has but unimplemented
-                'future' => null, // has but unimplemented
+                'swap' => true,
+                'future' => false,
                 'option' => false,
+                'addMargin' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
@@ -39,8 +42,17 @@ class bitget extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDeposits' => false,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => true,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
+                'fetchLeverage' => true,
+                'fetchLeverageTiers' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -49,6 +61,8 @@ class bitget extends Exchange {
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -59,8 +73,10 @@ class bitget extends Exchange {
                 'fetchTransfers' => null,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => false,
+                'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
+                'setPositionMode' => false,
                 'transfer' => false,
                 'withdraw' => false,
             ),
@@ -1629,7 +1645,7 @@ class bitget extends Exchange {
         $side = $this->safe_string_2($order, 'side', 'posSide');
         if (($side === 'open_long') || ($side === 'close_short')) {
             $side = 'buy';
-        } else {
+        } else if (($side === 'close_long') || ($side === 'open_short')) {
             $side = 'sell';
         }
         $clientOrderId = $this->safe_string_2($order, 'clientOrderId', 'clientOid');
@@ -1670,7 +1686,8 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
             'orderType' => $type,
         );
-        if ($type === 'limit') {
+        $stopPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
+        if (($type === 'limit') && ($stopPrice === null)) {
             $request['price'] = $price;
         }
         $clientOrderId = $this->safe_string_2($params, 'client_oid', 'clientOrderId');
@@ -1683,6 +1700,10 @@ class bitget extends Exchange {
                 }
             }
         }
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateSpotPostTradeOrders',
+            'swap' => 'privateMixPostOrderPlaceOrder',
+        ));
         if ($marketType === 'spot') {
             $request['clientOrderId'] = $clientOrderId;
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
@@ -1691,6 +1712,16 @@ class bitget extends Exchange {
         } else {
             $request['clientOid'] = $clientOrderId;
             $request['size'] = $this->amount_to_precision($symbol, $amount);
+            if ($stopPrice) {
+                $triggerType = $this->safe_string($params, 'triggerType');
+                if ($triggerType === null) {
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerType parameter for stop orders, either fill_price or market_price');
+                }
+                $request['triggerType'] = $triggerType;
+                $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                $method = 'privateMixPostPlanPlacePlan';
+            }
             $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
             if ($reduceOnly) {
                 $request['side'] = ($side === 'buy') ? 'close_short' : 'close_long';
@@ -1699,14 +1730,19 @@ class bitget extends Exchange {
             }
             $request['marginCoin'] = $market['settleId'];
         }
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'privateSpotPostTradeOrders',
-            'swap' => 'privateMixPostOrderPlaceOrder',
-        ));
+        $params = $this->omit($params, array( 'stopPrice', 'triggerType' ));
         $response = $this->$method (array_merge($request, $query));
-        // spot
-        // array("code":"00000","msg":"success","requestTime":1645932209602,"data":array("orderId":"881669078313766912","clientOrderId":"iauIBf#a45b595f96474d888d0ada"))
-        // swap
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1645932209602,
+        //         "data" => {
+        //             "orderId" => "881669078313766912",
+        //             "clientOrderId" => "iauIBf#a45b595f96474d888d0ada"
+        //         }
+        //     }
+        //
         $data = $this->safe_value($response, 'data');
         return $this->parse_order($data, $market);
     }
@@ -2210,7 +2246,7 @@ class bitget extends Exchange {
         //       code => '00000',
         //       msg => 'success',
         //       requestTime => '1645933957584',
-        //       data => array(
+        //       $data => array(
         //         {
         //           marginCoin => 'USDT',
         //           $symbol => 'BTCUSDT_UMCBL',
@@ -2233,7 +2269,8 @@ class bitget extends Exchange {
         //       )
         //     }
         //
-        return $response;
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_position($data[0], $market);
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
@@ -2270,7 +2307,252 @@ class bitget extends Exchange {
         //         }
         //       )
         //     }
-        return $response;
+        //
+        $position = $this->safe_value($response, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($position); $i++) {
+            $result[] = $this->parse_position($position[$i]);
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols, false);
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        //     {
+        //         marginCoin => 'USDT',
+        //         symbol => 'BTCUSDT_UMCBL',
+        //         holdSide => 'long',
+        //         openDelegateCount => '0',
+        //         margin => '1.921475',
+        //         available => '0.001',
+        //         locked => '0',
+        //         total => '0.001',
+        //         leverage => '20',
+        //         achievedProfits => '0',
+        //         averageOpenPrice => '38429.5',
+        //         $marginMode => 'fixed',
+        //         holdMode => 'double_hold',
+        //         unrealizedPL => '0.14869',
+        //         liquidationPrice => '0',
+        //         keepMarginRate => '0.004',
+        //         cTime => '1645922194988'
+        //     }
+        //
+        $marketId = $this->safe_string($position, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_integer($position, 'cTime');
+        $marginMode = $this->safe_string($position, 'marginMode');
+        if ($marginMode === 'fixed') {
+            $marginMode = 'isolated';
+        } else if ($marginMode === 'crossed') {
+            $marginMode = 'cross';
+        }
+        $hedged = $this->safe_string($position, 'holdMode');
+        if ($hedged === 'double_hold') {
+            $hedged = true;
+        } else if ($hedged === 'single_hold') {
+            $hedged = false;
+        }
+        $contracts = $this->safe_integer($position, 'openDelegateCount');
+        $liquidation = $this->safe_number($position, 'liquidationPrice');
+        if ($contracts === 0) {
+            $contracts = null;
+        }
+        if ($liquidation === 0) {
+            $liquidation = null;
+        }
+        return array(
+            'info' => $position,
+            'id' => null,
+            'symbol' => $market['symbol'],
+            'notional' => null,
+            'marginMode' => $marginMode,
+            'marginType' => null, // deprecated
+            'liquidationPrice' => $liquidation,
+            'entryPrice' => $this->safe_number($position, 'averageOpenPrice'),
+            'unrealizedPnl' => $this->safe_number($position, 'unrealizedPL'),
+            'percentage' => null,
+            'contracts' => $contracts,
+            'contractSize' => $this->safe_number($position, 'total'),
+            'markPrice' => null,
+            'side' => $this->safe_string($position, 'holdSide'),
+            'hedged' => $hedged,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'maintenanceMargin' => null,
+            'maintenanceMarginPercentage' => $this->safe_number($position, 'keepMarginRate'),
+            'collateral' => $this->safe_number($position, 'margin'),
+            'initialMargin' => null,
+            'initialMarginPercentage' => null,
+            'leverage' => $this->safe_number($position, 'leverage'),
+            'marginRatio' => null,
+        );
+    }
+
+    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            // 'pageSize' => $limit, // default 20
+            // 'pageNo' => 1,
+            // 'nextPage' => false,
+        );
+        if ($limit !== null) {
+            $request['pageSize'] = $limit;
+        }
+        $response = $this->publicMixGetMarketHistoryFundRate (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1652406728393,
+        //         "data" => array(
+        //             array(
+        //                 "symbol" => "BTCUSDT",
+        //                 "fundingRate" => "-0.0003",
+        //                 "settleTime" => "1652396400000"
+        //             ),
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $rates = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $marketId = $this->safe_string($entry, 'symbol');
+            $symbol = $this->safe_symbol($marketId, $market);
+            $timestamp = $this->safe_integer($entry, 'settleTime');
+            $rates[] = array(
+                'info' => $entry,
+                'symbol' => $symbol,
+                'fundingRate' => $this->safe_string($entry, 'fundingRate'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+            );
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicMixGetMarketCurrentFundRate (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1652401684275,
+        //         "data" => {
+        //             "symbol" => "BTCUSDT_UMCBL",
+        //             "fundingRate" => "-0.000182"
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_funding_rate($data, $market);
+    }
+
+    public function parse_funding_rate($contract, $market = null) {
+        //
+        //     {
+        //         "symbol" => "BTCUSDT_UMCBL",
+        //         "fundingRate" => "-0.000182"
+        //     }
+        //
+        $marketId = $this->safe_string($contract, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        return array(
+            'info' => $contract,
+            'symbol' => $symbol,
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'fundingRate' => $this->safe_number($contract, 'fundingRate'),
+            'fundingTimestamp' => null,
+            'fundingDatetime' => null,
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+        );
+    }
+
+    public function modify_margin_helper($symbol, $amount, $type, $params = array ()) {
+        $this->load_markets();
+        $holdSide = $this->safe_string($params, 'holdSide');
+        $market = $this->market($symbol);
+        $marginCoin = ($market['linear']) ? $market['quote'] : $market['base'];
+        $request = array(
+            'symbol' => $market['id'],
+            'marginCoin' => $marginCoin,
+            'amount' => $this->amount_to_precision($symbol, $amount), // positive value for adding margin, negative for reducing
+            'holdSide' => $holdSide, // long or short
+        );
+        $params = $this->omit($params, 'holdSide');
+        $response = $this->privateMixPostAccountSetMargin (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1652483636792,
+        //         "data" => {
+        //             "result" => true
+        //         }
+        //     }
+        //
+        return array_merge($this->parse_modify_margin($response, $market), array(
+            'amount' => $this->parse_number($amount),
+            'type' => $type,
+        ));
+    }
+
+    public function parse_modify_margin($data, $market = null) {
+        $errorCode = $this->safe_string($data, 'code');
+        $status = ($errorCode === '00000') ? 'ok' : 'failed';
+        $code = ($market['linear']) ? $market['quote'] : $market['base'];
+        return array(
+            'info' => $data,
+            'type' => null,
+            'amount' => null,
+            'code' => $code,
+            'symbol' => $market['symbol'],
+            'status' => $status,
+        );
+    }
+
+    public function reduce_margin($symbol, $amount, $params = array ()) {
+        if ($amount > 0) {
+            throw new BadRequest($this->id . ' reduceMargin() $amount parameter must be a negative value');
+        }
+        $holdSide = $this->safe_string($params, 'holdSide');
+        if ($holdSide === null) {
+            throw new ArgumentsRequired($this->id . ' reduceMargin() requires a $holdSide parameter, either long or short');
+        }
+        return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
+    }
+
+    public function add_margin($symbol, $amount, $params = array ()) {
+        $holdSide = $this->safe_string($params, 'holdSide');
+        if ($holdSide === null) {
+            throw new ArgumentsRequired($this->id . ' addMargin() requires a $holdSide parameter, either long or short');
+        }
+        return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -2315,6 +2597,28 @@ class bitget extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
+    public function fetch_leverage($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicMixGetMarketSymbolLeverage (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1652347673483,
+        //         "data" => {
+        //             "symbol" => "BTCUSDT_UMCBL",
+        //             "minLeverage" => "1",
+        //             "maxLeverage" => "125"
+        //         }
+        //     }
+        //
+        return $response;
+    }
+
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
@@ -2334,20 +2638,20 @@ class bitget extends Exchange {
         return $this->privateMixPostAccountSetLeverage (array_merge($request, $params));
     }
 
-    public function set_margin_mode($marginType, $symbol = null, $params = array ()) {
+    public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
         }
-        $marginType = strtolower($marginType);
-        if (($marginType !== 'fixed') && ($marginType !== 'crossed')) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() $marginType must be "fixed" or "crossed"');
+        $marginMode = strtolower($marginMode);
+        if (($marginMode !== 'fixed') && ($marginMode !== 'crossed')) {
+            throw new ArgumentsRequired($this->id . ' setMarginMode() $marginMode must be "fixed" or "crossed"');
         }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'marginCoin' => $market['settleId'],
-            'marginMode' => $marginType,
+            'marginMode' => $marginMode,
         );
         return $this->privateMixPostAccountSetMarginMode (array_merge($request, $params));
     }

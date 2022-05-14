@@ -1,11 +1,10 @@
 <?php
 
-$root = dirname (dirname (dirname (__FILE__)));
+$root = dirname(dirname(dirname(__FILE__)));
 
 include $root . '/ccxt.php';
 
-$exchange = new \ccxt\coinone (array (
-    'enableRateLimit' => true,
+$exchange = new \ccxt\coinone(array(
     // 'verbose' => true, // uncomment for verbose output
 ));
 

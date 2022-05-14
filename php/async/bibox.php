@@ -38,7 +38,6 @@ class bibox extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
-                'fetchFundingFees' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -50,6 +49,7 @@ class bibox extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransactionFees' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -1305,7 +1305,7 @@ class bibox extends Exchange {
         return $this->parse_transaction($firstResult, $currency);
     }
 
-    public function fetch_funding_fees($codes = null, $params = array ()) {
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
         // by default it will try load withdrawal fees of all currencies (with separate requests)
         // however if you define $codes = array( 'ETH', 'BTC' ) in args it will only load those
         yield $this->load_markets();

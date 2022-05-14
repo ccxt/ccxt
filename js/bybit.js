@@ -257,6 +257,7 @@ module.exports = class bybit extends Exchange {
                         'v2/public/account-ratio': 1,
                         'v2/public/funding-rate': 1,
                         'v2/public/elite-ratio': 1,
+                        'v2/public/funding/prev-funding-rate': 1,
                         'v2/public/risk-limit/list': 1,
                         // linear swap USDT
                         'public/linear/kline': 3,
@@ -296,6 +297,7 @@ module.exports = class bybit extends Exchange {
                         'perpetual/usdc/openapi/public/v1/open-interest': 1,
                         'perpetual/usdc/openapi/public/v1/big-deal': 1,
                         'perpetual/usdc/openapi/public/v1/account-ratio': 1,
+                        'perpetual/usdc/openapi/public/v1/prev-funding-rate': 1,
                         'perpetual/usdc/openapi/public/v1/risk-limit/list': 1,
                     },
                     // outdated endpoints--------------------------------------
@@ -1652,8 +1654,13 @@ module.exports = class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const method = market['linear'] ? 'publicLinearGetFundingPrevFundingRate' : 'v2PublicGetFundingPrevFundingRate';
-        // TODO const method = market['linear'] ? 'publicGetPublicLinearFundingPrevFundingRate' : 'publicGetV2PublicFundingRate ???? throws ExchangeError';
+        const isUsdcSettled = market['settle'] === 'USDC';
+        let method = undefined;
+        if (isUsdcSettled) {
+            method = 'publicGetPerpetualUsdcOpenapiPublicV1PrevFundingRate';
+        } else {
+            method = market['linear'] ? 'publicLinearGetFundingPrevFundingRate' : 'publicGetV2PublicFundingPrevFundingRate';
+        }
         const response = await this[method] (this.extend (request, params));
         //
         //     {
@@ -1681,11 +1688,26 @@ module.exports = class bybit extends Exchange {
         //         },
         //         "time_now":"1647040852.515724"
         //     }
+        // usdc
+        //     {
+        //         "retCode":0,
+        //         "retMsg":"",
+        //         "result":{
+        //            "symbol":"BTCPERP",
+        //            "fundingRate":"0.00010000",
+        //            "fundingRateTimestamp":"1652112000000"
+        //         }
+        //     }
         //
         const result = this.safeValue (response, 'result');
-        const fundingRate = this.safeNumber (result, 'funding_rate');
+        const fundingRate = this.safeNumber2 (result, 'funding_rate', 'fundingRate');
         let fundingTimestamp = this.parse8601 (this.safeString (result, 'funding_rate_timestamp'));
-        fundingTimestamp = this.safeTimestamp (result, 'funding_rate_timestamp', fundingTimestamp);
+        if (fundingTimestamp === undefined) {
+            fundingTimestamp = this.safeTimestamp2 (result, 'funding_rate_timestamp', fundingTimestamp);
+            if (fundingTimestamp === undefined) {
+                fundingTimestamp = this.safeInteger (result, 'fundingRateTimestamp');
+            }
+        }
         const currentTime = this.milliseconds ();
         return {
             'info': result,
@@ -1948,6 +1970,11 @@ module.exports = class bybit extends Exchange {
     }
 
     parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'Buy', asksKey = 'Sell', priceKey = 'price', amountKey = 'size') {
+        const market = this.market (symbol);
+        if (market['spot']) {
+            const timestamp = this.safeInteger (orderbook, 'time');
+            return super.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks');
+        }
         const bids = [];
         const asks = [];
         for (let i = 0; i < orderbook.length; i++) {
@@ -1977,7 +2004,40 @@ module.exports = class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetV2PublicOrderBookL2 (this.extend (request, params));
+        const isUsdcSettled = market['settle'] === 'USDC';
+        let method = undefined;
+        if (market['spot']) {
+            method = 'publicGetSpotQuoteV1Depth';
+        } else if (!isUsdcSettled) {
+            // inverse perpetual // usdt linear // inverse futures
+            method = 'publicGetV2PublicOrderBookL2';
+        } else {
+            // usdc option/ swap
+            method = market['option'] ? 'publicGetOptionUsdcOpenapiPublicV1OrderBook' : 'publicGetPerpetualUsdcOpenapiPublicV1OrderBook';
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //     {
+        //         "ret_code": 0,
+        //         "ret_msg": null,
+        //         "result": {
+        //             "time": 1620886105740,
+        //             "bids": [
+        //                 ["50005.12","403.0416"]
+        //             ],
+        //             "asks": [
+        //                 ["50006.34", "0.2297" ]
+        //             ]
+        //         },
+        //         "ext_code": null,
+        //         "ext_info": null
+        //     }
+        //
+        // linear/inverse swap/futures
         //
         //     {
         //         ret_code: 0,
@@ -1988,12 +2048,28 @@ module.exports = class bybit extends Exchange {
         //             { symbol: 'BTCUSD', price: '7767.5', size: 677956, side: 'Buy' },
         //             { symbol: 'BTCUSD', price: '7767', size: 580690, side: 'Buy' },
         //             { symbol: 'BTCUSD', price: '7766.5', size: 475252, side: 'Buy' },
-        //             { symbol: 'BTCUSD', price: '7768', size: 330847, side: 'Sell' },
-        //             { symbol: 'BTCUSD', price: '7768.5', size: 97159, side: 'Sell' },
-        //             { symbol: 'BTCUSD', price: '7769', size: 6508, side: 'Sell' },
         //         ],
         //         time_now: '1583954829.874823'
         //     }
+        //
+        // usdc markets
+        //
+        //     {
+        //         "retCode": 0,
+        //           "retMsg": "SUCCESS",
+        //           "result": [
+        //           {
+        //             "price": "5000.00000000",
+        //             "size": "2.0000",
+        //             "side": "Buy" // bids
+        //           },
+        //           {
+        //             "price": "5900.00000000",
+        //             "size": "0.9000",
+        //             "side": "Sell" // asks
+        //           }
+        //         ]
+        //    }
         //
         const result = this.safeValue (response, 'result', []);
         const timestamp = this.safeTimestamp (response, 'time_now');
@@ -3572,7 +3648,7 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v2PrivateGetWalletWithdrawList (this.extend (request, params));
+        const response = await this.privateGetV2PrivateWalletWithdrawList (this.extend (request, params));
         //
         //     {
         //         "ret_code": 0,
@@ -3847,54 +3923,50 @@ module.exports = class bybit extends Exchange {
         return this.safeValue (response, 'result');
     }
 
-    async setMarginMode (marginType, symbol = undefined, params = {}) {
-        //
-        // {
-        //     "ret_code": 0,
-        //     "ret_msg": "ok",
-        //     "ext_code": "",
-        //     "result": null,
-        //     "ext_info": null,
-        //     "time_now": "1577477968.175013",
-        //     "rate_limit_status": 74,
-        //     "rate_limit_reset_ms": 1577477968183,
-        //     "rate_limit": 75
-        // }
-        //
-        const leverage = this.safeValue (params, 'leverage');
-        if (leverage === undefined) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter');
-        }
-        marginType = marginType.toUpperCase ();
-        if (marginType === 'CROSSED') { // * Deprecated, use 'CROSS' instead
-            marginType = 'CROSS';
-        }
-        if ((marginType !== 'ISOLATED') && (marginType !== 'CROSS')) {
-            throw new BadRequest (this.id + ' setMarginMode() marginType must be either isolated or cross');
+    async setMarginMode (marginMode, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = undefined;
-        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
-        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
-        const marketType = this.safeString (marketTypes, symbol, defaultType);
-        const linear = market['linear'] || (marketType === 'linear');
-        const inverse = (market['swap'] && market['inverse']) || (marketType === 'inverse');
-        const future = market['future'] || ((marketType === 'future') || (marketType === 'futures')); // * (marketType === 'futures') deprecated, use (marketType === 'future')
-        if (linear) {
-            method = 'privateLinearPostPositionSwitchIsolated';
-        } else if (inverse) {
-            method = 'v2PrivatePostPositionSwitchIsolated';
-        } else if (future) {
-            method = 'privateFuturesPostPositionSwitchIsolated';
+        if (market['settle'] === 'USDC') {
+            throw new NotSupported (this.id + ' setMarginMode() does not support market ' + symbol + '');
         }
-        const isIsolated = (marginType === 'ISOLATED');
+        marginMode = marginMode.toUpperCase ();
+        if ((marginMode !== 'ISOLATED') && (marginMode !== 'CROSS')) {
+            throw new BadRequest (this.id + ' setMarginMode() marginMode must be either isolated or cross');
+        }
+        const leverage = this.safeNumber (params, 'leverage');
+        let sellLeverage = undefined;
+        let buyLeverage = undefined;
+        if (leverage === undefined) {
+            sellLeverage = this.safeNumber2 (params, 'sell_leverage', 'sellLeverage');
+            buyLeverage = this.safeNumber2 (params, 'buy_leverage', 'buyLeverage');
+            if (sellLeverage === undefined || buyLeverage === undefined) {
+                throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters');
+            }
+            params = this.omit (params, [ 'buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage' ]);
+        } else {
+            params = this.omit (params, 'leverage');
+            sellLeverage = leverage;
+            buyLeverage = leverage;
+        }
+        const isIsolated = (marginMode === 'ISOLATED');
         const request = {
             'symbol': market['id'],
             'is_isolated': isIsolated,
             'buy_leverage': leverage,
             'sell_leverage': leverage,
         };
+        let method = undefined;
+        if (market['future']) {
+            method = 'privatePostFuturesPrivatePositionSwitchIsolated';
+        } else if (market['inverse']) {
+            method = 'privatePostV2PrivatePositionSwitchIsolated';
+        } else {
+            // linear
+            method = 'privatePostPrivateLinearPositionSwitchIsolated';
+        }
         const response = await this[method] (this.extend (request, params));
         //
         //     {

@@ -76,8 +76,6 @@ class binance(Exchange):
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
-                'fetchFundingFee': None,
-                'fetchFundingFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -113,6 +111,8 @@ class binance(Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTradingLimits': None,
+                'fetchTransactionFee': None,
+                'fetchTransactionFees': True,
                 'fetchTransactions': False,
                 'fetchTransfers': True,
                 'fetchWithdrawal': False,
@@ -350,6 +350,7 @@ class binance(Exchange):
                         'nft/user/getAsset': 20.001,
                         'pay/transactions': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'giftcard/verify': 0.1,
+                        'giftcard/cryptography/rsa-public-key': 0.1,
                         'algo/futures/openOrders': 0.1,
                         'algo/futures/historicalOrders': 0.1,
                         'algo/futures/subOrders': 0.1,
@@ -3721,7 +3722,7 @@ class binance(Exchange):
             'info': response,
         }
 
-    def fetch_funding_fees(self, codes=None, params={}):
+    def fetch_transaction_fees(self, codes=None, params={}):
         self.load_markets()
         response = self.sapiGetCapitalConfigGetall(params)
         #
@@ -4111,7 +4112,7 @@ class binance(Exchange):
             elif market['inverse']:
                 method = 'dapiPublicGetFundingRate'
         if method is None:
-            raise NotSupported(self.id + ' fetchFundingRateHistory() not supported for ' + type + ' markets')
+            raise NotSupported(self.id + ' fetchFundingRateHistory() is not supported for ' + type + ' markets')
         if since is not None:
             request['startTime'] = since
         till = self.safe_integer(params, 'till')  # unified in milliseconds
@@ -4319,15 +4320,15 @@ class binance(Exchange):
         if timestamp == 0:
             timestamp = None
         isolated = self.safe_value(position, 'isolated')
-        marginType = None
+        marginMode = None
         collateralString = None
         walletBalance = None
         if isolated:
-            marginType = 'isolated'
+            marginMode = 'isolated'
             walletBalance = self.safe_string(position, 'isolatedWallet')
             collateralString = Precise.string_add(walletBalance, unrealizedPnlString)
         else:
-            marginType = 'cross'
+            marginMode = 'cross'
             walletBalance = self.safe_string(position, 'crossWalletBalance')
             collateralString = self.safe_string(position, 'crossMargin')
         collateral = self.parse_number(collateralString)
@@ -4412,7 +4413,8 @@ class binance(Exchange):
             'liquidationPrice': liquidationPrice,
             'markPrice': None,
             'collateral': collateral,
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode,  # deprecated
             'side': side,
             'hedged': hedged,
             'percentage': percentage,
@@ -4480,7 +4482,7 @@ class binance(Exchange):
         liquidationPriceString = self.omit_zero(self.safe_string(position, 'liquidationPrice'))
         liquidationPrice = self.parse_number(liquidationPriceString)
         collateralString = None
-        marginType = self.safe_string(position, 'marginType')
+        marginMode = self.safe_string(position, 'marginType')
         side = None
         if Precise.string_gt(notionalString, '0'):
             side = 'long'
@@ -4492,7 +4494,7 @@ class binance(Exchange):
         contractSizeString = self.number_to_string(contractSize)
         # as oppose to notionalValue
         linear = ('notional' in position)
-        if marginType == 'cross':
+        if marginMode == 'cross':
             # calculate collateral
             precision = self.safe_value(market, 'precision', {})
             if linear:
@@ -4567,7 +4569,8 @@ class binance(Exchange):
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
             'marginRatio': marginRatio,
             'datetime': self.iso8601(timestamp),
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode,  # deprecated
             'side': side,
             'hedged': hedged,
             'percentage': percentage,
@@ -4859,7 +4862,7 @@ class binance(Exchange):
         }
         return getattr(self, method)(self.extend(request, params))
 
-    def set_margin_mode(self, marginType, symbol=None, params={}):
+    def set_margin_mode(self, marginMode, symbol=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
         #
@@ -4869,11 +4872,11 @@ class binance(Exchange):
         #
         # {"code": 200, "msg": "success"}
         #
-        marginType = marginType.upper()
-        if marginType == 'CROSS':
-            marginType = 'CROSSED'
-        if (marginType != 'ISOLATED') and (marginType != 'CROSSED'):
-            raise BadRequest(self.id + ' marginType must be either isolated or cross')
+        marginMode = marginMode.upper()
+        if marginMode == 'CROSS':
+            marginMode = 'CROSSED'
+        if (marginMode != 'ISOLATED') and (marginMode != 'CROSSED'):
+            raise BadRequest(self.id + ' marginMode must be either isolated or cross')
         self.load_markets()
         market = self.market(symbol)
         method = None
@@ -4885,7 +4888,7 @@ class binance(Exchange):
             raise NotSupported(self.id + ' setMarginMode() supports linear and inverse contracts only')
         request = {
             'symbol': market['id'],
-            'marginType': marginType,
+            'marginType': marginMode,
         }
         response = None
         try:
@@ -4959,10 +4962,13 @@ class binance(Exchange):
         elif (api == 'private') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV3') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
             self.check_required_credentials()
             query = None
-            recvWindow = self.safe_integer(self.options, 'recvWindow')
+            defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
             extendedParams = self.extend({
                 'timestamp': self.nonce(),
             }, params)
+            if defaultRecvWindow is not None:
+                extendedParams['recvWindow'] = defaultRecvWindow
+            recvWindow = self.safe_integer(params, 'recvWindow')
             if recvWindow is not None:
                 extendedParams['recvWindow'] = recvWindow
             if (api == 'sapi') and (path == 'asset/dust'):
@@ -5304,10 +5310,12 @@ class binance(Exchange):
     def parse_borrow_interest(self, info, market):
         symbol = self.safe_string(info, 'isolatedSymbol')
         timestamp = self.safe_number(info, 'interestAccuredTime')
+        marginMode = 'cross' if (symbol is None) else 'isolated'
         return {
             'account': 'cross' if (symbol is None) else symbol,
             'symbol': symbol,
-            'marginType': 'cross' if (symbol is None) else 'isolated',
+            'marginType': marginMode,  # deprecated
+            'marginMode': marginMode,
             'currency': self.safe_currency_code(self.safe_string(info, 'asset')),
             'interest': self.safe_number(info, 'interest'),
             'interestRate': self.safe_number(info, 'interestRate'),

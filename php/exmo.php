@@ -35,7 +35,6 @@ class exmo extends Exchange {
                 'fetchBalance' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
-                'fetchFundingFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -56,6 +55,7 @@ class exmo extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchTransactionFees' => true,
                 'fetchTransactions' => true,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
@@ -166,7 +166,7 @@ class exmo extends Exchange {
                 ),
                 'funding' => array(
                     'tierBased' => false,
-                    'percentage' => false, // fixed funding fees for crypto, see fetchFundingFees below
+                    'percentage' => false, // fixed funding fees for crypto, see fetchTransactionFees below
                 ),
             ),
             'options' => array(
@@ -329,7 +329,7 @@ class exmo extends Exchange {
         return $result;
     }
 
-    public function fetch_funding_fees($params = array ()) {
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
         $this->load_markets();
         $currencyList = $this->publicGetCurrencyListExtended ($params);
         //
