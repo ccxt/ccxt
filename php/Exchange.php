@@ -2788,9 +2788,6 @@ class Exchange {
     }
 
     public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array()) {
-        if (!$this->enableRateLimit) {
-            throw new ExchangeError($this->id . ' edit_order() requires enableRateLimit = true');
-        }
         $this->cancel_order($id, $symbol, $params);
         return $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
