@@ -2395,20 +2395,11 @@ module.exports = class bybit extends Exchange {
                 timestamp = this.safeIntegerProduct (order, 'createdAt', 0.001);
             }
         }
-        let id = this.safeString2 (order, 'order_id', 'stop_order_id');
-        if (id === undefined) {
-            id = this.safeString (order, 'orderId');
-        }
-        let type = this.safeStringLower2 (order, 'order_type', 'type');
-        if (type === undefined) {
-            type = this.safeStringLower (order, 'orderType');
-        }
+        const id = this.safeStringN (order, [ 'order_id', 'stop_order_id', 'orderId' ]);
+        const type = this.safeStringLowerN (order, [ 'order_type', 'type', 'orderType' ]);
         const price = this.safeString2 (order, 'price', 'orderPrice');
         const average = this.safeString2 (order, 'average_price', 'avgPrice');
-        let amount = this.safeString2 (order, 'qty', 'origQty');
-        if (amount === undefined) {
-            amount = this.safeString (order, 'orderQty');
-        }
+        const amount = this.safeStringN (order, [ 'qty', 'origQty', 'orderQty' ]);
         const cost = this.safeString (order, 'cum_exec_value');
         const filled = this.safeString2 (order, 'cum_exec_qty', 'executedQty');
         const remaining = this.safeString (order, 'leaves_qty');
@@ -2428,10 +2419,7 @@ module.exports = class bybit extends Exchange {
                 lastTradeTimestamp = this.safeNumber (order, 'updateTime');
             }
         }
-        let raw_status = this.safeStringLower2 (order, 'order_status', 'stop_order_status');
-        if (raw_status === undefined) {
-            raw_status = this.safeStringLower2 (order, 'status', 'orderStatus');
-        }
+        const raw_status = this.safeStringLowerN (order, [ 'order_status', 'stop_order_status', 'status', 'orderStatus' ]);
         const status = this.parseOrderStatus (raw_status);
         const side = this.safeStringLower (order, 'side');
         const feeCostString = this.safeString (order, 'cum_exec_fee');
@@ -2447,10 +2435,7 @@ module.exports = class bybit extends Exchange {
             clientOrderId = undefined;
         }
         const timeInForce = this.parseTimeInForce (this.safeString2 (order, 'time_in_force', 'timeInForce'));
-        let stopPrice = this.safeString2 (order, 'trigger_price', 'stop_px');
-        if (stopPrice === undefined) {
-            stopPrice = this.safeString2 (order, 'stopPrice', 'triggerPrice');
-        }
+        const stopPrice = this.safeStringN (order, [ 'trigger_price', 'stop_px', 'stopPrice', 'triggerPrice' ]);
         const postOnly = (timeInForce === 'PO');
         return this.safeOrder ({
             'info': order,
