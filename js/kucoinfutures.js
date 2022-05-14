@@ -1207,7 +1207,8 @@ module.exports = class kucoinfutures extends kucoin {
         const id = this.safeString (info, 'id');
         market = this.safeMarket (id, market);
         const currencyId = this.safeString (info, 'settleCurrency');
-        const mode = (this.safeValue (info, 'crossMode') === true) ? 'cross' : 'isolated';
+        const crossMode = this.safeValue (info, 'crossMode');
+        const mode = crossMode ? 'cross' : 'isolated';
         const marketId = this.safeString (market, 'symbol');
         return {
             'info': info,
