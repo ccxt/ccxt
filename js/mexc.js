@@ -649,6 +649,19 @@ module.exports = class mexc extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
+        const response2 = await this.spotPublicGetMarketApiDefaultSymbols (params);
+        //
+        //     {
+        //         "code":200,
+        //         "data":{
+        //             "symbol":[
+        //                 "ALEPH_USDT","OGN_USDT","HC_USDT",
+        //              ]
+        //         }
+        //     }
+        //
+        const data2 = this.safeValue (response2, 'data', {});
+        const symbols = this.safeValue (data2, 'symbol', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -659,6 +672,15 @@ module.exports = class mexc extends Exchange {
             const priceScale = this.safeString (market, 'price_scale');
             const quantityScale = this.safeString (market, 'quantity_scale');
             const state = this.safeString (market, 'state');
+            let active = false;
+            for (let j = 0; j < symbols.length; j++) {
+                if (symbols[j] === id) {
+                    if (state === 'ENABLED') {
+                        active = true;
+                    }
+                    break;
+                }
+            }
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -674,7 +696,7 @@ module.exports = class mexc extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': (state === 'ENABLED'),
+                'active': active,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
