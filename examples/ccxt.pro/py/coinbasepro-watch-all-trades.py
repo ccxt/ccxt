@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import ccxtpro
-import asyncio
+from asyncio import run
 
-async def main(loop):
-    exchange = ccxtpro.coinbasepro({'enableRateLimit': False, 'asyncio_loop': loop})
+async def main():
+    exchange = ccxtpro.coinbasepro()
     method = 'watchTrades'
     print('CCXT Pro version', ccxtpro.__version__)
     if exchange.has[method]:
@@ -26,5 +26,5 @@ async def main(loop):
     else:
         raise Exception(exchange.id + ' ' + method + ' is not supported or not implemented yet')
 
-loop = asyncio.new_event_loop()
-loop.run_until_complete(main(loop))
+
+run(main())
