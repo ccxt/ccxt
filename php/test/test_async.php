@@ -359,61 +359,68 @@ function get_test_symbol($exchange, $symbols) {
     return $symbol;
 }
 
-function test_exchange($exchange) {
-
-    $codes = array(
-        'BTC',
-        'ETH',
-        'XRP',
-        'LTC',
-        'BCH',
-        'EOS',
-        'BNB',
-        'BSV',
-        'USDT',
-        'ATOM',
-        'BAT',
-        'BTG',
-        'DASH',
-        'DOGE',
-        'ETC',
-        'IOTA',
-        'LSK',
-        'MKR',
-        'NEO',
-        'PAX',
-        'QTUM',
-        'TRX',
-        'TUSD',
-        'USD',
-        'USDC',
-        'WAVES',
-        'XEM',
-        'XMR',
-        'ZEC',
-        'ZRX',
-    );
-
+function get_test_code($exchange, $codes) {
     $code = $codes[0];
     for ($i = 0; $i < count($codes); $i++) {
         if (array_key_exists($codes[$i], $exchange->currencies)) {
             $code = $codes[$i];
         }
     }
+    return $code;
+}
 
-    $symbol = get_test_symbol($exchange, array(
-        'BTC/USD',
-        'BTC/USDT',
-        'BTC/CNY',
-        'BTC/EUR',
-        'BTC/ETH',
-        'ETH/BTC',
-        'ETH/USDT',
-        'BTC/JPY',
-        'LTC/BTC',
-        'USD/SLL',
-        'EUR/USD',
-    ));
+$common_codes = array(
+    'BTC',
+    'ETH',
+    'XRP',
+    'LTC',
+    'BCH',
+    'EOS',
+    'BNB',
+    'BSV',
+    'USDT',
+    'ATOM',
+    'BAT',
+    'BTG',
+    'DASH',
+    'DOGE',
+    'ETC',
+    'IOTA',
+    'LSK',
+    'MKR',
+    'NEO',
+    'PAX',
+    'QTUM',
+    'TRX',
+    'TUSD',
+    'USD',
+    'USDC',
+    'WAVES',
+    'XEM',
+    'XMR',
+    'ZEC',
+    'ZRX',
+);
+
+$common_symbols = array(
+    'BTC/USD',
+    'BTC/USDT',
+    'BTC/CNY',
+    'BTC/EUR',
+    'BTC/ETH',
+    'ETH/BTC',
+    'ETH/USDT',
+    'BTC/JPY',
+    'LTC/BTC',
+    'USD/SLL',
+    'EUR/USD',
+);
+
+function get_test_symbol_and_code($exchange, $symbols, $codes) {
+
+    $code = get_test_code($exchange, $codes);
+
+    $symbol = get_test_symbol($exchange, $symbols);
 
     if ($symbol === null) {
         $markets = array_values($exchange->markets);
@@ -450,6 +457,15 @@ function test_exchange($exchange) {
         $symbol = $exchange->symbols[0];
     }
 
+    return array($symbol, $code);
+}
+
+function test_exchange($exchange) {
+
+    global $common_symbols, $common_codes;
+
+    list($symbol, $code) = get_test_symbol_and_code($exchange, $common_symbols, $common_codes);
+
     if (strpos($symbol, '.d') === false) {
         dump(green('SYMBOL:'), green($symbol));
         dump(green('CODE:'), green($code));
@@ -463,7 +479,7 @@ $proxies = array(
     // 'https://crossorigin.me/',
 );
 
-$main = function() use ($args, $exchanges, $proxies, $config) {
+$main = function() use ($args, $exchanges, $proxies, $config, $common_codes) {
     if (count($args) > 1) {
         if ($exchanges[$args[1]]) {
             $id = $args[1];
@@ -480,11 +496,8 @@ $main = function() use ($args, $exchanges, $proxies, $config) {
 
             if (count($args) > 2) {
                 yield load_exchange($exchange);
-                // var_dump($args);
-                $currencies = $exchange->currencies;
-                $first_key = array_keys($currencies)[0];
-                $testCode = $currencies[$first_key];
-                yield test_symbol($exchange, $args[2], $testCode);
+                $code = get_test_code($exchange, $common_codes);
+                yield test_symbol($exchange, $args[2], $code);
             } else {
                 yield try_all_proxies($exchange, $proxies);
             }
