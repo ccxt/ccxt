@@ -1642,7 +1642,7 @@ module.exports = class bitget extends Exchange {
         let side = this.safeString2 (order, 'side', 'posSide');
         if ((side === 'open_long') || (side === 'close_short')) {
             side = 'buy';
-        } else {
+        } else if ((side === 'close_long') || (side === 'open_short')) {
             side = 'sell';
         }
         const clientOrderId = this.safeString2 (order, 'clientOrderId', 'clientOid');
@@ -1683,7 +1683,8 @@ module.exports = class bitget extends Exchange {
             'symbol': market['id'],
             'orderType': type,
         };
-        if (type === 'limit') {
+        const stopPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
+        if ((type === 'limit') && (stopPrice === undefined)) {
             request['price'] = price;
         }
         let clientOrderId = this.safeString2 (params, 'client_oid', 'clientOrderId');
@@ -1696,6 +1697,10 @@ module.exports = class bitget extends Exchange {
                 }
             }
         }
+        let method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotPostTradeOrders',
+            'swap': 'privateMixPostOrderPlaceOrder',
+        });
         if (marketType === 'spot') {
             request['clientOrderId'] = clientOrderId;
             request['quantity'] = this.amountToPrecision (symbol, amount);
@@ -1704,6 +1709,16 @@ module.exports = class bitget extends Exchange {
         } else {
             request['clientOid'] = clientOrderId;
             request['size'] = this.amountToPrecision (symbol, amount);
+            if (stopPrice) {
+                const triggerType = this.safeString (params, 'triggerType');
+                if (triggerType === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerType parameter for stop orders, either fill_price or market_price');
+                }
+                request['triggerType'] = triggerType;
+                request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
+                request['executePrice'] = this.priceToPrecision (symbol, price);
+                method = 'privateMixPostPlanPlacePlan';
+            }
             const reduceOnly = this.safeValue (params, 'reduceOnly', false);
             if (reduceOnly) {
                 request['side'] = (side === 'buy') ? 'close_short' : 'close_long';
@@ -1712,14 +1727,19 @@ module.exports = class bitget extends Exchange {
             }
             request['marginCoin'] = market['settleId'];
         }
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'privateSpotPostTradeOrders',
-            'swap': 'privateMixPostOrderPlaceOrder',
-        });
+        params = this.omit (params, [ 'stopPrice', 'triggerType' ]);
         const response = await this[method] (this.extend (request, query));
-        // spot
-        // {"code":"00000","msg":"success","requestTime":1645932209602,"data":{"orderId":"881669078313766912","clientOrderId":"iauIBf#a45b595f96474d888d0ada"}}
-        // swap
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1645932209602,
+        //         "data": {
+        //             "orderId": "881669078313766912",
+        //             "clientOrderId": "iauIBf#a45b595f96474d888d0ada"
+        //         }
+        //     }
+        //
         const data = this.safeValue (response, 'data');
         return this.parseOrder (data, market);
     }
