@@ -370,7 +370,7 @@ async def test_transactions(exchange, code):
             test_transaction(exchange, transaction, code, int(time.time() * 1000))
         dump(green(exchange.id), green(code), 'fetched', green(len(transactions)), 'transactions')
     else:
-        dump(green(exchange.id), green(code), method + ' () is not supported')
+        dump(green(exchange.id), green(code), method + '() is not supported')
 
 # ------------------------------------------------------------------------------
 
