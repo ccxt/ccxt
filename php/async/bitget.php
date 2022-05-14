@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
 use \ccxt\BadSymbol;
 use \ccxt\Precise;
 
@@ -24,12 +25,14 @@ class bitget extends Exchange {
                 'CORS' => null,
                 'spot' => true,
                 'margin' => false,
-                'swap' => null, // has but unimplemented
-                'future' => null, // has but unimplemented
+                'swap' => true,
+                'future' => false,
                 'option' => false,
+                'addMargin' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
@@ -40,12 +43,17 @@ class bitget extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDeposits' => false,
+                'fetchFundingHistory' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
+                'fetchLeverageTiers' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -54,6 +62,8 @@ class bitget extends Exchange {
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -64,8 +74,10 @@ class bitget extends Exchange {
                 'fetchTransfers' => null,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => false,
+                'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
+                'setPositionMode' => false,
                 'transfer' => false,
                 'withdraw' => false,
             ),
@@ -2460,6 +2472,68 @@ class bitget extends Exchange {
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
         );
+    }
+
+    public function modify_margin_helper($symbol, $amount, $type, $params = array ()) {
+        yield $this->load_markets();
+        $holdSide = $this->safe_string($params, 'holdSide');
+        $market = $this->market($symbol);
+        $marginCoin = ($market['linear']) ? $market['quote'] : $market['base'];
+        $request = array(
+            'symbol' => $market['id'],
+            'marginCoin' => $marginCoin,
+            'amount' => $this->amount_to_precision($symbol, $amount), // positive value for adding margin, negative for reducing
+            'holdSide' => $holdSide, // long or short
+        );
+        $params = $this->omit($params, 'holdSide');
+        $response = yield $this->privateMixPostAccountSetMargin (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1652483636792,
+        //         "data" => {
+        //             "result" => true
+        //         }
+        //     }
+        //
+        return array_merge($this->parse_modify_margin($response, $market), array(
+            'amount' => $this->parse_number($amount),
+            'type' => $type,
+        ));
+    }
+
+    public function parse_modify_margin($data, $market = null) {
+        $errorCode = $this->safe_string($data, 'code');
+        $status = ($errorCode === '00000') ? 'ok' : 'failed';
+        $code = ($market['linear']) ? $market['quote'] : $market['base'];
+        return array(
+            'info' => $data,
+            'type' => null,
+            'amount' => null,
+            'code' => $code,
+            'symbol' => $market['symbol'],
+            'status' => $status,
+        );
+    }
+
+    public function reduce_margin($symbol, $amount, $params = array ()) {
+        if ($amount > 0) {
+            throw new BadRequest($this->id . ' reduceMargin() $amount parameter must be a negative value');
+        }
+        $holdSide = $this->safe_string($params, 'holdSide');
+        if ($holdSide === null) {
+            throw new ArgumentsRequired($this->id . ' reduceMargin() requires a $holdSide parameter, either long or short');
+        }
+        return yield $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
+    }
+
+    public function add_margin($symbol, $amount, $params = array ()) {
+        $holdSide = $this->safe_string($params, 'holdSide');
+        if ($holdSide === null) {
+            throw new ArgumentsRequired($this->id . ' addMargin() requires a $holdSide parameter, either long or short');
+        }
+        return yield $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {

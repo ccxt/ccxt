@@ -40,12 +40,14 @@ class bitget(Exchange):
                 'CORS': None,
                 'spot': True,
                 'margin': False,
-                'swap': None,  # has but unimplemented
-                'future': None,  # has but unimplemented
+                'swap': True,
+                'future': False,
                 'option': False,
+                'addMargin': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchAccounts': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
@@ -56,12 +58,17 @@ class bitget(Exchange):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDeposits': False,
+                'fetchFundingHistory': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
                 'fetchLedger': True,
                 'fetchLeverage': True,
+                'fetchLeverageTiers': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -70,6 +77,8 @@ class bitget(Exchange):
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositions': True,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -80,8 +89,10 @@ class bitget(Exchange):
                 'fetchTransfers': None,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': False,
+                'reduceMargin': True,
                 'setLeverage': True,
                 'setMarginMode': True,
+                'setPositionMode': False,
                 'transfer': False,
                 'withdraw': False,
             },
@@ -2385,6 +2396,61 @@ class bitget(Exchange):
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
         }
+
+    async def modify_margin_helper(self, symbol, amount, type, params={}):
+        await self.load_markets()
+        holdSide = self.safe_string(params, 'holdSide')
+        market = self.market(symbol)
+        marginCoin = market['quote'] if (market['linear']) else market['base']
+        request = {
+            'symbol': market['id'],
+            'marginCoin': marginCoin,
+            'amount': self.amount_to_precision(symbol, amount),  # positive value for adding margin, negative for reducing
+            'holdSide': holdSide,  # long or short
+        }
+        params = self.omit(params, 'holdSide')
+        response = await self.privateMixPostAccountSetMargin(self.extend(request, params))
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1652483636792,
+        #         "data": {
+        #             "result": True
+        #         }
+        #     }
+        #
+        return self.extend(self.parse_modify_margin(response, market), {
+            'amount': self.parse_number(amount),
+            'type': type,
+        })
+
+    def parse_modify_margin(self, data, market=None):
+        errorCode = self.safe_string(data, 'code')
+        status = 'ok' if (errorCode == '00000') else 'failed'
+        code = market['quote'] if (market['linear']) else market['base']
+        return {
+            'info': data,
+            'type': None,
+            'amount': None,
+            'code': code,
+            'symbol': market['symbol'],
+            'status': status,
+        }
+
+    async def reduce_margin(self, symbol, amount, params={}):
+        if amount > 0:
+            raise BadRequest(self.id + ' reduceMargin() amount parameter must be a negative value')
+        holdSide = self.safe_string(params, 'holdSide')
+        if holdSide is None:
+            raise ArgumentsRequired(self.id + ' reduceMargin() requires a holdSide parameter, either long or short')
+        return await self.modify_margin_helper(symbol, amount, 'reduce', params)
+
+    async def add_margin(self, symbol, amount, params={}):
+        holdSide = self.safe_string(params, 'holdSide')
+        if holdSide is None:
+            raise ArgumentsRequired(self.id + ' addMargin() requires a holdSide parameter, either long or short')
+        return await self.modify_margin_helper(symbol, amount, 'add', params)
 
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         signed = api[0] == 'private'
