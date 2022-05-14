@@ -1192,7 +1192,7 @@ module.exports = class kucoinfutures extends kucoin {
         const currencyId = this.safeString (info, 'settleCurrency');
         return {
             'info': info,
-            'type': undefined,
+            'adjustment': undefined,
             'amount': undefined,
             'code': this.safeCurrencyCode (currencyId),
             'symbol': this.safeString (market, 'symbol'),
