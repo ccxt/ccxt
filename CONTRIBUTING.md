@@ -507,6 +507,13 @@ Therefore we have a family of `safe*` functions:
 
 The `safeValue` function is used for objects inside objects, arrays inside objects and boolean `true/false` values.
 
+If you need to search for several different keys within an object you have available the `safeMethodN` function's family that allows for a search with an arbitrary number of keys by accepting an array of keys as an argument.
+
+```Javascript
+const price = this.safeStringN (object,['key1','key2', 'key3'], default)
+```
+For every safe method listed above, there is the correspondent `safeMethodN` too. 
+
 The above safe-functions will check for the existence of the `key` (or `key1`, `key2`) in the object and will properly return `undefined/None/null` values for JS/Python/PHP. Each function also accepts the `default` value to be returned instead of `undefined/None/null` in the last argument.
 
 Alternatively, you could check for the key existence first...
