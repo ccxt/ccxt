@@ -2418,7 +2418,7 @@ class huobi extends Exchange {
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $options = $this->safe_value($this->options, 'fetchTickers', array());
+        $options = $this->safe_value($this->options, 'fetchBalance', array());
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $type = $this->safe_string($options, 'type', $defaultType);
         $type = $this->safe_string($params, 'type', $type);
