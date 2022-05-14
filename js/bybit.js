@@ -3146,12 +3146,12 @@ module.exports = class bybit extends Exchange {
         params = this.omit (params, 'type');
         const isConditionalOrder = (type === 'stop') || (type === 'conditional');
         if (market['linear']) {
-            method = !isConditionalOrder ? 'privateGetPrivateLinearOrderList' : 'privateGetPrivateLinearStopOrderList';
+            method = isConditionalOrder ? 'privateGetPrivateLinearStopOrderList' : 'privateGetPrivateLinearOrderList';
         } else if (market['future']) {
-            method = !isConditionalOrder ? 'privateGetFuturesPrivateOrderList' : 'privateGetFuturesPrivateStopOrderList';
+            method = isConditionalOrder ? 'privateGetFuturesPrivateStopOrderList' : 'privateGetFuturesPrivateOrderList';
         } else {
             // inverse swap
-            method = !isConditionalOrder ? 'privateGetV2PrivateOrderList' : 'privateGetV2PrivateStopOrderList';
+            method = isConditionalOrder ? 'privateGetV2PrivateStopOrderList' : 'privateGetV2PrivateOrderList';
         }
         const request = {
             'symbol': market['id'],
