@@ -1646,7 +1646,7 @@ class bitget extends Exchange {
         $side = $this->safe_string_2($order, 'side', 'posSide');
         if (($side === 'open_long') || ($side === 'close_short')) {
             $side = 'buy';
-        } else {
+        } else if (($side === 'close_long') || ($side === 'open_short')) {
             $side = 'sell';
         }
         $clientOrderId = $this->safe_string_2($order, 'clientOrderId', 'clientOid');
@@ -1687,7 +1687,8 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
             'orderType' => $type,
         );
-        if ($type === 'limit') {
+        $stopPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
+        if (($type === 'limit') && ($stopPrice === null)) {
             $request['price'] = $price;
         }
         $clientOrderId = $this->safe_string_2($params, 'client_oid', 'clientOrderId');
@@ -1700,6 +1701,10 @@ class bitget extends Exchange {
                 }
             }
         }
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateSpotPostTradeOrders',
+            'swap' => 'privateMixPostOrderPlaceOrder',
+        ));
         if ($marketType === 'spot') {
             $request['clientOrderId'] = $clientOrderId;
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
@@ -1708,6 +1713,16 @@ class bitget extends Exchange {
         } else {
             $request['clientOid'] = $clientOrderId;
             $request['size'] = $this->amount_to_precision($symbol, $amount);
+            if ($stopPrice) {
+                $triggerType = $this->safe_string($params, 'triggerType');
+                if ($triggerType === null) {
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerType parameter for stop orders, either fill_price or market_price');
+                }
+                $request['triggerType'] = $triggerType;
+                $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                $method = 'privateMixPostPlanPlacePlan';
+            }
             $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
             if ($reduceOnly) {
                 $request['side'] = ($side === 'buy') ? 'close_short' : 'close_long';
@@ -1716,14 +1731,19 @@ class bitget extends Exchange {
             }
             $request['marginCoin'] = $market['settleId'];
         }
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'privateSpotPostTradeOrders',
-            'swap' => 'privateMixPostOrderPlaceOrder',
-        ));
+        $params = $this->omit($params, array( 'stopPrice', 'triggerType' ));
         $response = yield $this->$method (array_merge($request, $query));
-        // spot
-        // array("code":"00000","msg":"success","requestTime":1645932209602,"data":array("orderId":"881669078313766912","clientOrderId":"iauIBf#a45b595f96474d888d0ada"))
-        // swap
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1645932209602,
+        //         "data" => {
+        //             "orderId" => "881669078313766912",
+        //             "clientOrderId" => "iauIBf#a45b595f96474d888d0ada"
+        //         }
+        //     }
+        //
         $data = $this->safe_value($response, 'data');
         return $this->parse_order($data, $market);
     }

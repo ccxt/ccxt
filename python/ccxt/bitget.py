@@ -1619,7 +1619,7 @@ class bitget(Exchange):
         side = self.safe_string_2(order, 'side', 'posSide')
         if (side == 'open_long') or (side == 'close_short'):
             side = 'buy'
-        else:
+        elif (side == 'close_long') or (side == 'open_short'):
             side = 'sell'
         clientOrderId = self.safe_string_2(order, 'clientOrderId', 'clientOid')
         fee = None
@@ -1658,7 +1658,8 @@ class bitget(Exchange):
             'symbol': market['id'],
             'orderType': type,
         }
-        if type == 'limit':
+        stopPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
+        if (type == 'limit') and (stopPrice is None):
             request['price'] = price
         clientOrderId = self.safe_string_2(params, 'client_oid', 'clientOrderId')
         if clientOrderId is None:
@@ -1667,6 +1668,10 @@ class bitget(Exchange):
                 brokerId = self.safe_string(broker, market['type'])
                 if brokerId is not None:
                     clientOrderId = brokerId + self.uuid22()
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotPostTradeOrders',
+            'swap': 'privateMixPostOrderPlaceOrder',
+        })
         if marketType == 'spot':
             request['clientOrderId'] = clientOrderId
             request['quantity'] = self.amount_to_precision(symbol, amount)
@@ -1675,20 +1680,33 @@ class bitget(Exchange):
         else:
             request['clientOid'] = clientOrderId
             request['size'] = self.amount_to_precision(symbol, amount)
+            if stopPrice:
+                triggerType = self.safe_string(params, 'triggerType')
+                if triggerType is None:
+                    raise ArgumentsRequired(self.id + ' createOrder() requires a triggerType parameter for stop orders, either fill_price or market_price')
+                request['triggerType'] = triggerType
+                request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
+                request['executePrice'] = self.price_to_precision(symbol, price)
+                method = 'privateMixPostPlanPlacePlan'
             reduceOnly = self.safe_value(params, 'reduceOnly', False)
             if reduceOnly:
                 request['side'] = 'close_short' if (side == 'buy') else 'close_long'
             else:
                 request['side'] = 'open_long' if (side == 'buy') else 'open_short'
             request['marginCoin'] = market['settleId']
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'privateSpotPostTradeOrders',
-            'swap': 'privateMixPostOrderPlaceOrder',
-        })
+        params = self.omit(params, ['stopPrice', 'triggerType'])
         response = getattr(self, method)(self.extend(request, query))
-        # spot
-        # {"code":"00000","msg":"success","requestTime":1645932209602,"data":{"orderId":"881669078313766912","clientOrderId":"iauIBf#a45b595f96474d888d0ada"}}
-        # swap
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1645932209602,
+        #         "data": {
+        #             "orderId": "881669078313766912",
+        #             "clientOrderId": "iauIBf#a45b595f96474d888d0ada"
+        #         }
+        #     }
+        #
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
