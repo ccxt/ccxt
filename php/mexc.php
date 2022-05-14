@@ -654,6 +654,19 @@ class mexc extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
+        $response2 = $this->spotPublicGetMarketApiDefaultSymbols ($params);
+        //
+        //     {
+        //         "code":200,
+        //         "data":{
+        //             "symbol":array(
+        //                 "ALEPH_USDT","OGN_USDT","HC_USDT",
+        //              )
+        //         }
+        //     }
+        //
+        $data2 = $this->safe_value($response2, 'data', array());
+        $symbols = $this->safe_value($data2, 'symbol', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
@@ -664,6 +677,15 @@ class mexc extends Exchange {
             $priceScale = $this->safe_string($market, 'price_scale');
             $quantityScale = $this->safe_string($market, 'quantity_scale');
             $state = $this->safe_string($market, 'state');
+            $active = false;
+            for ($j = 0; $j < count($symbols); $j++) {
+                if ($symbols[$j] === $id) {
+                    if ($state === 'ENABLED') {
+                        $active = true;
+                    }
+                    break;
+                }
+            }
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -679,7 +701,7 @@ class mexc extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'active' => ($state === 'ENABLED'),
+                'active' => $active,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
