@@ -481,7 +481,9 @@ $main = function() use ($args, $exchanges, $proxies, $config) {
             if (count($args) > 2) {
                 yield load_exchange($exchange);
                 // var_dump($args);
-                $testCode = 'BTC';
+                $currencies = $exchange->currencies;
+                $first_key = array_keys($currencies)[0];
+                $testCode = $currencies[$first_key];
                 yield test_symbol($exchange, $args[2], $testCode);
             } else {
                 yield try_all_proxies($exchange, $proxies);
