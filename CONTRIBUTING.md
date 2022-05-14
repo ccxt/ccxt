@@ -504,7 +504,6 @@ Therefore we have a family of `safe*` functions:
 - `safeValue (object, key, default)`, `safeValue2 (object, key1, key2, default)` – for parsing objects (dictionaries) and arrays (lists)
 - `safeTimestamp (object, key, default)`, `safeTimestamp2 (object, key1, key2, default)` – for parsing UNIX timestamps in seconds
 
-
 The `safeValue` function is used for objects inside objects, arrays inside objects and boolean `true/false` values.
 
 If you need to search for several different keys within an object you have available the `safeMethodN` function's family that allows for a search with an arbitrary number of keys by accepting an array of keys as an argument.
