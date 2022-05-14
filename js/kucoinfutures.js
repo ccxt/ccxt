@@ -1095,7 +1095,7 @@ module.exports = class kucoinfutures extends kucoin {
         const uuid = this.uuid ();
         const request = {
             'symbol': market['id'],
-            'margin': amount,
+            'margin': this.amountToPrecision (symbol, amount),
             'bizNo': uuid,
         };
         const response = await this.futuresPrivatePostPositionMarginDepositMargin (this.extend (request, params));
@@ -1142,6 +1142,12 @@ module.exports = class kucoinfutures extends kucoin {
         //        }
         //    }
         //
+        //
+        //    {
+        //        "code":"200000",
+        //        "msg":"Position does not exist"
+        //    }
+        //
         const data = this.safeValue (response, 'data');
         return this.parseMargin (data, market);
     }
@@ -1185,6 +1191,11 @@ module.exports = class kucoinfutures extends kucoin {
         //        liquidationPrice: 1.6239,
         //        bankruptPrice: 1.6317,
         //        settleCurrency: 'USDT'
+        //    }
+        //
+        //    {
+        //        "code":"200000",
+        //        "msg":"Position does not exist"
         //    }
         //
         const id = this.safeString (info, 'id');
