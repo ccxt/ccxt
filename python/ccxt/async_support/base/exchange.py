@@ -298,7 +298,7 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' fetch_balance() is not supported yet')
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        raise NotSupported(self.id + 'create_order() is not supported yet')
+        raise NotSupported(self.id + ' create_order() is not supported yet')
 
     def create_limit_order(self, symbol, side, amount, price, params={}) -> Coroutine:
         return self.create_order(symbol, 'limit', side, amount, price, params)
@@ -319,7 +319,7 @@ class Exchange(BaseExchange):
         return self.create_order(symbol, 'market', 'sell', amount, None, params)
 
     async def cancel_order(self, id, symbol=None, params={}):
-        raise NotSupported(self.id + 'cancel_order() is not supported yet')
+        raise NotSupported(self.id + ' cancel_order() is not supported yet')
 
     async def fetch_trading_fees(self, params={}):
         raise NotSupported(self.id + ' fetch_trading_fees() is not supported yet')
@@ -355,7 +355,7 @@ class Exchange(BaseExchange):
             tickers = await self.fetch_tickers([symbol], params)
             ticker = self.safe_value(tickers, symbol)
             if ticker is None:
-                raise BadSymbol(self.id + ' fetchTickers could not find a ticker for ' + symbol)
+                raise BadSymbol(self.id + ' fetch_ticker() could not find a ticker for ' + symbol)
             else:
                 return ticker
         else:
@@ -375,7 +375,7 @@ class Exchange(BaseExchange):
             deposit_addresses = await self.fetch_deposit_addresses([code], params)
             deposit_address = self.safe_value(deposit_addresses, code)
             if deposit_address is None:
-                raise NotSupported(self.id + ' fetch_deposit_address could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website')
+                raise NotSupported(self.id + ' fetch_deposit_address() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website')
             else:
                 return deposit_address
         else:
