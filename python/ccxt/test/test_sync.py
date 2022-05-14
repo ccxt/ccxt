@@ -587,7 +587,7 @@ for id in ccxt.exchanges:
     exchange = getattr(ccxt, id)
     exchange_config = {'verbose': argv.verbose}
     if sys.version_info[0] < 3:
-        exchange_config.update({'enableRateLimit': True})
+        exchange_config.update()
     if id in config:
         exchange_config = ccxt.Exchange.deep_extend(exchange_config, config[id])
     exchanges[id] = exchange(exchange_config)
