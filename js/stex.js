@@ -72,6 +72,7 @@ module.exports = class stex extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'version': 'v3',
@@ -80,6 +81,7 @@ module.exports = class stex extends Exchange {
                 'api': 'https://api3.stex.com',
                 'www': 'https://www.stex.com',
                 'doc': [
+                    'https://apidocs.stex.com/',
                     'https://help.stex.com/en/collections/1593608-api-v3-documentation',
                 ],
                 'fees': 'https://app.stex.com/en/pairs-specification',
@@ -256,6 +258,14 @@ module.exports = class stex extends Exchange {
                     'TRX': 24,
                     'SOL': 25,
                     'BEP20': 501,
+                },
+                'accountsByType': {
+                    'spot': 'spot',
+                    'funding': 'funding',
+                    'referal': 'referal',
+                },
+                'transfer': {
+                    'fillResponseFromRequest': true,
                 },
             },
             'exceptions': {
@@ -1784,6 +1794,220 @@ module.exports = class stex extends Exchange {
         //
         const withdrawals = this.safeValue (response, 'data', []);
         return this.parseTransactions (withdrawals, code, since, limit);
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        let method = undefined;
+        const request = undefined;
+        if (fromAccount === 'referal' && toAccount === 'spot') {
+            request['currencyId'] = currency['id'];
+            method = 'profilePostReferralBonusTransferCurrencyId';
+        } else if (toAccount === 'funding') {
+            request['walletId'] = fromAccount;
+            amount = this.amountToPrecision (code, amount);
+            amount = Precise.stringNeg (amount);
+            request['amount'] = amount;
+            method = 'profilePostWalletsWalletIdHoldAmount';
+        } else if (fromAccount === 'funding') {
+            request['walletId'] = toAccount;
+            request['amount'] = amount;
+            method = 'profilePostWalletsWalletIdHoldAmount';
+        } else {
+            throw new ExchangeError (this.id + ' transfer() only allows transfers of referal to spot and between a walletId and funding');
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //  profilePostReferralBonusTransferCurrencyId
+        //     {
+        //         "success": true,
+        //         "data": ""
+        //     }
+        //
+        //  profilePostWalletsWalletIdHoldAmount
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "id": 45875,
+        //             "currency_id": 1,
+        //             "currency_code": "USDT",
+        //             "currency_name": "TetherUSD",
+        //             "balance": "0.198752",
+        //             "frozen_balance": "1.5784",
+        //             "bonus_balance": "0.000",
+        //             "hold_balance": "0.000",
+        //             "total_balance": "1.777152",
+        //             "disable_deposits": false,
+        //             "disable_withdrawals": false,
+        //             "withdrawal_limit": "string",
+        //             "delisted": false,
+        //             "disabled": false,
+        //             "deposit_address": {
+        //                 "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        //                 "address_name": "Address",
+        //                 "additional_address_parameter": "qwertyuiopasdfghjkl",
+        //                 "additional_address_parameter_name": "Destination Tag",
+        //                 "notification": "",
+        //                 "protocol_id": 10,
+        //                 "protocol_name": "Tether OMNI",
+        //                 "supports_new_address_creation": false
+        //             },
+        //             "multi_deposit_addresses": [{
+        //                 "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        //                 "address_name": "Address",
+        //                 "additional_address_parameter": "qwertyuiopasdfghjkl",
+        //                 "additional_address_parameter_name": "Destination Tag",
+        //                 "notification": "",
+        //                 "protocol_id": 10,
+        //                 "protocol_name": "Tether OMNI",
+        //                 "supports_new_address_creation": false
+        //             }],
+        //             "withdrawal_additional_field_name": "Payment ID (optional)",
+        //             "currency_type_id": 23,
+        //             "protocol_specific_settings": [{
+        //                 "protocol_name": "Tether OMNI",
+        //                 "protocol_id": 10,
+        //                 "active": true,
+        //                 "disable_deposits": false,
+        //                 "disable_withdrawals": false,
+        //                 "withdrawal_limit": 0,
+        //                 "deposit_fee_currency_id": 272,
+        //                 "deposit_fee_currency_code": "USDT",
+        //                 "deposit_fee_percent": 0,
+        //                 "deposit_fee_const": 0,
+        //                 "withdrawal_fee_currency_id": 1,
+        //                 "withdrawal_fee_currency_code": "USDT",
+        //                 "withdrawal_fee_const": 0.002,
+        //                 "withdrawal_fee_percent": 0,
+        //                 "block_explorer_url": "https://omniexplorer.info/search/",
+        //                 "withdrawal_additional_field_name": ""
+        //             }],
+        //             "coin_info": {
+        //                 "twitter": "https://twitter.com/btc",
+        //                 "version": "",
+        //                 "facebook": "https://www.facebook.com/bitcoins",
+        //                 "telegram": "",
+        //                 "icon_large": "https://app-coin-images.stex.com/large/btc.png",
+        //                 "icon_small": "https://app-coin-images.stex.com/small/btc.png",
+        //                 "description": "Bitcoin is the first successful internet money based on peer-to-peer technology;....",
+        //                 "official_site": "http://www.bitcoin.org",
+        //                 "official_block_explorer": "https://blockchair.com/bitcoin/"
+        //             },
+        //             "rates": {
+        //                 "BTC": 0.000001
+        //             }
+        //         }
+        //     }
+        //
+        const transfer = this.parseTransfer (response, currency);
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
+            transfer['amount'] = amount;
+            if (transfer['currency'] === undefined) {
+                transfer['currency'] = code;
+            }
+        }
+        return transfer;
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         "id": 45875,
+        //         "currency_id": 1,
+        //         "currency_code": "USDT",
+        //         "currency_name": "TetherUSD",
+        //         "balance": "0.198752",
+        //         "frozen_balance": "1.5784",
+        //         "bonus_balance": "0.000",
+        //         "hold_balance": "0.000",
+        //         "total_balance": "1.777152",
+        //         "disable_deposits": false,
+        //         "disable_withdrawals": false,
+        //         "withdrawal_limit": "string",
+        //         "delisted": false,
+        //         "disabled": false,
+        //         "deposit_address": {
+        //             "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        //             "address_name": "Address",
+        //             "additional_address_parameter": "qwertyuiopasdfghjkl",
+        //             "additional_address_parameter_name": "Destination Tag",
+        //             "notification": "",
+        //             "protocol_id": 10,
+        //             "protocol_name": "Tether OMNI",
+        //             "supports_new_address_creation": false
+        //         },
+        //         "multi_deposit_addresses": [{
+        //             "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        //             "address_name": "Address",
+        //             "additional_address_parameter": "qwertyuiopasdfghjkl",
+        //             "additional_address_parameter_name": "Destination Tag",
+        //             "notification": "",
+        //             "protocol_id": 10,
+        //             "protocol_name": "Tether OMNI",
+        //             "supports_new_address_creation": false
+        //         }],
+        //         "withdrawal_additional_field_name": "Payment ID (optional)",
+        //         "currency_type_id": 23,
+        //         "protocol_specific_settings": [{
+        //             "protocol_name": "Tether OMNI",
+        //             "protocol_id": 10,
+        //             "active": true,
+        //             "disable_deposits": false,
+        //             "disable_withdrawals": false,
+        //             "withdrawal_limit": 0,
+        //             "deposit_fee_currency_id": 272,
+        //             "deposit_fee_currency_code": "USDT",
+        //             "deposit_fee_percent": 0,
+        //             "deposit_fee_const": 0,
+        //             "withdrawal_fee_currency_id": 1,
+        //             "withdrawal_fee_currency_code": "USDT",
+        //             "withdrawal_fee_const": 0.002,
+        //             "withdrawal_fee_percent": 0,
+        //             "block_explorer_url": "https://omniexplorer.info/search/",
+        //             "withdrawal_additional_field_name": ""
+        //         }],
+        //         "coin_info": {
+        //             "twitter": "https://twitter.com/btc",
+        //             "version": "",
+        //             "facebook": "https://www.facebook.com/bitcoins",
+        //             "telegram": "",
+        //             "icon_large": "https://app-coin-images.stex.com/large/btc.png",
+        //             "icon_small": "https://app-coin-images.stex.com/small/btc.png",
+        //             "description": "Bitcoin is the first successful internet money based on peer-to-peer technology;....",
+        //             "official_site": "http://www.bitcoin.org",
+        //             "official_block_explorer": "https://blockchair.com/bitcoin/"
+        //         },
+        //         "rates": {
+        //             "BTC": 0.000001
+        //         }
+        //     }
+        //
+        const currencyId = this.safeString (transfer, 'currency_id');
+        let code = undefined;
+        if (currencyId in this.currencies_by_id) {
+            currency = this.currencies_by_id[currencyId];
+        } else {
+            code = this.commonCurrencyCode (this.safeString (transfer, 'currency_code'));
+        }
+        if (code === undefined) {
+            code = this.safeValue (currency, 'code');
+        }
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': code,
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': undefined,
+        };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
