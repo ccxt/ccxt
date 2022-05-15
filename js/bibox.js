@@ -139,8 +139,6 @@ module.exports = class bibox extends Exchange {
                         ],
                     },
                     'private': {
-                        'get': [
-                        ],
                         'post': [
                             'assets/transfer/spot',
                             'assets/transfer/cbc',
@@ -173,7 +171,6 @@ module.exports = class bibox extends Exchange {
                             'bu/order/detail',
                             'cbu/order/listBatch',
                             'cbu/order/listBatchByClientOid',
-
                         ],
                     },
                 },
@@ -189,7 +186,6 @@ module.exports = class bibox extends Exchange {
                             'cquery/bcTagPrice',
                             'cquery/bcValue',
                             'cquery/bcUnit',
-
                         ],
                     },
                     'private': {
@@ -234,8 +230,6 @@ module.exports = class bibox extends Exchange {
                             'cquery/base_coin/orderDetail',
                             'cquery/base_coin/orderHistory',
                             'cquery/base_coin/orderById',
-                            '',
-
                         ],
                     },
                 },
@@ -258,7 +252,6 @@ module.exports = class bibox extends Exchange {
                         ],
                         'post': [
                             'userdata/order',
-                            '',
                         ],
                         'delete': [
                             'userdata/order',
