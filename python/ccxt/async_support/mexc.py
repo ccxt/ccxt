@@ -2529,14 +2529,23 @@ class mexc(Exchange):
         return await self.modify_margin_helper(symbol, amount, 'ADD', params)
 
     async def set_leverage(self, leverage, symbol=None, params={}):
-        positionId = self.safe_integer(params, 'positionId')
-        if positionId is None:
-            raise ArgumentsRequired(self.id + ' setLeverage() requires a positionId parameter')
         await self.load_markets()
         request = {
-            'positionId': positionId,
             'leverage': leverage,
         }
+        positionId = self.safe_integer(params, 'positionId')
+        if positionId is None:
+            openType = self.safe_number(params, 'openType')  # 1 or 2
+            positionType = self.safe_number(params, 'positionType')  # 1 or 2
+            market = self.market(symbol) if (symbol is not None) else None
+            if (openType is None) or (positionType is None) or (market is None):
+                raise ArgumentsRequired(self.id + ' setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross margin respectively, use positionType 1 or 2 for long or short positions')
+            else:
+                request['openType'] = openType
+                request['symbol'] = market['symbol']
+                request['positionType'] = positionType
+        else:
+            request['positionId'] = positionId
         return await self.contractPrivatePostPositionChangeLeverage(self.extend(request, params))
 
     async def fetch_transfer(self, id, code=None, params={}):

@@ -2674,15 +2674,25 @@ class mexc extends Exchange {
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
-        $positionId = $this->safe_integer($params, 'positionId');
-        if ($positionId === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $positionId parameter');
-        }
         yield $this->load_markets();
         $request = array(
-            'positionId' => $positionId,
             'leverage' => $leverage,
         );
+        $positionId = $this->safe_integer($params, 'positionId');
+        if ($positionId === null) {
+            $openType = $this->safe_number($params, 'openType'); // 1 or 2
+            $positionType = $this->safe_number($params, 'positionType'); // 1 or 2
+            $market = ($symbol !== null) ? $this->market($symbol) : null;
+            if (($openType === null) || ($positionType === null) || ($market === null)) {
+                throw new ArgumentsRequired($this->id . ' setLeverage() requires a $positionId parameter or a $symbol argument with $openType and $positionType parameters, use $openType 1 or 2 for isolated or cross margin respectively, use $positionType 1 or 2 for long or short positions');
+            } else {
+                $request['openType'] = $openType;
+                $request['symbol'] = $market['symbol'];
+                $request['positionType'] = $positionType;
+            }
+        } else {
+            $request['positionId'] = $positionId;
+        }
         return yield $this->contractPrivatePostPositionChangeLeverage (array_merge($request, $params));
     }
 
