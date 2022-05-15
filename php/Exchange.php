@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.82.43';
+$version = '1.82.52';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.82.43';
+    const VERSION = '1.82.52';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -493,7 +493,7 @@ class Exchange {
     // safe_method_n family
     public static function safe_float_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        return (isset($object[$key]) && is_numeric($object[$key])) ? floatval($object[$key]) : $default_value;
+        return (isset($value) && is_numeric($value)) ? floatval($value) : $default_value;
     }
 
     public static function safe_string_n($object, $array, $default_value = null) {
@@ -2788,9 +2788,6 @@ class Exchange {
     }
 
     public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array()) {
-        if (!$this->enableRateLimit) {
-            throw new ExchangeError($this->id . ' edit_order() requires enableRateLimit = true');
-        }
         $this->cancel_order($id, $symbol, $params);
         return $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }

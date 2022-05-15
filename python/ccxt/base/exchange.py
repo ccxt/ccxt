@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.82.43'
+__version__ = '1.82.52'
 
 # -----------------------------------------------------------------------------
 
@@ -2374,8 +2374,6 @@ class Exchange(object):
         return self.edit_order(id, symbol, 'limit', *args)
 
     def edit_order(self, id, symbol, *args):
-        if not self.enableRateLimit:
-            raise ExchangeError(self.id + ' edit_order() requires enableRateLimit = true')
         self.cancel_order(id, symbol)
         return self.create_order(symbol, *args)
 

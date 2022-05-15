@@ -2412,7 +2412,7 @@ module.exports = class huobi extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const options = this.safeValue (this.options, 'fetchTickers', {});
+        const options = this.safeValue (this.options, 'fetchBalance', {});
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         let type = this.safeString (options, 'type', defaultType);
         type = this.safeString (params, 'type', type);

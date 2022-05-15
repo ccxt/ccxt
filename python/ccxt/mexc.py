@@ -647,6 +647,19 @@ class mexc(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
+        response2 = self.spotPublicGetMarketApiDefaultSymbols(params)
+        #
+        #     {
+        #         "code":200,
+        #         "data":{
+        #             "symbol":[
+        #                 "ALEPH_USDT","OGN_USDT","HC_USDT",
+        #              ]
+        #         }
+        #     }
+        #
+        data2 = self.safe_value(response2, 'data', {})
+        symbols = self.safe_value(data2, 'symbol', [])
         result = []
         for i in range(0, len(data)):
             market = data[i]
@@ -657,6 +670,12 @@ class mexc(Exchange):
             priceScale = self.safe_string(market, 'price_scale')
             quantityScale = self.safe_string(market, 'quantity_scale')
             state = self.safe_string(market, 'state')
+            active = False
+            for j in range(0, len(symbols)):
+                if symbols[j] == id:
+                    if state == 'ENABLED':
+                        active = True
+                    break
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -672,7 +691,7 @@ class mexc(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': (state == 'ENABLED'),
+                'active': active,
                 'contract': False,
                 'linear': None,
                 'inverse': None,

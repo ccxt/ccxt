@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+import hashlib
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -520,6 +521,7 @@ class bybit(Exchange):
                     '10006': RateLimitExceeded,  # too many requests
                     '10007': AuthenticationError,  # api_key not found in your request parameters
                     '10010': PermissionDenied,  # request ip mismatch
+                    '10016': ExchangeError,  # {"retCode":10016,"retMsg":"System error. Please try again later."}
                     '10017': BadRequest,  # request path not found or request method is invalid
                     '10018': RateLimitExceeded,  # exceed ip rate limit
                     '20001': OrderNotFound,  # Order not exists
@@ -2006,34 +2008,136 @@ class bybit(Exchange):
         return self.parse_order_book(result, symbol, timestamp, 'Buy', 'Sell', 'price', 'size')
 
     def parse_balance(self, response):
+        #
+        # spot balance
+        #    {
+        #        "ret_code": "0",
+        #        "ret_msg": "",
+        #        "ext_code": null,
+        #        "ext_info": null,
+        #        "result": {
+        #            "balances": [
+        #                {
+        #                    "coin": "LTC",
+        #                    "coinId": "LTC",
+        #                    "coinName": "LTC",
+        #                    "total": "0.00000783",
+        #                    "free": "0.00000783",
+        #                    "locked": "0"
+        #                }
+        #            ]
+        #        }
+        #    }
+        #
+        # linear/inverse swap/futures
+        #    {
+        #        "ret_code": "0",
+        #        "ret_msg": "OK",
+        #        "ext_code": "",
+        #        "ext_info": "",
+        #        "result": {
+        #            "ADA": {
+        #                "equity": "0",
+        #                "available_balance": "0",
+        #                "used_margin": "0",
+        #                "order_margin": "0",
+        #                "position_margin": "0",
+        #                "occ_closing_fee": "0",
+        #                "occ_funding_fee": "0",
+        #                "wallet_balance": "0",
+        #                "realised_pnl": "0",
+        #                "unrealised_pnl": "0",
+        #                "cum_realised_pnl": "0",
+        #                "given_cash": "0",
+        #                "service_cash": "0"
+        #            },
+        #        },
+        #        "time_now": "1651772170.050566",
+        #        "rate_limit_status": "119",
+        #        "rate_limit_reset_ms": "1651772170042",
+        #        "rate_limit": "120"
+        #    }
+        #
+        # usdc wallet
+        #    {
+        #      "result": {
+        #           "walletBalance": "10.0000",
+        #           "accountMM": "0.0000",
+        #           "bonus": "0.0000",
+        #           "accountIM": "0.0000",
+        #           "totalSessionRPL": "0.0000",
+        #           "equity": "10.0000",
+        #           "totalRPL": "0.0000",
+        #           "marginBalance": "10.0000",
+        #           "availableBalance": "10.0000",
+        #           "totalSessionUPL": "0.0000"
+        #       },
+        #       "retCode": "0",
+        #       "retMsg": "Success."
+        #    }
+        #
         result = {
             'info': response,
         }
-        balances = self.safe_value(response, 'result', {})
-        currencyIds = list(balances.keys())
-        for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
-            balance = balances[currencyId]
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'available_balance')
-            account['used'] = self.safe_string(balance, 'used_margin')
-            account['total'] = self.safe_string(balance, 'equity')
-            result[code] = account
+        data = self.safe_value(response, 'result', {})
+        balances = self.safe_value(data, 'balances')
+        if isinstance(balances, list):
+            # spot balances
+            for i in range(0, len(balances)):
+                balance = balances[i]
+                currencyId = self.safe_string(balance, 'coin')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['free'] = self.safe_string(balance, 'availableBalance')
+                account['used'] = self.safe_string(balance, 'locked')
+                account['total'] = self.safe_string(balance, 'total')
+                result[code] = account
+        else:
+            if 'walletBalance' in data:
+                # usdc wallet
+                code = 'USDC'
+                account = self.account()
+                account['free'] = self.safe_string(data, 'availableBalance')
+                account['total'] = self.safe_string(data, 'walletBalance')
+                result[code] = account
+            else:
+                # linear/inverse swap/futures
+                currencyIds = list(data.keys())
+                for i in range(0, len(currencyIds)):
+                    currencyId = currencyIds[i]
+                    balance = data[currencyId]
+                    code = self.safe_currency_code(currencyId)
+                    account = self.account()
+                    account['free'] = self.safe_string(balance, 'available_balance')
+                    account['total'] = self.safe_string(balance, 'wallet_balance')
+                    result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
-        # note: any funds in the 'spot' account will not be returned or visible from self endpoint
-        self.load_markets()
         request = {}
-        coin = self.safe_string(params, 'coin')
-        code = self.safe_string(params, 'code')
-        if coin is not None:
-            request['coin'] = coin
-        elif code is not None:
-            currency = self.currency(code)
-            request['coin'] = currency['id']
-        response = self.v2PrivateGetWalletBalance(self.extend(request, params))
+        type = None
+        type, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        method = None
+        if type == 'spot':
+            method = 'privateGetSpotV1Account'
+        else:
+            settle = self.safe_string(self.options, 'defaultSettle')
+            settle = self.safe_string_2(params, 'settle', 'defaultSettle', settle)
+            params = self.omit(params, ['settle', 'defaultSettle'])
+            isUsdcSettled = settle == 'USDC'
+            if not isUsdcSettled:
+                # linear/inverse future/swap
+                method = 'privateGetV2PrivateWalletBalance'
+                coin = self.safe_string_2(params, 'coin', 'code')
+                params = self.omit(params, ['coin', 'code'])
+                if coin is not None:
+                    currency = self.currency(coin)
+                    request['coin'] = currency['id']
+            else:
+                # usdc account
+                method = 'privatePostOptionUsdcOpenapiPrivateV1QueryWalletBalance'
+        self.load_markets()
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         ret_code: 0,
@@ -3546,24 +3650,41 @@ class bybit(Exchange):
                     url += '?' + self.rawencode(params)
             elif api == 'private':
                 self.check_required_credentials()
-                timestamp = self.nonce()
-                query = self.extend(params, {
-                    'api_key': self.apiKey,
-                    'recv_window': self.options['recvWindow'],
-                    'timestamp': timestamp,
-                })
-                sortedQuery = self.keysort(query)
-                auth = self.rawencode(sortedQuery)
-                signature = self.hmac(self.encode(auth), self.encode(self.secret))
-                if method == 'POST':
-                    body = self.json(self.extend(query, {
-                        'sign': signature,
-                    }))
+                isOpenapi = url.find('openapi') >= 0
+                timestamp = str(self.milliseconds())
+                if isOpenapi:
+                    if params:
+                        body = self.json(params)
+                    else:
+                        # self fix for PHP is required otherwise it generates
+                        # '[]' on empty arrays even when forced to use objects
+                        body = '{}'
+                    payload = timestamp + self.apiKey + body
+                    signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'hex')
                     headers = {
                         'Content-Type': 'application/json',
+                        'X-BAPI-API-KEY': self.apiKey,
+                        'X-BAPI-TIMESTAMP': timestamp,
+                        'X-BAPI-SIGN': signature,
                     }
                 else:
-                    url += '?' + self.urlencode(sortedQuery) + '&sign=' + signature
+                    query = self.extend(params, {
+                        'api_key': self.apiKey,
+                        'recv_window': self.options['recvWindow'],
+                        'timestamp': timestamp,
+                    })
+                    sortedQuery = self.keysort(query)
+                    auth = self.rawencode(sortedQuery)
+                    signature = self.hmac(self.encode(auth), self.encode(self.secret))
+                    if method == 'POST':
+                        body = self.json(self.extend(query, {
+                            'sign': signature,
+                        }))
+                        headers = {
+                            'Content-Type': 'application/json',
+                        }
+                    else:
+                        url += '?' + self.urlencode(sortedQuery) + '&sign=' + signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):

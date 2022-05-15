@@ -1667,9 +1667,6 @@ module.exports = class Exchange {
     }
 
     async editOrder (id, symbol, ...args) {
-        if (!this.enableRateLimit) {
-            throw new ExchangeError (this.id + ' editOrder() requires enableRateLimit = true')
-        }
         await this.cancelOrder (id, symbol);
         return this.createOrder (symbol, ...args)
     }

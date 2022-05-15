@@ -511,6 +511,7 @@ class bybit extends Exchange {
                     '10006' => '\\ccxt\\RateLimitExceeded', // too many requests
                     '10007' => '\\ccxt\\AuthenticationError', // api_key not found in your request parameters
                     '10010' => '\\ccxt\\PermissionDenied', // request ip mismatch
+                    '10016' => '\\ccxt\\ExchangeError', // array("retCode":10016,"retMsg":"System error. Please try again later.")
                     '10017' => '\\ccxt\\BadRequest', // request path not found or request method is invalid
                     '10018' => '\\ccxt\\RateLimitExceeded', // exceed ip rate limit
                     '20001' => '\\ccxt\\OrderNotFound', // Order not exists
@@ -2071,37 +2072,144 @@ class bybit extends Exchange {
     }
 
     public function parse_balance($response) {
+        //
+        // spot $balance
+        //    {
+        //        "ret_code" => "0",
+        //        "ret_msg" => "",
+        //        "ext_code" => null,
+        //        "ext_info" => null,
+        //        "result" => {
+        //            "balances" => array(
+        //                {
+        //                    "coin" => "LTC",
+        //                    "coinId" => "LTC",
+        //                    "coinName" => "LTC",
+        //                    "total" => "0.00000783",
+        //                    "free" => "0.00000783",
+        //                    "locked" => "0"
+        //                }
+        //            )
+        //        }
+        //    }
+        //
+        // linear/inverse swap/futures
+        //    {
+        //        "ret_code" => "0",
+        //        "ret_msg" => "OK",
+        //        "ext_code" => "",
+        //        "ext_info" => "",
+        //        "result" => array(
+        //            "ADA" => array(
+        //                "equity" => "0",
+        //                "available_balance" => "0",
+        //                "used_margin" => "0",
+        //                "order_margin" => "0",
+        //                "position_margin" => "0",
+        //                "occ_closing_fee" => "0",
+        //                "occ_funding_fee" => "0",
+        //                "wallet_balance" => "0",
+        //                "realised_pnl" => "0",
+        //                "unrealised_pnl" => "0",
+        //                "cum_realised_pnl" => "0",
+        //                "given_cash" => "0",
+        //                "service_cash" => "0"
+        //            ),
+        //        ),
+        //        "time_now" => "1651772170.050566",
+        //        "rate_limit_status" => "119",
+        //        "rate_limit_reset_ms" => "1651772170042",
+        //        "rate_limit" => "120"
+        //    }
+        //
+        // usdc wallet
+        //    {
+        //      "result" => array(
+        //           "walletBalance" => "10.0000",
+        //           "accountMM" => "0.0000",
+        //           "bonus" => "0.0000",
+        //           "accountIM" => "0.0000",
+        //           "totalSessionRPL" => "0.0000",
+        //           "equity" => "10.0000",
+        //           "totalRPL" => "0.0000",
+        //           "marginBalance" => "10.0000",
+        //           "availableBalance" => "10.0000",
+        //           "totalSessionUPL" => "0.0000"
+        //       ),
+        //       "retCode" => "0",
+        //       "retMsg" => "Success."
+        //    }
+        //
         $result = array(
             'info' => $response,
         );
-        $balances = $this->safe_value($response, 'result', array());
-        $currencyIds = is_array($balances) ? array_keys($balances) : array();
-        for ($i = 0; $i < count($currencyIds); $i++) {
-            $currencyId = $currencyIds[$i];
-            $balance = $balances[$currencyId];
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['free'] = $this->safe_string($balance, 'available_balance');
-            $account['used'] = $this->safe_string($balance, 'used_margin');
-            $account['total'] = $this->safe_string($balance, 'equity');
-            $result[$code] = $account;
+        $data = $this->safe_value($response, 'result', array());
+        $balances = $this->safe_value($data, 'balances');
+        if (gettype($balances) === 'array' && count(array_filter(array_keys($balances), 'is_string')) == 0) {
+            // spot $balances
+            for ($i = 0; $i < count($balances); $i++) {
+                $balance = $balances[$i];
+                $currencyId = $this->safe_string($balance, 'coin');
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['free'] = $this->safe_string($balance, 'availableBalance');
+                $account['used'] = $this->safe_string($balance, 'locked');
+                $account['total'] = $this->safe_string($balance, 'total');
+                $result[$code] = $account;
+            }
+        } else {
+            if (is_array($data) && array_key_exists('walletBalance', $data)) {
+                // usdc wallet
+                $code = 'USDC';
+                $account = $this->account();
+                $account['free'] = $this->safe_string($data, 'availableBalance');
+                $account['total'] = $this->safe_string($data, 'walletBalance');
+                $result[$code] = $account;
+            } else {
+                // linear/inverse swap/futures
+                $currencyIds = is_array($data) ? array_keys($data) : array();
+                for ($i = 0; $i < count($currencyIds); $i++) {
+                    $currencyId = $currencyIds[$i];
+                    $balance = $data[$currencyId];
+                    $code = $this->safe_currency_code($currencyId);
+                    $account = $this->account();
+                    $account['free'] = $this->safe_string($balance, 'available_balance');
+                    $account['total'] = $this->safe_string($balance, 'wallet_balance');
+                    $result[$code] = $account;
+                }
+            }
         }
         return $this->safe_balance($result);
     }
 
     public function fetch_balance($params = array ()) {
-        // note => any funds in the 'spot' account will not be returned or visible from this endpoint
-        $this->load_markets();
         $request = array();
-        $coin = $this->safe_string($params, 'coin');
-        $code = $this->safe_string($params, 'code');
-        if ($coin !== null) {
-            $request['coin'] = $coin;
-        } else if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['coin'] = $currency['id'];
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $method = null;
+        if ($type === 'spot') {
+            $method = 'privateGetSpotV1Account';
+        } else {
+            $settle = $this->safe_string($this->options, 'defaultSettle');
+            $settle = $this->safe_string_2($params, 'settle', 'defaultSettle', $settle);
+            $params = $this->omit($params, array( 'settle', 'defaultSettle' ));
+            $isUsdcSettled = $settle === 'USDC';
+            if (!$isUsdcSettled) {
+                // linear/inverse future/swap
+                $method = 'privateGetV2PrivateWalletBalance';
+                $coin = $this->safe_string_2($params, 'coin', 'code');
+                $params = $this->omit($params, array( 'coin', 'code' ));
+                if ($coin !== null) {
+                    $currency = $this->currency($coin);
+                    $request['coin'] = $currency['id'];
+                }
+            } else {
+                // usdc account
+                $method = 'privatePostOptionUsdcOpenapiPrivateV1QueryWalletBalance';
+            }
         }
-        $response = $this->v2PrivateGetWalletBalance (array_merge($request, $params));
+        $this->load_markets();
+        $response = $this->$method (array_merge($request, $params));
         //
         //     {
         //         ret_code => 0,
@@ -3736,24 +3844,43 @@ class bybit extends Exchange {
                 }
             } else if ($api === 'private') {
                 $this->check_required_credentials();
-                $timestamp = $this->nonce();
-                $query = array_merge($params, array(
-                    'api_key' => $this->apiKey,
-                    'recv_window' => $this->options['recvWindow'],
-                    'timestamp' => $timestamp,
-                ));
-                $sortedQuery = $this->keysort($query);
-                $auth = $this->rawencode($sortedQuery);
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
-                if ($method === 'POST') {
-                    $body = $this->json(array_merge($query, array(
-                        'sign' => $signature,
-                    )));
+                $isOpenapi = mb_strpos($url, 'openapi') !== false;
+                $timestamp = (string) $this->milliseconds();
+                if ($isOpenapi) {
+                    if ($params) {
+                        $body = $this->json($params);
+                    } else {
+                        // this fix for PHP is required otherwise it generates
+                        // '[]' on empty arrays even when forced to use objects
+                        $body = '{}';
+                    }
+                    $payload = $timestamp . $this->apiKey . $body;
+                    $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'hex');
                     $headers = array(
                         'Content-Type' => 'application/json',
+                        'X-BAPI-API-KEY' => $this->apiKey,
+                        'X-BAPI-TIMESTAMP' => $timestamp,
+                        'X-BAPI-SIGN' => $signature,
                     );
                 } else {
-                    $url .= '?' . $this->urlencode($sortedQuery) . '&sign=' . $signature;
+                    $query = array_merge($params, array(
+                        'api_key' => $this->apiKey,
+                        'recv_window' => $this->options['recvWindow'],
+                        'timestamp' => $timestamp,
+                    ));
+                    $sortedQuery = $this->keysort($query);
+                    $auth = $this->rawencode($sortedQuery);
+                    $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+                    if ($method === 'POST') {
+                        $body = $this->json(array_merge($query, array(
+                            'sign' => $signature,
+                        )));
+                        $headers = array(
+                            'Content-Type' => 'application/json',
+                        );
+                    } else {
+                        $url .= '?' . $this->urlencode($sortedQuery) . '&sign=' . $signature;
+                    }
                 }
             }
         }

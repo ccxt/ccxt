@@ -2318,7 +2318,7 @@ class huobi(Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        options = self.safe_value(self.options, 'fetchTickers', {})
+        options = self.safe_value(self.options, 'fetchBalance', {})
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
         type = self.safe_string(options, 'type', defaultType)
         type = self.safe_string(params, 'type', type)

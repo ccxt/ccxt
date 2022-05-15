@@ -4092,25 +4092,21 @@ module.exports = class bybit extends Exchange {
             } else if (api === 'private') {
                 this.checkRequiredCredentials ();
                 const isOpenapi = url.indexOf ('openapi') >= 0;
-                const timestamp = this.milliseconds ();
+                const timestamp = this.milliseconds ().toString ();
                 if (isOpenapi) {
-                    let query = {};
                     if (Object.keys (params).length) {
-                        query = params;
-                    }
-                    // this is a PHP specific check
-                    const queryLength = query.length;
-                    if (Array.isArray (query) && queryLength === 0) {
-                        query = '';
+                        body = this.json (params);
                     } else {
-                        query = this.json (query);
+                        // this fix for PHP is required otherwise it generates
+                        // '[]' on empty arrays even when forced to use objects
+                        body = '{}';
                     }
-                    body = query;
-                    const payload = timestamp.toString () + this.apiKey + query;
+                    const payload = timestamp + this.apiKey + body;
                     const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'hex');
                     headers = {
+                        'Content-Type': 'application/json',
                         'X-BAPI-API-KEY': this.apiKey,
-                        'X-BAPI-TIMESTAMP': timestamp.toString (),
+                        'X-BAPI-TIMESTAMP': timestamp,
                         'X-BAPI-SIGN': signature,
                     };
                 } else {

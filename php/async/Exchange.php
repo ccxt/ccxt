@@ -28,11 +28,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.82.43';
+$version = '1.82.52';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.82.43';
+    const VERSION = '1.82.52';
 
     public static $loop;
     public static $kernel;
@@ -321,9 +321,6 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array()) {
-        if (!$this->enableRateLimit) {
-            throw new ExchangeError($this->id . ' edit_order() requires enableRateLimit = true');
-        }
         yield $this->cancel_order($id, $symbol, $params);
         return yield $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
