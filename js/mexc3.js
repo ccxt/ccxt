@@ -2628,7 +2628,7 @@ module.exports = class mexc3 extends Exchange {
             const positionType = this.safeNumber (params, 'positionType'); // 1 or 2
             const market = (symbol !== undefined) ? this.market (symbol) : undefined;
             if ((openType === undefined) || (positionType === undefined) || (market === undefined)) {
-                throw new ArgumentsRequired (this.id + ' setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross positions respectively, use positionType 1 or 2 for long or short positions');
+                throw new ArgumentsRequired (this.id + ' setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross margin respectively, use positionType 1 or 2 for long or short positions');
             } else {
                 request['openType'] = openType;
                 request['symbol'] = market['symbol'];
