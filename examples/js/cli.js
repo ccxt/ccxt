@@ -196,8 +196,7 @@ const printHumanReadable = (exchange, result) => {
 
 //-----------------------------------------------------------------------------
 
-
-async function main () {
+async function run () {
 
     if (!exchangeId) {
 
@@ -315,4 +314,4 @@ async function main () {
 
 //-----------------------------------------------------------------------------
 
-main ()
+run ()
