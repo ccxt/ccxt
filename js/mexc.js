@@ -502,7 +502,7 @@ module.exports = class mexc extends Exchange {
         const spot = (type === 'spot');
         const swap = (type === 'swap');
         if (!spot && !swap) {
-            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
+            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot' or 'swap''"); // eslint-disable-line quotes
         }
         if (spot) {
             return await this.fetchSpotMarkets (query);
