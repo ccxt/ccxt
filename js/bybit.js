@@ -3441,6 +3441,8 @@ module.exports = class bybit extends Exchange {
                     if (Object.keys (params).length) {
                         body = this.json (params);
                     } else {
+                        // this fix for PHP is required otherwise it generates
+                        // '[]' on empty arrays even when forced to use objects
                         body = '{}';
                     }
                     const payload = timestamp + this.apiKey + body;
