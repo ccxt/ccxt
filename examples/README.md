@@ -115,6 +115,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [How to Buy and Sell Bitcoin with Python](https://python.plainenglish.io/how-to-buy-and-sell-bitcoin-with-python-f83d893c393) – How to Buy and Sell Bitcoin with Python using CCXT.
 
+[Beginners Python Guide To CCXT Crypto API](https://wire.insiderfinance.io/beginners-python-guide-to-ccxt-crypto-api-no-api-key-required-4dc928f3af94) – A guide to working with CCXT in Python.
+
 [Download Cryptocurrency Data with CCXT](https://backtest-rookies.com/2018/03/08/download-cryptocurrency-data-with-ccxt/) – A sample script to download historical data from exchanges with a video overview: [Easy Python script to download crypto currency market data with CCXT package](https://www.youtube.com/watch?v=PTGkJsrF7kQ).
 
 [How to Properly Download and Validate Cryptocurrency Data](https://medium.com/@dmitriy.kavyazin/how-to-properly-download-and-validate-cryptocurrency-data-fa90ac1c5f8b) – An article explaining how to properly obtain cryptocurrency price and volume data for use in trading and statistical modeling (with CCXT).
