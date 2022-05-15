@@ -505,7 +505,7 @@ class mexc(Exchange):
         spot = (type == 'spot')
         swap = (type == 'swap')
         if not spot and not swap:
-            raise ExchangeError(self.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'margin', 'delivery' or 'future'")  # eslint-disable-line quotes
+            raise ExchangeError(self.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot' or 'swap''")  # eslint-disable-line quotes
         if spot:
             return await self.fetch_spot_markets(query)
         elif swap:
