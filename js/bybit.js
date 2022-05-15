@@ -3856,7 +3856,7 @@ module.exports = class bybit extends Exchange {
         const result = [];
         for (let i = 0; i < positions.length; i++) {
             let rawPosition = positions[i];
-            if ('data' in rawPosition && 'is_valid' in rawPosition) {
+            if (('data' in rawPosition) && ('is_valid' in rawPosition)) {
                 // futures only
                 rawPosition = this.safeValue (rawPosition, 'data');
             }
