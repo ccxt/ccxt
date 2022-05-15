@@ -38,7 +38,6 @@ class lbank2 extends Exchange {
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => false,
-                'fetchFundingFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -63,6 +62,7 @@ class lbank2 extends Exchange {
                 'fetchTickers' => false,
                 'fetchTrades' => true,
                 'fetchTradingFees' => true,
+                'fetchTransactionFees' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -181,7 +181,7 @@ class lbank2 extends Exchange {
                 'fetchTrades' => array(
                     'method' => 'publicGetTrades', // or 'publicGetTradesSupplement'
                 ),
-                'fetchFundingFees' => array(
+                'fetchTransactionFees' => array(
                     'method' => 'fetchPrivateFundingFees', // or 'fetchPublicFundingFees'
                 ),
                 'fetchDepositAddress' => array(
@@ -1436,14 +1436,14 @@ class lbank2 extends Exchange {
         $fee = $this->safe_string($params, 'fee');
         $params = $this->omit($params, 'fee');
         if ($fee === null) {
-            throw new ArgumentsRequired($this->id . ' withdraw () requires a $fee argument to be supplied in $params, the relevant coin $network $fee can be found by calling fetchFundingFees (), note => if no $network param is supplied then the default $network will be used, this can also be found in fetchFundingFees ()');
+            throw new ArgumentsRequired($this->id . ' withdraw () requires a $fee argument to be supplied in $params, the relevant coin $network $fee can be found by calling fetchTransactionFees (), note => if no $network param is supplied then the default $network will be used, this can also be found in fetchTransactionFees ()');
         }
         $currency = $this->currency($code);
         $request = array(
             'address' => $address,
             'coin' => $currency['id'],
             'amount' => $amount,
-            'fee' => $fee, // the correct coin-$network $fee must be supplied, which can be found by calling fetchFundingFees (private)
+            'fee' => $fee, // the correct coin-$network $fee must be supplied, which can be found by calling fetchTransactionFees (private)
             // 'networkName' => defaults to the defaultNetwork of the coin which can be found in the /supplement/user_info endpoint
             // 'memo' => memo => memo word of bts and dct
             // 'mark' => Withdrawal Notes
@@ -1681,7 +1681,7 @@ class lbank2 extends Exchange {
         return $this->parse_transactions($withdraws, $code, $since, $limit);
     }
 
-    public function fetch_funding_fees($params = array ()) {
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
         // private only returns information for currencies with non-zero balance
         $this->load_markets();
         $isAuthorized = $this->check_required_credentials(false);
@@ -1690,7 +1690,7 @@ class lbank2 extends Exchange {
             $method = $this->safe_string($params, 'method');
             $params = $this->omit($params, 'method');
             if ($method === null) {
-                $options = $this->safe_value($this->options, 'fetchFundingFees', array());
+                $options = $this->safe_value($this->options, 'fetchTransactionFees', array());
                 $method = $this->safe_string($options, 'method', 'fetchPrivateFundingFees');
             }
             $result = $this->$method ($params);

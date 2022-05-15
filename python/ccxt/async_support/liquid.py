@@ -75,7 +75,7 @@ class liquid(Exchange):
                         'products/{id}/price_levels',
                         'executions',
                         'ir_ladders/{currency}',
-                        'fees',  # add fetchFees, fetchTradingFees, fetchFundingFees
+                        'fees',  # add fetchFees, fetchTradingFees, fetchTransactionFees
                     ],
                 },
                 'private': {

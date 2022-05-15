@@ -23,7 +23,7 @@ module.exports = async (exchange, code, symbol) => {
             'info': {},
         }
 
-        const interest = await exchange.fetchBorrowInterest (code, symbol)
+        const interest = await exchange[method] (code, symbol)
 
         console.log (code, method, interest['datetime'], 'symbol: ', symbol,  'interest: ', interest['interest'], 'interestRate: ', interest['interestRate'], 'amountBorrowed: ', interest['amountBorrowed'])
 
@@ -54,6 +54,6 @@ module.exports = async (exchange, code, symbol) => {
         return interest
 
     } else {
-        console.log (code, 'fetchBorrowInterest () not supported')
+        console.log (code, method + '() is not supported')
     }
 }

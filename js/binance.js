@@ -328,6 +328,7 @@ module.exports = class binance extends Exchange {
                         'nft/user/getAsset': 20.001,
                         'pay/transactions': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'giftcard/verify': 0.1,
+                        'giftcard/cryptography/rsa-public-key': 0.1,
                         'algo/futures/openOrders': 0.1,
                         'algo/futures/historicalOrders': 0.1,
                         'algo/futures/subOrders': 0.1,
@@ -4305,7 +4306,7 @@ module.exports = class binance extends Exchange {
             }
         }
         if (method === undefined) {
-            throw new NotSupported (this.id + ' fetchFundingRateHistory() not supported for ' + type + ' markets');
+            throw new NotSupported (this.id + ' fetchFundingRateHistory() is not supported for ' + type + ' markets');
         }
         if (since !== undefined) {
             request['startTime'] = since;

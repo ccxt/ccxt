@@ -647,6 +647,19 @@ class mexc(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
+        response2 = self.spotPublicGetMarketApiDefaultSymbols(params)
+        #
+        #     {
+        #         "code":200,
+        #         "data":{
+        #             "symbol":[
+        #                 "ALEPH_USDT","OGN_USDT","HC_USDT",
+        #              ]
+        #         }
+        #     }
+        #
+        data2 = self.safe_value(response2, 'data', {})
+        symbols = self.safe_value(data2, 'symbol', [])
         result = []
         for i in range(0, len(data)):
             market = data[i]
@@ -657,6 +670,12 @@ class mexc(Exchange):
             priceScale = self.safe_string(market, 'price_scale')
             quantityScale = self.safe_string(market, 'quantity_scale')
             state = self.safe_string(market, 'state')
+            active = False
+            for j in range(0, len(symbols)):
+                if symbols[j] == id:
+                    if state == 'ENABLED':
+                        active = True
+                    break
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -672,7 +691,7 @@ class mexc(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': (state == 'ENABLED'),
+                'active': active,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
@@ -1694,13 +1713,22 @@ class mexc(Exchange):
         elif side == 'sell':
             orderSide = 'ASK'
         orderType = type.upper()
-        postOnly = self.safe_value(params, 'postOnly', False)
-        if postOnly:
-            orderType = 'POST_ONLY'
-        elif orderType == 'LIMIT':
+        if orderType == 'MARKET':
+            raise InvalidOrder(self.id + ' createOrder() does not support market orders, only limit orders are allowed')
+        if orderType == 'LIMIT':
             orderType = 'LIMIT_ORDER'
-        elif (orderType != 'POST_ONLY') and (orderType != 'IMMEDIATE_OR_CANCEL'):
-            raise InvalidOrder(self.id + ' createOrder() does not support ' + type + ' order type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL')
+        postOnly = self.safe_value(params, 'postOnly', False)
+        timeInForce = self.safe_string(params, 'timeInForce')
+        maker = (postOnly or (timeInForce == 'PO'))
+        ioc = (timeInForce == 'IOC')
+        if maker:
+            orderType = 'POST_ONLY'
+        elif ioc:
+            orderType = 'IMMEDIATE_OR_CANCEL'
+        if timeInForce == 'FOK':
+            raise InvalidOrder(self.id + ' createOrder() does not support timeInForce FOK, only IOC, PO, and GTC are allowed')
+        if ((orderType != 'POST_ONLY') and (orderType != 'IMMEDIATE_OR_CANCEL') and (orderType != 'LIMIT_ORDER')):
+            raise InvalidOrder(self.id + ' createOrder() does not support ' + type + ' order type, only LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL are allowed')
         request = {
             'symbol': market['id'],
             'price': self.price_to_precision(symbol, price),
@@ -1711,7 +1739,7 @@ class mexc(Exchange):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
-        params = self.omit(params, ['type', 'clientOrderId', 'client_order_id', 'postOnly'])
+        params = self.omit(params, ['type', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce'])
         response = self.spotPrivatePostOrderPlace(self.extend(request, params))
         #
         #     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
@@ -1726,13 +1754,21 @@ class mexc(Exchange):
             raise ArgumentsRequired(self.id + ' createSwapOrder() requires an integer openType parameter, 1 for isolated margin, 2 for cross margin')
         if (type != 'limit') and (type != 'market') and (type != 1) and (type != 2) and (type != 3) and (type != 4) and (type != 5) and (type != 6):
             raise InvalidOrder(self.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price')
+        timeInForce = self.safe_string(params, 'timeInForce')
         postOnly = self.safe_value(params, 'postOnly', False)
-        if postOnly:
+        maker = ((timeInForce == 'PO') or (postOnly))
+        if maker:
             type = 2
         elif type == 'limit':
             type = 1
         elif type == 'market':
             type = 6
+        ioc = (timeInForce == 'IOC')
+        fok = (timeInForce == 'FOK')
+        if ioc:
+            type = 3
+        elif fok:
+            type = 4
         if (side != 1) and (side != 2) and (side != 3) and (side != 4):
             raise InvalidOrder(self.id + ' createSwapOrder() order side must be 1 open long, 2 close short, 3 open short or 4 close long')
         request = {
@@ -1763,7 +1799,7 @@ class mexc(Exchange):
         }
         method = 'contractPrivatePostOrderSubmit'
         stopPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
-        params = self.omit(params, ['stopPrice', 'triggerPrice'])
+        params = self.omit(params, ['stopPrice', 'triggerPrice', 'timeInForce', 'postOnly'])
         if stopPrice is not None:
             method = 'contractPrivatePostPlanorderPlace'
             request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
@@ -1883,6 +1919,7 @@ class mexc(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        # TODO update parseOrder to reflect type, timeInForce, and postOnly from fetchOrder()
         #
         # createOrder
         #
@@ -1910,7 +1947,7 @@ class mexc(Exchange):
         #         "order_type":"LIMIT_ORDER"
         #     }
         #
-        # swap fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        # swap fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, fetchOrder
         #
         #     {
         #         "orderId": "266578267438402048",
@@ -2030,9 +2067,39 @@ class mexc(Exchange):
         clientOrderId = self.safe_string_2(order, 'client_order_id', 'orderId')
         if clientOrderId == '':
             clientOrderId = None
-        orderType = self.safe_string_lower(order, 'order_type')
-        if orderType is not None:
-            orderType = orderType.replace('_order', '')
+        rawOrderType = self.safe_string_2(order, 'orderType', 'order_type')
+        orderType = None
+        # swap: 1:price limited order, 2:Post Only Maker, 3:transact or cancel instantly, 4:transact completely or cancel completely，5:market orders, 6:convert market price to current price
+        # spot: LIMIT_ORDER, POST_ONLY, IMMEDIATE_OR_CANCEL
+        timeInForce = None
+        postOnly = False
+        if rawOrderType is not None:
+            if rawOrderType == '1':
+                orderType = 'limit'
+                timeInForce = 'GTC'
+            elif rawOrderType == '2':
+                orderType = 'limit'
+                timeInForce = 'PO'
+                postOnly = True
+            elif rawOrderType == '3':
+                orderType = 'limit'
+                timeInForce = 'IOC'
+            elif rawOrderType == '4':
+                orderType = 'limit'
+                timeInForce = 'FOK'
+            elif (rawOrderType == '5') or (rawOrderType == '6'):
+                orderType = 'market'
+                timeInForce = 'GTC'
+            elif rawOrderType == 'LIMIT_ORDER':
+                orderType = 'limit'
+                timeInForce = 'GTC'
+            elif rawOrderType == 'POST_ONLY':
+                orderType = 'limit'
+                timeInForce = 'PO'
+                postOnly = True
+            elif rawOrderType == 'IMMEDIATE_OR_CANCEL':
+                orderType = 'limit'
+                timeInForce = 'IOC'
         return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -2042,10 +2109,11 @@ class mexc(Exchange):
             'status': status,
             'symbol': symbol,
             'type': orderType,
-            'timeInForce': None,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': None,
+            'stopPrice': self.safe_string(order, 'triggerPrice'),
             'average': None,
             'amount': amount,
             'cost': cost,

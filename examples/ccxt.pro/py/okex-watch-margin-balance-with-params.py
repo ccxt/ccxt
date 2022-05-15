@@ -5,10 +5,8 @@ import ccxtpro as ccxt
 from pprint import pprint
 
 
-async def main(asyncio_loop):
+async def main():
     exchange = ccxt.okex({
-        'asyncio_loop': asyncio_loop,
-        'enableRateLimit': True,
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
         # okex requires this: https://github.com/ccxt/ccxt/wiki/Manual#authentication
@@ -33,6 +31,5 @@ async def main(asyncio_loop):
             break
     await exchange.close()
 
-if __name__ == '__main__':
-    asyncio_loop = asyncio.get_event_loop()
-    asyncio_loop.run_until_complete(main(asyncio_loop))
+
+asyncio.run(main())

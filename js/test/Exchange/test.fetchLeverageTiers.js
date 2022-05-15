@@ -28,6 +28,6 @@ module.exports = async (exchange, symbol) => {
         }
         return tiers;
     } else {
-        console.log (method + ' not supported');
+        console.log (method + '() is not supported');
     }
 }

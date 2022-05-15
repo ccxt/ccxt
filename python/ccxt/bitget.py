@@ -40,12 +40,14 @@ class bitget(Exchange):
                 'CORS': None,
                 'spot': True,
                 'margin': False,
-                'swap': None,  # has but unimplemented
-                'future': None,  # has but unimplemented
+                'swap': True,
+                'future': False,
                 'option': False,
+                'addMargin': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchAccounts': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
@@ -56,9 +58,17 @@ class bitget(Exchange):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDeposits': False,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': True,
+                'fetchFundingRateHistory': True,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
                 'fetchLedger': True,
                 'fetchLeverage': True,
+                'fetchLeverageTiers': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -67,6 +77,8 @@ class bitget(Exchange):
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositions': True,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -77,8 +89,10 @@ class bitget(Exchange):
                 'fetchTransfers': None,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': False,
+                'reduceMargin': True,
                 'setLeverage': True,
                 'setMarginMode': True,
+                'setPositionMode': False,
                 'transfer': False,
                 'withdraw': False,
             },
@@ -1605,7 +1619,7 @@ class bitget(Exchange):
         side = self.safe_string_2(order, 'side', 'posSide')
         if (side == 'open_long') or (side == 'close_short'):
             side = 'buy'
-        else:
+        elif (side == 'close_long') or (side == 'open_short'):
             side = 'sell'
         clientOrderId = self.safe_string_2(order, 'clientOrderId', 'clientOid')
         fee = None
@@ -1644,7 +1658,8 @@ class bitget(Exchange):
             'symbol': market['id'],
             'orderType': type,
         }
-        if type == 'limit':
+        stopPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
+        if (type == 'limit') and (stopPrice is None):
             request['price'] = price
         clientOrderId = self.safe_string_2(params, 'client_oid', 'clientOrderId')
         if clientOrderId is None:
@@ -1653,6 +1668,10 @@ class bitget(Exchange):
                 brokerId = self.safe_string(broker, market['type'])
                 if brokerId is not None:
                     clientOrderId = brokerId + self.uuid22()
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotPostTradeOrders',
+            'swap': 'privateMixPostOrderPlaceOrder',
+        })
         if marketType == 'spot':
             request['clientOrderId'] = clientOrderId
             request['quantity'] = self.amount_to_precision(symbol, amount)
@@ -1661,20 +1680,33 @@ class bitget(Exchange):
         else:
             request['clientOid'] = clientOrderId
             request['size'] = self.amount_to_precision(symbol, amount)
+            if stopPrice:
+                triggerType = self.safe_string(params, 'triggerType')
+                if triggerType is None:
+                    raise ArgumentsRequired(self.id + ' createOrder() requires a triggerType parameter for stop orders, either fill_price or market_price')
+                request['triggerType'] = triggerType
+                request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
+                request['executePrice'] = self.price_to_precision(symbol, price)
+                method = 'privateMixPostPlanPlacePlan'
             reduceOnly = self.safe_value(params, 'reduceOnly', False)
             if reduceOnly:
                 request['side'] = 'close_short' if (side == 'buy') else 'close_long'
             else:
                 request['side'] = 'open_long' if (side == 'buy') else 'open_short'
             request['marginCoin'] = market['settleId']
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'privateSpotPostTradeOrders',
-            'swap': 'privateMixPostOrderPlaceOrder',
-        })
+        params = self.omit(params, ['stopPrice', 'triggerType'])
         response = getattr(self, method)(self.extend(request, query))
-        # spot
-        # {"code":"00000","msg":"success","requestTime":1645932209602,"data":{"orderId":"881669078313766912","clientOrderId":"iauIBf#a45b595f96474d888d0ada"}}
-        # swap
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1645932209602,
+        #         "data": {
+        #             "orderId": "881669078313766912",
+        #             "clientOrderId": "iauIBf#a45b595f96474d888d0ada"
+        #         }
+        #     }
+        #
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
@@ -2285,6 +2317,158 @@ class bitget(Exchange):
             'leverage': self.safe_number(position, 'leverage'),
             'marginRatio': None,
         }
+
+    def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            # 'pageSize': limit,  # default 20
+            # 'pageNo': 1,
+            # 'nextPage': False,
+        }
+        if limit is not None:
+            request['pageSize'] = limit
+        response = self.publicMixGetMarketHistoryFundRate(self.extend(request, params))
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1652406728393,
+        #         "data": [
+        #             {
+        #                 "symbol": "BTCUSDT",
+        #                 "fundingRate": "-0.0003",
+        #                 "settleTime": "1652396400000"
+        #             },
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        rates = []
+        for i in range(0, len(data)):
+            entry = data[i]
+            marketId = self.safe_string(entry, 'symbol')
+            symbol = self.safe_symbol(marketId, market)
+            timestamp = self.safe_integer(entry, 'settleTime')
+            rates.append({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': self.safe_string(entry, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            })
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+
+    def fetch_funding_rate(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.publicMixGetMarketCurrentFundRate(self.extend(request, params))
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1652401684275,
+        #         "data": {
+        #             "symbol": "BTCUSDT_UMCBL",
+        #             "fundingRate": "-0.000182"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_funding_rate(data, market)
+
+    def parse_funding_rate(self, contract, market=None):
+        #
+        #     {
+        #         "symbol": "BTCUSDT_UMCBL",
+        #         "fundingRate": "-0.000182"
+        #     }
+        #
+        marketId = self.safe_string(contract, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': None,
+            'datetime': None,
+            'fundingRate': self.safe_number(contract, 'fundingRate'),
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+        }
+
+    def modify_margin_helper(self, symbol, amount, type, params={}):
+        self.load_markets()
+        holdSide = self.safe_string(params, 'holdSide')
+        market = self.market(symbol)
+        marginCoin = market['quote'] if (market['linear']) else market['base']
+        request = {
+            'symbol': market['id'],
+            'marginCoin': marginCoin,
+            'amount': self.amount_to_precision(symbol, amount),  # positive value for adding margin, negative for reducing
+            'holdSide': holdSide,  # long or short
+        }
+        params = self.omit(params, 'holdSide')
+        response = self.privateMixPostAccountSetMargin(self.extend(request, params))
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1652483636792,
+        #         "data": {
+        #             "result": True
+        #         }
+        #     }
+        #
+        return self.extend(self.parse_modify_margin(response, market), {
+            'amount': self.parse_number(amount),
+            'type': type,
+        })
+
+    def parse_modify_margin(self, data, market=None):
+        errorCode = self.safe_string(data, 'code')
+        status = 'ok' if (errorCode == '00000') else 'failed'
+        code = market['quote'] if (market['linear']) else market['base']
+        return {
+            'info': data,
+            'type': None,
+            'amount': None,
+            'code': code,
+            'symbol': market['symbol'],
+            'status': status,
+        }
+
+    def reduce_margin(self, symbol, amount, params={}):
+        if amount > 0:
+            raise BadRequest(self.id + ' reduceMargin() amount parameter must be a negative value')
+        holdSide = self.safe_string(params, 'holdSide')
+        if holdSide is None:
+            raise ArgumentsRequired(self.id + ' reduceMargin() requires a holdSide parameter, either long or short')
+        return self.modify_margin_helper(symbol, amount, 'reduce', params)
+
+    def add_margin(self, symbol, amount, params={}):
+        holdSide = self.safe_string(params, 'holdSide')
+        if holdSide is None:
+            raise ArgumentsRequired(self.id + ' addMargin() requires a holdSide parameter, either long or short')
+        return self.modify_margin_helper(symbol, amount, 'add', params)
 
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         signed = api[0] == 'private'

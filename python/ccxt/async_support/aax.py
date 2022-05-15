@@ -71,8 +71,6 @@ class aax(Exchange):
                 'fetchDepositAddresses': None,
                 'fetchDepositAddressesByNetwork': None,
                 'fetchDeposits': True,
-                'fetchFundingFee': None,
-                'fetchFundingFees': None,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -109,6 +107,8 @@ class aax(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchTradingLimits': None,
+                'fetchTransactionFee': None,
+                'fetchTransactionFees': None,
                 'fetchTransactions': None,
                 'fetchTransfer': False,
                 'fetchTransfers': True,
@@ -499,10 +499,15 @@ class aax(Exchange):
             symbol = base + '/' + quote
             type = 'spot'
             contractSize = None
+            minLeverage = None
+            maxLeverage = None
             if swap:
                 symbol = symbol + ':' + settle
                 type = 'swap'
                 contractSize = self.safe_number(market, 'multiplier')
+                minLeverage = '1'
+                imRate = self.safe_string(market, 'imRate')
+                maxLeverage = Precise.string_div('1', imRate)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -522,6 +527,7 @@ class aax(Exchange):
                 'contract': swap,
                 'linear': linear,
                 'inverse': inverse,
+                'quanto': quanto,
                 'taker': self.safe_number(market, 'takerFee'),
                 'maker': self.safe_number(market, 'makerFee'),
                 'contractSize': contractSize,
@@ -529,23 +535,22 @@ class aax(Exchange):
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
-                'quanto': quanto,
                 'precision': {
                     'amount': self.safe_number(market, 'lotSize'),
                     'price': self.safe_number(market, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {
-                        'min': None,
-                        'max': None,
+                        'min': self.parse_number(minLeverage),
+                        'max': self.parse_number(maxLeverage),
                     },
                     'amount': {
-                        'min': self.safe_string(market, 'minQuantity'),
-                        'max': self.safe_string(market, 'maxQuantity'),
+                        'min': self.safe_number(market, 'minQuantity'),
+                        'max': self.safe_number(market, 'maxQuantity'),
                     },
                     'price': {
-                        'min': self.safe_string(market, 'minPrice'),
-                        'max': self.safe_string(market, 'maxPrice'),
+                        'min': self.safe_number(market, 'minPrice'),
+                        'max': self.safe_number(market, 'maxPrice'),
                     },
                     'cost': {
                         'min': None,

@@ -60,7 +60,6 @@ class crex24(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -86,6 +85,7 @@ class crex24(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransactionFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
@@ -468,7 +468,7 @@ class crex24(Exchange):
             }
         return result
 
-    def fetch_funding_fees(self, codes=None, params={}):
+    def fetch_transaction_fees(self, codes=None, params={}):
         self.load_markets()
         response = self.publicGetCurrenciesWithdrawalFees(params)
         #

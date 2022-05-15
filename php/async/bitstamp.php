@@ -44,7 +44,6 @@ class bitstamp extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
-                'fetchFundingFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -67,6 +66,7 @@ class bitstamp extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
+                'fetchTransactionFees' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
@@ -1033,7 +1033,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function fetch_funding_fees($params = array ()) {
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
         yield $this->load_markets();
         $balance = yield $this->privatePostBalance ($params);
         return $this->parse_funding_fees($balance);

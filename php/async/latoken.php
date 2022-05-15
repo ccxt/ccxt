@@ -184,6 +184,7 @@ class latoken extends Exchange {
                     'For input string' => '\\ccxt\\BadRequest', // array("result":false,"message":"Internal error","error":"For input string => \"NaN\"","status":"FAILURE")
                     'Unable to resolve currency by tag' => '\\ccxt\\BadSymbol', // array("message":"Unable to resolve currency by tag (null)","error":"NOT_FOUND","status":"FAILURE")
                     'Unable to place order because pair is in inactive state' => '\\ccxt\\BadSymbol', // array("message":"Unable to place order because pair is in inactive state (PAIR_STATUS_INACTIVE)","error":"ORDER_VALIDATION","status":"FAILURE")
+                    'API keys are not available for FROZEN user' => '\\ccxt\\AccountSuspended', // array("result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE")
                 ),
             ),
             'options' => array(
