@@ -59,10 +59,15 @@ module.exports = class indodax extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
+                'fetchWithdrawal': false,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': false,
                 'withdraw': true,
             },
             'version': '2.0', // as of 9 April 2018
@@ -610,6 +615,80 @@ module.exports = class indodax extends Exchange {
         return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        currency = this.currency (code);
+        const request = {};
+        if (since !== undefined) {
+            const startTime = this.iso8601 (since).slice (0,10);
+            const endTime = new Date()
+            request['start'] = startTime;
+            request['end'] = this.iso8601 (new Date()).slice (0,10); // test transpiled
+        }
+        const response = await this.privatePostTranshistory (this.extend (request, params));
+        //
+        //     {
+        //         "success": 1,
+        //         "return": {
+        //             "withdraw": {
+        //                 "idr": [
+        //                     {
+        //                         "status": "success",
+        //                         "type": "coupon",
+        //                         "rp": "115205",
+        //                         "fee": "500",
+        //                         "amount": "114705",
+        //                         "submit_time": "1539844166",
+        //                         "success_time": "1539844189",
+        //                         "withdraw_id": "1783717",
+        //                         "tx": "BTC-IDR-RDTVVO2P-ETD0EVAW-VTNZGMIR-HTNTUAPI-84ULM9OI",
+        //                         "sender": "boris",
+        //                         "used_by": "viginia88"
+        //                     },
+        //                     ...
+        //                 ],
+        //                 "btc": [],
+        //                 "abyss": [],
+        //                 ...
+        //             },
+        //             "deposit": {
+        //                 "idr": [
+        //                     {
+        //                         "status": "success",
+        //                         "type": "duitku",
+        //                         "rp": "393000",
+        //                         "fee": "5895",
+        //                         "amount": "387105",
+        //                         "submit_time": "1576555012",
+        //                         "success_time": "1576555012",
+        //                         "deposit_id": "3395438",
+        //                         "tx": "Duitku OVO Settlement"
+        //                     },
+        //                     ...
+        //                 ],
+        //                 "btc": [
+        //                     {
+        //                         "status": "success",
+        //                         "btc": "0.00118769",
+        //                         "amount": "0.00118769",
+        //                         "success_time": "1539529208",
+        //                         "deposit_id": "3602369",
+        //                         "tx": "c816aeb35a5b42f389970325a32aff69bb6b2126784dcda8f23b9dd9570d6573"
+        //                     },
+        //                     ...
+        //                 ],
+        //                 "abyss": [],
+        //                 ...
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'return', {});
+        const withdraw = this.safeValue (data, 'withdraw', {});
+        const withdrawals = this.safeValue (withdraw, currency['id'], []);
+        return this.parseTransactions (withdrawals, code, since, limit);
+    }
+
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
@@ -668,28 +747,56 @@ module.exports = class indodax extends Exchange {
         //         "withdraw_memo": "123123"
         //     }
         //
+        // transHistory
+        //
+        //     {
+        //         "status": "success",
+        //         "type": "coupon",
+        //         "rp": "115205",
+        //         "fee": "500",
+        //         "amount": "114705",
+        //         "submit_time": "1539844166",
+        //         "success_time": "1539844189",
+        //         "withdraw_id": "1783717",
+        //         "tx": "BTC-IDR-RDTVVO2P-ETD0EVAW-VTNZGMIR-HTNTUAPI-84ULM9OI",
+        //         "sender": "boris",
+        //         "used_by": "viginia88"
+        //     }
+        //
         currency = this.safeCurrency (undefined, currency);
+        const status = this.safeString (transaction, 'status');
+        const timestamp = this.safeTimestamp2 (transaction, 'success_time', 'submit_time');
         return {
             'id': this.safeString (transaction, 'withdraw_id'),
-            'txid': this.safeString (transaction, 'txid'),
-            'timestamp': undefined,
-            'datetime': undefined,
+            'txid': this.safeString2 (transaction, 'txid', 'tx'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'network': undefined,
             'addressFrom': undefined,
-            'address': undefined,
+            'address': this.safeString (transaction, 'withdraw_address'),
             'addressTo': undefined,
-            'amount': undefined,
-            'type': undefined,
+            'amount': this.safeNumberN (transaction, ['amount', 'withdraw_amount', currency['id']]),
+            'type': 'withdraw',
             'currency': currency['code'],
-            'status': undefined,
+            'status': this.parseTransactionStatus (status),
             'updated': undefined,
             'tagFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
-            'comment': undefined,
-            'fee': undefined,
+            'comment': this.safeString (transaction, 'withdraw_memo'),
+            'fee': {
+                'currency': currency['code'],
+                'cost': this.parseNumber ('fee'),
+            },
             'info': transaction,
         };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'success': 'ok',
+        }
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
