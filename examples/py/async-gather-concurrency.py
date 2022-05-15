@@ -55,7 +55,7 @@ async def work(exchange_id):
     await exchange.close()
 
 
-async def main(loop):
+async def main():
 
     # https://stackoverflow.com/questions/48483348/limited-concurrency-with-asyncio
     max_concurrency = 5  # how many exchanges at once
@@ -74,5 +74,4 @@ async def main(loop):
     await asyncio.wait(tasks)
 
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(main(loop))
+asyncio.run(main())

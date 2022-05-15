@@ -2,7 +2,7 @@
 
 import os
 import sys
-from asyncio import get_event_loop
+from asyncio import run
 from pprint import pprint
 
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -75,6 +75,4 @@ async def main(loop):
     await exchange.close()
 
 
-loop = get_event_loop()
-loop.run_until_complete(main(loop))
-
+run(main())
