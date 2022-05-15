@@ -79,6 +79,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [CCXT - Crypto Trading](https://www.youtube.com/playlist?list=PLvzuUVysUFOv5XEPHeqefgyHZcDfLxH-W) – An awesome video playlist on CCXT and tons of other cool videos by [Part Time Larry](https://www.youtube.com/c/parttimelarry)!
 
+[CCXT Python Crypto Tutorials](https://www.youtube.com/playlist?list=PLXrNVMjRZUJg4OV2qfmFMpI5k3FRrB0NE) – CCXT Python Crypto Tutorials on YouTube!
+
 [Python and CCXT Grid Bot Tutorial](https://www.youtube.com/watch?v=QzqMGX4Qk1A) – A video tutorial on building a Grid Bot with Python and CCXT!
 
 [JavaScript CCXT Grid Bot vs. Python](https://www.youtube.com/watch?v=kLATKNzbUOE) – A video comparison of using CCXT to write a Grid Bot in JavaScript vs Python.
