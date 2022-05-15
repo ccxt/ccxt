@@ -3272,9 +3272,6 @@ module.exports = class gateio extends Exchange {
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         const spot = (type === 'spot') || (type === 'margin');
         const [ request, requestParams ] = spot ? this.multiOrderSpotPrepareRequest (market, stop, query) : this.prepareRequest (market, type, query);
-        if (spot && !stop && (market === undefined) && (status === 'open')) {
-            throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus requires a symbol argument for spot non-stop open orders');
-        }
         if (status === 'closed') {
             status = 'finished';
         }
@@ -3285,7 +3282,11 @@ module.exports = class gateio extends Exchange {
         if (since !== undefined && spot) {
             request['from'] = parseInt (since / 1000);
         }
-        const methodTail = stop ? 'PriceOrders' : 'Orders';
+        let methodTail = stop ? 'PriceOrders' : 'Orders';
+        const openSpotOrders = spot && (status === 'open') && !stop;
+        if (openSpotOrders) {
+            methodTail = 'OpenOrders';
+        }
         const method = this.getSupportedMapping (type, {
             'spot': 'privateSpotGet' + methodTail,
             'margin': 'privateSpotGet' + methodTail,
@@ -3293,6 +3294,46 @@ module.exports = class gateio extends Exchange {
             'future': 'privateDeliveryGetSettle' + methodTail,
         });
         const response = await this[method] (this.extend (request, requestParams));
+        //
+        // SPOT Open Orders
+        //
+        //    [
+        //        {
+        //            "currency_pair": "ADA_USDT",
+        //            "total": 2,
+        //            "orders": [
+        //                {
+        //                    "id": "155498539874",
+        //                    "text": "apiv4",
+        //                    "create_time": "1652406843",
+        //                    "update_time": "1652406843",
+        //                    "create_time_ms": 1652406843295,
+        //                    "update_time_ms": 1652406843295,
+        //                    "status": "open",
+        //                    "currency_pair": "ADA_USDT",
+        //                    "type": "limit",
+        //                    "account": "spot",
+        //                    "side": "buy",
+        //                    "amount": "3",
+        //                    "price": "0.35",
+        //                    "time_in_force": "gtc",
+        //                    "iceberg": "0",
+        //                    "left": "3",
+        //                    "fill_price": "0",
+        //                    "filled_total": "0",
+        //                    "fee": "0",
+        //                    "fee_currency": "ADA",
+        //                    "point_fee": "0",
+        //                    "gt_fee": "0",
+        //                    "gt_discount": false,
+        //                    "rebated_fee": "0",
+        //                    "rebated_fee_currency": "USDT"
+        //                },
+        //                ...
+        //            ]
+        //        },
+        //        ...
+        //    ]
         //
         // SPOT
         //
@@ -3373,7 +3414,15 @@ module.exports = class gateio extends Exchange {
         //        }
         //    ]
         //
-        const orders = this.parseOrders (response, market, since, limit);
+        let result = response;
+        if (openSpotOrders) {
+            result = [];
+            for (let i = 0; i < response.length; i++) {
+                const orders = this.safeValue (response[i], 'orders');
+                result = this.arrayConcat (result, orders);
+            }
+        }
+        const orders = this.parseOrders (result, market, since, limit);
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 

@@ -86,7 +86,6 @@ class gateio extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
-                'fetchFundingFees' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -111,6 +110,7 @@ class gateio extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
+                'fetchTransactionFees' => true,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
                 'setMarginMode' => false,
@@ -1606,7 +1606,7 @@ class gateio extends Exchange {
         );
     }
 
-    public function fetch_funding_fees($params = array ()) {
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privateWalletGetWithdrawStatus ($params);
         //
@@ -3263,9 +3263,6 @@ class gateio extends Exchange {
         list($type, $query) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
         $spot = ($type === 'spot') || ($type === 'margin');
         list($request, $requestParams) = $spot ? $this->multi_order_spot_prepare_request($market, $stop, $query) : $this->prepare_request($market, $type, $query);
-        if ($spot && !$stop && ($market === null) && ($status === 'open')) {
-            throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus requires a $symbol argument for $spot non-$stop open orders');
-        }
         if ($status === 'closed') {
             $status = 'finished';
         }
@@ -3277,6 +3274,10 @@ class gateio extends Exchange {
             $request['from'] = intval($since / 1000);
         }
         $methodTail = $stop ? 'PriceOrders' : 'Orders';
+        $openSpotOrders = $spot && ($status === 'open') && !$stop;
+        if ($openSpotOrders) {
+            $methodTail = 'OpenOrders';
+        }
         $method = $this->get_supported_mapping($type, array(
             'spot' => 'privateSpotGet' . $methodTail,
             'margin' => 'privateSpotGet' . $methodTail,
@@ -3284,6 +3285,46 @@ class gateio extends Exchange {
             'future' => 'privateDeliveryGetSettle' . $methodTail,
         ));
         $response = $this->$method (array_merge($request, $requestParams));
+        //
+        // SPOT Open Orders
+        //
+        //    array(
+        //        array(
+        //            "currency_pair" => "ADA_USDT",
+        //            "total" => 2,
+        //            "orders" => array(
+        //                array(
+        //                    "id" => "155498539874",
+        //                    "text" => "apiv4",
+        //                    "create_time" => "1652406843",
+        //                    "update_time" => "1652406843",
+        //                    "create_time_ms" => 1652406843295,
+        //                    "update_time_ms" => 1652406843295,
+        //                    "status" => "open",
+        //                    "currency_pair" => "ADA_USDT",
+        //                    "type" => "limit",
+        //                    "account" => "spot",
+        //                    "side" => "buy",
+        //                    "amount" => "3",
+        //                    "price" => "0.35",
+        //                    "time_in_force" => "gtc",
+        //                    "iceberg" => "0",
+        //                    "left" => "3",
+        //                    "fill_price" => "0",
+        //                    "filled_total" => "0",
+        //                    "fee" => "0",
+        //                    "fee_currency" => "ADA",
+        //                    "point_fee" => "0",
+        //                    "gt_fee" => "0",
+        //                    "gt_discount" => false,
+        //                    "rebated_fee" => "0",
+        //                    "rebated_fee_currency" => "USDT"
+        //                ),
+        //                ...
+        //            )
+        //        ),
+        //        ...
+        //    )
         //
         // SPOT
         //
@@ -3364,7 +3405,15 @@ class gateio extends Exchange {
         //        }
         //    )
         //
-        $orders = $this->parse_orders($response, $market, $since, $limit);
+        $result = $response;
+        if ($openSpotOrders) {
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $orders = $this->safe_value($response[$i], 'orders');
+                $result = $this->array_concat($result, $orders);
+            }
+        }
+        $orders = $this->parse_orders($result, $market, $since, $limit);
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 

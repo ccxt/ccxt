@@ -36,8 +36,6 @@ class bitso extends Exchange {
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchDepositAddress' => true,
-                'fetchFundingFee' => false,
-                'fetchFundingFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -60,6 +58,8 @@ class bitso extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchTransactionFee' => false,
+                'fetchTransactionFees' => true,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'reduceMargin' => false,
@@ -845,7 +845,7 @@ class bitso extends Exchange {
         );
     }
 
-    public function fetch_funding_fees($params = array ()) {
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privateGetFees ($params);
         //

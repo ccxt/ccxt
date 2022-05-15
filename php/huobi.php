@@ -65,8 +65,6 @@ class huobi extends Exchange {
                 'fetchDepositAddresses' => null,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
-                'fetchFundingFee' => null,
-                'fetchFundingFees' => null,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -103,6 +101,8 @@ class huobi extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
                 'fetchTradingLimits' => true,
+                'fetchTransactionFee' => null,
+                'fetchTransactionFees' => null,
                 'fetchTransactions' => null,
                 'fetchTransfers' => null,
                 'fetchWithdrawAddressesByNetwork' => true,
@@ -2418,7 +2418,7 @@ class huobi extends Exchange {
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $options = $this->safe_value($this->options, 'fetchTickers', array());
+        $options = $this->safe_value($this->options, 'fetchBalance', array());
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $type = $this->safe_string($options, 'type', $defaultType);
         $type = $this->safe_string($params, 'type', $type);

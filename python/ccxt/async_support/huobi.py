@@ -78,8 +78,6 @@ class huobi(Exchange):
                 'fetchDepositAddresses': None,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
-                'fetchFundingFee': None,
-                'fetchFundingFees': None,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -116,6 +114,8 @@ class huobi(Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
                 'fetchTradingLimits': True,
+                'fetchTransactionFee': None,
+                'fetchTransactionFees': None,
                 'fetchTransactions': None,
                 'fetchTransfers': None,
                 'fetchWithdrawAddressesByNetwork': True,
@@ -2320,7 +2320,7 @@ class huobi(Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        options = self.safe_value(self.options, 'fetchTickers', {})
+        options = self.safe_value(self.options, 'fetchBalance', {})
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
         type = self.safe_string(options, 'type', defaultType)
         type = self.safe_string(params, 'type', type)

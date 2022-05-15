@@ -52,7 +52,6 @@ class stex(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -78,6 +77,7 @@ class stex(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
+                'fetchTransactionFees': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'setLeverage': False,
@@ -1773,7 +1773,7 @@ class stex(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    async def fetch_funding_fees(self, codes=None, params={}):
+    async def fetch_transaction_fees(self, codes=None, params={}):
         await self.load_markets()
         response = await self.publicGetCurrencies(params)
         #

@@ -3399,7 +3399,7 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v2PrivateGetWalletWithdrawList (this.extend (request, params));
+        const response = await this.privateGetV2PrivateWalletWithdrawList (this.extend (request, params));
         //
         //     {
         //         "ret_code": 0,
@@ -3675,45 +3675,32 @@ module.exports = class bybit extends Exchange {
     }
 
     async setMarginMode (marginMode, symbol = undefined, params = {}) {
-        //
-        // {
-        //     "ret_code": 0,
-        //     "ret_msg": "ok",
-        //     "ext_code": "",
-        //     "result": null,
-        //     "ext_info": null,
-        //     "time_now": "1577477968.175013",
-        //     "rate_limit_status": 74,
-        //     "rate_limit_reset_ms": 1577477968183,
-        //     "rate_limit": 75
-        // }
-        //
-        const leverage = this.safeValue (params, 'leverage');
-        if (leverage === undefined) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter');
-        }
-        marginMode = marginMode.toUpperCase ();
-        if (marginMode === 'CROSSED') { // * Deprecated, use 'CROSS' instead
-            marginMode = 'CROSS';
-        }
-        if ((marginMode !== 'ISOLATED') && (marginMode !== 'CROSS')) {
-            throw new BadRequest (this.id + ' setMarginMode() marginMode must be either isolated or cross');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = undefined;
-        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
-        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
-        const marketType = this.safeString (marketTypes, symbol, defaultType);
-        const linear = market['linear'] || (marketType === 'linear');
-        const inverse = (market['swap'] && market['inverse']) || (marketType === 'inverse');
-        const future = market['future'] || ((marketType === 'future') || (marketType === 'futures')); // * (marketType === 'futures') deprecated, use (marketType === 'future')
-        if (linear) {
-            method = 'privateLinearPostPositionSwitchIsolated';
-        } else if (inverse) {
-            method = 'v2PrivatePostPositionSwitchIsolated';
-        } else if (future) {
-            method = 'privateFuturesPostPositionSwitchIsolated';
+        if (market['settle'] === 'USDC') {
+            throw new NotSupported (this.id + ' setMarginMode() does not support market ' + symbol + '');
+        }
+        marginMode = marginMode.toUpperCase ();
+        if ((marginMode !== 'ISOLATED') && (marginMode !== 'CROSS')) {
+            throw new BadRequest (this.id + ' setMarginMode() marginMode must be either isolated or cross');
+        }
+        const leverage = this.safeNumber (params, 'leverage');
+        let sellLeverage = undefined;
+        let buyLeverage = undefined;
+        if (leverage === undefined) {
+            sellLeverage = this.safeNumber2 (params, 'sell_leverage', 'sellLeverage');
+            buyLeverage = this.safeNumber2 (params, 'buy_leverage', 'buyLeverage');
+            if (sellLeverage === undefined || buyLeverage === undefined) {
+                throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters');
+            }
+            params = this.omit (params, [ 'buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage' ]);
+        } else {
+            params = this.omit (params, 'leverage');
+            sellLeverage = leverage;
+            buyLeverage = leverage;
         }
         const isIsolated = (marginMode === 'ISOLATED');
         const request = {
@@ -3722,6 +3709,15 @@ module.exports = class bybit extends Exchange {
             'buy_leverage': leverage,
             'sell_leverage': leverage,
         };
+        let method = undefined;
+        if (market['future']) {
+            method = 'privatePostFuturesPrivatePositionSwitchIsolated';
+        } else if (market['inverse']) {
+            method = 'privatePostV2PrivatePositionSwitchIsolated';
+        } else {
+            // linear
+            method = 'privatePostPrivateLinearPositionSwitchIsolated';
+        }
         const response = await this[method] (this.extend (request, params));
         //
         //     {
@@ -3844,25 +3840,21 @@ module.exports = class bybit extends Exchange {
             } else if (api === 'private') {
                 this.checkRequiredCredentials ();
                 const isOpenapi = url.indexOf ('openapi') >= 0;
-                const timestamp = this.milliseconds ();
+                const timestamp = this.milliseconds ().toString ();
                 if (isOpenapi) {
-                    let query = {};
                     if (Object.keys (params).length) {
-                        query = params;
-                    }
-                    // this is a PHP specific check
-                    const queryLength = query.length;
-                    if (Array.isArray (query) && queryLength === 0) {
-                        query = '';
+                        body = this.json (params);
                     } else {
-                        query = this.json (query);
+                        // this fix for PHP is required otherwise it generates
+                        // '[]' on empty arrays even when forced to use objects
+                        body = '{}';
                     }
-                    body = query;
-                    const payload = timestamp.toString () + this.apiKey + query;
+                    const payload = timestamp + this.apiKey + body;
                     const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'hex');
                     headers = {
+                        'Content-Type': 'application/json',
                         'X-BAPI-API-KEY': this.apiKey,
-                        'X-BAPI-TIMESTAMP': timestamp.toString (),
+                        'X-BAPI-TIMESTAMP': timestamp,
                         'X-BAPI-SIGN': signature,
                     };
                 } else {

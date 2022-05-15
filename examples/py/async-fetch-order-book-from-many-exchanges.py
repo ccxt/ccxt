@@ -17,7 +17,7 @@ symbol = 'ETH/BTC'
 async def loop(exchange_id, symbol):
 
     exchange_class = getattr(ccxt, exchange_id)
-    exchange = exchange_class({'enableRateLimit': True})
+    exchange = exchange_class()
     orderbook = {}
     try:
         await exchange.load_markets()

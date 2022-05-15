@@ -63,7 +63,6 @@ class kucoin(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFee': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -87,6 +86,7 @@ class kucoin(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
+                'fetchTransactionFee': True,
                 'fetchWithdrawals': True,
                 'transfer': True,
                 'withdraw': True,
@@ -711,7 +711,7 @@ class kucoin(Exchange):
             })
         return result
 
-    def fetch_funding_fee(self, code, params={}):
+    def fetch_transaction_fee(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
         request = {

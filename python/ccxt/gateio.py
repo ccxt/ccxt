@@ -96,7 +96,6 @@ class gateio(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -121,6 +120,7 @@ class gateio(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
+                'fetchTransactionFees': True,
                 'fetchWithdrawals': True,
                 'setLeverage': True,
                 'setMarginMode': False,
@@ -1562,7 +1562,7 @@ class gateio(Exchange):
             'taker': self.safe_number(info, takerKey),
         }
 
-    def fetch_funding_fees(self, params={}):
+    def fetch_transaction_fees(self, codes=None, params={}):
         self.load_markets()
         response = self.privateWalletGetWithdrawStatus(params)
         #
@@ -3120,8 +3120,6 @@ class gateio(Exchange):
         type, query = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)
         spot = (type == 'spot') or (type == 'margin')
         request, requestParams = self.multi_order_spot_prepare_request(market, stop, query) if spot else self.prepare_request(market, type, query)
-        if spot and not stop and (market is None) and (status == 'open'):
-            raise ArgumentsRequired(self.id + ' fetchOrdersByStatus requires a symbol argument for spot non-stop open orders')
         if status == 'closed':
             status = 'finished'
         request['status'] = status
@@ -3130,6 +3128,9 @@ class gateio(Exchange):
         if since is not None and spot:
             request['from'] = int(since / 1000)
         methodTail = 'PriceOrders' if stop else 'Orders'
+        openSpotOrders = spot and (status == 'open') and not stop
+        if openSpotOrders:
+            methodTail = 'OpenOrders'
         method = self.get_supported_mapping(type, {
             'spot': 'privateSpotGet' + methodTail,
             'margin': 'privateSpotGet' + methodTail,
@@ -3137,6 +3138,46 @@ class gateio(Exchange):
             'future': 'privateDeliveryGetSettle' + methodTail,
         })
         response = getattr(self, method)(self.extend(request, requestParams))
+        #
+        # SPOT Open Orders
+        #
+        #    [
+        #        {
+        #            "currency_pair": "ADA_USDT",
+        #            "total": 2,
+        #            "orders": [
+        #                {
+        #                    "id": "155498539874",
+        #                    "text": "apiv4",
+        #                    "create_time": "1652406843",
+        #                    "update_time": "1652406843",
+        #                    "create_time_ms": 1652406843295,
+        #                    "update_time_ms": 1652406843295,
+        #                    "status": "open",
+        #                    "currency_pair": "ADA_USDT",
+        #                    "type": "limit",
+        #                    "account": "spot",
+        #                    "side": "buy",
+        #                    "amount": "3",
+        #                    "price": "0.35",
+        #                    "time_in_force": "gtc",
+        #                    "iceberg": "0",
+        #                    "left": "3",
+        #                    "fill_price": "0",
+        #                    "filled_total": "0",
+        #                    "fee": "0",
+        #                    "fee_currency": "ADA",
+        #                    "point_fee": "0",
+        #                    "gt_fee": "0",
+        #                    "gt_discount": False,
+        #                    "rebated_fee": "0",
+        #                    "rebated_fee_currency": "USDT"
+        #                },
+        #                ...
+        #            ]
+        #        },
+        #        ...
+        #    ]
         #
         # SPOT
         #
@@ -3217,7 +3258,13 @@ class gateio(Exchange):
         #        }
         #    ]
         #
-        orders = self.parse_orders(response, market, since, limit)
+        result = response
+        if openSpotOrders:
+            result = []
+            for i in range(0, len(response)):
+                orders = self.safe_value(response[i], 'orders')
+                result = self.array_concat(result, orders)
+        orders = self.parse_orders(result, market, since, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def cancel_order(self, id, symbol=None, params={}):

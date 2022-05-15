@@ -8,6 +8,8 @@ const testOrderBook = require ('./test.orderbook.js')
 
 module.exports = async (exchange) => {
 
+    const method = 'fetchOrderBooks'
+
     const randomSymbols = exchange.symbols.slice ().sort (() => 0.5 - Math.random ()).slice (0, 2)
     const customExchangeParams = ([
         'yobit',
@@ -18,7 +20,6 @@ module.exports = async (exchange) => {
     ]).reduce ((params, id) => ({ ... params, [id]: [randomSymbols], }), {})
 
     const args = (exchange.id in customExchangeParams) ? customExchangeParams[exchange.id] : []
-    const method = 'fetchOrderBooks'
 
     if (exchange.has[method]) {
 
@@ -30,6 +31,6 @@ module.exports = async (exchange) => {
 
     } else {
 
-        console.log (method + '() not supported')
+        console.log (method + '() is not supported')
     }
 }

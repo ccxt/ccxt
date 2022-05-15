@@ -58,7 +58,6 @@ class kucoinfutures(kucoin):
                 'fetchCurrencies': False,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFee': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
@@ -81,6 +80,7 @@ class kucoinfutures(kucoin):
                 'fetchTickers': False,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTransactionFee': True,
                 'fetchWithdrawals': True,
                 'setMarginMode': False,
                 'transfer': True,
@@ -1618,8 +1618,8 @@ class kucoinfutures(kucoin):
         responseData = response['data']['items']
         return self.parse_transactions(responseData, currency, since, limit, {'type': 'withdrawal'})
 
-    async def fetch_funding_fee(self, code, params={}):
-        raise BadRequest(self.id + ' fetchFundingFee() is not supported yet')
+    async def fetch_transaction_fee(self, code, params={}):
+        raise BadRequest(self.id + ' fetchTransactionFee() is not supported yet')
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         raise BadRequest(self.id + ' fetchLedger() is not supported yet')

@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from asyncio import get_event_loop
+from asyncio import run
 import ccxtpro
 
 
 print('CCXT Pro Version: ', ccxtpro.__version__)
 
 exchange = ccxtpro.okex({
-    'enableRateLimit': True,
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_API_SECRET',
     'password': 'YOUR_API_PASSWORD',
@@ -48,5 +47,4 @@ async def main():
     await exchange.close()
 
 
-if __name__ == '__main__':
-    get_event_loop().run_until_complete(main())
+run(main())
