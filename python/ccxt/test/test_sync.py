@@ -341,7 +341,7 @@ def test_transactions(exchange, code):
             test_transaction(exchange, transaction, code, int(time.time() * 1000))
         dump(green(exchange.id), green(code), 'fetched', green(len(transactions)), 'transactions')
     else:
-        dump(green(exchange.id), green(code), method + ' () is not supported')
+        dump(green(exchange.id), green(code), method + '() is not supported')
 
 # ------------------------------------------------------------------------------
 
@@ -380,9 +380,10 @@ def test_symbol(exchange, symbol, code):
         test_trades(exchange, symbol)
         if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
             return
-        if exchange.has['signIn']:
-            dump('Testing sign_in')
-            exchange.sign_in()
+        method = 'signIn'
+        if exchange.has[method]:
+            dump('Testing ' + method + '()')
+            getattr(exchange, method)()
         dump('Testing fetch_orders:' + symbol)
         test_orders(exchange, symbol)
         dump('Testing fetch_open_orders:' + symbol)
