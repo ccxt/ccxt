@@ -35,6 +35,8 @@ module.exports = class indodax extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchDeposit': false,
+                'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -97,7 +99,7 @@ module.exports = class indodax extends Exchange {
                 'private': {
                     'post': {
                         'getInfo': 4,
-                        'transHistory': 4, // TODO add fetchDeposits, fetchWithdrawals, fetchTransactionsbyType
+                        'transHistory': 4,
                         'trade': 1,
                         'tradeHistory': 4, // TODO add fetchMyTrades
                         'openOrders': 4,
@@ -615,7 +617,15 @@ module.exports = class indodax extends Exchange {
         return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('deposit', code, since, limit, params);
+    }
+
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('withdraw', code, since, limit, params);
+    }
+
+    async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         if (since !== undefined) {
@@ -682,15 +692,15 @@ module.exports = class indodax extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'return', {});
-        const withdraw = this.safeValue (data, 'withdraw', {});
-        let withdrawals = [];
+        const depositWithdraw = this.safeValue (data, type, {});
+        let transactions = [];
         if (code === undefined) {
-            Object.keys (withdraw).forEach ((currency) => this.arrayConcat (withdrawals, withdraw[currency]));
+            Object.keys (depositWithdraw).forEach ((currency) => this.arrayConcat (transactions, depositWithdraw[currency]));
         } else {
             const currency = this.currency (code);
-            withdrawals = this.safeValue (withdraw, currency['id'], []);
+            transactions = this.safeValue (depositWithdraw, currency['id'], []);
         }
-        return this.parseTransactions (withdrawals, code, since, limit);
+        return this.parseTransactions (transactions, code, since, limit);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
