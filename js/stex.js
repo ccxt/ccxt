@@ -27,8 +27,9 @@ module.exports = class stex extends Exchange {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'createDepositAddress': true,
-                'createMarketOrder': undefined, // limit orders only
+                'createMarketOrder': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
@@ -1306,6 +1307,14 @@ module.exports = class stex extends Exchange {
                 throw new OrderNotFound (this.id + ' cancelOrder() received an empty response: ' + this.json (response));
             }
         }
+    }
+
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'orderId': id,
+        };
+        const response = await this.tradingDeleteOrdersBulk (this.extend (request, params));
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
