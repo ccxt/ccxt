@@ -566,6 +566,9 @@ module.exports = class okx extends ccxt.okx {
             market = this.market (symbol);
             type = market['type'];
         }
+        if (type === 'future') {
+            type = 'futures';
+        }
         const uppercaseType = type.toUpperCase ();
         const request = {
             'instType': uppercaseType,
