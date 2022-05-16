@@ -1583,7 +1583,7 @@ module.exports = class bibox extends Exchange {
         };
     }
 
-    sign (path, api = [ 'v1', 'public' ], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = ['v1', 'public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const [ version, access ] = api;
         let url = this.implodeHostname (this.urls['api']) + '/' + version + '/' + path;
         const v1 = (version === 'v1');
