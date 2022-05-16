@@ -1807,17 +1807,6 @@ module.exports = class bitmex extends Exchange {
         return this.parseFundingRateHistories (response, market, since, limit);
     }
 
-    parseFundingRateHistories (response, market = undefined, since = undefined, limit = undefined) {
-        const rates = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            rates.push (this.parseFundingRateHistory (entry, market));
-        }
-        const sorted = this.sortBy (rates, 'timestamp');
-        const symbol = (market === undefined) ? undefined : market['symbol'];
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
-    }
-
     parseFundingRateHistory (info, market = undefined) {
         //
         //    {
