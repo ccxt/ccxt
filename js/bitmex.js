@@ -1769,16 +1769,13 @@ module.exports = class bitmex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         } else if (symbol in this.currencies) {
-            market = this.currency (symbol);
-            request['symbol'] = market['id'];
-        } else {
+            const code = this.currency (symbol);
+            request['symbol'] = code['id'];
+        } else if (symbol !== undefined) {
             const splitSymbol = symbol.split (':');
             const splitSymbolLength = splitSymbol.length;
             const timeframes = [ 'nearest', 'daily', 'weekly', 'monthly', 'quarterly', 'biquarterly', 'perpetual' ];
             if (splitSymbolLength > 1 && splitSymbol[1] in timeframes) {
-                market = {
-                    'id': symbol,
-                };
                 request['symbol'] = symbol;
             } else {
                 throw new BadRequest (this.id + ' fetchFundingRateHistory cannot use symbol ' + symbol);
@@ -1810,7 +1807,7 @@ module.exports = class bitmex extends Exchange {
         return this.parseFundingRateHistories (response, market, since, limit);
     }
 
-    parseFundingRateHistories (response, market, since, limit) {
+    parseFundingRateHistories (response, market = undefined, since = undefined, limit = undefined) {
         const rates = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
