@@ -50,7 +50,6 @@ class kucoinfutures extends kucoin {
                 'fetchCurrencies' => false,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
-                'fetchFundingFee' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
@@ -73,6 +72,7 @@ class kucoinfutures extends kucoin {
                 'fetchTickers' => false,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTransactionFee' => true,
                 'fetchWithdrawals' => true,
                 'setMarginMode' => false,
                 'transfer' => true,
@@ -275,6 +275,7 @@ class kucoinfutures extends kucoin {
                 'symbolSeparator' => '-',
                 'defaultType' => 'swap',
                 'code' => 'USDT',
+                'marginModes' => array(),
                 'marginTypes' => array(),
                 // endpoint versions
                 'versions' => array(
@@ -303,7 +304,7 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_accounts($params = array ()) {
-        throw new BadRequest($this->id . ' has no method fetchAccounts');
+        throw new BadRequest($this->id . ' fetchAccounts() is not supported yet');
     }
 
     public function fetch_status($params = array ()) {
@@ -323,6 +324,7 @@ class kucoinfutures extends kucoin {
             'status' => ($status === 'open') ? 'ok' : 'maintenance',
             'updated' => $this->milliseconds(),
             'eta' => null,
+            'url' => null,
             'info' => $response,
         );
     }
@@ -551,7 +553,7 @@ class kucoinfutures extends kucoin {
     }
 
     public function create_deposit_address($code, $params = array ()) {
-        throw new BadRequest($this->id . ' has no method createDepositAddress');
+        throw new BadRequest($this->id . ' createDepositAddress() is not supported yet');
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
@@ -590,7 +592,7 @@ class kucoinfutures extends kucoin {
         yield $this->load_markets();
         $level = $this->safe_number($params, 'level');
         if ($level !== 2 && $level !== null) {
-            throw new BadRequest($this->id . ' fetchOrderBook can only return $level 2');
+            throw new BadRequest($this->id . ' fetchOrderBook() can only return $level 2');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -600,7 +602,7 @@ class kucoinfutures extends kucoin {
             if (($limit === 20) || ($limit === 100)) {
                 $request['limit'] = $limit;
             } else {
-                throw new BadRequest($this->id . ' fetchOrderBook $limit argument must be 20 or 100');
+                throw new BadRequest($this->id . ' fetchOrderBook() $limit argument must be 20 or 100');
             }
         } else {
             $request['limit'] = 20;
@@ -632,7 +634,7 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_l3_order_book($symbol, $limit = null, $params = array ()) {
-        throw new BadRequest($this->id . ' only can only fetch the L2 order book');
+        throw new BadRequest($this->id . ' fetchL3OrderBook() is not supported yet');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -904,7 +906,7 @@ class kucoinfutures extends kucoin {
         $unrealisedPnl = $this->safe_string($position, 'unrealisedPnl');
         $crossMode = $this->safe_value($position, 'crossMode');
         // currently $crossMode is always set to false and only isolated positions are supported
-        $marginType = $crossMode ? 'cross' : 'isolated';
+        $marginMode = $crossMode ? 'cross' : 'isolated';
         return array(
             'info' => $position,
             'symbol' => $this->safe_string($market, 'symbol'),
@@ -925,7 +927,8 @@ class kucoinfutures extends kucoin {
             'liquidationPrice' => $this->safe_number($position, 'liquidationPrice'),
             'markPrice' => $this->safe_number($position, 'markPrice'),
             'collateral' => $this->safe_number($position, 'maintMargin'),
-            'marginType' => $marginType,
+            'marginMode' => $marginMode,
+            'marginType' => $marginMode,
             'side' => $side,
             'percentage' => $this->parse_number(Precise::string_div($unrealisedPnl, $initialMargin)),
         );
@@ -1106,20 +1109,24 @@ class kucoinfutures extends kucoin {
          * @param {int} $limit The maximum number of $orders to retrieve
          * @param {dict} $params exchange specific parameters
          * @param {bool} $params->stop set to true to retrieve untriggered $stop $orders
+         * @param {int} $params->till End time in ms
          * @param {str} $params->side buy or sell
          * @param {str} $params->type $limit or $market
-         * @param {int} $params->endAt End time in ms
          * @return An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure array of order structures}
          */
         yield $this->load_markets();
         $stop = $this->safe_value($params, 'stop');
         $params = $this->omit($params, 'stop');
-        $status = ($status === 'closed') ? 'done' : $status;
+        if ($status === 'closed') {
+            $status = 'done';
+        } else if ($status === 'open') {
+            $status = 'active';
+        }
         $request = array();
         if (!$stop) {
             $request['status'] = $status;
         } else if ($status !== 'active') {
-            throw new BadRequest($this->id . ' fetchOrdersByStatus can only fetch untriggered $stop orders');
+            throw new BadRequest($this->id . ' fetchOrdersByStatus() can only fetch untriggered $stop orders');
         }
         $market = null;
         if ($symbol !== null) {
@@ -1129,11 +1136,30 @@ class kucoinfutures extends kucoin {
         if ($since !== null) {
             $request['startAt'] = $since;
         }
+        $till = $this->safe_integer($params, 'till', 'endAt');
+        if ($till !== null) {
+            $request['endAt'] = $till;
+        }
         $method = $stop ? 'futuresPrivateGetStopOrders' : 'futuresPrivateGetOrders';
         $response = yield $this->$method (array_merge($request, $params));
         $responseData = $this->safe_value($response, 'data', array());
         $orders = $this->safe_value($responseData, 'items', array());
         return $this->parse_orders($orders, $market, $since, $limit);
+    }
+
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch a list of orders
+         * @param {str} $symbol unified market $symbol
+         * @param {int} $since timestamp in ms of the earliest order
+         * @param {int} $limit max number of orders to return
+         * @param {dict} $params exchange specific $params
+         * @param {int} $params->till end time in ms
+         * @param {str} $params->side buy or sell
+         * @param {str} $params->type $limit, or market
+         * @return An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure array of order structures}
+         */
+        return yield $this->fetch_orders_by_status('done', $symbol, $since, $limit, $params);
     }
 
     public function fetch_order($id = null, $symbol = null, $params = array ()) {
@@ -1315,7 +1341,7 @@ class kucoinfutures extends kucoin {
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         if (($toAccount !== 'main' && $toAccount !== 'funding') || ($fromAccount !== 'futures' && $fromAccount !== 'future' && $fromAccount !== 'contract')) {
-            throw new BadRequest($this->id . ' only supports transfers from contract(future) account to main(funding) account');
+            throw new BadRequest($this->id . ' transfer() only supports transfers from contract(future) account to main(funding) account');
         }
         yield $this->load_markets();
         $currency = $this->currency($code);
@@ -1667,12 +1693,12 @@ class kucoinfutures extends kucoin {
         return $this->parse_transactions($responseData, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function fetch_funding_fee($code, $params = array ()) {
-        throw new BadRequest($this->id . ' has no method fetchFundingFee');
+    public function fetch_transaction_fee($code, $params = array ()) {
+        throw new BadRequest($this->id . ' fetchTransactionFee() is not supported yet');
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
-        throw new BadRequest($this->id . ' has no method fetchLedger');
+        throw new BadRequest($this->id . ' fetchLedger() is not supported yet');
     }
 
     public function fetch_market_leverage_tiers($symbol, $params = array ()) {

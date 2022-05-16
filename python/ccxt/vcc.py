@@ -446,7 +446,7 @@ class vcc(Exchange):
         }
         if limit is not None:
             if (limit != 0) and (limit != 5) and (limit != 10) and (limit != 20) and (limit != 50) and (limit != 100) and (limit != 500):
-                raise BadRequest(self.id + ' fetchOrderBook limit must be 0, 5, 10, 20, 50, 100, 500 if specified')
+                raise BadRequest(self.id + ' fetchOrderBook() limit must be 0, 5, 10, 20, 50, 100, 500 if specified')
             request['depth'] = limit
         response = self.publicGetOrderbookMarketPair(self.extend(request, params))
         #

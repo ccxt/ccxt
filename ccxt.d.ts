@@ -529,11 +529,13 @@ declare module 'ccxt' {
     export class kuna extends Exchange {}
     export class latoken extends Exchange {}
     export class lbank extends Exchange {}
+    export class lbank2 extends Exchange {}
     export class liquid extends Exchange {}
     export class luno extends Exchange {}
     export class lykke extends Exchange {}
     export class mercado extends Exchange {}
     export class mexc extends Exchange {}
+    export class mexc3 extends Exchange {}
     export class ndax extends Exchange {}
     export class novadax extends Exchange {}
     export class oceanex extends Exchange {}
@@ -651,11 +653,13 @@ declare module 'ccxt' {
         | 'kuna'
         | 'latoken'
         | 'lbank'
+        | 'lbank2'
         | 'liquid'
         | 'luno'
         | 'lykke'
         | 'mercado'
         | 'mexc'
+        | 'mexc3'
         | 'ndax'
         | 'novadax'
         | 'oceanex'

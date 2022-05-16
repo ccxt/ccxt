@@ -700,7 +700,7 @@ class idex extends Exchange {
         // )
         $extendedRequest = array_merge($request, $params);
         if ($extendedRequest['wallet'] === null) {
-            throw new BadRequest($this->id . ' wallet is null, set $this->walletAddress or "address" in params');
+            throw new BadRequest($this->id . ' fetchBalance() wallet is null, set $this->walletAddress or "address" in params');
         }
         $response = null;
         try {
@@ -757,7 +757,7 @@ class idex extends Exchange {
         // )
         $extendedRequest = array_merge($request, $params);
         if ($extendedRequest['wallet'] === null) {
-            throw new BadRequest($this->id . ' $walletAddress is null, set $this->walletAddress or "address" in params');
+            throw new BadRequest($this->id . ' fetchMyTrades() $walletAddress is null, set $this->walletAddress or "address" in params');
         }
         $response = null;
         try {
@@ -1008,7 +1008,7 @@ class idex extends Exchange {
         $stopPriceString = null;
         if (($type === 'stopLossLimit') || ($type === 'takeProfitLimit') || (is_array($params) && array_key_exists('stopPrice', $params))) {
             if (!(is_array($params) && array_key_exists('stopPrice', $params))) {
-                throw new BadRequest($this->id . ' stopPrice is a required parameter for ' . $type . 'orders');
+                throw new BadRequest($this->id . ' createOrder() stopPrice is a required parameter for ' . $type . 'orders');
             }
             $stopPriceString = $this->price_to_precision($symbol, $params['stopPrice']);
         }
@@ -1033,7 +1033,7 @@ class idex extends Exchange {
         $amountEnum = 0; // base quantity
         if (is_array($params) && array_key_exists('quoteOrderQuantity', $params)) {
             if ($type !== 'market') {
-                throw new NotSupported($this->id . ' quoteOrderQuantity is not supported for ' . $type . ' orders, only supported for $market orders');
+                throw new NotSupported($this->id . ' createOrder() quoteOrderQuantity is not supported for ' . $type . ' orders, only supported for $market orders');
             }
             $amountEnum = 1;
             $amount = $this->safe_number($params, 'quoteOrderQuantity');

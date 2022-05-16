@@ -18,6 +18,7 @@ module.exports = class mexc extends Exchange {
             'rateLimit': 50, // default rate limit is 20 times per second
             'version': 'v2',
             'certified': true,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -301,6 +302,7 @@ module.exports = class mexc extends Exchange {
                 'exact': {
                     '400': BadRequest, // Invalid parameter
                     '401': AuthenticationError, // Invalid signature, fail to pass the validation
+                    '402': AuthenticationError, // {"success":false,"code":402,"message":"API key expired!"}
                     '403': PermissionDenied, // {"msg":"no permission to access the endpoint","code":403}
                     '429': RateLimitExceeded, // too many requests, rate limit rule is violated
                     '703': PermissionDenied, // Require trade read permission!
@@ -369,6 +371,7 @@ module.exports = class mexc extends Exchange {
             'status': status,
             'updated': this.milliseconds (),
             'eta': undefined,
+            'url': undefined,
             'info': response,
         };
     }
@@ -499,7 +502,7 @@ module.exports = class mexc extends Exchange {
         const spot = (type === 'spot');
         const swap = (type === 'swap');
         if (!spot && !swap) {
-            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
+            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot' or 'swap''"); // eslint-disable-line quotes
         }
         if (spot) {
             return await this.fetchSpotMarkets (query);
@@ -646,6 +649,19 @@ module.exports = class mexc extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
+        const response2 = await this.spotPublicGetMarketApiDefaultSymbols (params);
+        //
+        //     {
+        //         "code":200,
+        //         "data":{
+        //             "symbol":[
+        //                 "ALEPH_USDT","OGN_USDT","HC_USDT",
+        //              ]
+        //         }
+        //     }
+        //
+        const data2 = this.safeValue (response2, 'data', {});
+        const symbols = this.safeValue (data2, 'symbol', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -656,6 +672,15 @@ module.exports = class mexc extends Exchange {
             const priceScale = this.safeString (market, 'price_scale');
             const quantityScale = this.safeString (market, 'quantity_scale');
             const state = this.safeString (market, 'state');
+            let active = false;
+            for (let j = 0; j < symbols.length; j++) {
+                if (symbols[j] === id) {
+                    if (state === 'ENABLED') {
+                        active = true;
+                    }
+                    break;
+                }
+            }
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -671,7 +696,7 @@ module.exports = class mexc extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': (state === 'ENABLED'),
+                'active': active,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -1703,7 +1728,7 @@ module.exports = class mexc extends Exchange {
         const rawSide = this.safeString (position, 'positionType');
         const side = (rawSide === '1') ? 'long' : 'short';
         const openType = this.safeString (position, 'margin_mode');
-        const marginType = (openType === '1') ? 'isolated' : 'cross';
+        const marginMode = (openType === '1') ? 'isolated' : 'cross';
         const leverage = this.safeString (position, 'leverage');
         const liquidationPrice = this.safeNumber (position, 'liquidatePrice');
         const timestamp = this.safeNumber (position, 'updateTime');
@@ -1718,7 +1743,8 @@ module.exports = class mexc extends Exchange {
             'unrealizedProfit': undefined,
             'leverage': this.parseNumber (leverage),
             'percentage': undefined,
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode, // deprecated
             'notional': undefined,
             'markPrice': undefined,
             'liquidationPrice': liquidationPrice,
@@ -1761,13 +1787,26 @@ module.exports = class mexc extends Exchange {
             orderSide = 'ASK';
         }
         let orderType = type.toUpperCase ();
-        const postOnly = this.safeValue (params, 'postOnly', false);
-        if (postOnly) {
-            orderType = 'POST_ONLY';
-        } else if (orderType === 'LIMIT') {
+        if (orderType === 'MARKET') {
+            throw new InvalidOrder (this.id + ' createOrder () does not support market orders, only limit orders are allowed');
+        }
+        if (orderType === 'LIMIT') {
             orderType = 'LIMIT_ORDER';
-        } else if ((orderType !== 'POST_ONLY') && (orderType !== 'IMMEDIATE_OR_CANCEL')) {
-            throw new InvalidOrder (this.id + ' createOrder() does not support ' + type + ' order type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL');
+        }
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const maker = (postOnly || (timeInForce === 'PO'));
+        const ioc = (timeInForce === 'IOC');
+        if (maker) {
+            orderType = 'POST_ONLY';
+        } else if (ioc) {
+            orderType = 'IMMEDIATE_OR_CANCEL';
+        }
+        if (timeInForce === 'FOK') {
+            throw new InvalidOrder (this.id + ' createOrder () does not support timeInForce FOK, only IOC, PO, and GTC are allowed');
+        }
+        if (((orderType !== 'POST_ONLY') && (orderType !== 'IMMEDIATE_OR_CANCEL') && (orderType !== 'LIMIT_ORDER'))) {
+            throw new InvalidOrder (this.id + ' createOrder () does not support ' + type + ' order type, only LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL are allowed');
         }
         const request = {
             'symbol': market['id'],
@@ -1780,7 +1819,7 @@ module.exports = class mexc extends Exchange {
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
-        params = this.omit (params, [ 'type', 'clientOrderId', 'client_order_id', 'postOnly' ]);
+        params = this.omit (params, [ 'type', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce' ]);
         const response = await this.spotPrivatePostOrderPlace (this.extend (request, params));
         //
         //     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
@@ -1793,21 +1832,30 @@ module.exports = class mexc extends Exchange {
         const market = this.market (symbol);
         const openType = this.safeInteger (params, 'openType');
         if (openType === undefined) {
-            throw new ArgumentsRequired (this.id + ' createSwapOrder() requires an integer openType parameter, 1 for isolated margin, 2 for cross margin');
+            throw new ArgumentsRequired (this.id + ' createSwapOrder () requires an integer openType parameter, 1 for isolated margin, 2 for cross margin');
         }
         if ((type !== 'limit') && (type !== 'market') && (type !== 1) && (type !== 2) && (type !== 3) && (type !== 4) && (type !== 5) && (type !== 6)) {
-            throw new InvalidOrder (this.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
+            throw new InvalidOrder (this.id + ' createSwapOrder () order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
+        const timeInForce = this.safeString (params, 'timeInForce');
         const postOnly = this.safeValue (params, 'postOnly', false);
-        if (postOnly) {
+        const maker = ((timeInForce === 'PO') || (postOnly));
+        if (maker) {
             type = 2;
         } else if (type === 'limit') {
             type = 1;
         } else if (type === 'market') {
             type = 6;
         }
+        const ioc = (timeInForce === 'IOC');
+        const fok = (timeInForce === 'FOK');
+        if (ioc) {
+            type = 3;
+        } else if (fok) {
+            type = 4;
+        }
         if ((side !== 1) && (side !== 2) && (side !== 3) && (side !== 4)) {
-            throw new InvalidOrder (this.id + ' createSwapOrder() order side must be 1 open long, 2 close short, 3 open short or 4 close long');
+            throw new InvalidOrder (this.id + ' createSwapOrder () order side must be 1 open long, 2 close short, 3 open short or 4 close long');
         }
         const request = {
             'symbol': market['id'],
@@ -1837,7 +1885,7 @@ module.exports = class mexc extends Exchange {
         };
         let method = 'contractPrivatePostOrderSubmit';
         const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
-        params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
+        params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'timeInForce', 'postOnly' ]);
         if (stopPrice !== undefined) {
             method = 'contractPrivatePostPlanorderPlace';
             request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
@@ -1852,7 +1900,7 @@ module.exports = class mexc extends Exchange {
         if (openType === 1) {
             const leverage = this.safeInteger (params, 'leverage');
             if (leverage === undefined) {
-                throw new ArgumentsRequired (this.id + ' createSwapOrder() requires a leverage parameter for isolated margin orders');
+                throw new ArgumentsRequired (this.id + ' createSwapOrder () requires a leverage parameter for isolated margin orders');
             }
         }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'externalOid');
@@ -1972,6 +2020,7 @@ module.exports = class mexc extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        // TODO update parseOrder to reflect type, timeInForce, and postOnly from fetchOrder ()
         //
         // createOrder
         //
@@ -1999,7 +2048,7 @@ module.exports = class mexc extends Exchange {
         //         "order_type":"LIMIT_ORDER"
         //     }
         //
-        // swap fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        // swap fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, fetchOrder
         //
         //     {
         //         "orderId": "266578267438402048",
@@ -2124,9 +2173,40 @@ module.exports = class mexc extends Exchange {
         if (clientOrderId === '') {
             clientOrderId = undefined;
         }
-        let orderType = this.safeStringLower (order, 'order_type');
-        if (orderType !== undefined) {
-            orderType = orderType.replace ('_order', '');
+        const rawOrderType = this.safeString2 (order, 'orderType', 'order_type');
+        let orderType = undefined;
+        // swap: 1:price limited order, 2:Post Only Maker, 3:transact or cancel instantly, 4:transact completely or cancel completely，5:market orders, 6:convert market price to current price
+        // spot: LIMIT_ORDER, POST_ONLY, IMMEDIATE_OR_CANCEL
+        let timeInForce = undefined;
+        let postOnly = false;
+        if (rawOrderType !== undefined) {
+            if (rawOrderType === '1') {
+                orderType = 'limit';
+                timeInForce = 'GTC';
+            } else if (rawOrderType === '2') {
+                orderType = 'limit';
+                timeInForce = 'PO';
+                postOnly = true;
+            } else if (rawOrderType === '3') {
+                orderType = 'limit';
+                timeInForce = 'IOC';
+            } else if (rawOrderType === '4') {
+                orderType = 'limit';
+                timeInForce = 'FOK';
+            } else if ((rawOrderType === '5') || (rawOrderType === '6')) {
+                orderType = 'market';
+                timeInForce = 'GTC';
+            } else if (rawOrderType === 'LIMIT_ORDER') {
+                orderType = 'limit';
+                timeInForce = 'GTC';
+            } else if (rawOrderType === 'POST_ONLY') {
+                orderType = 'limit';
+                timeInForce = 'PO';
+                postOnly = true;
+            } else if (rawOrderType === 'IMMEDIATE_OR_CANCEL') {
+                orderType = 'limit';
+                timeInForce = 'IOC';
+            }
         }
         return this.safeOrder ({
             'id': id,
@@ -2137,10 +2217,11 @@ module.exports = class mexc extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': orderType,
-            'timeInForce': undefined,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'stopPrice': this.safeString (order, 'triggerPrice'),
             'average': undefined,
             'amount': amount,
             'cost': cost,
@@ -2267,7 +2348,7 @@ module.exports = class mexc extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2544,6 +2625,8 @@ module.exports = class mexc extends Exchange {
             throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a positionId parameter');
         }
         await this.loadMarkets ();
+        const market = this.market (symbol);
+        amount = this.amountToPrecision (symbol, amount);
         const request = {
             'positionId': positionId,
             'amount': amount,
@@ -2555,7 +2638,25 @@ module.exports = class mexc extends Exchange {
         //         "success": true,
         //         "code": 0
         //     }
-        return response;
+        //
+        const type = (addOrReduce === 'ADD') ? 'add' : 'reduce';
+        return this.extend (this.parseModifyMargin (response, market), {
+            'amount': this.safeNumber (amount),
+            'type': type,
+        });
+    }
+
+    parseModifyMargin (data, market = undefined) {
+        const statusRaw = this.safeString (data, 'success');
+        const status = (statusRaw === true) ? 'ok' : 'failed';
+        return {
+            'info': data,
+            'type': undefined,
+            'amount': undefined,
+            'code': undefined,
+            'symbol': this.safeSymbol (undefined, market),
+            'status': status,
+        };
     }
 
     async reduceMargin (symbol, amount, params = {}) {
@@ -2567,15 +2668,25 @@ module.exports = class mexc extends Exchange {
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
-        const positionId = this.safeInteger (params, 'positionId');
-        if (positionId === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires a positionId parameter');
-        }
         await this.loadMarkets ();
         const request = {
-            'positionId': positionId,
             'leverage': leverage,
         };
+        const positionId = this.safeInteger (params, 'positionId');
+        if (positionId === undefined) {
+            const openType = this.safeNumber (params, 'openType'); // 1 or 2
+            const positionType = this.safeNumber (params, 'positionType'); // 1 or 2
+            const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+            if ((openType === undefined) || (positionType === undefined) || (market === undefined)) {
+                throw new ArgumentsRequired (this.id + ' setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross margin respectively, use positionType 1 or 2 for long or short positions');
+            } else {
+                request['openType'] = openType;
+                request['symbol'] = market['symbol'];
+                request['positionType'] = positionType;
+            }
+        } else {
+            request['positionId'] = positionId;
+        }
         return await this.contractPrivatePostPositionChangeLeverage (this.extend (request, params));
     }
 

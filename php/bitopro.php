@@ -28,6 +28,7 @@ class bitopro extends Exchange {
                 'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
                 'createOrder' => true,
                 'editOrder' => false,
                 'fetchBalance' => true,
@@ -39,7 +40,6 @@ class bitopro extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => false,
                 'fetchDeposits' => true,
-                'fetchFundingFees' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -62,11 +62,15 @@ class bitopro extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchTransactionFees' => false,
                 'fetchTransactions' => false,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -274,10 +278,10 @@ class bitopro extends Exchange {
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $active = !$this->safe_value($market, 'maintain');
-            $pair = $this->safe_string($market, 'pair');
+            $id = $this->safe_string($market, 'pair');
+            $uppercaseId = strtoupper($id);
             $baseId = $this->safe_string($market, 'base');
             $quoteId = $this->safe_string($market, 'quote');
-            $id = $pair;
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
@@ -305,6 +309,7 @@ class bitopro extends Exchange {
             );
             $result[] = array(
                 'id' => $id,
+                'uppercaseId' => $uppercaseId,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
@@ -950,6 +955,29 @@ class bitopro extends Exchange {
         return $this->parse_order($response, $market);
     }
 
+    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $id = $market['uppercaseId'];
+        $request = array();
+        $request[$id] = $ids;
+        $response = $this->privatePutOrders (array_merge($request, $params));
+        //
+        //     {
+        //         "data":{
+        //             "BNB_TWD":array(
+        //                 "5236347105",
+        //                 "359488711"
+        //             )
+        //         }
+        //     }
+        //
+        return $response;
+    }
+
     public function cancel_all_orders($symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
@@ -1371,7 +1399,7 @@ class bitopro extends Exchange {
         $headers['X-BITOPRO-API'] = 'ccxt';
         if ($api === 'private') {
             $this->check_required_credentials();
-            if ($method === 'POST') {
+            if ($method === 'POST' || $method === 'PUT') {
                 $body = $this->json($params);
                 $payload = base64_encode($body);
                 $signature = $this->hmac($payload, $this->encode($this->secret), 'sha384');

@@ -75,11 +75,15 @@ module.exports = class hollaex extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactions': undefined,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
+                'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -177,6 +181,15 @@ module.exports = class hollaex extends Exchange {
             'options': {
                 // how many seconds before the authenticated request expires
                 'api-expires': parseInt (this.timeout / 1000),
+                'networks': {
+                    'BTC': 'btc',
+                    'ETH': 'eth',
+                    'ERC20': 'eth',
+                    'TRX': 'trx',
+                    'TRC20': 'trx',
+                    'XRP': 'xrp',
+                    'XLM': 'xlm',
+                },
             },
         });
     }
@@ -1255,6 +1268,45 @@ module.exports = class hollaex extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
+    async fetchWithdrawal (id, code = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'transaction_id': id,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.privateGetUserWithdrawals (this.extend (request, params));
+        //
+        //     {
+        //         "count": 1,
+        //         "data": [
+        //             {
+        //                 "id": 539,
+        //                 "amount": 20,
+        //                 "fee": 0,
+        //                 "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
+        //                 "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
+        //                 "status": true,
+        //                 "dismissed": false,
+        //                 "rejected": false,
+        //                 "description": "",
+        //                 "type": "withdrawal",
+        //                 "currency": "usdt",
+        //                 "created_at": "2020-03-03T07:56:36.198Z",
+        //                 "updated_at": "2020-03-03T08:00:05.674Z",
+        //                 "user_id": 620
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const transaction = this.safeValue (data, 0, {});
+        return this.parseTransaction (transaction, currency);
+    }
+
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -1372,10 +1424,14 @@ module.exports = class hollaex extends Exchange {
         }
         const feeCurrencyId = this.safeString (transaction, 'fee_coin');
         const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId, currency);
-        const fee = {
-            'currency': feeCurrencyCode,
-            'cost': this.safeNumber (transaction, 'fee'),
-        };
+        const feeCost = this.safeNumber (transaction, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': feeCurrencyCode,
+                'cost': feeCost,
+            };
+        }
         return {
             'info': transaction,
             'id': id,
@@ -1406,15 +1462,19 @@ module.exports = class hollaex extends Exchange {
         if (tag !== undefined) {
             address += ':' + tag;
         }
+        const network = this.safeString (params, 'network');
+        if (network === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a network parameter');
+        }
+        params = this.omit (params, 'network');
+        const networks = this.safeValue (this.options, 'networks', {});
+        const networkId = this.safeStringLower2 (networks, network, code, network);
         const request = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
+            'network': networkId,
         };
-        const network = this.safeString (params, 'network');
-        if (network !== undefined) {
-            request['network'] = network;
-        }
         const response = await this.privatePostUserWithdrawal (this.extend (request, params));
         //
         //     {

@@ -15,7 +15,6 @@ module.exports = class aax extends Exchange {
             'id': 'aax',
             'name': 'AAX',
             'countries': [ 'MT' ], // Malta
-            'enableRateLimit': true,
             // 6000 /  hour => 100 per minute => 1.66 requests per second => rateLimit = 600
             // market endpoints ratelimits arent mentioned in docs so they are also set to "all other authenticated endpoints"
             // 5000 / hour => weight = 1.2 ("all other authenticated endpoints")
@@ -60,8 +59,6 @@ module.exports = class aax extends Exchange {
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': undefined,
                 'fetchDeposits': true,
-                'fetchFundingFee': undefined,
-                'fetchFundingFees': undefined,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -98,6 +95,8 @@ module.exports = class aax extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTradingLimits': undefined,
+                'fetchTransactionFee': undefined,
+                'fetchTransactionFees': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfer': false,
                 'fetchTransfers': true,
@@ -388,6 +387,7 @@ module.exports = class aax extends Exchange {
             'status': status,
             'updated': updated,
             'eta': eta,
+            'url': undefined,
             'info': response,
         };
     }
@@ -493,10 +493,15 @@ module.exports = class aax extends Exchange {
             let symbol = base + '/' + quote;
             let type = 'spot';
             let contractSize = undefined;
+            let minLeverage = undefined;
+            let maxLeverage = undefined;
             if (swap) {
                 symbol = symbol + ':' + settle;
                 type = 'swap';
                 contractSize = this.safeNumber (market, 'multiplier');
+                minLeverage = '1';
+                const imRate = this.safeString (market, 'imRate');
+                maxLeverage = Precise.stringDiv ('1', imRate);
             }
             result.push ({
                 'id': id,
@@ -517,6 +522,7 @@ module.exports = class aax extends Exchange {
                 'contract': swap,
                 'linear': linear,
                 'inverse': inverse,
+                'quanto': quanto,
                 'taker': this.safeNumber (market, 'takerFee'),
                 'maker': this.safeNumber (market, 'makerFee'),
                 'contractSize': contractSize,
@@ -524,23 +530,22 @@ module.exports = class aax extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'quanto': quanto,
                 'precision': {
                     'amount': this.safeNumber (market, 'lotSize'),
                     'price': this.safeNumber (market, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.parseNumber (minLeverage),
+                        'max': this.parseNumber (maxLeverage),
                     },
                     'amount': {
-                        'min': this.safeString (market, 'minQuantity'),
-                        'max': this.safeString (market, 'maxQuantity'),
+                        'min': this.safeNumber (market, 'minQuantity'),
+                        'max': this.safeNumber (market, 'maxQuantity'),
                     },
                     'price': {
-                        'min': this.safeString (market, 'minPrice'),
-                        'max': this.safeString (market, 'maxPrice'),
+                        'min': this.safeNumber (market, 'minPrice'),
+                        'max': this.safeNumber (market, 'maxPrice'),
                     },
                     'cost': {
                         'min': undefined,
@@ -2472,6 +2477,7 @@ module.exports = class aax extends Exchange {
         const notional = Precise.stringMul (initialQuote, marketPrice);
         const timestamp = this.safeInteger (position, 'ts');
         const liquidationPrice = this.safeString (position, 'liquidationPrice');
+        const marginMode = this.safeString (position, 'settleType');
         return {
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
@@ -2491,7 +2497,8 @@ module.exports = class aax extends Exchange {
             'liquidationPrice': liquidationPrice,
             'markPrice': this.safeNumber (position, 'marketPrice'),
             'collateral': this.safeNumber (position, 'posMargin'),
-            'marginType': this.safeString (position, 'settleType'),
+            'marginMode': marginMode,
+            'marginType': marginMode, // deprecated
             'side': side,
             'percentage': undefined,
         };
@@ -2562,7 +2569,7 @@ module.exports = class aax extends Exchange {
             if (Array.isArray (symbols)) {
                 const symbolsLength = symbols.length;
                 if (symbolsLength > 1) {
-                    throw new BadRequest (this.id + ' fetchPositions symbols argument cannot contain more than 1 symbol');
+                    throw new BadRequest (this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
                 }
                 symbol = symbols[0];
             } else {

@@ -626,7 +626,7 @@ module.exports = class kraken extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['darkpool']) {
-            throw new ExchangeError (this.id + ' does not provide an order book for darkpool symbol ' + symbol);
+            throw new ExchangeError (this.id + ' fetchOrderBook() does not provide an order book for darkpool symbol ' + symbol);
         }
         const request = {
             'pair': market['id'],
@@ -751,7 +751,7 @@ module.exports = class kraken extends Exchange {
         await this.loadMarkets ();
         const darkpool = symbol.indexOf ('.d') >= 0;
         if (darkpool) {
-            throw new ExchangeError (this.id + ' does not provide a ticker for darkpool symbol ' + symbol);
+            throw new ExchangeError (this.id + ' fetchTicker() does not provide a ticker for darkpool symbol ' + symbol);
         }
         const market = this.market (symbol);
         const request = {

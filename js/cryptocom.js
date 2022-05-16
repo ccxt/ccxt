@@ -31,7 +31,6 @@ module.exports = class cryptocom extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
-                'fetchFundingFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRates': false,
@@ -50,6 +49,7 @@ module.exports = class cryptocom extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
@@ -508,7 +508,7 @@ module.exports = class cryptocom extends Exchange {
         };
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
         if (marketType !== 'spot') {
-            throw new NotSupported (this.id + ' fetchTicker only supports spot markets');
+            throw new NotSupported (this.id + ' fetchTicker() only supports spot markets');
         }
         const response = await this.spotPublicGetPublicGetTicker (this.extend (request, query));
         // {
@@ -1173,7 +1173,7 @@ module.exports = class cryptocom extends Exchange {
         const data = this.safeValue (response, 'result', {});
         const addresses = this.safeValue (data, 'deposit_address_list', []);
         if (addresses.length === 0) {
-            throw new ExchangeError (this.id + ' generating address...');
+            throw new ExchangeError (this.id + ' fetchDepositAddressesByNetwork() generating address...');
         }
         const result = {};
         for (let i = 0; i < addresses.length; i++) {
@@ -1325,7 +1325,7 @@ module.exports = class cryptocom extends Exchange {
 
     async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (!('direction' in params)) {
-            throw new ArgumentsRequired (this.id + ' fetchTransfers requires a direction param to be either "IN" or "OUT"');
+            throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a direction param to be either "IN" or "OUT"');
         }
         await this.loadMarkets ();
         let currency = undefined;

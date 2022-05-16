@@ -15,7 +15,9 @@ module.exports = class ascendex extends Exchange {
             'id': 'ascendex',
             'name': 'AscendEX',
             'countries': [ 'SG' ], // Singapore
-            'rateLimit': 500,
+            // 8 requests per minute = 0.13333 per second => rateLimit = 750
+            // testing 400 works
+            'rateLimit': 400,
             'certified': true,
             'pro': true,
             // new metainfo interface
@@ -42,8 +44,6 @@ module.exports = class ascendex extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
-                'fetchFundingFee': false,
-                'fetchFundingFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -68,6 +68,8 @@ module.exports = class ascendex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransactionFee': false,
+                'fetchTransactionFees': false,
                 'fetchTransactions': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
@@ -115,111 +117,111 @@ module.exports = class ascendex extends Exchange {
             'api': {
                 'v1': {
                     'public': {
-                        'get': [
-                            'assets',
-                            'products',
-                            'ticker',
-                            'barhist/info',
-                            'barhist',
-                            'depth',
-                            'trades',
-                            'cash/assets', // not documented
-                            'cash/products', // not documented
-                            'margin/assets', // not documented
-                            'margin/products', // not documented
-                            'futures/collateral',
-                            'futures/contracts',
-                            'futures/ref-px',
-                            'futures/market-data',
-                            'futures/funding-rates',
-                            'risk-limit-info',
-                        ],
+                        'get': {
+                            'assets': 1,
+                            'products': 1,
+                            'ticker': 1,
+                            'barhist/info': 1,
+                            'barhist': 1,
+                            'depth': 1,
+                            'trades': 1,
+                            'cash/assets': 1, // not documented
+                            'cash/products': 1, // not documented
+                            'margin/assets': 1, // not documented
+                            'margin/products': 1, // not documented
+                            'futures/collateral': 1,
+                            'futures/contracts': 1,
+                            'futures/ref-px': 1,
+                            'futures/market-data': 1,
+                            'futures/funding-rates': 1,
+                            'risk-limit-info': 1,
+                        },
                     },
                     'private': {
-                        'get': [
-                            'info',
-                            'wallet/transactions',
-                            'wallet/deposit/address', // not documented
-                            'data/balance/snapshot',
-                            'data/balance/history',
-                        ],
+                        'get': {
+                            'info': 1,
+                            'wallet/transactions': 1,
+                            'wallet/deposit/address': 1, // not documented
+                            'data/balance/snapshot': 1,
+                            'data/balance/history': 1,
+                        },
                         'accountCategory': {
-                            'get': [
-                                'balance',
-                                'order/open',
-                                'order/status',
-                                'order/hist/current',
-                                'risk',
-                            ],
-                            'post': [
-                                'order',
-                                'order/batch',
-                            ],
-                            'delete': [
-                                'order',
-                                'order/all',
-                                'order/batch',
-                            ],
+                            'get': {
+                                'balance': 1,
+                                'order/open': 1,
+                                'order/status': 1,
+                                'order/hist/current': 1,
+                                'risk': 1,
+                            },
+                            'post': {
+                                'order': 1,
+                                'order/batch': 1,
+                            },
+                            'delete': {
+                                'order': 1,
+                                'order/all': 1,
+                                'order/batch': 1,
+                            },
                         },
                         'accountGroup': {
-                            'get': [
-                                'cash/balance',
-                                'margin/balance',
-                                'margin/risk',
-                                'futures/collateral-balance',
-                                'futures/position',
-                                'futures/risk',
-                                'futures/funding-payments',
-                                'order/hist',
-                                'spot/fee',
-                            ],
-                            'post': [
-                                'transfer',
-                                'futures/transfer/deposit',
-                                'futures/transfer/withdraw',
-                            ],
+                            'get': {
+                                'cash/balance': 1,
+                                'margin/balance': 1,
+                                'margin/risk': 1,
+                                'futures/collateral-balance': 1,
+                                'futures/position': 1,
+                                'futures/risk': 1,
+                                'futures/funding-payments': 1,
+                                'order/hist': 1,
+                                'spot/fee': 1,
+                            },
+                            'post': {
+                                'transfer': 1,
+                                'futures/transfer/deposit': 1,
+                                'futures/transfer/withdraw': 1,
+                            },
                         },
                     },
                 },
                 'v2': {
                     'public': {
-                        'get': [
-                            'assets',
-                            'futures/contract',
-                            'futures/collateral',
-                            'futures/pricing-data',
-                        ],
+                        'get': {
+                            'assets': 1,
+                            'futures/contract': 1,
+                            'futures/collateral': 1,
+                            'futures/pricing-data': 1,
+                        },
                     },
                     'private': {
-                        'get': [
-                            'account/info',
-                        ],
+                        'get': {
+                            'account/info': 1,
+                        },
                         'accountGroup': {
-                            'get': [
-                                'order/hist',
-                                'futures/position',
-                                'futures/free-margin',
-                                'futures/order/hist/current',
-                                'futures/order/open',
-                                'futures/order/status',
-                            ],
-                            'post': [
-                                'futures/isolated-position-margin',
-                                'futures/margin-type',
-                                'futures/leverage',
-                                'futures/transfer/deposit',
-                                'futures/transfer/withdraw',
-                                'futures/order',
-                                'futures/order/batch',
-                                'futures/order/open',
-                                'subuser/subuser-transfer',
-                                'subuser/subuser-transfer-hist',
-                            ],
-                            'delete': [
-                                'futures/order',
-                                'futures/order/batch',
-                                'futures/order/all',
-                            ],
+                            'get': {
+                                'order/hist': 1,
+                                'futures/position': 1,
+                                'futures/free-margin': 1,
+                                'futures/order/hist/current': 1,
+                                'futures/order/open': 1,
+                                'futures/order/status': 1,
+                            },
+                            'post': {
+                                'futures/isolated-position-margin': 1,
+                                'futures/margin-type': 1,
+                                'futures/leverage': 1,
+                                'futures/transfer/deposit': 1,
+                                'futures/transfer/withdraw': 1,
+                                'futures/order': 1,
+                                'futures/order/batch': 1,
+                                'futures/order/open': 1,
+                                'subuser/subuser-transfer': 1,
+                                'subuser/subuser-transfer-hist': 1,
+                            },
+                            'delete': {
+                                'futures/order': 1,
+                                'futures/order/batch': 1,
+                                'futures/order/all': 1,
+                            },
                         },
                     },
                 },
@@ -1238,17 +1240,18 @@ module.exports = class ascendex extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);
-        const [ style, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         const options = this.safeValue (this.options, 'createOrder', {});
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const accountCategory = this.safeString (accountsByType, style, 'cash');
+        const accountCategory = this.safeString (accountsByType, marketType, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'id');
         const reduceOnly = this.safeValue (params, 'execInst');
         if (reduceOnly !== undefined) {
-            if ((style !== 'swap')) {
-                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + style + ' orders, reduceOnly orders are supported for perpetuals only');
+            if ((marketType !== 'swap')) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for perpetuals only');
             }
         }
         const request = {
@@ -1264,6 +1267,8 @@ module.exports = class ascendex extends Exchange {
             // 'postOnly': 'false', // 'false', 'true'
             // 'timeInForce': 'GTC', // GTC, IOC, FOK
             // 'respInst': 'ACK', // ACK, 'ACCEPT, DONE
+            // 'posStopLossPrice': position stop loss price ( v2 swap orders only)
+            // 'posTakeProfitPrice': position take profit price (v2 swap orders only)
         };
         if (clientOrderId !== undefined) {
             request['id'] = clientOrderId;
@@ -1281,8 +1286,14 @@ module.exports = class ascendex extends Exchange {
                 params = this.omit (params, 'stopPrice');
             }
         }
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        if ((timeInForce === 'PO') || (postOnly)) {
+            request['postOnly'] = true;
+            params = this.omit (params, [ 'postOnly', 'timeInForce' ]);
+        }
         const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountCategoryPostOrder');
-        const method = this.getSupportedMapping (style, {
+        const method = this.getSupportedMapping (marketType, {
             'spot': defaultMethod,
             'margin': defaultMethod,
             'swap': 'v2PrivateAccountGroupPostFuturesOrder',
@@ -1294,7 +1305,7 @@ module.exports = class ascendex extends Exchange {
         } else {
             request['account-category'] = accountCategory;
         }
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
         //
         // AccountCategoryPostOrder
         //
@@ -2021,7 +2032,7 @@ module.exports = class ascendex extends Exchange {
             if (chainName === undefined) {
                 const chainNames = Object.keys (addressesByChainName);
                 const chains = chainNames.join (', ');
-                throw new ArgumentsRequired (this.id + ' fetchDepositAddress returned more than one address, a chainName parameter is required, one of ' + chains);
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() returned more than one address, a chainName parameter is required, one of ' + chains);
             }
             address = this.safeValue (addressesByChainName, chainName, {});
         } else {
@@ -2174,7 +2185,115 @@ module.exports = class ascendex extends Exchange {
         const request = {
             'account-group': accountGroup,
         };
-        return await this.v2PrivateAccountGroupGetFuturesPosition (this.extend (request, params));
+        const response = await this.v2PrivateAccountGroupGetFuturesPosition (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //             "ac": "FUTURES",
+        //             "collaterals": [
+        //                 {
+        //                     "asset": "USDT",
+        //                     "balance": "44.570287262",
+        //                     "referencePrice": "1",
+        //                     "discountFactor": "1"
+        //                 }
+        //             ],
+        //             "contracts": [
+        //                 {
+        //                     "symbol": "BTC-PERP",
+        //                     "side": "LONG",
+        //                     "position": "0.0001",
+        //                     "referenceCost": "-3.12277254",
+        //                     "unrealizedPnl": "-0.001700233",
+        //                     "realizedPnl": "0",
+        //                     "avgOpenPrice": "31209",
+        //                     "marginType": "isolated",
+        //                     "isolatedMargin": "1.654972977",
+        //                     "leverage": "2",
+        //                     "takeProfitPrice": "0",
+        //                     "takeProfitTrigger": "market",
+        //                     "stopLossPrice": "0",
+        //                     "stopLossTrigger": "market",
+        //                     "buyOpenOrderNotional": "0",
+        //                     "sellOpenOrderNotional": "0",
+        //                     "markPrice": "31210.723063672",
+        //                     "indexPrice": "31223.148857925"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const position = this.safeValue (data, 'contracts', []);
+        const result = [];
+        for (let i = 0; i < position.length; i++) {
+            result.push (this.parsePosition (position[i]));
+        }
+        return this.filterByArray (result, 'symbol', symbols, false);
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //     {
+        //         "symbol": "BTC-PERP",
+        //         "side": "LONG",
+        //         "position": "0.0001",
+        //         "referenceCost": "-3.12277254",
+        //         "unrealizedPnl": "-0.001700233",
+        //         "realizedPnl": "0",
+        //         "avgOpenPrice": "31209",
+        //         "marginType": "isolated",
+        //         "isolatedMargin": "1.654972977",
+        //         "leverage": "2",
+        //         "takeProfitPrice": "0",
+        //         "takeProfitTrigger": "market",
+        //         "stopLossPrice": "0",
+        //         "stopLossTrigger": "market",
+        //         "buyOpenOrderNotional": "0",
+        //         "sellOpenOrderNotional": "0",
+        //         "markPrice": "31210.723063672",
+        //         "indexPrice": "31223.148857925"
+        //     },
+        //
+        const marketId = this.safeString (position, 'symbol');
+        market = this.safeMarket (marketId, market);
+        let notional = this.safeNumber (position, 'buyOpenOrderNotional');
+        if (notional === 0) {
+            notional = this.safeNumber (position, 'sellOpenOrderNotional');
+        }
+        const marginMode = this.safeString (position, 'marginType');
+        let collateral = undefined;
+        if (marginMode === 'isolated') {
+            collateral = this.safeNumber (position, 'isolatedMargin');
+        }
+        return {
+            'info': position,
+            'id': undefined,
+            'symbol': market['symbol'],
+            'notional': notional,
+            'marginMode': marginMode,
+            'marginType': marginMode, // deprecated
+            'liquidationPrice': undefined,
+            'entryPrice': this.safeNumber (position, 'avgOpenPrice'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealizedPnl'),
+            'percentage': undefined,
+            'contracts': undefined,
+            'contractSize': this.safeNumber (position, 'position'),
+            'markPrice': this.safeNumber (position, 'markPrice'),
+            'side': this.safeStringLower (position, 'side'),
+            'hedged': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': collateral,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': this.safeInteger (position, 'leverage'),
+            'marginRatio': undefined,
+        };
     }
 
     parseFundingRate (fundingRate, market = undefined) {
@@ -2252,11 +2371,11 @@ module.exports = class ascendex extends Exchange {
         const market = this.market (symbol);
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
-        amount = this.numberToString (amount);
+        amount = this.amountToPrecision (symbol, amount);
         const request = {
             'account-group': accountGroup,
             'symbol': market['id'],
-            'amount': amount,
+            'amount': amount, // positive value for adding margin, negative for reducing
         };
         const response = await this.v2PrivateAccountGroupPostFuturesIsolatedPositionMargin (this.extend (request, params));
         //
@@ -2266,12 +2385,22 @@ module.exports = class ascendex extends Exchange {
         //          "code": 0
         //     }
         //
-        const errorCode = this.safeString (response, 'code');
+        if (type === 'reduce') {
+            amount = Precise.stringAbs (amount);
+        }
+        return this.extend (this.parseModifyMargin (response, market), {
+            'amount': this.parseNumber (amount),
+            'type': type,
+        });
+    }
+
+    parseModifyMargin (data, market = undefined) {
+        const errorCode = this.safeString (data, 'code');
         const status = (errorCode === '0') ? 'ok' : 'failed';
         return {
-            'info': response,
-            'type': type,
-            'amount': amount,
+            'info': data,
+            'type': undefined,
+            'amount': undefined,
             'code': market['quote'],
             'symbol': market['symbol'],
             'status': status,
@@ -2309,13 +2438,13 @@ module.exports = class ascendex extends Exchange {
         return await this.v2PrivateAccountGroupPostFuturesLeverage (this.extend (request, params));
     }
 
-    async setMarginMode (marginType, symbol = undefined, params = {}) {
-        marginType = marginType.toLowerCase ();
-        if (marginType === 'cross') {
-            marginType = 'crossed';
+    async setMarginMode (marginMode, symbol = undefined, params = {}) {
+        marginMode = marginMode.toLowerCase ();
+        if (marginMode === 'cross') {
+            marginMode = 'crossed';
         }
-        if (marginType !== 'isolated' && marginType !== 'crossed') {
-            throw new BadRequest (this.id + ' setMarginMode() marginType argument should be isolated or cross');
+        if (marginMode !== 'isolated' && marginMode !== 'crossed') {
+            throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
         }
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -2325,7 +2454,7 @@ module.exports = class ascendex extends Exchange {
         const request = {
             'account-group': accountGroup,
             'symbol': market['id'],
-            'marginType': marginType,
+            'marginMode': marginMode,
         };
         if (market['type'] !== 'future') {
             throw new BadSymbol (this.id + ' setMarginMode() supports futures contracts only');

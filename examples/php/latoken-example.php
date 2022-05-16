@@ -1,10 +1,10 @@
 <?php
 
-$root = dirname (dirname (dirname (__FILE__)));
+$root = dirname(dirname(dirname(__FILE__)));
 
 include $root . '/ccxt.php';
 
-date_default_timezone_set ('UTC');
+date_default_timezone_set('UTC');
 
 
 $symbol = 'BTC/USDT';
@@ -13,7 +13,6 @@ $exchange_id = 'latoken';
 // instantiate the exchange by id
 $exchange = '\\ccxt\\' . $exchange_id;
 $exchange = new $exchange(array(
-    'enableRateLimit' => true,
     // 'verbose': true, // uncomment for debugging purposes
     // uncomment and change for your keys to enable private calls
     // 'apiKey': 'YOUR_API_KEY',

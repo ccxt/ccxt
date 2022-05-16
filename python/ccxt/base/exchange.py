@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.80.78'
+__version__ = '1.82.58'
 
 # -----------------------------------------------------------------------------
 
@@ -359,7 +359,6 @@ class Exchange(object):
     commonCurrencies = {
         'XBT': 'BTC',
         'BCC': 'BCH',
-        'DRK': 'DASH',
         'BCHABC': 'BCH',
         'BCHSV': 'BSV',
     }
@@ -827,6 +826,78 @@ class Exchange(object):
     @staticmethod
     def safe_value_2(dictionary, key1, key2, default_value=None):
         return Exchange.safe_either(Exchange.safe_value, dictionary, key1, key2, default_value)
+
+    # safe_method_n methods family
+
+    @staticmethod
+    def safe_float_n(dictionary, key_list, default_value=None):
+        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
+        if value is None:
+            return default_value
+        try:
+            value = float(value)
+        except ValueError as e:
+            value = default_value
+        return value
+
+    @staticmethod
+    def safe_string_n(dictionary, key_list, default_value=None):
+        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
+        return str(value) if value is not None else default_value
+
+    @staticmethod
+    def safe_string_lower_n(dictionary, key_list, default_value=None):
+        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
+        return str(value).lower() if value is not None else default_value
+
+    @staticmethod
+    def safe_string_upper_n(dictionary, key_list, default_value=None):
+        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
+        return str(value).upper() if value is not None else default_value
+
+    @staticmethod
+    def safe_integer_n(dictionary, key_list, default_value=None):
+        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
+        if value is None:
+            return default_value
+        try:
+            # needed to avoid breaking on "100.0"
+            # https://stackoverflow.com/questions/1094717/convert-a-string-to-integer-with-decimal-in-python#1094721
+            return int(float(value))
+        except ValueError:
+            return default_value
+        except TypeError:
+            return default_value
+
+    @staticmethod
+    def safe_integer_product_n(dictionary, key_list, factor, default_value=None):
+        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
+        if value is None:
+            return default_value
+        if isinstance(value, Number):
+            return int(value * factor)
+        elif isinstance(value, str):
+            try:
+                return int(float(value) * factor)
+            except ValueError:
+                pass
+        return default_value
+
+    @staticmethod
+    def safe_timestamp_n(dictionary, key_list, default_value=None):
+        return Exchange.safe_integer_product_n(dictionary, key_list, 1000, default_value)
+
+    @staticmethod
+    def safe_value_n(dictionary, key_list, default_value=None):
+        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
+        return value if value is not None else default_value
+
+    @staticmethod
+    def get_object_value_from_key_list(dictionary, key_list):
+        filtered_list = list(filter(lambda el: el in dictionary, key_list))
+        if (len(filtered_list) == 0):
+            return None
+        return dictionary[filtered_list[0]]
 
     @staticmethod
     def safe_either(method, dictionary, key1, key2, default_value=None):
@@ -1411,7 +1482,7 @@ class Exchange(object):
         for key in keys:
             if self.requiredCredentials[key] and not getattr(self, key):
                 if error:
-                    raise AuthenticationError('requires `' + key + '`')
+                    raise AuthenticationError(self.id + ' requires `' + key + '`')
                 else:
                     return error
         return True
@@ -1419,9 +1490,9 @@ class Exchange(object):
     def check_address(self, address):
         """Checks an address is not the same character repeated or an empty sequence"""
         if address is None:
-            raise InvalidAddress('address is None')
+            raise InvalidAddress(self.id + ' address is None')
         if all(letter == address[0] for letter in address) or len(address) < self.minFundingAddressLength or ' ' in address:
-            raise InvalidAddress('address is invalid or has less than ' + str(self.minFundingAddressLength) + ' characters: "' + str(address) + '"')
+            raise InvalidAddress(self.id + ' address is invalid or has less than ' + str(self.minFundingAddressLength) + ' characters: "' + str(address) + '"')
         return address
 
     def account(self):
@@ -1532,7 +1603,7 @@ class Exchange(object):
         return self.markets
 
     def fetch_permissions(self, params={}):
-        raise NotSupported('fetch_permissions() not supported yet')
+        raise NotSupported(self.id + ' fetch_permissions() is not supported yet')
 
     def load_markets(self, reload=False, params={}):
         if not reload:
@@ -1591,70 +1662,70 @@ class Exchange(object):
         }
 
     def fetch_balance(self, params={}):
-        raise NotSupported('fetch_balance() not supported yet')
+        raise NotSupported(self.id + ' fetch_balance() is not supported yet')
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
-        raise NotSupported('create_order() not supported yet')
+        raise NotSupported(self.id + ' create_order() is not supported yet')
 
     def cancel_order(self, id, symbol=None, params={}):
-        raise NotSupported('cancel_order() not supported yet')
+        raise NotSupported(self.id + ' cancel_order() is not supported yet')
 
     def cancel_unified_order(self, order, params={}):
         return self.cancel_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
 
     def fetch_bids_asks(self, symbols=None, params={}) -> dict:
-        raise NotSupported('API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now')
+        raise NotSupported(self.id + ' API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now')
 
     def fetch_ticker(self, symbol, params={}):
         if self.has['fetchTickers']:
             tickers = self.fetch_tickers([symbol], params)
             ticker = self.safe_value(tickers, symbol)
             if ticker is None:
-                raise BadSymbol(self.id + ' fetchTickers could not find a ticker for ' + symbol)
+                raise BadSymbol(self.id + ' fetchTickers() could not find a ticker for ' + symbol)
             else:
                 return ticker
         else:
-            raise NotSupported(self.id + ' fetchTicker not supported yet')
+            raise NotSupported(self.id + ' fetchTicker() is not supported yet')
 
     def fetch_tickers(self, symbols=None, params={}):
-        raise NotSupported('API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now')
+        raise NotSupported(self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now')
 
     def fetch_order_status(self, id, symbol=None, params={}):
         order = self.fetch_order(id, symbol, params)
         return order['status']
 
     def fetch_order(self, id, symbol=None, params={}):
-        raise NotSupported('fetch_order() is not supported yet')
+        raise NotSupported(self.id + ' fetch_order() is not supported yet')
 
     def fetch_unified_order(self, order, params={}):
         return self.fetch_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported('fetch_orders() is not supported yet')
+        raise NotSupported(self.id + ' fetch_orders() is not supported yet')
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported('fetch_open_orders() is not supported yet')
+        raise NotSupported(self.id + ' fetch_open_orders() is not supported yet')
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported('fetch_closed_orders() is not supported yet')
+        raise NotSupported(self.id + ' fetch_closed_orders() is not supported yet')
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported('fetch_my_trades() is not supported yet')
+        raise NotSupported(self.id + ' fetch_my_trades() is not supported yet')
 
     def fetch_order_trades(self, id, symbol=None, params={}):
-        raise NotSupported('fetch_order_trades() is not supported yet')
+        raise NotSupported(self.id + ' fetch_order_trades() is not supported yet')
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
-        raise NotSupported('fetch_transactions() is not supported yet')
+        raise NotSupported(self.id + ' fetch_transactions() is not supported yet')
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
-        raise NotSupported('fetch_deposits() is not supported yet')
+        raise NotSupported(self.id + ' fetch_deposits() is not supported yet')
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
-        raise NotSupported('fetch_withdrawals() is not supported yet')
+        raise NotSupported(self.id + ' fetch_withdrawals() is not supported yet')
 
     # def fetch_deposit_addresses(self, codes=None, params={}):
-    #     raise NotSupported('fetch_deposit_addresses() is not supported yet')
+    #     raise NotSupported(self.id + ' fetch_deposit_addresses() is not supported yet')
 
     def fetch_deposit_address(self, code, params={}):
         if self.has['fetchDepositAddresses']:
@@ -1665,10 +1736,10 @@ class Exchange(object):
             else:
                 return deposit_address
         else:
-            raise NotSupported(self.id + ' fetchDepositAddress not supported yet')
+            raise NotSupported(self.id + ' fetchDepositAddress() not supported yet')
 
     def parse_funding_rate(self, contract, market=None):
-        raise NotSupported(self.id + ' parse_funding_rate() not supported yet')
+        raise NotSupported(self.id + ' parse_funding_rate() is not supported yet')
 
     def parse_funding_rates(self, response, market=None):
         result = {}
@@ -1711,7 +1782,7 @@ class Exchange(object):
                     if (price_key in bidask) and (amount_key in bidask) and (bidask[price_key] and bidask[amount_key]):
                         result.append(self.parse_bid_ask(bidask, price_key, amount_key))
             else:
-                raise ExchangeError('unrecognized bidask format: ' + str(bidasks[0]))
+                raise ExchangeError(self.id + ' unrecognized bidask format: ' + str(bidasks[0]))
         return result
 
     def fetch_l2_order_book(self, symbol, limit=None, params={}):
@@ -1768,20 +1839,32 @@ class Exchange(object):
         return self.fetch_partial_balance('total', params)
 
     def fetch_trading_fees(self, symbol, params={}):
-        raise NotSupported('fetch_trading_fees() not supported yet')
+        raise NotSupported(self.id + ' fetch_trading_fees() is not supported yet')
 
     def fetch_trading_fee(self, symbol, params={}):
         if not self.has['fetchTradingFees']:
-            raise NotSupported('fetch_trading_fee() not supported yet')
+            raise NotSupported(self.id + ' fetch_trading_fee() is not supported yet')
         return self.fetch_trading_fees(params)
 
-    def fetch_funding_fees(self, params={}):
-        raise NotSupported('fetch_funding_fees() not supported yet')
-
     def fetch_funding_fee(self, code, params={}):
-        if not self.has['fetchFundingFees']:
-            raise NotSupported('fetch_funding_fee() not supported yet')
-        return self.fetch_funding_fees(params)
+        warnOnFetchFundingFee = self.safeValue(self.options, 'warnOnFetchFundingFee', True)
+        if warnOnFetchFundingFee:
+            raise NotSupported(self.id + ' fetch_funding_fee() method is deprecated, it will be removed in July 2022, please, use fetch_transaction_fee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning')
+        return self.fetch_transaction_fee(code, params)
+
+    def fetchFundingFees(self, codes=None, params={}):
+        warnOnFetchFundingFees = self.safeValue(self.options, 'warnOnFetchFundingFees', True)
+        if warnOnFetchFundingFees:
+            raise NotSupported(self.id + ' fetch_funding_fees() method is deprecated, it will be removed in July 2022, please, use fetch_transaction_fees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning')
+        return self.fetch_transaction_fees(codes, params)
+
+    def fetch_transaction_fee(self, code, params={}):
+        if not self.has['fetch_transaction_fees']:
+            raise NotSupported(self.id + ' fetch_transaction_fee() is not supported yet')
+        return self.fetch_transaction_fees([code], params)
+
+    def fetch_transaction_fees(self, codes=None, params={}):
+        raise NotSupported(self.id + ' fetch_transaction_fees() is not supported yet')
 
     def load_trading_limits(self, symbols=None, reload=False, params={}):
         if self.has['fetchTradingLimits']:
@@ -1795,7 +1878,7 @@ class Exchange(object):
 
     def fetch_ohlcvc(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         if not self.has['fetchTrades']:
-            raise NotSupported('fetch_ohlcv() not supported yet')
+            raise NotSupported(self.id + ' fetch_ohlcv() is not supported yet')
         self.load_markets()
         trades = self.fetch_trades(symbol, since, limit, params)
         return self.build_ohlcvc(trades, timeframe, since, limit)
@@ -2219,7 +2302,7 @@ class Exchange(object):
 
     def currency(self, code):
         if not self.currencies:
-            raise ExchangeError('Currencies not loaded')
+            raise ExchangeError(self.id + ' currencies not loaded')
         if isinstance(code, str):
             if code in self.currencies:
                 return self.currencies[code]
@@ -2237,7 +2320,7 @@ class Exchange(object):
                 return self.markets[symbol]
             elif symbol in self.markets_by_id:
                 return self.markets_by_id[symbol]
-        raise BadSymbol('{} does not have market symbol {}'.format(self.id, symbol))
+        raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
 
     def market_ids(self, symbols):
         return [self.market_id(symbol) for symbol in symbols]
@@ -2291,8 +2374,6 @@ class Exchange(object):
         return self.edit_order(id, symbol, 'limit', *args)
 
     def edit_order(self, id, symbol, *args):
-        if not self.enableRateLimit:
-            raise ExchangeError('edit_order() requires enableRateLimit = true')
         self.cancel_order(id, symbol)
         return self.create_order(symbol, *args)
 
@@ -2324,7 +2405,7 @@ class Exchange(object):
 
     def check_required_dependencies(self):
         if self.requiresEddsa and eddsa is None:
-            raise NotSupported('Eddsa functionality requires python-axolotl-curve25519, install with `pip install python-axolotl-curve25519==0.4.1.post2`: https://github.com/tgalal/python-axolotl-curve25519')
+            raise NotSupported(self.id + ' Eddsa functionality requires python-axolotl-curve25519, install with `pip install python-axolotl-curve25519==0.4.1.post2`: https://github.com/tgalal/python-axolotl-curve25519')
 
     def privateKeyToAddress(self, privateKey):
         private_key_bytes = base64.b16decode(Exchange.encode(privateKey), True)
@@ -2801,6 +2882,10 @@ class Exchange(object):
 
     def safe_number_2(self, dictionary, key1, key2, default=None):
         value = self.safe_string_2(dictionary, key1, key2)
+        return self.parse_number(value, default)
+
+    def safe_number_n(self, dictionary, key_list, default=None):
+        value = self.safe_string_n(dictionary, key_list)
         return self.parse_number(value, default)
 
     def parse_precision(self, precision):

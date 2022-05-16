@@ -267,7 +267,7 @@ class gemini extends Exchange {
         $response = yield $this->webGetRestApi ($params);
         $sections = explode('<h1 id="symbols-and-minimums">Symbols and minimums</h1>', $response);
         $numSections = is_array($sections) ? count($sections) : 0;
-        $error = $this->id . ' the ' . $this->name . ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' . $this->name . ' markets.';
+        $error = $this->id . ' fetchMarketsFromWeb() the ' . $this->name . ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' . $this->name . ' markets.';
         if ($numSections !== 2) {
             throw new NotSupported($error);
         }
@@ -976,7 +976,7 @@ class gemini extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        $response = yield $this->privatePostV1Orders (); // takes no $params
+        $response = yield $this->privatePostV1Orders ($params);
         //
         //      array(
         //          {
@@ -1012,7 +1012,7 @@ class gemini extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         yield $this->load_markets();
         if ($type === 'market') {
-            throw new ExchangeError($this->id . ' allows limit orders only');
+            throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
         }
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
         $params = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
@@ -1035,7 +1035,7 @@ class gemini extends Exchange {
         $rawStopPrice = $this->safe_string_2($params, 'stop_price', 'stopPrice');
         $params = $this->omit($params, array( 'stop_price', 'stopPrice', 'type' ));
         if ($type === 'stopLimit') {
-            throw new ArgumentsRequired($this->id . ' createOrder () requires a stopPrice parameter or a stop_price parameter for ' . $type . ' orders');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPrice parameter or a stop_price parameter for ' . $type . ' orders');
         }
         if ($rawStopPrice !== null) {
             $request['stop_price'] = $this->price_to_precision($symbol, $rawStopPrice);

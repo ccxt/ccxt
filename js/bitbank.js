@@ -402,7 +402,7 @@ module.exports = class bitbank extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
         if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a since argument');
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

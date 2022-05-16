@@ -45,7 +45,6 @@ class wazirx(Exchange):
                 'fetchDepositAddress': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
-                'fetchFundingFees': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -67,6 +66,7 @@ class wazirx(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchTransactionFees': False,
                 'fetchTransactions': False,
                 'fetchTransfers': False,
                 'fetchWithdrawals': False,
@@ -389,6 +389,7 @@ class wazirx(Exchange):
             'status': 'ok' if (status == 'normal') else 'maintenance',
             'updated': self.milliseconds(),
             'eta': None,
+            'url': None,
             'info': response,
         }
 
@@ -479,7 +480,7 @@ class wazirx(Exchange):
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders requires a `symbol` argument')
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires a `symbol` argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -561,7 +562,7 @@ class wazirx(Exchange):
 
     def cancel_all_orders(self, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelAllOrders requires a `symbol` argument')
+            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a `symbol` argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -571,7 +572,7 @@ class wazirx(Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a `symbol` argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a `symbol` argument')
         self.load_markets()
         market = self.market(symbol)
         request = {

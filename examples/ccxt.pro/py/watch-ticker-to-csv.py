@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from asyncio import gather, get_event_loop
+from asyncio import gather, run
 import ccxtpro
 from pprint import pprint
 
@@ -24,27 +24,22 @@ async def watch_ticker_continuously(exchange, symbol):
             print(e)
 
 
-async def watch_tickers_continuously(loop, exchange_id, overrides, symbols):
-    defaults = {
-        'enableRateLimit': True, # required https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
-        'asyncio_loop': loop,
-    }
+async def watch_tickers_continuously(exchange_id, overrides, symbols):
     exchange_class = getattr(ccxtpro, exchange_id)
-    exchange = exchange_class(ccxtpro.Exchange.extend(defaults, overrides))
+    exchange = exchange_class(overrides)
     coroutines = [watch_ticker_continuously(exchange, symbol) for symbol in symbols]
     await gather(*coroutines)
     await exchange.close()
 
 
-async def main(loop):
+async def main():
     exchanges = {
         'binance': {'options': {'defaultType': 'future'}},
         'huobipro': {}
     }
     symbols = ['BTC/USDT', 'ETH/USDT', 'LTC/USDT', 'XRP/USDT', 'BCH/USDT']
-    coroutines = [watch_tickers_continuously(loop, exchange_id, exchanges[exchange_id], symbols) for exchange_id in exchanges.keys()]
+    coroutines = [watch_tickers_continuously(exchange_id, exchanges[exchange_id], symbols) for exchange_id in exchanges.keys()]
     return await gather(*coroutines)
 
-if __name__ == "__main__":
-    loop = get_event_loop()
-    loop.run_until_complete(main(loop))
+
+run(main())

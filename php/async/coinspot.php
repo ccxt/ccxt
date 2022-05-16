@@ -308,7 +308,7 @@ class coinspot extends Exchange {
         yield $this->load_markets();
         $method = 'privatePostMy' . $this->capitalize($side);
         if ($type === 'market') {
-            throw new ExchangeError($this->id . ' allows limit orders only');
+            throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
         }
         $request = array(
             'cointype' => $this->market_id($symbol),

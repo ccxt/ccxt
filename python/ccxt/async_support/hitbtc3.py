@@ -1421,7 +1421,7 @@ class hitbtc3(Exchange):
         }
         if (type == 'limit') or (type == 'stopLimit'):
             if price is None:
-                raise ExchangeError(self.id + ' limit order requires price')
+                raise ExchangeError(self.id + ' editOrder() limit order requires price')
             request['price'] = self.price_to_precision(symbol, price)
         if symbol is not None:
             market = self.market(symbol)
@@ -1673,7 +1673,7 @@ class hitbtc3(Exchange):
         fromNetwork = self.safe_string(networks, fromNetwork)  # handle ETH>ERC20 alias
         toNetwork = self.safe_string(networks, toNetwork)  # handle ETH>ERC20 alias
         if fromNetwork == toNetwork:
-            raise BadRequest(self.id + ' fromNetwork cannot be the same as toNetwork')
+            raise BadRequest(self.id + ' convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork')
         if (fromNetwork is None) or (toNetwork is None):
             keys = list(networks.keys())
             raise ArgumentsRequired(self.id + ' convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are ' + ', '.join(keys))
@@ -1897,7 +1897,7 @@ class hitbtc3(Exchange):
         #         },
         #     ]
         #
-        marginType = self.safe_string(position, 'type')
+        marginMode = self.safe_string(position, 'type')
         leverage = self.safe_number(position, 'leverage')
         datetime = self.safe_string(position, 'updated_at')
         positions = self.safe_value(position, 'positions', [])
@@ -1921,7 +1921,8 @@ class hitbtc3(Exchange):
             'info': position,
             'symbol': symbol,
             'notional': None,
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode,
             'liquidationPrice': liquidationPrice,
             'entryPrice': entryPrice,
             'unrealizedPnl': None,
@@ -2014,10 +2015,10 @@ class hitbtc3(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         leverage = self.safe_string(params, 'leverage')
-        amount = self.amount_to_precision(symbol, amount)
         if market['type'] == 'swap':
             if leverage is None:
                 raise ArgumentsRequired(self.id + ' modifyMarginHelper() requires a leverage parameter for swap markets')
+        amount = self.amount_to_precision(symbol, amount)
         request = {
             'symbol': market['id'],  # swap and margin
             'margin_balance': amount,  # swap and margin
@@ -2050,13 +2051,19 @@ class hitbtc3(Exchange):
         #         "positions": null
         #     }
         #
-        currencies = self.safe_value(response, 'currencies', [])
-        data = self.safe_value(currencies, 0)
-        return {
-            'info': response,
+        return self.extend(self.parse_modify_margin(response, market), {
+            'amount': self.safe_number(amount),
             'type': type,
-            'amount': amount,
-            'code': self.safe_string(data, 'code'),
+        })
+
+    def parse_modify_margin(self, data, market=None):
+        currencies = self.safe_value(data, 'currencies', [])
+        currencyInfo = self.safe_value(currencies, 0)
+        return {
+            'info': data,
+            'type': None,
+            'amount': None,
+            'code': self.safe_string(currencyInfo, 'code'),
             'symbol': market['symbol'],
             'status': None,
         }

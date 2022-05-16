@@ -52,7 +52,6 @@ class stex(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -78,6 +77,7 @@ class stex(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
+                'fetchTransactionFees': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'setLeverage': False,
@@ -1049,7 +1049,7 @@ class stex(Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
-            raise ExchangeError(self.id + ' createOrder allows limit orders only')
+            raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         self.load_markets()
         market = self.market(symbol)
         if type == 'limit':
@@ -1258,14 +1258,14 @@ class stex(Exchange):
         numRejectedOrders = len(rejectedOrders)
         if numAcceptedOrders < 1:
             if numRejectedOrders < 1:
-                raise OrderNotFound(self.id + ' cancelOrder received an empty response: ' + self.json(response))
+                raise OrderNotFound(self.id + ' cancelOrder() received an empty response: ' + self.json(response))
             else:
                 return self.parse_order(rejectedOrders[0])
         else:
             if numRejectedOrders < 1:
                 return self.parse_order(acceptedOrders[0])
             else:
-                raise OrderNotFound(self.id + ' cancelOrder received an empty response: ' + self.json(response))
+                raise OrderNotFound(self.id + ' cancelOrder() received an empty response: ' + self.json(response))
 
     def cancel_all_orders(self, symbol=None, params={}):
         self.load_markets()
@@ -1773,7 +1773,7 @@ class stex(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def fetch_funding_fees(self, codes=None, params={}):
+    def fetch_transaction_fees(self, codes=None, params={}):
         self.load_markets()
         response = self.publicGetCurrencies(params)
         #

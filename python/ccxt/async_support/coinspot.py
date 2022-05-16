@@ -296,7 +296,7 @@ class coinspot(Exchange):
         await self.load_markets()
         method = 'privatePostMy' + self.capitalize(side)
         if type == 'market':
-            raise ExchangeError(self.id + ' allows limit orders only')
+            raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         request = {
             'cointype': self.market_id(symbol),
             'amount': amount,

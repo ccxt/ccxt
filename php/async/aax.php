@@ -19,7 +19,6 @@ class aax extends Exchange {
             'id' => 'aax',
             'name' => 'AAX',
             'countries' => array( 'MT' ), // Malta
-            'enableRateLimit' => true,
             // 6000 /  hour => 100 per minute => 1.66 requests per second => rateLimit = 600
             // market endpoints ratelimits arent mentioned in docs so they are also set to "all other authenticated endpoints"
             // 5000 / hour => weight = 1.2 ("all other authenticated endpoints")
@@ -64,8 +63,6 @@ class aax extends Exchange {
                 'fetchDepositAddresses' => null,
                 'fetchDepositAddressesByNetwork' => null,
                 'fetchDeposits' => true,
-                'fetchFundingFee' => null,
-                'fetchFundingFees' => null,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -102,6 +99,8 @@ class aax extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
                 'fetchTradingLimits' => null,
+                'fetchTransactionFee' => null,
+                'fetchTransactionFees' => null,
                 'fetchTransactions' => null,
                 'fetchTransfer' => false,
                 'fetchTransfers' => true,
@@ -392,6 +391,7 @@ class aax extends Exchange {
             'status' => $status,
             'updated' => $updated,
             'eta' => $eta,
+            'url' => null,
             'info' => $response,
         );
     }
@@ -497,10 +497,15 @@ class aax extends Exchange {
             $symbol = $base . '/' . $quote;
             $type = 'spot';
             $contractSize = null;
+            $minLeverage = null;
+            $maxLeverage = null;
             if ($swap) {
                 $symbol = $symbol . ':' . $settle;
                 $type = 'swap';
                 $contractSize = $this->safe_number($market, 'multiplier');
+                $minLeverage = '1';
+                $imRate = $this->safe_string($market, 'imRate');
+                $maxLeverage = Precise::string_div('1', $imRate);
             }
             $result[] = array(
                 'id' => $id,
@@ -521,6 +526,7 @@ class aax extends Exchange {
                 'contract' => $swap,
                 'linear' => $linear,
                 'inverse' => $inverse,
+                'quanto' => $quanto,
                 'taker' => $this->safe_number($market, 'takerFee'),
                 'maker' => $this->safe_number($market, 'makerFee'),
                 'contractSize' => $contractSize,
@@ -528,23 +534,22 @@ class aax extends Exchange {
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
-                'quanto' => $quanto,
                 'precision' => array(
                     'amount' => $this->safe_number($market, 'lotSize'),
                     'price' => $this->safe_number($market, 'tickSize'),
                 ),
                 'limits' => array(
                     'leverage' => array(
-                        'min' => null,
-                        'max' => null,
+                        'min' => $this->parse_number($minLeverage),
+                        'max' => $this->parse_number($maxLeverage),
                     ),
                     'amount' => array(
-                        'min' => $this->safe_string($market, 'minQuantity'),
-                        'max' => $this->safe_string($market, 'maxQuantity'),
+                        'min' => $this->safe_number($market, 'minQuantity'),
+                        'max' => $this->safe_number($market, 'maxQuantity'),
                     ),
                     'price' => array(
-                        'min' => $this->safe_string($market, 'minPrice'),
-                        'max' => $this->safe_string($market, 'maxPrice'),
+                        'min' => $this->safe_number($market, 'minPrice'),
+                        'max' => $this->safe_number($market, 'maxPrice'),
                     ),
                     'cost' => array(
                         'min' => null,
@@ -2476,6 +2481,7 @@ class aax extends Exchange {
         $notional = Precise::string_mul($initialQuote, $marketPrice);
         $timestamp = $this->safe_integer($position, 'ts');
         $liquidationPrice = $this->safe_string($position, 'liquidationPrice');
+        $marginMode = $this->safe_string($position, 'settleType');
         return array(
             'info' => $position,
             'symbol' => $this->safe_string($market, 'symbol'),
@@ -2495,7 +2501,8 @@ class aax extends Exchange {
             'liquidationPrice' => $liquidationPrice,
             'markPrice' => $this->safe_number($position, 'marketPrice'),
             'collateral' => $this->safe_number($position, 'posMargin'),
-            'marginType' => $this->safe_string($position, 'settleType'),
+            'marginMode' => $marginMode,
+            'marginType' => $marginMode, // deprecated
             'side' => $side,
             'percentage' => null,
         );
@@ -2566,7 +2573,7 @@ class aax extends Exchange {
             if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) == 0) {
                 $symbolsLength = is_array($symbols) ? count($symbols) : 0;
                 if ($symbolsLength > 1) {
-                    throw new BadRequest($this->id . ' fetchPositions $symbols argument cannot contain more than 1 symbol');
+                    throw new BadRequest($this->id . ' fetchPositions() $symbols argument cannot contain more than 1 symbol');
                 }
                 $symbol = $symbols[0];
             } else {

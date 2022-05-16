@@ -40,7 +40,6 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchFundingFees': undefined,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
                 'fetchMarkOHLCV': false,
@@ -55,6 +54,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchTime': false,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransactionFees': undefined,
                 'fetchTransactions': true,
                 'withdraw': true,
             },
@@ -386,6 +386,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'status': this.safeString ({ '0': 'maintenance', '1': 'ok' }, statusRaw, statusRaw),
             'updated': this.milliseconds (),
             'eta': undefined,
+            'url': undefined,
             'info': response,
         };
     }
@@ -639,7 +640,7 @@ module.exports = class bitfinex2 extends bitfinex {
         const accountType = this.safeString (accountsByType, requestedType, requestedType);
         if (accountType === undefined) {
             const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' fetchBalance type parameter must be one of ' + keys.join (', '));
+            throw new ExchangeError (this.id + ' fetchBalance() type parameter must be one of ' + keys.join (', '));
         }
         const isDerivative = requestedType === 'derivatives';
         const query = this.omit (params, 'type');
@@ -672,12 +673,12 @@ module.exports = class bitfinex2 extends bitfinex {
         const fromId = this.safeString (accountsByType, fromAccount);
         if (fromId === undefined) {
             const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' transfer fromAccount must be one of ' + keys.join (', '));
+            throw new ArgumentsRequired (this.id + ' transfer() fromAccount must be one of ' + keys.join (', '));
         }
         const toId = this.safeString (accountsByType, toAccount);
         if (toId === undefined) {
             const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' transfer toAccount must be one of ' + keys.join (', '));
+            throw new ArgumentsRequired (this.id + ' transfer() toAccount must be one of ' + keys.join (', '));
         }
         const currency = this.currency (code);
         const fromCurrencyId = this.convertDerivativesId (currency, fromAccount);
@@ -746,7 +747,7 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchOrder is not implemented yet');
+        throw new NotSupported (this.id + ' fetchOrder() is not supported yet');
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

@@ -43,13 +43,11 @@ module.exports = class bkex extends Exchange {
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchDeposit': undefined,
+                'fetchDeposit': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': undefined,
                 'fetchDeposits': true,
-                'fetchFundingFee': undefined,
-                'fetchFundingFees': undefined,
                 'fetchFundingHistory': undefined,
                 'fetchFundingRate': undefined,
                 'fetchFundingRateHistory': undefined,
@@ -75,7 +73,7 @@ module.exports = class bkex extends Exchange {
                 'fetchPositions': undefined,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
-                'fetchStatus': undefined,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -83,9 +81,12 @@ module.exports = class bkex extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTradingLimits': undefined,
+                'fetchTransactionFee': undefined,
+                'fetchTransactionFees': undefined,
                 'fetchTransactions': undefined,
-                'fetchTransfers': undefined,
-                'fetchWithdrawal': undefined,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
+                'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'loadMarkets': true,
                 'privateAPI': true,
@@ -95,8 +96,8 @@ module.exports = class bkex extends Exchange {
                 'setMarginMode': undefined,
                 'setPositionMode': undefined,
                 'signIn': undefined,
-                'transfer': undefined,
-                'withdraw': undefined,
+                'transfer': false,
+                'withdraw': false,
             },
             'timeframes': {
                 '1m': '1m',
@@ -364,6 +365,26 @@ module.exports = class bkex extends Exchange {
         // }
         //
         return this.safeInteger (response, 'data');
+    }
+
+    async fetchStatus (params = {}) {
+        const response = await this.publicGetCommonTimestamp (params);
+        //
+        //     {
+        //         "code": '0',
+        //         "data": 1573542445411,
+        //         "msg": "success",
+        //         "status": 0
+        //     }
+        //
+        const statusRaw = this.safeInteger (response, 'status');
+        const codeRaw = this.safeInteger (response, 'code');
+        return {
+            'status': (statusRaw === 0 && codeRaw === 0) ? 'ok' : statusRaw,
+            'updated': this.milliseconds (),
+            'eta': undefined,
+            'info': response,
+        };
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {

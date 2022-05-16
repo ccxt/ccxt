@@ -45,7 +45,6 @@ class stex extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
-                'fetchFundingFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -71,6 +70,7 @@ class stex extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
+                'fetchTransactionFees' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
@@ -1079,7 +1079,7 @@ class stex extends Exchange {
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type === 'market') {
-            throw new ExchangeError($this->id . ' createOrder allows limit orders only');
+            throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -1299,7 +1299,7 @@ class stex extends Exchange {
         $numRejectedOrders = is_array($rejectedOrders) ? count($rejectedOrders) : 0;
         if ($numAcceptedOrders < 1) {
             if ($numRejectedOrders < 1) {
-                throw new OrderNotFound($this->id . ' cancelOrder received an empty $response => ' . $this->json($response));
+                throw new OrderNotFound($this->id . ' cancelOrder() received an empty $response => ' . $this->json($response));
             } else {
                 return $this->parse_order($rejectedOrders[0]);
             }
@@ -1307,7 +1307,7 @@ class stex extends Exchange {
             if ($numRejectedOrders < 1) {
                 return $this->parse_order($acceptedOrders[0]);
             } else {
-                throw new OrderNotFound($this->id . ' cancelOrder received an empty $response => ' . $this->json($response));
+                throw new OrderNotFound($this->id . ' cancelOrder() received an empty $response => ' . $this->json($response));
             }
         }
     }
@@ -1850,7 +1850,7 @@ class stex extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function fetch_funding_fees($codes = null, $params = array ()) {
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
         yield $this->load_markets();
         $response = yield $this->publicGetCurrencies ($params);
         //

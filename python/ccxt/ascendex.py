@@ -24,7 +24,9 @@ class ascendex(Exchange):
             'id': 'ascendex',
             'name': 'AscendEX',
             'countries': ['SG'],  # Singapore
-            'rateLimit': 500,
+            # 8 requests per minute = 0.13333 per second => rateLimit = 750
+            # testing 400 works
+            'rateLimit': 400,
             'certified': True,
             'pro': True,
             # new metainfo interface
@@ -51,8 +53,6 @@ class ascendex(Exchange):
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
-                'fetchFundingFee': False,
-                'fetchFundingFees': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -77,6 +77,8 @@ class ascendex(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransactionFee': False,
+                'fetchTransactionFees': False,
                 'fetchTransactions': True,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
@@ -124,111 +126,111 @@ class ascendex(Exchange):
             'api': {
                 'v1': {
                     'public': {
-                        'get': [
-                            'assets',
-                            'products',
-                            'ticker',
-                            'barhist/info',
-                            'barhist',
-                            'depth',
-                            'trades',
-                            'cash/assets',  # not documented
-                            'cash/products',  # not documented
-                            'margin/assets',  # not documented
-                            'margin/products',  # not documented
-                            'futures/collateral',
-                            'futures/contracts',
-                            'futures/ref-px',
-                            'futures/market-data',
-                            'futures/funding-rates',
-                            'risk-limit-info',
-                        ],
+                        'get': {
+                            'assets': 1,
+                            'products': 1,
+                            'ticker': 1,
+                            'barhist/info': 1,
+                            'barhist': 1,
+                            'depth': 1,
+                            'trades': 1,
+                            'cash/assets': 1,  # not documented
+                            'cash/products': 1,  # not documented
+                            'margin/assets': 1,  # not documented
+                            'margin/products': 1,  # not documented
+                            'futures/collateral': 1,
+                            'futures/contracts': 1,
+                            'futures/ref-px': 1,
+                            'futures/market-data': 1,
+                            'futures/funding-rates': 1,
+                            'risk-limit-info': 1,
+                        },
                     },
                     'private': {
-                        'get': [
-                            'info',
-                            'wallet/transactions',
-                            'wallet/deposit/address',  # not documented
-                            'data/balance/snapshot',
-                            'data/balance/history',
-                        ],
+                        'get': {
+                            'info': 1,
+                            'wallet/transactions': 1,
+                            'wallet/deposit/address': 1,  # not documented
+                            'data/balance/snapshot': 1,
+                            'data/balance/history': 1,
+                        },
                         'accountCategory': {
-                            'get': [
-                                'balance',
-                                'order/open',
-                                'order/status',
-                                'order/hist/current',
-                                'risk',
-                            ],
-                            'post': [
-                                'order',
-                                'order/batch',
-                            ],
-                            'delete': [
-                                'order',
-                                'order/all',
-                                'order/batch',
-                            ],
+                            'get': {
+                                'balance': 1,
+                                'order/open': 1,
+                                'order/status': 1,
+                                'order/hist/current': 1,
+                                'risk': 1,
+                            },
+                            'post': {
+                                'order': 1,
+                                'order/batch': 1,
+                            },
+                            'delete': {
+                                'order': 1,
+                                'order/all': 1,
+                                'order/batch': 1,
+                            },
                         },
                         'accountGroup': {
-                            'get': [
-                                'cash/balance',
-                                'margin/balance',
-                                'margin/risk',
-                                'futures/collateral-balance',
-                                'futures/position',
-                                'futures/risk',
-                                'futures/funding-payments',
-                                'order/hist',
-                                'spot/fee',
-                            ],
-                            'post': [
-                                'transfer',
-                                'futures/transfer/deposit',
-                                'futures/transfer/withdraw',
-                            ],
+                            'get': {
+                                'cash/balance': 1,
+                                'margin/balance': 1,
+                                'margin/risk': 1,
+                                'futures/collateral-balance': 1,
+                                'futures/position': 1,
+                                'futures/risk': 1,
+                                'futures/funding-payments': 1,
+                                'order/hist': 1,
+                                'spot/fee': 1,
+                            },
+                            'post': {
+                                'transfer': 1,
+                                'futures/transfer/deposit': 1,
+                                'futures/transfer/withdraw': 1,
+                            },
                         },
                     },
                 },
                 'v2': {
                     'public': {
-                        'get': [
-                            'assets',
-                            'futures/contract',
-                            'futures/collateral',
-                            'futures/pricing-data',
-                        ],
+                        'get': {
+                            'assets': 1,
+                            'futures/contract': 1,
+                            'futures/collateral': 1,
+                            'futures/pricing-data': 1,
+                        },
                     },
                     'private': {
-                        'get': [
-                            'account/info',
-                        ],
+                        'get': {
+                            'account/info': 1,
+                        },
                         'accountGroup': {
-                            'get': [
-                                'order/hist',
-                                'futures/position',
-                                'futures/free-margin',
-                                'futures/order/hist/current',
-                                'futures/order/open',
-                                'futures/order/status',
-                            ],
-                            'post': [
-                                'futures/isolated-position-margin',
-                                'futures/margin-type',
-                                'futures/leverage',
-                                'futures/transfer/deposit',
-                                'futures/transfer/withdraw',
-                                'futures/order',
-                                'futures/order/batch',
-                                'futures/order/open',
-                                'subuser/subuser-transfer',
-                                'subuser/subuser-transfer-hist',
-                            ],
-                            'delete': [
-                                'futures/order',
-                                'futures/order/batch',
-                                'futures/order/all',
-                            ],
+                            'get': {
+                                'order/hist': 1,
+                                'futures/position': 1,
+                                'futures/free-margin': 1,
+                                'futures/order/hist/current': 1,
+                                'futures/order/open': 1,
+                                'futures/order/status': 1,
+                            },
+                            'post': {
+                                'futures/isolated-position-margin': 1,
+                                'futures/margin-type': 1,
+                                'futures/leverage': 1,
+                                'futures/transfer/deposit': 1,
+                                'futures/transfer/withdraw': 1,
+                                'futures/order': 1,
+                                'futures/order/batch': 1,
+                                'futures/order/open': 1,
+                                'subuser/subuser-transfer': 1,
+                                'subuser/subuser-transfer-hist': 1,
+                            },
+                            'delete': {
+                                'futures/order': 1,
+                                'futures/order/batch': 1,
+                                'futures/order/all': 1,
+                            },
                         },
                     },
                 },
@@ -1212,17 +1214,18 @@ class ascendex(Exchange):
         self.load_markets()
         self.load_accounts()
         market = self.market(symbol)
-        style, query = self.handle_market_type_and_params('createOrder', market, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('createOrder', market, params)
         options = self.safe_value(self.options, 'createOrder', {})
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
-        accountCategory = self.safe_string(accountsByType, style, 'cash')
+        accountCategory = self.safe_string(accountsByType, marketType, 'cash')
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_value(account, 'id')
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'id')
         reduceOnly = self.safe_value(params, 'execInst')
         if reduceOnly is not None:
-            if (style != 'swap'):
-                raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + style + ' orders, reduceOnly orders are supported for perpetuals only')
+            if (marketType != 'swap'):
+                raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for perpetuals only')
         request = {
             'account-group': accountGroup,
             'account-category': accountCategory,
@@ -1236,6 +1239,8 @@ class ascendex(Exchange):
             # 'postOnly': 'false',  # 'false', 'true'
             # 'timeInForce': 'GTC',  # GTC, IOC, FOK
             # 'respInst': 'ACK',  # ACK, 'ACCEPT, DONE
+            # 'posStopLossPrice': position stop loss price( v2 swap orders only)
+            # 'posTakeProfitPrice': position take profit price(v2 swap orders only)
         }
         if clientOrderId is not None:
             request['id'] = clientOrderId
@@ -1249,8 +1254,13 @@ class ascendex(Exchange):
             else:
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
                 params = self.omit(params, 'stopPrice')
+        timeInForce = self.safe_string(params, 'timeInForce')
+        postOnly = self.safe_value(params, 'postOnly', False)
+        if (timeInForce == 'PO') or (postOnly):
+            request['postOnly'] = True
+            params = self.omit(params, ['postOnly', 'timeInForce'])
         defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountCategoryPostOrder')
-        method = self.get_supported_mapping(style, {
+        method = self.get_supported_mapping(marketType, {
             'spot': defaultMethod,
             'margin': defaultMethod,
             'swap': 'v2PrivateAccountGroupPostFuturesOrder',
@@ -1260,7 +1270,7 @@ class ascendex(Exchange):
                 request['category'] = accountCategory
         else:
             request['account-category'] = accountCategory
-        response = getattr(self, method)(self.extend(request, query))
+        response = getattr(self, method)(self.extend(request, params))
         #
         # AccountCategoryPostOrder
         #
@@ -1956,7 +1966,7 @@ class ascendex(Exchange):
             if chainName is None:
                 chainNames = list(addressesByChainName.keys())
                 chains = ', '.join(chainNames)
-                raise ArgumentsRequired(self.id + ' fetchDepositAddress returned more than one address, a chainName parameter is required, one of ' + chains)
+                raise ArgumentsRequired(self.id + ' fetchDepositAddress() returned more than one address, a chainName parameter is required, one of ' + chains)
             address = self.safe_value(addressesByChainName, chainName, {})
         else:
             # first address
@@ -2098,7 +2108,111 @@ class ascendex(Exchange):
         request = {
             'account-group': accountGroup,
         }
-        return self.v2PrivateAccountGroupGetFuturesPosition(self.extend(request, params))
+        response = self.v2PrivateAccountGroupGetFuturesPosition(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        #             "ac": "FUTURES",
+        #             "collaterals": [
+        #                 {
+        #                     "asset": "USDT",
+        #                     "balance": "44.570287262",
+        #                     "referencePrice": "1",
+        #                     "discountFactor": "1"
+        #                 }
+        #             ],
+        #             "contracts": [
+        #                 {
+        #                     "symbol": "BTC-PERP",
+        #                     "side": "LONG",
+        #                     "position": "0.0001",
+        #                     "referenceCost": "-3.12277254",
+        #                     "unrealizedPnl": "-0.001700233",
+        #                     "realizedPnl": "0",
+        #                     "avgOpenPrice": "31209",
+        #                     "marginType": "isolated",
+        #                     "isolatedMargin": "1.654972977",
+        #                     "leverage": "2",
+        #                     "takeProfitPrice": "0",
+        #                     "takeProfitTrigger": "market",
+        #                     "stopLossPrice": "0",
+        #                     "stopLossTrigger": "market",
+        #                     "buyOpenOrderNotional": "0",
+        #                     "sellOpenOrderNotional": "0",
+        #                     "markPrice": "31210.723063672",
+        #                     "indexPrice": "31223.148857925"
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        position = self.safe_value(data, 'contracts', [])
+        result = []
+        for i in range(0, len(position)):
+            result.append(self.parse_position(position[i]))
+        return self.filter_by_array(result, 'symbol', symbols, False)
+
+    def parse_position(self, position, market=None):
+        #
+        #     {
+        #         "symbol": "BTC-PERP",
+        #         "side": "LONG",
+        #         "position": "0.0001",
+        #         "referenceCost": "-3.12277254",
+        #         "unrealizedPnl": "-0.001700233",
+        #         "realizedPnl": "0",
+        #         "avgOpenPrice": "31209",
+        #         "marginType": "isolated",
+        #         "isolatedMargin": "1.654972977",
+        #         "leverage": "2",
+        #         "takeProfitPrice": "0",
+        #         "takeProfitTrigger": "market",
+        #         "stopLossPrice": "0",
+        #         "stopLossTrigger": "market",
+        #         "buyOpenOrderNotional": "0",
+        #         "sellOpenOrderNotional": "0",
+        #         "markPrice": "31210.723063672",
+        #         "indexPrice": "31223.148857925"
+        #     },
+        #
+        marketId = self.safe_string(position, 'symbol')
+        market = self.safe_market(marketId, market)
+        notional = self.safe_number(position, 'buyOpenOrderNotional')
+        if notional == 0:
+            notional = self.safe_number(position, 'sellOpenOrderNotional')
+        marginMode = self.safe_string(position, 'marginType')
+        collateral = None
+        if marginMode == 'isolated':
+            collateral = self.safe_number(position, 'isolatedMargin')
+        return {
+            'info': position,
+            'id': None,
+            'symbol': market['symbol'],
+            'notional': notional,
+            'marginMode': marginMode,
+            'marginType': marginMode,  # deprecated
+            'liquidationPrice': None,
+            'entryPrice': self.safe_number(position, 'avgOpenPrice'),
+            'unrealizedPnl': self.safe_number(position, 'unrealizedPnl'),
+            'percentage': None,
+            'contracts': None,
+            'contractSize': self.safe_number(position, 'position'),
+            'markPrice': self.safe_number(position, 'markPrice'),
+            'side': self.safe_string_lower(position, 'side'),
+            'hedged': None,
+            'timestamp': None,
+            'datetime': None,
+            'maintenanceMargin': None,
+            'maintenanceMarginPercentage': None,
+            'collateral': collateral,
+            'initialMargin': None,
+            'initialMarginPercentage': None,
+            'leverage': self.safe_integer(position, 'leverage'),
+            'marginRatio': None,
+        }
 
     def parse_funding_rate(self, fundingRate, market=None):
         #
@@ -2173,11 +2287,11 @@ class ascendex(Exchange):
         market = self.market(symbol)
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_string(account, 'id')
-        amount = self.number_to_string(amount)
+        amount = self.amount_to_precision(symbol, amount)
         request = {
             'account-group': accountGroup,
             'symbol': market['id'],
-            'amount': amount,
+            'amount': amount,  # positive value for adding margin, negative for reducing
         }
         response = self.v2PrivateAccountGroupPostFuturesIsolatedPositionMargin(self.extend(request, params))
         #
@@ -2187,12 +2301,20 @@ class ascendex(Exchange):
         #          "code": 0
         #     }
         #
-        errorCode = self.safe_string(response, 'code')
+        if type == 'reduce':
+            amount = Precise.string_abs(amount)
+        return self.extend(self.parse_modify_margin(response, market), {
+            'amount': self.parse_number(amount),
+            'type': type,
+        })
+
+    def parse_modify_margin(self, data, market=None):
+        errorCode = self.safe_string(data, 'code')
         status = 'ok' if (errorCode == '0') else 'failed'
         return {
-            'info': response,
-            'type': type,
-            'amount': amount,
+            'info': data,
+            'type': None,
+            'amount': None,
             'code': market['quote'],
             'symbol': market['symbol'],
             'status': status,
@@ -2223,12 +2345,12 @@ class ascendex(Exchange):
         }
         return self.v2PrivateAccountGroupPostFuturesLeverage(self.extend(request, params))
 
-    def set_margin_mode(self, marginType, symbol=None, params={}):
-        marginType = marginType.lower()
-        if marginType == 'cross':
-            marginType = 'crossed'
-        if marginType != 'isolated' and marginType != 'crossed':
-            raise BadRequest(self.id + ' setMarginMode() marginType argument should be isolated or cross')
+    def set_margin_mode(self, marginMode, symbol=None, params={}):
+        marginMode = marginMode.lower()
+        if marginMode == 'cross':
+            marginMode = 'crossed'
+        if marginMode != 'isolated' and marginMode != 'crossed':
+            raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
         self.load_markets()
         self.load_accounts()
         market = self.market(symbol)
@@ -2237,7 +2359,7 @@ class ascendex(Exchange):
         request = {
             'account-group': accountGroup,
             'symbol': market['id'],
-            'marginType': marginType,
+            'marginMode': marginMode,
         }
         if market['type'] != 'future':
             raise BadSymbol(self.id + ' setMarginMode() supports futures contracts only')

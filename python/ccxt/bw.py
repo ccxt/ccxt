@@ -43,7 +43,6 @@ class bw(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': None,
                 'fetchL2OrderBook': None,
                 'fetchLedger': None,
                 'fetchMarkets': True,
@@ -60,6 +59,7 @@ class bw(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTradingLimits': None,
+                'fetchTransactionFees': None,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
                 'withdraw': None,
@@ -693,7 +693,7 @@ class bw(Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if price is None:
-            raise ExchangeError(self.id + ' allows limit orders only')
+            raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         self.load_markets()
         market = self.market(symbol)
         request = {

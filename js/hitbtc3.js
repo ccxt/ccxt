@@ -1483,7 +1483,7 @@ module.exports = class hitbtc3 extends Exchange {
         };
         if ((type === 'limit') || (type === 'stopLimit')) {
             if (price === undefined) {
-                throw new ExchangeError (this.id + ' limit order requires price');
+                throw new ExchangeError (this.id + ' editOrder() limit order requires price');
             }
             request['price'] = this.priceToPrecision (symbol, price);
         }
@@ -1756,7 +1756,7 @@ module.exports = class hitbtc3 extends Exchange {
         fromNetwork = this.safeString (networks, fromNetwork); // handle ETH>ERC20 alias
         toNetwork = this.safeString (networks, toNetwork); // handle ETH>ERC20 alias
         if (fromNetwork === toNetwork) {
-            throw new BadRequest (this.id + ' fromNetwork cannot be the same as toNetwork');
+            throw new BadRequest (this.id + ' convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork');
         }
         if ((fromNetwork === undefined) || (toNetwork === undefined)) {
             const keys = Object.keys (networks);
@@ -1996,7 +1996,7 @@ module.exports = class hitbtc3 extends Exchange {
         //         },
         //     ]
         //
-        const marginType = this.safeString (position, 'type');
+        const marginMode = this.safeString (position, 'type');
         const leverage = this.safeNumber (position, 'leverage');
         const datetime = this.safeString (position, 'updated_at');
         const positions = this.safeValue (position, 'positions', []);
@@ -2022,7 +2022,8 @@ module.exports = class hitbtc3 extends Exchange {
             'info': position,
             'symbol': symbol,
             'notional': undefined,
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode,
             'liquidationPrice': liquidationPrice,
             'entryPrice': entryPrice,
             'unrealizedPnl': undefined,
@@ -2120,12 +2121,12 @@ module.exports = class hitbtc3 extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const leverage = this.safeString (params, 'leverage');
-        amount = this.amountToPrecision (symbol, amount);
         if (market['type'] === 'swap') {
             if (leverage === undefined) {
                 throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a leverage parameter for swap markets');
             }
         }
+        amount = this.amountToPrecision (symbol, amount);
         const request = {
             'symbol': market['id'], // swap and margin
             'margin_balance': amount, // swap and margin
@@ -2159,13 +2160,20 @@ module.exports = class hitbtc3 extends Exchange {
         //         "positions": null
         //     }
         //
-        const currencies = this.safeValue (response, 'currencies', []);
-        const data = this.safeValue (currencies, 0);
-        return {
-            'info': response,
+        return this.extend (this.parseModifyMargin (response, market), {
+            'amount': this.safeNumber (amount),
             'type': type,
-            'amount': amount,
-            'code': this.safeString (data, 'code'),
+        });
+    }
+
+    parseModifyMargin (data, market = undefined) {
+        const currencies = this.safeValue (data, 'currencies', []);
+        const currencyInfo = this.safeValue (currencies, 0);
+        return {
+            'info': data,
+            'type': undefined,
+            'amount': undefined,
+            'code': this.safeString (currencyInfo, 'code'),
             'symbol': market['symbol'],
             'status': undefined,
         };

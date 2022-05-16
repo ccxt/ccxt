@@ -77,7 +77,6 @@ class ftx(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': None,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -104,6 +103,7 @@ class ftx(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransactionFees': None,
                 'fetchTransfer': None,
                 'fetchTransfers': None,
                 'fetchWithdrawals': True,
@@ -372,6 +372,7 @@ class ftx(Exchange):
                     'No such future': BadSymbol,
                     'No such market': BadSymbol,
                     'Do not send more than': RateLimitExceeded,
+                    'Cannot send more than': RateLimitExceeded,  # {"success":false,"error":"Cannot send more than 1500 requests per minute"}
                     'An unexpected error occurred': ExchangeNotAvailable,  # {"error":"An unexpected error occurred, please try again later(58BC21C795).","success":false}
                     'Please retry request': ExchangeNotAvailable,  # {"error":"Please retry request","success":false}
                     'Please try again': ExchangeNotAvailable,  # {"error":"Please try again","success":false}
@@ -1393,6 +1394,12 @@ class ftx(Exchange):
         clientOrderId = self.safe_string(order, 'clientId')
         stopPrice = self.safe_number(order, 'triggerPrice')
         postOnly = self.safe_value(order, 'postOnly')
+        ioc = self.safe_value(order, 'ioc')
+        timeInForce = None
+        if ioc:
+            timeInForce = 'IOC'
+        if postOnly:
+            timeInForce = 'PO'
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1402,7 +1409,7 @@ class ftx(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
-            'timeInForce': None,
+            'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
             'price': price,
@@ -1430,28 +1437,50 @@ class ftx(Exchange):
             # 'ioc': False,  # optional, default is False, limit or market orders only
             # 'postOnly': False,  # optional, default is False, limit or market orders only
             # 'clientId': 'abcdef0123456789',  # string, optional, client order id, limit or market orders only
+            # 'triggerPrice': 0.306525,  # required for stop and takeProfit orders
+            # 'trailValue': -0.306525,  # required for trailingStop orders, negative for "sell"; positive for "buy"
+            # 'orderPrice': 0.306525,  # optional, for stop and takeProfit orders only(market by default). If not specified, a market order will be submitted
         }
         clientOrderId = self.safe_string_2(params, 'clientId', 'clientOrderId')
         if clientOrderId is not None:
             request['clientId'] = clientOrderId
             params = self.omit(params, ['clientId', 'clientOrderId'])
         method = None
-        if type == 'limit':
+        stopPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
+        params = self.omit(params, ['stopPrice', 'triggerPrice'])
+        if ((type == 'limit') or (type == 'market')) and (stopPrice is None):
             method = 'privatePostOrders'
-            request['price'] = float(self.price_to_precision(symbol, price))
-        elif type == 'market':
-            method = 'privatePostOrders'
-            request['price'] = None
-        elif (type == 'stop') or (type == 'takeProfit'):
+            if type == 'limit':
+                request['price'] = float(self.price_to_precision(symbol, price))
+            elif type == 'market':
+                request['price'] = None
+            timeInForce = self.safe_string(params, 'timeInForce')
+            postOnly = self.safe_value(params, 'postOnly', False)
+            params = self.omit(params, ['timeInForce', 'postOnly'])
+            if timeInForce is not None:
+                if not ((timeInForce == 'IOC') or (timeInForce == 'PO')):
+                    raise InvalidOrder(self.id + ' createOrder() does not accept timeInForce: ' + timeInForce + ' orders, only IOC and PO orders are allowed')
+            maker = ((timeInForce == 'PO') or postOnly)
+            if (type == 'market') and maker:
+                raise InvalidOrder(self.id + ' createOrder() does not accept postOnly: True or timeInForce: PO for market orders')
+            ioc = (timeInForce == 'IOC')
+            if maker:
+                request['postOnly'] = True
+            if ioc:
+                request['ioc'] = True
+        elif (type == 'stop') or (type == 'takeProfit') or (stopPrice is not None):
             method = 'privatePostConditionalOrders'
-            stopPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
             if stopPrice is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders')
             else:
-                params = self.omit(params, ['stopPrice', 'triggerPrice'])
                 request['triggerPrice'] = float(self.price_to_precision(symbol, stopPrice))
+            if (type == 'limit') and (price is None):
+                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for stop limit orders')
             if price is not None:
                 request['orderPrice'] = float(self.price_to_precision(symbol, price))  # optional, order type is limit if self is specified, otherwise market
+            if (type == 'limit') or (type == 'market'):
+                # default to stop orders for main argument
+                request['type'] = 'stop'
         elif type == 'trailingStop':
             trailValue = self.safe_number(params, 'trailValue', price)
             if trailValue is None:
@@ -1709,9 +1738,10 @@ class ftx(Exchange):
         defaultMethod = self.safe_string(options, 'method', 'privateGetOrders')
         method = self.safe_string(params, 'method', defaultMethod)
         type = self.safe_value(params, 'type')
-        if (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
+        stop = self.safe_value(params, 'stop')
+        if stop or (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
             method = 'privateGetConditionalOrders'
-        query = self.omit(params, ['method', 'type'])
+        query = self.omit(params, ['method', 'type', 'stop'])
         response = getattr(self, method)(self.extend(request, query))
         #
         #     {
@@ -2047,7 +2077,8 @@ class ftx(Exchange):
             'liquidationPrice': self.parse_number(liquidationPriceString),
             'markPrice': self.parse_number(markPriceString),
             'collateral': self.parse_number(collateral),
-            'marginType': 'cross',
+            'marginMode': 'cross',
+            'marginType': 'cross',  # deprecated
             'side': side,
             'percentage': percentage,
         }
@@ -2305,7 +2336,7 @@ class ftx(Exchange):
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (leverage < 1) or (leverage > 20):
-            raise BadRequest(self.id + ' leverage should be between 1 and 20')
+            raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 20')
         request = {
             'leverage': leverage,
         }
@@ -2597,7 +2628,8 @@ class ftx(Exchange):
         return {
             'account': 'cross',
             'symbol': None,
-            'marginType': 'cross',
+            'marginMode': 'cross',
+            'marginType': 'cross',  # deprecated
             'currency': self.safe_currency_code(coin),
             'interest': self.safe_number(info, 'cost'),
             'interestRate': self.safe_number(info, 'rate'),

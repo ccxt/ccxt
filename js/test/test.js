@@ -297,7 +297,7 @@ async function testExchange (exchange) {
 
     const balance = await test ('fetchBalance', exchange)
 
-    await test ('fetchFundingFees', exchange)
+    await test ('fetchTransactionFees', exchange)
     await test ('fetchTradingFees', exchange)
     await test ('fetchStatus', exchange)
 
@@ -396,8 +396,6 @@ async function tryAllProxies (exchange, proxies) {
                 continue
             } else if (e instanceof ccxt.ExchangeNotAvailable) {
                 continue
-            } else if (e instanceof ccxt.AuthenticationError) {
-                return
             } else if (e instanceof ccxt.AuthenticationError) {
                 return
             } else if (e instanceof ccxt.InvalidNonce) {

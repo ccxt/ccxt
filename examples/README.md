@@ -79,6 +79,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [CCXT - Crypto Trading](https://www.youtube.com/playlist?list=PLvzuUVysUFOv5XEPHeqefgyHZcDfLxH-W) – An awesome video playlist on CCXT and tons of other cool videos by [Part Time Larry](https://www.youtube.com/c/parttimelarry)!
 
+[CCXT Python Crypto Tutorials](https://www.youtube.com/playlist?list=PLXrNVMjRZUJg4OV2qfmFMpI5k3FRrB0NE) – CCXT Python Crypto Tutorials on YouTube!
+
 [Python and CCXT Grid Bot Tutorial](https://www.youtube.com/watch?v=QzqMGX4Qk1A) – A video tutorial on building a Grid Bot with Python and CCXT!
 
 [JavaScript CCXT Grid Bot vs. Python](https://www.youtube.com/watch?v=kLATKNzbUOE) – A video comparison of using CCXT to write a Grid Bot in JavaScript vs Python.
@@ -86,6 +88,8 @@ php -f path/to/example.php # substitute for actual filename here
 [Crypto Trading Bot In Python](https://medium.com/coinmonks/crypto-trading-bot-on-python-22a245f1a9d) – An article on structuring a basic bot with CCXT and Python.
 
 [Writing a crypto trading bot](https://www.kleemans.ch/writing-a-crypto-trading-bot) – How to write an automated trading bot, for fun and profit.
+
+[Daily Binance Crypto Trade Signals](https://medium.com/coinmonks/daily-binance-us-crypto-trade-signals-fda4e8a205c8) – How to use Kaggle’s schedule feature to build a daily cryptocurrency trade signals webpage.
 
 [graphql-ccxt](https://github.com/fibo/graphql-ccxt) – Joins together GraphQL and CCXT: can fetch prices, read balance, open orders, ... on multiple exchanges at once.
 
@@ -113,9 +117,13 @@ php -f path/to/example.php # substitute for actual filename here
 
 [How to Buy and Sell Bitcoin with Python](https://python.plainenglish.io/how-to-buy-and-sell-bitcoin-with-python-f83d893c393) – How to Buy and Sell Bitcoin with Python using CCXT.
 
+[Beginners Python Guide To CCXT Crypto API](https://wire.insiderfinance.io/beginners-python-guide-to-ccxt-crypto-api-no-api-key-required-4dc928f3af94) – A guide to working with CCXT in Python.
+
 [Download Cryptocurrency Data with CCXT](https://backtest-rookies.com/2018/03/08/download-cryptocurrency-data-with-ccxt/) – A sample script to download historical data from exchanges with a video overview: [Easy Python script to download crypto currency market data with CCXT package](https://www.youtube.com/watch?v=PTGkJsrF7kQ).
 
 [How to Properly Download and Validate Cryptocurrency Data](https://medium.com/@dmitriy.kavyazin/how-to-properly-download-and-validate-cryptocurrency-data-fa90ac1c5f8b) – An article explaining how to properly obtain cryptocurrency price and volume data for use in trading and statistical modeling (with CCXT).
+
+[Step-By-Step Guide to Installing Python and CCXT Library](https://www.youtube.com/watch?v=bmKAtBfGk50) – A video tutorial on installing CCXT and Python on MS Windows.
 
 [ccxt 를 사용하여 가상화폐 데이터 다운로드하기](https://antilibrary.org/2174) – A Korean translation of the above article.
 
@@ -151,6 +159,8 @@ php -f path/to/example.php # substitute for actual filename here
 [Trade and Invest Smarter — The Reinforcement Learning Way](https://towardsdatascience.com/trade-smarter-w-reinforcement-learning-a5e91163f315) – A deep dive into  trading and investing using deep reinforcement learning with Python.
 
 [Cryptocurrencies and APIs](https://jonc.dev/cryptocurrency) – A presentation given to kick off the Bloomberg cryptocurrency hackathon and as a Recurse Center talk.
+
+[How to use CCXT to algo trade](https://www.youtube.com/watch?v=3EQsDdjZTlc) – An easy to watch video tutorial on how to use CCXT for algotrading.
 
 [Perform Currency Conversions And Get Bitcoin Prices In Python](http://www.maxpython.com/packages/perform-currency-conversions-and-get-bitcoin-prices-in-python.php) – an article showing how to use CCXT to get exchange rates, Bitcoin prices and perform currency conversions.
 

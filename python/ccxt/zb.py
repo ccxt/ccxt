@@ -35,7 +35,14 @@ class zb(Exchange):
             'id': 'zb',
             'name': 'ZB',
             'countries': ['CN'],
-            'rateLimit': 100,
+            # previously rateLimit = 100
+            # Trading and Margin 10 000 per minute(IP) => 10000 / 60 = 166.66666... per second => rateLimit = 1000/166.66666 = 6
+            # Trade and Margin 60 per second(apiKey) => weight = 166.666 / 60 = 2.778(2.7777777...)
+            # Kline 1 per second => weight = 166.667
+            # v2 Futures API 100 per 2 seconds => 50 per second => weight = 3.334(3.3333333...)
+            # for endpoints not mentioned in docs
+            # previous rateLimit was 100 translating to 10 requests per second => weight = 166.666 / 10 = 16.667(16.666666...)
+            'rateLimit': 6,
             'version': 'v1',
             'certified': True,
             'pro': True,
@@ -145,133 +152,134 @@ class zb(Exchange):
                 'spot': {
                     'v1': {
                         'public': {
-                            'get': [
-                                'markets',
-                                'ticker',
-                                'allTicker',
-                                'depth',
-                                'trades',
-                                'kline',
-                                'getGroupMarkets',
-                                'getFeeInfo',
-                            ],
+                            'get': {
+                                'markets': 16.667,
+                                'ticker': 16.667,
+                                'allTicker': 16.667,
+                                'depth': 16.667,
+                                'trades': 16.667,
+                                'kline': 166.667,  # Kline 1 per second
+                                'getGroupMarkets': 16.667,
+                                'getFeeInfo': 16.667,
+                            },
                         },
                         'private': {
-                            'get': [
+                            'get': {
                                 # spot API
-                                'order',
-                                'orderMoreV2',
-                                'cancelOrder',
-                                'getOrder',
-                                'getOrders',
-                                'getOrdersNew',
-                                'getOrdersIgnoreTradeType',
-                                'getUnfinishedOrdersIgnoreTradeType',
-                                'getFinishedAndPartialOrders',
-                                'getAccountInfo',
-                                'getUserAddress',
-                                'getPayinAddress',
-                                'getWithdrawAddress',
-                                'getWithdrawRecord',
-                                'getChargeRecord',
-                                'getCnyWithdrawRecord',
-                                'getCnyChargeRecord',
-                                'withdraw',
+                                'order': 1,  # Trade API
+                                'orderMoreV2': 1,  # Trade API
+                                'cancelOrder': 1,  # Trade API
+                                'cancelAllOrdersAfter': 1,  # Trade API TODO add cancelAllOrders
+                                'getOrder': 1,  # Trade API
+                                'getOrders': 1,  # Trade API
+                                'getOrdersNew': 16.667,
+                                'getOrdersIgnoreTradeType': 1,  # Trade API
+                                'getUnfinishedOrdersIgnoreTradeType': 1,  # Trade API
+                                'getFinishedAndPartialOrders': 1,  # Trade API
+                                'getAccountInfo': 16.667,
+                                'getUserAddress': 16.667,
+                                'getPayinAddress': 16.667,
+                                'getWithdrawAddress': 16.667,
+                                'getWithdrawRecord': 16.667,
+                                'getChargeRecord': 16.667,
+                                'getCnyWithdrawRecord': 16.667,
+                                'getCnyChargeRecord': 16.667,
+                                'withdraw': 16.667,
                                 # sub accounts
-                                'addSubUser',
-                                'getSubUserList',
-                                'doTransferFunds',
-                                'createSubUserKey',  # removed on 2021-03-16 according to the update log in the API doc
+                                'addSubUser': 16.667,
+                                'getSubUserList': 16.667,
+                                'doTransferFunds': 16.667,
+                                'createSubUserKey': 16.667,  # removed on 2021-03-16 according to the update log in the API doc
                                 # leverage API
-                                'getLeverAssetsInfo',
-                                'getLeverBills',
-                                'transferInLever',
-                                'transferOutLever',
-                                'loan',
-                                'cancelLoan',
-                                'getLoans',
-                                'getLoanRecords',
-                                'borrow',
-                                'autoBorrow',
-                                'repay',
-                                'doAllRepay',
-                                'getRepayments',
-                                'getFinanceRecords',
-                                'changeInvestMark',
-                                'changeLoop',
+                                'getLeverAssetsInfo': 16.667,
+                                'getLeverBills': 16.667,
+                                'transferInLever': 16.667,
+                                'transferOutLever': 16.667,
+                                'loan': 16.667,
+                                'cancelLoan': 16.667,
+                                'getLoans': 16.667,
+                                'getLoanRecords': 16.667,
+                                'borrow': 16.667,
+                                'autoBorrow': 16.667,
+                                'repay': 16.667,
+                                'doAllRepay': 16.667,
+                                'getRepayments': 16.667,
+                                'getFinanceRecords': 16.667,
+                                'changeInvestMark': 16.667,
+                                'changeLoop': 16.667,
                                 # cross API
-                                'getCrossAssets',
-                                'getCrossBills',
-                                'transferInCross',
-                                'transferOutCross',
-                                'doCrossLoan',
-                                'doCrossRepay',
-                                'getCrossRepayRecords',
-                            ],
+                                'getCrossAssets': 16.667,
+                                'getCrossBills': 16.667,
+                                'transferInCross': 16.667,
+                                'transferOutCross': 16.667,
+                                'doCrossLoan': 16.667,
+                                'doCrossRepay': 16.667,
+                                'getCrossRepayRecords': 16.667,
+                            },
                         },
                     },
                 },
                 'contract': {
                     'v1': {
                         'public': {
-                            'get': [
-                                'depth',
-                                'fundingRate',
-                                'indexKline',
-                                'indexPrice',
-                                'kline',
-                                'markKline',
-                                'markPrice',
-                                'ticker',
-                                'trade',
-                            ],
+                            'get': {
+                                'depth': 16.667,
+                                'fundingRate': 16.667,
+                                'indexKline': 16.667,
+                                'indexPrice': 16.667,
+                                'kline': 16.667,
+                                'markKline': 16.667,
+                                'markPrice': 16.667,
+                                'ticker': 16.667,
+                                'trade': 16.667,
+                            },
                         },
                     },
                     'v2': {
                         'public': {
-                            'get': [
-                                'allForceOrders',
-                                'config/marketList',
-                                'topLongShortAccountRatio',
-                                'topLongShortPositionRatio',
-                                'fundingRate',
-                                'premiumIndex',
-                            ],
+                            'get': {
+                                'allForceOrders': 3.334,
+                                'config/marketList': 3.334,
+                                'topLongShortAccountRatio': 3.334,
+                                'topLongShortPositionRatio': 3.334,
+                                'fundingRate': 3.334,
+                                'premiumIndex': 3.334,
+                            },
                         },
                         'private': {
-                            'get': [
-                                'Fund/balance',
-                                'Fund/getAccount',
-                                'Fund/getBill',
-                                'Fund/getBillTypeList',
-                                'Fund/marginHistory',
-                                'Positions/getPositions',
-                                'Positions/getNominalValue',
-                                'Positions/marginInfo',
-                                'setting/get',
-                                'trade/getAllOrders',
-                                'trade/getOrder',
-                                'trade/getOrderAlgos',
-                                'trade/getTradeList',
-                                'trade/getUndoneOrders',
-                                'trade/tradeHistory',
-                            ],
-                            'post': [
-                                'activity/buyTicket',
-                                'Fund/transferFund',
-                                'Positions/setMarginCoins',
-                                'Positions/updateAppendUSDValue',
-                                'Positions/updateMargin',
-                                'setting/setLeverage',
-                                'trade/batchOrder',
-                                'trade/batchCancelOrder',
-                                'trade/cancelAlgos',
-                                'trade/cancelAllOrders',
-                                'trade/cancelOrder',
-                                'trade/order',
-                                'trade/orderAlgo',
-                                'trade/updateOrderAlgo',
-                            ],
+                            'get': {
+                                'Fund/balance': 3.334,
+                                'Fund/getAccount': 3.334,
+                                'Fund/getBill': 3.334,
+                                'Fund/getBillTypeList': 3.334,
+                                'Fund/marginHistory': 3.334,
+                                'Positions/getPositions': 3.334,
+                                'Positions/getNominalValue': 3.334,
+                                'Positions/marginInfo': 3.334,
+                                'setting/get': 3.334,
+                                'trade/getAllOrders': 3.334,
+                                'trade/getOrder': 3.334,
+                                'trade/getOrderAlgos': 3.334,
+                                'trade/getTradeList': 3.334,
+                                'trade/getUndoneOrders': 3.334,
+                                'trade/tradeHistory': 3.334,
+                            },
+                            'post': {
+                                'activity/buyTicket': 3.334,
+                                'Fund/transferFund': 3.334,
+                                'Positions/setMarginCoins': 3.334,
+                                'Positions/updateAppendUSDValue': 3.334,
+                                'Positions/updateMargin': 3.334,
+                                'setting/setLeverage': 3.334,
+                                'trade/batchOrder': 3.334,
+                                'trade/batchCancelOrder': 3.334,
+                                'trade/cancelAlgos': 3.334,
+                                'trade/cancelAllOrders': 3.334,
+                                'trade/cancelOrder': 3.334,
+                                'trade/order': 3.334,
+                                'trade/orderAlgo': 3.334,
+                                'trade/updateOrderAlgo': 3.334,
+                            },
                         },
                     },
                 },
@@ -821,12 +829,12 @@ class zb(Exchange):
             result[code] = account
         return self.safe_balance(result)
 
-    def parse_margin_balance(self, response, marginType):
+    def parse_margin_balance(self, response, marginMode):
         result = {
             'info': response,
         }
         levers = None
-        if marginType == 'isolated':
+        if marginMode == 'isolated':
             message = self.safe_value(response, 'message', {})
             data = self.safe_value(message, 'datas', {})
             levers = self.safe_value(data, 'levers', [])
@@ -908,7 +916,7 @@ class zb(Exchange):
             #     ],
             #
             account = self.account()
-            if marginType == 'isolated':
+            if marginMode == 'isolated':
                 code = self.safe_currency_code(self.safe_string(balance, 'fShowName'))
                 account['total'] = self.safe_string(balance, 'fAvailableUSD')  # total amount in USD
                 account['free'] = self.safe_string(balance, 'couldTransferOutFiat')
@@ -929,10 +937,10 @@ class zb(Exchange):
         swap = (marketType == 'swap')
         marginMethod = None
         defaultMargin = 'isolated' if margin else 'cross'
-        marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
-        if marginType == 'isolated':
+        marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+        if marginMode == 'isolated':
             marginMethod = 'spotV1PrivateGetGetLeverAssetsInfo'
-        elif marginType == 'cross':
+        elif marginMode == 'cross':
             marginMethod = 'spotV1PrivateGetGetCrossAssets'
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotV1PrivateGetGetAccountInfo',
@@ -1105,7 +1113,7 @@ class zb(Exchange):
         if swap:
             return self.parse_swap_balance(response)
         elif margin:
-            return self.parse_margin_balance(response, marginType)
+            return self.parse_margin_balance(response, marginMode)
         else:
             return self.parse_balance(response)
 
@@ -1778,9 +1786,14 @@ class zb(Exchange):
                 else:
                     request['action'] = type
                 request['symbol'] = market['id']
-                request['clientOrderId'] = params['clientOrderId']  # OPTIONAL '^[a-zA-Z0-9-_]{1,36}$',  # The user-defined order number
-                request['extend'] = params['extend']  # OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
-        query = self.omit(params, ['reduceOnly', 'stop', 'stopPrice', 'orderType', 'triggerPrice', 'algoPrice', 'priceType', 'bizType'])
+                clientOrderId = self.safe_string(params, 'clientOrderId')  # OPTIONAL '^[a-zA-Z0-9-_]{1,36}$',  # The user-defined order number
+                if clientOrderId is not None:
+                    request['clientOrderId'] = clientOrderId
+                # using self.extend as name causes issues in python
+                extendOrderAlgos = self.safe_value(params, 'extend', None)  # OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
+                if extendOrderAlgos is not None:
+                    request['extend'] = extendOrderAlgos
+        query = self.omit(params, ['reduceOnly', 'stop', 'stopPrice', 'orderType', 'triggerPrice', 'algoPrice', 'priceType', 'bizType', 'clientOrderId', 'extend'])
         response = getattr(self, method)(self.extend(request, query))
         #
         # Spot
@@ -1810,10 +1823,12 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
-        if swap and stop is None and stopPrice is None:
+        if (swap) and (not stop) and (stopPrice is None):
             response = self.safe_value(response, 'data')
             response['timeInForce'] = timeInForce
-            response['type'] = request['tradeType']
+            tradeType = self.safe_string(response, 'tradeType')
+            if tradeType is None:
+                response['type'] = tradeType
             response['total_amount'] = amount
             response['price'] = price
         return self.parse_order(response, market)
@@ -2930,7 +2945,7 @@ class zb(Exchange):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         if (leverage < 1) or (leverage > 125):
-            raise BadRequest(self.id + ' leverage should be between 1 and 125')
+            raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 125')
         market = self.market(symbol)
         accountType = None
         if not market['swap']:
@@ -3396,7 +3411,7 @@ class zb(Exchange):
         rawSide = self.safe_string(position, 'side')
         side = 'long' if (rawSide == '1') else 'short'
         openType = self.safe_string(position, 'marginMode')
-        marginType = 'isolated' if (openType == '1') else 'cross'
+        marginMode = 'isolated' if (openType == '1') else 'cross'
         leverage = self.safe_string(position, 'leverage')
         liquidationPrice = self.safe_number(position, 'liquidatePrice')
         unrealizedProfit = self.safe_number(position, 'unrealizedPnl')
@@ -3416,7 +3431,8 @@ class zb(Exchange):
             'unrealizedProfit': unrealizedProfit,
             'leverage': self.parse_number(leverage),
             'percentage': percentage,
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode,  # deprecated
             'notional': notional,
             'markPrice': None,
             'liquidationPrice': liquidationPrice,
@@ -3603,14 +3619,14 @@ class zb(Exchange):
             request['side'] = side
         else:
             defaultMargin = 'isolated' if margin else 'cross'
-            marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
-            if marginType == 'isolated':
+            marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+            if marginMode == 'isolated':
                 if fromAccount == 'spot' or toAccount == 'isolated':
                     marginMethod = 'spotV1PrivateGetTransferInLever'
                 else:
                     marginMethod = 'spotV1PrivateGetTransferOutLever'
                 request['marketName'] = self.safe_string(params, 'marketName')
-            elif marginType == 'cross':
+            elif marginMode == 'cross':
                 if fromAccount == 'spot' or toAccount == 'cross':
                     marginMethod = 'spotV1PrivateGetTransferInCross'
                 else:
@@ -3711,28 +3727,34 @@ class zb(Exchange):
         #         "desc":"操作成功"
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        side = 'add' if (type == 1) else 'reduce'
-        errorCode = self.safe_integer(data, 'status')
-        status = 'ok' if (errorCode == 1) else 'failed'
+        return self.extend(self.parse_modify_margin(response, market), {
+            'amount': self.parse_number(amount),
+        })
+
+    def parse_modify_margin(self, data, market=None):
+        innerData = self.safe_value(data, 'data', {})
+        sideRaw = self.safe_integer(innerData, 'side')
+        side = 'add' if (sideRaw == 1) else 'reduce'
+        statusCode = self.safe_integer(innerData, 'status')
+        status = 'ok' if (statusCode == 1) else 'failed'
         return {
-            'info': response,
+            'info': data,
             'type': side,
-            'amount': amount,
+            'amount': None,
             'code': market['quote'],
             'symbol': market['symbol'],
             'status': status,
         }
 
-    def reduce_margin(self, symbol, amount, params={}):
-        if params['positionsId'] is None:
-            raise ArgumentsRequired(self.id + ' reduceMargin() requires a positionsId argument in the params')
-        return self.modify_margin_helper(symbol, amount, 0, params)
-
     def add_margin(self, symbol, amount, params={}):
         if params['positionsId'] is None:
             raise ArgumentsRequired(self.id + ' addMargin() requires a positionsId argument in the params')
         return self.modify_margin_helper(symbol, amount, 1, params)
+
+    def reduce_margin(self, symbol, amount, params={}):
+        if params['positionsId'] is None:
+            raise ArgumentsRequired(self.id + ' reduceMargin() requires a positionsId argument in the params')
+        return self.modify_margin_helper(symbol, amount, 0, params)
 
     def fetch_borrow_rate(self, code, params={}):
         self.load_markets()

@@ -33,6 +33,9 @@ class woo extends Exchange {
                 'cancelWithdraw' => false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
                 'createMarketOrder' => false,
                 'createOrder' => true,
+                'createStopLimitOrder' => false,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => false,
                 'fetchBalance' => true,
                 'fetchCanceledOrders' => false,
                 'fetchClosedOrder' => false,
@@ -67,6 +70,7 @@ class woo extends Exchange {
                 'fetchTransactions' => true,
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
+                'transfer' => true,
                 'withdraw' => false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             ),
             'timeframes' => array(
@@ -134,6 +138,7 @@ class woo extends Exchange {
                         ),
                         'post' => array(
                             'order' => 5, // 2 requests per 1 second per symbol
+                            'asset/main_sub_transfer' => 30, // 20 requests per 60 seconds
                             'asset/withdraw' => 120,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
                         ),
                         'delete' => array(
@@ -213,6 +218,9 @@ class woo extends Exchange {
                 'defaultNetworkCodeForCurrencies' => array(
                     // 'USDT' => 'TRC20',
                     // 'BTC' => 'BTC',
+                ),
+                'transfer' => array(
+                    'fillResponseFromRequest' => true,
                 ),
             ),
             'commonCurrencies' => array(),
@@ -1376,6 +1384,33 @@ class woo extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'token' => $currency['id'],
+            'amount' => $this->parse_number($amount),
+            'from_application_id' => $fromAccount,
+            'to_application_id' => $toAccount,
+        );
+        $response = $this->v1PrivatePostAssetMainSubTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //         "id" => 200
+        //     }
+        //
+        $transfer = $this->parse_transfer($response, $currency);
+        $transferOptions = $this->safe_value($this->options, 'transfer', array());
+        $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
+        if ($fillResponseFromRequest) {
+            $transfer['amount'] = $amount;
+            $transfer['fromAccount'] = $fromAccount;
+            $transfer['toAccount'] = $toAccount;
+        }
+        return $transfer;
+    }
+
     public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
         $request = array(
             'type' => 'COLLATERAL',
@@ -1385,7 +1420,33 @@ class woo extends Exchange {
     }
 
     public function parse_transfer($transfer, $currency = null) {
-        // example is "fetchTransactions"
+        //
+        //    getAssetHistoryRows
+        //        {
+        //            "created_time" => "1579399877.041",  // Unix epoch time in seconds
+        //            "updated_time" => "1579399877.041",  // Unix epoch time in seconds
+        //            "id" => "202029292829292",
+        //            "external_id" => "202029292829292",
+        //            "application_id" => null,
+        //            "token" => "ETH",
+        //            "target_address" => "0x31d64B3230f8baDD91dE1710A65DF536aF8f7cDa",
+        //            "source_address" => "0x70fd25717f769c7f9a46b319f0f9103c0d887af0",
+        //            "extra" => "",
+        //            "type" => "BALANCE",
+        //            "token_side" => "DEPOSIT",
+        //            "amount" => 1000,
+        //            "tx_id" => "0x8a74c517bc104c8ebad0c3c3f64b1f302ed5f8bca598ae4459c63419038106b6",
+        //            "fee_token" => null,
+        //            "fee_amount" => null,
+        //            "status" => "CONFIRMING"
+        //        }
+        //
+        //    v1PrivatePostAssetMainSubTransfer
+        //        {
+        //            "success" => true,
+        //            "id" => 200
+        //        }
+        //
         $networkizedCode = $this->safe_string($transfer, 'token');
         $currencyDefined = $this->get_currency_from_chaincode($networkizedCode, $currency);
         $code = $currencyDefined['code'];
@@ -1398,11 +1459,16 @@ class woo extends Exchange {
         if ($movementDirection === 'withdraw') {
             $fromAccount = null;
             $toAccount = 'spot';
-        } else {
+        } else if ($movementDirection === 'deposit') {
             $fromAccount = 'spot';
             $toAccount = null;
         }
         $timestamp = $this->safe_timestamp($transfer, 'created_time');
+        $success = $this->safe_value($transfer, 'success');
+        $status = null;
+        if ($success !== null) {
+            $status = $success ? 'ok' : 'failed';
+        }
         return array(
             'id' => $this->safe_string($transfer, 'id'),
             'timestamp' => $timestamp,
@@ -1411,13 +1477,20 @@ class woo extends Exchange {
             'amount' => $this->safe_number($transfer, 'amount'),
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
-            'status' => $this->parse_transfer_status($this->safe_string($transfer, 'status')),
+            'status' => $this->parse_transfer_status($this->safe_string($transfer, 'status', $status)),
             'info' => $transfer,
         );
     }
 
     public function parse_transfer_status($status) {
-        return $this->parse_transaction_status($status);
+        $statuses = array(
+            'NEW' => 'pending',
+            'CONFIRMING' => 'pending',
+            'PROCESSING' => 'pending',
+            'COMPLETED' => 'ok',
+            'CANCELED' => 'canceled',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function nonce() {

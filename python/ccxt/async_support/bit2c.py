@@ -255,7 +255,7 @@ class bit2c(Exchange):
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        method = self.options['fetchTradesMethod']
+        method = self.options['fetchTradesMethod']  # public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
         request = {
             'pair': market['id'],
         }
@@ -264,6 +264,13 @@ class bit2c(Exchange):
         if limit is not None:
             request['limit'] = limit  # max 100000
         response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     [
+        #         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
+        #         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
+        #         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
+        #     ]
+        #
         if isinstance(response, str):
             raise ExchangeError(response)
         return self.parse_trades(response, market, since, limit)
@@ -397,9 +404,78 @@ class bit2c(Exchange):
             market = self.market(symbol)
             request['pair'] = market['id']
         response = await self.privateGetOrderOrderHistory(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "ticks":1574767951,
+        #             "created":"26/11/19 13:32",
+        #             "action":1,
+        #             "price":"1000",
+        #             "pair":"EthNis",
+        #             "reference":"EthNis|10867390|10867377",
+        #             "fee":"0.5",
+        #             "feeAmount":"0.08",
+        #             "feeCoin":"₪",
+        #             "firstAmount":"-0.015",
+        #             "firstAmountBalance":"9",
+        #             "secondAmount":"14.93",
+        #             "secondAmountBalance":"130,233.28",
+        #             "firstCoin":"ETH",
+        #             "secondCoin":"₪"
+        #         },
+        #         {
+        #             "ticks":1574767951,
+        #             "created":"26/11/19 13:32",
+        #             "action":0,
+        #             "price":"1000",
+        #             "pair":"EthNis",
+        #             "reference":"EthNis|10867390|10867377",
+        #             "fee":"0.5",
+        #             "feeAmount":"0.08",
+        #             "feeCoin":"₪",
+        #             "firstAmount":"0.015",
+        #             "firstAmountBalance":"9.015",
+        #             "secondAmount":"-15.08",
+        #             "secondAmountBalance":"130,218.35",
+        #             "firstCoin":"ETH",
+        #             "secondCoin":"₪"
+        #         }
+        #     ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     def parse_trade(self, trade, market=None):
+        #
+        # public fetchTrades
+        #
+        #     {
+        #         "date":1651785980,
+        #         "price":127975.68,
+        #         "amount":0.3750321,
+        #         "isBid":true,
+        #         "tid":1261018
+        #     }
+        #
+        # private fetchMyTrades
+        #
+        #     {
+        #         "ticks":1574767951,
+        #         "created":"26/11/19 13:32",
+        #         "action":1,
+        #         "price":"1000",
+        #         "pair":"EthNis",
+        #         "reference":"EthNis|10867390|10867377",
+        #         "fee":"0.5",
+        #         "feeAmount":"0.08",
+        #         "feeCoin":"₪",
+        #         "firstAmount":"-0.015",
+        #         "firstAmountBalance":"9",
+        #         "secondAmount":"14.93",
+        #         "secondAmountBalance":"130,233.28",
+        #         "firstCoin":"ETH",
+        #         "secondCoin":"₪"
+        #     }
+        #
         timestamp = None
         id = None
         price = None
@@ -413,12 +489,9 @@ class bit2c(Exchange):
             price = self.safe_string(trade, 'price')
             amount = self.safe_string(trade, 'firstAmount')
             reference_parts = reference.split('|')  # reference contains 'pair|orderId|tradeId'
-            if market is None:
-                marketId = self.safe_string(trade, 'pair')
-                if marketId in self.markets_by_id[marketId]:
-                    market = self.markets_by_id[marketId]
-                elif reference_parts[0] in self.markets_by_id:
-                    market = self.markets_by_id[reference_parts[0]]
+            marketId = self.safe_string(trade, 'pair')
+            market = self.safe_market(marketId, market)
+            market = self.safe_market(reference_parts[0], market)
             orderId = reference_parts[1]
             id = reference_parts[2]
             side = self.safe_integer(trade, 'action')

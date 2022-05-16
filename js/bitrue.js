@@ -43,7 +43,6 @@ module.exports = class bitrue extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
-                'fetchFundingFees': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': 'emulated',
@@ -58,6 +57,7 @@ module.exports = class bitrue extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': true,
@@ -348,6 +348,7 @@ module.exports = class bitrue extends Exchange {
             'status': formattedStatus,
             'updated': this.milliseconds (),
             'eta': undefined,
+            'url': undefined,
             'info': response,
         };
     }
@@ -1236,7 +1237,7 @@ module.exports = class bitrue extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1348,7 +1349,7 @@ module.exports = class bitrue extends Exchange {
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits requires a code argument');
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a code argument');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1410,7 +1411,7 @@ module.exports = class bitrue extends Exchange {
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchWithdrawals requires a code argument');
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a code argument');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1610,7 +1611,7 @@ module.exports = class bitrue extends Exchange {
             const networkEntry = this.safeValue (networks, network, {});
             chainName = this.safeString (networkEntry, 'id'); // handle ERC20>ETH alias
             if (chainName === undefined) {
-                throw new ArgumentsRequired (this.id + ' withdraw requires a network parameter or a chainName parameter');
+                throw new ArgumentsRequired (this.id + ' withdraw() requires a network parameter or a chainName parameter');
             }
             params = this.omit (params, 'network');
         }

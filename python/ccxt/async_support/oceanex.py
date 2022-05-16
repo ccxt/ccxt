@@ -49,7 +49,6 @@ class oceanex(Exchange):
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
-                'fetchFundingFees': None,
                 'fetchMarkets': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -64,6 +63,7 @@ class oceanex(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTradingLimits': None,
+                'fetchTransactionFees': None,
             },
             'timeframes': {
                 '1m': '1',

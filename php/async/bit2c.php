@@ -260,7 +260,7 @@ class bit2c extends Exchange {
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
-        $method = $this->options['fetchTradesMethod'];
+        $method = $this->options['fetchTradesMethod']; // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
         $request = array(
             'pair' => $market['id'],
         );
@@ -271,6 +271,13 @@ class bit2c extends Exchange {
             $request['limit'] = $limit; // max 100000
         }
         $response = yield $this->$method (array_merge($request, $params));
+        //
+        //     array(
+        //         array("date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018),
+        //         array("date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020),
+        //         array("date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022),
+        //     )
+        //
         if (gettype($response) === 'string') {
             throw new ExchangeError($response);
         }
@@ -418,10 +425,79 @@ class bit2c extends Exchange {
             $request['pair'] = $market['id'];
         }
         $response = yield $this->privateGetOrderOrderHistory (array_merge($request, $params));
+        //
+        //     array(
+        //         array(
+        //             "ticks":1574767951,
+        //             "created":"26/11/19 13:32",
+        //             "action":1,
+        //             "price":"1000",
+        //             "pair":"EthNis",
+        //             "reference":"EthNis|10867390|10867377",
+        //             "fee":"0.5",
+        //             "feeAmount":"0.08",
+        //             "feeCoin":"₪",
+        //             "firstAmount":"-0.015",
+        //             "firstAmountBalance":"9",
+        //             "secondAmount":"14.93",
+        //             "secondAmountBalance":"130,233.28",
+        //             "firstCoin":"ETH",
+        //             "secondCoin":"₪"
+        //         ),
+        //         {
+        //             "ticks":1574767951,
+        //             "created":"26/11/19 13:32",
+        //             "action":0,
+        //             "price":"1000",
+        //             "pair":"EthNis",
+        //             "reference":"EthNis|10867390|10867377",
+        //             "fee":"0.5",
+        //             "feeAmount":"0.08",
+        //             "feeCoin":"₪",
+        //             "firstAmount":"0.015",
+        //             "firstAmountBalance":"9.015",
+        //             "secondAmount":"-15.08",
+        //             "secondAmountBalance":"130,218.35",
+        //             "firstCoin":"ETH",
+        //             "secondCoin":"₪"
+        //         }
+        //     )
+        //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // public fetchTrades
+        //
+        //     {
+        //         "date":1651785980,
+        //         "price":127975.68,
+        //         "amount":0.3750321,
+        //         "isBid":true,
+        //         "tid":1261018
+        //     }
+        //
+        // private fetchMyTrades
+        //
+        //     {
+        //         "ticks":1574767951,
+        //         "created":"26/11/19 13:32",
+        //         "action":1,
+        //         "price":"1000",
+        //         "pair":"EthNis",
+        //         "reference":"EthNis|10867390|10867377",
+        //         "fee":"0.5",
+        //         "feeAmount":"0.08",
+        //         "feeCoin":"₪",
+        //         "firstAmount":"-0.015",
+        //         "firstAmountBalance":"9",
+        //         "secondAmount":"14.93",
+        //         "secondAmountBalance":"130,233.28",
+        //         "firstCoin":"ETH",
+        //         "secondCoin":"₪"
+        //     }
+        //
         $timestamp = null;
         $id = null;
         $price = null;
@@ -435,14 +511,9 @@ class bit2c extends Exchange {
             $price = $this->safe_string($trade, 'price');
             $amount = $this->safe_string($trade, 'firstAmount');
             $reference_parts = explode('|', $reference); // $reference contains 'pair|$orderId|tradeId'
-            if ($market === null) {
-                $marketId = $this->safe_string($trade, 'pair');
-                if (is_array($this->markets_by_id[$marketId]) && array_key_exists($marketId, $this->markets_by_id[$marketId])) {
-                    $market = $this->markets_by_id[$marketId];
-                } else if (is_array($this->markets_by_id) && array_key_exists($reference_parts[0], $this->markets_by_id)) {
-                    $market = $this->markets_by_id[$reference_parts[0]];
-                }
-            }
+            $marketId = $this->safe_string($trade, 'pair');
+            $market = $this->safe_market($marketId, $market);
+            $market = $this->safe_market($reference_parts[0], $market);
             $orderId = $reference_parts[1];
             $id = $reference_parts[2];
             $side = $this->safe_integer($trade, 'action');

@@ -47,13 +47,11 @@ class bkex extends Exchange {
                 'fetchClosedOrder' => null,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
-                'fetchDeposit' => null,
+                'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => null,
                 'fetchDepositAddressesByNetwork' => null,
                 'fetchDeposits' => true,
-                'fetchFundingFee' => null,
-                'fetchFundingFees' => null,
                 'fetchFundingHistory' => null,
                 'fetchFundingRate' => null,
                 'fetchFundingRateHistory' => null,
@@ -79,7 +77,7 @@ class bkex extends Exchange {
                 'fetchPositions' => null,
                 'fetchPositionsRisk' => null,
                 'fetchPremiumIndexOHLCV' => null,
-                'fetchStatus' => null,
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -87,9 +85,12 @@ class bkex extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
                 'fetchTradingLimits' => null,
+                'fetchTransactionFee' => null,
+                'fetchTransactionFees' => null,
                 'fetchTransactions' => null,
-                'fetchTransfers' => null,
-                'fetchWithdrawal' => null,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
+                'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'loadMarkets' => true,
                 'privateAPI' => true,
@@ -99,8 +100,8 @@ class bkex extends Exchange {
                 'setMarginMode' => null,
                 'setPositionMode' => null,
                 'signIn' => null,
-                'transfer' => null,
-                'withdraw' => null,
+                'transfer' => false,
+                'withdraw' => false,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -368,6 +369,26 @@ class bkex extends Exchange {
         // }
         //
         return $this->safe_integer($response, 'data');
+    }
+
+    public function fetch_status($params = array ()) {
+        $response = $this->publicGetCommonTimestamp ($params);
+        //
+        //     {
+        //         "code" => '0',
+        //         "data" => 1573542445411,
+        //         "msg" => "success",
+        //         "status" => 0
+        //     }
+        //
+        $statusRaw = $this->safe_integer($response, 'status');
+        $codeRaw = $this->safe_integer($response, 'code');
+        return array(
+            'status' => ($statusRaw === 0 && $codeRaw === 0) ? 'ok' : $statusRaw,
+            'updated' => $this->milliseconds(),
+            'eta' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {

@@ -35,7 +35,6 @@ class exmo extends Exchange {
                 'fetchBalance' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
-                'fetchFundingFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -56,6 +55,7 @@ class exmo extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchTransactionFees' => true,
                 'fetchTransactions' => true,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
@@ -166,7 +166,7 @@ class exmo extends Exchange {
                 ),
                 'funding' => array(
                     'tierBased' => false,
-                    'percentage' => false, // fixed funding fees for crypto, see fetchFundingFees below
+                    'percentage' => false, // fixed funding fees for crypto, see fetchTransactionFees below
                 ),
             ),
             'options' => array(
@@ -324,12 +324,12 @@ class exmo extends Exchange {
         $value = str_replace('%', '', $parts[0]);
         $result = floatval($value);
         if (($result > 0) && $isPercentage) {
-            throw new ExchangeError($this->id . ' parseFixedFloatValue detected an unsupported non-zero percentage-based fee ' . $input);
+            throw new ExchangeError($this->id . ' parseFixedFloatValue() detected an unsupported non-zero percentage-based fee ' . $input);
         }
         return $result;
     }
 
-    public function fetch_funding_fees($params = array ()) {
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
         $this->load_markets();
         $currencyList = $this->publicGetCurrencyListExtended ($params);
         //
@@ -623,7 +623,7 @@ class exmo extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument or a $limit argument');
             } else {
                 if ($limit > $maxLimit) {
-                    throw new BadRequest($this->id . ' fetchOHLCV will serve ' . (string) $maxLimit . ' $candles at most');
+                    throw new BadRequest($this->id . ' fetchOHLCV() will serve ' . (string) $maxLimit . ' $candles at most');
                 }
                 $request['from'] = intval($now / 1000) - $limit * $duration - 1;
                 $request['to'] = intval($now / 1000);
@@ -634,7 +634,7 @@ class exmo extends Exchange {
                 $request['to'] = intval($now / 1000);
             } else {
                 if ($limit > $maxLimit) {
-                    throw new BadRequest($this->id . ' fetchOHLCV will serve ' . (string) $maxLimit . ' $candles at most');
+                    throw new BadRequest($this->id . ' fetchOHLCV() will serve ' . (string) $maxLimit . ' $candles at most');
                 }
                 $to = $this->sum($since, $limit * $duration * 1000);
                 $request['to'] = intval($to / 1000);
@@ -735,7 +735,7 @@ class exmo extends Exchange {
             // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
             if (strlen($ids) > 2048) {
                 $numIds = is_array($this->ids) ? count($this->ids) : 0;
-                throw new ExchangeError($this->id . ' has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
+                throw new ExchangeError($this->id . ' fetchOrderBooks() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
             }
         } else {
             $ids = $this->market_ids($symbols);
@@ -1036,7 +1036,7 @@ class exmo extends Exchange {
         if ($clientOrderId !== null) {
             $clientOrderId = $this->safe_integer_2($params, 'client_id', 'clientOrderId');
             if ($clientOrderId === null) {
-                throw new BadRequest($this->id . ' createOrder client order $id must be an integer / numeric literal');
+                throw new BadRequest($this->id . ' createOrder() client order $id must be an integer / numeric literal');
             } else {
                 $request['client_id'] = $clientOrderId;
             }

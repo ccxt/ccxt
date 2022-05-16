@@ -24,12 +24,14 @@ module.exports = class phemex extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': undefined, // has but not fully implemented
+                'swap': true,
                 'future': false,
                 'option': false,
+                'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
@@ -44,7 +46,13 @@ module.exports = class phemex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': true,
+                'fetchFundingRate': true,
+                'fetchFundingRateHistories': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -55,13 +63,17 @@ module.exports = class phemex extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPositions': true,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
+                'reduceMargin': true,
                 'setLeverage': true,
+                'setMarginMode': true,
+                'setPositionMode': false,
                 'transfer': true,
                 'withdraw': undefined,
             },
@@ -134,6 +146,7 @@ module.exports = class phemex extends Exchange {
                         // swap
                         'accounts/accountPositions', // ?currency=<currency>
                         'accounts/positions', // ?currency=<currency>
+                        'api-data/futures/funding-fees', // ?symbol=<symbol>
                         'orders/activeList', // ?symbol=<symbol>
                         'exchange/order/list', // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
                         'exchange/order', // ?symbol=<symbol>&orderID=<orderID1,orderID2>
@@ -372,6 +385,7 @@ module.exports = class phemex extends Exchange {
                 },
             },
             'options': {
+                'brokerId': 'ccxt2022',
                 'x-phemex-request-expiry': 60, // in seconds
                 'createOrderByQuoteRequiresPrice': true,
                 'networks': {
@@ -385,6 +399,9 @@ module.exports = class phemex extends Exchange {
                 'accountsByType': {
                     'spot': 'spot',
                     'future': 'future',
+                },
+                'transfer': {
+                    'fillResponseFromRequest': true,
                 },
             },
         });
@@ -998,6 +1015,7 @@ module.exports = class phemex extends Exchange {
         };
         const duration = this.parseTimeframe (timeframe);
         const now = this.seconds ();
+        // the exchange does not return the last 1m candle
         if (since !== undefined) {
             if (limit === undefined) {
                 limit = 2000; // max 2000
@@ -1783,7 +1801,8 @@ module.exports = class phemex extends Exchange {
         //         "pegOffsetValueEp":0,
         //         "execStatus":"PendingNew",
         //         "pegPriceType":"UNSPECIFIED",
-        //         "ordStatus":"Created"
+        //         "ordStatus":"Created",
+        //         "execInst": "ReduceOnly"
         //     }
         //
         const id = this.safeString (order, 'orderID');
@@ -1846,6 +1865,7 @@ module.exports = class phemex extends Exchange {
         const market = this.market (symbol);
         side = this.capitalize (side);
         type = this.capitalize (type);
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
         const request = {
             // common
             'symbol': market['id'],
@@ -1873,6 +1893,16 @@ module.exports = class phemex extends Exchange {
             // 'pegPriceType': 'TrailingStopPeg', // TrailingTakeProfitPeg
             // 'text': 'comment',
         };
+        const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
+        if (clientOrderId === undefined) {
+            const brokerId = this.safeString (this.options, 'brokerId');
+            if (brokerId !== undefined) {
+                request['clOrdID'] = brokerId + this.uuid16 ();
+            }
+        } else {
+            request['clOrdID'] = clientOrderId;
+            params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
+        }
         const stopPrice = this.safeString2 (params, 'stopPx', 'stopPrice');
         if (stopPrice !== undefined) {
             request['stopPxEp'] = this.toEp (stopPrice, market);
@@ -1904,6 +1934,9 @@ module.exports = class phemex extends Exchange {
                 request['baseQtyEv'] = this.toEv (amountString, market);
             }
         } else if (market['swap']) {
+            if (reduceOnly !== undefined) {
+                request['reduceOnly'] = reduceOnly;
+            }
             request['orderQty'] = parseInt (amount);
             if (stopPrice !== undefined) {
                 const triggerType = this.safeString (params, 'triggerType', 'ByMarkPrice');
@@ -1925,6 +1958,7 @@ module.exports = class phemex extends Exchange {
             params = this.omit (params, 'stopLossPrice');
         }
         const method = market['spot'] ? 'privatePostSpotOrders' : 'privatePostOrders';
+        params = this.omit (params, 'reduceOnly');
         const response = await this[method] (this.extend (request, params));
         //
         // spot
@@ -2004,6 +2038,13 @@ module.exports = class phemex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
+    }
+
+    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        const request = {
+            'reduceOnly': true,
+        };
+        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
     async editOrder (id, symbol, type = undefined, side = undefined, amount = undefined, price = undefined, params = {}) {
@@ -2115,9 +2156,9 @@ module.exports = class phemex extends Exchange {
             const numOrders = data.length;
             if (numOrders < 1) {
                 if (clientOrderId !== undefined) {
-                    throw new OrderNotFound (this.id + ' fetchOrder ' + symbol + ' order with clientOrderId ' + clientOrderId + ' not found');
+                    throw new OrderNotFound (this.id + ' fetchOrder() ' + symbol + ' order with clientOrderId ' + clientOrderId + ' not found');
                 } else {
-                    throw new OrderNotFound (this.id + ' fetchOrder ' + symbol + ' order with id ' + id + ' not found');
+                    throw new OrderNotFound (this.id + ' fetchOrder() ' + symbol + ' order with id ' + id + ' not found');
                 }
             }
             order = this.safeValue (data, 0, {});
@@ -2748,11 +2789,232 @@ module.exports = class phemex extends Exchange {
             'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentageString),
             'marginRatio': this.parseNumber (marginRatio),
             'datetime': undefined,
-            'marginType': undefined,
+            'marginMode': undefined,
+            'marginType': undefined, // deprecated
             'side': side,
             'hedged': false,
             'percentage': this.parseNumber (percentage),
         };
+    }
+
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            // 'limit': 20, // Page size default 20, max 200
+            // 'offset': 0, // Page start default 0
+        };
+        if (limit > 200) {
+            throw new BadRequest (this.id + ' fetchFundingHistory() limit argument cannot exceed 200');
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetApiDataFuturesFundingFees (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "OK",
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "symbol": "BTCUSD",
+        //                     "currency": "BTC",
+        //                     "execQty": 18,
+        //                     "side": "Buy",
+        //                     "execPriceEp": 360086455,
+        //                     "execValueEv": 49987,
+        //                     "fundingRateEr": 10000,
+        //                     "feeRateEr": 10000,
+        //                     "execFeeEv": 5,
+        //                     "createTime": 1651881600000
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const rows = this.safeValue (data, 'rows', []);
+        const result = [];
+        for (let i = 0; i < rows.length; i++) {
+            const entry = rows[i];
+            const timestamp = this.safeInteger (entry, 'createTime');
+            result.push ({
+                'info': entry,
+                'symbol': this.safeString (entry, 'symbol'),
+                'code': this.safeCurrencyCode (this.safeString (entry, 'currency')),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'id': undefined,
+                'amount': this.fromEv (this.safeString (entry, 'execFeeEv'), market),
+            });
+        }
+        return result;
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.v1GetMdTicker24hr (this.extend (request, params));
+        //
+        //     {
+        //         "error": null,
+        //         "id": 0,
+        //         "result": {
+        //             "askEp": 2332500,
+        //             "bidEp": 2331000,
+        //             "fundingRateEr": 10000,
+        //             "highEp": 2380000,
+        //             "indexEp": 2329057,
+        //             "lastEp": 2331500,
+        //             "lowEp": 2274000,
+        //             "markEp": 2329232,
+        //             "openEp": 2337500,
+        //             "openInterest": 1298050,
+        //             "predFundingRateEr": 19921,
+        //             "symbol": "ETHUSD",
+        //             "timestamp": 1592474241582701416,
+        //             "turnoverEv": 47228362330,
+        //             "volume": 4053863
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseFundingRate (result, market);
+    }
+
+    parseFundingRate (contract, market = undefined) {
+        //
+        //     {
+        //         "askEp": 2332500,
+        //         "bidEp": 2331000,
+        //         "fundingRateEr": 10000,
+        //         "highEp": 2380000,
+        //         "indexEp": 2329057,
+        //         "lastEp": 2331500,
+        //         "lowEp": 2274000,
+        //         "markEp": 2329232,
+        //         "openEp": 2337500,
+        //         "openInterest": 1298050,
+        //         "predFundingRateEr": 19921,
+        //         "symbol": "ETHUSD",
+        //         "timestamp": 1592474241582701416,
+        //         "turnoverEv": 47228362330,
+        //         "volume": 4053863
+        //     }
+        //
+        const marketId = this.safeString (contract, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const timestamp = this.safeIntegerProduct (contract, 'timestamp', 0.000001);
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': this.fromEp (this.safeString (contract, 'markEp'), market),
+            'indexPrice': this.fromEp (this.safeString (contract, 'indexEp'), market),
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fundingRate': this.fromEr (this.safeString (contract, 'fundingRateEr'), market),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': this.fromEr (this.safeString (contract, 'predFundingRateEr'), market),
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
+    }
+
+    async modifyMarginHelper (symbol, amount, addOrReduce, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'posBalanceEv': this.toEv (amount, market),
+        };
+        const response = await this.privatePostPositionsAssign (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "data": "OK"
+        //     }
+        //
+        return this.extend (this.parseModifyMargin (response, market), {
+            'amount': amount,
+            'type': addOrReduce,
+        });
+    }
+
+    parseMarginStatus (status) {
+        const statuses = {
+            '0': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseModifyMargin (data, market = undefined) {
+        market = this.safeMarket (undefined, market);
+        const inverse = this.safeValue (market, 'inverse');
+        const codeCurrency = inverse ? 'base' : 'quote';
+        return {
+            'info': data,
+            'type': undefined,
+            'amount': undefined,
+            'code': market[codeCurrency],
+            'symbol': this.safeSymbol (undefined, market),
+            'status': this.parseMarginStatus (this.safeString (data, 'code')),
+        };
+    }
+
+    async addMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 'add', params);
+    }
+
+    async reduceMargin (symbol, amount, params = {}) {
+        if (amount > 0) {
+            throw new BadRequest (this.id + ' reduceMargin() amount parameter must be a negative value');
+        }
+        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
+    }
+
+    async setMarginMode (marginMode, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
+        marginMode = marginMode.toLowerCase ();
+        if (marginMode !== 'isolated' && marginMode !== 'cross') {
+            throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['type'] !== 'swap') {
+            throw new BadSymbol (this.id + ' setMarginMode() supports swap contracts only');
+        }
+        let leverage = this.safeInteger (params, 'leverage');
+        if (marginMode === 'cross') {
+            leverage = 0;
+        }
+        if (leverage === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter');
+        }
+        const request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        };
+        return await this.privatePutPositionsLeverage (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -2760,7 +3022,7 @@ module.exports = class phemex extends Exchange {
         const requestPath = '/' + this.implodeParams (path, params);
         let url = requestPath;
         let queryString = '';
-        if ((method === 'GET') || (method === 'DELETE') || (method === 'PUT')) {
+        if ((method === 'GET') || (method === 'DELETE') || (method === 'PUT') || (url === '/positions/assign')) {
             if (Object.keys (query).length) {
                 queryString = this.urlencodeWithArrayRepeat (query);
                 url += '?' + queryString;
@@ -2796,7 +3058,7 @@ module.exports = class phemex extends Exchange {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
         if ((leverage < 1) || (leverage > 100)) {
-            throw new BadRequest (this.id + ' leverage should be between 1 and 100');
+            throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 100');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2813,39 +3075,72 @@ module.exports = class phemex extends Exchange {
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
+        const scaledAmmount = this.toEv (amount, currency);
         let direction = undefined;
+        let transfer = undefined;
         if (fromId === 'spot' && toId === 'future') {
             direction = 2;
-        }
-        if (fromId === 'future' && toId === 'spot') {
+        } else if (fromId === 'future' && toId === 'spot') {
             direction = 1;
         }
-        if (direction === undefined) {
-            throw new ExchangeError (this.id + ' transfer() can only be from future to spot or from spot to future');
+        if (direction !== undefined) {
+            const request = {
+                'currency': currency['id'],
+                'moveOp': direction,
+                'amountEv': scaledAmmount,
+            };
+            const response = await this.privatePostAssetsTransfer (this.extend (request, params));
+            //
+            //     {
+            //         code: '0',
+            //         msg: 'OK',
+            //         data: {
+            //             linkKey: '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
+            //             userId: '4018340',
+            //             currency: 'USD',
+            //             amountEv: '10',
+            //             side: '2',
+            //             status: '10'
+            //         }
+            //     }
+            //
+            const data = this.safeValue (response, 'data', {});
+            transfer = this.parseTransfer (data, currency);
+        } else { // sub account transfer
+            const request = {
+                'fromUserId': fromId,
+                'toUserId': toId,
+                'amountEv': scaledAmmount,
+                'currency': currency['id'],
+                'bizType': this.safeString (params, 'bizType', 'SPOT'),
+            };
+            const response = await this.privatePostAssetsUniversalTransfer (this.extend (request, params));
+            //
+            //     {
+            //         code: '0',
+            //         msg: 'OK',
+            //         data: 'API-923db826-aaaa-aaaa-aaaa-4d98c3a7c9fd'
+            //     }
+            //
+            transfer = this.parseTransfer (response);
         }
-        const scaledAmmount = this.toEv (amount, currency);
-        const request = {
-            'currency': currency['id'],
-            'moveOp': direction,
-            'amountEv': scaledAmmount,
-        };
-        const response = await this.privatePostAssetsTransfer (this.extend (request, params));
-        //
-        //     {
-        //         code: '0',
-        //         msg: 'OK',
-        //         data: {
-        //             linkKey: '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
-        //             userId: '4018340',
-        //             currency: 'USD',
-        //             amountEv: '10',
-        //             side: '2',
-        //             status: '10'
-        //         }
-        //     }
-        //
-        const data = this.safeValue (response, 'data', {});
-        return this.parseTransfer (data, currency);
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            if (transfer['fromAccount'] === undefined) {
+                transfer['fromAccount'] = fromAccount;
+            }
+            if (transfer['toAccount'] === undefined) {
+                transfer['toAccount'] = toAccount;
+            }
+            if (transfer['amount'] === undefined) {
+                transfer['amount'] = amount;
+            }
+            if (transfer['currency'] === undefined) {
+                transfer['currency'] = code;
+            }
+        }
+        return transfer;
     }
 
     parseTransfer (transfer, currency = undefined) {
@@ -2895,7 +3190,7 @@ module.exports = class phemex extends Exchange {
             '10': 'ok', // 'Success',
             '11': 'failed', // 'Failed',
         };
-        return this.safeString (statuses, status, 'pending');
+        return this.safeString (statuses, status, status);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

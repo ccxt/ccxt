@@ -33,7 +33,9 @@ class delta extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchDeposit' => null,
                 'fetchDepositAddress' => true,
+                'fetchDeposits' => null,
                 'fetchLedger' => true,
                 'fetchLeverageTiers' => false, // An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
                 'fetchMarketLeverageTiers' => false,
@@ -49,6 +51,12 @@ class delta extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTransfer' => null,
+                'fetchTransfers' => null,
+                'fetchWithdrawal' => null,
+                'fetchWithdrawals' => null,
+                'transfer' => false,
+                'withdraw' => false,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -255,6 +263,7 @@ class delta extends Exchange {
             'status' => $status,
             'updated' => $updated,
             'eta' => null,
+            'url' => null,
             'info' => $response,
         );
     }

@@ -411,6 +411,7 @@ module.exports = class deribit extends Exchange {
             'status': (locked === 'false') ? 'ok' : 'maintenance',
             'updated': updateTime,
             'eta': undefined,
+            'url': undefined,
             'info': response,
         };
     }
@@ -1926,7 +1927,8 @@ module.exports = class deribit extends Exchange {
             'liquidationPrice': this.safeNumber (position, 'estimated_liquidation_price'),
             'markPrice': markPrice,
             'collateral': undefined,
-            'marginType': undefined,
+            'marginMode': undefined,
+            'marginType': undefined, // deprecated
             'side': side,
             'percentage': this.parseNumber (percentage),
         };
@@ -1988,7 +1990,7 @@ module.exports = class deribit extends Exchange {
             if (Array.isArray (symbols)) {
                 const length = symbols.length;
                 if (length !== 1) {
-                    throw new BadRequest (this.id + ' fetchPositions symbols argument cannot contain more than 1 symbol');
+                    throw new BadRequest (this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
                 }
                 const market = this.market (symbols[0]);
                 code = market['base'];

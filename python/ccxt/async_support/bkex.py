@@ -49,13 +49,11 @@ class bkex(Exchange):
                 'fetchClosedOrder': None,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
-                'fetchDeposit': None,
+                'fetchDeposit': False,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': None,
                 'fetchDepositAddressesByNetwork': None,
                 'fetchDeposits': True,
-                'fetchFundingFee': None,
-                'fetchFundingFees': None,
                 'fetchFundingHistory': None,
                 'fetchFundingRate': None,
                 'fetchFundingRateHistory': None,
@@ -81,7 +79,7 @@ class bkex(Exchange):
                 'fetchPositions': None,
                 'fetchPositionsRisk': None,
                 'fetchPremiumIndexOHLCV': None,
-                'fetchStatus': None,
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -89,9 +87,12 @@ class bkex(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchTradingLimits': None,
+                'fetchTransactionFee': None,
+                'fetchTransactionFees': None,
                 'fetchTransactions': None,
-                'fetchTransfers': None,
-                'fetchWithdrawal': None,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'loadMarkets': True,
                 'privateAPI': True,
@@ -101,8 +102,8 @@ class bkex(Exchange):
                 'setMarginMode': None,
                 'setPositionMode': None,
                 'signIn': None,
-                'transfer': None,
-                'withdraw': None,
+                'transfer': False,
+                'withdraw': False,
             },
             'timeframes': {
                 '1m': '1m',
@@ -365,6 +366,25 @@ class bkex(Exchange):
         # }
         #
         return self.safe_integer(response, 'data')
+
+    async def fetch_status(self, params={}):
+        response = await self.publicGetCommonTimestamp(params)
+        #
+        #     {
+        #         "code": '0',
+        #         "data": 1573542445411,
+        #         "msg": "success",
+        #         "status": 0
+        #     }
+        #
+        statusRaw = self.safe_integer(response, 'status')
+        codeRaw = self.safe_integer(response, 'code')
+        return {
+            'status': 'ok' if (statusRaw == 0 and codeRaw == 0) else statusRaw,
+            'updated': self.milliseconds(),
+            'eta': None,
+            'info': response,
+        }
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()

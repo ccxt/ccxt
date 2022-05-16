@@ -62,11 +62,16 @@ module.exports = class probit extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
+                'fetchWithdrawal': false,
+                'fetchWithdrawals': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'signIn': true,
+                'transfer': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -1145,7 +1150,7 @@ module.exports = class probit extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const firstAddress = this.safeValue (data, 0);
         if (firstAddress === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress returned an empty response');
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() returned an empty response');
         }
         return this.parseDepositAddress (firstAddress, currency);
     }

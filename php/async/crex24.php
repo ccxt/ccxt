@@ -54,7 +54,6 @@ class crex24 extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
-                'fetchFundingFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -80,6 +79,7 @@ class crex24 extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchTransactionFees' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
@@ -472,7 +472,7 @@ class crex24 extends Exchange {
         return $result;
     }
 
-    public function fetch_funding_fees($codes = null, $params = array ()) {
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
         yield $this->load_markets();
         $response = yield $this->publicGetCurrenciesWithdrawalFees ($params);
         //
@@ -645,7 +645,7 @@ class crex24 extends Exchange {
         //
         $numTickers = is_array($response) ? count($response) : 0;
         if ($numTickers < 1) {
-            throw new ExchangeError($this->id . ' fetchTicker could not load quotes for $symbol ' . $symbol);
+            throw new ExchangeError($this->id . ' fetchTicker() could not load quotes for $symbol ' . $symbol);
         }
         return $this->parse_ticker($response[0], $market);
     }
@@ -1082,7 +1082,7 @@ class crex24 extends Exchange {
         //
         $numOrders = is_array($response) ? count($response) : 0;
         if ($numOrders < 1) {
-            throw new OrderNotFound($this->id . ' fetchOrder could not fetch order $id ' . $id);
+            throw new OrderNotFound($this->id . ' fetchOrder() could not fetch order $id ' . $id);
         }
         return $this->parse_order($response[0]);
     }
@@ -1271,7 +1271,7 @@ class crex24 extends Exchange {
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
         if (gettype($ids) === 'array' && count(array_filter(array_keys($ids), 'is_string')) != 0) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders $ids argument should be an array');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() $ids argument should be an array');
         }
         yield $this->load_markets();
         $request = array(

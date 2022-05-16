@@ -1283,7 +1283,7 @@ class cex(Exchange):
     async def fetch_deposit_address(self, code, params={}):
         if code == 'XRP' or code == 'XLM':
             # https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
-            raise NotSupported(self.id + ' fetchDepositAddress does not support XRP and XLM addresses yet(awaiting docs from CEX.io)')
+            raise NotSupported(self.id + ' fetchDepositAddress() does not support XRP and XLM addresses yet(awaiting docs from CEX.io)')
         await self.load_markets()
         currency = self.currency(code)
         request = {

@@ -76,11 +76,15 @@ class hollaex extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => null,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
+                'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -178,6 +182,15 @@ class hollaex extends Exchange {
             'options' => array(
                 // how many seconds before the authenticated request expires
                 'api-expires' => intval($this->timeout / 1000),
+                'networks' => array(
+                    'BTC' => 'btc',
+                    'ETH' => 'eth',
+                    'ERC20' => 'eth',
+                    'TRX' => 'trx',
+                    'TRC20' => 'trx',
+                    'XRP' => 'xrp',
+                    'XLM' => 'xlm',
+                ),
             ),
         ));
     }
@@ -1256,6 +1269,45 @@ class hollaex extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
+    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            'transaction_id' => $id,
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        $response = $this->privateGetUserWithdrawals (array_merge($request, $params));
+        //
+        //     {
+        //         "count" => 1,
+        //         "data" => array(
+        //             {
+        //                 "id" => 539,
+        //                 "amount" => 20,
+        //                 "fee" => 0,
+        //                 "address" => "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
+        //                 "transaction_id" => "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
+        //                 "status" => true,
+        //                 "dismissed" => false,
+        //                 "rejected" => false,
+        //                 "description" => "",
+        //                 "type" => "withdrawal",
+        //                 "currency" => "usdt",
+        //                 "created_at" => "2020-03-03T07:56:36.198Z",
+        //                 "updated_at" => "2020-03-03T08:00:05.674Z",
+        //                 "user_id" => 620
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $transaction = $this->safe_value($data, 0, array());
+        return $this->parse_transaction($transaction, $currency);
+    }
+
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
@@ -1373,10 +1425,14 @@ class hollaex extends Exchange {
         }
         $feeCurrencyId = $this->safe_string($transaction, 'fee_coin');
         $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId, $currency);
-        $fee = array(
-            'currency' => $feeCurrencyCode,
-            'cost' => $this->safe_number($transaction, 'fee'),
-        );
+        $feeCost = $this->safe_number($transaction, 'fee');
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array(
+                'currency' => $feeCurrencyCode,
+                'cost' => $feeCost,
+            );
+        }
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -1407,15 +1463,19 @@ class hollaex extends Exchange {
         if ($tag !== null) {
             $address .= ':' . $tag;
         }
+        $network = $this->safe_string($params, 'network');
+        if ($network === null) {
+            throw new ArgumentsRequired($this->id . ' withdraw() requires a $network parameter');
+        }
+        $params = $this->omit($params, 'network');
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $networkId = $this->safe_string_lower_2($networks, $network, $code, $network);
         $request = array(
             'currency' => $currency['id'],
             'amount' => $amount,
             'address' => $address,
+            'network' => $networkId,
         );
-        $network = $this->safe_string($params, 'network');
-        if ($network !== null) {
-            $request['network'] = $network;
-        }
         $response = $this->privatePostUserWithdrawal (array_merge($request, $params));
         //
         //     {

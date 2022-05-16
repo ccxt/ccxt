@@ -33,6 +33,7 @@ class bitopro(Exchange):
                 'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
                 'createOrder': True,
                 'editOrder': False,
                 'fetchBalance': True,
@@ -44,7 +45,6 @@ class bitopro(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': False,
                 'fetchDeposits': True,
-                'fetchFundingFees': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -67,11 +67,15 @@ class bitopro(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransactionFees': False,
                 'fetchTransactions': False,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'setLeverage': False,
                 'setMarginMode': False,
+                'transfer': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -276,10 +280,10 @@ class bitopro(Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             active = not self.safe_value(market, 'maintain')
-            pair = self.safe_string(market, 'pair')
+            id = self.safe_string(market, 'pair')
+            uppercaseId = id.upper()
             baseId = self.safe_string(market, 'base')
             quoteId = self.safe_string(market, 'quote')
-            id = pair
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
@@ -307,6 +311,7 @@ class bitopro(Exchange):
             }
             result.append({
                 'id': id,
+                'uppercaseId': uppercaseId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -912,6 +917,27 @@ class bitopro(Exchange):
         #
         return self.parse_order(response, market)
 
+    async def cancel_orders(self, ids, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        id = market['uppercaseId']
+        request = {}
+        request[id] = ids
+        response = await self.privatePutOrders(self.extend(request, params))
+        #
+        #     {
+        #         "data":{
+        #             "BNB_TWD":[
+        #                 "5236347105",
+        #                 "359488711"
+        #             ]
+        #         }
+        #     }
+        #
+        return response
+
     async def cancel_all_orders(self, symbol=None, params={}):
         await self.load_markets()
         request = {
@@ -1303,7 +1329,7 @@ class bitopro(Exchange):
         headers['X-BITOPRO-API'] = 'ccxt'
         if api == 'private':
             self.check_required_credentials()
-            if method == 'POST':
+            if method == 'POST' or method == 'PUT':
                 body = self.json(params)
                 payload = self.string_to_base64(body)
                 signature = self.hmac(payload, self.encode(self.secret), hashlib.sha384)

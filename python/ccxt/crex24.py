@@ -60,7 +60,6 @@ class crex24(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -86,6 +85,7 @@ class crex24(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransactionFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
@@ -468,7 +468,7 @@ class crex24(Exchange):
             }
         return result
 
-    def fetch_funding_fees(self, codes=None, params={}):
+    def fetch_transaction_fees(self, codes=None, params={}):
         self.load_markets()
         response = self.publicGetCurrenciesWithdrawalFees(params)
         #
@@ -632,7 +632,7 @@ class crex24(Exchange):
         #
         numTickers = len(response)
         if numTickers < 1:
-            raise ExchangeError(self.id + ' fetchTicker could not load quotes for symbol ' + symbol)
+            raise ExchangeError(self.id + ' fetchTicker() could not load quotes for symbol ' + symbol)
         return self.parse_ticker(response[0], market)
 
     def fetch_tickers(self, symbols=None, params={}):
@@ -1044,7 +1044,7 @@ class crex24(Exchange):
         #
         numOrders = len(response)
         if numOrders < 1:
-            raise OrderNotFound(self.id + ' fetchOrder could not fetch order id ' + id)
+            raise OrderNotFound(self.id + ' fetchOrder() could not fetch order id ' + id)
         return self.parse_order(response[0])
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -1219,7 +1219,7 @@ class crex24(Exchange):
 
     def cancel_orders(self, ids, symbol=None, params={}):
         if not isinstance(ids, list):
-            raise ArgumentsRequired(self.id + ' cancelOrders ids argument should be an array')
+            raise ArgumentsRequired(self.id + ' cancelOrders() ids argument should be an array')
         self.load_markets()
         request = {
             'ids': [],

@@ -52,7 +52,6 @@ class bitfinex(Exchange):
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': None,
-                'fetchFundingFees': True,
                 'fetchIndexOHLCV': False,
                 'fetchLeverageTiers': False,
                 'fetchMarkets': True,
@@ -70,6 +69,7 @@ class bitfinex(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransactionFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': None,
                 'transfer': True,
@@ -400,7 +400,7 @@ class bitfinex(Exchange):
             },
         })
 
-    async def fetch_funding_fees(self, params={}):
+    async def fetch_transaction_fees(self, codes=None, params={}):
         await self.load_markets()
         response = await self.privatePostAccountFees(params)
         fees = response['withdraw']
@@ -599,7 +599,7 @@ class bitfinex(Exchange):
         accountType = self.safe_string(accountsByType, requestedType, requestedType)
         if accountType is None:
             keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' fetchBalance type parameter must be one of ' + ', '.join(keys))
+            raise ExchangeError(self.id + ' fetchBalance() type parameter must be one of ' + ', '.join(keys))
         query = self.omit(params, 'type')
         response = await self.privatePostBalances(query)
         #    [{type: 'deposit',

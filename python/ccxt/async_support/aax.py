@@ -27,7 +27,6 @@ class aax(Exchange):
             'id': 'aax',
             'name': 'AAX',
             'countries': ['MT'],  # Malta
-            'enableRateLimit': True,
             # 6000 /  hour => 100 per minute => 1.66 requests per second => rateLimit = 600
             # market endpoints ratelimits arent mentioned in docs so they are also set to "all other authenticated endpoints"
             # 5000 / hour => weight = 1.2("all other authenticated endpoints")
@@ -72,8 +71,6 @@ class aax(Exchange):
                 'fetchDepositAddresses': None,
                 'fetchDepositAddressesByNetwork': None,
                 'fetchDeposits': True,
-                'fetchFundingFee': None,
-                'fetchFundingFees': None,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -110,6 +107,8 @@ class aax(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchTradingLimits': None,
+                'fetchTransactionFee': None,
+                'fetchTransactionFees': None,
                 'fetchTransactions': None,
                 'fetchTransfer': False,
                 'fetchTransfers': True,
@@ -396,6 +395,7 @@ class aax(Exchange):
             'status': status,
             'updated': updated,
             'eta': eta,
+            'url': None,
             'info': response,
         }
 
@@ -499,10 +499,15 @@ class aax(Exchange):
             symbol = base + '/' + quote
             type = 'spot'
             contractSize = None
+            minLeverage = None
+            maxLeverage = None
             if swap:
                 symbol = symbol + ':' + settle
                 type = 'swap'
                 contractSize = self.safe_number(market, 'multiplier')
+                minLeverage = '1'
+                imRate = self.safe_string(market, 'imRate')
+                maxLeverage = Precise.string_div('1', imRate)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -522,6 +527,7 @@ class aax(Exchange):
                 'contract': swap,
                 'linear': linear,
                 'inverse': inverse,
+                'quanto': quanto,
                 'taker': self.safe_number(market, 'takerFee'),
                 'maker': self.safe_number(market, 'makerFee'),
                 'contractSize': contractSize,
@@ -529,23 +535,22 @@ class aax(Exchange):
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
-                'quanto': quanto,
                 'precision': {
                     'amount': self.safe_number(market, 'lotSize'),
                     'price': self.safe_number(market, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {
-                        'min': None,
-                        'max': None,
+                        'min': self.parse_number(minLeverage),
+                        'max': self.parse_number(maxLeverage),
                     },
                     'amount': {
-                        'min': self.safe_string(market, 'minQuantity'),
-                        'max': self.safe_string(market, 'maxQuantity'),
+                        'min': self.safe_number(market, 'minQuantity'),
+                        'max': self.safe_number(market, 'maxQuantity'),
                     },
                     'price': {
-                        'min': self.safe_string(market, 'minPrice'),
-                        'max': self.safe_string(market, 'maxPrice'),
+                        'min': self.safe_number(market, 'minPrice'),
+                        'max': self.safe_number(market, 'maxPrice'),
                     },
                     'cost': {
                         'min': None,
@@ -2362,6 +2367,7 @@ class aax(Exchange):
         notional = Precise.string_mul(initialQuote, marketPrice)
         timestamp = self.safe_integer(position, 'ts')
         liquidationPrice = self.safe_string(position, 'liquidationPrice')
+        marginMode = self.safe_string(position, 'settleType')
         return {
             'info': position,
             'symbol': self.safe_string(market, 'symbol'),
@@ -2381,7 +2387,8 @@ class aax(Exchange):
             'liquidationPrice': liquidationPrice,
             'markPrice': self.safe_number(position, 'marketPrice'),
             'collateral': self.safe_number(position, 'posMargin'),
-            'marginType': self.safe_string(position, 'settleType'),
+            'marginMode': marginMode,
+            'marginType': marginMode,  # deprecated
             'side': side,
             'percentage': None,
         }
@@ -2450,7 +2457,7 @@ class aax(Exchange):
             if isinstance(symbols, list):
                 symbolsLength = len(symbols)
                 if symbolsLength > 1:
-                    raise BadRequest(self.id + ' fetchPositions symbols argument cannot contain more than 1 symbol')
+                    raise BadRequest(self.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol')
                 symbol = symbols[0]
             else:
                 symbol = symbols

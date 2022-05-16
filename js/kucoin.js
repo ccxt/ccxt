@@ -46,7 +46,6 @@ module.exports = class kucoin extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchFundingFee': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -70,6 +69,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
+                'fetchTransactionFee': true,
                 'fetchWithdrawals': true,
                 'transfer': true,
                 'withdraw': true,
@@ -306,10 +306,12 @@ module.exports = class kucoin extends Exchange {
                     '400007': AuthenticationError,
                     '400008': NotSupported,
                     '400100': BadRequest,
+                    '400200': InvalidOrder, // {"code":"400200","msg":"Forbidden to place an order"}
                     '400350': InvalidOrder, // {"code":"400350","msg":"Upper limit for holding: 10,000USDT, you can still buy 10,000USDT worth of coin."}
                     '400370': InvalidOrder, // {"code":"400370","msg":"Max. price: 0.02500000000000000000"}
                     '400500': InvalidOrder, // {"code":"400500","msg":"Your located country/region is currently not supported for the trading of this token"}
                     '400600': BadSymbol, // {"code":"400600","msg":"validation.createOrder.symbolNotAvailable"}
+                    '400760': InvalidOrder, // {"code":"400760","msg":"order price should be more than XX"}
                     '401000': BadRequest, // {"code":"401000","msg":"The interface has been deprecated"}
                     '411100': AccountSuspended,
                     '415000': BadRequest, // {"code":"415000","msg":"Unsupported Media Type"}
@@ -386,6 +388,7 @@ module.exports = class kucoin extends Exchange {
                 'versions': {
                     'public': {
                         'GET': {
+                            'currencies/{currency}': 'v2',
                             'status': 'v1',
                             'market/orderbook/level2_20': 'v1',
                             'market/orderbook/level2_100': 'v1',
@@ -471,6 +474,7 @@ module.exports = class kucoin extends Exchange {
             'status': (status === 'open') ? 'ok' : 'maintenance',
             'updated': this.milliseconds (),
             'eta': undefined,
+            'url': undefined,
             'info': response,
         };
     }
@@ -701,7 +705,7 @@ module.exports = class kucoin extends Exchange {
         return result;
     }
 
-    async fetchFundingFee (code, params = {}) {
+    async fetchTransactionFee (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -731,7 +735,7 @@ module.exports = class kucoin extends Exchange {
         const type = this.safeString (accountsByType, requestedType);
         if (type === undefined) {
             const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' type must be one of ' + keys.join (', '));
+            throw new ExchangeError (this.id + ' isFuturesMethod() type must be one of ' + keys.join (', '));
         }
         params = this.omit (params, 'type');
         return (type === 'contract') || (type === 'future') || (type === 'futures'); // * (type === 'futures') deprecated, use (type === 'future')
@@ -991,6 +995,7 @@ module.exports = class kucoin extends Exchange {
         return {
             'info': response,
             'currency': code,
+            'network': this.safeString (data, 'chain'),
             'address': address,
             'tag': tag,
         };
@@ -1018,7 +1023,10 @@ module.exports = class kucoin extends Exchange {
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         const data = this.safeValue (response, 'data', {});
         const address = this.safeString (data, 'address');
-        const tag = this.safeString (data, 'memo');
+        let tag = this.safeString (data, 'memo');
+        if (tag === '') {
+            tag = undefined;
+        }
         if (code !== 'NIM') {
             // contains spaces
             this.checkAddress (address);
@@ -1028,7 +1036,7 @@ module.exports = class kucoin extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': undefined,
+            'network': network,
         };
     }
 
@@ -1047,7 +1055,7 @@ module.exports = class kucoin extends Exchange {
                     if ((limit === 20) || (limit === 100)) {
                         request['limit'] = limit;
                     } else {
-                        throw new ExchangeError (this.id + ' fetchOrderBook limit argument must be 20 or 100');
+                        throw new ExchangeError (this.id + ' fetchOrderBook() limit argument must be 20 or 100');
                     }
                 }
                 request['limit'] = limit ? limit : 100;
@@ -1366,7 +1374,7 @@ module.exports = class kucoin extends Exchange {
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name kucoin#fetchOrdersByStatus
+         * @name kucoin#fetchClosedOrders
          * @description fetch a list of orders
          * @param {str} symbol unified market symbol
          * @param {int} since timestamp in ms of the earliest order
@@ -1580,7 +1588,7 @@ module.exports = class kucoin extends Exchange {
                 request['startAt'] = parseInt (since / 1000);
             }
         } else {
-            throw new ExchangeError (this.id + ' invalid fetchClosedOrder method');
+            throw new ExchangeError (this.id + ' fetchMyTradesMethod() invalid method');
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -2509,7 +2517,7 @@ module.exports = class kucoin extends Exchange {
         headers = (headers !== undefined) ? headers : {};
         if (Object.keys (query).length) {
             if ((method === 'GET') || (method === 'DELETE')) {
-                endpoint += '?' + this.urlencode (query);
+                endpoint += '?' + this.rawencode (query);
             } else {
                 body = this.json (query);
                 endpart = body;

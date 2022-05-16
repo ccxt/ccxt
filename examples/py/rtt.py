@@ -18,7 +18,7 @@ import ccxt  # noqa: E402
 # In a live production system always use either the built-in rate limiter or make your own
 
 
-def main(loop):
+def main():
 
     # the exchange instance has to be reused
     # do not recreate the exchange before each call!

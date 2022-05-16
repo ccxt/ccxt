@@ -449,7 +449,7 @@ class vcc extends Exchange {
         );
         if ($limit !== null) {
             if (($limit !== 0) && ($limit !== 5) && ($limit !== 10) && ($limit !== 20) && ($limit !== 50) && ($limit !== 100) && ($limit !== 500)) {
-                throw new BadRequest($this->id . ' fetchOrderBook $limit must be 0, 5, 10, 20, 50, 100, 500 if specified');
+                throw new BadRequest($this->id . ' fetchOrderBook() $limit must be 0, 5, 10, 20, 50, 100, 500 if specified');
             }
             $request['depth'] = $limit;
         }

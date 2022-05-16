@@ -415,6 +415,7 @@ class deribit extends Exchange {
             'status' => ($locked === 'false') ? 'ok' : 'maintenance',
             'updated' => $updateTime,
             'eta' => null,
+            'url' => null,
             'info' => $response,
         );
     }
@@ -1930,7 +1931,8 @@ class deribit extends Exchange {
             'liquidationPrice' => $this->safe_number($position, 'estimated_liquidation_price'),
             'markPrice' => $markPrice,
             'collateral' => null,
-            'marginType' => null,
+            'marginMode' => null,
+            'marginType' => null, // deprecated
             'side' => $side,
             'percentage' => $this->parse_number($percentage),
         );
@@ -1992,7 +1994,7 @@ class deribit extends Exchange {
             if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) == 0) {
                 $length = is_array($symbols) ? count($symbols) : 0;
                 if ($length !== 1) {
-                    throw new BadRequest($this->id . ' fetchPositions $symbols argument cannot contain more than 1 symbol');
+                    throw new BadRequest($this->id . ' fetchPositions() $symbols argument cannot contain more than 1 symbol');
                 }
                 $market = $this->market($symbols[0]);
                 $code = $market['base'];

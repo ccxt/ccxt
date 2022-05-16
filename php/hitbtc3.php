@@ -1493,7 +1493,7 @@ class hitbtc3 extends Exchange {
         );
         if (($type === 'limit') || ($type === 'stopLimit')) {
             if ($price === null) {
-                throw new ExchangeError($this->id . ' limit order requires price');
+                throw new ExchangeError($this->id . ' editOrder() limit order requires price');
             }
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
@@ -1766,7 +1766,7 @@ class hitbtc3 extends Exchange {
         $fromNetwork = $this->safe_string($networks, $fromNetwork); // handle ETH>ERC20 alias
         $toNetwork = $this->safe_string($networks, $toNetwork); // handle ETH>ERC20 alias
         if ($fromNetwork === $toNetwork) {
-            throw new BadRequest($this->id . ' $fromNetwork cannot be the same as toNetwork');
+            throw new BadRequest($this->id . ' convertCurrencyNetwork() $fromNetwork cannot be the same as toNetwork');
         }
         if (($fromNetwork === null) || ($toNetwork === null)) {
             $keys = is_array($networks) ? array_keys($networks) : array();
@@ -2006,7 +2006,7 @@ class hitbtc3 extends Exchange {
         //         ),
         //     )
         //
-        $marginType = $this->safe_string($position, 'type');
+        $marginMode = $this->safe_string($position, 'type');
         $leverage = $this->safe_number($position, 'leverage');
         $datetime = $this->safe_string($position, 'updated_at');
         $positions = $this->safe_value($position, 'positions', array());
@@ -2032,7 +2032,8 @@ class hitbtc3 extends Exchange {
             'info' => $position,
             'symbol' => $symbol,
             'notional' => null,
-            'marginType' => $marginType,
+            'marginMode' => $marginMode,
+            'marginType' => $marginMode,
             'liquidationPrice' => $liquidationPrice,
             'entryPrice' => $entryPrice,
             'unrealizedPnl' => null,
@@ -2130,12 +2131,12 @@ class hitbtc3 extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $leverage = $this->safe_string($params, 'leverage');
-        $amount = $this->amount_to_precision($symbol, $amount);
         if ($market['type'] === 'swap') {
             if ($leverage === null) {
                 throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a $leverage parameter for swap markets');
             }
         }
+        $amount = $this->amount_to_precision($symbol, $amount);
         $request = array(
             'symbol' => $market['id'], // swap and margin
             'margin_balance' => $amount, // swap and margin
@@ -2169,13 +2170,20 @@ class hitbtc3 extends Exchange {
         //         "positions" => null
         //     }
         //
-        $currencies = $this->safe_value($response, 'currencies', array());
-        $data = $this->safe_value($currencies, 0);
-        return array(
-            'info' => $response,
+        return array_merge($this->parse_modify_margin($response, $market), array(
+            'amount' => $this->safe_number($amount),
             'type' => $type,
-            'amount' => $amount,
-            'code' => $this->safe_string($data, 'code'),
+        ));
+    }
+
+    public function parse_modify_margin($data, $market = null) {
+        $currencies = $this->safe_value($data, 'currencies', array());
+        $currencyInfo = $this->safe_value($currencies, 0);
+        return array(
+            'info' => $data,
+            'type' => null,
+            'amount' => null,
+            'code' => $this->safe_string($currencyInfo, 'code'),
             'symbol' => $market['symbol'],
             'status' => null,
         );

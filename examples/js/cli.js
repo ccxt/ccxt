@@ -19,6 +19,9 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
         process.argv.includes ('--testnet') ||
         process.argv.includes ('--sandbox')
     , signIn = process.argv.includes ('--sign-in') || process.argv.includes ('--signIn')
+    , isSpot = process.argv.includes ('--spot')
+    , isSwap = process.argv.includes ('--swap')
+    , isFuture = process.argv.includes ('--future')
 
 //-----------------------------------------------------------------------------
 
@@ -71,7 +74,6 @@ let settings = localKeysFile ? (require (localKeysFile)[exchangeId] || {}) : {}
 
 const timeout = 30000
 let exchange = undefined
-const enableRateLimit = true
 
 const { Agent } = require ('https')
 
@@ -82,12 +84,15 @@ const httpsAgent = new Agent ({
 
 try {
 
-    exchange = new (ccxt)[exchangeId] ({
-        timeout,
-        enableRateLimit,
-        httpsAgent,
-        ... settings,
-    })
+    exchange = new (ccxt)[exchangeId] ({ timeout, httpsAgent, ... settings })
+
+    if (isSpot) {
+        exchange.options['defaultType'] = 'spot';
+    } else if (isSwap) {
+        exchange.options['defaultType'] = 'swap';
+    } else if (isFuture) {
+        exchange.options['defaultType'] = 'future';
+    }
 
     // check auth keys in env var
     const requiredCredentials = exchange.requiredCredentials;
@@ -191,8 +196,7 @@ const printHumanReadable = (exchange, result) => {
 
 //-----------------------------------------------------------------------------
 
-
-async function main () {
+async function run () {
 
     if (!exchangeId) {
 
@@ -310,4 +314,4 @@ async function main () {
 
 //-----------------------------------------------------------------------------
 
-main ()
+run ()

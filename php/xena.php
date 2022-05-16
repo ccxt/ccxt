@@ -66,7 +66,11 @@ class xena extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
+                'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -492,7 +496,7 @@ class xena extends Exchange {
         if (is_array($tickers) && array_key_exists($symbol, $tickers)) {
             return $tickers[$symbol];
         }
-        throw new BadSymbol($this->id . ' fetchTicker could not find a ticker with $symbol ' . $symbol);
+        throw new BadSymbol($this->id . ' fetchTicker() could not find a ticker with $symbol ' . $symbol);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -1039,7 +1043,7 @@ class xena extends Exchange {
         );
         $orderType = $this->safe_string($orderTypes, $type);
         if ($orderType === null) {
-            throw new InvalidOrder($this->id . ' createOrder does not support order $type ' . $type . ', supported order types are $market, limit, stop, stop-limit');
+            throw new InvalidOrder($this->id . ' createOrder() does not support order $type ' . $type . ', supported order types are $market, limit, stop, stop-limit');
         }
         $orderSides = array(
             'buy' => '1',
@@ -1047,7 +1051,7 @@ class xena extends Exchange {
         );
         $orderSide = $this->safe_string($orderSides, $side);
         if ($orderSide === null) {
-            throw new InvalidOrder($this->id . ' createOrder does not support order $side ' . $side . ', supported order sides are buy, sell');
+            throw new InvalidOrder($this->id . ' createOrder() does not support order $side ' . $side . ', supported order sides are buy, sell');
         }
         $market = $this->market($symbol);
         $request = array(

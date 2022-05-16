@@ -40,6 +40,9 @@ class wavesexchange(Exchange):
                 'createMarketOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -507,7 +510,9 @@ class wavesexchange(Exchange):
             id = baseId + '/' + quoteId
             marketId = self.safe_string(entry, 'symbol')
             base, quote = marketId.split('/')
-            symbol = self.safe_currency_code(base) + '/' + self.safe_currency_code(quote)
+            base = self.safe_currency_code(base)
+            quote = self.safe_currency_code(quote)
+            symbol = base + '/' + quote
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -946,7 +951,7 @@ class wavesexchange(Exchange):
                 networksByCurrency[currencyCode][currencyId] = True
         if not (code in currencies):
             codes = list(currencies.keys())
-            raise ExchangeError(self.id + ' fetch ' + code + ' deposit address not supported. Currency code must be one of ' + ', '.join(codes))
+            raise ExchangeError(self.id + ' fetchDepositAddress() ' + code + ' not supported. Currency code must be one of ' + ', '.join(codes))
         response = None
         if network is None:
             request = {
@@ -1188,6 +1193,32 @@ class wavesexchange(Exchange):
         }
         if matcherFeeAssetId != 'WAVES':
             body['matcherFeeAssetId'] = matcherFeeAssetId
+        #
+        #     {
+        #         "success":true,
+        #         "message":{
+        #             "version":3,
+        #             "id":"GK5ox4RfLJFtqjQsCbDmvCya8ZhFVEUQDtF4yYuAJ6C7",
+        #             "sender":"3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH",
+        #             "senderPublicKey":"AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF",
+        #             "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        #             "assetPair":{
+        #                 "amountAsset":"C1iWsKGqLwjHUndiQ7iXpdmPum9PeCDFfyXBdJJosDRS",
+        #                 "priceAsset":"WAVES"
+        #             },
+        #             "orderType":"buy",
+        #             "amount":110874978,
+        #             "price":514397851,
+        #             "timestamp":1650473255988,
+        #             "expiration":1652892455988,
+        #             "matcherFee":7074571,
+        #             "matcherFeeAssetId":"Atqv59EYzjFGuitKVnMRk6H8FukjoV3ktPorbEys25on",
+        #             "signature":"5Vgs6mbdZJv5Ce9mdobT6fppXr6bKn5WVDbzP6mGG5jMB5jgcA2eSScwctgvY5SwPm9n1bctAAKuXtLcdHjNNie8",
+        #             "proofs":["5Vgs6mbdZJv5Ce9mdobT6fppXr6bKn5WVDbzP6mGG5jMB5jgcA2eSScwctgvY5SwPm9n1bctAAKuXtLcdHjNNie8"]
+        #         },
+        #         "status":"OrderAccepted"
+        #     }
+        #
         if isMarketOrder:
             response = self.matcherPostMatcherOrderbookMarket(body)
             value = self.safe_value(response, 'message')
@@ -1196,27 +1227,6 @@ class wavesexchange(Exchange):
             response = self.matcherPostMatcherOrderbook(body)
             value = self.safe_value(response, 'message')
             return self.parse_order(value, market)
-        # {success: True,
-        #   message:
-        #    {version: 3,
-        #      id: 'Do7cDJMf2MJuFyorvxNNuzS42MXSGGEq1r1hGDn1PHiS',
-        #      sender: '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
-        #      senderPublicKey: 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
-        #      matcherPublicKey: '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
-        #      assetPair:
-        #       {amountAsset: null,
-        #         priceAsset: '8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS'},
-        #      orderType: 'sell',
-        #      amount: 1,
-        #      price: 100000000,
-        #      timestamp: 1591593117995,
-        #      expiration: 1594012317995,
-        #      matcherFee: 300000,
-        #      matcherFeeAssetId: null,
-        #      signature: '2EG8zgE6Ze1X5EYA8DbfFiPXAtC7NniYBAMFbJUbzwVbHmmCKHornQfS5F32NwkHF4623KWq1U6K126h4TTqyVq',
-        #      proofs:
-        #       ['2EG8zgE6Ze1X5EYA8DbfFiPXAtC7NniYBAMFbJUbzwVbHmmCKHornQfS5F32NwkHF4623KWq1U6K126h4TTqyVq']},
-        #   status: 'OrderAccepted'}
 
     def cancel_order(self, id, symbol=None, params={}):
         self.check_required_dependencies()
@@ -1387,32 +1397,33 @@ class wavesexchange(Exchange):
 
     def parse_order(self, order, market=None):
         #
-        #     createOrder
+        # createOrder
         #
         #     {
-        #         version: 3,
-        #         id: 'BshyeHXDfJmTnjTdBYt371jD4yWaT3JTP6KpjpsiZepS',
-        #         sender: '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
-        #         senderPublicKey: 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
-        #         matcherPublicKey: '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
-        #         assetPair: {
-        #             amountAsset: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
-        #             priceAsset: 'DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p'
+        #         'version': 3,
+        #         'id': 'BshyeHXDfJmTnjTdBYt371jD4yWaT3JTP6KpjpsiZepS',
+        #         'sender': '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
+        #         'senderPublicKey': 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
+        #         'matcherPublicKey': '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
+        #         'assetPair': {
+        #             'amountAsset': '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        #             'priceAsset': 'DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p',
         #         },
-        #         orderType: 'buy',
-        #         amount: 10000,
-        #         price: 400000000,
-        #         timestamp: 1599848586891,
-        #         expiration: 1602267786891,
-        #         matcherFee: 3008,
-        #         matcherFeeAssetId: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
-        #         signature: '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
-        #         proofs: [
-        #             '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy'
-        #         ]
+        #         'orderType': 'buy',
+        #         'amount': 10000,
+        #         'price': 400000000,
+        #         'timestamp': 1599848586891,
+        #         'expiration': 1602267786891,
+        #         'matcherFee': 3008,
+        #         'matcherFeeAssetId': '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        #         'signature': '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
+        #         'proofs': [
+        #             '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
+        #         ],
         #     }
         #
-        #     fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
+        #
+        # fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
         #
         #     {
         #         id: '81D9uKk2NfmZzfG7uaJsDtxqWFbJXZmjYvrL88h15fk8',
@@ -1914,7 +1925,7 @@ class wavesexchange(Exchange):
                 currencies[currencyCode] = True
             if not (code in currencies):
                 codes = list(currencies.keys())
-                raise ExchangeError(self.id + ' fetch ' + code + ' withdrawals are not supported. Currency code must be one of ' + str(codes))
+                raise ExchangeError(self.id + ' withdraw() ' + code + ' not supported. Currency code must be one of ' + str(codes))
         self.load_markets()
         hexChars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
         set = {}

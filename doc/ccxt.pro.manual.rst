@@ -54,7 +54,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for `multilanguage support
 Exchanges
 ---------
 
-The CCXT Pro library currently supports the following 39 cryptocurrency exchange markets and WebSocket trading APIs:
+The CCXT Pro library currently supports the following 40 cryptocurrency exchange markets and WebSocket trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -548,6 +548,24 @@ The CCXT Pro library currently supports the following 39 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg
+          :target: https://m.mexc.com/auth/signup?inviteCode=1FQ1G
+          :alt: mexc
+     
+     - mexc
+     - `MEXC Global <https://m.mexc.com/auth/signup?inviteCode=1FQ1G>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://mxcdevelop.github.io/APIDoc/
+          :alt: API Version 2
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/108623144-67a3ef00-744e-11eb-8140-75c6b851e945.jpg
           :target: https://one.ndax.io/bfQiSL
           :alt: ndax
@@ -878,7 +896,6 @@ The cache is a fixed-size deque aka array/list with two ends. The CCXT Pro libra
 .. code-block:: Python
 
    ccxtpro.ftx({
-       'enableRateLimit': True,
        'options': {
            'tradesLimit': 1000,
            'OHLCVLimit': 1000,
@@ -1010,7 +1027,7 @@ Creating a CCXT Pro exchange instance is pretty much identical to creating a CCX
 
    // JavaScript
    const ccxtpro = require ('ccxt.pro')
-   const exchange = new ccxtpro.binance ({ enableRateLimit: true, newUpdates: false })
+   const exchange = new ccxtpro.binance ({ newUpdates: false })
 
 The Python implementation of CCXT Pro relies on builtin `asyncio <https://docs.python.org/3/library/asyncio.html>`__ and `Event Loop <https://docs.python.org/3/library/asyncio-eventloop.html>`__ in particular. In Python it is possible to supply an asyncio's event loop instance in the constructor arguments as shown below (identical to ``ccxt.async support``\ ):
 
@@ -1018,17 +1035,17 @@ The Python implementation of CCXT Pro relies on builtin `asyncio <https://docs.p
 
    # Python
    import ccxtpro
-   import asyncio
+   from asyncio import run
 
-   async def main(loop):
-       exchange = ccxtpro.kraken({'enableRateLimit': True, 'asyncio_loop': loop, 'newUpdates': False })
+   async def main():
+       exchange = ccxtpro.kraken({'newUpdates': False})
        while True:
            orderbook = await exchange.watch_order_book('BTC/USD')
            print(orderbook['asks'][0], orderbook['bids'][0])
        await exchange.close()
 
-   loop = asyncio.new_event_loop()
-   loop.run_until_complete(main(loop))
+
+   run(main())
 
 In PHP the async primitives are borrowed from `ReactPHP <https://reactphp.org>`__. The PHP implementation of CCXT Pro relies on `Promise <https://github.com/reactphp/promise>`__ and `EventLoop <https://github.com/reactphp/event-loop>`__ in particular. In PHP the user is required to supply a ReactPHP's event loop instance in the constructor arguments as shown below:
 
@@ -1040,7 +1057,7 @@ In PHP the async primitives are borrowed from `ReactPHP <https://reactphp.org>`_
    require_once 'vendor/autoload.php';
 
    $loop = \React\EventLoop\Factory::create(); // the event loop goes here ↓
-   $exchange = new \ccxtpro\kucoin(array('enableRateLimit' => true, 'loop' => $loop, 'newUpdates': false ));
+   $exchange = new \ccxtpro\kucoin(array('loop' => $loop, 'newUpdates': false ));
 
 Exchange Properties
 -------------------

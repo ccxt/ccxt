@@ -34,7 +34,6 @@ class therock extends Exchange {
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
-                'fetchFundingRateHistories' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
@@ -53,7 +52,10 @@ class therock extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => 'emulated',
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
                 'fetchWithdrawals' => true,
+                'transfer' => false,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
@@ -169,7 +171,7 @@ class therock extends Exchange {
         $markets = $this->safe_value($response, 'funds');
         $result = array();
         if ($markets === null) {
-            throw new ExchangeError($this->id . ' fetchMarkets got an unexpected response');
+            throw new ExchangeError($this->id . ' fetchMarkets() got an unexpected response');
         } else {
             for ($i = 0; $i < count($markets); $i++) {
                 $market = $markets[$i];

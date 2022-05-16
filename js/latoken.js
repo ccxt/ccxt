@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, ArgumentsRequired, InvalidNonce, BadRequest, ExchangeNotAvailable, PermissionDenied, AccountSuspended, RateLimitExceeded, InsufficientFunds, BadSymbol } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, ArgumentsRequired, InvalidNonce, BadRequest, ExchangeNotAvailable, PermissionDenied, AccountSuspended, RateLimitExceeded, InsufficientFunds, BadSymbol, InvalidOrder } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -46,6 +46,9 @@ module.exports = class latoken extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchTransactions': true,
+                'fetchTransfer': false,
+                'fetchTransfers': true,
+                'transfer': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg',
@@ -171,12 +174,15 @@ module.exports = class latoken extends Exchange {
                     'UNKNOWN_LOCATION': AuthenticationError, // user logged from unusual location, email confirmation required.
                     'TOO_MANY_REQUESTS': RateLimitExceeded, // too many requests at the time. A response header X-Rate-Limit-Remaining indicates the number of allowed request per a period.
                     'INSUFFICIENT_FUNDS': InsufficientFunds, // {"message":"not enough balance on the spot account for currency (USDT), need (20.000)","error":"INSUFFICIENT_FUNDS","status":"FAILURE"}
+                    'ORDER_VALIDATION': InvalidOrder, // {"message":"Quantity (0) is not positive","error":"ORDER_VALIDATION","status":"FAILURE"}
                 },
                 'broad': {
                     'invalid API key, signature or digest': AuthenticationError, // {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
                     'request expired or bad': InvalidNonce, // {"result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE"}
                     'For input string': BadRequest, // {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
                     'Unable to resolve currency by tag': BadSymbol, // {"message":"Unable to resolve currency by tag (undefined)","error":"NOT_FOUND","status":"FAILURE"}
+                    'Unable to place order because pair is in inactive state': BadSymbol, // {"message":"Unable to place order because pair is in inactive state (PAIR_STATUS_INACTIVE)","error":"ORDER_VALIDATION","status":"FAILURE"}
+                    'API keys are not available for FROZEN user': AccountSuspended, // {"result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE"}
                 },
             },
             'options': {
@@ -1252,6 +1258,137 @@ module.exports = class latoken extends Exchange {
             'TRANSACTION_TYPE_WITHDRAWAL': 'withdrawal',
         };
         return this.safeString (types, type, type);
+    }
+
+    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const response = await this.privateGetAuthTransfer (params);
+        //
+        //     {
+        //         "hasNext": true,
+        //         "content": [
+        //             {
+        //             "id": "ebd6312f-cb4f-45d1-9409-4b0b3027f21e",
+        //             "status": "TRANSFER_STATUS_COMPLETED",
+        //             "type": "TRANSFER_TYPE_WITHDRAW_SPOT",
+        //             "fromAccount": "c429c551-adbb-4078-b74b-276bea308a36",
+        //             "toAccount": "631c6203-bd62-4734-a04d-9b2a951f43b9",
+        //             "transferringFunds": 1259.0321785,
+        //             "usdValue": 1259.032179,
+        //             "rejectReason": null,
+        //             "timestamp": 1633515579530,
+        //             "direction": "INTERNAL",
+        //             "method": "TRANSFER_METHOD_UNKNOWN",
+        //             "recipient": null,
+        //             "sender": null,
+        //             "currency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             "codeRequired": false,
+        //             "fromUser": "ce555f3f-585d-46fb-9ae6-487f66738073",
+        //             "toUser": "ce555f3f-585d-46fb-9ae6-487f66738073",
+        //             "fee": 0
+        //             },
+        //             ...
+        //         ],
+        //         "first": true,
+        //         "pageSize": 20,
+        //         "hasContent": true
+        //     }
+        //
+        const transfers = this.safeValue (response, 'content', []);
+        return this.parseTransfers (transfers, currency, since, limit);
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        let method = undefined;
+        if (toAccount.includes ('@')) {
+            method = 'privatePostAuthTransferEmail';
+        } else if (toAccount.length === 36) {
+            method = 'privatePostAuthTransferId';
+        } else {
+            method = 'privatePostAuthTransferPhone';
+        }
+        const request = {
+            'currency': currency['id'],
+            'recipient': toAccount,
+            'value': this.currencyToPrecision (code, amount),
+        };
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "id": "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
+        //         "status": "TRANSFER_STATUS_COMPLETED",
+        //         "type": "TRANSFER_TYPE_DEPOSIT_SPOT",
+        //         "fromAccount": "3bf61015-bf32-47a6-b237-c9f70df772ad",
+        //         "toAccount": "355eb279-7c7e-4515-814a-575a49dc0325",
+        //         "transferringFunds": "500000.000000000000000000",
+        //         "usdValue": "0.000000000000000000",
+        //         "rejectReason": "",
+        //         "timestamp": 1576844438402,
+        //         "direction": "INTERNAL",
+        //         "method": "TRANSFER_METHOD_UNKNOWN",
+        //         "recipient": "",
+        //         "sender": "",
+        //         "currency": "40af7879-a8cc-4576-a42d-7d2749821b58",
+        //         "codeRequired": false,
+        //         "fromUser": "cd555555-666d-46fb-9ae6-487f66738073",
+        //         "toUser": "cd555555-666d-46fb-9ae6-487f66738073",
+        //         "fee": 0
+        //     }
+        //
+        return this.parseTransfer (response);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         "id": "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
+        //         "status": "TRANSFER_STATUS_COMPLETED",
+        //         "type": "TRANSFER_TYPE_DEPOSIT_SPOT",
+        //         "fromAccount": "3bf61015-bf32-47a6-b237-c9f70df772ad",
+        //         "toAccount": "355eb279-7c7e-4515-814a-575a49dc0325",
+        //         "transferringFunds": "500000.000000000000000000",
+        //         "usdValue": "0.000000000000000000",
+        //         "rejectReason": "",
+        //         "timestamp": 1576844438402,
+        //         "direction": "INTERNAL",
+        //         "method": "TRANSFER_METHOD_UNKNOWN",
+        //         "recipient": "",
+        //         "sender": "",
+        //         "currency": "40af7879-a8cc-4576-a42d-7d2749821b58",
+        //         "codeRequired": false,
+        //         "fromUser": "cd555555-666d-46fb-9ae6-487f66738073",
+        //         "toUser": "cd555555-666d-46fb-9ae6-487f66738073",
+        //         "fee": 0
+        //     }
+        //
+        const timestamp = this.safeTimestamp (transfer, 'timestamp');
+        const currencyId = this.safeString (transfer, 'currency');
+        const status = this.safeString (transfer, 'status');
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': this.safeNumber (transfer),
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'transferringFunds'),
+            'fromAccount': this.safeString (transfer, 'fromAccount'),
+            'toAccount': this.safeString (transfer, 'toAccount'),
+            'status': this.parseTransferStatus (status),
+        };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'TRANSFER_STATUS_COMPLETED': 'ok',
+            'TRANSFER_STATUS_PENDING': 'pending',
+            'TRANSFER_STATUS_REJECTED': 'failed',
+            'TRANSFER_STATUS_UNVERIFIED': 'pending',
+            'TRANSFER_STATUS_CANCELLED': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = undefined, headers = undefined, body = undefined) {

@@ -39,7 +39,6 @@ class bw extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
-                'fetchFundingFees' => null,
                 'fetchL2OrderBook' => null,
                 'fetchLedger' => null,
                 'fetchMarkets' => true,
@@ -56,6 +55,7 @@ class bw extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTradingLimits' => null,
+                'fetchTransactionFees' => null,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
                 'withdraw' => null,
@@ -714,7 +714,7 @@ class bw extends Exchange {
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($price === null) {
-            throw new ExchangeError($this->id . ' allows limit orders only');
+            throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);

@@ -53,8 +53,6 @@ module.exports = class okx extends Exchange {
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
-                'fetchFundingFee': undefined,
-                'fetchFundingFees': undefined,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -91,6 +89,8 @@ module.exports = class okx extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': undefined,
                 'fetchTradingLimits': undefined,
+                'fetchTransactionFee': undefined,
+                'fetchTransactionFees': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfer': true,
                 'fetchTransfers': false,
@@ -260,6 +260,8 @@ module.exports = class okx extends Exchange {
                         'asset/purchase_redempt': 5 / 3,
                         'asset/withdrawal-lightning': 5,
                         'asset/set-lending-rate': 5 / 3,
+                        'asset/cancel-withdrawal': 5 / 3,
+                        'asset/convert-dust-assets': 10,
                         'trade/order': 1 / 3,
                         'trade/batch-orders': 1 / 15,
                         'trade/cancel-order': 1 / 3,
@@ -274,6 +276,7 @@ module.exports = class okx extends Exchange {
                         'users/subaccount/modify-apikey': 10,
                         'users/subaccount/apikey': 10,
                         'asset/subaccount/transfer': 10,
+                        'asset/subaccount/set-transfer-out': 10,
                         // broker
                         'broker/nd/create-subaccount': 10,
                         'broker/nd/delete-subaccount': 10,
@@ -731,6 +734,7 @@ module.exports = class okx extends Exchange {
             'updated': timestamp,
             'status': (dataLength === 0) ? 'ok' : 'maintenance',
             'eta': undefined,
+            'url': undefined,
             'info': response,
         };
         for (let i = 0; i < data.length; i++) {
@@ -977,7 +981,7 @@ module.exports = class okx extends Exchange {
             const defaultUnderlying = this.safeValue (this.options, 'defaultUnderlying', 'BTC-USD');
             const currencyId = this.safeString2 (params, 'uly', 'marketId', defaultUnderlying);
             if (currencyId === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchMarketsByType requires an underlying uly or marketId parameter for options markets');
+                throw new ArgumentsRequired (this.id + ' fetchMarketsByType() requires an underlying uly or marketId parameter for options markets');
             } else {
                 request['uly'] = currencyId;
             }
@@ -1286,7 +1290,7 @@ module.exports = class okx extends Exchange {
             const defaultUnderlying = this.safeValue (this.options, 'defaultUnderlying', 'BTC-USD');
             const currencyId = this.safeString2 (params, 'uly', 'marketId', defaultUnderlying);
             if (currencyId === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchTickersByType requires an underlying uly or marketId parameter for options markets');
+                throw new ArgumentsRequired (this.id + ' fetchTickersByType() requires an underlying uly or marketId parameter for options markets');
             } else {
                 request['uly'] = currencyId;
             }
@@ -1659,7 +1663,7 @@ module.exports = class okx extends Exchange {
         } else if (market['swap'] || market['future'] || market['option']) {
             request['uly'] = market['baseId'] + '-' + market['quoteId'];
         } else {
-            throw new NotSupported (this.id + ' fetchTradingFee supports spot, swap, future or option markets only');
+            throw new NotSupported (this.id + ' fetchTradingFee() supports spot, swap, future or option markets only');
         }
         const response = await this.privateGetAccountTradeFee (this.extend (request, params));
         //
@@ -3712,7 +3716,7 @@ module.exports = class okx extends Exchange {
                 result.push (this.parsePosition (positions[i]));
             }
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols, false);
     }
 
     parsePosition (position, market = undefined) {
@@ -3783,17 +3787,17 @@ module.exports = class okx extends Exchange {
             notionalString = Precise.stringDiv (Precise.stringMul (contractsAbs, contractSizeString), markPriceString);
         }
         const notional = this.parseNumber (notionalString);
-        const marginType = this.safeString (position, 'mgnMode');
+        const marginMode = this.safeString (position, 'mgnMode');
         let initialMarginString = undefined;
         const entryPriceString = this.safeString (position, 'avgPx');
         const unrealizedPnlString = this.safeString (position, 'upl');
         const leverageString = this.safeString (position, 'lever');
         let initialMarginPercentage = undefined;
         let collateralString = undefined;
-        if (marginType === 'cross') {
+        if (marginMode === 'cross') {
             initialMarginString = this.safeString (position, 'imr');
             collateralString = Precise.stringAdd (initialMarginString, unrealizedPnlString);
-        } else if (marginType === 'isolated') {
+        } else if (marginMode === 'isolated') {
             initialMarginPercentage = Precise.stringDiv ('1', leverageString);
             collateralString = this.safeString (position, 'margin');
         }
@@ -3816,7 +3820,8 @@ module.exports = class okx extends Exchange {
             'info': position,
             'symbol': symbol,
             'notional': notional,
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode, // deprecated
             'liquidationPrice': liquidationPrice,
             'entryPrice': this.parseNumber (entryPriceString),
             'unrealizedPnl': this.parseNumber (unrealizedPnlString),
@@ -4055,7 +4060,7 @@ module.exports = class okx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['swap']) {
-            throw new ExchangeError (this.id + ' fetchFundingRate is only valid for swap markets');
+            throw new ExchangeError (this.id + ' fetchFundingRate() is only valid for swap markets');
         }
         const request = {
             'instId': market['id'],
@@ -4237,14 +4242,14 @@ module.exports = class okx extends Exchange {
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if ((leverage < 1) || (leverage > 125)) {
-            throw new BadRequest (this.id + ' setLeverage leverage should be between 1 and 125');
+            throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 125');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marginMode = this.safeStringLower (params, 'mgnMode');
         params = this.omit (params, [ 'mgnMode' ]);
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
-            throw new BadRequest (this.id + ' setLeverage params["mgnMode"] must be either cross or isolated');
+            throw new BadRequest (this.id + ' setLeverage() params["mgnMode"] must be either cross or isolated');
         }
         const request = {
             'lever': leverage,
@@ -4294,26 +4299,26 @@ module.exports = class okx extends Exchange {
         return response;
     }
 
-    async setMarginMode (marginType, symbol = undefined, params = {}) {
+    async setMarginMode (marginMode, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        marginType = marginType.toLowerCase ();
-        if ((marginType !== 'cross') && (marginType !== 'isolated')) {
-            throw new BadRequest (this.id + ' setMarginMode marginType must be either cross or isolated');
+        marginMode = marginMode.toLowerCase ();
+        if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
+            throw new BadRequest (this.id + ' setMarginMode() marginMode must be either cross or isolated');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const lever = this.safeInteger (params, 'lever');
         if ((lever === undefined) || (lever < 1) || (lever > 125)) {
-            throw new BadRequest (this.id + ' setMarginMode params["lever"] should be between 1 and 125');
+            throw new BadRequest (this.id + ' setMarginMode() params["lever"] should be between 1 and 125');
         }
         params = this.omit (params, [ 'lever' ]);
         const request = {
             'lever': lever,
-            'mgnMode': marginType,
+            'mgnMode': marginMode,
             'instId': market['id'],
         };
         const response = await this.privatePostAccountSetLeverage (this.extend (request, params));
@@ -4549,22 +4554,26 @@ module.exports = class okx extends Exchange {
         //       "msg": ""
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const entry = this.safeValue (data, 0, {});
-        const errorCode = this.safeString (response, 'code');
+        return this.parseModifyMargin (response, market);
+    }
+
+    parseModifyMargin (data, market = undefined) {
+        const innerData = this.safeValue (data, 'data', []);
+        const entry = this.safeValue (innerData, 0, {});
+        const errorCode = this.safeString (data, 'code');
         const status = (errorCode === '0') ? 'ok' : 'failed';
-        const responseAmount = this.safeNumber (entry, 'amt');
-        const responseType = this.safeString (entry, 'type');
+        const amountRaw = this.safeNumber (entry, 'amt');
+        const typeRaw = this.safeString (entry, 'type');
+        const type = (typeRaw === 'reduce') ? 'reduce' : 'add';
         const marketId = this.safeString (entry, 'instId');
         const responseMarket = this.safeMarket (marketId, market);
         const code = responseMarket['inverse'] ? responseMarket['base'] : responseMarket['quote'];
-        symbol = responseMarket['symbol'];
         return {
-            'info': response,
-            'type': responseType,
-            'amount': responseAmount,
+            'info': data,
+            'type': type,
+            'amount': amountRaw,
             'code': code,
-            'symbol': symbol,
+            'symbol': responseMarket['symbol'],
             'status': status,
         };
     }
@@ -4719,16 +4728,18 @@ module.exports = class okx extends Exchange {
 
     parseBorrowInterest (info, market = undefined) {
         const instId = this.safeString (info, 'instId');
-        let account = 'cross'; // todo rename it to margin/marginType and separate it from the symbol
+        let account = 'cross'; // todo rename it to margin/marginMode and separate it from the symbol
         if (instId !== undefined) {
             market = this.safeMarket (instId, market);
             account = this.safeString (market, 'symbol');
         }
         const timestamp = this.safeNumber (info, 'ts');
+        const marginMode = (instId === undefined) ? 'cross' : 'isolated';
         return {
             'account': account, // deprecated
             'symbol': this.safeString (market, 'symbol'),
-            'marginType': (instId === undefined) ? 'cross' : 'isolated',
+            'marginType': marginMode, // deprecated
+            'marginMode': marginMode,
             'currency': this.safeCurrencyCode (this.safeString (info, 'ccy')),
             'interest': this.safeNumber (info, 'interest'),
             'interestRate': this.safeNumber (info, 'interestRate'),

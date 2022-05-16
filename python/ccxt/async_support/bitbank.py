@@ -398,7 +398,7 @@ class bitbank(Exchange):
 
     async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
         if since is None:
-            raise ArgumentsRequired(self.id + ' fetchOHLCV requires a since argument')
+            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {

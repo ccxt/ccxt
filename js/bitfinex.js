@@ -36,7 +36,6 @@ module.exports = class bitfinex extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': undefined,
-                'fetchFundingFees': true,
                 'fetchIndexOHLCV': false,
                 'fetchLeverageTiers': false,
                 'fetchMarkets': true,
@@ -54,6 +53,7 @@ module.exports = class bitfinex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransactionFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': undefined,
                 'transfer': true,
@@ -385,7 +385,7 @@ module.exports = class bitfinex extends Exchange {
         });
     }
 
-    async fetchFundingFees (params = {}) {
+    async fetchTransactionFees (codes = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostAccountFees (params);
         const fees = response['withdraw'];
@@ -595,7 +595,7 @@ module.exports = class bitfinex extends Exchange {
         const accountType = this.safeString (accountsByType, requestedType, requestedType);
         if (accountType === undefined) {
             const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' fetchBalance type parameter must be one of ' + keys.join (', '));
+            throw new ExchangeError (this.id + ' fetchBalance() type parameter must be one of ' + keys.join (', '));
         }
         const query = this.omit (params, 'type');
         const response = await this.privatePostBalances (query);

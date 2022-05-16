@@ -31,7 +31,6 @@ module.exports = class exmo extends Exchange {
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchFundingFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -52,6 +51,7 @@ module.exports = class exmo extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransactionFees': true,
                 'fetchTransactions': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
@@ -162,7 +162,7 @@ module.exports = class exmo extends Exchange {
                 },
                 'funding': {
                     'tierBased': false,
-                    'percentage': false, // fixed funding fees for crypto, see fetchFundingFees below
+                    'percentage': false, // fixed funding fees for crypto, see fetchTransactionFees below
                 },
             },
             'options': {
@@ -320,12 +320,12 @@ module.exports = class exmo extends Exchange {
         const value = parts[0].replace ('%', '');
         const result = parseFloat (value);
         if ((result > 0) && isPercentage) {
-            throw new ExchangeError (this.id + ' parseFixedFloatValue detected an unsupported non-zero percentage-based fee ' + input);
+            throw new ExchangeError (this.id + ' parseFixedFloatValue() detected an unsupported non-zero percentage-based fee ' + input);
         }
         return result;
     }
 
-    async fetchFundingFees (params = {}) {
+    async fetchTransactionFees (codes = undefined, params = {}) {
         await this.loadMarkets ();
         const currencyList = await this.publicGetCurrencyListExtended (params);
         //
@@ -619,7 +619,7 @@ module.exports = class exmo extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument or a limit argument');
             } else {
                 if (limit > maxLimit) {
-                    throw new BadRequest (this.id + ' fetchOHLCV will serve ' + maxLimit.toString () + ' candles at most');
+                    throw new BadRequest (this.id + ' fetchOHLCV() will serve ' + maxLimit.toString () + ' candles at most');
                 }
                 request['from'] = parseInt (now / 1000) - limit * duration - 1;
                 request['to'] = parseInt (now / 1000);
@@ -630,7 +630,7 @@ module.exports = class exmo extends Exchange {
                 request['to'] = parseInt (now / 1000);
             } else {
                 if (limit > maxLimit) {
-                    throw new BadRequest (this.id + ' fetchOHLCV will serve ' + maxLimit.toString () + ' candles at most');
+                    throw new BadRequest (this.id + ' fetchOHLCV() will serve ' + maxLimit.toString () + ' candles at most');
                 }
                 const to = this.sum (since, limit * duration * 1000);
                 request['to'] = parseInt (to / 1000);
@@ -731,7 +731,7 @@ module.exports = class exmo extends Exchange {
             // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if (ids.length > 2048) {
                 const numIds = this.ids.length;
-                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
+                throw new ExchangeError (this.id + ' fetchOrderBooks() has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
             }
         } else {
             ids = this.marketIds (symbols);
@@ -1032,7 +1032,7 @@ module.exports = class exmo extends Exchange {
         if (clientOrderId !== undefined) {
             clientOrderId = this.safeInteger2 (params, 'client_id', 'clientOrderId');
             if (clientOrderId === undefined) {
-                throw new BadRequest (this.id + ' createOrder client order id must be an integer / numeric literal');
+                throw new BadRequest (this.id + ' createOrder() client order id must be an integer / numeric literal');
             } else {
                 request['client_id'] = clientOrderId;
             }
