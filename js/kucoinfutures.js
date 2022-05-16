@@ -1152,13 +1152,13 @@ module.exports = class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        return this.extend (this.parseMargin (data, market), {
+        return this.extend (this.parseModifyMargin (data, market), {
             'amount': this.amountToPrecision (symbol, amount),
-            'type': 'add',
+            'direction': 'in',
         });
     }
 
-    parseMargin (info, market = undefined) {
+    parseModifyMargin (info, market = undefined) {
         //
         //    {
         //        id: '62311d26064e8f00013f2c6d',
@@ -1212,7 +1212,7 @@ module.exports = class kucoinfutures extends kucoin {
         const marketId = this.safeString (market, 'symbol');
         return {
             'info': info,
-            'adjustment': undefined,
+            'direction': undefined,
             'mode': mode,
             'amount': undefined,
             'code': this.safeCurrencyCode (currencyId),
