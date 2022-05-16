@@ -15,7 +15,7 @@ module.exports = class coinflex extends ccxt.coinflex {
                 'ws': true,
                 'watchBalance': true,
                 'watchMyTrades': false,
-                'watchOHLCV': false,
+                'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': true,
@@ -72,13 +72,61 @@ module.exports = class coinflex extends ccxt.coinflex {
             const marketId = this.safeString (data, 'marketCode');
             const market = this.safeMarket (marketId, undefined);
             const messageHash = topic + ':' + marketId;
-            // we need a custom parser here
-            const ticker = this.parseTicker (data, market);
+            const ticker = this.parseWsTicker (data, market);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
             client.resolve (ticker, messageHash);
         }
         return message;
+    }
+
+    parseWsTicker (ticker, market = undefined) {
+        //
+        //    {
+        //        last: '29586',
+        //        open24h: '29718',
+        //        high24h: '31390',
+        //        low24h: '29299',
+        //        volume24h: '30861108.9365753390',
+        //        currencyVolume24h: '1017.773',
+        //        openInterest: '0',
+        //        marketCode: 'BTC-USD',
+        //        timestamp: '1652693831002',
+        //        lastQty: '0.001',
+        //        markPrice: '29586',
+        //        lastMarkPrice: '29601'
+        //    }
+        //
+        const timestamp = this.safeInteger (ticker, 'timestamp');
+        const marketId = this.safeString (ticker, 'marketCode');
+        market = this.safeMarket (marketId, market);
+        const close = this.safeString (ticker, 'last');
+        const open = this.safeString (ticker, 'open24h');
+        const high = this.safeString (ticker, 'high24h');
+        const low = this.safeString (ticker, 'low24h');
+        const baseVolume = this.safeString (ticker, 'currencyVolume24h');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': high,
+            'low': low,
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': open,
+            'close': close,
+            'last': close,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': undefined,
+            'info': ticker,
+        }, market, false);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
