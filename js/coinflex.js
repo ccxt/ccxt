@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { AuthenticationError, BadSymbol, BadRequest } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -33,7 +33,7 @@ module.exports = class coinflex extends ccxt.coinflex {
             'options': {
             },
             'streaming': {
-                // 'ping': this.ping,
+                '!!ping': this.ping,
             },
             'exceptions': {
                 'ws': {
@@ -92,21 +92,78 @@ module.exports = class coinflex extends ccxt.coinflex {
         return message;
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const channel = 'candles';
         await this.loadMarkets ();
         const market = this.market (symbol);
-        //                                                                                                                                                 // we need a custom parser here
-        //                                                                                                                                                             // we need a custom parser here
-        //                                                                                                                                                                         // we need a custom parser here
-        //                                                                                                                                                                                     // we need a custom parser here
-        //                                                                                                                                                                                                 // we need a custom parser here
-        //                                                                                                                                                                                                             // we need a custom parser here
-        //                                                                                                                                                                                                                         // we need a custom parser here
-        //                                                                                                                                                                                                                                     // we need a custom parser here
-        //                                                                                                                                                                                                                                                 // we need a custom parser here
-        //                                                                                                                                                                                                                                                             // we need a custom parser here' + marketId;
-        const orderbook = await this.watchPublic (messageHash, params);
-        return orderbook.limit (limit);
+        const interval = this.timeframes[timeframe];
+        const messageHash = channel + interval + ':' + market['id'];
+        const ohlcv = await this.watchPublic (messageHash, params);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    handleOHLCV (client, message) {
+        //
+        //     "table":"candles60s",
+        //     "data":[
+        //        {
+        //           "candle":[
+        //              "1652695200000",
+        //              "29598",
+        //              "29598",
+        //              "29597.585628",
+        //              "29597.585628",
+        //              "1589597.531322996",
+        //              "53.707"
+        //           ],
+        //           "marketCode":"BTC-USD"
+        //        }
+        //     ]
+        //  }
+        //
+        const topic = this.safeString (message, 'table');
+        const interval = topic.replace ('candles', '');
+        const data = this.safeValue (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const candles = this.safeValue (entry, 'candle', []);
+            const marketId = this.safeString (entry, 'marketCode');
+            const market = this.safeMarket (marketId, undefined);
+            const messageHash = topic + ':' + marketId;
+            const symbol = market['symbol'];
+            const timeframe = this.findTimeframe (interval);
+            // we need a custom parser here too
+            const ohlcvs = this.parseOHLCVs (candles, market);
+            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            if (stored === undefined) {
+                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                stored = new ArrayCacheByTimestamp (limit);
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
+            stored.append (ohlcvs);
+            client.resolve (stored, messageHash);
+        }
+    }
+
+    async watchOrderBook (symbol, limit = undefined, params = {}) {
+        // await this.loadMarkets ();
+        // const market = this.market (symbol);
+        // //                                                                                                                                                 // we need a custom parser here
+        // //                                                                                                                                                             // we need a custom parser here
+        // //                                                                                                                                                                         // we need a custom parser here
+        // //                                                                                                                                                                                     // we need a custom parser here
+        // //                                                                                                                                                                                                 // we need a custom parser here
+        // //                                                                                                                                                                                                             // we need a custom parser here
+        // //                                                                                                                                                                                                                         // we need a custom parser here
+        // //                                                                                                                                                                                                                                     // we need a custom parser here
+        // //                                                                                                                                                                                                                                                 // we need a custom parser here
+        // //                                                                                                                                                                                                                                                             // we need a custom parser here' + marketId;
+        // const orderbook = await this.watchPublic (messageHash, params);
+        // return orderbook.limit (limit);
     }
 
     handleOrderBook (client, message) {
@@ -152,10 +209,11 @@ module.exports = class coinflex extends ccxt.coinflex {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        const channel = 'trade';
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const messageHash = 'trade' + ':' + market['id'];
+        const messageHash = channel + ':' + market['id'];
         const trades = await this.watchPublic (messageHash, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -165,38 +223,50 @@ module.exports = class coinflex extends ccxt.coinflex {
 
     handleTrades (client, message) {
         //
-        //     {
-        //         topic: 'trade',
-        //         action: 'partial',
-        //         symbol: 'btc-usdt',
-        //         data: [
-        //             {
-        //                 size: 0.05145,
-        //                 price: 41977.9,
-        //                 side: 'buy',
-        //                 timestamp: '2022-04-11T09:40:10.881Z'
-        //             },
-        //         ]
-        //     }
+        // {
+        //     table: 'trade',
+        //     data: [
+        //       {
+        //         side: 'BUY',
+        //         quantity: '0.042',
+        //         price: '30081.0',
+        //         marketCode: 'BTC-USD-SWAP-LIN',
+        //         tradeId: '304734619689878207',
+        //         timestamp: '1652698566797'
+        //       }
+        //     ]
+        // }
         //
-        const channel = this.safeString (message, 'topic');
-        const marketId = this.safeString (message, 'symbol');
-        const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
-        let stored = this.safeValue (this.trades, symbol);
-        if (stored === undefined) {
-            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCache (limit);
-            this.trades[symbol] = stored;
-        }
+        const topic = this.safeString (message, 'table');
         const data = this.safeValue (message, 'data', []);
-        const parsedTrades = this.parseTrades (data, market);
-        for (let j = 0; j < parsedTrades.length; j++) {
-            stored.append (parsedTrades[j]);
+        const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+        const marketIds = {};
+        for (let i = 0; i < data.length; i++) {
+            const trade = data[i];
+            const marketId = this.safeString (trade, 'marketCode');
+            marketIds[marketId] = true;
+            const market = this.safeMarket (marketId, undefined);
+            // const messageHash = topic + ':' + marketId;
+            const symbol = market['symbol'];
+            // we need a custom parser here too
+            const parsedTrade = this.parseTrade (trade, market);
+            let stored = this.safeValue (this.trades, symbol);
+            if (stored === undefined) {
+                stored = new ArrayCache (tradesLimit);
+                this.trades[symbol] = stored;
+            }
+            stored.append (parsedTrade);
         }
-        const messageHash = channel + ':' + marketId;
-        client.resolve (stored, messageHash);
-        client.resolve (stored, channel);
+        client.resolve ();
+        const marketIdsArray = Object.keys (marketIds);
+        for (let i = 0; i < marketIdsArray.length; i++) {
+            const marketId = marketIdsArray[i];
+            const messageHash = topic + ':' + marketId;
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            const stored = this.safeValue (this.trades, symbol);
+            client.resolve (stored, messageHash);
+        }
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -497,17 +567,22 @@ module.exports = class coinflex extends ccxt.coinflex {
             'wallet': this.handleBalance,
             'usertrade': this.handleMyTrades,
         };
-        const topic = this.safeValue (message, 'table');
+        const topic = this.safeString (message, 'table');
+        // specific check because this topic has the timeframe attached
+        // so we would need to list all possibilities in the methods object
+        if (topic !== undefined && topic.indexOf ('candles') >= 0) {
+            this.handleOHLCV (client, message);
+            return;
+        }
         const method = this.safeValue (methods, topic);
         if (method !== undefined) {
             method.call (this, client, message);
         }
     }
 
-    ping (client) {
-        // hollaex does not support built-in ws protocol-level ping-pong
-        return { 'op': 'ping' };
-    }
+    // ping (client) {
+    //     return { 'op': 'ping' };
+    // }
 
     handlePong (client, message) {
         client.lastPong = this.milliseconds ();
