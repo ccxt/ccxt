@@ -1746,6 +1746,71 @@ module.exports = class bitmex extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        if (symbol !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const till = this.safeInteger (params, 'till');
+        params = this.omit (params, [ 'till' ]);
+        if (till !== undefined) {
+            request['endTime'] = this.iso8601 (till);
+        }
+        const response = await this.publicGetFunding (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "timestamp": "2016-05-07T12:00:00.000Z",
+        //            "symbol": "ETHXBT",
+        //            "fundingInterval": "2000-01-02T00:00:00.000Z",
+        //            "fundingRate": 0.0010890000000000001,
+        //            "fundingRateDaily": 0.0010890000000000001
+        //        }
+        //    ]
+        //
+        return this.parseFundingRateHistories (response, market, since, limit);
+    }
+
+    parseFundingRateHistories (response, market, since, limit) {
+        const rates = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            rates.push (this.parseFundingRateHistory (entry, market));
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        const symbol = (market === undefined) ? undefined : market['symbol'];
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    parseFundingRateHistory (info, market = undefined) {
+        //
+        //    {
+        //        "timestamp": "2016-05-07T12:00:00.000Z",
+        //        "symbol": "ETHXBT",
+        //        "fundingInterval": "2000-01-02T00:00:00.000Z",
+        //        "fundingRate": 0.0010890000000000001,
+        //        "fundingRateDaily": 0.0010890000000000001
+        //    }
+        //
+        const marketId = this.safeString (info, 'symbol');
+        const datetime = this.safeString (info, 'timestamp');
+        return {
+            'info': info,
+            'symbol': this.safeSymbol (marketId, market),
+            'fundingRate': this.safeNumber (info, 'fundingRate'),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+        };
+    }
+
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return;
