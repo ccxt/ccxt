@@ -21,7 +21,6 @@ def table(values):
 symbol = 'BTC/USDT'
 
 exchange = ccxt.latoken ({
-    'enableRateLimit': True,
     # 'verbose': True,  # uncomment for debugging purposes
     # uncomment and change for your keys to enable private calls
     # 'apiKey': 'YOUR_API_KEY',

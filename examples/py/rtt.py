@@ -32,7 +32,7 @@ def main():
         # 'password': 'YOUR_API_PASSWORD',  # some exchanges require this
 
         # if you do not rate-limit your requests the exchange can ban you!
-        # 'enableRateLimit': True,  # https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
+        'enableRateLimit': False,  # https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
 
     })
 
