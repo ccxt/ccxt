@@ -405,92 +405,48 @@ module.exports = class coinflex extends ccxt.coinflex {
 
     handleOrder (client, message, subscription = undefined) {
         //
-        //     {
-        //         topic: 'order',
-        //         action: 'insert',
-        //         user_id: 155328,
-        //         symbol: 'ltc-usdt',
-        //         data: {
-        //             symbol: 'ltc-usdt',
-        //             side: 'buy',
-        //             size: 0.05,
-        //             type: 'market',
-        //             price: 0,
-        //             fee_structure: { maker: 0.1, taker: 0.1 },
-        //             fee_coin: 'ltc',
-        //             id: 'ce38fd48-b336-400b-812b-60c636454231',
-        //             created_by: 155328,
-        //             filled: 0.05,
-        //             method: 'market',
-        //             created_at: '2022-04-11T14:09:00.760Z',
-        //             updated_at: '2022-04-11T14:09:00.760Z',
-        //             status: 'filled'
-        //         },
-        //         time: 1649686140
-        //     }
-        //
-        //    {
-        //        "topic":"order",
-        //        "action":"partial",
-        //        "user_id":155328,
-        //        "data":[
-        //           {
-        //              "created_at":"2022-05-13T08:19:07.694Z",
-        //              "fee":0,
-        //              "meta":{
-        //
-        //              },
-        //              "symbol":"ltc-usdt",
-        //              "side":"buy",
-        //              "size":0.1,
-        //              "type":"limit",
-        //              "price":55,
-        //              "fee_structure":{
-        //                 "maker":0.1,
-        //                 "taker":0.1
-        //              },
-        //              "fee_coin":"ltc",
-        //              "id":"d5e77182-ad4c-4ac9-8ce4-a97f9b43e33c",
-        //              "created_by":155328,
-        //              "filled":0,
-        //              "status":"new",
-        //              "updated_at":"2022-05-13T08:19:07.694Z",
-        //              "stop":null
-        //           }
-        //        ],
-        //        "time":1652430035
+        // {
+        //     table: 'order',
+        //     data: [
+        //       {
+        //         accountId: '39422',
+        //         clientOrderId: '1652712518830',
+        //         orderId: '1002215627250',
+        //         price: '40.0',
+        //         quantity: '0.01',
+        //         side: 'BUY',
+        //         status: 'CANCELED_BY_USER',
+        //         marketCode: 'LTC-USD',
+        //         timeInForce: 'GTC',
+        //         timestamp: '1652712536469',
+        //         remainQuantity: '0.01',
+        //         notice: 'OrderClosed',
+        //         orderType: 'LIMIT',
+        //         isTriggered: 'false'
         //       }
+        //     ]
+        // }
         //
-        const channel = this.safeString (message, 'topic');
-        const data = this.safeValue (message, 'data', {});
-        // usually the first message is an empty array
-        const dataLength = data.length;
-        if (dataLength === 0) {
-            return 0;
-        }
+        const channel = this.safeString (message, 'table');
+        const rawOrders = this.safeValue (message, 'data', []);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const stored = this.orders;
-        let rawOrders = undefined;
-        if (!Array.isArray (data)) {
-            rawOrders = [ data ];
-        } else {
-            rawOrders = data;
-        }
         const marketIds = {};
         for (let i = 0; i < rawOrders.length; i++) {
             const order = rawOrders[i];
             const parsed = this.parseOrder (order);
             stored.append (parsed);
-            const symbol = order['symbol'];
+            const symbol = parsed['symbol'];
             const market = this.market (symbol);
             const marketId = market['id'];
             marketIds[marketId] = true;
         }
         // non-symbol specific
-        client.resolve (this.orders, channel);
+        const messageHash = channel + ':all';
+        client.resolve (this.orders, messageHash);
         const keys = Object.keys (marketIds);
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
@@ -621,6 +577,15 @@ module.exports = class coinflex extends ccxt.coinflex {
 
     handleMessage (client, message) {
         //
+        //  { event: 'Welcome', nonce: '253ae705', timestamp: '1652711966653' }
+        //
+        //  {
+        //     success: true,
+        //     tag: '1652712019244',
+        //     event: 'subscribe',
+        //     channel: 'trade:BTC-USD',
+        //     timestamp: '1652712020624'
+        //  }
         //
         if (!this.handleErrorMessage (client, message)) {
             return;
