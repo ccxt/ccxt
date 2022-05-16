@@ -11,10 +11,7 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 
 async def poll():
-    exchange = ccxt.poloniex({
-        'enableRateLimit': True,
-        # don't remove this line or they might ban you: https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
-    })
+    exchange = ccxt.poloniex()
     while True:
         yield await exchange.fetch_ticker('ETH/BTC')
 

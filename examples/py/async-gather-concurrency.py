@@ -13,10 +13,7 @@ import ccxt.async_support as ccxt  # noqa: E402
 async def work(exchange_id):
 
     # create it once per program lifetime
-    exchange = getattr(ccxt, exchange_id)({
-        # https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
-        'enableRateLimit': True
-    })
+    exchange = getattr(ccxt, exchange_id)()
 
     print(exchange_id, 'loaded')
 

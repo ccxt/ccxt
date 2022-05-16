@@ -15,7 +15,6 @@ async def test():
     exchange = ccxt.bitstamp({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
-        'enableRateLimit': True,  # this is required, as documented in the Manual!
     })
 
     response = None
@@ -43,5 +42,5 @@ async def test():
     await exchange.close()
     return response
 
-if __name__ == '__main__':
-    print(asyncio.run(test()))
+
+print(asyncio.run(test()))
