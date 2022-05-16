@@ -171,51 +171,59 @@ module.exports = class coinflex extends ccxt.coinflex {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
-        // await this.loadMarkets ();
-        // const orderbook = await this.watchPublic (messageHash, params);
-        // return orderbook.limit (limit);
+        const channel = 'depth';
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = channel + ':' + market['id'];
+        const orderbook = await this.watchPublic (messageHash, params);
+        return orderbook.limit (limit);
     }
 
     handleOrderBook (client, message) {
         //
-        //     {
-        //         "topic":"orderbook",
-        //         "action":"partial",
-        //         "symbol":"ltc-usdt",
-        //         "data":{
-        //             "bids":[
-        //                 [104.29, 5.2264],
-        //                 [103.86,1.3629],
-        //                 [101.82,0.5942]
-        //             ],
-        //             "asks":[
-        //                 [104.81,9.5531],
-        //                 [105.54,0.6416],
-        //                 [106.18,1.4141],
-        //             ],
-        //             "timestamp":"2022-04-12T08:17:05.932Z"
-        //         },
-        //         "time":1649751425
-        //     }
+        // we get always the full snapshot
         //
-        const marketId = this.safeString (message, 'symbol');
-        const channel = this.safeString (message, 'topic');
-        const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
-        const data = this.safeValue (message, 'data');
-        let timestamp = this.safeString (data, 'timestamp');
-        timestamp = this.parse8601 (timestamp);
-        const snapshot = this.parseOrderBook (data, symbol, timestamp);
-        let orderbook = undefined;
-        if (!(symbol in this.orderbooks)) {
-            orderbook = this.orderBook (snapshot);
-            this.orderbooks[symbol] = orderbook;
-        } else {
-            orderbook = this.orderbooks[symbol];
-            orderbook.reset (snapshot);
+        // {
+        //     "table":"depth",
+        //     "data":[
+        //        {
+        //           "instrumentId":"BTC-USD-SWAP-LIN",
+        //           "seqNum":"1650424356029712528",
+        //           "asks":[
+        //              [29878,0.303,0,0 ],
+        //              [29880,0.004,0,0 ],
+        //           ],
+        //           "checksum":-1222631948,
+        //           "bids":[
+        //              [ 29877, 0.047, 0, 0 ],
+        //              [ 29872, 0.001, 0, 0 ],
+        //           ],
+        //           "timestamp":"1652708448921"
+        //        }
+        //     ],
+        //     "action":"partial"
+        //  }
+        //
+        const channel = this.safeString (message, 'table');
+        const data = this.safeValue (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString (entry, 'instrumentId');
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            const timestamp = this.safeInteger (entry, 'timestamp');
+            const snapshot = this.parseOrderBook (entry, symbol, timestamp);
+            let orderbook = undefined;
+            if (!(symbol in this.orderbooks)) {
+                orderbook = this.orderBook (snapshot);
+                this.orderbooks[symbol] = orderbook;
+            } else {
+                orderbook = this.orderbooks[symbol];
+                orderbook.reset (snapshot);
+            }
+            const messageHash = channel + ':' + marketId;
+            client.resolve (orderbook, messageHash);
         }
-        const messageHash = channel + ':' + marketId;
-        client.resolve (orderbook, messageHash);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -605,7 +613,7 @@ module.exports = class coinflex extends ccxt.coinflex {
         const methods = {
             'ticker': this.handleTicker,
             'trade': this.handleTrades,
-            'orderbook': this.handleOrderBook,
+            'depth': this.handleOrderBook,
             'order': this.handleOrder,
             'wallet': this.handleBalance,
             'usertrade': this.handleMyTrades,
