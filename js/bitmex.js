@@ -1749,9 +1749,25 @@ module.exports = class bitmex extends Exchange {
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        const market = (symbol === undefined) ? undefined : this.market (symbol);
-        if (symbol !== undefined) {
+        let market = undefined;
+        if (symbol in this.markets) {
+            market = this.market (symbol);
             request['symbol'] = market['id'];
+        } else if (symbol in this.currencies) {
+            market = this.currency (symbol);
+            request['symbol'] = market['id'];
+        } else {
+            const splitSymbol = symbol.split (':');
+            const splitSymbolLength = splitSymbol.length;
+            const timeframes = [ 'nearest', 'daily', 'weekly', 'monthly', 'quarterly', 'biquarterly', 'perpetual' ];
+            if (splitSymbolLength > 1 && splitSymbol[1] in timeframes) {
+                market = {
+                    'id': symbol,
+                };
+                request['symbol'] = symbol;
+            } else {
+                throw new BadRequest (this.id + ' fetchFundingRateHistory cannot use symbol ' + symbol);
+            }
         }
         if (since !== undefined) {
             request['startTime'] = this.iso8601 (since);
