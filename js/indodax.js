@@ -631,7 +631,7 @@ module.exports = class indodax extends Exchange {
         if (since !== undefined) {
             const startTime = this.iso8601 (since).slice (0, 10);
             request['start'] = startTime;
-            request['end'] = this.iso8601 (new Date ()).slice (0, 10); // test transpiled
+            request['end'] = this.iso8601 (new Date ()).slice (0, 10);
         }
         const response = await this.privatePostTransHistory (this.extend (request, params));
         //
