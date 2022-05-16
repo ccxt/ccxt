@@ -405,30 +405,60 @@ module.exports = class coinflex extends ccxt.coinflex {
 
     handleOrder (client, message, subscription = undefined) {
         //
-        // {
-        //     table: 'order',
-        //     data: [
-        //       {
-        //         accountId: '39422',
-        //         clientOrderId: '1652712518830',
-        //         orderId: '1002215627250',
-        //         price: '40.0',
-        //         quantity: '0.01',
-        //         side: 'BUY',
-        //         status: 'CANCELED_BY_USER',
-        //         marketCode: 'LTC-USD',
-        //         timeInForce: 'GTC',
-        //         timestamp: '1652712536469',
-        //         remainQuantity: '0.01',
-        //         notice: 'OrderClosed',
-        //         orderType: 'LIMIT',
-        //         isTriggered: 'false'
-        //       }
-        //     ]
-        // }
+        //
+        //    {
+        //        table: 'order',
+        //        data: [
+        //          {
+        //            accountId: '39422',
+        //            clientOrderId: '1652712518830',
+        //            orderId: '1002215627250',
+        //            price: '40.0',
+        //            quantity: '0.01',
+        //            side: 'BUY',
+        //            status: 'CANCELED_BY_USER',
+        //            marketCode: 'LTC-USD',
+        //            timeInForce: 'GTC',
+        //            timestamp: '1652712536469',
+        //            remainQuantity: '0.01',
+        //            notice: 'OrderClosed',
+        //            orderType: 'LIMIT',
+        //            isTriggered: 'false'
+        //          }
+        //        ]
+        //    }
+        //
+        //    {
+        //      table: 'order',
+        //      data: [
+        //        {
+        //          accountId: '39422',
+        //          clientOrderId: '1652713431643',
+        //          orderId: '1002215706472',
+        //          quantity: '0.001',
+        //          side: 'SELL',
+        //          status: 'FILLED',
+        //          marketCode: 'BTC-USD-SWAP-LIN',
+        //          timestamp: '1652713431854',
+        //          matchId: '304734619690202846',
+        //          matchPrice: '29480.0',
+        //          matchQuantity: '0.001',
+        //          orderMatchType: 'TAKER',
+        //          remainQuantity: '0.0',
+        //          notice: 'OrderMatched',
+        //          orderType: 'MARKET',
+        //          fees: '0.02358400',
+        //          feeInstrumentId: 'USD',
+        //          isTriggered: 'false'
+        //        }
+        //      ]
+        //    }
         //
         const channel = this.safeString (message, 'table');
         const rawOrders = this.safeValue (message, 'data', []);
+        // if (!Array.isArray (rawOrders)) {
+        //     rawOrders = [ rawOrders ];
+        // }
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -437,6 +467,11 @@ module.exports = class coinflex extends ccxt.coinflex {
         const marketIds = {};
         for (let i = 0; i < rawOrders.length; i++) {
             const order = rawOrders[i];
+            // parseOrder does not support 'matchPrice'
+            const matchPrice = this.safeString (order, 'matchPrice');
+            if (matchPrice !== undefined) {
+                order['price'] = matchPrice;
+            }
             const parsed = this.parseOrder (order);
             stored.append (parsed);
             const symbol = parsed['symbol'];
@@ -547,13 +582,33 @@ module.exports = class coinflex extends ccxt.coinflex {
 
     handleErrorMessage (client, message) {
         //
-        // {
-        //     event: 'login',
-        //     success: false,
-        //     message: 'Signature is invalid',
-        //     code: '20000',
-        //     timestamp: '1652709878447'
-        // }
+        //    {
+        //        event: 'login',
+        //        success: false,
+        //        message: 'Signature is invalid',
+        //        code: '20000',
+        //        timestamp: '1652709878447'
+        //    }
+        //
+        //    {
+        //        event: 'placeorder',
+        //        submitted: false,
+        //        tag: '1652714023869',
+        //        message: 'FAILED sanity bound check as price (14000) >  upper bound (13260)',
+        //        code: '710003',
+        //        timestamp: '1652714024078',
+        //        data: {
+        //          clientOrderId: '1652714023869',
+        //          marketCode: 'BTC-USD-SWAP-LIN',
+        //          side: 'BUY',
+        //          orderType: 'STOP_LIMIT',
+        //          quantity: '0.001',
+        //          timeInForce: 'GTC',
+        //          limitPrice: '14000',
+        //          stopPrice: '13000',
+        //          source: 0
+        //        }
+        //     }
         //
         const success = this.safeValue (message, 'success');
         try {
@@ -577,15 +632,34 @@ module.exports = class coinflex extends ccxt.coinflex {
 
     handleMessage (client, message) {
         //
-        //  { event: 'Welcome', nonce: '253ae705', timestamp: '1652711966653' }
+        //   { event: 'Welcome', nonce: '253ae705', timestamp: '1652711966653' }
         //
-        //  {
-        //     success: true,
-        //     tag: '1652712019244',
-        //     event: 'subscribe',
-        //     channel: 'trade:BTC-USD',
-        //     timestamp: '1652712020624'
-        //  }
+        //   {
+        //      success: true,
+        //      tag: '1652712019244',
+        //      event: 'subscribe',
+        //      channel: 'trade:BTC-USD',
+        //      timestamp: '1652712020624'
+        //   }
+        //
+        //   {
+        //       event: 'placeorder',
+        //       submitted: true,
+        //       tag: '1652714101465',
+        //       timestamp: '1652714101676',
+        //       data: {
+        //         clientOrderId: '1652714101465',
+        //         marketCode: 'BTC-USD-SWAP-LIN',
+        //         side: 'BUY',
+        //         orderType: 'STOP_LIMIT',
+        //         quantity: '0.001',
+        //         timeInForce: 'GTC',
+        //         limitPrice: '15300',
+        //         stopPrice: '15000',
+        //         orderId: '1002215765848',
+        //         source: 0
+        //       }
+        //   }
         //
         if (!this.handleErrorMessage (client, message)) {
             return;
