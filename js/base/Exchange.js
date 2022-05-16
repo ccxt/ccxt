@@ -2330,7 +2330,6 @@ module.exports = class Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchMarketLeverageTiers() is not supported yet');
         }
-
     }
 
     isPostOnly (type, timeInForce, exchangeSpecificOption, params = {}) {
@@ -2417,5 +2416,18 @@ module.exports = class Exchange {
         const sorted = this.sortBy (rates, 'timestamp');
         const symbol = (market === undefined) ? undefined : market['symbol'];
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        if (this.has['fetchFundingRates']) {
+            const market = await this.market (symbol);
+            if (!market['contract']) {
+                throw new BadSymbol (this.id + ' fetchFundingRate () supports contract markets only');
+            }
+            const rates = await this.fetchFundingRates ([ symbol ], params);
+            return this.safeValue (rates, symbol);
+        } else {
+            throw new NotSupported (this.id + ' fetchFundingRate () is not supported yet');
+        }
     }
 }

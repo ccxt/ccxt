@@ -423,3 +423,13 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + ' create_stop_market_order() is not supported yet')
         query = self.extend(params, {'stopPrice': stopPrice})
         return await self.create_order(symbol, 'market', side, amount, None, query)
+
+    async def fetch_funding_rate(self, symbol, params={}):
+        if self.has['fetchFundingRates']:
+            market = self.market(symbol)
+            if not market['contract']:
+                raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
+            rates = self.fetch_funding_rates([symbol], params)
+            return await self.safe_value(rates, symbol)
+        else:
+            raise NotSupported(self.id + ' fetchFundingRate() is not supported yet')

@@ -3043,3 +3043,13 @@ class Exchange(object):
         sorted = self.sort_by(rates, 'timestamp')
         symbol = None if (market is None) else market['symbol']
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def fetch_funding_rate(self, symbol, params={}):
+        if self.has['fetchFundingRates']:
+            market = self.market(symbol)
+            if not market['contract']:
+                raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
+            rates = self.fetch_funding_rates([symbol], params)
+            return self.safe_value(rates, symbol)
+        else:
+            raise NotSupported(self.id + ' fetchFundingRate() is not supported yet')

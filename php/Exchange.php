@@ -4005,4 +4005,17 @@ class Exchange {
         $symbol = ($market === null) ? null : $market['symbol'];
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        if ($this->has['fetchFundingRates']) {
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadSymbol($this->id . ' fetchFundingRate () supports contract markets only');
+            }
+            $rates = $this->fetch_funding_rates(array( $symbol ), $params);
+            return $this->safe_value($rates, $symbol);
+        } else {
+            throw new NotSupported($this->id . ' fetchFundingRate () is not supported yet');
+        }
+    }
 }
