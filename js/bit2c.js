@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, NotSupported } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -32,6 +32,7 @@ module.exports = class bit2c extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
+                'fetchDepositAddress': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -81,7 +82,7 @@ module.exports = class bit2c extends Exchange {
                 'private': {
                     'post': [
                         'Merchant/CreateCheckout',
-                        'Order/AddCoinFundsRequest',
+                        'Funds/AddCoinFundsRequest',
                         'Order/AddFund',
                         'Order/AddOrder',
                         'Order/AddOrderMarketPriceBuy',
@@ -556,6 +557,34 @@ module.exports = class bit2c extends Exchange {
             'cost': undefined,
             'fee': fee,
         }, market);
+    }
+
+    getCurrencyName (code) {
+        return code.toUpperCase ();
+    }
+
+    isFiat (code) {
+        return code === 'ILS';
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        if (this.isFiat (code)) {
+            throw new NotSupported (this.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!');
+        }
+        const name = this.getCurrencyName (code);
+        const request = {
+            'Coin': name,
+        };
+        const response = await this.privatePostFundsAddCoinFundsRequest (this.extend (request, params));
+        const address = this.safeString (response, 'address');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': undefined,
+            'network': undefined,
+            'info': response,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
