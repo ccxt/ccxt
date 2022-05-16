@@ -261,7 +261,7 @@ module.exports = class stex extends Exchange {
                 },
                 'accountsByType': {
                     'spot': 'spot',
-                    'funding': 'funding',
+                    'hold': 'hold',
                     'referal': 'referal',
                 },
                 'transfer': {
@@ -1800,17 +1800,17 @@ module.exports = class stex extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         let method = undefined;
-        const request = undefined;
+        const request = {};
         if (fromAccount === 'referal' && toAccount === 'spot') {
             request['currencyId'] = currency['id'];
             method = 'profilePostReferralBonusTransferCurrencyId';
-        } else if (toAccount === 'funding') {
+        } else if (toAccount === 'hold') {
             request['walletId'] = fromAccount;
-            amount = this.amountToPrecision (code, amount);
+            amount = this.currencyToPrecision (code, amount);
             amount = Precise.stringNeg (amount);
             request['amount'] = amount;
             method = 'profilePostWalletsWalletIdHoldAmount';
-        } else if (fromAccount === 'funding') {
+        } else if (fromAccount === 'hold') {
             request['walletId'] = toAccount;
             request['amount'] = amount;
             method = 'profilePostWalletsWalletIdHoldAmount';
@@ -1827,85 +1827,96 @@ module.exports = class stex extends Exchange {
         //
         //  profilePostWalletsWalletIdHoldAmount
         //     {
-        //         "success": true,
-        //         "data": {
-        //             "id": 45875,
-        //             "currency_id": 1,
-        //             "currency_code": "USDT",
-        //             "currency_name": "TetherUSD",
-        //             "balance": "0.198752",
-        //             "frozen_balance": "1.5784",
-        //             "bonus_balance": "0.000",
-        //             "hold_balance": "0.000",
-        //             "total_balance": "1.777152",
-        //             "disable_deposits": false,
-        //             "disable_withdrawals": false,
-        //             "withdrawal_limit": "string",
-        //             "delisted": false,
-        //             "disabled": false,
-        //             "deposit_address": {
-        //                 "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
-        //                 "address_name": "Address",
-        //                 "additional_address_parameter": "qwertyuiopasdfghjkl",
-        //                 "additional_address_parameter_name": "Destination Tag",
-        //                 "notification": "",
-        //                 "protocol_id": 10,
-        //                 "protocol_name": "Tether OMNI",
-        //                 "supports_new_address_creation": false
-        //             },
-        //             "multi_deposit_addresses": [{
-        //                 "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
-        //                 "address_name": "Address",
-        //                 "additional_address_parameter": "qwertyuiopasdfghjkl",
-        //                 "additional_address_parameter_name": "Destination Tag",
-        //                 "notification": "",
-        //                 "protocol_id": 10,
-        //                 "protocol_name": "Tether OMNI",
-        //                 "supports_new_address_creation": false
+        //         success: true,
+        //         data: {
+        //             id: '4055802',
+        //             currency_id: '272',
+        //             currency_code: 'USDT',
+        //             currency_name: 'TetherUSD',
+        //             balance: '10.00000000',
+        //             frozen_balance: '0.00000000',
+        //             bonus_balance: '0.00000000',
+        //             hold_balance: '1.00000000',
+        //             total_balance: '11.00000000',
+        //             disable_deposits: false,
+        //             disable_withdrawals: false,
+        //             withdrawal_limit: '0.00000000',
+        //             delisted: false,
+        //             disabled: false,
+        //             deposit_address: null,
+        //             multi_deposit_addresses: [{
+        //                 address: 'TYzhabfHWMLgLnMW46ZyUHkUVJPXaDgdxK',
+        //                 address_name: 'Deposit Address',
+        //                 additional_address_parameter: null,
+        //                 additional_address_parameter_name: null,
+        //                 notification: '',
+        //                 protocol_id: '24',
+        //                 protocol_name: 'TRON',
+        //                 supports_new_address_creation: false
         //             }],
-        //             "withdrawal_additional_field_name": "Payment ID (optional)",
-        //             "currency_type_id": 23,
-        //             "protocol_specific_settings": [{
-        //                 "protocol_name": "Tether OMNI",
-        //                 "protocol_id": 10,
-        //                 "active": true,
-        //                 "disable_deposits": false,
-        //                 "disable_withdrawals": false,
-        //                 "withdrawal_limit": 0,
-        //                 "deposit_fee_currency_id": 272,
-        //                 "deposit_fee_currency_code": "USDT",
-        //                 "deposit_fee_percent": 0,
-        //                 "deposit_fee_const": 0,
-        //                 "withdrawal_fee_currency_id": 1,
-        //                 "withdrawal_fee_currency_code": "USDT",
-        //                 "withdrawal_fee_const": 0.002,
-        //                 "withdrawal_fee_percent": 0,
-        //                 "block_explorer_url": "https://omniexplorer.info/search/",
-        //                 "withdrawal_additional_field_name": ""
-        //             }],
-        //             "coin_info": {
-        //                 "twitter": "https://twitter.com/btc",
-        //                 "version": "",
-        //                 "facebook": "https://www.facebook.com/bitcoins",
-        //                 "telegram": "",
-        //                 "icon_large": "https://app-coin-images.stex.com/large/btc.png",
-        //                 "icon_small": "https://app-coin-images.stex.com/small/btc.png",
-        //                 "description": "Bitcoin is the first successful internet money based on peer-to-peer technology;....",
-        //                 "official_site": "http://www.bitcoin.org",
-        //                 "official_block_explorer": "https://blockchair.com/bitcoin/"
+        //             contract_or_asset_id: '31',
+        //             contract_field_name: null,
+        //             withdrawal_additional_field_name: null,
+        //             depo_message: '',
+        //             wd_message: '',
+        //             currency_type_id: '23',
+        //             protocol_specific_settings: [{
+        //                 {
+        //                     protocol_name: 'ERC20',
+        //                     protocol_id: '5',
+        //                     active: true,
+        //                     disable_deposits: false,
+        //                     disable_withdrawals: false,
+        //                     withdrawal_limit: '0',
+        //                     deposit_fee_currency_id: '272',
+        //                     deposit_fee_currency_code: 'USDT',
+        //                     deposit_fee_percent: '0',
+        //                     deposit_fee_const: '0',
+        //                     withdrawal_fee_currency_id: '272',
+        //                     withdrawal_fee_currency_code: 'USDT',
+        //                     withdrawal_fee_const: '10',
+        //                     withdrawal_fee_percent: '0',
+        //                     block_explorer_url: 'https://etherscan.io/tx/',
+        //                     contract_or_asset_id: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        //                     contract_field_name: '',
+        //                     withdrawal_additional_field_name: '',
+        //                     depo_message: '',
+        //                     wd_message: ''
+        //                 },
+        //                 ...
+        //             ],
+        //             coin_info: {
+        //                 twitter: 'https://twitter.com/Tether_to',
+        //                 version: '',
+        //                 facebook: 'https://www.facebook.com/tether.to',
+        //                 telegram: '',
+        //                 icon_large: 'https://app-coin-images.stex.com/large/usdt.png',
+        //                 icon_small: 'https://app-coin-images.stex.com/small/usdt.png',
+        //                 description: 'Tether (USDT) is a cryptocurrency with a value meant to mirror the value of the U.S. dollar. The idea was to create a stable cryptocurrency that can be used like digital dollars. Coins that serve this purpose of being a stable dollar substitute are called “stable coins.” Tether is the most popular stable coin and even acts as a dollar replacement on many popular exchanges! According to their site, Tether converts cash into digital currency, to anchor or “tether” the value of the coin to the price of national currencies like the US dollar, the Euro, and the Yen. Like other cryptos it uses blockchain. Unlike other cryptos, it is [according to the official Tether site] “100% backed by USD” (USD is held in reserve). The primary use of Tether is that it offers some stability to the otherwise volatile crypto space and offers liquidity to exchanges who can’t deal in dollars and with banks (for example to the sometimes controversial but leading exchange Bitfinex).The digital coins are issued by a company called Tether Limited that is governed by the laws of the British Virgin Islands, according to the legal part of its website. It is incorporated in Hong Kong. It has emerged that Jan Ludovicus van der Velde is the CEO of cryptocurrency exchange Bitfinex, which has been accused of being involved in the price manipulation of bitcoin, as well as tether. Many people trading on exchanges, including Bitfinex, will use tether to buy other cryptocurrencies like bitcoin. Tether Limited argues that using this method to buy virtual currencies allows users to move fiat in and out of an exchange more quickly and cheaply. Also, exchanges typically have rocky relationships with banks, and using Tether is a way to circumvent that.USDT is fairly simple to use. Once on exchanges like Poloniex or Bittrex, it can be used to purchase Bitcoin and other cryptocurrencies. It can be easily transferred from an exchange to any Omni Layer enabled wallet. Tether has no transaction fees, although external wallets and exchanges may charge one. In order to convert USDT to USD and vise versa through the Tether.to Platform, users must pay a small fee. Buying and selling Tether for Bitcoin can be done through a variety of exchanges like the ones mentioned previously or through the Tether.to platform, which also allows the conversion between USD to and from your bank account.',
+        //                 official_site: 'https://tether.to/',
+        //                 official_block_explorer: 'https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7'
         //             },
-        //             "rates": {
-        //                 "BTC": 0.000001
+        //             rates: {
+        //                 BTC: '0.00003372',
+        //                 USD: '1'
         //             }
+        //         },
+        //         unified_message: {
+        //             message_id: 'operation_successful',
+        //             substitutions: []
         //         }
         //     }
         //
-        const transfer = this.parseTransfer (response, currency);
+        const data = this.safeValue (response, 'data', {});
+        const transfer = this.parseTransfer (data, currency);
         const transferOptions = this.safeValue (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
+            if (typeof amount === 'string' && Precise.stringLt (amount, '0')) {
+                amount = this.parseNumber (Precise.stringNeg (amount));
+            }
             transfer['amount'] = amount;
             if (transfer['currency'] === undefined) {
                 transfer['currency'] = code;
