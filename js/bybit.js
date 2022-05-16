@@ -110,6 +110,7 @@ module.exports = class bybit extends ccxt.bybit {
             // inverse
             url = url['inverse'][accessibility];
         }
+        url = this.implodeHostname (url);
         return [url, params];
     }
 
