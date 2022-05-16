@@ -698,11 +698,11 @@ module.exports = class indodax extends Exchange {
         if (code === undefined) {
             const keys = Object.keys (currencies);
             for (let i = 0; i < keys.length; i++) {
-                const currency = keys[i];
-                transactions = this.arrayConcat (transactions, currencies[currency]);
+                const key = keys[i];
+                transactions = this.arrayConcat (transactions, currencies[key]);
             }
         } else {
-            const currency = this.currency (code);
+            currency = this.currency (code);
             transactions = this.safeValue (currencies, currency['id'], []);
         }
         return this.parseTransactions (transactions, currency, since, limit);
