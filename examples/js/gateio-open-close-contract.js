@@ -6,7 +6,7 @@ const exchange = new ccxt.gateio ({
     'secret': 'YOUR_SECRET',
     'options': {
         'defaultType': 'swap',
-        'marginType': 'cross'
+        'marginMode': 'cross'
     },
 })
 

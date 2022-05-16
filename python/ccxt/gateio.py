@@ -96,7 +96,6 @@ class gateio(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -121,6 +120,7 @@ class gateio(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
+                'fetchTransactionFees': True,
                 'fetchWithdrawals': True,
                 'setLeverage': True,
                 'setMarginMode': False,
@@ -1123,12 +1123,12 @@ class gateio(Exchange):
         :param dict params: request parameters
         :returns: the api request object, and the new params object with non-needed parameters removed
         """
-        marginType, query = self.get_margin_type(stop, params)
+        marginMode, query = self.get_margin_mode(stop, params)
         request = {}
         if not stop:
             if market is None:
                 raise ArgumentsRequired(self.id + ' spotOrderPrepareRequest() requires a market argument for non-stop orders')
-            request['account'] = marginType
+            request['account'] = marginMode
             request['currency_pair'] = market['id']  # Should always be set for non-stop
         return [request, query]
 
@@ -1141,9 +1141,9 @@ class gateio(Exchange):
         :param dict params: request parameters
         :returns: the api request object, and the new params object with non-needed parameters removed
         """
-        marginType, query = self.get_margin_type(stop, params)
+        marginMode, query = self.get_margin_mode(stop, params)
         request = {
-            'account': marginType,
+            'account': marginMode,
         }
         if market is not None:
             if stop:
@@ -1153,30 +1153,30 @@ class gateio(Exchange):
                 request['currency_pair'] = market['id']
         return [request, query]
 
-    def get_margin_type(self, stop, params):
+    def get_margin_mode(self, stop, params):
         """
          * @ignore
         Gets the margin type for self api call
         :param bool stop: True if for a stop order
         :param dict params: Request params
-        :returns: The marginType and the updated request params with marginType removed, marginType value is the value that can be read by the "account" property specified in gateios api docs
+        :returns: The marginMode and the updated request params with marginMode removed, marginMode value is the value that can be read by the "account" property specified in gateios api docs
         """
-        defaultMarginType = self.safe_string_lower_2(self.options, 'defaultMarginType', 'marginType', 'spot')  # 'margin' is isolated margin on gateio's api
-        marginType = self.safe_string_lower_2(params, 'marginType', 'account', defaultMarginType)
-        params = self.omit(params, ['marginType', 'account'])
-        if marginType == 'cross':
-            marginType = 'cross_margin'
-        elif marginType == 'isolated':
-            marginType = 'margin'
-        elif marginType == '':
-            marginType = 'spot'
+        defaultMarginMode = self.safe_string_lower_2(self.options, 'defaultMarginMode', 'marginMode', 'spot')  # 'margin' is isolated margin on gateio's api
+        marginMode = self.safe_string_lower_2(params, 'marginMode', 'account', defaultMarginMode)
+        params = self.omit(params, ['marginMode', 'account'])
+        if marginMode == 'cross':
+            marginMode = 'cross_margin'
+        elif marginMode == 'isolated':
+            marginMode = 'margin'
+        elif marginMode == '':
+            marginMode = 'spot'
         if stop:
-            if marginType == 'spot':
+            if marginMode == 'spot':
                 # gateio spot stop orders use the term normal instead of spot
-                marginType = 'normal'
-            if marginType == 'cross_margin':
-                raise BadRequest(self.id + ' getMarginType() does not support stop orders for cross margin')
-        return [marginType, params]
+                marginMode = 'normal'
+            if marginMode == 'cross_margin':
+                raise BadRequest(self.id + ' getMarginMode() does not support stop orders for cross margin')
+        return [marginMode, params]
 
     def get_settlement_currencies(self, type, method):
         options = self.safe_value(self.options, type, {})  # ['BTC', 'USDT'] unified codes
@@ -1562,7 +1562,7 @@ class gateio(Exchange):
             'taker': self.safe_number(info, takerKey),
         }
 
-    def fetch_funding_fees(self, params={}):
+    def fetch_transaction_fees(self, codes=None, params={}):
         self.load_markets()
         response = self.privateWalletGetWithdrawStatus(params)
         #
@@ -1871,7 +1871,7 @@ class gateio(Exchange):
         :param dict params: exchange specific parameters
         :param str params['type']: spot, margin, swap or future, if not provided self.options['defaultType'] is used
         :param str params['settle']: 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
-        :param str params['marginType']: 'cross' or 'isolated' - marginType for margin trading if not provided self.options['defaultMarginType'] is used
+        :param str params['marginMode']: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
         :param str params['symbol']: margin only - unified ccxt symbol
         """
         self.load_markets()
@@ -1879,12 +1879,12 @@ class gateio(Exchange):
         params = self.omit(params, 'symbol')
         type, query = self.handle_market_type_and_params('fetchBalance', None, params)
         request, requestParams = self.prepare_request(None, type, query)
-        marginType, requestQuery = self.get_margin_type(False, requestParams)
+        marginMode, requestQuery = self.get_margin_mode(False, requestParams)
         if symbol is not None:
             market = self.market(symbol)
             request['currency_pair'] = market['id']
         method = self.get_supported_mapping(type, {
-            'spot': self.get_supported_mapping(marginType, {
+            'spot': self.get_supported_mapping(marginMode, {
                 'spot': 'privateSpotGetAccounts',
                 'margin': 'privateMarginGetAccounts',
                 'cross_margin': 'privateMarginGetCrossAccounts',
@@ -2009,8 +2009,8 @@ class gateio(Exchange):
         result = {
             'info': response,
         }
-        crossMargin = marginType == 'cross_margin'
-        margin = marginType == 'margin'
+        crossMargin = marginMode == 'cross_margin'
+        margin = marginMode == 'margin'
         data = response
         if 'balances' in data:  # True for cross_margin
             flatBalances = []
@@ -2229,37 +2229,45 @@ class gateio(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        Fetch personal trading history
+        :param str symbol: The symbol for the market to fetch trades for
+        :param int since: The earliest timestamp, in ms, that fetched trades were made
+        :param int limit: The max number of trades to fetch
+        :param dict params: Exchange specific parameters
+        :param str params['marginMode']: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
+        :param str params['type']: 'spot', 'swap', or 'future', if not provided self.options['defaultMarginMode'] is used
+        :param int params['till']: The latest timestamp, in ms, that fetched trades were made
+        :param int params['page']: *spot only* Page number
+        :param str params['order_id']: *spot only* Filter trades with specified order ID. symbol is also required if self field is present
+        :param str params['order']: *contract only* Futures order ID, return related data only if specified
+        :param int params['offset']: *contract only* list offset, starting from 0
+        :param str params['last_id']: *contract only* specify list staring point using the id of last record in previous list-query results
+        :param int params['count_total']: *contract only* whether to return total number matched, default to 0(no return)
+        :returns: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
-        market = None
-        request = {}
         type = None
-        type, params = self.handle_market_type_and_params('fetchMyTrades', None, params)
-        if symbol:
-            market = self.market(symbol)
-            request, params = self.prepare_request(market, None, params)
-            type = market['type']
+        marginMode = None
+        request = {}
+        market = self.market(symbol) if (symbol is not None) else None
+        till = self.safe_number(params, 'till')
+        params = self.omit(params, 'till')
+        type, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
+        contract = (type == 'swap') or (type == 'future')
+        if contract:
+            request, params = self.prepare_request(market, type, params)
         else:
-            if type == 'swap' or type == 'future':
-                settle = self.safe_string_lower(params, 'settle')
-                if not settle:
-                    raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument or a settle parameter for ' + type + ' markets')
-                request['settle'] = settle
-        #
-        #     request = {
-        #         'currency_pair': market['id'],
-        #         # 'limit': limit,
-        #         # 'page': 0,
-        #         # 'order_id': 'Order ID',
-        #         # 'account': 'spot',  # default to spot and margin account if not specified, set to cross_margin to operate against margin account
-        #         # 'from': since,  # default to 7 days before current time
-        #         # 'to': self.milliseconds(),  # default to current time
-        #     }
-        #
+            if market is not None:
+                request['currency_pair'] = market['id']  # Should always be set for non-stop
+            marginMode, params = self.get_margin_mode(False, params)
+            request['account'] = marginMode
         if limit is not None:
             request['limit'] = limit  # default 100, max 1000
         if since is not None:
             request['from'] = int(since / 1000)
-            # request['to'] = since + 7 * 24 * 60 * 60
+        if till is not None:
+            request['to'] = int(till / 1000)
         method = self.get_supported_mapping(type, {
             'spot': 'privateSpotGetMyTrades',
             'margin': 'privateSpotGetMyTrades',
@@ -2581,7 +2589,7 @@ class gateio(Exchange):
         :param dict params:  Extra parameters specific to the exchange API endpoint
         :param float params['stopPrice']: The price at which a trigger order is triggered at
         :param str params['timeInForce']: "GTC", "IOC", or "PO"
-        :param str params['marginType']: 'cross' or 'isolated' - marginType for margin trading if not provided self.options['defaultMarginType'] is used
+        :param str params['marginMode']: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
         :param int params['iceberg']: Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
         :param str params['text']: User defined information
         :param str params['account']: *spot and margin only* "spot", "margin" or "cross_margin"
@@ -2641,14 +2649,14 @@ class gateio(Exchange):
                 if timeInForce is not None:
                     request['tif'] = timeInForce
             else:
-                marginType = None
-                marginType, params = self.get_margin_type(False, params)
+                marginMode = None
+                marginMode, params = self.get_margin_mode(False, params)
                 # spot order
                 request = {
                     # 'text': clientOrderId,  # 't-abcdef1234567890',
                     'currency_pair': market['id'],  # filled in prepareRequest above
                     'type': type,
-                    'account': marginType,  # 'spot', 'margin', 'cross_margin'
+                    'account': marginMode,  # 'spot', 'margin', 'cross_margin'
                     'side': side,
                     'amount': self.amount_to_precision(symbol, amount),
                     'price': self.price_to_precision(symbol, price),
@@ -2705,8 +2713,8 @@ class gateio(Exchange):
             else:
                 # spot conditional order
                 options = self.safe_value(self.options, 'createOrder', {})
-                marginType = None
-                marginType, params = self.get_margin_type(True, params)
+                marginMode = None
+                marginMode, params = self.get_margin_mode(True, params)
                 defaultExpiration = self.safe_integer(options, 'expiration')
                 expiration = self.safe_integer(params, 'expiration', defaultExpiration)
                 rule = '>=' if (side == 'buy') else '<='
@@ -2722,7 +2730,7 @@ class gateio(Exchange):
                         'side': side,
                         'price': self.price_to_precision(symbol, price),
                         'amount': self.amount_to_precision(symbol, amount),
-                        'account': marginType,
+                        'account': marginMode,
                         'time_in_force': timeInForce,  # gtc, ioc for taker only
                     },
                     'market': market['id'],
@@ -3046,8 +3054,8 @@ class gateio(Exchange):
         :param str symbol: Unified market symbol, *required for spot and margin*
         :param dict params: Parameters specified by the exchange api
         :param bool params['stop']: True if the order being fetched is a trigger order
-        :param str params['marginType']: 'cross' or 'isolated' - marginType for margin trading if not provided self.options['defaultMarginType'] is used
-        :param str params['type']: 'spot', 'swap', or 'future', if not provided self.options['defaultMarginType'] is used
+        :param str params['marginMode']: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
+        :param str params['type']: 'spot', 'swap', or 'future', if not provided self.options['defaultMarginMode'] is used
         :param str params['settle']: 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol is not None, default="usdt" for swap and "btc" for future
         :returns: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -3083,165 +3091,181 @@ class gateio(Exchange):
         :param int since: earliest time in ms for orders in the response
         :param int limit: max number of order structures to return
         :param dict params: exchange specific params
+        :param bool params['stop']: True for fetching stop orders
         :param str params['type']: spot, margin, swap or future, if not provided self.options['defaultType'] is used
-        :param str params['marginType']: 'cross' or 'isolated' - marginType for type='margin', if not provided self.options['defaultMarginType'] is used
+        :param str params['marginMode']: 'cross' or 'isolated' - marginMode for type='margin', if not provided self.options['defaultMarginMode'] is used
         :returns: An array of order structures
         """
-        self.load_markets()
-        type = None
-        type, params = self.handle_market_type_and_params('fetchOpenOrders', None, params)
-        if symbol is None and (type == 'spot') or type == 'margin' or type == 'cross_margin':
-            request = {
-                # 'page': 1,
-                # 'limit': limit,
-                'account': type,  # spot/margin(default), cross_margin
-            }
-            if limit is not None:
-                request['limit'] = limit
-            response = self.privateSpotGetOpenOrders(self.extend(request, params))
-            #
-            #     [
-            #         {
-            #             "currency_pair": "ETH_BTC",
-            #             "total": 1,
-            #             "orders": [
-            #                 {
-            #                     "id": "12332324",
-            #                     "text": "t-123456",
-            #                     "create_time": "1548000000",
-            #                     "update_time": "1548000100",
-            #                     "currency_pair": "ETH_BTC",
-            #                     "status": "open",
-            #                     "type": "limit",
-            #                     "account": "spot",
-            #                     "side": "buy",
-            #                     "amount": "1",
-            #                     "price": "5.00032",
-            #                     "time_in_force": "gtc",
-            #                     "left": "0.5",
-            #                     "filled_total": "2.50016",
-            #                     "fee": "0.005",
-            #                     "fee_currency": "ETH",
-            #                     "point_fee": "0",
-            #                     "gt_fee": "0",
-            #                     "gt_discount": False,
-            #                     "rebated_fee": "0",
-            #                     "rebated_fee_currency": "BTC"
-            #                 }
-            #             ]
-            #         },
-            #         ...
-            #     ]
-            #
-            # price_orders
-            #
-            #    [
-            #        {
-            #            "market": "ADA_USDT",
-            #            "user": 6693577,
-            #            "trigger": {
-            #                "price": "0.9",
-            #                "rule": "\u003c=",
-            #                "expiration": 86400
-            #            },
-            #            "put": {
-            #                "type": "limit",
-            #                "side": "sell",
-            #                "price": "0.9",
-            #                "amount": "2.00000000000000000000",
-            #                "account": "margin",
-            #                "time_in_force": "gtc"
-            #            },
-            #            "id": 8308730,
-            #            "ctime": 1650434238,
-            #            "status": "open"
-            #        }
-            #    ]
-            #
-            allOrders = []
-            for i in range(0, len(response)):
-                entry = response[i]
-                orders = self.safe_value(entry, 'orders', [])
-                parsed = self.parse_orders(orders, None, since, limit)
-                allOrders = self.array_concat(allOrders, parsed)
-            return self.filter_by_since_limit(allOrders, since, limit)
         return self.fetch_orders_by_status('open', symbol, since, limit, params)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches all closed orders
+        :param str symbol: Unified market symbol of the market to fetch orders for
+        :param int since: earliest time in ms for orders in the response
+        :param int limit: max number of order structures to return
+        :param dict params: exchange specific params
+        :param bool params['stop']: True for fetching stop orders
+        :param str params['type']: spot, swap or future, if not provided self.options['defaultType'] is used
+        :param str params['marginMode']: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
+        :returns: An array of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         return self.fetch_orders_by_status('finished', symbol, since, limit, params)
 
     def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrdersByStatus() requires a symbol argument')
         self.load_markets()
-        market = self.market(symbol)
-        request, query = self.prepare_request(market, None, params)
+        market = None if (symbol is None) else self.market(symbol)
+        stop = self.safe_value(params, 'stop')
+        params = self.omit(params, 'stop')
+        type, query = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)
+        spot = (type == 'spot') or (type == 'margin')
+        request, requestParams = self.multi_order_spot_prepare_request(market, stop, query) if spot else self.prepare_request(market, type, query)
+        if status == 'closed':
+            status = 'finished'
         request['status'] = status
         if limit is not None:
             request['limit'] = limit
-        if since is not None and (market['spot'] or market['margin']):
+        if since is not None and spot:
             request['from'] = int(since / 1000)
-        method = self.get_supported_mapping(market['type'], {
-            'spot': 'privateSpotGetOrders',
-            'margin': 'privateSpotGetOrders',
-            'swap': 'privateFuturesGetSettleOrders',
-            'future': 'privateDeliveryGetSettleOrders',
+        methodTail = 'PriceOrders' if stop else 'Orders'
+        openSpotOrders = spot and (status == 'open') and not stop
+        if openSpotOrders:
+            methodTail = 'OpenOrders'
+        method = self.get_supported_mapping(type, {
+            'spot': 'privateSpotGet' + methodTail,
+            'margin': 'privateSpotGet' + methodTail,
+            'swap': 'privateFuturesGetSettle' + methodTail,
+            'future': 'privateDeliveryGetSettle' + methodTail,
         })
-        if market['type'] == 'margin' or market['type'] == 'cross_margin':
-            request['account'] = market['type']
-        response = getattr(self, method)(self.extend(request, query))
+        response = getattr(self, method)(self.extend(request, requestParams))
+        #
+        # SPOT Open Orders
+        #
+        #    [
+        #        {
+        #            "currency_pair": "ADA_USDT",
+        #            "total": 2,
+        #            "orders": [
+        #                {
+        #                    "id": "155498539874",
+        #                    "text": "apiv4",
+        #                    "create_time": "1652406843",
+        #                    "update_time": "1652406843",
+        #                    "create_time_ms": 1652406843295,
+        #                    "update_time_ms": 1652406843295,
+        #                    "status": "open",
+        #                    "currency_pair": "ADA_USDT",
+        #                    "type": "limit",
+        #                    "account": "spot",
+        #                    "side": "buy",
+        #                    "amount": "3",
+        #                    "price": "0.35",
+        #                    "time_in_force": "gtc",
+        #                    "iceberg": "0",
+        #                    "left": "3",
+        #                    "fill_price": "0",
+        #                    "filled_total": "0",
+        #                    "fee": "0",
+        #                    "fee_currency": "ADA",
+        #                    "point_fee": "0",
+        #                    "gt_fee": "0",
+        #                    "gt_discount": False,
+        #                    "rebated_fee": "0",
+        #                    "rebated_fee_currency": "USDT"
+        #                },
+        #                ...
+        #            ]
+        #        },
+        #        ...
+        #    ]
         #
         # SPOT
         #
-        #    {
-        #        "id": "8834234273",
-        #        "text": "3",
-        #        "create_time": "1635406193",
-        #        "update_time": "1635406193",
-        #        "create_time_ms": 1635406193361,
-        #        "update_time_ms": 1635406193361,
-        #        "status": "closed",
-        #        "currency_pair": "BTC_USDT",
-        #        "type": "limit",
-        #        "account": "spot",
-        #        "side": "sell",
-        #        "amount": "0.0002",
-        #        "price": "58904.01",
-        #        "time_in_force": "gtc",
-        #        "iceberg": "0",
-        #        "left": "0.0000",
-        #        "fill_price": "11.790516",
-        #        "filled_total": "11.790516",
-        #        "fee": "0.023581032",
-        #        "fee_currency": "USDT",
-        #        "point_fee": "0",
-        #        "gt_fee": "0",
-        #        "gt_discount": False,
-        #        "rebated_fee_currency": "BTC"
-        #    }
+        #    [
+        #        {
+        #           "id": "8834234273",
+        #           "text": "3",
+        #           "create_time": "1635406193",
+        #           "update_time": "1635406193",
+        #           "create_time_ms": 1635406193361,
+        #           "update_time_ms": 1635406193361,
+        #           "status": "closed",
+        #           "currency_pair": "BTC_USDT",
+        #           "type": "limit",
+        #           "account": "spot",  # margin for margin orders
+        #           "side": "sell",
+        #           "amount": "0.0002",
+        #           "price": "58904.01",
+        #           "time_in_force": "gtc",
+        #           "iceberg": "0",
+        #           "left": "0.0000",
+        #           "fill_price": "11.790516",
+        #           "filled_total": "11.790516",
+        #           "fee": "0.023581032",
+        #           "fee_currency": "USDT",
+        #           "point_fee": "0",
+        #           "gt_fee": "0",
+        #           "gt_discount": False,
+        #           "rebated_fee_currency": "BTC"
+        #        }
+        #    ]
+        #
+        # Spot Stop
+        #
+        #    [
+        #        {
+        #            "market": "ADA_USDT",
+        #            "user": 10406147,
+        #            "trigger": {
+        #                "price": "0.65",
+        #                "rule": "\u003c=",
+        #                "expiration": 86400
+        #            },
+        #            "put": {
+        #                "type": "limit",
+        #                "side": "sell",
+        #                "price": "0.65",
+        #                "amount": "2.00000000000000000000",
+        #                "account": "normal",  # margin for margin orders
+        #                "time_in_force": "gtc"
+        #            },
+        #            "id": 8449909,
+        #            "ctime": 1652188982,
+        #            "status": "open"
+        #        }
+        #    ]
         #
         # Perpetual Swap
         #
-        #    {
-        #        "status": "finished",
-        #        "size": -1,
-        #        "left": 0,
-        #        "id": 82750739203,
-        #        "is_liq": False,
-        #        "is_close": False,
-        #        "contract": "BTC_USDT",
-        #        "text": "web",
-        #        "fill_price": "60721.3",
-        #        "finish_as": "filled",
-        #        "iceberg": 0,
-        #        "tif": "ioc",
-        #        "is_reduce_only": True,
-        #        "create_time": 1635403475.412,
-        #        "finish_time": 1635403475.4127,
-        #        "price": "0"
-        #    }
+        #    [
+        #        {
+        #           "status": "finished",
+        #           "size": -1,
+        #           "left": 0,
+        #           "id": 82750739203,
+        #           "is_liq": False,
+        #           "is_close": False,
+        #           "contract": "BTC_USDT",
+        #           "text": "web",
+        #           "fill_price": "60721.3",
+        #           "finish_as": "filled",
+        #           "iceberg": 0,
+        #           "tif": "ioc",
+        #           "is_reduce_only": True,
+        #           "create_time": 1635403475.412,
+        #           "finish_time": 1635403475.4127,
+        #           "price": "0"
+        #        }
+        #    ]
         #
-        return self.parse_orders(response, market, since, limit)
+        result = response
+        if openSpotOrders:
+            result = []
+            for i in range(0, len(response)):
+                orders = self.safe_value(response[i], 'orders')
+                result = self.array_concat(result, orders)
+        orders = self.parse_orders(result, market, since, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def cancel_order(self, id, symbol=None, params={}):
         """
@@ -3408,26 +3432,27 @@ class gateio(Exchange):
         """
         self.load_markets()
         currency = self.currency(code)
-        accountsByType = self.safe_value(self.options, 'accountsByType', {})
-        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
-        toId = self.safe_string(accountsByType, toAccount, toAccount)
-        if fromId is None:
-            keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' transfer() fromAccount must be one of ' + ', '.join(keys))
-        if toId is None:
-            keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' transfer() toAccount must be one of ' + ', '.join(keys))
+        fromId = self.parse_account(fromAccount)
+        toId = self.parse_account(toAccount)
         truncated = self.currency_to_precision(code, amount)
         request = {
             'currency': currency['id'],
-            'from': fromId,
-            'to': toId,
             'amount': truncated,
         }
-        if fromAccount == 'margin' or toAccount == 'margin':
+        if not (fromId in self.options['accountsByType']):
+            request['from'] = 'margin'
+            request['currency_pair'] = fromId
+        else:
+            request['from'] = fromId
+        if not (toId in self.options['accountsByType']):
+            request['to'] = 'margin'
+            request['currency_pair'] = toId
+        else:
+            request['to'] = toId
+        if fromId == 'margin' or toId == 'margin':
             symbol = self.safe_string_2(params, 'symbol', 'currency_pair')
             if symbol is None:
-                raise ArgumentsRequired(self.id + ' transfer() requires params.symbol for isolated margin transfers')
+                raise ArgumentsRequired(self.id + ' transfer requires params["symbol"] for isolated margin transfers')
             market = self.market(symbol)
             request['currency_pair'] = market['id']
             params = self.omit(params, 'symbol')
@@ -3451,6 +3476,17 @@ class gateio(Exchange):
             'toAccount': toAccount,
             'amount': self.parse_number(truncated),
         })
+
+    def parse_account(self, account):
+        accountsByType = self.options['accountsByType']
+        if account in accountsByType:
+            return accountsByType[account]
+        elif account in self.markets:
+            market = self.market(account)
+            return market['id']
+        else:
+            keys = list(accountsByType.keys())
+            raise ExchangeError(self.id + ' accounts must be one of ' + ', '.join(keys) + ' or an isolated margin symbol')
 
     def parse_transfer(self, transfer, currency=None):
         timestamp = self.milliseconds()
@@ -3480,13 +3516,13 @@ class gateio(Exchange):
             'future': 'privateDeliveryPostSettlePositionsContractLeverage',
         })
         request, query = self.prepare_request(market, None, params)
-        defaultMarginType = self.safe_string_2(self.options, 'marginType', 'defaultMarginType')
+        defaultMarginMode = self.safe_string_2(self.options, 'marginMode', 'defaultMarginMode')
         crossLeverageLimit = self.safe_string(query, 'cross_leverage_limit')
-        marginType = self.safe_string(query, 'marginType', defaultMarginType)
+        marginMode = self.safe_string(query, 'marginMode', defaultMarginMode)
         if crossLeverageLimit is not None:
-            marginType = 'cross'
+            marginMode = 'cross'
             leverage = crossLeverageLimit
-        if marginType == 'cross' or marginType == 'cross_margin':
+        if marginMode == 'cross' or marginMode == 'cross_margin':
             request['query'] = {
                 'cross_leverage_limit': str(leverage),
                 'leverage': '0',
@@ -3564,11 +3600,11 @@ class gateio(Exchange):
         maintenanceRate = self.safe_string(position, 'maintenance_rate')
         notional = self.safe_string(position, 'value')
         leverage = self.safe_string(position, 'leverage')
-        marginType = None
+        marginMode = None
         if leverage == '0':
-            marginType = 'cross'
+            marginMode = 'cross'
         else:
-            marginType = 'isolated'
+            marginMode = 'isolated'
         unrealisedPnl = self.safe_string(position, 'unrealised_pnl')
         # Initial Position Margin = ( Position Value / Leverage ) + Close Position Fee
         # *The default leverage under the full position is the highest leverage in the market.
@@ -3592,12 +3628,13 @@ class gateio(Exchange):
             'unrealizedPnl': self.parse_number(unrealisedPnl),
             'contracts': self.parse_number(Precise.string_abs(size)),
             'contractSize': self.safe_value(market, 'contractSize'),
-            #     realisedPnl: position['realised_pnl'],
+            # 'realisedPnl': position['realised_pnl'],
             'marginRatio': None,
             'liquidationPrice': self.safe_number(position, 'liq_price'),
             'markPrice': self.safe_number(position, 'mark_price'),
             'collateral': self.safe_number(position, 'margin'),
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode,  # deprecated
             'side': side,
             'percentage': self.parse_number(percentage),
         }

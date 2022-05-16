@@ -44,8 +44,6 @@ module.exports = class ascendex extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
-                'fetchFundingFee': false,
-                'fetchFundingFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -70,6 +68,8 @@ module.exports = class ascendex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransactionFee': false,
+                'fetchTransactionFees': false,
                 'fetchTransactions': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
@@ -2185,7 +2185,115 @@ module.exports = class ascendex extends Exchange {
         const request = {
             'account-group': accountGroup,
         };
-        return await this.v2PrivateAccountGroupGetFuturesPosition (this.extend (request, params));
+        const response = await this.v2PrivateAccountGroupGetFuturesPosition (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //             "ac": "FUTURES",
+        //             "collaterals": [
+        //                 {
+        //                     "asset": "USDT",
+        //                     "balance": "44.570287262",
+        //                     "referencePrice": "1",
+        //                     "discountFactor": "1"
+        //                 }
+        //             ],
+        //             "contracts": [
+        //                 {
+        //                     "symbol": "BTC-PERP",
+        //                     "side": "LONG",
+        //                     "position": "0.0001",
+        //                     "referenceCost": "-3.12277254",
+        //                     "unrealizedPnl": "-0.001700233",
+        //                     "realizedPnl": "0",
+        //                     "avgOpenPrice": "31209",
+        //                     "marginType": "isolated",
+        //                     "isolatedMargin": "1.654972977",
+        //                     "leverage": "2",
+        //                     "takeProfitPrice": "0",
+        //                     "takeProfitTrigger": "market",
+        //                     "stopLossPrice": "0",
+        //                     "stopLossTrigger": "market",
+        //                     "buyOpenOrderNotional": "0",
+        //                     "sellOpenOrderNotional": "0",
+        //                     "markPrice": "31210.723063672",
+        //                     "indexPrice": "31223.148857925"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const position = this.safeValue (data, 'contracts', []);
+        const result = [];
+        for (let i = 0; i < position.length; i++) {
+            result.push (this.parsePosition (position[i]));
+        }
+        return this.filterByArray (result, 'symbol', symbols, false);
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //     {
+        //         "symbol": "BTC-PERP",
+        //         "side": "LONG",
+        //         "position": "0.0001",
+        //         "referenceCost": "-3.12277254",
+        //         "unrealizedPnl": "-0.001700233",
+        //         "realizedPnl": "0",
+        //         "avgOpenPrice": "31209",
+        //         "marginType": "isolated",
+        //         "isolatedMargin": "1.654972977",
+        //         "leverage": "2",
+        //         "takeProfitPrice": "0",
+        //         "takeProfitTrigger": "market",
+        //         "stopLossPrice": "0",
+        //         "stopLossTrigger": "market",
+        //         "buyOpenOrderNotional": "0",
+        //         "sellOpenOrderNotional": "0",
+        //         "markPrice": "31210.723063672",
+        //         "indexPrice": "31223.148857925"
+        //     },
+        //
+        const marketId = this.safeString (position, 'symbol');
+        market = this.safeMarket (marketId, market);
+        let notional = this.safeNumber (position, 'buyOpenOrderNotional');
+        if (notional === 0) {
+            notional = this.safeNumber (position, 'sellOpenOrderNotional');
+        }
+        const marginMode = this.safeString (position, 'marginType');
+        let collateral = undefined;
+        if (marginMode === 'isolated') {
+            collateral = this.safeNumber (position, 'isolatedMargin');
+        }
+        return {
+            'info': position,
+            'id': undefined,
+            'symbol': market['symbol'],
+            'notional': notional,
+            'marginMode': marginMode,
+            'marginType': marginMode, // deprecated
+            'liquidationPrice': undefined,
+            'entryPrice': this.safeNumber (position, 'avgOpenPrice'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealizedPnl'),
+            'percentage': undefined,
+            'contracts': undefined,
+            'contractSize': this.safeNumber (position, 'position'),
+            'markPrice': this.safeNumber (position, 'markPrice'),
+            'side': this.safeStringLower (position, 'side'),
+            'hedged': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': collateral,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': this.safeInteger (position, 'leverage'),
+            'marginRatio': undefined,
+        };
     }
 
     parseFundingRate (fundingRate, market = undefined) {
@@ -2330,13 +2438,13 @@ module.exports = class ascendex extends Exchange {
         return await this.v2PrivateAccountGroupPostFuturesLeverage (this.extend (request, params));
     }
 
-    async setMarginMode (marginType, symbol = undefined, params = {}) {
-        marginType = marginType.toLowerCase ();
-        if (marginType === 'cross') {
-            marginType = 'crossed';
+    async setMarginMode (marginMode, symbol = undefined, params = {}) {
+        marginMode = marginMode.toLowerCase ();
+        if (marginMode === 'cross') {
+            marginMode = 'crossed';
         }
-        if (marginType !== 'isolated' && marginType !== 'crossed') {
-            throw new BadRequest (this.id + ' setMarginMode() marginType argument should be isolated or cross');
+        if (marginMode !== 'isolated' && marginMode !== 'crossed') {
+            throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
         }
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -2346,7 +2454,7 @@ module.exports = class ascendex extends Exchange {
         const request = {
             'account-group': accountGroup,
             'symbol': market['id'],
-            'marginType': marginType,
+            'marginMode': marginMode,
         };
         if (market['type'] !== 'future') {
             throw new BadSymbol (this.id + ' setMarginMode() supports futures contracts only');

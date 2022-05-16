@@ -129,7 +129,6 @@ module.exports = class coinex extends Exchange {
                         'margin/config': 1,
                         'margin/loan/history': 1,
                         'margin/transfer/history': 1,
-                        'order': 1,
                         'order/deals': 1,
                         'order/finished': 1,
                         'order/pending': 1,
@@ -249,7 +248,7 @@ module.exports = class coinex extends Exchange {
                 'createMarketBuyOrderRequiresPrice': true,
                 'defaultType': 'spot', // spot, swap, margin
                 'defaultSubType': 'linear', // linear, inverse
-                'defaultMarginType': 'isolated', // isolated, cross
+                'defaultMarginMode': 'isolated', // isolated, cross
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',
@@ -1888,7 +1887,7 @@ module.exports = class coinex extends Exchange {
         if (swap) {
             method = stop ? 'perpetualPrivateGetOrderStopStatus' : 'perpetualPrivateGetOrderStatus';
         } else {
-            method = 'privateGetOrder';
+            method = 'privateGetOrderStatus';
         }
         params = this.omit (params, 'stop');
         const response = await this[method] (this.extend (request, params));
@@ -2527,8 +2526,8 @@ module.exports = class coinex extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const positionId = this.safeInteger (position, 'position_id');
-        const marginTypeInteger = this.safeInteger (position, 'type');
-        const marginType = (marginTypeInteger === 1) ? 'isolated' : 'cross';
+        const marginModeInteger = this.safeInteger (position, 'type');
+        const marginMode = (marginModeInteger === 1) ? 'isolated' : 'cross';
         const liquidationPrice = this.safeString (position, 'liq_price');
         const entryPrice = this.safeString (position, 'open_price');
         const unrealizedPnl = this.safeString (position, 'profit_unreal');
@@ -2545,7 +2544,8 @@ module.exports = class coinex extends Exchange {
             'id': positionId,
             'symbol': symbol,
             'notional': undefined,
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode, // deprecated
             'liquidationPrice': liquidationPrice,
             'entryPrice': entryPrice,
             'unrealizedPnl': unrealizedPnl,
@@ -2567,24 +2567,24 @@ module.exports = class coinex extends Exchange {
         };
     }
 
-    async setMarginMode (marginType, symbol = undefined, params = {}) {
+    async setMarginMode (marginMode, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
-        marginType = marginType.toLowerCase ();
-        if (marginType !== 'isolated' && marginType !== 'cross') {
-            throw new BadRequest (this.id + ' setMarginMode() marginType argument should be isolated or cross');
+        marginMode = marginMode.toLowerCase ();
+        if (marginMode !== 'isolated' && marginMode !== 'cross') {
+            throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['type'] !== 'swap') {
             throw new BadSymbol (this.id + ' setMarginMode() supports swap contracts only');
         }
-        const defaultMarginType = this.safeString2 (this.options, 'defaultMarginType', marginType);
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', marginMode);
         let defaultPositionType = undefined;
-        if (defaultMarginType === 'isolated') {
+        if (defaultMarginMode === 'isolated') {
             defaultPositionType = 1;
-        } else if (defaultMarginType === 'cross') {
+        } else if (defaultMarginMode === 'cross') {
             defaultPositionType = 2;
         }
         const leverage = this.safeInteger (params, 'leverage');
@@ -2612,11 +2612,11 @@ module.exports = class coinex extends Exchange {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const defaultMarginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType');
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode');
         let defaultPositionType = undefined;
-        if (defaultMarginType === 'isolated') {
+        if (defaultMarginMode === 'isolated') {
             defaultPositionType = 1;
-        } else if (defaultMarginType === 'cross') {
+        } else if (defaultMarginMode === 'cross') {
             defaultPositionType = 2;
         }
         const positionType = this.safeInteger (params, 'position_type', defaultPositionType);

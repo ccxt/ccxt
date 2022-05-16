@@ -58,7 +58,6 @@ class kucoinfutures(kucoin):
                 'fetchCurrencies': False,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFee': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
@@ -81,6 +80,7 @@ class kucoinfutures(kucoin):
                 'fetchTickers': False,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTransactionFee': True,
                 'fetchWithdrawals': True,
                 'setMarginMode': False,
                 'transfer': True,
@@ -283,6 +283,7 @@ class kucoinfutures(kucoin):
                 'symbolSeparator': '-',
                 'defaultType': 'swap',
                 'code': 'USDT',
+                'marginModes': {},
                 'marginTypes': {},
                 # endpoint versions
                 'versions': {
@@ -883,7 +884,7 @@ class kucoinfutures(kucoin):
         unrealisedPnl = self.safe_string(position, 'unrealisedPnl')
         crossMode = self.safe_value(position, 'crossMode')
         # currently crossMode is always set to False and only isolated positions are supported
-        marginType = 'cross' if crossMode else 'isolated'
+        marginMode = 'cross' if crossMode else 'isolated'
         return {
             'info': position,
             'symbol': self.safe_string(market, 'symbol'),
@@ -904,7 +905,8 @@ class kucoinfutures(kucoin):
             'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
             'markPrice': self.safe_number(position, 'markPrice'),
             'collateral': self.safe_number(position, 'maintMargin'),
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode,
             'side': side,
             'percentage': self.parse_number(Precise.string_div(unrealisedPnl, initialMargin)),
         }
@@ -1616,8 +1618,8 @@ class kucoinfutures(kucoin):
         responseData = response['data']['items']
         return self.parse_transactions(responseData, currency, since, limit, {'type': 'withdrawal'})
 
-    def fetch_funding_fee(self, code, params={}):
-        raise BadRequest(self.id + ' fetchFundingFee() is not supported yet')
+    def fetch_transaction_fee(self, code, params={}):
+        raise BadRequest(self.id + ' fetchTransactionFee() is not supported yet')
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         raise BadRequest(self.id + ' fetchLedger() is not supported yet')

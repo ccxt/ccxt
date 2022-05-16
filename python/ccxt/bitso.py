@@ -40,8 +40,6 @@ class bitso(Exchange):
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchDepositAddress': True,
-                'fetchFundingFee': False,
-                'fetchFundingFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -64,6 +62,8 @@ class bitso(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransactionFee': False,
+                'fetchTransactionFees': True,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'reduceMargin': False,
@@ -809,7 +809,7 @@ class bitso(Exchange):
             'info': response,
         }
 
-    def fetch_funding_fees(self, params={}):
+    def fetch_transaction_fees(self, codes=None, params={}):
         self.load_markets()
         response = self.privateGetFees(params)
         #

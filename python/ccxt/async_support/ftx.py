@@ -77,7 +77,6 @@ class ftx(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': None,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -104,6 +103,7 @@ class ftx(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransactionFees': None,
                 'fetchTransfer': None,
                 'fetchTransfers': None,
                 'fetchWithdrawals': True,
@@ -372,6 +372,7 @@ class ftx(Exchange):
                     'No such future': BadSymbol,
                     'No such market': BadSymbol,
                     'Do not send more than': RateLimitExceeded,
+                    'Cannot send more than': RateLimitExceeded,  # {"success":false,"error":"Cannot send more than 1500 requests per minute"}
                     'An unexpected error occurred': ExchangeNotAvailable,  # {"error":"An unexpected error occurred, please try again later(58BC21C795).","success":false}
                     'Please retry request': ExchangeNotAvailable,  # {"error":"Please retry request","success":false}
                     'Please try again': ExchangeNotAvailable,  # {"error":"Please try again","success":false}
@@ -2076,7 +2077,8 @@ class ftx(Exchange):
             'liquidationPrice': self.parse_number(liquidationPriceString),
             'markPrice': self.parse_number(markPriceString),
             'collateral': self.parse_number(collateral),
-            'marginType': 'cross',
+            'marginMode': 'cross',
+            'marginType': 'cross',  # deprecated
             'side': side,
             'percentage': percentage,
         }
@@ -2626,7 +2628,8 @@ class ftx(Exchange):
         return {
             'account': 'cross',
             'symbol': None,
-            'marginType': 'cross',
+            'marginMode': 'cross',
+            'marginType': 'cross',  # deprecated
             'currency': self.safe_currency_code(coin),
             'interest': self.safe_number(info, 'cost'),
             'interestRate': self.safe_number(info, 'rate'),

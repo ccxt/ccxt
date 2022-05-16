@@ -9,9 +9,7 @@ sys.path.append(root + '/python')
 import ccxt  # noqa: E402
 
 
-exchange = ccxt.poloniex({
-    'enableRateLimit': True,
-})
+exchange = ccxt.poloniex()
 
 symbol = 'BTC/USDT'
 

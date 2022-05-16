@@ -16,7 +16,7 @@ async def watch_trades(exchange, symbol):
 
 
 async def main():
-    exchange = ccxtpro.bitstamp({'enableRateLimit': True})
+    exchange = ccxtpro.bitstamp()
     await exchange.load_markets()
     symbol = 'BTC/USD'
     while True:
@@ -32,4 +32,4 @@ async def main():
     await exchange.close()
 
 
-asyncio.get_event_loop().run_until_complete(main())
+asyncio.run(main())
