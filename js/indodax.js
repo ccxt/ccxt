@@ -631,7 +631,7 @@ module.exports = class indodax extends Exchange {
         if (since !== undefined) {
             const startTime = this.iso8601 (since).slice (0, 10);
             request['start'] = startTime;
-            request['end'] = this.iso8601 (new Date ()).slice (0, 10);
+            request['end'] = this.iso8601 (this.milliseconds ()).slice (0, 10);
         }
         const response = await this.privatePostTransHistory (this.extend (request, params));
         //
@@ -692,15 +692,20 @@ module.exports = class indodax extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'return', {});
-        const depositWithdraw = this.safeValue (data, type, {});
+        const currencies = this.safeValue (data, type, {});
         let transactions = [];
+        let currency = undefined;
         if (code === undefined) {
-            Object.keys (depositWithdraw).forEach ((currency) => this.arrayConcat (transactions, depositWithdraw[currency]));
+            const keys = Object.keys (currencies);
+            for (let i = 0; i < keys.length; i++) {
+                const currency = keys[i];
+                transactions = this.arrayConcat (transactions, currencies[currency]);
+            }
         } else {
             const currency = this.currency (code);
-            transactions = this.safeValue (depositWithdraw, currency['id'], []);
+            transactions = this.safeValue (currencies, currency['id'], []);
         }
-        return this.parseTransactions (transactions, code, since, limit);
+        return this.parseTransactions (transactions, currency, since, limit);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -785,7 +790,6 @@ module.exports = class indodax extends Exchange {
         //         "deposit_id": "3602369",
         //         "tx": "c816aeb35a5b42f389970325a32aff69bb6b2126784dcda8f23b9dd9570d6573"
         //     },
-        currency = this.safeCurrency (undefined, currency);
         const status = this.safeString (transaction, 'status');
         const timestamp = this.safeTimestamp2 (transaction, 'success_time', 'submit_time');
         const depositId = this.safeString (transaction, 'deposit_id');
@@ -793,7 +797,7 @@ module.exports = class indodax extends Exchange {
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
-                'currency': currency['code'],
+                'currency': this.safeCurrencyCode (undefined, currency),
                 'cost': this.safeNumber ('fee'),
             };
         }
@@ -806,9 +810,9 @@ module.exports = class indodax extends Exchange {
             'addressFrom': undefined,
             'address': this.safeString (transaction, 'withdraw_address'),
             'addressTo': undefined,
-            'amount': this.safeNumberN (transaction, [ 'amount', 'withdraw_amount', currency['id'] ]),
-            'type': depositId === undefined ? 'withdraw' : 'deposit',
-            'currency': currency['code'],
+            'amount': this.safeNumberN (transaction, [ 'amount', 'withdraw_amount', 'deposit_amount', currency['id'] ]),
+            'type': (depositId === undefined) ? 'withdraw' : 'deposit',
+            'currency': this.safeCurrencyCode (undefined, currency),
             'status': this.parseTransactionStatus (status),
             'updated': undefined,
             'tagFrom': undefined,
