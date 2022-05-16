@@ -223,19 +223,19 @@ module.exports = class coinflex extends ccxt.coinflex {
 
     handleTrades (client, message) {
         //
-        // {
-        //     table: 'trade',
-        //     data: [
-        //       {
-        //         side: 'BUY',
-        //         quantity: '0.042',
-        //         price: '30081.0',
-        //         marketCode: 'BTC-USD-SWAP-LIN',
-        //         tradeId: '304734619689878207',
-        //         timestamp: '1652698566797'
-        //       }
-        //     ]
-        // }
+        //    {
+        //        table: 'trade',
+        //        data: [
+        //          {
+        //            side: 'BUY',
+        //            quantity: '0.042',
+        //            price: '30081.0',
+        //            marketCode: 'BTC-USD-SWAP-LIN',
+        //            tradeId: '304734619689878207',
+        //            timestamp: '1652698566797'
+        //          }
+        //        ]
+        //    }
         //
         const topic = this.safeString (message, 'table');
         const data = this.safeValue (message, 'data', []);
@@ -246,10 +246,9 @@ module.exports = class coinflex extends ccxt.coinflex {
             const marketId = this.safeString (trade, 'marketCode');
             marketIds[marketId] = true;
             const market = this.safeMarket (marketId, undefined);
-            // const messageHash = topic + ':' + marketId;
             const symbol = market['symbol'];
             // we need a custom parser here too
-            const parsedTrade = this.parseTrade (trade, market);
+            const parsedTrade = this.parseWsTrade (trade, market);
             let stored = this.safeValue (this.trades, symbol);
             if (stored === undefined) {
                 stored = new ArrayCache (tradesLimit);
@@ -257,7 +256,6 @@ module.exports = class coinflex extends ccxt.coinflex {
             }
             stored.append (parsedTrade);
         }
-        client.resolve ();
         const marketIdsArray = Object.keys (marketIds);
         for (let i = 0; i < marketIdsArray.length; i++) {
             const marketId = marketIdsArray[i];
@@ -267,6 +265,41 @@ module.exports = class coinflex extends ccxt.coinflex {
             const stored = this.safeValue (this.trades, symbol);
             client.resolve (stored, messageHash);
         }
+    }
+
+    parseWsTrade (trade, market = undefined) {
+        //
+        //   {
+        //       side: 'BUY',
+        //       quantity: '0.042',
+        //       price: '30081.0',
+        //       marketCode: 'BTC-USD-SWAP-LIN',
+        //       tradeId: '304734619689878207',
+        //       timestamp: '1652698566797'
+        //   }
+        //
+        const marketId = this.safeString (trade, 'marketCode');
+        market = this.safeMarket (marketId, market);
+        const id = this.safeString (trade, 'tradeId');
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        const side = this.safeStringLower (trade, 'side');
+        const amount = this.safeString (trade, 'quantity');
+        const price = this.safeString (trade, 'price');
+        return this.safeTrade ({
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': undefined,
+            'type': undefined,
+            'takerOrMaker': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'fee': undefined,
+            'info': trade,
+        }, market);
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
