@@ -18,7 +18,7 @@ module.exports = class coinflex extends ccxt.coinflex {
                 'watchOHLCV': false,
                 'watchOrderBook': true,
                 'watchOrders': true,
-                'watchTicker': false,
+                'watchTicker': true,
                 'watchTickers': false, // for now
                 'watchTrades': true,
             },
@@ -32,15 +32,8 @@ module.exports = class coinflex extends ccxt.coinflex {
             },
             'options': {
             },
-            'streaming': {
-                '!!ping': this.ping,
-            },
             'exceptions': {
                 'ws': {
-                    'exact': {
-                        'Bearer or HMAC authentication required': BadSymbol, // { error: 'Bearer or HMAC authentication required' }
-                        'Error: wrong input': BadRequest, // { error: 'Error: wrong input' }
-                    },
                 },
             },
         });
@@ -320,77 +313,77 @@ module.exports = class coinflex extends ccxt.coinflex {
         }, market);
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let messageHash = 'usertrade';
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + market['id'];
-        }
-        const trades = await this.watchPrivate (messageHash, 'watchOrders', params);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
-    }
+    // async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    //     await this.loadMarkets ();
+    //     let messageHash = 'usertrade';
+    //     let market = undefined;
+    //     if (symbol !== undefined) {
+    //         market = this.market (symbol);
+    //         symbol = market['symbol'];
+    //         messageHash += ':' + market['id'];
+    //     }
+    //     const trades = await this.watchPrivate (messageHash, 'watchOrders', params);
+    //     if (this.newUpdates) {
+    //         limit = trades.getLimit (symbol, limit);
+    //     }
+    //     return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    // }
 
-    handleMyTrades (client, message, subscription = undefined) {
-        //
-        // {
-        //     "topic":"usertrade",
-        //     "action":"insert",
-        //     "user_id":"103",
-        //     "symbol":"xht-usdt",
-        //     "data":[
-        //        {
-        //           "size":1,
-        //           "side":"buy",
-        //           "price":0.24,
-        //           "symbol":"xht-usdt",
-        //           "timestamp":"2022-05-13T09:30:15.014Z",
-        //           "order_id":"6065a66e-e9a4-44a3-9726-4f8fa54b6bb6",
-        //           "fee":0.001,
-        //           "fee_coin":"xht",
-        //           "is_same":true
-        //        }
-        //     ],
-        //     "time":1652434215
-        // }
-        //
-        const channel = this.safeString (message, 'topic');
-        const rawTrades = this.safeValue (message, 'data');
-        // usually the first message is an empty array
-        // when the user does not have any trades yet
-        const dataLength = rawTrades.length;
-        if (dataLength === 0) {
-            return 0;
-        }
-        if (this.myTrades === undefined) {
-            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.myTrades = new ArrayCache (limit);
-        }
-        const stored = this.myTrades;
-        const marketIds = {};
-        for (let i = 0; i < rawTrades.length; i++) {
-            const trade = rawTrades[i];
-            const parsed = this.parseTrade (trade);
-            stored.append (parsed);
-            const symbol = trade['symbol'];
-            const market = this.market (symbol);
-            const marketId = market['id'];
-            marketIds[marketId] = true;
-        }
-        // non-symbol specific
-        client.resolve (this.myTrades, channel);
-        const keys = Object.keys (marketIds);
-        for (let i = 0; i < keys.length; i++) {
-            const marketId = keys[i];
-            const messageHash = channel + ':' + marketId;
-            client.resolve (this.myTrades, messageHash);
-        }
-    }
+    // handleMyTrades (client, message, subscription = undefined) {
+    //     //
+    //     // {
+    //     //     "topic":"usertrade",
+    //     //     "action":"insert",
+    //     //     "user_id":"103",
+    //     //     "symbol":"xht-usdt",
+    //     //     "data":[
+    //     //        {
+    //     //           "size":1,
+    //     //           "side":"buy",
+    //     //           "price":0.24,
+    //     //           "symbol":"xht-usdt",
+    //     //           "timestamp":"2022-05-13T09:30:15.014Z",
+    //     //           "order_id":"6065a66e-e9a4-44a3-9726-4f8fa54b6bb6",
+    //     //           "fee":0.001,
+    //     //           "fee_coin":"xht",
+    //     //           "is_same":true
+    //     //        }
+    //     //     ],
+    //     //     "time":1652434215
+    //     // }
+    //     //
+    //     const channel = this.safeString (message, 'topic');
+    //     const rawTrades = this.safeValue (message, 'data');
+    //     // usually the first message is an empty array
+    //     // when the user does not have any trades yet
+    //     const dataLength = rawTrades.length;
+    //     if (dataLength === 0) {
+    //         return 0;
+    //     }
+    //     if (this.myTrades === undefined) {
+    //         const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+    //         this.myTrades = new ArrayCache (limit);
+    //     }
+    //     const stored = this.myTrades;
+    //     const marketIds = {};
+    //     for (let i = 0; i < rawTrades.length; i++) {
+    //         const trade = rawTrades[i];
+    //         const parsed = this.parseTrade (trade);
+    //         stored.append (parsed);
+    //         const symbol = trade['symbol'];
+    //         const market = this.market (symbol);
+    //         const marketId = market['id'];
+    //         marketIds[marketId] = true;
+    //     }
+    //     // non-symbol specific
+    //     client.resolve (this.myTrades, channel);
+    //     const keys = Object.keys (marketIds);
+    //     for (let i = 0; i < keys.length; i++) {
+    //         const marketId = keys[i];
+    //         const messageHash = channel + ':' + marketId;
+    //         client.resolve (this.myTrades, messageHash);
+    //     }
+    // }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
@@ -400,8 +393,10 @@ module.exports = class coinflex extends ccxt.coinflex {
             market = this.market (symbol);
             symbol = market['symbol'];
             messageHash += ':' + market['id'];
+        } else {
+            messageHash += ':all';
         }
-        const orders = await this.watchPrivate (messageHash, 'watchOrders', params);
+        const orders = await this.watchPrivate (messageHash, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -505,42 +500,49 @@ module.exports = class coinflex extends ccxt.coinflex {
     }
 
     async watchBalance (params = {}) {
-        const messageHash = 'wallet';
-        return await this.watchPrivate (messageHash, 'watchBalance', params);
+        const messageHash = 'balance:all';
+        return await this.watchPrivate (messageHash, params);
     }
 
     handleBalance (client, message) {
         //
-        //     {
-        //         topic: 'wallet',
-        //         action: 'partial',
-        //         user_id: 155328,
-        //         data: {
-        //             eth_balance: 0,
-        //             eth_available: 0,
-        //             usdt_balance: 18.94344188,
-        //             usdt_available: 18.94344188,
-        //             ltc_balance: 0.00005,
-        //             ltc_available: 0.00005,
-        //         },
-        //         time: 1649687396
-        //     }
+        //    {
+        //        table: 'balance',
+        //        accountId: '39422',
+        //        timestamp: '1652710563235',
+        //        tradeType: 'LINEAR',
+        //        data: [
+        //          {
+        //            total: '47.7114057900',
+        //            reserved: '6.00',
+        //            instrumentId: 'USD',
+        //            available: '41.7114057900',
+        //            quantityLastUpdated: '1652188203911'
+        //          },
+        //          {
+        //            total: '0.98',
+        //            reserved: '0',
+        //            instrumentId: 'DOGE',
+        //            available: '0.98',
+        //            quantityLastUpdated: '1651655519741'
+        //          }
+        //        ]
+        //    }
         //
-        const messageHash = this.safeString (message, 'topic');
-        const data = this.safeValue (message, 'data');
-        const keys = Object.keys (data);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const parts = key.split ('_');
-            const currencyId = this.safeString (parts, 0);
+        const channel = this.safeString (message, 'table');
+        const data = this.safeValue (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
+            const currencyId = this.safeString (balance, 'instrumentId');
             const code = this.safeCurrencyCode (currencyId);
             const account = (code in this.balance) ? this.balance[code] : this.account ();
-            const second = this.safeString (parts, 1);
-            const freeOrTotal = (second === 'available') ? 'free' : 'total';
-            account[freeOrTotal] = this.safeString (data, key);
+            account['total'] = this.safeString (balance, 'total');
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'reserved');
             this.balance[code] = account;
         }
         this.balance = this.safeBalance (this.balance);
+        const messageHash = channel + ':all';
         client.resolve (this.balance, messageHash);
     }
 
@@ -556,48 +558,61 @@ module.exports = class coinflex extends ccxt.coinflex {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchPrivate (messageHash, method, params = {}) {
-        const options = this.safeValue (this.options, method, {});
-        let expires = this.safeString (options, 'api-expires');
-        if (expires === undefined) {
-            const timeout = parseInt (this.timeout / 1000);
-            expires = this.sum (this.seconds (), timeout);
-            expires = expires.toString ();
-            // we need to memoize these values to avoid generating a new url on each method execution
-            // that would trigger a new connection on each received message
-            this.options[method]['api-expires'] = expires;
-        }
+    async watchPrivate (messageHash, params = {}) {
+        await this.authenticate ();
+        return await this.watchPublic (messageHash, params);
+    }
+
+    async authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
-        const auth = 'CONNECT' + '/stream' + expires;
-        const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-        const authParams = {
-            'api-key': this.apiKey,
-            'api-signature': signature,
-            'api-expires': expires,
-        };
-        const signedUrl = url + '?' + this.urlencode (authParams);
-        const request = {
-            'op': 'subscribe',
-            'args': [ messageHash ],
-        };
-        const message = this.extend (request, params);
-        return await this.watch (signedUrl, messageHash, message, messageHash);
+        const messageHash = 'login';
+        const client = this.client (url);
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
+            future = client.future ('authenticated');
+            const timestamp = this.milliseconds ().toString ();
+            const method = 'GET';
+            const path = '/auth/self/verify';
+            const auth = timestamp + method + path;
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
+            const request = {
+                'op': messageHash,
+                'data': {
+                    'apiKey': this.apiKey,
+                    'timestamp': timestamp,
+                    'signature': signature,
+                },
+            };
+            this.spawn (this.watch, url, messageHash, request, messageHash, future);
+        }
+        return await future;
     }
 
     handleErrorMessage (client, message) {
         //
-        //     { error: 'Bearer or HMAC authentication required' }
-        //     { error: 'Error: wrong input' }
+        // {
+        //     event: 'login',
+        //     success: false,
+        //     message: 'Signature is invalid',
+        //     code: '20000',
+        //     timestamp: '1652709878447'
+        // }
         //
-        const error = this.safeInteger (message, 'error');
+        const success = this.safeValue (message, 'success');
         try {
-            if (error !== undefined) {
+            if (!success) {
+                const error = this.safeString (message, 'code');
                 const feedback = this.id + ' ' + this.json (message);
-                this.throwExactlyMatchedException (this.exceptions['ws']['exact'], error, feedback);
+                this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
             }
         } catch (e) {
             if (e instanceof AuthenticationError) {
+                client.reject (e, 'authenticated');
+                const method = 'login';
+                if (method in client.subscriptions) {
+                    delete client.subscriptions[method];
+                }
                 return false;
             }
         }
@@ -610,13 +625,18 @@ module.exports = class coinflex extends ccxt.coinflex {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
-        const methods = {
+        const event = this.safeString (message, 'event');
+        if (event === 'login') {
+            this.handleAuthenticate (client, message);
+            return;
+        }
+        const tables = {
             'ticker': this.handleTicker,
             'trade': this.handleTrades,
             'depth': this.handleOrderBook,
             'order': this.handleOrder,
-            'wallet': this.handleBalance,
-            'usertrade': this.handleMyTrades,
+            'balance': this.handleBalance,
+            // 'usertrade': this.handleMyTrades,
         };
         const topic = this.safeString (message, 'table');
         // specific check because this topic has the timeframe attached
@@ -625,15 +645,19 @@ module.exports = class coinflex extends ccxt.coinflex {
             this.handleOHLCV (client, message);
             return;
         }
-        const method = this.safeValue (methods, topic);
+        const method = this.safeValue (tables, topic);
         if (method !== undefined) {
             method.call (this, client, message);
         }
     }
 
-    // ping (client) {
-    //     return { 'op': 'ping' };
-    // }
+    handleAuthenticate (client, message) {
+        //
+        //  { event: 'login', success: true, timestamp: '1652710009321' }
+        //
+        client.resolve (message, 'authenticated');
+        return message;
+    }
 
     handlePong (client, message) {
         client.lastPong = this.milliseconds ();
