@@ -1406,6 +1406,12 @@ module.exports = class Exchange {
         }
     }
 
+    parseAccounts (accounts, params = {}) {
+        let result = Object.values (accounts || []).map ((account) => this.extend (this.parseAccount (account, undefined), params))
+        result = sortBy2 (result, 'id', 'code')
+        return result 
+    }
+
     parseTickers (tickers, symbols = undefined, params = {}) {
         const result = [];
         const values = Object.values (tickers || []);

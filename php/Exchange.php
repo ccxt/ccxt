@@ -341,6 +341,7 @@ class Exchange {
         'filterByCurrencySinceLimit' => 'filter_by_currency_since_limit',
         'filterByArray' => 'filter_by_array',
         'safeTicker' => 'safe_ticker',
+        'parseAccounts' => 'parse_accounts',
         'parseTickers' => 'parse_tickers',
         'parseDepositAddresses' => 'parse_deposit_addresses',
         'parseTrades' => 'parse_trades',
@@ -2333,6 +2334,16 @@ class Exchange {
                 'quoteVolume' => $this->parse_number($quoteVolume),
             ));
         }
+    }
+
+    public function parse_accounts($accounts, $params = array()) {
+        $array = is_array($accounts) ? array_values($accounts) : array();
+        $result = array();
+        foreach ($array as $account) {
+            $result[] = array_replace_recursive($this->parse_account($account), $params);
+        }
+        $result = $this->sort_by_2($result, 'id', 'code');
+        return $result;
     }
 
     public function parse_tickers($tickers, $symbols = null, $params = array()) {

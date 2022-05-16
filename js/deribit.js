@@ -34,6 +34,7 @@ module.exports = class deribit extends Exchange {
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'editOrder': true,
+                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -413,6 +414,70 @@ module.exports = class deribit extends Exchange {
             'eta': undefined,
             'url': undefined,
             'info': response,
+        };
+    }
+
+    async fetchAccounts (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetGetSubaccounts (params);
+        //
+        //     {
+        //         jsonrpc: '2.0',
+        //         result: [{
+        //                 username: 'someusername',
+        //                 type: 'main',
+        //                 system_name: 'someusername',
+        //                 security_keys_enabled: false,
+        //                 security_keys_assignments: [],
+        //                 receive_notifications: false,
+        //                 login_enabled: true,
+        //                 is_password: true,
+        //                 id: '238216',
+        //                 email: 'pablo@abcdef.com'
+        //             },
+        //             {
+        //                 username: 'someusername_1',
+        //                 type: 'subaccount',
+        //                 system_name: 'someusername_1',
+        //                 security_keys_enabled: false,
+        //                 security_keys_assignments: [],
+        //                 receive_notifications: false,
+        //                 login_enabled: false,
+        //                 is_password: false,
+        //                 id: '245499',
+        //                 email: 'pablo@abcdef.com'
+        //             }
+        //         ],
+        //         usIn: '1652736468292006',
+        //         usOut: '1652736468292377',
+        //         usDiff: '371',
+        //         testnet: false
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        return this.parseAccounts (result);
+    }
+
+    parseAccount (account, currency = undefined) {
+        //
+        //      {
+        //          username: 'someusername_1',
+        //          type: 'subaccount',
+        //          system_name: 'someusername_1',
+        //          security_keys_enabled: false,
+        //          security_keys_assignments: [],
+        //          receive_notifications: false,
+        //          login_enabled: false,
+        //          is_password: false,
+        //          id: '245499',
+        //          email: 'pablo@abcdef.com'
+        //      }
+        //
+        return {
+            'info': account,
+            'id': this.safeString (account, 'id'),
+            'type': this.safeString (account, 'type'),
+            'code': this.safeCurrencyCode (undefined, currency),
         };
     }
 

@@ -3120,24 +3120,26 @@ The `fetchAccounts()` method will return a structure like shown below:
     {
         id: "s32kj302lasli3930",
         type: "main",
-        currency: "USDT",
+        code: "USDT",
         info: { ... }
     },
     {
         id: "20f0sdlri34lf90",
         type: "margin",
-        currency: "USDT",
+        code: "USDT",
         info: { ... }
     },
     {
         id: "4oidfk40dadeg4328",
-        type: "trade",
-        currency: "BTC",
+        type: "spot",
+        code: "BTC",
         info: { ... }
     },
     ...
 ]
 ```
+Types of account is one of the [unified account types](####Account-Balance) or `subaccount`
+
 
 ## Account Balance
 
@@ -4538,7 +4540,7 @@ Parameters
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 - **params.symbol** (String) Market symbol when transfering to or from a margin account (e.g. `'BTC/USDT'`)
 
-**Account Types**
+#### Account Types
 
 `fromAccount` and `toAccount` can accept the exchange account id or one of the following unified values:
 
