@@ -617,15 +617,13 @@ module.exports = class indodax extends Exchange {
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        currency = this.currency (code);
         const request = {};
         if (since !== undefined) {
-            const startTime = this.iso8601 (since).slice (0,10);
-            const endTime = new Date()
+            const startTime = this.iso8601 (since).slice (0, 10);
             request['start'] = startTime;
-            request['end'] = this.iso8601 (new Date()).slice (0,10); // test transpiled
+            request['end'] = this.iso8601 (new Date ()).slice (0, 10); // test transpiled
         }
-        const response = await this.privatePostTranshistory (this.extend (request, params));
+        const response = await this.privatePostTransHistory (this.extend (request, params));
         //
         //     {
         //         "success": 1,
@@ -685,7 +683,13 @@ module.exports = class indodax extends Exchange {
         //
         const data = this.safeValue (response, 'return', {});
         const withdraw = this.safeValue (data, 'withdraw', {});
-        const withdrawals = this.safeValue (withdraw, currency['id'], []);
+        let withdrawals = [];
+        if (code === undefined) {
+            Object.keys (withdraw).forEach ((currency) => this.arrayConcat (withdrawals, withdraw[currency]));
+        } else {
+            const currency = this.currency (code);
+            withdrawals = this.safeValue (withdraw, currency['id'], []);
+        }
         return this.parseTransactions (withdrawals, code, since, limit);
     }
 
@@ -775,7 +779,7 @@ module.exports = class indodax extends Exchange {
             'addressFrom': undefined,
             'address': this.safeString (transaction, 'withdraw_address'),
             'addressTo': undefined,
-            'amount': this.safeNumberN (transaction, ['amount', 'withdraw_amount', currency['id']]),
+            'amount': this.safeNumberN (transaction, [ 'amount', 'withdraw_amount', currency['id'] ]),
             'type': 'withdraw',
             'currency': currency['code'],
             'status': this.parseTransactionStatus (status),
@@ -795,7 +799,7 @@ module.exports = class indodax extends Exchange {
     parseTransactionStatus (status) {
         const statuses = {
             'success': 'ok',
-        }
+        };
         return this.safeString (statuses, status, status);
     }
 
