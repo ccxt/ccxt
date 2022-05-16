@@ -262,6 +262,7 @@ module.exports = class stex extends Exchange {
                 'accountsByType': {
                     'spot': 'spot',
                     'hold': 'hold',
+                    'funding': 'funding',
                     'referal': 'referal',
                 },
                 'transfer': {
