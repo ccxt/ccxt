@@ -24,22 +24,16 @@ module.exports = class coinflex extends ccxt.coinflex {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://api.hollaex.com/stream',
+                    'ws': 'wss://v2api.coinflex.com/v2/websocket',
                 },
                 'test': {
-                    'ws': 'wss://api.sandbox.hollaex.com/stream',
+                    'ws': 'wss://v2stgapi.coinflex.com/v2/websocket',
                 },
             },
             'options': {
-                'watchBalance': {
-                    // 'api-expires': undefined,
-                },
-                'watchOrders': {
-                    // 'api-expires': undefined,
-                },
             },
             'streaming': {
-                'ping': this.ping,
+                // 'ping': this.ping,
             },
             'exceptions': {
                 'ws': {
@@ -52,10 +46,65 @@ module.exports = class coinflex extends ccxt.coinflex {
         });
     }
 
+    async watchTicker (symbol, params = {}) {
+        const channel = 'ticker';
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = channel + ':' + market['id'];
+        return await this.watchPublic (messageHash, params);
+    }
+
+    handleTicker (client, message) {
+        //
+        //     {
+        //         table: 'ticker',
+        //         data: [
+        //           {
+        //             last: '29586',
+        //             open24h: '29718',
+        //             high24h: '31390',
+        //             low24h: '29299',
+        //             volume24h: '30861108.9365753390',
+        //             currencyVolume24h: '1017.773',
+        //             openInterest: '0',
+        //             marketCode: 'BTC-USD',
+        //             timestamp: '1652693831002',
+        //             lastQty: '0.001',
+        //             markPrice: '29586',
+        //             lastMarkPrice: '29601'
+        //           }
+        //         ]
+        //     }
+        //
+        const topic = this.safeString (message, 'table');
+        const tickers = this.safeValue (message, 'data', []);
+        for (let i = 0; i < tickers.length; i++) {
+            const data = tickers[i];
+            const marketId = this.safeString (data, 'marketCode');
+            const market = this.safeMarket (marketId, undefined);
+            const messageHash = topic + ':' + marketId;
+            // we need a custom parser here
+            const ticker = this.parseTicker (data, market);
+            const symbol = ticker['symbol'];
+            this.tickers[symbol] = ticker;
+            client.resolve (ticker, messageHash);
+        }
+        return message;
+    }
+
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const messageHash = 'orderbook' + ':' + market['id'];
+        //                                                                                                                                                 // we need a custom parser here
+        //                                                                                                                                                             // we need a custom parser here
+        //                                                                                                                                                                         // we need a custom parser here
+        //                                                                                                                                                                                     // we need a custom parser here
+        //                                                                                                                                                                                                 // we need a custom parser here
+        //                                                                                                                                                                                                             // we need a custom parser here
+        //                                                                                                                                                                                                                         // we need a custom parser here
+        //                                                                                                                                                                                                                                     // we need a custom parser here
+        //                                                                                                                                                                                                                                                 // we need a custom parser here
+        //                                                                                                                                                                                                                                                             // we need a custom parser here' + marketId;
         const orderbook = await this.watchPublic (messageHash, params);
         return orderbook.limit (limit);
     }
@@ -376,8 +425,10 @@ module.exports = class coinflex extends ccxt.coinflex {
 
     async watchPublic (messageHash, params = {}) {
         const url = this.urls['api']['ws'];
+        const id = this.nonce ();
         const request = {
             'op': 'subscribe',
+            'tag': id,
             'args': [ messageHash ],
         };
         const message = this.extend (request, params);
@@ -434,106 +485,19 @@ module.exports = class coinflex extends ccxt.coinflex {
 
     handleMessage (client, message) {
         //
-        // pong
-        //
-        //     { message: 'pong' }
-        //
-        // trade
-        //
-        //     {
-        //         topic: 'trade',
-        //         action: 'partial',
-        //         symbol: 'btc-usdt',
-        //         data: [
-        //             {
-        //                 size: 0.05145,
-        //                 price: 41977.9,
-        //                 side: 'buy',
-        //                 timestamp: '2022-04-11T09:40:10.881Z'
-        //             },
-        //         ]
-        //     }
-        //
-        // orderbook
-        //
-        //     {
-        //         topic: 'orderbook',
-        //         action: 'partial',
-        //         symbol: 'ltc-usdt',
-        //         data: {
-        //             bids: [
-        //                 [104.29, 5.2264],
-        //                 [103.86,1.3629],
-        //                 [101.82,0.5942]
-        //             ],
-        //             asks: [
-        //                 [104.81,9.5531],
-        //                 [105.54,0.6416],
-        //                 [106.18,1.4141],
-        //             ],
-        //             timestamp: '2022-04-11T10:37:01.227Z'
-        //         },
-        //         time: 1649673421
-        //     }
-        //
-        // order
-        //
-        //     {
-        //         topic: 'order',
-        //         action: 'insert',
-        //         user_id: 155328,
-        //         symbol: 'ltc-usdt',
-        //         data: {
-        //             symbol: 'ltc-usdt',
-        //             side: 'buy',
-        //             size: 0.05,
-        //             type: 'market',
-        //             price: 0,
-        //             fee_structure: { maker: 0.1, taker: 0.1 },
-        //             fee_coin: 'ltc',
-        //             id: 'ce38fd48-b336-400b-812b-60c636454231',
-        //             created_by: 155328,
-        //             filled: 0.05,
-        //             method: 'market',
-        //             created_at: '2022-04-11T14:09:00.760Z',
-        //             updated_at: '2022-04-11T14:09:00.760Z',
-        //             status: 'filled'
-        //         },
-        //         time: 1649686140
-        //     }
-        //
-        // balance
-        //
-        //     {
-        //         topic: 'wallet',
-        //         action: 'partial',
-        //         user_id: 155328,
-        //         data: {
-        //             eth_balance: 0,
-        //             eth_available: 0,
-        //             usdt_balance: 18.94344188,
-        //             usdt_available: 18.94344188,
-        //             ltc_balance: 0.00005,
-        //             ltc_available: 0.00005,
-        //         }
-        //     }
         //
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
-        const content = this.safeString (message, 'message');
-        if (content === 'pong') {
-            this.handlePong (client, message);
-            return;
-        }
         const methods = {
+            'ticker': this.handleTicker,
             'trade': this.handleTrades,
             'orderbook': this.handleOrderBook,
             'order': this.handleOrder,
             'wallet': this.handleBalance,
             'usertrade': this.handleMyTrades,
         };
-        const topic = this.safeValue (message, 'topic');
+        const topic = this.safeValue (message, 'table');
         const method = this.safeValue (methods, topic);
         if (method !== undefined) {
             method.call (this, client, message);
