@@ -53,7 +53,7 @@ module.exports = class btcbox extends Exchange {
                 'fetchTrades': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
-                'fetchWithdrawal' : false,
+                'fetchWithdrawal': false,
                 'fetchWithdrawals': false,
                 'reduceMargin': false,
                 'setLeverage': false,
