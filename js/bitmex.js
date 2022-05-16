@@ -1765,20 +1765,20 @@ module.exports = class bitmex extends Exchange {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
-        if (symbol in this.markets) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        } else if (symbol in this.currencies) {
+        if (symbol in this.currencies) {
             const code = this.currency (symbol);
             request['symbol'] = code['id'];
         } else if (symbol !== undefined) {
             const splitSymbol = symbol.split (':');
             const splitSymbolLength = splitSymbol.length;
             const timeframes = [ 'nearest', 'daily', 'weekly', 'monthly', 'quarterly', 'biquarterly', 'perpetual' ];
-            if (splitSymbolLength > 1 && splitSymbol[1] in timeframes) {
+            if ((splitSymbolLength > 1) && this.inArray (splitSymbol[1], timeframes)) {
+                const code = this.currency (splitSymbol[0]);
+                symbol = code['id'] + ':' + splitSymbol[1];
                 request['symbol'] = symbol;
             } else {
-                throw new BadRequest (this.id + ' fetchFundingRateHistory cannot use symbol ' + symbol);
+                market = this.market (symbol);
+                request['symbol'] = market['id'];
             }
         }
         if (since !== undefined) {
