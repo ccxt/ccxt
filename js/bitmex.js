@@ -1873,16 +1873,6 @@ module.exports = class bitmex extends Exchange {
         return this.parseFundingRates (filteredResponse, symbols);
     }
 
-    parseFundingRates (response, symbols = undefined) {
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const parsed = this.parseFundingRate (entry);
-            result.push (parsed);
-        }
-        return this.filterByArray (result, 'symbol', symbols);
-    }
-
     parseFundingRate (premiumIndex, market = undefined) {
         //
         //    {
