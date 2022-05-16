@@ -2412,11 +2412,9 @@ module.exports = class huobi extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const options = this.safeValue (this.options, 'fetchBalance', {});
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        let type = this.safeString (options, 'type', defaultType);
-        type = this.safeString (params, 'type', type);
-        params = this.omit (params, 'type');
         const request = {};
         let method = undefined;
         const spot = (type === 'spot');
@@ -2427,7 +2425,9 @@ module.exports = class huobi extends Exchange {
         subType = this.safeString (params, 'subType', subType);
         const inverse = (subType === 'inverse');
         const linear = (subType === 'linear');
-        const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'isolated');
+        let marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'isolated');
+        marginMode = this.safeString2 (options, 'defaultMarginMode', 'marginMode', marginMode);
+        marginMode = this.safeString2 (params, 'defaultMarginMode', 'marginMode', marginMode);
         const isolated = (marginMode === 'isolated');
         const cross = (marginMode === 'cross');
         if (spot) {
