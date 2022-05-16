@@ -135,8 +135,7 @@ module.exports = class coinflex extends ccxt.coinflex {
             const messageHash = topic + ':' + marketId;
             const symbol = market['symbol'];
             const timeframe = this.findTimeframe (interval);
-            // we need a custom parser here too
-            const ohlcvs = this.parseOHLCVs (candles, market);
+            const ohlcvs = this.parseWsOHLCV (candles, market);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
@@ -149,19 +148,30 @@ module.exports = class coinflex extends ccxt.coinflex {
         }
     }
 
+    parseWsOHLCV (ohlcv, market = undefined) {
+        //
+        //  [
+        //     "1652695200000",
+        //     "29598",
+        //     "29598",
+        //     "29597.585628",
+        //     "29597.585628",
+        //     "1589597.531322996",
+        //     "53.707"
+        //  ]
+        //
+        return [
+            this.safeNumber (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 6),
+        ];
+    }
+
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         // await this.loadMarkets ();
-        // const market = this.market (symbol);
-        // //                                                                                                                                                 // we need a custom parser here
-        // //                                                                                                                                                             // we need a custom parser here
-        // //                                                                                                                                                                         // we need a custom parser here
-        // //                                                                                                                                                                                     // we need a custom parser here
-        // //                                                                                                                                                                                                 // we need a custom parser here
-        // //                                                                                                                                                                                                             // we need a custom parser here
-        // //                                                                                                                                                                                                                         // we need a custom parser here
-        // //                                                                                                                                                                                                                                     // we need a custom parser here
-        // //                                                                                                                                                                                                                                                 // we need a custom parser here
-        // //                                                                                                                                                                                                                                                             // we need a custom parser here' + marketId;
         // const orderbook = await this.watchPublic (messageHash, params);
         // return orderbook.limit (limit);
     }
