@@ -965,14 +965,16 @@ module.exports = class btcmarkets extends Exchange {
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'currency_id': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
-            'toAddress': address,
         };
+        if (code !== 'AUD') {
+            this.checkAddress (address);
+            request['toAddress'] = address;
+        }
         if (tag !== undefined) {
             request['toAddress'] = address + '?dt=' + tag;
         }
