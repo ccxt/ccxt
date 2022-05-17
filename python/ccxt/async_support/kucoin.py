@@ -1034,7 +1034,7 @@ class kucoin(Exchange):
         method = 'publicGetMarketOrderbookLevelLevelLimit'
         isAuthenticated = self.check_required_credentials(False)
         response = None
-        if not isAuthenticated:
+        if not isAuthenticated or limit is not None:
             if level == 2:
                 request['level'] = level
                 if limit is not None:
@@ -1043,11 +1043,9 @@ class kucoin(Exchange):
                     else:
                         raise ExchangeError(self.id + ' fetchOrderBook() limit argument must be 20 or 100')
                 request['limit'] = limit if limit else 100
-                method = 'publicGetMarketOrderbookLevelLevelLimit'
-                response = await getattr(self, method)(self.extend(request, params))
         else:
             method = 'privateGetMarketOrderbookLevel2'  # recommended(v3)
-            response = await getattr(self, method)(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, params))
         #
         # public(v1) market/orderbook/level2_20 and market/orderbook/level2_100
         #
