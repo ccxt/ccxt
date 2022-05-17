@@ -1158,7 +1158,7 @@ module.exports = class kucoinfutures extends kucoin {
         });
     }
 
-    parseModifyMargin (info, market = undefined) {
+    parseMarginModification (info, market = undefined) {
         //
         //    {
         //        id: '62311d26064e8f00013f2c6d',
