@@ -1100,7 +1100,7 @@ module.exports = class wavesexchange extends Exchange {
         return parseInt (parseFloat (this.toPrecision (amount, this.markets[symbol]['precision']['amount'])));
     }
 
-    currencyToPrecision (code, amount) {
+    currencyToPrecision (code, amount, networkCode = undefined) {
         return parseInt (parseFloat (this.toPrecision (amount, this.currencies[code]['precision'])));
     }
 
