@@ -2551,6 +2551,8 @@ module.exports = class huobi extends Exchange {
         //         "ts":1640915104870
         //     }
         //
+        // TODO add balance parsing for linear swap
+        //
         const result = { 'info': response };
         const data = this.safeValue (response, 'data');
         if (spot) {
@@ -5086,7 +5088,7 @@ module.exports = class huobi extends Exchange {
         const contracts = this.safeString (position, 'volume');
         const contractSize = this.safeValue (market, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);
-        const entryPrice = this.safeNumber (position, 'cost_hold');
+        const entryPrice = this.safeNumber (position, 'cost_open');
         const initialMargin = this.safeString (position, 'position_margin');
         const rawSide = this.safeString (position, 'direction');
         const side = (rawSide === 'buy') ? 'long' : 'short';
