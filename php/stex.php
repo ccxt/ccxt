@@ -42,6 +42,7 @@ class stex extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrder' => true,
                 'fetchCurrencies' => true,
+                'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
@@ -70,6 +71,7 @@ class stex extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
                 'fetchTransactionFees' => true,
+                'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
@@ -1578,7 +1580,7 @@ class stex extends Exchange {
 
     public function parse_transaction($transaction, $currency = null) {
         //
-        // fetchDeposits
+        // fetchDeposit & fetchDeposits
         //
         //     {
         //         "id" => 123654789,
@@ -1598,7 +1600,7 @@ class stex extends Exchange {
         //         "confirmations" => "1 of 2"
         //     }
         //
-        // fetchWithdrawals
+        // fetchWithdrawal && fetchWithdrawals
         //
         //     {
         //         "id" => 65899,
@@ -1652,7 +1654,7 @@ class stex extends Exchange {
         $fee = null;
         $feeCost = $this->safe_number($transaction, 'fee');
         if ($feeCost !== null) {
-            $feeCurrencyId = $this->safe_string($transaction, 'fee_currency_id', 'deposit_fee_currency_id');
+            $feeCurrencyId = $this->safe_string_2($transaction, 'fee_currency_id', 'deposit_fee_currency_id');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
                 'cost' => $feeCost,
@@ -1680,6 +1682,48 @@ class stex extends Exchange {
             'updated' => $updated,
             'fee' => $fee,
         );
+    }
+
+    public function fetch_deposit($id, $code = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            'id' => $id,
+        );
+        $response = $this->profileGetDepositsId (array_merge($request, $params));
+        //
+        //     {
+        //         success => true,
+        //         $data => array(
+        //             $id => '21974074',
+        //             currency_id => '272',
+        //             block_explorer_url => 'https://omniexplorer.info/search/',
+        //             currency_code => 'USDT',
+        //             deposit_fee_currency_id => '272',
+        //             deposit_fee_currency_code => 'USDT',
+        //             amount => '11.00000000',
+        //             fee => '0.00000000',
+        //             deposit_status_id => '3',
+        //             status => 'FINISHED',
+        //             status_color => '#00BE75',
+        //             txid => '15b50da4600a5021dbddaed8f4a71de093bf206ea66eb4ab2f151e3e9e2fed71',
+        //             protocol_id => '24',
+        //             confirmations => '129 of 20',
+        //             created_at => '2022-05-16 16:38:40',
+        //             timestamp => '1652719120',
+        //             protocol_specific_settings => [array(
+        //                 protocol_name => 'TRON',
+        //                 protocol_id => '24',
+        //                 block_explorer_url => 'https://tronscan.org/#/transaction/'
+        //             )]
+        //         ),
+        //         unified_message => {
+        //             message_id => 'operation_successful',
+        //             substitutions => array()
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transaction($data);
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1728,6 +1772,55 @@ class stex extends Exchange {
         //
         $deposits = $this->safe_value($response, 'data', array());
         return $this->parse_transactions($deposits, $code, $since, $limit);
+    }
+
+    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            'id' => $id,
+        );
+        $response = $this->profileGetWithdrawalsId (array_merge($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //         "data" => {
+        //             "id" => 65899,
+        //             "amount" => "0.00600000",
+        //             "currency_id" => 1,
+        //             "currency_code" => "BTC",
+        //             "fee" => "0.00400000",
+        //             "fee_currency_id" => 1,
+        //             "fee_currency_code" => "BTC",
+        //             "withdrawal_status_id" => 1,
+        //             "status" => "Not Confirmed",
+        //             "status_color" => "#BC3D51",
+        //             "created_at" => "2019-01-21 09:36:05",
+        //             "created_ts" => "1548063365",
+        //             "updated_at" => "2019-01-21 09:36:05",
+        //             "updated_ts" => "1548063365",
+        //             "reason" => "string",
+        //             "txid" => null,
+        //             "protocol_id" => 0,
+        //             "withdrawal_address" => array(
+        //                 "address" => "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        //                 "address_name" => "Address",
+        //                 "additional_address_parameter" => "qwertyuiopasdfghjkl",
+        //                 "additional_address_parameter_name" => "Destination Tag",
+        //                 "notification" => "",
+        //                 "protocol_id" => 10,
+        //                 "protocol_name" => "Tether OMNI",
+        //                 "supports_new_address_creation" => false
+        //             ),
+        //             "protocol_specific_settings" => {
+        //                 "protocol_name" => "Tether OMNI",
+        //                 "protocol_id" => 10,
+        //                 "block_explorer_url" => "https://omniexplorer.info/search/"
+        //             }
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transaction($data);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
