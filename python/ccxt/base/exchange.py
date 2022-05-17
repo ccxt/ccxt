@@ -1529,11 +1529,11 @@ class Exchange(object):
 
     def currency_to_precision(self, code, fee, networkCode):
         currency = self.currencies[code]
-        precision = self.safeValue(currency, 'precision')
+        precision = self.safe_value(currency, 'precision')
         if networkCode is not None:
-            networks = self.safeValue(currency, 'networks', {})
-            networkItem = self.safeValue(networks, networkCode, {})
-            precision = self.safeValue (networkItem, 'precision', precision)
+            networks = self.safe_value(currency, 'networks', {})
+            networkItem = self.safe_value(networks, networkCode, {})
+            precision = self.safe_value (networkItem, 'precision', precision)
         if precision is None:
             return fee
         else:
