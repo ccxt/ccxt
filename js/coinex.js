@@ -2707,14 +2707,14 @@ module.exports = class coinex extends Exchange {
         //
         const status = this.safeString (response, 'message');
         const type = (addOrReduce === 1) ? 'add' : 'reduce';
-        return this.extend (this.parseModifyMargin (response, market), {
+        return this.extend (this.parseMarginModification (response, market), {
             'amount': this.parseNumber (amount),
             'type': type,
             'status': status,
         });
     }
 
-    parseModifyMargin (data, market = undefined) {
+    parseMarginModification (data, market = undefined) {
         return {
             'info': data,
             'type': undefined,

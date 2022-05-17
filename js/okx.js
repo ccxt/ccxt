@@ -4574,10 +4574,10 @@ module.exports = class okx extends Exchange {
         //       "msg": ""
         //     }
         //
-        return this.parseModifyMargin (response, market);
+        return this.parseMarginModification (response, market);
     }
 
-    parseModifyMargin (data, market = undefined) {
+    parseMarginModification (data, market = undefined) {
         const innerData = this.safeValue (data, 'data', []);
         const entry = this.safeValue (innerData, 0, {});
         const errorCode = this.safeString (data, 'code');
