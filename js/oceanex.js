@@ -19,7 +19,7 @@ module.exports = class oceanex extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg',
                 'api': {
                     'spot': 'https://api.oceanex.pro',
-                    'contract': 'https://contract.oceanex.cc/api/',
+                    'contract': 'https://contract.oceanex.cc/api',
                 },
                 'www': 'https://www.oceanex.pro.com',
                 'doc': 'https://api.oceanex.pro/doc/v1',
@@ -1034,7 +1034,7 @@ module.exports = class oceanex extends Exchange {
         } else if (type === 'contract' && access === 'private') {
             this.checkRequiredCredentials ();
             headers['X-API-KEY'] = this.apiKey;
-            headers['Authorization'] = this.jwt;
+            headers['Authorization'] = this.bearer;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
