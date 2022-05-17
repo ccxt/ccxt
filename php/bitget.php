@@ -1762,6 +1762,16 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
             'orderId' => $id,
         );
+        $stop = $this->safe_value($params, 'stop');
+        if ($stop) {
+            $planType = $this->safe_string($params, 'planType');
+            if ($planType === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $planType parameter for $stop orders, either normal_plan, profit_plan or loss_plan');
+            }
+            $request['planType'] = $planType;
+            $method = 'privateMixPostPlanCancelPlan';
+            $params = $this->omit($params, array( 'stop', 'planType' ));
+        }
         if ($marketType === 'swap') {
             $request['marginCoin'] = $market['settleId'];
         }

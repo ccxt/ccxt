@@ -2557,6 +2557,8 @@ class huobi extends Exchange {
         //         "ts":1640915104870
         //     }
         //
+        // TODO add $balance parsing for $linear $swap
+        //
         $result = array( 'info' => $response );
         $data = $this->safe_value($response, 'data');
         if ($spot) {
@@ -5092,7 +5094,7 @@ class huobi extends Exchange {
         $contracts = $this->safe_string($position, 'volume');
         $contractSize = $this->safe_value($market, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
-        $entryPrice = $this->safe_number($position, 'cost_hold');
+        $entryPrice = $this->safe_number($position, 'cost_open');
         $initialMargin = $this->safe_string($position, 'position_margin');
         $rawSide = $this->safe_string($position, 'direction');
         $side = ($rawSide === 'buy') ? 'long' : 'short';
