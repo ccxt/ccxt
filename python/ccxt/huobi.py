@@ -2318,22 +2318,23 @@ class huobi(Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
+        type = None
+        type, params = self.handle_market_type_and_params('fetchBalance', None, params)
         options = self.safe_value(self.options, 'fetchBalance', {})
-        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        type = self.safe_string(options, 'type', defaultType)
-        type = self.safe_string(params, 'type', type)
-        params = self.omit(params, 'type')
         request = {}
         method = None
         spot = (type == 'spot')
         future = (type == 'future')
         swap = (type == 'swap')
-        defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
-        subType = self.safe_string(options, 'subType', defaultSubType)
-        subType = self.safe_string(params, 'subType', subType)
+        defaultSubType = self.safe_string_2(self.options, 'defaultSubType', 'subType', 'inverse')
+        subType = self.safe_string_2(options, 'defaultSubType', 'subType', defaultSubType)
+        subType = self.safe_string_2(params, 'defaultSubType', 'subType', subType)
         inverse = (subType == 'inverse')
         linear = (subType == 'linear')
         marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'isolated')
+        marginMode = self.safe_string_2(options, 'defaultMarginMode', 'marginMode', marginMode)
+        marginMode = self.safe_string_2(params, 'defaultMarginMode', 'marginMode', marginMode)
+        params = self.omit(params, ['defaultSubType', 'subType', 'defaultMarginMode', 'marginMode'])
         isolated = (marginMode == 'isolated')
         cross = (marginMode == 'cross')
         if spot:

@@ -595,6 +595,7 @@ class bybit extends Exchange {
                     // '30084' => '\\ccxt\\BadRequest', // Isolated not modified, see handleErrors below
                     '33004' => '\\ccxt\\AuthenticationError', // apikey already expired
                     '34026' => '\\ccxt\\ExchangeError', // the limit is no change
+                    '34036' => '\\ccxt\\BadRequest', // array("ret_code":34036,"ret_msg":"leverage not modified","ext_code":"","ext_info":"","result":null,"time_now":"1652376449.258918","rate_limit_status":74,"rate_limit_reset_ms":1652376449255,"rate_limit":75)
                     '130021' => '\\ccxt\\InsufficientFunds', // array("ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100)
                 ),
                 'broad' => array(
@@ -3745,44 +3746,41 @@ class bybit extends Exchange {
         $market = $this->market($symbol);
         // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'linear');
-        $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
-        $marketType = $this->safe_string($marketTypes, $symbol, $defaultType);
-        $linear = $market['linear'] || ($marketType === 'linear');
-        $inverse = ($market['swap'] && $market['inverse']) || ($marketType === 'inverse');
-        $future = $market['future'] || (($marketType === 'future') || ($marketType === 'futures')); // * ($marketType === 'futures') deprecated, use ($marketType === 'future')
+        $isUsdcSettled = $market['settle'] === 'USDC';
         $method = null;
-        if ($linear) {
-            $method = 'privateLinearPostPositionSetLeverage';
-        } else if ($inverse) {
-            $method = 'v2PrivatePostPositionLeverageSave';
-        } else if ($future) {
-            $method = 'privateFuturesPostPositionLeverageSave';
-        }
-        $buy_leverage = $leverage;
-        $sell_leverage = $leverage;
-        if ($params['buy_leverage'] && $params['sell_leverage'] && $linear) {
-            $buy_leverage = $params['buy_leverage'];
-            $sell_leverage = $params['sell_leverage'];
-        } else if (!$leverage) {
-            if ($linear) {
-                throw new ArgumentsRequired($this->id . ' setLeverage() requires either the parameter $leverage or $params["buy_leverage"] and $params["sell_leverage"] for $linear contracts');
-            } else {
-                throw new ArgumentsRequired($this->id . ' setLeverage() requires parameter $leverage for $inverse and futures contracts');
-            }
-        }
-        if (($buy_leverage < 1) || ($buy_leverage > 100) || ($sell_leverage < 1) || ($sell_leverage > 100)) {
-            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 100');
+        if ($isUsdcSettled) {
+            $method = 'privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave';
+        } else if ($market['future']) {
+            $method = 'privatePostFuturesPrivatePositionLeverageSave';
+        } else if ($market['linear']) {
+            $method = 'privatePostPrivateLinearPositionSetLeverage';
+        } else {
+            // inverse swaps
+            $method = 'privatePostV2PrivatePositionLeverageSave';
         }
         $request = array(
             'symbol' => $market['id'],
-            'leverage_only' => true,
         );
-        if (!$linear) {
-            $request['leverage'] = $buy_leverage;
+        $leverage = $isUsdcSettled ? (string) $leverage : intval($leverage);
+        $isLinearSwap = $market['swap'] && $market['linear'];
+        $requiresBuyAndSellLeverage = !$isUsdcSettled && ($isLinearSwap || $market['future']);
+        if ($requiresBuyAndSellLeverage) {
+            $buyLeverage = $this->safe_number($params, 'buy_leverage');
+            $sellLeverage = $this->safe_number($params, 'sell_leverage');
+            if ($buyLeverage !== null && $sellLeverage !== null) {
+                if (($buyLeverage < 1) || ($buyLeverage > 100) || ($sellLeverage < 1) || ($sellLeverage > 100)) {
+                    throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 100');
+                }
+            } else {
+                $request['buy_leverage'] = $leverage;
+                $request['sell_leverage'] = $leverage;
+            }
         } else {
-            $request['buy_leverage'] = $buy_leverage;
-            $request['sell_leverage'] = $sell_leverage;
+            // requires $leverage
+            $request['leverage'] = $leverage;
+        }
+        if (($leverage < 1) || ($leverage > 100)) {
+            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 100');
         }
         return $this->$method (array_merge($request, $params));
     }

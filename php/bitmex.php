@@ -38,6 +38,8 @@ class bitmex extends Exchange {
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRateHistory' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
                 'fetchLeverageTiers' => false,
@@ -1749,6 +1751,86 @@ class bitmex extends Exchange {
         );
         $response = $this->privatePostUserRequestWithdrawal (array_merge($request, $params));
         return $this->parse_transaction($response, $currency);
+    }
+
+    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * Fetches the history of funding rates
+         * @param {str} $symbol Unified $market $symbol, use currency $code to get data for the nearest expiring contract in that series, can also send a timeframe, eg XBT:quarterly, Timeframes are nearest, daily, weekly, monthly, quarterly, biquarterly, and perpetual
+         * @param {int} $since timestamp in ms for starting date filter
+         * @param {int} $limit number of results to fetch
+         * @param {dict} $params exchange specific $params
+         * @param {int} $params->till timestamp in ms for ending date filter
+         * @param {bool} $params->reverse if true, will sort results newest first
+         * @param {int} $params->start starting point for results
+         * @param {str} $params->columns array of column names to fetch in info, if omitted, will return all columns
+         * @param {str} $params->filter generic table filter, send json key/value pairs, such as array("key" => "value"), you can key on individual fields, and do more advanced querying on timestamps, see the {@link https://www.bitmex.com/app/restAPI#Timestamp-Filters timestamp docs} for more details
+         * @return A list of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-history-structure funding rate history structures}
+         */
+        $this->load_markets();
+        $request = array();
+        $market = null;
+        if (is_array($this->currencies) && array_key_exists($symbol, $this->currencies)) {
+            $code = $this->currency($symbol);
+            $request['symbol'] = $code['id'];
+        } else if ($symbol !== null) {
+            $splitSymbol = explode(':', $symbol);
+            $splitSymbolLength = is_array($splitSymbol) ? count($splitSymbol) : 0;
+            $timeframes = array( 'nearest', 'daily', 'weekly', 'monthly', 'quarterly', 'biquarterly', 'perpetual' );
+            if (($splitSymbolLength > 1) && $this->in_array($splitSymbol[1], $timeframes)) {
+                $code = $this->currency($splitSymbol[0]);
+                $symbol = $code['id'] . ':' . $splitSymbol[1];
+                $request['symbol'] = $symbol;
+            } else {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+        }
+        if ($since !== null) {
+            $request['startTime'] = $this->iso8601($since);
+        }
+        if ($limit !== null) {
+            $request['count'] = $limit;
+        }
+        $till = $this->safe_integer($params, 'till');
+        $params = $this->omit($params, array( 'till' ));
+        if ($till !== null) {
+            $request['endTime'] = $this->iso8601($till);
+        }
+        $response = $this->publicGetFunding (array_merge($request, $params));
+        //
+        //    array(
+        //        {
+        //            "timestamp" => "2016-05-07T12:00:00.000Z",
+        //            "symbol" => "ETHXBT",
+        //            "fundingInterval" => "2000-01-02T00:00:00.000Z",
+        //            "fundingRate" => 0.0010890000000000001,
+        //            "fundingRateDaily" => 0.0010890000000000001
+        //        }
+        //    )
+        //
+        return $this->parse_funding_rate_histories($response, $market, $since, $limit);
+    }
+
+    public function parse_funding_rate_history($info, $market = null) {
+        //
+        //    {
+        //        "timestamp" => "2016-05-07T12:00:00.000Z",
+        //        "symbol" => "ETHXBT",
+        //        "fundingInterval" => "2000-01-02T00:00:00.000Z",
+        //        "fundingRate" => 0.0010890000000000001,
+        //        "fundingRateDaily" => 0.0010890000000000001
+        //    }
+        //
+        $marketId = $this->safe_string($info, 'symbol');
+        $datetime = $this->safe_string($info, 'timestamp');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'fundingRate' => $this->safe_number($info, 'fundingRate'),
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
+        );
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

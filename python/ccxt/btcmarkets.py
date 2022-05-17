@@ -71,6 +71,7 @@ class btcmarkets(Exchange):
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/89731817-b3fb8480-da52-11ea-817f-783b08aaf32b.jpg',
@@ -191,9 +192,12 @@ class btcmarkets(Exchange):
         return self.fetch_transactions_with_method('privateGetWithdrawals', code, since, limit, params)
 
     def parse_transaction_status(self, status):
-        # todo: find more statuses
         statuses = {
+            'Accepted': 'pending',
+            'Pending Authorization': 'pending',
             'Complete': 'ok',
+            'Cancelled': 'cancelled',
+            'Failed': 'failed',
         }
         return self.safe_string(statuses, status, status)
 
@@ -907,6 +911,38 @@ class btcmarkets(Exchange):
         #     ]
         #
         return self.parse_trades(response, market, since, limit)
+
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency_id': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+        }
+        if code != 'AUD':
+            self.check_address(address)
+            request['toAddress'] = address
+        if tag is not None:
+            request['toAddress'] = address + '?dt=' + tag
+        response = self.privatePostWithdrawals(self.extend(request, params))
+        #
+        #      {
+        #          "id": "4126657",
+        #          "assetName": "XRP",
+        #          "amount": "25",
+        #          "type": "Withdraw",
+        #          "creationTime": "2019-09-04T00:04:10.973000Z",
+        #          "status": "Pending Authorization",
+        #          "description": "XRP withdraw from [me@test.com] to Address: abc amount: 25 fee: 0",
+        #          "fee": "0",
+        #          "lastUpdate": "2019-09-04T00:04:11.018000Z",
+        #          "paymentDetail": {
+        #              "address": "abc"
+        #          }
+        #      }
+        #
+        return self.parse_transaction(response, currency)
 
     def nonce(self):
         return self.milliseconds()
