@@ -3704,7 +3704,16 @@ module.exports = class bybit extends Exchange {
         } else {
             positions = result;
         }
-        return this.parsePositions (positions, market);
+        const results = [];
+        for (let i = 0; i < positions.length; i++) {
+            let rawPosition = positions[i];
+            if (('data' in rawPosition) && ('is_valid' in rawPosition)) {
+                // futures only
+                rawPosition = this.safeValue (rawPosition, 'data');
+            }
+            results.push (this.parsePosition (rawPosition, market));
+        }
+        return this.filterByArray (results, 'symbol', symbols, false);
     }
 
     parsePosition (position, market = undefined) {
@@ -3850,25 +3859,6 @@ module.exports = class bybit extends Exchange {
             'side': side,
             'percentage': this.parseNumber (percentage),
         };
-    }
-
-    parsePositions (positions, market = undefined) {
-        const result = [];
-        for (let i = 0; i < positions.length; i++) {
-            let rawPosition = positions[i];
-            if (('data' in rawPosition) && ('is_valid' in rawPosition)) {
-                // futures only
-                rawPosition = this.safeValue (rawPosition, 'data');
-            }
-            const size = this.safeNumber (rawPosition, 'size');
-            // Bybit returns all positions possibilities so we have to
-            // filter only the real ones and ignore the positions with
-            // default values
-            if (size !== undefined && size !== 0) {
-                result.push (this.parsePosition (rawPosition, market));
-            }
-        }
-        return result;
     }
 
     async setMarginMode (marginMode, symbol = undefined, params = {}) {
