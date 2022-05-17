@@ -279,7 +279,7 @@ class bitvavo(Exchange):
             },
         })
 
-    def currency_to_precision(self, code, fee):
+    def currency_to_precision(self, code, fee, networkCode=None):
         return self.decimal_to_precision(fee, 0, self.currencies[code]['precision'])
 
     def amount_to_precision(self, symbol, amount):

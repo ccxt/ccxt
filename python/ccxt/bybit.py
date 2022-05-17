@@ -605,6 +605,7 @@ class bybit(Exchange):
                     # '30084': BadRequest,  # Isolated not modified, see handleErrors below
                     '33004': AuthenticationError,  # apikey already expired
                     '34026': ExchangeError,  # the limit is no change
+                    '34036': BadRequest,  # {"ret_code":34036,"ret_msg":"leverage not modified","ext_code":"","ext_info":"","result":null,"time_now":"1652376449.258918","rate_limit_status":74,"rate_limit_reset_ms":1652376449255,"rate_limit":75}
                     '130021': InsufficientFunds,  # {"ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100}
                 },
                 'broad': {
@@ -3476,21 +3477,44 @@ class bybit(Exchange):
     def fetch_positions(self, symbols=None, params={}):
         self.load_markets()
         request = {}
+        market = None
+        type = None
+        isLinear = None
+        isUsdcSettled = None
         if isinstance(symbols, list):
             length = len(symbols)
             if length != 1:
                 raise ArgumentsRequired(self.id + ' fetchPositions() takes an array with exactly one symbol')
-            request['symbol'] = self.market_id(symbols[0])
-        defaultType = self.safe_string(self.options, 'defaultType', 'linear')
-        type = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, 'type')
-        response = None
-        if type == 'linear':
-            response = self.privateLinearGetPositionList(self.extend(request, params))
-        elif type == 'inverse':
-            response = self.v2PrivateGetPositionList(self.extend(request, params))
-        elif type == 'inverseFuture':
-            response = self.futuresPrivateGetPositionList(self.extend(request, params))
+            symbol = self.safe_string(symbols, 0)
+            market = self.market(symbol)
+            type = market['type']
+            isLinear = market['linear']
+            isUsdcSettled = market['settle'] == 'USDC'
+            request['symbol'] = market['id']
+        else:
+            # market None
+            type, params = self.handle_market_type_and_params('fetchPositions', None, params)
+            options = self.safe_value(self.options, 'fetchPositions', {})
+            defaultSubType = self.safe_string(self.options, 'defaultSubType', 'linear')
+            subType = self.safe_string(options, 'subType', defaultSubType)
+            subType = self.safe_string(params, 'subType', subType)
+            isLinear = (subType == 'linear')
+            defaultSettle = self.safe_string(self.options, 'defaultSettle')
+            defaultSettle = self.safe_string_2(params, 'settle', 'defaultSettle', defaultSettle)
+            isUsdcSettled = (defaultSettle == 'USDC')
+            params = self.omit(params, ['settle', 'defaultSettle', 'subType'])
+        method = None
+        if isUsdcSettled:
+            method = 'privatePostOptionUsdcOpenapiPrivateV1QueryPosition'
+            request['category'] = 'OPTION' if (type == 'option') else 'PERPETUAL'
+        elif type == 'future':
+            method = 'privateGetFuturesPrivatePositionList'
+        elif isLinear:
+            method = 'privateGetPrivateLinearPositionList'
+        else:
+            # inverse swaps
+            method = 'privateGetV2PrivatePositionList'
+        response = getattr(self, method)(self.extend(request, params))
         if (isinstance(response, str)) and self.is_json_encoded_object(response):
             response = json.loads(response)
         #
@@ -3502,7 +3526,165 @@ class bybit(Exchange):
         #         result: [] or {} depending on the request
         #     }
         #
-        return self.safe_value(response, 'result')
+        result = self.safe_value(response, 'result', {})
+        # usdc contracts
+        if 'dataList' in result:
+            result = self.safe_value(result, 'dataList', [])
+        positions = None
+        if not isinstance(result, list):
+            positions = [result]
+        else:
+            positions = result
+        results = []
+        for i in range(0, len(positions)):
+            rawPosition = positions[i]
+            if ('data' in rawPosition) and ('is_valid' in rawPosition):
+                # futures only
+                rawPosition = self.safe_value(rawPosition, 'data')
+            results.append(self.parse_position(rawPosition, market))
+        return self.filter_by_array(results, 'symbol', symbols, False)
+
+    def parse_position(self, position, market=None):
+        #
+        # linear swap
+        #
+        #    {
+        #        "user_id":"24478789",
+        #        "symbol":"LTCUSDT",
+        #        "side":"Buy",
+        #        "size":"0.1",
+        #        "position_value":"7.083",
+        #        "entry_price":"70.83",
+        #        "liq_price":"0.01",
+        #        "bust_price":"0.01",
+        #        "leverage":"1",
+        #        "auto_add_margin":"0",
+        #        "is_isolated":false,
+        #        "position_margin":"13.8407674",
+        #        "occ_closing_fee":"6e-07",
+        #        "realised_pnl":"-0.0042498",
+        #        "cum_realised_pnl":"-0.159232",
+        #        "free_qty":"-0.1",
+        #        "tp_sl_mode":"Full",
+        #        "unrealised_pnl":"0.008",
+        #        "deleverage_indicator":"2",
+        #        "risk_id":"71",
+        #        "stop_loss":"0",
+        #        "take_profit":"0",
+        #        "trailing_stop":"0",
+        #        "position_idx":"1",
+        #        "mode":"BothSide"
+        #    }
+        #
+        # inverse swap / future
+        #    {
+        #        "id":0,
+        #        "position_idx":0,
+        #        "mode":0,
+        #        "user_id":24478789,
+        #        "risk_id":11,
+        #        "symbol":"ETHUSD",
+        #        "side":"Buy",
+        #        "size":10,  # USD amount
+        #        "position_value":"0.0047808",
+        #        "entry_price":"2091.70013387",
+        #        "is_isolated":false,
+        #        "auto_add_margin":1,
+        #        "leverage":"10",
+        #        "effective_leverage":"0.9",
+        #        "position_margin":"0.00048124",
+        #        "liq_price":"992.75",
+        #        "bust_price":"990.4",
+        #        "occ_closing_fee":"0.00000606",
+        #        "occ_funding_fee":"0",
+        #        "take_profit":"0",
+        #        "stop_loss":"0",
+        #        "trailing_stop":"0",
+        #        "position_status":"Normal",
+        #        "deleverage_indicator":3,
+        #        "oc_calc_data":"{\"blq\":0,\"slq\":0,\"bmp\":0,\"smp\":0,\"fq\":-10,\"bv2c\":0.10126,\"sv2c\":0.10114}",
+        #        "order_margin":"0",
+        #        "wallet_balance":"0.0053223",
+        #        "realised_pnl":"-0.00000287",
+        #        "unrealised_pnl":0.00001847,
+        #        "cum_realised_pnl":"-0.00001611",
+        #        "cross_seq":8301155878,
+        #        "position_seq":0,
+        #        "created_at":"2022-05-05T15:06:17.949997224Z",
+        #        "updated_at":"2022-05-13T13:40:29.793570924Z",
+        #        "tp_sl_mode":"Full"
+        #    }
+        #
+        # usdc
+        #    {
+        #       "symbol":"BTCPERP",
+        #       "leverage":"1.00",
+        #       "occClosingFee":"0.0000",
+        #       "liqPrice":"",
+        #       "positionValue":"30.8100",
+        #       "takeProfit":"0.0",
+        #       "riskId":"10001",
+        #       "trailingStop":"0.0000",
+        #       "unrealisedPnl":"0.0000",
+        #       "createdAt":"1652451795305",
+        #       "markPrice":"30809.41",
+        #       "cumRealisedPnl":"0.0000",
+        #       "positionMM":"0.1541",
+        #       "positionIM":"30.8100",
+        #       "updatedAt":"1652451795305",
+        #       "tpSLMode":"UNKNOWN",
+        #       "side":"Buy",
+        #       "bustPrice":"",
+        #       "deleverageIndicator":"0",
+        #       "entryPrice":"30810.0",
+        #       "size":"0.001",
+        #       "sessionRPL":"0.0000",
+        #       "positionStatus":"NORMAL",
+        #       "sessionUPL":"-0.0006",
+        #       "stopLoss":"0.0",
+        #       "orderMargin":"0.0000",
+        #       "sessionAvgPrice":"30810.0"
+        #    }
+        #
+        contract = self.safe_string(position, 'symbol')
+        market = self.safe_market(contract, market)
+        size = self.safe_string(position, 'size')
+        side = self.safe_string(position, 'side')
+        side = 'long' if (side == 'Buy') else 'short'
+        notional = self.safe_string_2(position, 'position_value', 'positionValue')
+        unrealisedPnl = self.safe_string_2(position, 'unrealised_pnl', 'unrealisedPnl')
+        initialMarginString = self.safe_string_2(position, 'position_margin', 'orderMargin')
+        percentage = Precise.string_mul(Precise.string_div(unrealisedPnl, initialMarginString), '100')
+        timestamp = self.parse8601(self.safe_string(position, 'updated_at'))
+        if timestamp is None:
+            timestamp = self.safe_integer(position, 'createdAt')
+            if timestamp is None:
+                timestamp = self.milliseconds()
+        isIsolated = self.safe_value(position, 'is_isolated', False)  # if not present it is cross
+        marginMode = 'isolated' if isIsolated else 'cross'
+        return {
+            'info': position,
+            'symbol': self.safe_string(market, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'initialMargin': self.parse_number(initialMarginString),
+            'initialMarginPercentage': self.parse_number(Precise.string_div(initialMarginString, notional)),
+            'maintenanceMargin': None,
+            'maintenanceMarginPercentage': None,
+            'entryPrice': self.safe_number_2(position, 'entry_price', 'entryPrice'),
+            'notional': self.parse_number(notional),
+            'leverage': self.safe_number(position, 'leverage'),
+            'unrealizedPnl': self.parse_number(unrealisedPnl),
+            'contracts': self.parse_number(size),  # in USD for inverse swaps
+            'contractSize': self.safe_number(market, 'contractSize'),
+            'marginRatio': None,
+            'liquidationPrice': self.safe_number_2(position, 'liq_price', 'liqPrice'),
+            'markPrice': self.safe_number(position, 'markPrice'),
+            'collateral': None,
+            'marginMode': marginMode,
+            'side': side,
+            'percentage': self.parse_number(percentage),
+        }
 
     def set_margin_mode(self, marginMode, symbol=None, params={}):
         if symbol is None:
@@ -3565,40 +3747,37 @@ class bybit(Exchange):
         market = self.market(symbol)
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        defaultType = self.safe_string(self.options, 'defaultType', 'linear')
-        marketTypes = self.safe_value(self.options, 'marketTypes', {})
-        marketType = self.safe_string(marketTypes, symbol, defaultType)
-        linear = market['linear'] or (marketType == 'linear')
-        inverse = (market['swap'] and market['inverse']) or (marketType == 'inverse')
-        future = market['future'] or ((marketType == 'future') or (marketType == 'futures'))  # * (marketType == 'futures') deprecated, use(marketType == 'future')
+        isUsdcSettled = market['settle'] == 'USDC'
         method = None
-        if linear:
-            method = 'privateLinearPostPositionSetLeverage'
-        elif inverse:
-            method = 'v2PrivatePostPositionLeverageSave'
-        elif future:
-            method = 'privateFuturesPostPositionLeverageSave'
-        buy_leverage = leverage
-        sell_leverage = leverage
-        if params['buy_leverage'] and params['sell_leverage'] and linear:
-            buy_leverage = params['buy_leverage']
-            sell_leverage = params['sell_leverage']
-        elif not leverage:
-            if linear:
-                raise ArgumentsRequired(self.id + ' setLeverage() requires either the parameter leverage or params["buy_leverage"] and params["sell_leverage"] for linear contracts')
-            else:
-                raise ArgumentsRequired(self.id + ' setLeverage() requires parameter leverage for inverse and futures contracts')
-        if (buy_leverage < 1) or (buy_leverage > 100) or (sell_leverage < 1) or (sell_leverage > 100):
-            raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 100')
+        if isUsdcSettled:
+            method = 'privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave'
+        elif market['future']:
+            method = 'privatePostFuturesPrivatePositionLeverageSave'
+        elif market['linear']:
+            method = 'privatePostPrivateLinearPositionSetLeverage'
+        else:
+            # inverse swaps
+            method = 'privatePostV2PrivatePositionLeverageSave'
         request = {
             'symbol': market['id'],
-            'leverage_only': True,
         }
-        if not linear:
-            request['leverage'] = buy_leverage
+        leverage = str(leverage) if isUsdcSettled else int(leverage)
+        isLinearSwap = market['swap'] and market['linear']
+        requiresBuyAndSellLeverage = not isUsdcSettled and (isLinearSwap or market['future'])
+        if requiresBuyAndSellLeverage:
+            buyLeverage = self.safe_number(params, 'buy_leverage')
+            sellLeverage = self.safe_number(params, 'sell_leverage')
+            if buyLeverage is not None and sellLeverage is not None:
+                if (buyLeverage < 1) or (buyLeverage > 100) or (sellLeverage < 1) or (sellLeverage > 100):
+                    raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 100')
+            else:
+                request['buy_leverage'] = leverage
+                request['sell_leverage'] = leverage
         else:
-            request['buy_leverage'] = buy_leverage
-            request['sell_leverage'] = sell_leverage
+            # requires leverage
+            request['leverage'] = leverage
+        if (leverage < 1) or (leverage > 100):
+            raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 100')
         return getattr(self, method)(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

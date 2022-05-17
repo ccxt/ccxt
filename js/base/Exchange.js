@@ -1715,8 +1715,19 @@ module.exports = class Exchange {
         return decimalToPrecision (fee, ROUND, market.precision.price, this.precisionMode, this.paddingMode)
     }
 
-    currencyToPrecision (code, fee) {
-        return decimalToPrecision (fee, ROUND, this.currencies[code]['precision'], this.precisionMode, this.paddingMode);
+    currencyToPrecision (code, fee, networkCode = undefined) {
+        const currency = this.currencies[code];
+        let precision = this.safeValue (currency, 'precision');
+        if (networkCode !== undefined) {
+            const networks = this.safeValue (currency, 'networks', {});
+            const networkItem = this.safeValue (networks, networkCode, {});
+            precision = this.safeValue (networkItem, 'precision', precision);
+        }
+        if (precision === undefined) {
+            return fee;
+        } else {
+            return decimalToPrecision (fee, ROUND, precision, this.precisionMode, this.paddingMode);
+        }
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
@@ -2395,5 +2406,16 @@ module.exports = class Exchange {
             interest.push (this.parseBorrowInterest (row, market));
         }
         return interest;
+    }
+
+    parseFundingRateHistories (response, market = undefined, since = undefined, limit = undefined) {
+        const rates = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            rates.push (this.parseFundingRateHistory (entry, market));
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        const symbol = (market === undefined) ? undefined : market['symbol'];
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 }

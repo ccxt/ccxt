@@ -179,6 +179,8 @@ module.exports = class bitget extends Exchange {
                             'order/history': 2,
                             'order/detail': 2,
                             'order/fills': 2,
+                            'plan/currentPlan': 2,
+                            'plan/historyPlan': 2,
                             'position/singlePosition': 2,
                             'position/allPosition': 2,
                             'trace/currentTrack': 2,
@@ -205,8 +207,6 @@ module.exports = class bitget extends Exchange {
                             'plan/placeTPSL': 2,
                             'plan/modifyTPSLPlan': 2,
                             'plan/cancelPlan': 2,
-                            'plan/currentPlan': 2,
-                            'plan/historyPlan': 2,
                             'trace/closeTrackOrder': 2,
                             'trace/setUpCopySymbols': 2,
                         },
@@ -1628,11 +1628,30 @@ module.exports = class bitget extends Exchange {
         //       uTime: '1645925450746'
         //     }
         //
+        // stop
+        //
+        //     {
+        //         "orderId": "910246821491617792",
+        //         "symbol": "BTCUSDT_UMCBL",
+        //         "marginCoin": "USDT",
+        //         "size": "16",
+        //         "executePrice": "20000",
+        //         "triggerPrice": "24000",
+        //         "status": "not_trigger",
+        //         "orderType": "limit",
+        //         "planType": "normal_plan",
+        //         "side": "open_long",
+        //         "triggerType": "market_price",
+        //         "presetTakeProfitPrice": "0",
+        //         "presetTakeLossPrice": "0",
+        //         "cTime": "1652745674488"
+        //     }
+        //
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const id = this.safeString (order, 'orderId');
-        const price = this.safeString (order, 'price');
+        const price = this.safeString2 (order, 'price', 'executePrice');
         const amount = this.safeString2 (order, 'quantity', 'size');
         const filled = this.safeString2 (order, 'fillQuantity', 'filledQty');
         const cost = this.safeString2 (order, 'fillTotalAmount', 'filledAmount');
@@ -1663,7 +1682,7 @@ module.exports = class bitget extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'stopPrice': this.safeNumber (order, 'triggerPrice'),
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -1751,7 +1770,7 @@ module.exports = class bitget extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        const method = this.getSupportedMapping (marketType, {
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'privateSpotPostTradeCancelOrder',
             'swap': 'privateMixPostOrderCancelOrder',
         });
@@ -1759,6 +1778,16 @@ module.exports = class bitget extends Exchange {
             'symbol': market['id'],
             'orderId': id,
         };
+        const stop = this.safeValue (params, 'stop');
+        if (stop) {
+            const planType = this.safeString (params, 'planType');
+            if (planType === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan or loss_plan');
+            }
+            request['planType'] = planType;
+            method = 'privateMixPostPlanCancelPlan';
+            params = this.omit (params, [ 'stop', 'planType' ]);
+        }
         if (marketType === 'swap') {
             request['marginCoin'] = market['settleId'];
         }
@@ -1913,10 +1942,15 @@ module.exports = class bitget extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const method = this.getSupportedMapping (marketType, {
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'privateSpotPostTradeOpenOrders',
             'swap': 'privateMixGetOrderCurrent',
         });
+        const stop = this.safeValue (params, 'stop');
+        if (stop) {
+            method = 'privateMixGetPlanCurrentPlan';
+            params = this.omit (params, 'stop');
+        }
         const response = await this[method] (this.extend (request, query));
         //
         //  spot
@@ -1969,6 +2003,32 @@ module.exports = class bitget extends Exchange {
         //           uTime: '1645922194995'
         //         }
         //       ]
+        //     }
+        //
+        // stop
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1652745815697,
+        //         "data": [
+        //             {
+        //                 "orderId": "910246821491617792",
+        //                 "symbol": "BTCUSDT_UMCBL",
+        //                 "marginCoin": "USDT",
+        //                 "size": "16",
+        //                 "executePrice": "20000",
+        //                 "triggerPrice": "24000",
+        //                 "status": "not_trigger",
+        //                 "orderType": "limit",
+        //                 "planType": "normal_plan",
+        //                 "side": "open_long",
+        //                 "triggerType": "market_price",
+        //                 "presetTakeProfitPrice": "0",
+        //                 "presetTakeLossPrice": "0",
+        //                 "cTime": "1652745674488"
+        //             }
+        //         ]
         //     }
         //
         const data = this.safeValue (response, 'data', []);
@@ -2513,13 +2573,13 @@ module.exports = class bitget extends Exchange {
         //         }
         //     }
         //
-        return this.extend (this.parseModifyMargin (response, market), {
+        return this.extend (this.parseMarginModification (response, market), {
             'amount': this.parseNumber (amount),
             'type': type,
         });
     }
 
-    parseModifyMargin (data, market = undefined) {
+    parseMarginModification (data, market = undefined) {
         const errorCode = this.safeString (data, 'code');
         const status = (errorCode === '00000') ? 'ok' : 'failed';
         const code = (market['linear']) ? market['quote'] : market['base'];

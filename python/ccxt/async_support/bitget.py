@@ -198,6 +198,8 @@ class bitget(Exchange):
                             'order/history': 2,
                             'order/detail': 2,
                             'order/fills': 2,
+                            'plan/currentPlan': 2,
+                            'plan/historyPlan': 2,
                             'position/singlePosition': 2,
                             'position/allPosition': 2,
                             'trace/currentTrack': 2,
@@ -224,8 +226,6 @@ class bitget(Exchange):
                             'plan/placeTPSL': 2,
                             'plan/modifyTPSLPlan': 2,
                             'plan/cancelPlan': 2,
-                            'plan/currentPlan': 2,
-                            'plan/historyPlan': 2,
                             'trace/closeTrackOrder': 2,
                             'trace/setUpCopySymbols': 2,
                         },
@@ -1605,11 +1605,30 @@ class bitget(Exchange):
         #       uTime: '1645925450746'
         #     }
         #
+        # stop
+        #
+        #     {
+        #         "orderId": "910246821491617792",
+        #         "symbol": "BTCUSDT_UMCBL",
+        #         "marginCoin": "USDT",
+        #         "size": "16",
+        #         "executePrice": "20000",
+        #         "triggerPrice": "24000",
+        #         "status": "not_trigger",
+        #         "orderType": "limit",
+        #         "planType": "normal_plan",
+        #         "side": "open_long",
+        #         "triggerType": "market_price",
+        #         "presetTakeProfitPrice": "0",
+        #         "presetTakeLossPrice": "0",
+        #         "cTime": "1652745674488"
+        #     }
+        #
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId)
         symbol = market['symbol']
         id = self.safe_string(order, 'orderId')
-        price = self.safe_string(order, 'price')
+        price = self.safe_string_2(order, 'price', 'executePrice')
         amount = self.safe_string_2(order, 'quantity', 'size')
         filled = self.safe_string_2(order, 'fillQuantity', 'filledQty')
         cost = self.safe_string_2(order, 'fillTotalAmount', 'filledAmount')
@@ -1639,7 +1658,7 @@ class bitget(Exchange):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
+            'stopPrice': self.safe_number(order, 'triggerPrice'),
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -1724,6 +1743,14 @@ class bitget(Exchange):
             'symbol': market['id'],
             'orderId': id,
         }
+        stop = self.safe_value(params, 'stop')
+        if stop:
+            planType = self.safe_string(params, 'planType')
+            if planType is None:
+                raise ArgumentsRequired(self.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan or loss_plan')
+            request['planType'] = planType
+            method = 'privateMixPostPlanCancelPlan'
+            params = self.omit(params, ['stop', 'planType'])
         if marketType == 'swap':
             request['marginCoin'] = market['settleId']
         response = await getattr(self, method)(self.extend(request, query))
@@ -1873,6 +1900,10 @@ class bitget(Exchange):
             'spot': 'privateSpotPostTradeOpenOrders',
             'swap': 'privateMixGetOrderCurrent',
         })
+        stop = self.safe_value(params, 'stop')
+        if stop:
+            method = 'privateMixGetPlanCurrentPlan'
+            params = self.omit(params, 'stop')
         response = await getattr(self, method)(self.extend(request, query))
         #
         #  spot
@@ -1925,6 +1956,32 @@ class bitget(Exchange):
         #           uTime: '1645922194995'
         #         }
         #       ]
+        #     }
+        #
+        # stop
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1652745815697,
+        #         "data": [
+        #             {
+        #                 "orderId": "910246821491617792",
+        #                 "symbol": "BTCUSDT_UMCBL",
+        #                 "marginCoin": "USDT",
+        #                 "size": "16",
+        #                 "executePrice": "20000",
+        #                 "triggerPrice": "24000",
+        #                 "status": "not_trigger",
+        #                 "orderType": "limit",
+        #                 "planType": "normal_plan",
+        #                 "side": "open_long",
+        #                 "triggerType": "market_price",
+        #                 "presetTakeProfitPrice": "0",
+        #                 "presetTakeLossPrice": "0",
+        #                 "cTime": "1652745674488"
+        #             }
+        #         ]
         #     }
         #
         data = self.safe_value(response, 'data', [])
@@ -2438,12 +2495,12 @@ class bitget(Exchange):
         #         }
         #     }
         #
-        return self.extend(self.parse_modify_margin(response, market), {
+        return self.extend(self.parse_margin_modification(response, market), {
             'amount': self.parse_number(amount),
             'type': type,
         })
 
-    def parse_modify_margin(self, data, market=None):
+    def parse_margin_modification(self, data, market=None):
         errorCode = self.safe_string(data, 'code')
         status = 'ok' if (errorCode == '00000') else 'failed'
         code = market['quote'] if (market['linear']) else market['base']

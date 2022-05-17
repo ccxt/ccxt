@@ -592,6 +592,7 @@ module.exports = class bybit extends Exchange {
                     // '30084': BadRequest, // Isolated not modified, see handleErrors below
                     '33004': AuthenticationError, // apikey already expired
                     '34026': ExchangeError, // the limit is no change
+                    '34036': BadRequest, // {"ret_code":34036,"ret_msg":"leverage not modified","ext_code":"","ext_info":"","result":null,"time_now":"1652376449.258918","rate_limit_status":74,"rate_limit_reset_ms":1652376449255,"rate_limit":75}
                     '130021': InsufficientFunds, // {"ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100}
                 },
                 'broad': {
@@ -3640,24 +3641,47 @@ module.exports = class bybit extends Exchange {
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
+        let market = undefined;
+        let type = undefined;
+        let isLinear = undefined;
+        let isUsdcSettled = undefined;
         if (Array.isArray (symbols)) {
             const length = symbols.length;
             if (length !== 1) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() takes an array with exactly one symbol');
             }
-            request['symbol'] = this.marketId (symbols[0]);
+            const symbol = this.safeString (symbols, 0);
+            market = this.market (symbol);
+            type = market['type'];
+            isLinear = market['linear'];
+            isUsdcSettled = market['settle'] === 'USDC';
+            request['symbol'] = market['id'];
+        } else {
+            // market undefined
+            [ type, params ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
+            const options = this.safeValue (this.options, 'fetchPositions', {});
+            const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
+            let subType = this.safeString (options, 'subType', defaultSubType);
+            subType = this.safeString (params, 'subType', subType);
+            isLinear = (subType === 'linear');
+            let defaultSettle = this.safeString (this.options, 'defaultSettle');
+            defaultSettle = this.safeString2 (params, 'settle', 'defaultSettle', defaultSettle);
+            isUsdcSettled = (defaultSettle === 'USDC');
+            params = this.omit (params, [ 'settle', 'defaultSettle', 'subType' ]);
         }
-        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
-        const type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
-        let response = undefined;
-        if (type === 'linear') {
-            response = await this.privateLinearGetPositionList (this.extend (request, params));
-        } else if (type === 'inverse') {
-            response = await this.v2PrivateGetPositionList (this.extend (request, params));
-        } else if (type === 'inverseFuture') {
-            response = await this.futuresPrivateGetPositionList (this.extend (request, params));
+        let method = undefined;
+        if (isUsdcSettled) {
+            method = 'privatePostOptionUsdcOpenapiPrivateV1QueryPosition';
+            request['category'] = (type === 'option') ? 'OPTION' : 'PERPETUAL';
+        } else if (type === 'future') {
+            method = 'privateGetFuturesPrivatePositionList';
+        } else if (isLinear) {
+            method = 'privateGetPrivateLinearPositionList';
+        } else {
+            // inverse swaps
+            method = 'privateGetV2PrivatePositionList';
         }
+        let response = await this[method] (this.extend (request, params));
         if ((typeof response === 'string') && this.isJsonEncodedObject (response)) {
             response = JSON.parse (response);
         }
@@ -3670,7 +3694,172 @@ module.exports = class bybit extends Exchange {
         //         result: [] or {} depending on the request
         //     }
         //
-        return this.safeValue (response, 'result');
+        let result = this.safeValue (response, 'result', {});
+        // usdc contracts
+        if ('dataList' in result) {
+            result = this.safeValue (result, 'dataList', []);
+        }
+        let positions = undefined;
+        if (!Array.isArray (result)) {
+            positions = [ result ];
+        } else {
+            positions = result;
+        }
+        const results = [];
+        for (let i = 0; i < positions.length; i++) {
+            let rawPosition = positions[i];
+            if (('data' in rawPosition) && ('is_valid' in rawPosition)) {
+                // futures only
+                rawPosition = this.safeValue (rawPosition, 'data');
+            }
+            results.push (this.parsePosition (rawPosition, market));
+        }
+        return this.filterByArray (results, 'symbol', symbols, false);
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        // linear swap
+        //
+        //    {
+        //        "user_id":"24478789",
+        //        "symbol":"LTCUSDT",
+        //        "side":"Buy",
+        //        "size":"0.1",
+        //        "position_value":"7.083",
+        //        "entry_price":"70.83",
+        //        "liq_price":"0.01",
+        //        "bust_price":"0.01",
+        //        "leverage":"1",
+        //        "auto_add_margin":"0",
+        //        "is_isolated":false,
+        //        "position_margin":"13.8407674",
+        //        "occ_closing_fee":"6e-07",
+        //        "realised_pnl":"-0.0042498",
+        //        "cum_realised_pnl":"-0.159232",
+        //        "free_qty":"-0.1",
+        //        "tp_sl_mode":"Full",
+        //        "unrealised_pnl":"0.008",
+        //        "deleverage_indicator":"2",
+        //        "risk_id":"71",
+        //        "stop_loss":"0",
+        //        "take_profit":"0",
+        //        "trailing_stop":"0",
+        //        "position_idx":"1",
+        //        "mode":"BothSide"
+        //    }
+        //
+        // inverse swap / future
+        //    {
+        //        "id":0,
+        //        "position_idx":0,
+        //        "mode":0,
+        //        "user_id":24478789,
+        //        "risk_id":11,
+        //        "symbol":"ETHUSD",
+        //        "side":"Buy",
+        //        "size":10, // USD amount
+        //        "position_value":"0.0047808",
+        //        "entry_price":"2091.70013387",
+        //        "is_isolated":false,
+        //        "auto_add_margin":1,
+        //        "leverage":"10",
+        //        "effective_leverage":"0.9",
+        //        "position_margin":"0.00048124",
+        //        "liq_price":"992.75",
+        //        "bust_price":"990.4",
+        //        "occ_closing_fee":"0.00000606",
+        //        "occ_funding_fee":"0",
+        //        "take_profit":"0",
+        //        "stop_loss":"0",
+        //        "trailing_stop":"0",
+        //        "position_status":"Normal",
+        //        "deleverage_indicator":3,
+        //        "oc_calc_data":"{\"blq\":0,\"slq\":0,\"bmp\":0,\"smp\":0,\"fq\":-10,\"bv2c\":0.10126,\"sv2c\":0.10114}",
+        //        "order_margin":"0",
+        //        "wallet_balance":"0.0053223",
+        //        "realised_pnl":"-0.00000287",
+        //        "unrealised_pnl":0.00001847,
+        //        "cum_realised_pnl":"-0.00001611",
+        //        "cross_seq":8301155878,
+        //        "position_seq":0,
+        //        "created_at":"2022-05-05T15:06:17.949997224Z",
+        //        "updated_at":"2022-05-13T13:40:29.793570924Z",
+        //        "tp_sl_mode":"Full"
+        //    }
+        //
+        // usdc
+        //    {
+        //       "symbol":"BTCPERP",
+        //       "leverage":"1.00",
+        //       "occClosingFee":"0.0000",
+        //       "liqPrice":"",
+        //       "positionValue":"30.8100",
+        //       "takeProfit":"0.0",
+        //       "riskId":"10001",
+        //       "trailingStop":"0.0000",
+        //       "unrealisedPnl":"0.0000",
+        //       "createdAt":"1652451795305",
+        //       "markPrice":"30809.41",
+        //       "cumRealisedPnl":"0.0000",
+        //       "positionMM":"0.1541",
+        //       "positionIM":"30.8100",
+        //       "updatedAt":"1652451795305",
+        //       "tpSLMode":"UNKNOWN",
+        //       "side":"Buy",
+        //       "bustPrice":"",
+        //       "deleverageIndicator":"0",
+        //       "entryPrice":"30810.0",
+        //       "size":"0.001",
+        //       "sessionRPL":"0.0000",
+        //       "positionStatus":"NORMAL",
+        //       "sessionUPL":"-0.0006",
+        //       "stopLoss":"0.0",
+        //       "orderMargin":"0.0000",
+        //       "sessionAvgPrice":"30810.0"
+        //    }
+        //
+        const contract = this.safeString (position, 'symbol');
+        market = this.safeMarket (contract, market);
+        const size = this.safeString (position, 'size');
+        let side = this.safeString (position, 'side');
+        side = (side === 'Buy') ? 'long' : 'short';
+        const notional = this.safeString2 (position, 'position_value', 'positionValue');
+        const unrealisedPnl = this.safeString2 (position, 'unrealised_pnl', 'unrealisedPnl');
+        const initialMarginString = this.safeString2 (position, 'position_margin', 'orderMargin');
+        const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
+        let timestamp = this.parse8601 (this.safeString (position, 'updated_at'));
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger (position, 'createdAt');
+            if (timestamp === undefined) {
+                timestamp = this.milliseconds ();
+            }
+        }
+        const isIsolated = this.safeValue (position, 'is_isolated', false); // if not present it is cross
+        const marginMode = isIsolated ? 'isolated' : 'cross';
+        return {
+            'info': position,
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'initialMargin': this.parseNumber (initialMarginString),
+            'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notional)),
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'entryPrice': this.safeNumber2 (position, 'entry_price', 'entryPrice'),
+            'notional': this.parseNumber (notional),
+            'leverage': this.safeNumber (position, 'leverage'),
+            'unrealizedPnl': this.parseNumber (unrealisedPnl),
+            'contracts': this.parseNumber (size), // in USD for inverse swaps
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'marginRatio': undefined,
+            'liquidationPrice': this.safeNumber2 (position, 'liq_price', 'liqPrice'),
+            'markPrice': this.safeNumber (position, 'markPrice'),
+            'collateral': undefined,
+            'marginMode': marginMode,
+            'side': side,
+            'percentage': this.parseNumber (percentage),
+        };
     }
 
     async setMarginMode (marginMode, symbol = undefined, params = {}) {
@@ -3742,44 +3931,41 @@ module.exports = class bybit extends Exchange {
         const market = this.market (symbol);
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
-        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
-        const marketType = this.safeString (marketTypes, symbol, defaultType);
-        const linear = market['linear'] || (marketType === 'linear');
-        const inverse = (market['swap'] && market['inverse']) || (marketType === 'inverse');
-        const future = market['future'] || ((marketType === 'future') || (marketType === 'futures')); // * (marketType === 'futures') deprecated, use (marketType === 'future')
+        const isUsdcSettled = market['settle'] === 'USDC';
         let method = undefined;
-        if (linear) {
-            method = 'privateLinearPostPositionSetLeverage';
-        } else if (inverse) {
-            method = 'v2PrivatePostPositionLeverageSave';
-        } else if (future) {
-            method = 'privateFuturesPostPositionLeverageSave';
-        }
-        let buy_leverage = leverage;
-        let sell_leverage = leverage;
-        if (params['buy_leverage'] && params['sell_leverage'] && linear) {
-            buy_leverage = params['buy_leverage'];
-            sell_leverage = params['sell_leverage'];
-        } else if (!leverage) {
-            if (linear) {
-                throw new ArgumentsRequired (this.id + ' setLeverage() requires either the parameter leverage or params["buy_leverage"] and params["sell_leverage"] for linear contracts');
-            } else {
-                throw new ArgumentsRequired (this.id + ' setLeverage() requires parameter leverage for inverse and futures contracts');
-            }
-        }
-        if ((buy_leverage < 1) || (buy_leverage > 100) || (sell_leverage < 1) || (sell_leverage > 100)) {
-            throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 100');
+        if (isUsdcSettled) {
+            method = 'privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave';
+        } else if (market['future']) {
+            method = 'privatePostFuturesPrivatePositionLeverageSave';
+        } else if (market['linear']) {
+            method = 'privatePostPrivateLinearPositionSetLeverage';
+        } else {
+            // inverse swaps
+            method = 'privatePostV2PrivatePositionLeverageSave';
         }
         const request = {
             'symbol': market['id'],
-            'leverage_only': true,
         };
-        if (!linear) {
-            request['leverage'] = buy_leverage;
+        leverage = isUsdcSettled ? leverage.toString () : parseInt (leverage);
+        const isLinearSwap = market['swap'] && market['linear'];
+        const requiresBuyAndSellLeverage = !isUsdcSettled && (isLinearSwap || market['future']);
+        if (requiresBuyAndSellLeverage) {
+            const buyLeverage = this.safeNumber (params, 'buy_leverage');
+            const sellLeverage = this.safeNumber (params, 'sell_leverage');
+            if (buyLeverage !== undefined && sellLeverage !== undefined) {
+                if ((buyLeverage < 1) || (buyLeverage > 100) || (sellLeverage < 1) || (sellLeverage > 100)) {
+                    throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 100');
+                }
+            } else {
+                request['buy_leverage'] = leverage;
+                request['sell_leverage'] = leverage;
+            }
         } else {
-            request['buy_leverage'] = buy_leverage;
-            request['sell_leverage'] = sell_leverage;
+            // requires leverage
+            request['leverage'] = leverage;
+        }
+        if ((leverage < 1) || (leverage > 100)) {
+            throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 100');
         }
         return await this[method] (this.extend (request, params));
     }

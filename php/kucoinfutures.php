@@ -199,6 +199,9 @@ class kucoinfutures extends kucoin {
                     '411100' => '\\ccxt\\AccountSuspended', // User is frozen -- Please contact us via support center
                     '500000' => '\\ccxt\\ExchangeNotAvailable', // Internal Server Error -- We had a problem with our server. Try again later.
                 ),
+                'broad' => array(
+                    'Position does not exist' => '\\ccxt\\OrderNotFound', // array( "code":"200000", "msg":"Position does not exist" )
+                ),
             ),
             'fees' => array(
                 'trading' => array(
@@ -1093,10 +1096,127 @@ class kucoinfutures extends kucoin {
         $uuid = $this->uuid();
         $request = array(
             'symbol' => $market['id'],
-            'margin' => $amount,
+            'margin' => $this->amount_to_precision($symbol, $amount),
             'bizNo' => $uuid,
         );
-        return $this->futuresPrivatePostPositionMarginDepositMargin (array_merge($request, $params));
+        $response = $this->futuresPrivatePostPositionMarginDepositMargin (array_merge($request, $params));
+        //
+        //    {
+        //        code => '200000',
+        //        $data => {
+        //            id => '62311d26064e8f00013f2c6d',
+        //            $symbol => 'XRPUSDTM',
+        //            autoDeposit => false,
+        //            maintMarginReq => 0.01,
+        //            riskLimit => 200000,
+        //            realLeverage => 0.88,
+        //            crossMode => false,
+        //            delevPercentage => 0.4,
+        //            openingTimestamp => 1647385894798,
+        //            currentTimestamp => 1647414510672,
+        //            currentQty => -1,
+        //            currentCost => -7.658,
+        //            currentComm => 0.0053561,
+        //            unrealisedCost => -7.658,
+        //            realisedGrossCost => 0,
+        //            realisedCost => 0.0053561,
+        //            isOpen => true,
+        //            markPrice => 0.7635,
+        //            markValue => -7.635,
+        //            posCost => -7.658,
+        //            posCross => 1.00016084,
+        //            posInit => 7.658,
+        //            posComm => 0.00979006,
+        //            posLoss => 0,
+        //            posMargin => 8.6679509,
+        //            posMaint => 0.08637006,
+        //            maintMargin => 8.6909509,
+        //            realisedGrossPnl => 0,
+        //            realisedPnl => -0.0038335,
+        //            unrealisedPnl => 0.023,
+        //            unrealisedPnlPcnt => 0.003,
+        //            unrealisedRoePcnt => 0.003,
+        //            avgEntryPrice => 0.7658,
+        //            liquidationPrice => 1.6239,
+        //            bankruptPrice => 1.6317,
+        //            settleCurrency => 'USDT'
+        //        }
+        //    }
+        //
+        //
+        //    {
+        //        "code":"200000",
+        //        "msg":"Position does not exist"
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        return array_merge($this->parseModifyMargin ($data, $market), array(
+            'amount' => $this->amount_to_precision($symbol, $amount),
+            'direction' => 'in',
+        ));
+    }
+
+    public function parse_margin_modification($info, $market = null) {
+        //
+        //    {
+        //        $id => '62311d26064e8f00013f2c6d',
+        //        symbol => 'XRPUSDTM',
+        //        autoDeposit => false,
+        //        maintMarginReq => 0.01,
+        //        riskLimit => 200000,
+        //        realLeverage => 0.88,
+        //        $crossMode => false,
+        //        delevPercentage => 0.4,
+        //        openingTimestamp => 1647385894798,
+        //        currentTimestamp => 1647414510672,
+        //        currentQty => -1,
+        //        currentCost => -7.658,
+        //        currentComm => 0.0053561,
+        //        unrealisedCost => -7.658,
+        //        realisedGrossCost => 0,
+        //        realisedCost => 0.0053561,
+        //        isOpen => true,
+        //        markPrice => 0.7635,
+        //        markValue => -7.635,
+        //        posCost => -7.658,
+        //        posCross => 1.00016084,
+        //        posInit => 7.658,
+        //        posComm => 0.00979006,
+        //        posLoss => 0,
+        //        posMargin => 8.6679509,
+        //        posMaint => 0.08637006,
+        //        maintMargin => 8.6909509,
+        //        realisedGrossPnl => 0,
+        //        realisedPnl => -0.0038335,
+        //        unrealisedPnl => 0.023,
+        //        unrealisedPnlPcnt => 0.003,
+        //        unrealisedRoePcnt => 0.003,
+        //        avgEntryPrice => 0.7658,
+        //        liquidationPrice => 1.6239,
+        //        bankruptPrice => 1.6317,
+        //        settleCurrency => 'USDT'
+        //    }
+        //
+        //    {
+        //        "code":"200000",
+        //        "msg":"Position does not exist"
+        //    }
+        //
+        $id = $this->safe_string($info, 'id');
+        $market = $this->safe_market($id, $market);
+        $currencyId = $this->safe_string($info, 'settleCurrency');
+        $crossMode = $this->safe_value($info, 'crossMode');
+        $mode = $crossMode ? 'cross' : 'isolated';
+        $marketId = $this->safe_string($market, 'symbol');
+        return array(
+            'info' => $info,
+            'direction' => null,
+            'mode' => $mode,
+            'amount' => null,
+            'code' => $this->safe_currency_code($currencyId),
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'status' => null,
+        );
     }
 
     public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {

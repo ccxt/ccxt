@@ -1358,7 +1358,7 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
      - stex
      - `STEX <https://app.stex.com?ref=36416021>`__
      - .. image:: https://img.shields.io/badge/3-lightgray
-          :target: https://help.stex.com/en/collections/1593608-api-v3-documentation
+          :target: https://apidocs.stex.com/
           :alt: API Version 3
      
      - 

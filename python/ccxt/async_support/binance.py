@@ -1236,7 +1236,7 @@ class binance(Exchange):
     def cost_to_precision(self, symbol, cost):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['quote'], self.precisionMode, self.paddingMode)
 
-    def currency_to_precision(self, code, fee):
+    def currency_to_precision(self, code, fee, networkCode=None):
         # info is available in currencies only if the user has configured his api keys
         if self.safe_value(self.currencies[code], 'precision') is not None:
             return self.decimal_to_precision(fee, TRUNCATE, self.currencies[code]['precision'], self.precisionMode, self.paddingMode)
@@ -2728,11 +2728,11 @@ class binance(Exchange):
             if market['spot']:
                 quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', False)
                 if quoteOrderQty:
-                    quoteOrderQty = self.safe_number(params, 'quoteOrderQty')
+                    quoteOrderQty = self.safe_value_2(params, 'quoteOrderQty', 'cost')
                     precision = market['precision']['price']
                     if quoteOrderQty is not None:
                         request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQty, TRUNCATE, precision, self.precisionMode)
-                        params = self.omit(params, 'quoteOrderQty')
+                        params = self.omit(params, ['quoteOrderQty', 'cost'])
                     elif price is not None:
                         request['quoteOrderQty'] = self.decimal_to_precision(amount * price, TRUNCATE, precision, self.precisionMode)
                     else:
@@ -5106,11 +5106,11 @@ class binance(Exchange):
         #         "type": 1
         #     }
         #
-        return self.extend(self.parse_modify_margin(response, market), {
+        return self.extend(self.parse_margin_modification(response, market), {
             'code': code,
         })
 
-    def parse_modify_margin(self, data, market=None):
+    def parse_margin_modification(self, data, market=None):
         rawType = self.safe_integer(data, 'type')
         resultType = 'add' if (rawType == 1) else 'reduce'
         resultAmount = self.safe_number(data, 'amount')

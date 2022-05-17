@@ -183,6 +183,8 @@ class bitget extends Exchange {
                             'order/history' => 2,
                             'order/detail' => 2,
                             'order/fills' => 2,
+                            'plan/currentPlan' => 2,
+                            'plan/historyPlan' => 2,
                             'position/singlePosition' => 2,
                             'position/allPosition' => 2,
                             'trace/currentTrack' => 2,
@@ -209,8 +211,6 @@ class bitget extends Exchange {
                             'plan/placeTPSL' => 2,
                             'plan/modifyTPSLPlan' => 2,
                             'plan/cancelPlan' => 2,
-                            'plan/currentPlan' => 2,
-                            'plan/historyPlan' => 2,
                             'trace/closeTrackOrder' => 2,
                             'trace/setUpCopySymbols' => 2,
                         ),
@@ -1632,11 +1632,30 @@ class bitget extends Exchange {
         //       uTime => '1645925450746'
         //     }
         //
+        // stop
+        //
+        //     {
+        //         "orderId" => "910246821491617792",
+        //         "symbol" => "BTCUSDT_UMCBL",
+        //         "marginCoin" => "USDT",
+        //         "size" => "16",
+        //         "executePrice" => "20000",
+        //         "triggerPrice" => "24000",
+        //         "status" => "not_trigger",
+        //         "orderType" => "limit",
+        //         "planType" => "normal_plan",
+        //         "side" => "open_long",
+        //         "triggerType" => "market_price",
+        //         "presetTakeProfitPrice" => "0",
+        //         "presetTakeLossPrice" => "0",
+        //         "cTime" => "1652745674488"
+        //     }
+        //
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $id = $this->safe_string($order, 'orderId');
-        $price = $this->safe_string($order, 'price');
+        $price = $this->safe_string_2($order, 'price', 'executePrice');
         $amount = $this->safe_string_2($order, 'quantity', 'size');
         $filled = $this->safe_string_2($order, 'fillQuantity', 'filledQty');
         $cost = $this->safe_string_2($order, 'fillTotalAmount', 'filledAmount');
@@ -1667,7 +1686,7 @@ class bitget extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
+            'stopPrice' => $this->safe_number($order, 'triggerPrice'),
             'average' => $average,
             'cost' => $cost,
             'amount' => $amount,
@@ -1763,6 +1782,16 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
             'orderId' => $id,
         );
+        $stop = $this->safe_value($params, 'stop');
+        if ($stop) {
+            $planType = $this->safe_string($params, 'planType');
+            if ($planType === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $planType parameter for $stop orders, either normal_plan, profit_plan or loss_plan');
+            }
+            $request['planType'] = $planType;
+            $method = 'privateMixPostPlanCancelPlan';
+            $params = $this->omit($params, array( 'stop', 'planType' ));
+        }
         if ($marketType === 'swap') {
             $request['marginCoin'] = $market['settleId'];
         }
@@ -1921,6 +1950,11 @@ class bitget extends Exchange {
             'spot' => 'privateSpotPostTradeOpenOrders',
             'swap' => 'privateMixGetOrderCurrent',
         ));
+        $stop = $this->safe_value($params, 'stop');
+        if ($stop) {
+            $method = 'privateMixGetPlanCurrentPlan';
+            $params = $this->omit($params, 'stop');
+        }
         $response = yield $this->$method (array_merge($request, $query));
         //
         //  spot
@@ -1973,6 +2007,32 @@ class bitget extends Exchange {
         //           uTime => '1645922194995'
         //         }
         //       )
+        //     }
+        //
+        // $stop
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1652745815697,
+        //         "data" => array(
+        //             {
+        //                 "orderId" => "910246821491617792",
+        //                 "symbol" => "BTCUSDT_UMCBL",
+        //                 "marginCoin" => "USDT",
+        //                 "size" => "16",
+        //                 "executePrice" => "20000",
+        //                 "triggerPrice" => "24000",
+        //                 "status" => "not_trigger",
+        //                 "orderType" => "limit",
+        //                 "planType" => "normal_plan",
+        //                 "side" => "open_long",
+        //                 "triggerType" => "market_price",
+        //                 "presetTakeProfitPrice" => "0",
+        //                 "presetTakeLossPrice" => "0",
+        //                 "cTime" => "1652745674488"
+        //             }
+        //         )
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -2517,13 +2577,13 @@ class bitget extends Exchange {
         //         }
         //     }
         //
-        return array_merge($this->parse_modify_margin($response, $market), array(
+        return array_merge($this->parse_margin_modification($response, $market), array(
             'amount' => $this->parse_number($amount),
             'type' => $type,
         ));
     }
 
-    public function parse_modify_margin($data, $market = null) {
+    public function parse_margin_modification($data, $market = null) {
         $errorCode = $this->safe_string($data, 'code');
         $status = ($errorCode === '00000') ? 'ok' : 'failed';
         $code = ($market['linear']) ? $market['quote'] : $market['base'];

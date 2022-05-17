@@ -677,7 +677,7 @@ class mexc3 extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => null,
+                    'amount' => $this->safe_integer($market, 'baseAssetPrecision'),
                     'price' => $this->safe_integer($market, 'quotePrecision'),
                     'base' => $this->safe_integer($market, 'baseAssetPrecision'),
                     'quote' => $this->safe_integer($market, 'quoteAssetPrecision'),

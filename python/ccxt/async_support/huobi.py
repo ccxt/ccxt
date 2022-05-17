@@ -2320,22 +2320,23 @@ class huobi(Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
+        type = None
+        type, params = self.handle_market_type_and_params('fetchBalance', None, params)
         options = self.safe_value(self.options, 'fetchBalance', {})
-        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        type = self.safe_string(options, 'type', defaultType)
-        type = self.safe_string(params, 'type', type)
-        params = self.omit(params, 'type')
         request = {}
         method = None
         spot = (type == 'spot')
         future = (type == 'future')
         swap = (type == 'swap')
-        defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
-        subType = self.safe_string(options, 'subType', defaultSubType)
-        subType = self.safe_string(params, 'subType', subType)
+        defaultSubType = self.safe_string_2(self.options, 'defaultSubType', 'subType', 'inverse')
+        subType = self.safe_string_2(options, 'defaultSubType', 'subType', defaultSubType)
+        subType = self.safe_string_2(params, 'defaultSubType', 'subType', subType)
         inverse = (subType == 'inverse')
         linear = (subType == 'linear')
         marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'isolated')
+        marginMode = self.safe_string_2(options, 'defaultMarginMode', 'marginMode', marginMode)
+        marginMode = self.safe_string_2(params, 'defaultMarginMode', 'marginMode', marginMode)
+        params = self.omit(params, ['defaultSubType', 'subType', 'defaultMarginMode', 'marginMode'])
         isolated = (marginMode == 'isolated')
         cross = (marginMode == 'cross')
         if spot:
@@ -2455,6 +2456,8 @@ class huobi(Exchange):
         #         ],
         #         "ts":1640915104870
         #     }
+        #
+        # TODO add balance parsing for linear swap
         #
         result = {'info': response}
         data = self.safe_value(response, 'data')
@@ -3725,7 +3728,7 @@ class huobi(Exchange):
         #
         return response
 
-    def currency_to_precision(self, code, fee):
+    def currency_to_precision(self, code, fee, networkCode=None):
         return self.decimal_to_precision(fee, 0, self.currencies[code]['precision'])
 
     def safe_network(self, networkId):
@@ -4790,7 +4793,7 @@ class huobi(Exchange):
         contracts = self.safe_string(position, 'volume')
         contractSize = self.safe_value(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
-        entryPrice = self.safe_number(position, 'cost_hold')
+        entryPrice = self.safe_number(position, 'cost_open')
         initialMargin = self.safe_string(position, 'position_margin')
         rawSide = self.safe_string(position, 'direction')
         side = 'long' if (rawSide == 'buy') else 'short'

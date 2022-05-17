@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.82.58';
+$version = '1.82.80';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.82.58';
+    const VERSION = '1.82.80';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -402,6 +402,7 @@ class Exchange {
         'createStopLimitOrder' => 'create_stop_limit_order',
         'createStopMarketOrder' => 'create_stop_market_order',
         'parseBorrowInterests' => 'parse_borrow_interests',
+        'parseFundingRateHistories' => 'parse_funding_rate_histories',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -2904,8 +2905,19 @@ class Exchange {
         return self::decimal_to_precision($fee, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
-    public function currency_to_precision($code, $fee) {
-        return self::decimal_to_precision($fee, ROUND, $this->currencies[$code]['precision'], $this->precisionMode, $this->paddingMode);
+    public function currency_to_precision($code, $fee, $networkCode = null) {
+        $currency = $this->currencies[$code];
+        $precision = $this->safe_value($currency, 'precision');
+        if ($networkCode !== null) {
+            $networks = $this->safe_value($currency, 'networks', []);
+            $networkItem = $this->safe_value($networks, 'networkCode', []);
+            $precision = $this->safe_value($networkItem, 'precision', $precision);
+        }
+        if ($precision === null) {
+            return $fee;
+        } else {
+            return self::decimal_to_precision($fee, ROUND, $precision, $this->precisionMode, $this->paddingMode);
+        }
     }
 
     public function currency($code) {
@@ -3981,5 +3993,16 @@ class Exchange {
         $array = array('stopPrice' => $stopPrice);
         $query = $this->extend($params, $array);
         return $this->create_order($symbol, 'market', $side, $amount, null, $query);
+    }
+
+    public function parse_funding_rate_histories($response, $market = null, $since = null, $limit = null) {
+        $rates = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $rates[] = $this->parse_funding_rate_history($entry, $market);
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        $symbol = ($market === null) ? null : $market['symbol'];
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 }

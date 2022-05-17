@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.82.58'
+__version__ = '1.82.80'
 
 # -----------------------------------------------------------------------------
 
@@ -1527,8 +1527,17 @@ class Exchange(object):
         market = self.market(symbol)
         return self.decimal_to_precision(fee, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
 
-    def currency_to_precision(self, code, fee):
-        return self.decimal_to_precision(fee, ROUND, self.currencies[code]['precision'], self.precisionMode, self.paddingMode)
+    def currency_to_precision(self, code, fee, networkCode=None):
+        currency = self.currencies[code]
+        precision = self.safe_value(currency, 'precision')
+        if networkCode is not None:
+            networks = self.safe_value(currency, 'networks', {})
+            networkItem = self.safe_value(networks, networkCode, {})
+            precision = self.safe_value(networkItem, 'precision', precision)
+        if precision is None:
+            return fee
+        else:
+            return self.decimal_to_precision(fee, ROUND, precision, self.precisionMode, self.paddingMode)
 
     def set_markets(self, markets, currencies=None):
         values = list(markets.values()) if type(markets) is dict else markets
@@ -3025,3 +3034,12 @@ class Exchange(object):
             row = response[i]
             interest.append(self.parse_borrow_interest(row, market))
         return interest
+
+    def parse_funding_rate_histories(self, response, market=None, since=None, limit=None):
+        rates = []
+        for i in range(0, len(response)):
+            entry = response[i]
+            rates.append(self.parse_funding_rate_history(entry, market))
+        sorted = self.sort_by(rates, 'timestamp')
+        symbol = None if (market is None) else market['symbol']
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)

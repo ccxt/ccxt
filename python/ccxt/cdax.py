@@ -1279,7 +1279,7 @@ class cdax(Exchange):
         #
         return response
 
-    def currency_to_precision(self, code, fee):
+    def currency_to_precision(self, code, fee, networkCode=None):
         return self.decimal_to_precision(fee, 0, self.currencies[code]['precision'])
 
     def safe_network(self, networkId):

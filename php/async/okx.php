@@ -1221,16 +1221,36 @@ class okx extends Exchange {
         $market = $this->safe_market($marketId, $market, '-');
         $symbol = $market['symbol'];
         $last = $this->safe_string($ticker, 'last');
+        if ($last === '') {
+            $last = null;
+        }
         $open = $this->safe_string($ticker, 'open24h');
+        if ($open === '') {
+            $open = null;
+        }
         $spot = $this->safe_value($market, 'spot', false);
         $quoteVolume = $spot ? $this->safe_string($ticker, 'volCcy24h') : null;
+        if ($quoteVolume === '') {
+            $quoteVolume = null;
+        }
         $baseVolume = $this->safe_string($ticker, 'vol24h');
+        if ($baseVolume === '') {
+            $baseVolume = null;
+        }
+        $high = $this->safe_string($ticker, '24h');
+        if ($high === '') {
+            $high = null;
+        }
+        $low = $this->safe_string($ticker, 'low24h');
+        if ($low === '') {
+            $low = null;
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_string($ticker, 'high24h'),
-            'low' => $this->safe_string($ticker, 'low24h'),
+            'high' => $high,
+            'low' => $low,
             'bid' => $this->safe_string($ticker, 'bidPx'),
             'bidVolume' => $this->safe_string($ticker, 'bidSz'),
             'ask' => $this->safe_string($ticker, 'askPx'),
@@ -4556,10 +4576,10 @@ class okx extends Exchange {
         //       "msg" => ""
         //     }
         //
-        return $this->parse_modify_margin($response, $market);
+        return $this->parse_margin_modification($response, $market);
     }
 
-    public function parse_modify_margin($data, $market = null) {
+    public function parse_margin_modification($data, $market = null) {
         $innerData = $this->safe_value($data, 'data', array());
         $entry = $this->safe_value($innerData, 0, array());
         $errorCode = $this->safe_string($data, 'code');

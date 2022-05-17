@@ -2412,22 +2412,23 @@ module.exports = class huobi extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const options = this.safeValue (this.options, 'fetchBalance', {});
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        let type = this.safeString (options, 'type', defaultType);
-        type = this.safeString (params, 'type', type);
-        params = this.omit (params, 'type');
         const request = {};
         let method = undefined;
         const spot = (type === 'spot');
         const future = (type === 'future');
         const swap = (type === 'swap');
-        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
-        let subType = this.safeString (options, 'subType', defaultSubType);
-        subType = this.safeString (params, 'subType', subType);
+        const defaultSubType = this.safeString2 (this.options, 'defaultSubType', 'subType', 'inverse');
+        let subType = this.safeString2 (options, 'defaultSubType', 'subType', defaultSubType);
+        subType = this.safeString2 (params, 'defaultSubType', 'subType', subType);
         const inverse = (subType === 'inverse');
         const linear = (subType === 'linear');
-        const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'isolated');
+        let marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'isolated');
+        marginMode = this.safeString2 (options, 'defaultMarginMode', 'marginMode', marginMode);
+        marginMode = this.safeString2 (params, 'defaultMarginMode', 'marginMode', marginMode);
+        params = this.omit (params, [ 'defaultSubType', 'subType', 'defaultMarginMode', 'marginMode' ]);
         const isolated = (marginMode === 'isolated');
         const cross = (marginMode === 'cross');
         if (spot) {
@@ -2550,6 +2551,8 @@ module.exports = class huobi extends Exchange {
         //         ],
         //         "ts":1640915104870
         //     }
+        //
+        // TODO add balance parsing for linear swap
         //
         const result = { 'info': response };
         const data = this.safeValue (response, 'data');
@@ -3931,7 +3934,7 @@ module.exports = class huobi extends Exchange {
         return response;
     }
 
-    currencyToPrecision (code, fee) {
+    currencyToPrecision (code, fee, networkCode = undefined) {
         return this.decimalToPrecision (fee, 0, this.currencies[code]['precision']);
     }
 
@@ -5086,7 +5089,7 @@ module.exports = class huobi extends Exchange {
         const contracts = this.safeString (position, 'volume');
         const contractSize = this.safeValue (market, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);
-        const entryPrice = this.safeNumber (position, 'cost_hold');
+        const entryPrice = this.safeNumber (position, 'cost_open');
         const initialMargin = this.safeString (position, 'position_margin');
         const rawSide = this.safeString (position, 'direction');
         const side = (rawSide === 'buy') ? 'long' : 'short';

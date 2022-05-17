@@ -2957,7 +2957,7 @@ class phemex extends Exchange {
         //         "data" => "OK"
         //     }
         //
-        return array_merge($this->parse_modify_margin($response, $market), array(
+        return array_merge($this->parse_margin_modification($response, $market), array(
             'amount' => $amount,
             'type' => $addOrReduce,
         ));
@@ -2970,7 +2970,7 @@ class phemex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_modify_margin($data, $market = null) {
+    public function parse_margin_modification($data, $market = null) {
         $market = $this->safe_market(null, $market);
         $inverse = $this->safe_value($market, 'inverse');
         $codeCurrency = $inverse ? 'base' : 'quote';

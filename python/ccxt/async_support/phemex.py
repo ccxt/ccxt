@@ -2821,7 +2821,7 @@ class phemex(Exchange):
         #         "data": "OK"
         #     }
         #
-        return self.extend(self.parse_modify_margin(response, market), {
+        return self.extend(self.parse_margin_modification(response, market), {
             'amount': amount,
             'type': addOrReduce,
         })
@@ -2832,7 +2832,7 @@ class phemex(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_modify_margin(self, data, market=None):
+    def parse_margin_modification(self, data, market=None):
         market = self.safe_market(None, market)
         inverse = self.safe_value(market, 'inverse')
         codeCurrency = 'base' if inverse else 'quote'

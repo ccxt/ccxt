@@ -62,6 +62,7 @@ module.exports = class btcmarkets extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/89731817-b3fb8480-da52-11ea-817f-783b08aaf32b.jpg',
@@ -190,9 +191,12 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        // todo: find more statuses
         const statuses = {
+            'Accepted': 'pending',
+            'Pending Authorization': 'pending',
             'Complete': 'ok',
+            'Cancelled': 'cancelled',
+            'Failed': 'failed',
         };
         return this.safeString (statuses, status, status);
     }
@@ -957,6 +961,41 @@ module.exports = class btcmarkets extends Exchange {
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency_id': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        if (code !== 'AUD') {
+            this.checkAddress (address);
+            request['toAddress'] = address;
+        }
+        if (tag !== undefined) {
+            request['toAddress'] = address + '?dt=' + tag;
+        }
+        const response = await this.privatePostWithdrawals (this.extend (request, params));
+        //
+        //      {
+        //          "id": "4126657",
+        //          "assetName": "XRP",
+        //          "amount": "25",
+        //          "type": "Withdraw",
+        //          "creationTime": "2019-09-04T00:04:10.973000Z",
+        //          "status": "Pending Authorization",
+        //          "description": "XRP withdraw from [me@test.com] to Address: abc amount: 25 fee: 0",
+        //          "fee": "0",
+        //          "lastUpdate": "2019-09-04T00:04:11.018000Z",
+        //          "paymentDetail": {
+        //              "address": "abc"
+        //          }
+        //      }
+        //
+        return this.parseTransaction (response, currency);
     }
 
     nonce () {
