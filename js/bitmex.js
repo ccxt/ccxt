@@ -33,6 +33,8 @@ module.exports = class bitmex extends Exchange {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
                 'fetchLeverageTiers': false,
@@ -1744,6 +1746,88 @@ module.exports = class bitmex extends Exchange {
         };
         const response = await this.privatePostUserRequestWithdrawal (this.extend (request, params));
         return this.parseTransaction (response, currency);
+    }
+
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchFundingRateHistory
+         * @description Fetches the history of funding rates
+         * @param {str} symbol Unified market symbol, use currency code to get data for the nearest expiring contract in that series, can also send a timeframe, eg XBT:quarterly, Timeframes are nearest, daily, weekly, monthly, quarterly, biquarterly, and perpetual
+         * @param {int} since timestamp in ms for starting date filter
+         * @param {int} limit number of results to fetch
+         * @param {dict} params exchange specific params
+         * @param {int} params.till timestamp in ms for ending date filter
+         * @param {bool} params.reverse if true, will sort results newest first
+         * @param {int} params.start starting point for results
+         * @param {str} params.columns array of column names to fetch in info, if omitted, will return all columns
+         * @param {str} params.filter generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the [timestamp docs]{@link https://www.bitmex.com/app/restAPI#Timestamp-Filters} for more details
+         * @returns A list of [funding rate history structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-history-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol in this.currencies) {
+            const code = this.currency (symbol);
+            request['symbol'] = code['id'];
+        } else if (symbol !== undefined) {
+            const splitSymbol = symbol.split (':');
+            const splitSymbolLength = splitSymbol.length;
+            const timeframes = [ 'nearest', 'daily', 'weekly', 'monthly', 'quarterly', 'biquarterly', 'perpetual' ];
+            if ((splitSymbolLength > 1) && this.inArray (splitSymbol[1], timeframes)) {
+                const code = this.currency (splitSymbol[0]);
+                symbol = code['id'] + ':' + splitSymbol[1];
+                request['symbol'] = symbol;
+            } else {
+                market = this.market (symbol);
+                request['symbol'] = market['id'];
+            }
+        }
+        if (since !== undefined) {
+            request['startTime'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const till = this.safeInteger (params, 'till');
+        params = this.omit (params, [ 'till' ]);
+        if (till !== undefined) {
+            request['endTime'] = this.iso8601 (till);
+        }
+        const response = await this.publicGetFunding (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "timestamp": "2016-05-07T12:00:00.000Z",
+        //            "symbol": "ETHXBT",
+        //            "fundingInterval": "2000-01-02T00:00:00.000Z",
+        //            "fundingRate": 0.0010890000000000001,
+        //            "fundingRateDaily": 0.0010890000000000001
+        //        }
+        //    ]
+        //
+        return this.parseFundingRateHistories (response, market, since, limit);
+    }
+
+    parseFundingRateHistory (info, market = undefined) {
+        //
+        //    {
+        //        "timestamp": "2016-05-07T12:00:00.000Z",
+        //        "symbol": "ETHXBT",
+        //        "fundingInterval": "2000-01-02T00:00:00.000Z",
+        //        "fundingRate": 0.0010890000000000001,
+        //        "fundingRateDaily": 0.0010890000000000001
+        //    }
+        //
+        const marketId = this.safeString (info, 'symbol');
+        const datetime = this.safeString (info, 'timestamp');
+        return {
+            'info': info,
+            'symbol': this.safeSymbol (marketId, market),
+            'fundingRate': this.safeNumber (info, 'fundingRate'),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+        };
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
