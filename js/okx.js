@@ -1858,12 +1858,14 @@ module.exports = class okx extends Exchange {
         const timeInForce = this.safeString (params, 'timeInForce');
         const postOnlyParam = this.safeValue (params, 'postOnly', false);
         const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPx'); // trigger order requires orderPx (-1 for market)
-        const stopLossPrice = this.safeString2 (params, 'stopLossPrice', 'slTriggerPx'); // stop orders require price too (tpOrdPx or slOrdPx)
         const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'tpTriggerPrice');
+        let tpOrdPx = this.safeString (params, 'tpOrdPx');
+        const stopLossPrice = this.safeString2 (params, 'stopLossPrice', 'slTriggerPx'); // stop orders require price too (tpOrdPx or slOrdPx)
+        let slOrdPx = this.safeString (params, 'slOrdPx');
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         const tdMode = this.safeStringLower (params, 'tdMode');
         //
-        params = this.omit (params, [ 'timeInForce', 'postOnly', 'stopPrice', 'triggerPx', 'cloOrdId', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slTriggerPx', 'tpTriggerPrice', 'tdMode' ]);
+        params = this.omit (params, [ 'timeInForce', 'postOnly', 'stopPrice', 'triggerPx', 'cloOrdId', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slTriggerPx', 'tpTriggerPrice', 'tdMode', 'tpOrdPx', 'slOrdPx' ]);
         //
         if (spot) {
             request['tdMode'] = 'cash';
@@ -1874,17 +1876,14 @@ module.exports = class okx extends Exchange {
                 throw new BadRequest (this.id + ' params["tdMode"] must be either "isolated" or "cross"');
             }
         }
-        // all mutually exclusive
         const postOnly = ((postOnlyParam) || (type === 'post_only') || (timeInForce === 'PO'));
         const ioc = ((timeInForce === 'IOC') || (type === 'ioc'));
         const fok = ((timeInForce === 'FOK') || (type === 'fok'));
         const trigger = ((stopPrice !== undefined) || (type === 'trigger'));
         const conditional = ((stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional'));
         const marketIOC = (((type === 'market') && (ioc)) || (type === 'optimal_limit_ioc'));
-        //
         let method = undefined; // only use default method for non-algo orders
         const defaultMethod = this.safeString (this.options, 'createOrder', 'privatePostTradeBatchOrders');
-        //
         request['sz'] = this.amountToPrecision (symbol, amount);
         if (type === 'market' || (marketIOC)) {
             if (postOnly || ioc || fok) {
@@ -1955,12 +1954,24 @@ module.exports = class okx extends Exchange {
         } else if (conditional) {
             method = 'privatePostTradeOrderAlgo';
             request['ordType'] = 'conditional';
-            // TODO
-            // slOrdPx (-1 for market)
-            // tpOrdPx (-1 for market)
-            // When placing net stop order (ordType=conditional)
-            // and both take-profit and stop-loss parameters are sent,
-            // only stop-loss logic will be performed and take-profit logic will be ignored.
+            // if both are sent only stop-loss logic will be performed and take-profit logic will be ignored.
+            const twoWayCondition = ((takeProfitPrice !== undefined) && (stopLossPrice !== undefined));
+            // todo investigate logic further
+            if (type !== 'market') {
+                if ((twoWayCondition) && ((!slOrdPx) || (!tpOrdPx))) {
+                    throw new InvalidOrder (this.id + ' createOrder() will cannot use the same price for two-way conditional orders to be created, please supply tpOrdPx and slOrdPx params');
+                }
+            }
+            if (takeProfitPrice !== undefined) {
+                request['tpTriggerPx'] = this.priceToPrecision (symbol, takeProfitPrice);
+                tpOrdPx = (tpOrdPx !== undefined) ? tpOrdPx : price;
+                request['tpOrdPx'] = (type === 'market') ? '-1' : this.priceToPrecision (symbol, tpOrdPx);
+            }
+            if (stopLossPrice !== undefined) {
+                request['slTriggerPx'] = this.priceToPrecision (symbol, stopLossPrice);
+                slOrdPx = (slOrdPx !== undefined) ? slOrdPx : price;
+                request['slOrdPx'] = (type === 'market') ? '-1' : this.priceToPrecision (symbol, slOrdPx);
+            }
         }
         //
         // if ((type === 'oco') || (type === 'move_order_stop') || (type === 'iceberg') || (type === 'twap')) {
