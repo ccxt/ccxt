@@ -9,7 +9,6 @@ const ccxt = require ('../../ccxt')
     , keysFile = fs.existsSync (keysLocal) ? keysLocal : (fs.existsSync (keysGlobal) ? keysGlobal : false)
     , config = keysFile ? require ('../../' + keysFile) : {}
     , exchange = new ccxt.poloniex (ccxt.extend ({
-        enableRateLimit: true,
         verbose,
     }, config.poloniex || {}))
 

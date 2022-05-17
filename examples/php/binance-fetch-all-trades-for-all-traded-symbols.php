@@ -1,16 +1,15 @@
 <?php
 
-$root = dirname (dirname (dirname (__FILE__)));
+$root = dirname(dirname(dirname(__FILE__)));
 
 include $root . '/ccxt.php';
 
-date_default_timezone_set ('UTC');
+date_default_timezone_set('UTC');
 
 $id = "\\ccxt\\binance";
 $exchange = new $id(array(
     'apiKey' => 'YOUR_API_KEY',
     'secret' => 'YOUR_SECRET',
-    'enableRateLimit' => true,
 ));
 
 $exchange->load_markets();
@@ -35,17 +34,17 @@ foreach ($total as $currency_code => $value) {
             return ($market['base'] === $currency_code) || ($market['quote'] === $currency_code);
         });
 
-        $matching_symbols = $exchange->pluck ($matching_markets, 'symbol');
+        $matching_symbols = $exchange->pluck($matching_markets, 'symbol');
 
         echo "Matching symbols:\n";
         print_r($matching_symbols);
 
-        $all_matching_symbols = array_merge ($all_matching_symbols, $matching_symbols);
+        $all_matching_symbols = array_merge($all_matching_symbols, $matching_symbols);
     }
 }
 
 echo "========================================================================\n";
-$unique_symbols = $exchange->unique ($all_matching_symbols);
+$unique_symbols = $exchange->unique($all_matching_symbols);
 print_r($unique_symbols);
 
 $all_trades_for_all_symbols = array();
@@ -102,7 +101,7 @@ foreach ($unique_symbols as $symbol) {
 
     echo count($trades), ' ' , $symbol, " trades\n";
 
-    $all_trades_for_all_symbols = array_merge ($all_trades_for_all_symbols, $trades);
+    $all_trades_for_all_symbols = array_merge($all_trades_for_all_symbols, $trades);
 
 }
 

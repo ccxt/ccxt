@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from asyncio import gather, get_event_loop
+from asyncio import gather, run
 from pprint import pprint
 import os
 import sys
@@ -28,15 +28,12 @@ async def load_markets(exchange):
     return results
 
 
-async def main(loop):
-    config = {'enableRateLimit': True, 'asyncio_loop': loop}
-    exchanges = [getattr(ccxt, exchange_id)(config) for exchange_id in ccxt.exchanges]
+async def main():
+    exchanges = [getattr(ccxt, exchange_id)() for exchange_id in ccxt.exchanges]
     # exchanges = [exchange for exchange in exchanges if exchange.certified]
     results = await gather(*[load_markets(exchange) for exchange in exchanges])
     results = [result for result in results if result is not None]
-    return results
+    pprint(results)
 
 
-if __name__ == '__main__':
-    loop = get_event_loop()
-    pprint(loop.run_until_complete(main(loop)))
+run(main())

@@ -951,7 +951,7 @@ class gemini(Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        response = await self.privatePostV1Orders()  # takes no params
+        response = await self.privatePostV1Orders(params)
         #
         #      [
         #          {

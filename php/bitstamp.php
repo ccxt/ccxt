@@ -43,7 +43,6 @@ class bitstamp extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
-                'fetchFundingFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -66,6 +65,7 @@ class bitstamp extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
+                'fetchTransactionFees' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
@@ -256,6 +256,18 @@ class bitstamp extends Exchange {
                         'gods_address/' => 1,
                         'rad_withdrawal/' => 1,
                         'rad_address/' => 1,
+                        'band_withdrawal/' => 1,
+                        'band_address/' => 1,
+                        'inj_withdrawal/' => 1,
+                        'inj_address/' => 1,
+                        'rly_withdrawal/' => 1,
+                        'rly_address/' => 1,
+                        'rndr_withdrawal/' => 1,
+                        'rndr_address/' => 1,
+                        'vega_withdrawal/' => 1,
+                        'vega_address/' => 1,
+                        '1inch_withdrawal/' => 1,
+                        '1inch_address/' => 1,
                         'transfer-to-main/' => 1,
                         'transfer-from-main/' => 1,
                         'withdrawal-requests/' => 1,
@@ -1032,7 +1044,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function fetch_funding_fees($params = array ()) {
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
         $this->load_markets();
         $balance = $this->privatePostBalance ($params);
         return $this->parse_funding_fees($balance);

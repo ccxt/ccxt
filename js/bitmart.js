@@ -42,8 +42,6 @@ module.exports = class bitmart extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
-                'fetchFundingFee': true,
-                'fetchFundingFees': false,
                 'fetchFundingHistory': undefined,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -60,6 +58,8 @@ module.exports = class bitmart extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransactionFee': true,
+                'fetchTransactionFees': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawAddressesByNetwork': false,
@@ -646,7 +646,7 @@ module.exports = class bitmart extends Exchange {
         return this.arrayConcat (spot, contract);
     }
 
-    async fetchFundingFee (code, params = {}) {
+    async fetchTransactionFee (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {

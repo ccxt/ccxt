@@ -140,7 +140,6 @@ class coinex(Exchange):
                         'margin/config': 1,
                         'margin/loan/history': 1,
                         'margin/transfer/history': 1,
-                        'order': 1,
                         'order/deals': 1,
                         'order/finished': 1,
                         'order/pending': 1,
@@ -260,7 +259,7 @@ class coinex(Exchange):
                 'createMarketBuyOrderRequiresPrice': True,
                 'defaultType': 'spot',  # spot, swap, margin
                 'defaultSubType': 'linear',  # linear, inverse
-                'defaultMarginType': 'isolated',  # isolated, cross
+                'defaultMarginMode': 'isolated',  # isolated, cross
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',
@@ -1816,7 +1815,7 @@ class coinex(Exchange):
         if swap:
             method = 'perpetualPrivateGetOrderStopStatus' if stop else 'perpetualPrivateGetOrderStatus'
         else:
-            method = 'privateGetOrder'
+            method = 'privateGetOrderStatus'
         params = self.omit(params, 'stop')
         response = await getattr(self, method)(self.extend(request, params))
         #
@@ -2432,8 +2431,8 @@ class coinex(Exchange):
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         positionId = self.safe_integer(position, 'position_id')
-        marginTypeInteger = self.safe_integer(position, 'type')
-        marginType = 'isolated' if (marginTypeInteger == 1) else 'cross'
+        marginModeInteger = self.safe_integer(position, 'type')
+        marginMode = 'isolated' if (marginModeInteger == 1) else 'cross'
         liquidationPrice = self.safe_string(position, 'liq_price')
         entryPrice = self.safe_string(position, 'open_price')
         unrealizedPnl = self.safe_string(position, 'profit_unreal')
@@ -2450,7 +2449,8 @@ class coinex(Exchange):
             'id': positionId,
             'symbol': symbol,
             'notional': None,
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode,  # deprecated
             'liquidationPrice': liquidationPrice,
             'entryPrice': entryPrice,
             'unrealizedPnl': unrealizedPnl,
@@ -2471,21 +2471,21 @@ class coinex(Exchange):
             'marginRatio': None,
         }
 
-    async def set_margin_mode(self, marginType, symbol=None, params={}):
+    async def set_margin_mode(self, marginMode, symbol=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
-        marginType = marginType.lower()
-        if marginType != 'isolated' and marginType != 'cross':
-            raise BadRequest(self.id + ' setMarginMode() marginType argument should be isolated or cross')
+        marginMode = marginMode.lower()
+        if marginMode != 'isolated' and marginMode != 'cross':
+            raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
         await self.load_markets()
         market = self.market(symbol)
         if market['type'] != 'swap':
             raise BadSymbol(self.id + ' setMarginMode() supports swap contracts only')
-        defaultMarginType = self.safe_string_2(self.options, 'defaultMarginType', marginType)
+        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', marginMode)
         defaultPositionType = None
-        if defaultMarginType == 'isolated':
+        if defaultMarginMode == 'isolated':
             defaultPositionType = 1
-        elif defaultMarginType == 'cross':
+        elif defaultMarginMode == 'cross':
             defaultPositionType = 2
         leverage = self.safe_integer(params, 'leverage')
         maxLeverage = self.safe_integer(market['limits']['leverage'], 'max', 100)
@@ -2507,11 +2507,11 @@ class coinex(Exchange):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         await self.load_markets()
-        defaultMarginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType')
+        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode')
         defaultPositionType = None
-        if defaultMarginType == 'isolated':
+        if defaultMarginMode == 'isolated':
             defaultPositionType = 1
-        elif defaultMarginType == 'cross':
+        elif defaultMarginMode == 'cross':
             defaultPositionType = 2
         positionType = self.safe_integer(params, 'position_type', defaultPositionType)
         if positionType is None:

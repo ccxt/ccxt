@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import hashlib
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -269,6 +270,8 @@ class bybit(Exchange):
                         'v2/public/account-ratio': 1,
                         'v2/public/funding-rate': 1,
                         'v2/public/elite-ratio': 1,
+                        'v2/public/funding/prev-funding-rate': 1,
+                        'v2/public/risk-limit/list': 1,
                         # linear swap USDT
                         'public/linear/kline': 3,
                         'public/linear/recent-trading-records': 1,
@@ -307,6 +310,8 @@ class bybit(Exchange):
                         'perpetual/usdc/openapi/public/v1/open-interest': 1,
                         'perpetual/usdc/openapi/public/v1/big-deal': 1,
                         'perpetual/usdc/openapi/public/v1/account-ratio': 1,
+                        'perpetual/usdc/openapi/public/v1/prev-funding-rate': 1,
+                        'perpetual/usdc/openapi/public/v1/risk-limit/list': 1,
                     },
                     # outdated endpoints--------------------------------------
                     'linear': {
@@ -516,6 +521,7 @@ class bybit(Exchange):
                     '10006': RateLimitExceeded,  # too many requests
                     '10007': AuthenticationError,  # api_key not found in your request parameters
                     '10010': PermissionDenied,  # request ip mismatch
+                    '10016': ExchangeError,  # {"retCode":10016,"retMsg":"System error. Please try again later."}
                     '10017': BadRequest,  # request path not found or request method is invalid
                     '10018': RateLimitExceeded,  # exceed ip rate limit
                     '20001': OrderNotFound,  # Order not exists
@@ -599,6 +605,7 @@ class bybit(Exchange):
                     # '30084': BadRequest,  # Isolated not modified, see handleErrors below
                     '33004': AuthenticationError,  # apikey already expired
                     '34026': ExchangeError,  # the limit is no change
+                    '34036': BadRequest,  # {"ret_code":34036,"ret_msg":"leverage not modified","ext_code":"","ext_info":"","result":null,"time_now":"1652376449.258918","rate_limit_status":74,"rate_limit_reset_ms":1652376449255,"rate_limit":75}
                     '130021': InsufficientFunds,  # {"ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100}
                 },
                 'broad': {
@@ -650,6 +657,7 @@ class bybit(Exchange):
                 'recvWindow': 5 * 1000,  # 5 sec default
                 'timeDifference': 0,  # the difference between system clock and exchange server clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
+                'defaultSettle': 'USDT',  # USDC for USDC settled markets
             },
             'fees': {
                 'trading': {
@@ -1070,8 +1078,8 @@ class bybit(Exchange):
             strike = None
             optionType = None
             if settle is None:
-                settleId = quoteId
-                settle = self.safe_currency_code(settleId)
+                settleId = 'USDC'
+                settle = 'USDC'
             symbol = symbol + ':' + settle
             if option:
                 expiry = self.safe_integer(market, 'deliveryTime')
@@ -1137,54 +1145,115 @@ class bybit(Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
+        # spot
         #
-        # fetchTicker
+        #    {
+        #        "time": "1651743420061",
+        #        "symbol": "BTCUSDT",
+        #        "bestBidPrice": "39466.75",
+        #        "bestAskPrice": "39466.83",
+        #        "volume": "4396.082921",
+        #        "quoteVolume": "172664909.03216557",
+        #        "lastPrice": "39466.71",
+        #        "highPrice": "40032.79",
+        #        "lowPrice": "38602.39",
+        #        "openPrice": "39031.53"
+        #    }
         #
+        # linear usdt/ inverse swap and future
         #     {
-        #         symbol: 'BTCUSD',
-        #         bid_price: '7680',
-        #         ask_price: '7680.5',
-        #         last_price: '7680.00',
-        #         last_tick_direction: 'MinusTick',
-        #         prev_price_24h: '7870.50',
-        #         price_24h_pcnt: '-0.024204',
-        #         high_price_24h: '8035.00',
-        #         low_price_24h: '7671.00',
-        #         prev_price_1h: '7780.00',
-        #         price_1h_pcnt: '-0.012853',
-        #         mark_price: '7683.27',
-        #         index_price: '7682.74',
-        #         open_interest: 188829147,
-        #         open_value: '23670.06',
-        #         total_turnover: '25744224.90',
-        #         turnover_24h: '102997.83',
-        #         total_volume: 225448878806,
-        #         volume_24h: 809919408,
-        #         funding_rate: '0.0001',
-        #         predicted_funding_rate: '0.0001',
-        #         next_funding_time: '2020-03-12T00:00:00Z',
-        #         countdown_hour: 7
+        #         "symbol": "BTCUSDT",
+        #         "bid_price": "39458",
+        #         "ask_price": "39458.5",
+        #         "last_price": "39458.00",
+        #         "last_tick_direction": "ZeroMinusTick",
+        #         "prev_price_24h": "39059.50",
+        #         "price_24h_pcnt": "0.010202",
+        #         "high_price_24h": "40058.50",
+        #         "low_price_24h": "38575.50",
+        #         "prev_price_1h": "39534.00",
+        #         "price_1h_pcnt": "-0.001922",
+        #         "mark_price": "39472.49",
+        #         "index_price": "39469.81",
+        #         "open_interest": "28343.61",
+        #         "open_value": "0.00",
+        #         "total_turnover": "85303326477.54",
+        #         "turnover_24h": "4221589085.06",
+        #         "total_volume": "30628792.45",
+        #         "volume_24h": "107569.75",
+        #         "funding_rate": "0.0001",
+        #         "predicted_funding_rate": "0.0001",
+        #         "next_funding_time": "2022-05-05T16:00:00Z",
+        #         "countdown_hour": "7",
+        #         "delivery_fee_rate": "",
+        #         "predicted_delivery_price": "",
+        #         "delivery_time": ""
         #     }
         #
-        timestamp = None
+        # usdc option/ swap
+        #     {
+        #          "symbol": "BTC-30SEP22-400000-C",
+        #          "bid": "0",
+        #          "bidIv": "0",
+        #          "bidSize": "0",
+        #          "ask": "15",
+        #          "askIv": "1.1234",
+        #          "askSize": "0.01",
+        #          "lastPrice": "5",
+        #          "openInterest": "0.03",
+        #          "indexPrice": "39458.6",
+        #          "markPrice": "0.51901394",
+        #          "markPriceIv": "0.9047",
+        #          "change24h": "0",
+        #          "high24h": "0",
+        #          "low24h": "0",
+        #          "volume24h": "0",
+        #          "turnover24h": "0",
+        #          "totalVolume": "1",
+        #          "totalTurnover": "4",
+        #          "predictedDeliveryPrice": "0",
+        #          "underlyingPrice": "40129.73",
+        #          "delta": "0.00010589",
+        #          "gamma": "0.00000002",
+        #          "vega": "0.10670892",
+        #          "theta": "-0.03262827"
+        #      }
+        #
+        timestamp = self.safe_integer(ticker, 'time')
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_string(ticker, 'last_price')
-        open = self.safe_string(ticker, 'prev_price_24h')
-        percentage = self.safe_string(ticker, 'price_24h_pcnt')
+        last = self.safe_string_2(ticker, 'last_price', 'lastPrice')
+        open = self.safe_string_2(ticker, 'prev_price_24h', 'openPrice')
+        percentage = self.safe_string_2(ticker, 'price_24h_pcnt', 'change24h')
         percentage = Precise.string_mul(percentage, '100')
-        baseVolume = self.safe_string(ticker, 'turnover_24h')
-        quoteVolume = self.safe_string(ticker, 'volume_24h')
+        baseVolume = self.safe_string_2(ticker, 'turnover_24h', 'turnover24h')
+        if baseVolume is None:
+            baseVolume = self.safe_string(ticker, 'volume')
+        quoteVolume = self.safe_string_2(ticker, 'volume_24h', 'volume24h')
+        if quoteVolume is None:
+            quoteVolume = self.safe_string(ticker, 'quoteVolume')
+        bid = self.safe_string_2(ticker, 'bid_price', 'bid')
+        if bid is None:
+            bid = self.safe_string(ticker, 'bestBidPrice')
+        ask = self.safe_string_2(ticker, 'ask_price', 'ask')
+        if ask is None:
+            ask = self.safe_string(ticker, 'bestAskPrice')
+        high = self.safe_string_2(ticker, 'high_price_24h', 'high24h')
+        if high is None:
+            high = self.safe_string(ticker, 'highPrice')
+        low = self.safe_string_2(ticker, 'low_price_24h', 'low24h')
+        if low is None:
+            low = self.safe_string(ticker, 'lowPrice')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_string(ticker, 'high_price_24h'),
-            'low': self.safe_string(ticker, 'low_price_24h'),
-            'bid': self.safe_string(ticker, 'bid_price'),
-            'bidVolume': None,
-            'ask': self.safe_string(ticker, 'ask_price'),
-            'askVolume': None,
+            'high': high,
+            'low': low,
+            'bid': bid,
+            'bidVolume': self.safe_string(ticker, 'bidSize'),
+            'ask': ask,
+            'askVolume': self.safe_string(ticker, 'askSize'),
             'vwap': None,
             'open': open,
             'close': last,
@@ -1201,10 +1270,23 @@ class bybit(Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        method = None
+        isUsdcSettled = market['settle'] == 'USDC'
+        if market['spot']:
+            method = 'publicGetSpotQuoteV1Ticker24hr'
+        elif not isUsdcSettled:
+            # inverse perpetual  # usdt linear  # inverse futures
+            method = 'publicGetV2PublicTickers'
+        elif market['option']:
+            # usdc option
+            method = 'publicGetOptionUsdcOpenapiPublicV1Tick'
+        else:
+            # usdc swap
+            method = 'publicGetPerpetualUsdcOpenapiPublicV1Tick'
         request = {
             'symbol': market['id'],
         }
-        response = await self.publicGetV2PublicTickers(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         ret_code: 0,
@@ -1240,54 +1322,74 @@ class bybit(Exchange):
         #         ],
         #         time_now: '1583948195.818255'
         #     }
+        #  usdc ticker
+        #     {
+        #         "retCode": 0,
+        #           "retMsg": "SUCCESS",
+        #           "result": {
+        #                  "symbol": "BTC-28JAN22-250000-C",
+        #                    "bid": "0",
+        #                    "bidIv": "0",
+        #                    "bidSize": "0",
+        #                    "ask": "0",
+        #                    "askIv": "0",
+        #                    "askSize": "0",
+        #                    "lastPrice": "0",
+        #                    "openInterest": "0",
+        #                    "indexPrice": "56171.79000000",
+        #                    "markPrice": "12.72021285",
+        #                    "markPriceIv": "1.1701",
+        #                    "change24h": "0",
+        #                    "high24h": "0",
+        #                    "low24h": "0",
+        #                    "volume24h": "0",
+        #                    "turnover24h": "0",
+        #                    "totalVolume": "0",
+        #                    "totalTurnover": "0",
+        #                    "predictedDeliveryPrice": "0",
+        #                    "underlyingPrice": "57039.61000000",
+        #                    "delta": "0.00184380",
+        #                    "gamma": "0.00000022",
+        #                    "vega": "1.35132531",
+        #                    "theta": "-1.33819821"
+        #          }
+        #     }
         #
         result = self.safe_value(response, 'result', [])
-        first = self.safe_value(result, 0)
-        timestamp = self.safe_timestamp(response, 'time_now')
-        ticker = self.parse_ticker(first, market)
-        ticker['timestamp'] = timestamp
-        ticker['datetime'] = self.iso8601(timestamp)
+        rawTicker = None
+        if isinstance(result, list):
+            rawTicker = self.safe_value(result, 0)
+        else:
+            rawTicker = result
+        ticker = self.parse_ticker(rawTicker, market)
         return ticker
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        response = await self.publicGetV2PublicTickers(params)
-        #
-        #     {
-        #         ret_code: 0,
-        #         ret_msg: 'OK',
-        #         ext_code: '',
-        #         ext_info: '',
-        #         result: [
-        #             {
-        #                 symbol: 'BTCUSD',
-        #                 bid_price: '7680',
-        #                 ask_price: '7680.5',
-        #                 last_price: '7680.00',
-        #                 last_tick_direction: 'MinusTick',
-        #                 prev_price_24h: '7870.50',
-        #                 price_24h_pcnt: '-0.024204',
-        #                 high_price_24h: '8035.00',
-        #                 low_price_24h: '7671.00',
-        #                 prev_price_1h: '7780.00',
-        #                 price_1h_pcnt: '-0.012853',
-        #                 mark_price: '7683.27',
-        #                 index_price: '7682.74',
-        #                 open_interest: 188829147,
-        #                 open_value: '23670.06',
-        #                 total_turnover: '25744224.90',
-        #                 turnover_24h: '102997.83',
-        #                 total_volume: 225448878806,
-        #                 volume_24h: 809919408,
-        #                 funding_rate: '0.0001',
-        #                 predicted_funding_rate: '0.0001',
-        #                 next_funding_time: '2020-03-12T00:00:00Z',
-        #                 countdown_hour: 7
-        #             }
-        #         ],
-        #         time_now: '1583948195.818255'
-        #     }
-        #
+        type = None
+        market = None
+        isUsdcSettled = None
+        if symbols is not None:
+            symbol = self.safe_value(symbols, 0)
+            market = self.market(symbol)
+            type = market['type']
+            isUsdcSettled = market['settle'] == 'USDC'
+        else:
+            type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+            if type != 'spot':
+                defaultSettle = self.safe_string(self.options, 'defaultSettle', 'USDT')
+                defaultSettle = self.safe_string_2(params, 'settle', 'defaultSettle', isUsdcSettled)
+                params = self.omit(params, ['settle', 'defaultSettle'])
+                isUsdcSettled = defaultSettle == 'USDC'
+        method = None
+        if type == 'spot':
+            method = 'publicGetSpotQuoteV1Ticker24hr'
+        elif not isUsdcSettled:
+            # inverse perpetual  # usdt linear  # inverse futures
+            method = 'publicGetV2PublicTickers'
+        else:
+            raise NotSupported(self.id + ' fetchTickers() is not supported for USDC markets')
+        response = await getattr(self, method)(params)
         result = self.safe_value(response, 'result', [])
         tickers = {}
         for i in range(0, len(result)):
@@ -1398,7 +1500,7 @@ class bybit(Exchange):
         method = None
         intervalKey = 'interval'
         sinceKey = 'from'
-        isUsdcSettled = (market['option']) or (market['settle'] == 'USD')
+        isUsdcSettled = market['settle'] == 'USDC'
         if market['spot']:
             method = 'publicGetSpotQuoteV1Kline'
         elif market['contract'] and not isUsdcSettled:
@@ -1513,8 +1615,12 @@ class bybit(Exchange):
         request = {
             'symbol': market['id'],
         }
-        method = 'publicLinearGetFundingPrevFundingRate' if market['linear'] else 'v2PublicGetFundingPrevFundingRate'
-        # TODO method = 'publicGetPublicLinearFundingPrevFundingRate' if market['linear'] else 'publicGetV2PublicFundingRate ???? throws ExchangeError'
+        isUsdcSettled = market['settle'] == 'USDC'
+        method = None
+        if isUsdcSettled:
+            method = 'publicGetPerpetualUsdcOpenapiPublicV1PrevFundingRate'
+        else:
+            method = 'publicLinearGetFundingPrevFundingRate' if market['linear'] else 'publicGetV2PublicFundingPrevFundingRate'
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -1542,11 +1648,24 @@ class bybit(Exchange):
         #         },
         #         "time_now":"1647040852.515724"
         #     }
+        # usdc
+        #     {
+        #         "retCode":0,
+        #         "retMsg":"",
+        #         "result":{
+        #            "symbol":"BTCPERP",
+        #            "fundingRate":"0.00010000",
+        #            "fundingRateTimestamp":"1652112000000"
+        #         }
+        #     }
         #
         result = self.safe_value(response, 'result')
-        fundingRate = self.safe_number(result, 'funding_rate')
+        fundingRate = self.safe_number_2(result, 'funding_rate', 'fundingRate')
         fundingTimestamp = self.parse8601(self.safe_string(result, 'funding_rate_timestamp'))
-        fundingTimestamp = self.safe_timestamp(result, 'funding_rate_timestamp', fundingTimestamp)
+        if fundingTimestamp is None:
+            fundingTimestamp = self.safe_timestamp_2(result, 'funding_rate_timestamp', fundingTimestamp)
+            if fundingTimestamp is None:
+                fundingTimestamp = self.safe_integer(result, 'fundingRateTimestamp')
         currentTime = self.milliseconds()
         return {
             'info': result,
@@ -1732,7 +1851,7 @@ class bybit(Exchange):
         request = {
             'symbol': market['id'],
         }
-        isUsdcSettled = (market['option']) or (market['settle'] == 'USD')
+        isUsdcSettled = market['settle'] == 'USDC'
         if market['type'] == 'spot':
             method = 'publicGetSpotQuoteV1Trades'
         elif not isUsdcSettled:
@@ -1790,6 +1909,10 @@ class bybit(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='Buy', asksKey='Sell', priceKey='price', amountKey='size'):
+        market = self.market(symbol)
+        if market['spot']:
+            timestamp = self.safe_integer(orderbook, 'time')
+            return super(bybit, self).parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks')
         bids = []
         asks = []
         for i in range(0, len(orderbook)):
@@ -1816,7 +1939,38 @@ class bybit(Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = await self.publicGetV2PublicOrderBookL2(self.extend(request, params))
+        isUsdcSettled = market['settle'] == 'USDC'
+        method = None
+        if market['spot']:
+            method = 'publicGetSpotQuoteV1Depth'
+        elif not isUsdcSettled:
+            # inverse perpetual  # usdt linear  # inverse futures
+            method = 'publicGetV2PublicOrderBookL2'
+        else:
+            # usdc option/ swap
+            method = 'publicGetOptionUsdcOpenapiPublicV1OrderBook' if market['option'] else 'publicGetPerpetualUsdcOpenapiPublicV1OrderBook'
+        if limit is not None:
+            request['limit'] = limit
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # spot
+        #     {
+        #         "ret_code": 0,
+        #         "ret_msg": null,
+        #         "result": {
+        #             "time": 1620886105740,
+        #             "bids": [
+        #                 ["50005.12","403.0416"]
+        #             ],
+        #             "asks": [
+        #                 ["50006.34", "0.2297"]
+        #             ]
+        #         },
+        #         "ext_code": null,
+        #         "ext_info": null
+        #     }
+        #
+        # linear/inverse swap/futures
         #
         #     {
         #         ret_code: 0,
@@ -1827,46 +1981,164 @@ class bybit(Exchange):
         #             {symbol: 'BTCUSD', price: '7767.5', size: 677956, side: 'Buy'},
         #             {symbol: 'BTCUSD', price: '7767', size: 580690, side: 'Buy'},
         #             {symbol: 'BTCUSD', price: '7766.5', size: 475252, side: 'Buy'},
-        #             {symbol: 'BTCUSD', price: '7768', size: 330847, side: 'Sell'},
-        #             {symbol: 'BTCUSD', price: '7768.5', size: 97159, side: 'Sell'},
-        #             {symbol: 'BTCUSD', price: '7769', size: 6508, side: 'Sell'},
         #         ],
         #         time_now: '1583954829.874823'
         #     }
+        #
+        # usdc markets
+        #
+        #     {
+        #         "retCode": 0,
+        #           "retMsg": "SUCCESS",
+        #           "result": [
+        #           {
+        #             "price": "5000.00000000",
+        #             "size": "2.0000",
+        #             "side": "Buy"  # bids
+        #           },
+        #           {
+        #             "price": "5900.00000000",
+        #             "size": "0.9000",
+        #             "side": "Sell"  # asks
+        #           }
+        #         ]
+        #    }
         #
         result = self.safe_value(response, 'result', [])
         timestamp = self.safe_timestamp(response, 'time_now')
         return self.parse_order_book(result, symbol, timestamp, 'Buy', 'Sell', 'price', 'size')
 
     def parse_balance(self, response):
+        #
+        # spot balance
+        #    {
+        #        "ret_code": "0",
+        #        "ret_msg": "",
+        #        "ext_code": null,
+        #        "ext_info": null,
+        #        "result": {
+        #            "balances": [
+        #                {
+        #                    "coin": "LTC",
+        #                    "coinId": "LTC",
+        #                    "coinName": "LTC",
+        #                    "total": "0.00000783",
+        #                    "free": "0.00000783",
+        #                    "locked": "0"
+        #                }
+        #            ]
+        #        }
+        #    }
+        #
+        # linear/inverse swap/futures
+        #    {
+        #        "ret_code": "0",
+        #        "ret_msg": "OK",
+        #        "ext_code": "",
+        #        "ext_info": "",
+        #        "result": {
+        #            "ADA": {
+        #                "equity": "0",
+        #                "available_balance": "0",
+        #                "used_margin": "0",
+        #                "order_margin": "0",
+        #                "position_margin": "0",
+        #                "occ_closing_fee": "0",
+        #                "occ_funding_fee": "0",
+        #                "wallet_balance": "0",
+        #                "realised_pnl": "0",
+        #                "unrealised_pnl": "0",
+        #                "cum_realised_pnl": "0",
+        #                "given_cash": "0",
+        #                "service_cash": "0"
+        #            },
+        #        },
+        #        "time_now": "1651772170.050566",
+        #        "rate_limit_status": "119",
+        #        "rate_limit_reset_ms": "1651772170042",
+        #        "rate_limit": "120"
+        #    }
+        #
+        # usdc wallet
+        #    {
+        #      "result": {
+        #           "walletBalance": "10.0000",
+        #           "accountMM": "0.0000",
+        #           "bonus": "0.0000",
+        #           "accountIM": "0.0000",
+        #           "totalSessionRPL": "0.0000",
+        #           "equity": "10.0000",
+        #           "totalRPL": "0.0000",
+        #           "marginBalance": "10.0000",
+        #           "availableBalance": "10.0000",
+        #           "totalSessionUPL": "0.0000"
+        #       },
+        #       "retCode": "0",
+        #       "retMsg": "Success."
+        #    }
+        #
         result = {
             'info': response,
         }
-        balances = self.safe_value(response, 'result', {})
-        currencyIds = list(balances.keys())
-        for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
-            balance = balances[currencyId]
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'available_balance')
-            account['used'] = self.safe_string(balance, 'used_margin')
-            account['total'] = self.safe_string(balance, 'equity')
-            result[code] = account
+        data = self.safe_value(response, 'result', {})
+        balances = self.safe_value(data, 'balances')
+        if isinstance(balances, list):
+            # spot balances
+            for i in range(0, len(balances)):
+                balance = balances[i]
+                currencyId = self.safe_string(balance, 'coin')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['free'] = self.safe_string(balance, 'availableBalance')
+                account['used'] = self.safe_string(balance, 'locked')
+                account['total'] = self.safe_string(balance, 'total')
+                result[code] = account
+        else:
+            if 'walletBalance' in data:
+                # usdc wallet
+                code = 'USDC'
+                account = self.account()
+                account['free'] = self.safe_string(data, 'availableBalance')
+                account['total'] = self.safe_string(data, 'walletBalance')
+                result[code] = account
+            else:
+                # linear/inverse swap/futures
+                currencyIds = list(data.keys())
+                for i in range(0, len(currencyIds)):
+                    currencyId = currencyIds[i]
+                    balance = data[currencyId]
+                    code = self.safe_currency_code(currencyId)
+                    account = self.account()
+                    account['free'] = self.safe_string(balance, 'available_balance')
+                    account['total'] = self.safe_string(balance, 'wallet_balance')
+                    result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
-        # note: any funds in the 'spot' account will not be returned or visible from self endpoint
-        await self.load_markets()
         request = {}
-        coin = self.safe_string(params, 'coin')
-        code = self.safe_string(params, 'code')
-        if coin is not None:
-            request['coin'] = coin
-        elif code is not None:
-            currency = self.currency(code)
-            request['coin'] = currency['id']
-        response = await self.v2PrivateGetWalletBalance(self.extend(request, params))
+        type = None
+        type, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        method = None
+        if type == 'spot':
+            method = 'privateGetSpotV1Account'
+        else:
+            settle = self.safe_string(self.options, 'defaultSettle')
+            settle = self.safe_string_2(params, 'settle', 'defaultSettle', settle)
+            params = self.omit(params, ['settle', 'defaultSettle'])
+            isUsdcSettled = settle == 'USDC'
+            if not isUsdcSettled:
+                # linear/inverse future/swap
+                method = 'privateGetV2PrivateWalletBalance'
+                coin = self.safe_string_2(params, 'coin', 'code')
+                params = self.omit(params, ['coin', 'code'])
+                if coin is not None:
+                    currency = self.currency(coin)
+                    request['coin'] = currency['id']
+            else:
+                # usdc account
+                method = 'privatePostOptionUsdcOpenapiPrivateV1QueryWalletBalance'
+        await self.load_markets()
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         ret_code: 0,
@@ -2766,24 +3038,56 @@ class bybit(Exchange):
             request['order_id'] = orderId
             params = self.omit(params, 'order_id')
         market = self.market(symbol)
+        isUsdcSettled = market['settle'] == 'USDC'
+        if isUsdcSettled:
+            raise NotSupported(self.id + ' fetchMyTrades() is not supported for market ' + symbol)
         request['symbol'] = market['id']
         if since is not None:
             request['start_time'] = since
         if limit is not None:
             request['limit'] = limit  # default 20, max 50
-        marketType, query = self.handle_market_type_and_params('fetchMyTrades', market, params)
-        marketDefined = (market is not None)
-        linear = (marketDefined and market['linear']) or (marketType == 'linear')
-        inverse = (marketDefined and market['swap'] and market['inverse']) or (marketType == 'inverse')
-        future = (marketDefined and market['future']) or ((marketType == 'future') or (marketType == 'futures'))  # * (marketType == 'futures') deprecated, use(marketType == 'future')
         method = None
-        if linear:
-            method = 'privateLinearGetTradeExecutionList'
-        elif inverse:
-            method = 'v2PrivateGetExecutionList'
-        elif future:
-            method = 'futuresPrivateGetExecutionList'
-        response = await getattr(self, method)(self.extend(request, query))
+        if market['spot']:
+            method = 'privateGetSpotV1MyTrades'
+        elif market['future']:
+            method = 'privateGetFuturesPrivateExecutionList'
+        else:
+            # linear and inverse swaps
+            method = 'privateGetPrivateLinearTradeExecutionList' if market['linear'] else 'privateGetV2PrivateExecutionList'
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # spot
+        #     {
+        #         "ret_code": 0,
+        #         "ret_msg": "",
+        #         "ext_code": null,
+        #         "ext_info": null,
+        #         "result": [
+        #            {
+        #                 "id": "931975237315196160",
+        #                 "symbol": "BTCUSDT",
+        #                 "symbolName": "BTCUSDT",
+        #                 "orderId": "931975236946097408",
+        #                 "ticketId": "1057753175328833537",
+        #                 "matchOrderId": "931975113180558592",
+        #                 "price": "20000.00001",
+        #                 "qty": "0.01",
+        #                 "commission": "0.02000000001",
+        #                 "commissionAsset": "USDT",
+        #                 "time": "1625836105890",
+        #                 "isBuyer": False,
+        #                 "isMaker": False,
+        #                 "fee": {
+        #                     "feeTokenId": "USDT",
+        #                     "feeTokenName": "USDT",
+        #                     "fee": "0.02000000001"
+        #                 },
+        #                 "feeTokenId": "USDT",
+        #                 "feeAmount": "0.02000000001",
+        #                 "makerRebate": "0"
+        #            }
+        #         ]
+        #     }
         #
         # inverse
         #
@@ -2867,8 +3171,9 @@ class bybit(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        trades = self.safe_value_2(result, 'trade_list', 'data', [])
-        return self.parse_trades(trades, market, since, limit)
+        if not isinstance(result, list):
+            result = self.safe_value_2(result, 'trade_list', 'data', [])
+        return self.parse_trades(result, market, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -2941,7 +3246,7 @@ class bybit(Exchange):
             request['start_date'] = self.yyyymmdd(since)
         if limit is not None:
             request['limit'] = limit
-        response = await self.v2PrivateGetWalletWithdrawList(self.extend(request, params))
+        response = await self.privateGetV2PrivateWalletWithdrawList(self.extend(request, params))
         #
         #     {
         #         "ret_code": 0,
@@ -3172,21 +3477,44 @@ class bybit(Exchange):
     async def fetch_positions(self, symbols=None, params={}):
         await self.load_markets()
         request = {}
+        market = None
+        type = None
+        isLinear = None
+        isUsdcSettled = None
         if isinstance(symbols, list):
             length = len(symbols)
             if length != 1:
                 raise ArgumentsRequired(self.id + ' fetchPositions() takes an array with exactly one symbol')
-            request['symbol'] = self.market_id(symbols[0])
-        defaultType = self.safe_string(self.options, 'defaultType', 'linear')
-        type = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, 'type')
-        response = None
-        if type == 'linear':
-            response = await self.privateLinearGetPositionList(self.extend(request, params))
-        elif type == 'inverse':
-            response = await self.v2PrivateGetPositionList(self.extend(request, params))
-        elif type == 'inverseFuture':
-            response = await self.futuresPrivateGetPositionList(self.extend(request, params))
+            symbol = self.safe_string(symbols, 0)
+            market = self.market(symbol)
+            type = market['type']
+            isLinear = market['linear']
+            isUsdcSettled = market['settle'] == 'USDC'
+            request['symbol'] = market['id']
+        else:
+            # market None
+            type, params = self.handle_market_type_and_params('fetchPositions', None, params)
+            options = self.safe_value(self.options, 'fetchPositions', {})
+            defaultSubType = self.safe_string(self.options, 'defaultSubType', 'linear')
+            subType = self.safe_string(options, 'subType', defaultSubType)
+            subType = self.safe_string(params, 'subType', subType)
+            isLinear = (subType == 'linear')
+            defaultSettle = self.safe_string(self.options, 'defaultSettle')
+            defaultSettle = self.safe_string_2(params, 'settle', 'defaultSettle', defaultSettle)
+            isUsdcSettled = (defaultSettle == 'USDC')
+            params = self.omit(params, ['settle', 'defaultSettle', 'subType'])
+        method = None
+        if isUsdcSettled:
+            method = 'privatePostOptionUsdcOpenapiPrivateV1QueryPosition'
+            request['category'] = 'OPTION' if (type == 'option') else 'PERPETUAL'
+        elif type == 'future':
+            method = 'privateGetFuturesPrivatePositionList'
+        elif isLinear:
+            method = 'privateGetPrivateLinearPositionList'
+        else:
+            # inverse swaps
+            method = 'privateGetV2PrivatePositionList'
+        response = await getattr(self, method)(self.extend(request, params))
         if (isinstance(response, str)) and self.is_json_encoded_object(response):
             response = json.loads(response)
         #
@@ -3198,52 +3526,204 @@ class bybit(Exchange):
         #         result: [] or {} depending on the request
         #     }
         #
-        return self.safe_value(response, 'result')
+        result = self.safe_value(response, 'result', {})
+        # usdc contracts
+        if 'dataList' in result:
+            result = self.safe_value(result, 'dataList', [])
+        positions = None
+        if not isinstance(result, list):
+            positions = [result]
+        else:
+            positions = result
+        results = []
+        for i in range(0, len(positions)):
+            rawPosition = positions[i]
+            if ('data' in rawPosition) and ('is_valid' in rawPosition):
+                # futures only
+                rawPosition = self.safe_value(rawPosition, 'data')
+            results.append(self.parse_position(rawPosition, market))
+        return self.filter_by_array(results, 'symbol', symbols, False)
 
-    async def set_margin_mode(self, marginType, symbol=None, params={}):
+    def parse_position(self, position, market=None):
         #
-        # {
-        #     "ret_code": 0,
-        #     "ret_msg": "ok",
-        #     "ext_code": "",
-        #     "result": null,
-        #     "ext_info": null,
-        #     "time_now": "1577477968.175013",
-        #     "rate_limit_status": 74,
-        #     "rate_limit_reset_ms": 1577477968183,
-        #     "rate_limit": 75
-        # }
+        # linear swap
         #
-        leverage = self.safe_value(params, 'leverage')
-        if leverage is None:
-            raise ArgumentsRequired(self.id + ' setMarginMode() requires a leverage parameter')
-        marginType = marginType.upper()
-        if marginType == 'CROSSED':  # * Deprecated, use 'CROSS' instead
-            marginType = 'CROSS'
-        if (marginType != 'ISOLATED') and (marginType != 'CROSS'):
-            raise BadRequest(self.id + ' setMarginMode() marginType must be either isolated or cross')
+        #    {
+        #        "user_id":"24478789",
+        #        "symbol":"LTCUSDT",
+        #        "side":"Buy",
+        #        "size":"0.1",
+        #        "position_value":"7.083",
+        #        "entry_price":"70.83",
+        #        "liq_price":"0.01",
+        #        "bust_price":"0.01",
+        #        "leverage":"1",
+        #        "auto_add_margin":"0",
+        #        "is_isolated":false,
+        #        "position_margin":"13.8407674",
+        #        "occ_closing_fee":"6e-07",
+        #        "realised_pnl":"-0.0042498",
+        #        "cum_realised_pnl":"-0.159232",
+        #        "free_qty":"-0.1",
+        #        "tp_sl_mode":"Full",
+        #        "unrealised_pnl":"0.008",
+        #        "deleverage_indicator":"2",
+        #        "risk_id":"71",
+        #        "stop_loss":"0",
+        #        "take_profit":"0",
+        #        "trailing_stop":"0",
+        #        "position_idx":"1",
+        #        "mode":"BothSide"
+        #    }
+        #
+        # inverse swap / future
+        #    {
+        #        "id":0,
+        #        "position_idx":0,
+        #        "mode":0,
+        #        "user_id":24478789,
+        #        "risk_id":11,
+        #        "symbol":"ETHUSD",
+        #        "side":"Buy",
+        #        "size":10,  # USD amount
+        #        "position_value":"0.0047808",
+        #        "entry_price":"2091.70013387",
+        #        "is_isolated":false,
+        #        "auto_add_margin":1,
+        #        "leverage":"10",
+        #        "effective_leverage":"0.9",
+        #        "position_margin":"0.00048124",
+        #        "liq_price":"992.75",
+        #        "bust_price":"990.4",
+        #        "occ_closing_fee":"0.00000606",
+        #        "occ_funding_fee":"0",
+        #        "take_profit":"0",
+        #        "stop_loss":"0",
+        #        "trailing_stop":"0",
+        #        "position_status":"Normal",
+        #        "deleverage_indicator":3,
+        #        "oc_calc_data":"{\"blq\":0,\"slq\":0,\"bmp\":0,\"smp\":0,\"fq\":-10,\"bv2c\":0.10126,\"sv2c\":0.10114}",
+        #        "order_margin":"0",
+        #        "wallet_balance":"0.0053223",
+        #        "realised_pnl":"-0.00000287",
+        #        "unrealised_pnl":0.00001847,
+        #        "cum_realised_pnl":"-0.00001611",
+        #        "cross_seq":8301155878,
+        #        "position_seq":0,
+        #        "created_at":"2022-05-05T15:06:17.949997224Z",
+        #        "updated_at":"2022-05-13T13:40:29.793570924Z",
+        #        "tp_sl_mode":"Full"
+        #    }
+        #
+        # usdc
+        #    {
+        #       "symbol":"BTCPERP",
+        #       "leverage":"1.00",
+        #       "occClosingFee":"0.0000",
+        #       "liqPrice":"",
+        #       "positionValue":"30.8100",
+        #       "takeProfit":"0.0",
+        #       "riskId":"10001",
+        #       "trailingStop":"0.0000",
+        #       "unrealisedPnl":"0.0000",
+        #       "createdAt":"1652451795305",
+        #       "markPrice":"30809.41",
+        #       "cumRealisedPnl":"0.0000",
+        #       "positionMM":"0.1541",
+        #       "positionIM":"30.8100",
+        #       "updatedAt":"1652451795305",
+        #       "tpSLMode":"UNKNOWN",
+        #       "side":"Buy",
+        #       "bustPrice":"",
+        #       "deleverageIndicator":"0",
+        #       "entryPrice":"30810.0",
+        #       "size":"0.001",
+        #       "sessionRPL":"0.0000",
+        #       "positionStatus":"NORMAL",
+        #       "sessionUPL":"-0.0006",
+        #       "stopLoss":"0.0",
+        #       "orderMargin":"0.0000",
+        #       "sessionAvgPrice":"30810.0"
+        #    }
+        #
+        contract = self.safe_string(position, 'symbol')
+        market = self.safe_market(contract, market)
+        size = self.safe_string(position, 'size')
+        side = self.safe_string(position, 'side')
+        side = 'long' if (side == 'Buy') else 'short'
+        notional = self.safe_string_2(position, 'position_value', 'positionValue')
+        unrealisedPnl = self.safe_string_2(position, 'unrealised_pnl', 'unrealisedPnl')
+        initialMarginString = self.safe_string_2(position, 'position_margin', 'orderMargin')
+        percentage = Precise.string_mul(Precise.string_div(unrealisedPnl, initialMarginString), '100')
+        timestamp = self.parse8601(self.safe_string(position, 'updated_at'))
+        if timestamp is None:
+            timestamp = self.safe_integer(position, 'createdAt')
+            if timestamp is None:
+                timestamp = self.milliseconds()
+        isIsolated = self.safe_value(position, 'is_isolated', False)  # if not present it is cross
+        marginMode = 'isolated' if isIsolated else 'cross'
+        return {
+            'info': position,
+            'symbol': self.safe_string(market, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'initialMargin': self.parse_number(initialMarginString),
+            'initialMarginPercentage': self.parse_number(Precise.string_div(initialMarginString, notional)),
+            'maintenanceMargin': None,
+            'maintenanceMarginPercentage': None,
+            'entryPrice': self.safe_number_2(position, 'entry_price', 'entryPrice'),
+            'notional': self.parse_number(notional),
+            'leverage': self.safe_number(position, 'leverage'),
+            'unrealizedPnl': self.parse_number(unrealisedPnl),
+            'contracts': self.parse_number(size),  # in USD for inverse swaps
+            'contractSize': self.safe_number(market, 'contractSize'),
+            'marginRatio': None,
+            'liquidationPrice': self.safe_number_2(position, 'liq_price', 'liqPrice'),
+            'markPrice': self.safe_number(position, 'markPrice'),
+            'collateral': None,
+            'marginMode': marginMode,
+            'side': side,
+            'percentage': self.parse_number(percentage),
+        }
+
+    async def set_margin_mode(self, marginMode, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        method = None
-        defaultType = self.safe_string(self.options, 'defaultType', 'linear')
-        marketTypes = self.safe_value(self.options, 'marketTypes', {})
-        marketType = self.safe_string(marketTypes, symbol, defaultType)
-        linear = market['linear'] or (marketType == 'linear')
-        inverse = (market['swap'] and market['inverse']) or (marketType == 'inverse')
-        future = market['future'] or ((marketType == 'future') or (marketType == 'futures'))  # * (marketType == 'futures') deprecated, use(marketType == 'future')
-        if linear:
-            method = 'privateLinearPostPositionSwitchIsolated'
-        elif inverse:
-            method = 'v2PrivatePostPositionSwitchIsolated'
-        elif future:
-            method = 'privateFuturesPostPositionSwitchIsolated'
-        isIsolated = (marginType == 'ISOLATED')
+        if market['settle'] == 'USDC':
+            raise NotSupported(self.id + ' setMarginMode() does not support market ' + symbol + '')
+        marginMode = marginMode.upper()
+        if (marginMode != 'ISOLATED') and (marginMode != 'CROSS'):
+            raise BadRequest(self.id + ' setMarginMode() marginMode must be either isolated or cross')
+        leverage = self.safe_number(params, 'leverage')
+        sellLeverage = None
+        buyLeverage = None
+        if leverage is None:
+            sellLeverage = self.safe_number_2(params, 'sell_leverage', 'sellLeverage')
+            buyLeverage = self.safe_number_2(params, 'buy_leverage', 'buyLeverage')
+            if sellLeverage is None or buyLeverage is None:
+                raise ArgumentsRequired(self.id + ' setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters')
+            params = self.omit(params, ['buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage'])
+        else:
+            params = self.omit(params, 'leverage')
+            sellLeverage = leverage
+            buyLeverage = leverage
+        isIsolated = (marginMode == 'ISOLATED')
         request = {
             'symbol': market['id'],
             'is_isolated': isIsolated,
             'buy_leverage': leverage,
             'sell_leverage': leverage,
         }
+        method = None
+        if market['future']:
+            method = 'privatePostFuturesPrivatePositionSwitchIsolated'
+        elif market['inverse']:
+            method = 'privatePostV2PrivatePositionSwitchIsolated'
+        else:
+            # linear
+            method = 'privatePostPrivateLinearPositionSwitchIsolated'
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -3267,40 +3747,37 @@ class bybit(Exchange):
         market = self.market(symbol)
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        defaultType = self.safe_string(self.options, 'defaultType', 'linear')
-        marketTypes = self.safe_value(self.options, 'marketTypes', {})
-        marketType = self.safe_string(marketTypes, symbol, defaultType)
-        linear = market['linear'] or (marketType == 'linear')
-        inverse = (market['swap'] and market['inverse']) or (marketType == 'inverse')
-        future = market['future'] or ((marketType == 'future') or (marketType == 'futures'))  # * (marketType == 'futures') deprecated, use(marketType == 'future')
+        isUsdcSettled = market['settle'] == 'USDC'
         method = None
-        if linear:
-            method = 'privateLinearPostPositionSetLeverage'
-        elif inverse:
-            method = 'v2PrivatePostPositionLeverageSave'
-        elif future:
-            method = 'privateFuturesPostPositionLeverageSave'
-        buy_leverage = leverage
-        sell_leverage = leverage
-        if params['buy_leverage'] and params['sell_leverage'] and linear:
-            buy_leverage = params['buy_leverage']
-            sell_leverage = params['sell_leverage']
-        elif not leverage:
-            if linear:
-                raise ArgumentsRequired(self.id + ' setLeverage() requires either the parameter leverage or params["buy_leverage"] and params["sell_leverage"] for linear contracts')
-            else:
-                raise ArgumentsRequired(self.id + ' setLeverage() requires parameter leverage for inverse and futures contracts')
-        if (buy_leverage < 1) or (buy_leverage > 100) or (sell_leverage < 1) or (sell_leverage > 100):
-            raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 100')
+        if isUsdcSettled:
+            method = 'privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave'
+        elif market['future']:
+            method = 'privatePostFuturesPrivatePositionLeverageSave'
+        elif market['linear']:
+            method = 'privatePostPrivateLinearPositionSetLeverage'
+        else:
+            # inverse swaps
+            method = 'privatePostV2PrivatePositionLeverageSave'
         request = {
             'symbol': market['id'],
-            'leverage_only': True,
         }
-        if not linear:
-            request['leverage'] = buy_leverage
+        leverage = str(leverage) if isUsdcSettled else int(leverage)
+        isLinearSwap = market['swap'] and market['linear']
+        requiresBuyAndSellLeverage = not isUsdcSettled and (isLinearSwap or market['future'])
+        if requiresBuyAndSellLeverage:
+            buyLeverage = self.safe_number(params, 'buy_leverage')
+            sellLeverage = self.safe_number(params, 'sell_leverage')
+            if buyLeverage is not None and sellLeverage is not None:
+                if (buyLeverage < 1) or (buyLeverage > 100) or (sellLeverage < 1) or (sellLeverage > 100):
+                    raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 100')
+            else:
+                request['buy_leverage'] = leverage
+                request['sell_leverage'] = leverage
         else:
-            request['buy_leverage'] = buy_leverage
-            request['sell_leverage'] = sell_leverage
+            # requires leverage
+            request['leverage'] = leverage
+        if (leverage < 1) or (leverage > 100):
+            raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 100')
         return await getattr(self, method)(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -3352,24 +3829,41 @@ class bybit(Exchange):
                     url += '?' + self.rawencode(params)
             elif api == 'private':
                 self.check_required_credentials()
-                timestamp = self.nonce()
-                query = self.extend(params, {
-                    'api_key': self.apiKey,
-                    'recv_window': self.options['recvWindow'],
-                    'timestamp': timestamp,
-                })
-                sortedQuery = self.keysort(query)
-                auth = self.rawencode(sortedQuery)
-                signature = self.hmac(self.encode(auth), self.encode(self.secret))
-                if method == 'POST':
-                    body = self.json(self.extend(query, {
-                        'sign': signature,
-                    }))
+                isOpenapi = url.find('openapi') >= 0
+                timestamp = str(self.milliseconds())
+                if isOpenapi:
+                    if params:
+                        body = self.json(params)
+                    else:
+                        # self fix for PHP is required otherwise it generates
+                        # '[]' on empty arrays even when forced to use objects
+                        body = '{}'
+                    payload = timestamp + self.apiKey + body
+                    signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'hex')
                     headers = {
                         'Content-Type': 'application/json',
+                        'X-BAPI-API-KEY': self.apiKey,
+                        'X-BAPI-TIMESTAMP': timestamp,
+                        'X-BAPI-SIGN': signature,
                     }
                 else:
-                    url += '?' + self.urlencode(sortedQuery) + '&sign=' + signature
+                    query = self.extend(params, {
+                        'api_key': self.apiKey,
+                        'recv_window': self.options['recvWindow'],
+                        'timestamp': timestamp,
+                    })
+                    sortedQuery = self.keysort(query)
+                    auth = self.rawencode(sortedQuery)
+                    signature = self.hmac(self.encode(auth), self.encode(self.secret))
+                    if method == 'POST':
+                        body = self.json(self.extend(query, {
+                            'sign': signature,
+                        }))
+                        headers = {
+                            'Content-Type': 'application/json',
+                        }
+                    else:
+                        url += '?' + self.urlencode(sortedQuery) + '&sign=' + signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
@@ -3411,19 +3905,19 @@ class bybit(Exchange):
         await self.load_markets()
         request = {}
         market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            if market['spot']:
-                raise BadRequest(self.id + ' fetchLeverageTiers() symbol supports contract markets only')
-            request['symbol'] = market['id']
-        type, query = self.handle_market_type_and_params('fetchMarketLeverageTiers', market, params)
-        method = self.get_supported_mapping(type, {
-            'linear': 'publicLinearGetRiskLimit',  # Symbol required
-            'swap': 'publicLinearGetRiskLimit',
-            'inverse': 'v2PublicGetRiskLimitList',  # Symbol not required, could implement fetchLeverageTiers
-            'future': 'v2PublicGetRiskLimitList',
-        })
-        response = await getattr(self, method)(self.extend(request, query))
+        market = self.market(symbol)
+        if market['spot'] or market['option']:
+            raise BadRequest(self.id + ' fetchLeverageTiers() symbol does not support market ' + symbol)
+        request['symbol'] = market['id']
+        isUsdcSettled = market['settle'] == 'USDC'
+        method = None
+        if isUsdcSettled:
+            method = 'publicGetPerpetualUsdcOpenapiPublicV1RiskLimitList'
+        elif market['linear']:
+            method = 'publicLinearGetRiskLimit'
+        else:
+            method = 'publicGetV2PublicRiskLimitList'
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #  publicLinearGetRiskLimit
         #    {
@@ -3528,6 +4022,28 @@ class bybit(Exchange):
         #        ...
         #    ]
         #
+        # usdc swap
+        #
+        #    {
+        #        "riskId":"10001",
+        #        "symbol":"BTCPERP",
+        #        "limit":"1000000",
+        #        "startingMargin":"0.0100",
+        #        "maintainMargin":"0.0050",
+        #        "isLowestRisk":true,
+        #        "section":[
+        #           "1",
+        #           "2",
+        #           "3",
+        #           "5",
+        #           "10",
+        #           "25",
+        #           "50",
+        #           "100"
+        #        ],
+        #        "maxLeverage":"100.00"
+        #    }
+        #
         minNotional = 0
         tiers = []
         for i in range(0, len(info)):
@@ -3538,8 +4054,8 @@ class bybit(Exchange):
                 'currency': market['base'],
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
-                'maintenanceMarginRate': self.safe_number(item, 'maintain_margin'),
-                'maxLeverage': self.safe_number(item, 'max_leverage'),
+                'maintenanceMarginRate': self.safe_number_2(item, 'maintain_margin', 'maintainMargin'),
+                'maxLeverage': self.safe_number_2(item, 'max_leverage', 'maxLeverage'),
                 'info': item,
             })
             minNotional = maxNotional

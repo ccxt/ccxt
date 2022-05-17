@@ -79,6 +79,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [CCXT - Crypto Trading](https://www.youtube.com/playlist?list=PLvzuUVysUFOv5XEPHeqefgyHZcDfLxH-W) – An awesome video playlist on CCXT and tons of other cool videos by [Part Time Larry](https://www.youtube.com/c/parttimelarry)!
 
+[CCXT Python Crypto Tutorials](https://www.youtube.com/playlist?list=PLXrNVMjRZUJg4OV2qfmFMpI5k3FRrB0NE) – CCXT Python Crypto Tutorials on YouTube!
+
 [Python and CCXT Grid Bot Tutorial](https://www.youtube.com/watch?v=QzqMGX4Qk1A) – A video tutorial on building a Grid Bot with Python and CCXT!
 
 [JavaScript CCXT Grid Bot vs. Python](https://www.youtube.com/watch?v=kLATKNzbUOE) – A video comparison of using CCXT to write a Grid Bot in JavaScript vs Python.
@@ -115,9 +117,13 @@ php -f path/to/example.php # substitute for actual filename here
 
 [How to Buy and Sell Bitcoin with Python](https://python.plainenglish.io/how-to-buy-and-sell-bitcoin-with-python-f83d893c393) – How to Buy and Sell Bitcoin with Python using CCXT.
 
+[Beginners Python Guide To CCXT Crypto API](https://wire.insiderfinance.io/beginners-python-guide-to-ccxt-crypto-api-no-api-key-required-4dc928f3af94) – A guide to working with CCXT in Python.
+
 [Download Cryptocurrency Data with CCXT](https://backtest-rookies.com/2018/03/08/download-cryptocurrency-data-with-ccxt/) – A sample script to download historical data from exchanges with a video overview: [Easy Python script to download crypto currency market data with CCXT package](https://www.youtube.com/watch?v=PTGkJsrF7kQ).
 
 [How to Properly Download and Validate Cryptocurrency Data](https://medium.com/@dmitriy.kavyazin/how-to-properly-download-and-validate-cryptocurrency-data-fa90ac1c5f8b) – An article explaining how to properly obtain cryptocurrency price and volume data for use in trading and statistical modeling (with CCXT).
+
+[Step-By-Step Guide to Installing Python and CCXT Library](https://www.youtube.com/watch?v=bmKAtBfGk50) – A video tutorial on installing CCXT and Python on MS Windows.
 
 [ccxt 를 사용하여 가상화폐 데이터 다운로드하기](https://antilibrary.org/2174) – A Korean translation of the above article.
 

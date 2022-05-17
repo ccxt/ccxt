@@ -50,7 +50,6 @@ class kucoinfutures extends kucoin {
                 'fetchCurrencies' => false,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
-                'fetchFundingFee' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
@@ -73,6 +72,7 @@ class kucoinfutures extends kucoin {
                 'fetchTickers' => false,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTransactionFee' => true,
                 'fetchWithdrawals' => true,
                 'setMarginMode' => false,
                 'transfer' => true,
@@ -275,6 +275,7 @@ class kucoinfutures extends kucoin {
                 'symbolSeparator' => '-',
                 'defaultType' => 'swap',
                 'code' => 'USDT',
+                'marginModes' => array(),
                 'marginTypes' => array(),
                 // endpoint versions
                 'versions' => array(
@@ -905,7 +906,7 @@ class kucoinfutures extends kucoin {
         $unrealisedPnl = $this->safe_string($position, 'unrealisedPnl');
         $crossMode = $this->safe_value($position, 'crossMode');
         // currently $crossMode is always set to false and only isolated positions are supported
-        $marginType = $crossMode ? 'cross' : 'isolated';
+        $marginMode = $crossMode ? 'cross' : 'isolated';
         return array(
             'info' => $position,
             'symbol' => $this->safe_string($market, 'symbol'),
@@ -926,7 +927,8 @@ class kucoinfutures extends kucoin {
             'liquidationPrice' => $this->safe_number($position, 'liquidationPrice'),
             'markPrice' => $this->safe_number($position, 'markPrice'),
             'collateral' => $this->safe_number($position, 'maintMargin'),
-            'marginType' => $marginType,
+            'marginMode' => $marginMode,
+            'marginType' => $marginMode,
             'side' => $side,
             'percentage' => $this->parse_number(Precise::string_div($unrealisedPnl, $initialMargin)),
         );
@@ -1691,8 +1693,8 @@ class kucoinfutures extends kucoin {
         return $this->parse_transactions($responseData, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function fetch_funding_fee($code, $params = array ()) {
-        throw new BadRequest($this->id . ' fetchFundingFee() is not supported yet');
+    public function fetch_transaction_fee($code, $params = array ()) {
+        throw new BadRequest($this->id . ' fetchTransactionFee() is not supported yet');
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {

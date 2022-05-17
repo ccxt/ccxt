@@ -53,7 +53,6 @@ class bitstamp(Exchange):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
-                'fetchFundingFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -76,6 +75,7 @@ class bitstamp(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
+                'fetchTransactionFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
@@ -266,6 +266,18 @@ class bitstamp(Exchange):
                         'gods_address/': 1,
                         'rad_withdrawal/': 1,
                         'rad_address/': 1,
+                        'band_withdrawal/': 1,
+                        'band_address/': 1,
+                        'inj_withdrawal/': 1,
+                        'inj_address/': 1,
+                        'rly_withdrawal/': 1,
+                        'rly_address/': 1,
+                        'rndr_withdrawal/': 1,
+                        'rndr_address/': 1,
+                        'vega_withdrawal/': 1,
+                        'vega_address/': 1,
+                        '1inch_withdrawal/': 1,
+                        '1inch_address/': 1,
                         'transfer-to-main/': 1,
                         'transfer-from-main/': 1,
                         'withdrawal-requests/': 1,
@@ -986,7 +998,7 @@ class bitstamp(Exchange):
             'deposit': {},
         }
 
-    def fetch_funding_fees(self, params={}):
+    def fetch_transaction_fees(self, codes=None, params={}):
         self.load_markets()
         balance = self.privatePostBalance(params)
         return self.parse_funding_fees(balance)

@@ -297,7 +297,7 @@ async function testExchange (exchange) {
 
     const balance = await test ('fetchBalance', exchange)
 
-    await test ('fetchFundingFees', exchange)
+    await test ('fetchTransactionFees', exchange)
     await test ('fetchTradingFees', exchange)
     await test ('fetchStatus', exchange)
 

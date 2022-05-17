@@ -8,9 +8,10 @@ const assert = require ('assert')
 
 module.exports = async (exchange) => {
 
-    if (exchange.has.fetchStatus) {
+    const method = 'fetchStatus'
 
-        const method = 'fetchStatus'
+    if (exchange.has[method]) {
+
         const status = await exchange[method] ()
 
         const sampleStatus = {
@@ -30,6 +31,6 @@ module.exports = async (exchange) => {
 
     } else {
 
-        console.log ('fetching status not supported')
+        console.log (method + '() is not supported')
     }
 }
