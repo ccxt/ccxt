@@ -491,7 +491,7 @@ module.exports = class coinmate extends Exchange {
             transaction['currency'] = code;
             transaction['address'] = address;
             transaction['tag'] = tag;
-            transaction['type'] = 'WITHDRAWAL';
+            transaction['type'] = 'withdrawal';
             transaction['status'] = 'pending';
         }
         return transaction;
