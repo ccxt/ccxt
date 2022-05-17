@@ -2420,14 +2420,15 @@ module.exports = class huobi extends Exchange {
         const spot = (type === 'spot');
         const future = (type === 'future');
         const swap = (type === 'swap');
-        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
-        let subType = this.safeString (options, 'subType', defaultSubType);
-        subType = this.safeString (params, 'subType', subType);
+        const defaultSubType = this.safeString2 (this.options, 'defaultSubType', 'subType', 'inverse');
+        let subType = this.safeString2 (options, 'defaultSubType', 'subType', defaultSubType);
+        subType = this.safeString2 (params, 'defaultSubType', 'subType', subType);
         const inverse = (subType === 'inverse');
         const linear = (subType === 'linear');
         let marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'isolated');
         marginMode = this.safeString2 (options, 'defaultMarginMode', 'marginMode', marginMode);
         marginMode = this.safeString2 (params, 'defaultMarginMode', 'marginMode', marginMode);
+        params = this.omit (params, [ 'defaultSubType', 'subType', 'defaultMarginMode', 'marginMode' ]);
         const isolated = (marginMode === 'isolated');
         const cross = (marginMode === 'cross');
         if (spot) {
