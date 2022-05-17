@@ -1235,7 +1235,7 @@ class okx extends Exchange {
         if ($baseVolume === '') {
             $baseVolume = null;
         }
-        $high = $this->safe_string($ticker, '24h');
+        $high = $this->safe_string($ticker, 'high24h');
         if ($high === '') {
             $high = null;
         }

@@ -1213,7 +1213,7 @@ class okx(Exchange):
         baseVolume = self.safe_string(ticker, 'vol24h')
         if baseVolume == '':
             baseVolume = None
-        high = self.safe_string(ticker, '24h')
+        high = self.safe_string(ticker, 'high24h')
         if high == '':
             high = None
         low = self.safe_string(ticker, 'low24h')
