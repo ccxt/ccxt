@@ -1533,11 +1533,11 @@ class Exchange(object):
         if networkCode is not None:
             networks = self.safe_value(currency, 'networks', {})
             networkItem = self.safe_value(networks, networkCode, {})
-            precision = self.safe_value (networkItem, 'precision', precision)
+            precision = self.safe_value(networkItem, 'precision', precision)
         if precision is None:
             return fee
         else:
-            return self.decimalToPrecision (fee, ROUND, precision, self.precisionMode, self.paddingMode)
+            return self.decimal_to_precision(fee, ROUND, precision, self.precisionMode, self.paddingMode)
 
     def set_markets(self, markets, currencies=None):
         values = list(markets.values()) if type(markets) is dict else markets
