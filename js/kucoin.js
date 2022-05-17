@@ -699,6 +699,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         let messageHash = topic;
         if (symbol !== undefined) {
             const market = this.market (symbol);
+            symbol = market['symbol'];
             messageHash = messageHash + ':' + market['symbol'];
         }
         const trades = await this.subscribe (negotiation, topic, messageHash, undefined, undefined, this.extend (request, params));
