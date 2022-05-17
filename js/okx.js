@@ -1827,7 +1827,7 @@ module.exports = class okx extends Exchange {
         return this.parseBalanceByType (marketType, response);
     }
 
-    async createOrder (symbol, type, side, amount, price, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1964,7 +1964,7 @@ module.exports = class okx extends Exchange {
                 }
             }
             // if TP and SL are sent together
-            // as ordType 'conditional' only stop-loss logic will be applied
+            // as ordType 'conditional' only stop-loss order will be applied
             if (twoWayCondition) {
                 request['ordType'] = 'oco';
             }
