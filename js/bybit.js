@@ -3343,7 +3343,9 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v2PrivateGetWalletFundRecords (this.extend (request, params));
+        // Currently only works for deposits prior to 2021-07-15
+        // will be updated soon
+        const response = await this.privateGetV2PrivateWalletFundRecords (this.extend (request, params));
         //
         //     {
         //         "ret_code": 0,
@@ -3540,7 +3542,7 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v2PrivateGetWalletFundRecords (this.extend (request, params));
+        const response = await this.privateGetV2PrivateWalletFundRecords (this.extend (request, params));
         //
         //     {
         //         "ret_code": 0,

@@ -2573,13 +2573,13 @@ module.exports = class bitget extends Exchange {
         //         }
         //     }
         //
-        return this.extend (this.parseModifyMargin (response, market), {
+        return this.extend (this.parseMarginModification (response, market), {
             'amount': this.parseNumber (amount),
             'type': type,
         });
     }
 
-    parseModifyMargin (data, market = undefined) {
+    parseMarginModification (data, market = undefined) {
         const errorCode = this.safeString (data, 'code');
         const status = (errorCode === '00000') ? 'ok' : 'failed';
         const code = (market['linear']) ? market['quote'] : market['base'];

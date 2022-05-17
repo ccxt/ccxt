@@ -43,6 +43,8 @@ class indodax(Exchange):
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchDeposit': False,
+                'fetchDeposits': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -67,10 +69,16 @@ class indodax(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchTransactions': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'fetchWithdrawal': False,
+                'fetchWithdrawals': False,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': False,
                 'withdraw': True,
             },
             'version': '2.0',  # as of 9 April 2018
@@ -100,7 +108,7 @@ class indodax(Exchange):
                 'private': {
                     'post': {
                         'getInfo': 4,
-                        'transHistory': 4,  # TODO add fetchDeposits, fetchWithdrawals, fetchTransactionsbyType
+                        'transHistory': 4,
                         'trade': 1,
                         'tradeHistory': 4,  # TODO add fetchMyTrades
                         'openOrders': 4,
@@ -582,6 +590,92 @@ class indodax(Exchange):
         }
         return await self.privatePostCancelOrder(self.extend(request, params))
 
+    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {}
+        if since is not None:
+            startTime = self.iso8601(since)[0:10]
+            request['start'] = startTime
+            request['end'] = self.iso8601(self.milliseconds())[0:10]
+        response = await self.privatePostTransHistory(self.extend(request, params))
+        #
+        #     {
+        #         "success": 1,
+        #         "return": {
+        #             "withdraw": {
+        #                 "idr": [
+        #                     {
+        #                         "status": "success",
+        #                         "type": "coupon",
+        #                         "rp": "115205",
+        #                         "fee": "500",
+        #                         "amount": "114705",
+        #                         "submit_time": "1539844166",
+        #                         "success_time": "1539844189",
+        #                         "withdraw_id": "1783717",
+        #                         "tx": "BTC-IDR-RDTVVO2P-ETD0EVAW-VTNZGMIR-HTNTUAPI-84ULM9OI",
+        #                         "sender": "boris",
+        #                         "used_by": "viginia88"
+        #                     },
+        #                     ...
+        #                 ],
+        #                 "btc": [],
+        #                 "abyss": [],
+        #                 ...
+        #             },
+        #             "deposit": {
+        #                 "idr": [
+        #                     {
+        #                         "status": "success",
+        #                         "type": "duitku",
+        #                         "rp": "393000",
+        #                         "fee": "5895",
+        #                         "amount": "387105",
+        #                         "submit_time": "1576555012",
+        #                         "success_time": "1576555012",
+        #                         "deposit_id": "3395438",
+        #                         "tx": "Duitku OVO Settlement"
+        #                     },
+        #                     ...
+        #                 ],
+        #                 "btc": [
+        #                     {
+        #                         "status": "success",
+        #                         "btc": "0.00118769",
+        #                         "amount": "0.00118769",
+        #                         "success_time": "1539529208",
+        #                         "deposit_id": "3602369",
+        #                         "tx": "c816aeb35a5b42f389970325a32aff69bb6b2126784dcda8f23b9dd9570d6573"
+        #                     },
+        #                     ...
+        #                 ],
+        #                 "abyss": [],
+        #                 ...
+        #             }
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'return', {})
+        withdraw = self.safe_value(data, 'withdraw', {})
+        deposit = self.safe_value(data, 'deposit', {})
+        transactions = []
+        currency = None
+        if code is None:
+            keys = list(withdraw.keys())
+            for i in range(0, len(keys)):
+                key = keys[i]
+                transactions = self.array_concat(transactions, withdraw[key])
+            keys = list(deposit.keys())
+            for i in range(0, len(keys)):
+                key = keys[i]
+                transactions = self.array_concat(transactions, deposit[key])
+        else:
+            currency = self.currency(code)
+            withdraws = self.safe_value(withdraw, currency['id'], [])
+            deposits = self.safe_value(deposit, currency['id'], [])
+            transactions = self.array_concat(withdraws, deposits)
+        return self.parse_transactions(transactions, currency, since, limit)
+
     async def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -638,28 +732,67 @@ class indodax(Exchange):
         #         "withdraw_memo": "123123"
         #     }
         #
-        currency = self.safe_currency(None, currency)
+        # transHistory
+        #
+        #     {
+        #         "status": "success",
+        #         "type": "coupon",
+        #         "rp": "115205",
+        #         "fee": "500",
+        #         "amount": "114705",
+        #         "submit_time": "1539844166",
+        #         "success_time": "1539844189",
+        #         "withdraw_id": "1783717",
+        #         "tx": "BTC-IDR-RDTVVO2P-ETD0EVAW-VTNZGMIR-HTNTUAPI-84ULM9OI",
+        #         "sender": "boris",
+        #         "used_by": "viginia88"
+        #     }
+        #
+        #     {
+        #         "status": "success",
+        #         "btc": "0.00118769",
+        #         "amount": "0.00118769",
+        #         "success_time": "1539529208",
+        #         "deposit_id": "3602369",
+        #         "tx": "c816aeb35a5b42f389970325a32aff69bb6b2126784dcda8f23b9dd9570d6573"
+        #     },
+        status = self.safe_string(transaction, 'status')
+        timestamp = self.safe_timestamp_2(transaction, 'success_time', 'submit_time')
+        depositId = self.safe_string(transaction, 'deposit_id')
+        feeCost = self.safe_number(transaction, 'fee')
+        fee = None
+        if feeCost is not None:
+            fee = {
+                'currency': self.safe_currency_code(None, currency),
+                'cost': self.safe_number('fee'),
+            }
         return {
-            'id': self.safe_string(transaction, 'withdraw_id'),
-            'txid': self.safe_string(transaction, 'txid'),
-            'timestamp': None,
-            'datetime': None,
+            'id': self.safe_string_2(transaction, 'withdraw_id', 'deposit_id'),
+            'txid': self.safe_string_2(transaction, 'txid', 'tx'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'network': None,
             'addressFrom': None,
-            'address': None,
+            'address': self.safe_string(transaction, 'withdraw_address'),
             'addressTo': None,
-            'amount': None,
-            'type': None,
-            'currency': currency['code'],
-            'status': None,
+            'amount': self.safe_number_n(transaction, ['amount', 'withdraw_amount', 'deposit_amount']),
+            'type': 'withdraw' if (depositId is None) else 'deposit',
+            'currency': self.safe_currency_code(None, currency),
+            'status': self.parse_transaction_status(status),
             'updated': None,
             'tagFrom': None,
             'tag': None,
             'tagTo': None,
-            'comment': None,
-            'fee': None,
+            'comment': self.safe_string(transaction, 'withdraw_memo'),
+            'fee': fee,
             'info': transaction,
         }
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'success': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]

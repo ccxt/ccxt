@@ -3727,11 +3727,11 @@ class zb(Exchange):
         #         "desc":"操作成功"
         #     }
         #
-        return self.extend(self.parse_modify_margin(response, market), {
+        return self.extend(self.parse_margin_modification(response, market), {
             'amount': self.parse_number(amount),
         })
 
-    def parse_modify_margin(self, data, market=None):
+    def parse_margin_modification(self, data, market=None):
         innerData = self.safe_value(data, 'data', {})
         sideRaw = self.safe_integer(innerData, 'side')
         side = 'add' if (sideRaw == 1) else 'reduce'

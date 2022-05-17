@@ -263,7 +263,7 @@ module.exports = class bitvavo extends Exchange {
         });
     }
 
-    currencyToPrecision (code, fee) {
+    currencyToPrecision (code, fee, networkCode = undefined) {
         return this.decimalToPrecision (fee, 0, this.currencies[code]['precision']);
     }
 

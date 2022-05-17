@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, AccountSuspended, InvalidNonce, NotSupported, OrderNotFound, BadRequest, AuthenticationError, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 const kucoin = require ('./kucoin.js');
 const { TICK_SIZE } = require ('./base/functions/number');
@@ -196,6 +196,9 @@ module.exports = class kucoinfutures extends kucoin {
                     '400100': BadRequest, // Parameter Error -- You tried to access the resource with invalid parameters
                     '411100': AccountSuspended, // User is frozen -- Please contact us via support center
                     '500000': ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
+                },
+                'broad': {
+                    'Position does not exist': OrderNotFound, // { "code":"200000", "msg":"Position does not exist" }
                 },
             },
             'fees': {
@@ -1095,10 +1098,127 @@ module.exports = class kucoinfutures extends kucoin {
         const uuid = this.uuid ();
         const request = {
             'symbol': market['id'],
-            'margin': amount,
+            'margin': this.amountToPrecision (symbol, amount),
             'bizNo': uuid,
         };
-        return await this.futuresPrivatePostPositionMarginDepositMargin (this.extend (request, params));
+        const response = await this.futuresPrivatePostPositionMarginDepositMargin (this.extend (request, params));
+        //
+        //    {
+        //        code: '200000',
+        //        data: {
+        //            id: '62311d26064e8f00013f2c6d',
+        //            symbol: 'XRPUSDTM',
+        //            autoDeposit: false,
+        //            maintMarginReq: 0.01,
+        //            riskLimit: 200000,
+        //            realLeverage: 0.88,
+        //            crossMode: false,
+        //            delevPercentage: 0.4,
+        //            openingTimestamp: 1647385894798,
+        //            currentTimestamp: 1647414510672,
+        //            currentQty: -1,
+        //            currentCost: -7.658,
+        //            currentComm: 0.0053561,
+        //            unrealisedCost: -7.658,
+        //            realisedGrossCost: 0,
+        //            realisedCost: 0.0053561,
+        //            isOpen: true,
+        //            markPrice: 0.7635,
+        //            markValue: -7.635,
+        //            posCost: -7.658,
+        //            posCross: 1.00016084,
+        //            posInit: 7.658,
+        //            posComm: 0.00979006,
+        //            posLoss: 0,
+        //            posMargin: 8.6679509,
+        //            posMaint: 0.08637006,
+        //            maintMargin: 8.6909509,
+        //            realisedGrossPnl: 0,
+        //            realisedPnl: -0.0038335,
+        //            unrealisedPnl: 0.023,
+        //            unrealisedPnlPcnt: 0.003,
+        //            unrealisedRoePcnt: 0.003,
+        //            avgEntryPrice: 0.7658,
+        //            liquidationPrice: 1.6239,
+        //            bankruptPrice: 1.6317,
+        //            settleCurrency: 'USDT'
+        //        }
+        //    }
+        //
+        //
+        //    {
+        //        "code":"200000",
+        //        "msg":"Position does not exist"
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.extend (this.parseModifyMargin (data, market), {
+            'amount': this.amountToPrecision (symbol, amount),
+            'direction': 'in',
+        });
+    }
+
+    parseMarginModification (info, market = undefined) {
+        //
+        //    {
+        //        id: '62311d26064e8f00013f2c6d',
+        //        symbol: 'XRPUSDTM',
+        //        autoDeposit: false,
+        //        maintMarginReq: 0.01,
+        //        riskLimit: 200000,
+        //        realLeverage: 0.88,
+        //        crossMode: false,
+        //        delevPercentage: 0.4,
+        //        openingTimestamp: 1647385894798,
+        //        currentTimestamp: 1647414510672,
+        //        currentQty: -1,
+        //        currentCost: -7.658,
+        //        currentComm: 0.0053561,
+        //        unrealisedCost: -7.658,
+        //        realisedGrossCost: 0,
+        //        realisedCost: 0.0053561,
+        //        isOpen: true,
+        //        markPrice: 0.7635,
+        //        markValue: -7.635,
+        //        posCost: -7.658,
+        //        posCross: 1.00016084,
+        //        posInit: 7.658,
+        //        posComm: 0.00979006,
+        //        posLoss: 0,
+        //        posMargin: 8.6679509,
+        //        posMaint: 0.08637006,
+        //        maintMargin: 8.6909509,
+        //        realisedGrossPnl: 0,
+        //        realisedPnl: -0.0038335,
+        //        unrealisedPnl: 0.023,
+        //        unrealisedPnlPcnt: 0.003,
+        //        unrealisedRoePcnt: 0.003,
+        //        avgEntryPrice: 0.7658,
+        //        liquidationPrice: 1.6239,
+        //        bankruptPrice: 1.6317,
+        //        settleCurrency: 'USDT'
+        //    }
+        //
+        //    {
+        //        "code":"200000",
+        //        "msg":"Position does not exist"
+        //    }
+        //
+        const id = this.safeString (info, 'id');
+        market = this.safeMarket (id, market);
+        const currencyId = this.safeString (info, 'settleCurrency');
+        const crossMode = this.safeValue (info, 'crossMode');
+        const mode = crossMode ? 'cross' : 'isolated';
+        const marketId = this.safeString (market, 'symbol');
+        return {
+            'info': info,
+            'direction': undefined,
+            'mode': mode,
+            'amount': undefined,
+            'code': this.safeCurrencyCode (currencyId),
+            'symbol': this.safeSymbol (marketId, market),
+            'status': undefined,
+        };
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {

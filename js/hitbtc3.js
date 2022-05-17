@@ -2160,13 +2160,13 @@ module.exports = class hitbtc3 extends Exchange {
         //         "positions": null
         //     }
         //
-        return this.extend (this.parseModifyMargin (response, market), {
+        return this.extend (this.parseMarginModification (response, market), {
             'amount': this.safeNumber (amount),
             'type': type,
         });
     }
 
-    parseModifyMargin (data, market = undefined) {
+    parseMarginModification (data, market = undefined) {
         const currencies = this.safeValue (data, 'currencies', []);
         const currencyInfo = this.safeValue (currencies, 0);
         return {

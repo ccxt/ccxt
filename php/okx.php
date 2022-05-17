@@ -4574,10 +4574,10 @@ class okx extends Exchange {
         //       "msg" => ""
         //     }
         //
-        return $this->parse_modify_margin($response, $market);
+        return $this->parse_margin_modification($response, $market);
     }
 
-    public function parse_modify_margin($data, $market = null) {
+    public function parse_margin_modification($data, $market = null) {
         $innerData = $this->safe_value($data, 'data', array());
         $entry = $this->safe_value($innerData, 0, array());
         $errorCode = $this->safe_string($data, 'code');

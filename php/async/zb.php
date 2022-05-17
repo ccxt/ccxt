@@ -3912,12 +3912,12 @@ class zb extends Exchange {
         //         "desc":"操作成功"
         //     }
         //
-        return array_merge($this->parse_modify_margin($response, $market), array(
+        return array_merge($this->parse_margin_modification($response, $market), array(
             'amount' => $this->parse_number($amount),
         ));
     }
 
-    public function parse_modify_margin($data, $market = null) {
+    public function parse_margin_modification($data, $market = null) {
         $innerData = $this->safe_value($data, 'data', array());
         $sideRaw = $this->safe_integer($innerData, 'side');
         $side = ($sideRaw === 1) ? 'add' : 'reduce';

@@ -2051,12 +2051,12 @@ class hitbtc3(Exchange):
         #         "positions": null
         #     }
         #
-        return self.extend(self.parse_modify_margin(response, market), {
+        return self.extend(self.parse_margin_modification(response, market), {
             'amount': self.safe_number(amount),
             'type': type,
         })
 
-    def parse_modify_margin(self, data, market=None):
+    def parse_margin_modification(self, data, market=None):
         currencies = self.safe_value(data, 'currencies', [])
         currencyInfo = self.safe_value(currencies, 0)
         return {

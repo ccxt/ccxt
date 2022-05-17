@@ -1223,7 +1223,7 @@ class binance extends Exchange {
         return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['quote'], $this->precisionMode, $this->paddingMode);
     }
 
-    public function currency_to_precision($code, $fee) {
+    public function currency_to_precision($code, $fee, $networkCode = null) {
         // info is available in currencies only if the user has configured his api keys
         if ($this->safe_value($this->currencies[$code], 'precision') !== null) {
             return $this->decimal_to_precision($fee, TRUNCATE, $this->currencies[$code]['precision'], $this->precisionMode, $this->paddingMode);
@@ -5426,12 +5426,12 @@ class binance extends Exchange {
         //         "type" => 1
         //     }
         //
-        return array_merge($this->parse_modify_margin($response, $market), array(
+        return array_merge($this->parse_margin_modification($response, $market), array(
             'code' => $code,
         ));
     }
 
-    public function parse_modify_margin($data, $market = null) {
+    public function parse_margin_modification($data, $market = null) {
         $rawType = $this->safe_integer($data, 'type');
         $resultType = ($rawType === 1) ? 'add' : 'reduce';
         $resultAmount = $this->safe_number($data, 'amount');

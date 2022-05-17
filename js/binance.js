@@ -1216,7 +1216,7 @@ module.exports = class binance extends Exchange {
         return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
     }
 
-    currencyToPrecision (code, fee) {
+    currencyToPrecision (code, fee, networkCode = undefined) {
         // info is available in currencies only if the user has configured his api keys
         if (this.safeValue (this.currencies[code], 'precision') !== undefined) {
             return this.decimalToPrecision (fee, TRUNCATE, this.currencies[code]['precision'], this.precisionMode, this.paddingMode);
@@ -5420,12 +5420,12 @@ module.exports = class binance extends Exchange {
         //         "type": 1
         //     }
         //
-        return this.extend (this.parseModifyMargin (response, market), {
+        return this.extend (this.parseMarginModification (response, market), {
             'code': code,
         });
     }
 
-    parseModifyMargin (data, market = undefined) {
+    parseMarginModification (data, market = undefined) {
         const rawType = this.safeInteger (data, 'type');
         const resultType = (rawType === 1) ? 'add' : 'reduce';
         const resultAmount = this.safeNumber (data, 'amount');

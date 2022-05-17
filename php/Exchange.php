@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.82.75';
+$version = '1.82.80';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.82.75';
+    const VERSION = '1.82.80';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2905,8 +2905,19 @@ class Exchange {
         return self::decimal_to_precision($fee, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
-    public function currency_to_precision($code, $fee) {
-        return self::decimal_to_precision($fee, ROUND, $this->currencies[$code]['precision'], $this->precisionMode, $this->paddingMode);
+    public function currency_to_precision($code, $fee, $networkCode = null) {
+        $currency = $this->currencies[$code];
+        $precision = $this->safe_value($currency, 'precision');
+        if ($networkCode !== null) {
+            $networks = $this->safe_value($currency, 'networks', []);
+            $networkItem = $this->safe_value($networks, 'networkCode', []);
+            $precision = $this->safe_value($networkItem, 'precision', $precision);
+        }
+        if ($precision === null) {
+            return $fee;
+        } else {
+            return self::decimal_to_precision($fee, ROUND, $precision, $this->precisionMode, $this->paddingMode);
+        }
     }
 
     public function currency($code) {

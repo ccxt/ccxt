@@ -2952,7 +2952,7 @@ module.exports = class phemex extends Exchange {
         //         "data": "OK"
         //     }
         //
-        return this.extend (this.parseModifyMargin (response, market), {
+        return this.extend (this.parseMarginModification (response, market), {
             'amount': amount,
             'type': addOrReduce,
         });
@@ -2965,7 +2965,7 @@ module.exports = class phemex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseModifyMargin (data, market = undefined) {
+    parseMarginModification (data, market = undefined) {
         market = this.safeMarket (undefined, market);
         const inverse = this.safeValue (market, 'inverse');
         const codeCurrency = inverse ? 'base' : 'quote';

@@ -2392,13 +2392,13 @@ class ascendex extends Exchange {
         if ($type === 'reduce') {
             $amount = Precise::string_abs($amount);
         }
-        return array_merge($this->parse_modify_margin($response, $market), array(
+        return array_merge($this->parse_margin_modification($response, $market), array(
             'amount' => $this->parse_number($amount),
             'type' => $type,
         ));
     }
 
-    public function parse_modify_margin($data, $market = null) {
+    public function parse_margin_modification($data, $market = null) {
         $errorCode = $this->safe_string($data, 'code');
         $status = ($errorCode === '0') ? 'ok' : 'failed';
         return array(
