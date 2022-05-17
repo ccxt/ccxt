@@ -1865,8 +1865,8 @@ module.exports = class bitmex extends Exchange {
             const item = response[i];
             const marketId = this.safeString (item, 'symbol');
             const market = this.safeMarket (marketId);
-            const contract = this.safeValue (market, 'contract', false);
-            if (contract) {
+            const swap = this.safeValue (market, 'swap', false);
+            if (swap) {
                 filteredResponse.push (item);
             }
         }
