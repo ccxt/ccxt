@@ -2597,13 +2597,13 @@ class coinex(Exchange):
         #
         status = self.safe_string(response, 'message')
         type = 'add' if (addOrReduce == 1) else 'reduce'
-        return self.extend(self.parse_modify_margin(response, market), {
+        return self.extend(self.parse_margin_modification(response, market), {
             'amount': self.parse_number(amount),
             'type': type,
             'status': status,
         })
 
-    def parse_modify_margin(self, data, market=None):
+    def parse_margin_modification(self, data, market=None):
         return {
             'info': data,
             'type': None,

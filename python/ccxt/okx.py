@@ -4360,9 +4360,9 @@ class okx(Exchange):
         #       "msg": ""
         #     }
         #
-        return self.parse_modify_margin(response, market)
+        return self.parse_margin_modification(response, market)
 
-    def parse_modify_margin(self, data, market=None):
+    def parse_margin_modification(self, data, market=None):
         innerData = self.safe_value(data, 'data', [])
         entry = self.safe_value(innerData, 0, {})
         errorCode = self.safe_string(data, 'code')

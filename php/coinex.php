@@ -2712,14 +2712,14 @@ class coinex extends Exchange {
         //
         $status = $this->safe_string($response, 'message');
         $type = ($addOrReduce === 1) ? 'add' : 'reduce';
-        return array_merge($this->parse_modify_margin($response, $market), array(
+        return array_merge($this->parse_margin_modification($response, $market), array(
             'amount' => $this->parse_number($amount),
             'type' => $type,
             'status' => $status,
         ));
     }
 
-    public function parse_modify_margin($data, $market = null) {
+    public function parse_margin_modification($data, $market = null) {
         return array(
             'info' => $data,
             'type' => null,

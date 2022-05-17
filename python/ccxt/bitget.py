@@ -2495,12 +2495,12 @@ class bitget(Exchange):
         #         }
         #     }
         #
-        return self.extend(self.parse_modify_margin(response, market), {
+        return self.extend(self.parse_margin_modification(response, market), {
             'amount': self.parse_number(amount),
             'type': type,
         })
 
-    def parse_modify_margin(self, data, market=None):
+    def parse_margin_modification(self, data, market=None):
         errorCode = self.safe_string(data, 'code')
         status = 'ok' if (errorCode == '00000') else 'failed'
         code = market['quote'] if (market['linear']) else market['base']

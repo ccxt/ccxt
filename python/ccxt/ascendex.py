@@ -2303,12 +2303,12 @@ class ascendex(Exchange):
         #
         if type == 'reduce':
             amount = Precise.string_abs(amount)
-        return self.extend(self.parse_modify_margin(response, market), {
+        return self.extend(self.parse_margin_modification(response, market), {
             'amount': self.parse_number(amount),
             'type': type,
         })
 
-    def parse_modify_margin(self, data, market=None):
+    def parse_margin_modification(self, data, market=None):
         errorCode = self.safe_string(data, 'code')
         status = 'ok' if (errorCode == '0') else 'failed'
         return {
