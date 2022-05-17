@@ -2324,7 +2324,7 @@ If `since` is not specified the `fetchOHLCV` method will return the time range a
 
 ### Notes On Latency
 
-Trading strategies require fresh up-to-date information for technical analysis, indicators and signals. Building a speculative trading strategy based on the OHLCV candles received from the exchange might have critical drawbacks. Developers have to account for the details explained in this section to build successful bots.
+Trading strategies require fresh up-to-date information for technical analysis, indicators and signals. Building a speculative trading strategy based on the OHLCV candles received from the exchange may have critical drawbacks. Developers should account for the details explained in this section to build successful bots.
 
 The exchanges usually provide two categories of public market data:
 
