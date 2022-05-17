@@ -1106,7 +1106,7 @@ class wavesexchange extends Exchange {
         return intval(floatval($this->to_precision($amount, $this->markets[$symbol]['precision']['amount'])));
     }
 
-    public function currency_to_precision($code, $amount) {
+    public function currency_to_precision($code, $amount, $networkCode = null) {
         return intval(floatval($this->to_precision($amount, $this->currencies[$code]['precision'])));
     }
 
