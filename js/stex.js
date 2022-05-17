@@ -40,6 +40,7 @@ module.exports = class stex extends Exchange {
                 'fetchClosedOrder': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDeposit': true,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -67,6 +68,7 @@ module.exports = class stex extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchTransactionFees': true,
+                'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
@@ -1575,7 +1577,7 @@ module.exports = class stex extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
-        // fetchDeposits
+        // fetchDeposit & fetchDeposits
         //
         //     {
         //         "id": 123654789,
@@ -1595,7 +1597,7 @@ module.exports = class stex extends Exchange {
         //         "confirmations": "1 of 2"
         //     }
         //
-        // fetchWithdrawals
+        // fetchWithdrawal && fetchWithdrawals
         //
         //     {
         //         "id": 65899,
@@ -1649,7 +1651,7 @@ module.exports = class stex extends Exchange {
         let fee = undefined;
         const feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost !== undefined) {
-            const feeCurrencyId = this.safeString (transaction, 'fee_currency_id', 'deposit_fee_currency_id');
+            const feeCurrencyId = this.safeString2 (transaction, 'fee_currency_id', 'deposit_fee_currency_id');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': feeCost,
@@ -1677,6 +1679,48 @@ module.exports = class stex extends Exchange {
             'updated': updated,
             'fee': fee,
         };
+    }
+
+    async fetchDeposit (id, code = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'id': id,
+        };
+        const response = await this.profileGetDepositsId (this.extend (request, params));
+        //
+        //     {
+        //         success: true,
+        //         data: {
+        //             id: '21974074',
+        //             currency_id: '272',
+        //             block_explorer_url: 'https://omniexplorer.info/search/',
+        //             currency_code: 'USDT',
+        //             deposit_fee_currency_id: '272',
+        //             deposit_fee_currency_code: 'USDT',
+        //             amount: '11.00000000',
+        //             fee: '0.00000000',
+        //             deposit_status_id: '3',
+        //             status: 'FINISHED',
+        //             status_color: '#00BE75',
+        //             txid: '15b50da4600a5021dbddaed8f4a71de093bf206ea66eb4ab2f151e3e9e2fed71',
+        //             protocol_id: '24',
+        //             confirmations: '129 of 20',
+        //             created_at: '2022-05-16 16:38:40',
+        //             timestamp: '1652719120',
+        //             protocol_specific_settings: [{
+        //                 protocol_name: 'TRON',
+        //                 protocol_id: '24',
+        //                 block_explorer_url: 'https://tronscan.org/#/transaction/'
+        //             }]
+        //         },
+        //         unified_message: {
+        //             message_id: 'operation_successful',
+        //             substitutions: []
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTransaction (data);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1725,6 +1769,55 @@ module.exports = class stex extends Exchange {
         //
         const deposits = this.safeValue (response, 'data', []);
         return this.parseTransactions (deposits, code, since, limit);
+    }
+
+    async fetchWithdrawal (id, code = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'id': id,
+        };
+        const response = await this.profileGetWithdrawalsId (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "id": 65899,
+        //             "amount": "0.00600000",
+        //             "currency_id": 1,
+        //             "currency_code": "BTC",
+        //             "fee": "0.00400000",
+        //             "fee_currency_id": 1,
+        //             "fee_currency_code": "BTC",
+        //             "withdrawal_status_id": 1,
+        //             "status": "Not Confirmed",
+        //             "status_color": "#BC3D51",
+        //             "created_at": "2019-01-21 09:36:05",
+        //             "created_ts": "1548063365",
+        //             "updated_at": "2019-01-21 09:36:05",
+        //             "updated_ts": "1548063365",
+        //             "reason": "string",
+        //             "txid": null,
+        //             "protocol_id": 0,
+        //             "withdrawal_address": {
+        //                 "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        //                 "address_name": "Address",
+        //                 "additional_address_parameter": "qwertyuiopasdfghjkl",
+        //                 "additional_address_parameter_name": "Destination Tag",
+        //                 "notification": "",
+        //                 "protocol_id": 10,
+        //                 "protocol_name": "Tether OMNI",
+        //                 "supports_new_address_creation": false
+        //             },
+        //             "protocol_specific_settings": {
+        //                 "protocol_name": "Tether OMNI",
+        //                 "protocol_id": 10,
+        //                 "block_explorer_url": "https://omniexplorer.info/search/"
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTransaction (data);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
