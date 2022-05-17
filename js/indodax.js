@@ -36,7 +36,7 @@ module.exports = class indodax extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchDeposit': false,
-                'fetchDeposits': true,
+                'fetchDeposits': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -61,10 +61,11 @@ module.exports = class indodax extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransactions': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
-                'fetchWithdrawals': true,
+                'fetchWithdrawals': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -617,15 +618,7 @@ module.exports = class indodax extends Exchange {
         return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsByType ('deposit', code, since, limit, params);
-    }
-
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsByType ('withdraw', code, since, limit, params);
-    }
-
-    async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         if (since !== undefined) {
@@ -692,18 +685,26 @@ module.exports = class indodax extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'return', {});
-        const currencies = this.safeValue (data, type, {});
+        const withdraw = this.safeValue (data, 'withdraw', {});
+        const deposit = this.safeValue (data, 'deposit', {});
         let transactions = [];
         let currency = undefined;
         if (code === undefined) {
-            const keys = Object.keys (currencies);
+            let keys = Object.keys (withdraw);
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
-                transactions = this.arrayConcat (transactions, currencies[key]);
+                transactions = this.arrayConcat (transactions, withdraw[key]);
+            }
+            keys = Object.keys (deposit);
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+                transactions = this.arrayConcat (transactions, deposit[key]);
             }
         } else {
             currency = this.currency (code);
-            transactions = this.safeValue (currencies, currency['id'], []);
+            const withdraws = this.safeValue (withdraw, currency['id'], []);
+            const deposits = this.safeValue (deposit, currency['id'], []);
+            transactions = this.arrayConcat (withdraws, deposits);
         }
         return this.parseTransactions (transactions, currency, since, limit);
     }
@@ -810,7 +811,7 @@ module.exports = class indodax extends Exchange {
             'addressFrom': undefined,
             'address': this.safeString (transaction, 'withdraw_address'),
             'addressTo': undefined,
-            'amount': this.safeNumberN (transaction, [ 'amount', 'withdraw_amount', 'deposit_amount', currency['id'] ]),
+            'amount': this.safeNumberN (transaction, [ 'amount', 'withdraw_amount', 'deposit_amount' ]),
             'type': (depositId === undefined) ? 'withdraw' : 'deposit',
             'currency': this.safeCurrencyCode (undefined, currency),
             'status': this.parseTransactionStatus (status),
