@@ -436,11 +436,26 @@ module.exports = class coinflex extends ccxt.coinflex {
         for (let i = 0; i < rawOrders.length; i++) {
             const order = rawOrders[i];
             const notice = this.safeString (order, 'notice');
-            if (notice === 'notice') {
+            if (notice === 'OrderMatched') {
                 // this means that the order has the trade info built in so
                 // it's a order + trade update combined
-                order['trades'] = [ order ];
-                this.handleMyTrade (client, order);
+                const tradeObject = {
+                    'matchId': this.safeString (order, 'matchId'),
+                    'matchPrice': this.safeString (order, 'matchPrice'),
+                    'matchQuantity': this.safeString (order, 'matchQuantity'),
+                    'orderMatchType': this.safeString (order, 'orderMatchType'),
+                    'matchTimestamp': this.safeString (order, 'timestamp'),
+                    'orderType': this.safeString (order, 'orderType'),
+                    'fees': this.safeString (order, 'fees'),
+                    'feeInstrumentId': this.safeString (order, 'feeInstrumentId'),
+                    'side': this.safeString (order, 'side'),
+                    'orderId': this.safeString (order, 'orderId'),
+                    'marketCode': this.safeString (order, 'marketCode'),
+                };
+                // we don't use the own order object itself
+                // because would cause a circular import error in json
+                order['matchIds'] = [ tradeObject ];
+                this.handleMyTrade (client, tradeObject);
             }
             const parsed = this.parseOrder (order);
             stored.append (parsed);
@@ -464,23 +479,17 @@ module.exports = class coinflex extends ccxt.coinflex {
         //
         //  {
         //          accountId: '39422',
-        //          clientOrderId: '1652713431643',
         //          orderId: '1002215706472',
-        //          quantity: '0.001',
         //          side: 'SELL',
-        //          status: 'FILLED',
         //          marketCode: 'BTC-USD-SWAP-LIN',
-        //          timestamp: '1652713431854',
-        //          matchId: '304734619690202846', // trade field
-        //          matchPrice: '29480.0', // trade field
-        //          matchQuantity: '0.001', // trade field
-        //          orderMatchType: 'TAKER', // trade field
-        //          remainQuantity: '0.0',
-        //          notice: 'OrderMatched',
+        //          matchTimestamp: '1652713431854',
+        //          matchId: '304734619690202846',
+        //          matchPrice: '29480.0',
+        //          matchQuantity: '0.001',
+        //          orderMatchType: 'TAKER',
         //          orderType: 'MARKET',
         //          fees: '0.02358400',
         //          feeInstrumentId: 'USD',
-        //          isTriggered: 'false'
         //   }
         //
         const marketId = this.safeString (message, 'marketCode');
@@ -491,6 +500,8 @@ module.exports = class coinflex extends ccxt.coinflex {
             trades = new ArrayCacheBySymbolById (limit);
         }
         const parsed = this.parseTrade (message, market);
+        // add missing field
+        parsed['type'] = this.safeStringLower (message, 'orderType');
         trades.append (parsed);
         const channel = 'usertrade';
         const messageHash = channel + ':' + market['id'];
@@ -548,19 +559,19 @@ module.exports = class coinflex extends ccxt.coinflex {
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let subHash = 'order';
-        let messageHash = 'usertrades';
+        let subscriptionHash = 'order';
+        let messageHash = 'usertrade';
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
-            subHash += ':' + market['id'];
+            subscriptionHash += ':' + market['id'];
             messageHash += ':' + market['id'];
         } else {
-            subHash += ':all';
+            subscriptionHash += ':all';
             messageHash += ':all';
         }
-        const trades = await this.watchPrivate (subHash, messageHash, params);
+        const trades = await this.watchPrivate (subscriptionHash, messageHash, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -573,7 +584,7 @@ module.exports = class coinflex extends ccxt.coinflex {
         const request = {
             'op': 'subscribe',
             'tag': id,
-            'args': [ messageHash ],
+            'args': [ subscriptionHash ],
         };
         const message = this.extend (request, params);
         return await this.watch (url, messageHash, message, subscriptionHash);
