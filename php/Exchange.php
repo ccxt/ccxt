@@ -2916,7 +2916,7 @@ class Exchange {
         if ($precision === null) {
             return $fee;
         } else {
-            return self::decimalToPrecision($fee, ROUND, $precision, $this->precisionMode, $this->paddingMode);
+            return self::decimal_to_precision($fee, ROUND, $precision, $this->precisionMode, $this->paddingMode);
         }
     }
 
