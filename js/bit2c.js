@@ -560,7 +560,7 @@ module.exports = class bit2c extends Exchange {
     }
 
     isFiat (code) {
-        return code === 'ILS';
+        return code === 'NIS';
     }
 
     async fetchDepositAddress (code, params = {}) {
