@@ -569,6 +569,9 @@ class okx extends \ccxt\async\okx {
             $market = $this->market($symbol);
             $type = $market['type'];
         }
+        if ($type === 'future') {
+            $type = 'futures';
+        }
         $uppercaseType = strtoupper($type);
         $request = array(
             'instType' => $uppercaseType,
