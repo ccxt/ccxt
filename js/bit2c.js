@@ -564,7 +564,7 @@ module.exports = class bit2c extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        await this.loadMarkets();
+        await this.loadMarkets ();
         const currency = this.currency (code);
         if (this.isFiat (code)) {
             throw new NotSupported (this.id + ' fetchDepositAddress() does not support fiat currencies');
