@@ -8,7 +8,9 @@ const csv = process.argv.includes ('--csv')
     , log = require ('ololog').noLocate
     , ansi = require ('ansicolor').nice
     , sortCertified = process.argv.includes ('--sort-certified') || process.argv.includes ('--certified')
-    , selectedExchanges = process.argv.includes ('--exchanges') ? process.argv.at(process.argv.findIndex ((val)=> val === '--exchanges') + 1) : []
+    , exchangesArgument = process.argv.find (arg => arg.startsWith ('--exchanges='))
+    , exchangesArgumentParts = exchangesArgument ? exchangesArgument.split ('=') : []
+    , selectedExchanges = (exchangesArgumentParts.length > 1) ? exchangesArgumentParts[1].split (',') : []
 
 console.log (ccxt.iso8601 (ccxt.milliseconds ()))
 console.log ('CCXT v' + ccxt.version)
