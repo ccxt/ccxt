@@ -142,6 +142,7 @@ module.exports = class coinflex extends ccxt.coinflex {
         const channel = 'candles';
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const interval = this.timeframes[timeframe];
         const messageHash = channel + interval + ':' + market['id'];
         const ohlcv = await this.watchPublic (messageHash, messageHash, params);
