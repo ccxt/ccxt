@@ -1527,8 +1527,17 @@ class Exchange(object):
         market = self.market(symbol)
         return self.decimal_to_precision(fee, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
 
-    def currency_to_precision(self, code, fee):
-        return self.decimal_to_precision(fee, ROUND, self.currencies[code]['precision'], self.precisionMode, self.paddingMode)
+    def currency_to_precision(self, code, fee, networkCode=None):
+        currency = self.currencies[code]
+        precision = self.safe_value(currency, 'precision')
+        if networkCode is not None:
+            networks = self.safe_value(currency, 'networks', {})
+            networkItem = self.safe_value(networks, networkCode, {})
+            precision = self.safe_value(networkItem, 'precision', precision)
+        if precision is None:
+            return fee
+        else:
+            return self.decimal_to_precision(fee, ROUND, precision, self.precisionMode, self.paddingMode)
 
     def set_markets(self, markets, currencies=None):
         values = list(markets.values()) if type(markets) is dict else markets

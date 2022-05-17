@@ -3934,7 +3934,7 @@ module.exports = class huobi extends Exchange {
         return response;
     }
 
-    currencyToPrecision (code, fee) {
+    currencyToPrecision (code, fee, networkCode = undefined) {
         return this.decimalToPrecision (fee, 0, this.currencies[code]['precision']);
     }
 
