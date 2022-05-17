@@ -1460,10 +1460,7 @@ module.exports = class coinflex extends Exchange {
         } else {
             finalLimitPrice = limitPrice;
         }
-        let trades = this.safeValue (order, 'matchIds');
-        if (trades !== undefined) {
-            trades = this.parseTrades (trades, market);
-        }
+        const trades = this.safeValue (order, 'matchIds');
         let cost = undefined;
         if (avgPriceRaw !== undefined && filledQuantityRaw !== undefined) {
             cost = Precise.stringMul (avgPriceRaw, filledQuantityRaw);
