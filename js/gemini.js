@@ -1270,8 +1270,9 @@ module.exports = class gemini extends Exchange {
         //      }
         //
         const address = this.safeString (depositAddress, 'address');
+        const code = this.safeCurrencyCode (undefined, currency);
         return {
-            'currency': currency,
+            'currency': code,
             'network': undefined,
             'address': address,
             'tag': undefined,
