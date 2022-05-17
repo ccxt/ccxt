@@ -1214,17 +1214,37 @@ module.exports = class okx extends Exchange {
         const marketId = this.safeString (ticker, 'instId');
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
-        const last = this.safeString (ticker, 'last');
-        const open = this.safeString (ticker, 'open24h');
+        let last = this.safeString (ticker, 'last');
+        if (last === '') {
+            last = undefined;
+        }
+        let open = this.safeString (ticker, 'open24h');
+        if (open === '') {
+            open = undefined;
+        }
         const spot = this.safeValue (market, 'spot', false);
-        const quoteVolume = spot ? this.safeString (ticker, 'volCcy24h') : undefined;
-        const baseVolume = this.safeString (ticker, 'vol24h');
+        let quoteVolume = spot ? this.safeString (ticker, 'volCcy24h') : undefined;
+        if (quoteVolume === '') {
+            quoteVolume = undefined;
+        }
+        let baseVolume = this.safeString (ticker, 'vol24h');
+        if (baseVolume === '') {
+            baseVolume = undefined;
+        }
+        let high = this.safeString (ticker, '24h');
+        if (high === '') {
+            high = undefined;
+        }
+        let low = this.safeString (ticker, 'low24h');
+        if (low === '') {
+            low = undefined;
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (ticker, 'high24h'),
-            'low': this.safeString (ticker, 'low24h'),
+            'high': high,
+            'low': low,
             'bid': this.safeString (ticker, 'bidPx'),
             'bidVolume': this.safeString (ticker, 'bidSz'),
             'ask': this.safeString (ticker, 'askPx'),

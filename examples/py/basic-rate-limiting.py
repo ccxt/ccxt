@@ -14,7 +14,7 @@ import ccxt  # noqa: E402
 symbol = 'ETH/BTC'
 
 exchange = ccxt.poloniex({
-    'enableRateLimit': True,  # or .enableRateLimit = True later
+    'enableRateLimit': True,  # enabled by default
 })
 
 # print 10 times with appropriate delay

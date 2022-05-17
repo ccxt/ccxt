@@ -605,6 +605,7 @@ class bybit(Exchange):
                     # '30084': BadRequest,  # Isolated not modified, see handleErrors below
                     '33004': AuthenticationError,  # apikey already expired
                     '34026': ExchangeError,  # the limit is no change
+                    '34036': BadRequest,  # {"ret_code":34036,"ret_msg":"leverage not modified","ext_code":"","ext_info":"","result":null,"time_now":"1652376449.258918","rate_limit_status":74,"rate_limit_reset_ms":1652376449255,"rate_limit":75}
                     '130021': InsufficientFunds,  # {"ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100}
                 },
                 'broad': {
@@ -3565,40 +3566,37 @@ class bybit(Exchange):
         market = self.market(symbol)
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        defaultType = self.safe_string(self.options, 'defaultType', 'linear')
-        marketTypes = self.safe_value(self.options, 'marketTypes', {})
-        marketType = self.safe_string(marketTypes, symbol, defaultType)
-        linear = market['linear'] or (marketType == 'linear')
-        inverse = (market['swap'] and market['inverse']) or (marketType == 'inverse')
-        future = market['future'] or ((marketType == 'future') or (marketType == 'futures'))  # * (marketType == 'futures') deprecated, use(marketType == 'future')
+        isUsdcSettled = market['settle'] == 'USDC'
         method = None
-        if linear:
-            method = 'privateLinearPostPositionSetLeverage'
-        elif inverse:
-            method = 'v2PrivatePostPositionLeverageSave'
-        elif future:
-            method = 'privateFuturesPostPositionLeverageSave'
-        buy_leverage = leverage
-        sell_leverage = leverage
-        if params['buy_leverage'] and params['sell_leverage'] and linear:
-            buy_leverage = params['buy_leverage']
-            sell_leverage = params['sell_leverage']
-        elif not leverage:
-            if linear:
-                raise ArgumentsRequired(self.id + ' setLeverage() requires either the parameter leverage or params["buy_leverage"] and params["sell_leverage"] for linear contracts')
-            else:
-                raise ArgumentsRequired(self.id + ' setLeverage() requires parameter leverage for inverse and futures contracts')
-        if (buy_leverage < 1) or (buy_leverage > 100) or (sell_leverage < 1) or (sell_leverage > 100):
-            raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 100')
+        if isUsdcSettled:
+            method = 'privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave'
+        elif market['future']:
+            method = 'privatePostFuturesPrivatePositionLeverageSave'
+        elif market['linear']:
+            method = 'privatePostPrivateLinearPositionSetLeverage'
+        else:
+            # inverse swaps
+            method = 'privatePostV2PrivatePositionLeverageSave'
         request = {
             'symbol': market['id'],
-            'leverage_only': True,
         }
-        if not linear:
-            request['leverage'] = buy_leverage
+        leverage = str(leverage) if isUsdcSettled else int(leverage)
+        isLinearSwap = market['swap'] and market['linear']
+        requiresBuyAndSellLeverage = not isUsdcSettled and (isLinearSwap or market['future'])
+        if requiresBuyAndSellLeverage:
+            buyLeverage = self.safe_number(params, 'buy_leverage')
+            sellLeverage = self.safe_number(params, 'sell_leverage')
+            if buyLeverage is not None and sellLeverage is not None:
+                if (buyLeverage < 1) or (buyLeverage > 100) or (sellLeverage < 1) or (sellLeverage > 100):
+                    raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 100')
+            else:
+                request['buy_leverage'] = leverage
+                request['sell_leverage'] = leverage
         else:
-            request['buy_leverage'] = buy_leverage
-            request['sell_leverage'] = sell_leverage
+            # requires leverage
+            request['leverage'] = leverage
+        if (leverage < 1) or (leverage > 100):
+            raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 100')
         return getattr(self, method)(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

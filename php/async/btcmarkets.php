@@ -65,6 +65,7 @@ class btcmarkets extends Exchange {
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'withdraw' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/89731817-b3fb8480-da52-11ea-817f-783b08aaf32b.jpg',
@@ -193,9 +194,12 @@ class btcmarkets extends Exchange {
     }
 
     public function parse_transaction_status($status) {
-        // todo => find more $statuses
         $statuses = array(
+            'Accepted' => 'pending',
+            'Pending Authorization' => 'pending',
             'Complete' => 'ok',
+            'Cancelled' => 'cancelled',
+            'Failed' => 'failed',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -960,6 +964,41 @@ class btcmarkets extends Exchange {
         //     )
         //
         return $this->parse_trades($response, $market, $since, $limit);
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency_id' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+        );
+        if ($code !== 'AUD') {
+            $this->check_address($address);
+            $request['toAddress'] = $address;
+        }
+        if ($tag !== null) {
+            $request['toAddress'] = $address . '?dt=' . $tag;
+        }
+        $response = yield $this->privatePostWithdrawals (array_merge($request, $params));
+        //
+        //      {
+        //          "id" => "4126657",
+        //          "assetName" => "XRP",
+        //          "amount" => "25",
+        //          "type" => "Withdraw",
+        //          "creationTime" => "2019-09-04T00:04:10.973000Z",
+        //          "status" => "Pending Authorization",
+        //          "description" => "XRP withdraw from [me@test.com] to Address => abc $amount => 25 fee => 0",
+        //          "fee" => "0",
+        //          "lastUpdate" => "2019-09-04T00:04:11.018000Z",
+        //          "paymentDetail" => {
+        //              "address" => "abc"
+        //          }
+        //      }
+        //
+        return $this->parse_transaction($response, $currency);
     }
 
     public function nonce() {
