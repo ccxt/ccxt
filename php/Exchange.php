@@ -2905,8 +2905,19 @@ class Exchange {
         return self::decimal_to_precision($fee, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
-    public function currency_to_precision($code, $fee) {
-        return self::decimal_to_precision($fee, ROUND, $this->currencies[$code]['precision'], $this->precisionMode, $this->paddingMode);
+    public function currency_to_precision($code, $fee, $networkCode = null) {
+        $currency = $this->currencies[$code];
+        $precision = $this->safeValue ($currency, 'precision');
+        if ($networkCode !== null) {
+            $networks = $this->safeValue ($currency, 'networks', []);
+            $networkItem = $this->safeValue ($networks, 'networkCode', []);
+            $precision = $this->safeValue ($networkItem, 'precision', $precision);
+        }
+        if ($precision === null) {
+            return $fee;
+        } else {
+            return self::decimalToPrecision ($fee, ROUND, $precision, $this->precisionMode, $this->paddingMode);
+        }
     }
 
     public function currency($code) {
