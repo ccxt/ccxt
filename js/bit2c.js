@@ -559,21 +559,18 @@ module.exports = class bit2c extends Exchange {
         }, market);
     }
 
-    getCurrencyName (code) {
-        return code.toUpperCase ();
-    }
-
     isFiat (code) {
         return code === 'ILS';
     }
 
     async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets();
+        const currency = this.currency (code);
         if (this.isFiat (code)) {
             throw new NotSupported (this.id + ' fetchDepositAddress() does not support fiat currencies');
         }
-        const name = this.getCurrencyName (code);
         const request = {
-            'Coin': name,
+            'Coin': currency['id'],
         };
         const response = await this.privatePostFundsAddCoinFundsRequest (this.extend (request, params));
         const address = this.safeString (response, 'address');
