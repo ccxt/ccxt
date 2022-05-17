@@ -40,7 +40,7 @@ module.exports = class coinflex extends ccxt.coinflex {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = channel + ':' + market['id'];
-        return await this.watchPublic (messageHash, params);
+        return await this.watchPublic (messageHash, messageHash, params);
     }
 
     handleTicker (client, message) {
@@ -135,7 +135,7 @@ module.exports = class coinflex extends ccxt.coinflex {
         const market = this.market (symbol);
         const interval = this.timeframes[timeframe];
         const messageHash = channel + interval + ':' + market['id'];
-        const ohlcv = await this.watchPublic (messageHash, params);
+        const ohlcv = await this.watchPublic (messageHash, messageHash, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -212,7 +212,7 @@ module.exports = class coinflex extends ccxt.coinflex {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = channel + ':' + market['id'];
-        const orderbook = await this.watchPublic (messageHash, params);
+        const orderbook = await this.watchPublic (messageHash, messageHash, params);
         return orderbook.limit (limit);
     }
 
@@ -269,7 +269,7 @@ module.exports = class coinflex extends ccxt.coinflex {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = channel + ':' + market['id'];
-        const trades = await this.watchPublic (messageHash, params);
+        const trades = await this.watchPublic (messageHash, messageHash, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -302,7 +302,6 @@ module.exports = class coinflex extends ccxt.coinflex {
             marketIds[marketId] = true;
             const market = this.safeMarket (marketId, undefined);
             const symbol = market['symbol'];
-            // we need a custom parser here too
             const parsedTrade = this.parseWsTrade (trade, market);
             let stored = this.safeValue (this.trades, symbol);
             if (stored === undefined) {
@@ -368,7 +367,7 @@ module.exports = class coinflex extends ccxt.coinflex {
         } else {
             messageHash += ':all';
         }
-        const orders = await this.watchPrivate (messageHash, params);
+        const orders = await this.watchPrivate (messageHash, messageHash, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -428,9 +427,6 @@ module.exports = class coinflex extends ccxt.coinflex {
         //
         const channel = this.safeString (message, 'table');
         const rawOrders = this.safeValue (message, 'data', []);
-        // if (!Array.isArray (rawOrders)) {
-        //     rawOrders = [ rawOrders ];
-        // }
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -464,7 +460,7 @@ module.exports = class coinflex extends ccxt.coinflex {
 
     async watchBalance (params = {}) {
         const messageHash = 'balance:all';
-        return await this.watchPrivate (messageHash, params);
+        return await this.watchPrivate (messageHash, messageHash, params);
     }
 
     handleBalance (client, message) {
@@ -509,7 +505,28 @@ module.exports = class coinflex extends ccxt.coinflex {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchPublic (messageHash, params = {}) {
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let subHash = 'order';
+        let messageHash = 'usertrades';
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+            subHash += ':' + market['id'];
+            messageHash += ':' + market['id'];
+        } else {
+            subHash += ':all';
+            messageHash += ':all';
+        }
+        const trades = await this.watchPrivate (subHash, messageHash, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    async watchPublic (subscriptionHash, messageHash, params = {}) {
         const url = this.urls['api']['ws'];
         const id = this.nonce ();
         const request = {
@@ -518,12 +535,12 @@ module.exports = class coinflex extends ccxt.coinflex {
             'args': [ messageHash ],
         };
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message, messageHash);
+        return await this.watch (url, messageHash, message, subscriptionHash);
     }
 
-    async watchPrivate (messageHash, params = {}) {
+    async watchPrivate (subscriptionHash, messageHash, params = {}) {
         await this.authenticate ();
-        return await this.watchPublic (messageHash, params);
+        return await this.watchPublic (subscriptionHash, messageHash, params);
     }
 
     async authenticate (params = {}) {
