@@ -3903,12 +3903,12 @@ module.exports = class zb extends Exchange {
         //         "desc":"操作成功"
         //     }
         //
-        return this.extend (this.parseModifyMargin (response, market), {
+        return this.extend (this.parseMarginModification (response, market), {
             'amount': this.parseNumber (amount),
         });
     }
 
-    parseModifyMargin (data, market = undefined) {
+    parseMarginModification (data, market = undefined) {
         const innerData = this.safeValue (data, 'data', {});
         const sideRaw = this.safeInteger (innerData, 'side');
         const side = (sideRaw === 1) ? 'add' : 'reduce';
