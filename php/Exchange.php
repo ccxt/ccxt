@@ -2907,11 +2907,11 @@ class Exchange {
 
     public function currency_to_precision($code, $fee, $networkCode = null) {
         $currency = $this->currencies[$code];
-        $precision = $this->safeValue($currency, 'precision');
+        $precision = $this->safe_value($currency, 'precision');
         if ($networkCode !== null) {
-            $networks = $this->safeValue($currency, 'networks', []);
-            $networkItem = $this->safeValue($networks, 'networkCode', []);
-            $precision = $this->safeValue($networkItem, 'precision', $precision);
+            $networks = $this->safe_value($currency, 'networks', []);
+            $networkItem = $this->safe_value($networks, 'networkCode', []);
+            $precision = $this->safe_value($networkItem, 'precision', $precision);
         }
         if ($precision === null) {
             return $fee;
