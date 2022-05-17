@@ -3347,7 +3347,9 @@ class bybit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = yield $this->v2PrivateGetWalletFundRecords (array_merge($request, $params));
+        // Currently only works for deposits prior to 2021-07-15
+        // will be updated soon
+        $response = yield $this->privateGetV2PrivateWalletFundRecords (array_merge($request, $params));
         //
         //     {
         //         "ret_code" => 0,
@@ -3544,7 +3546,7 @@ class bybit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = yield $this->v2PrivateGetWalletFundRecords (array_merge($request, $params));
+        $response = yield $this->privateGetV2PrivateWalletFundRecords (array_merge($request, $params));
         //
         //     {
         //         "ret_code" => 0,

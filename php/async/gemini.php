@@ -1274,8 +1274,9 @@ class gemini extends Exchange {
         //      }
         //
         $address = $this->safe_string($depositAddress, 'address');
+        $code = $this->safe_currency_code(null, $currency);
         return array(
-            'currency' => $currency,
+            'currency' => $code,
             'network' => null,
             'address' => $address,
             'tag' => null,

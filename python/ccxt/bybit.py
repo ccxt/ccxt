@@ -3194,7 +3194,9 @@ class bybit(Exchange):
             request['start_date'] = self.yyyymmdd(since)
         if limit is not None:
             request['limit'] = limit
-        response = self.v2PrivateGetWalletFundRecords(self.extend(request, params))
+        # Currently only works for deposits prior to 2021-07-15
+        # will be updated soon
+        response = self.privateGetV2PrivateWalletFundRecords(self.extend(request, params))
         #
         #     {
         #         "ret_code": 0,
@@ -3380,7 +3382,7 @@ class bybit(Exchange):
             request['start_date'] = self.yyyymmdd(since)
         if limit is not None:
             request['limit'] = limit
-        response = self.v2PrivateGetWalletFundRecords(self.extend(request, params))
+        response = self.privateGetV2PrivateWalletFundRecords(self.extend(request, params))
         #
         #     {
         #         "ret_code": 0,

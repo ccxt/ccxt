@@ -1224,8 +1224,9 @@ class gemini(Exchange):
         #      }
         #
         address = self.safe_string(depositAddress, 'address')
+        code = self.safe_currency_code(None, currency)
         return {
-            'currency': currency,
+            'currency': code,
             'network': None,
             'address': address,
             'tag': None,
