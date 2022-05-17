@@ -48,7 +48,7 @@ async function main () {
     const unified = Object.entries (reduced).filter (([ _, count ]) => count > 1)
     const methods = unified.map (([ method, _ ]) => method).sort ()
     if (selectedExchanges.length > 0) {
-        exchanges = exchanges.filter ((exchange) => (selectedExchanges.includes(exchange.id)))
+        exchanges = exchanges.filter ((exchange) => selectedExchanges.includes(exchange.id))
     }
     const table = asTable (exchanges.map (exchange => {
         let result = {};
