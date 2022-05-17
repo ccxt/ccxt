@@ -536,6 +536,8 @@ class okx(Exchange, ccxt.okx):
         if symbol is not None:
             market = self.market(symbol)
             type = market['type']
+        if type == 'future':
+            type = 'futures'
         uppercaseType = type.upper()
         request = {
             'instType': uppercaseType,
