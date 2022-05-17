@@ -1051,7 +1051,7 @@ class kucoin extends Exchange {
         $method = 'publicGetMarketOrderbookLevelLevelLimit';
         $isAuthenticated = $this->check_required_credentials(false);
         $response = null;
-        if (!$isAuthenticated) {
+        if (!$isAuthenticated || $limit !== null) {
             if ($level === 2) {
                 $request['level'] = $level;
                 if ($limit !== null) {
@@ -1062,13 +1062,11 @@ class kucoin extends Exchange {
                     }
                 }
                 $request['limit'] = $limit ? $limit : 100;
-                $method = 'publicGetMarketOrderbookLevelLevelLimit';
-                $response = yield $this->$method (array_merge($request, $params));
             }
         } else {
             $method = 'privateGetMarketOrderbookLevel2'; // recommended (v3)
-            $response = yield $this->$method (array_merge($request, $params));
         }
+        $response = yield $this->$method (array_merge($request, $params));
         //
         // public (v1) market/orderbook/level2_20 and market/orderbook/level2_100
         //

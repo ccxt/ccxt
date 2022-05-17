@@ -670,7 +670,7 @@ module.exports = class mexc3 extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': undefined,
+                    'amount': this.safeInteger (market, 'baseAssetPrecision'),
                     'price': this.safeInteger (market, 'quotePrecision'),
                     'base': this.safeInteger (market, 'baseAssetPrecision'),
                     'quote': this.safeInteger (market, 'quoteAssetPrecision'),

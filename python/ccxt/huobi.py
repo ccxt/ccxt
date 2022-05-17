@@ -2454,6 +2454,8 @@ class huobi(Exchange):
         #         "ts":1640915104870
         #     }
         #
+        # TODO add balance parsing for linear swap
+        #
         result = {'info': response}
         data = self.safe_value(response, 'data')
         if spot:
@@ -4788,7 +4790,7 @@ class huobi(Exchange):
         contracts = self.safe_string(position, 'volume')
         contractSize = self.safe_value(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
-        entryPrice = self.safe_number(position, 'cost_hold')
+        entryPrice = self.safe_number(position, 'cost_open')
         initialMargin = self.safe_string(position, 'position_margin')
         rawSide = self.safe_string(position, 'direction')
         side = 'long' if (rawSide == 'buy') else 'short'

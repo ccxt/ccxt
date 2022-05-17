@@ -1751,7 +1751,7 @@ module.exports = class bitget extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        const method = this.getSupportedMapping (marketType, {
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'privateSpotPostTradeCancelOrder',
             'swap': 'privateMixPostOrderCancelOrder',
         });
@@ -1759,6 +1759,16 @@ module.exports = class bitget extends Exchange {
             'symbol': market['id'],
             'orderId': id,
         };
+        const stop = this.safeValue (params, 'stop');
+        if (stop) {
+            const planType = this.safeString (params, 'planType');
+            if (planType === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan or loss_plan');
+            }
+            request['planType'] = planType;
+            method = 'privateMixPostPlanCancelPlan';
+            params = this.omit (params, [ 'stop', 'planType' ]);
+        }
         if (marketType === 'swap') {
             request['marginCoin'] = market['settleId'];
         }

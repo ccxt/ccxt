@@ -663,7 +663,7 @@ class mexc3(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': None,
+                    'amount': self.safe_integer(market, 'baseAssetPrecision'),
                     'price': self.safe_integer(market, 'quotePrecision'),
                     'base': self.safe_integer(market, 'baseAssetPrecision'),
                     'quote': self.safe_integer(market, 'quoteAssetPrecision'),
