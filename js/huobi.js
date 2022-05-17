@@ -5173,7 +5173,8 @@ module.exports = class huobi extends Exchange {
         await this.loadMarkets ();
         const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'isolated');
         const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
-        let [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
         if (marketType === 'spot') {
             marketType = 'future';
         }
@@ -5266,7 +5267,7 @@ module.exports = class huobi extends Exchange {
             //     }
             //
         }
-        const response = await this[method] (query);
+        const response = await this[method] (params);
         const data = this.safeValue (response, 'data');
         const timestamp = this.safeInteger (response, 'ts');
         const result = [];
