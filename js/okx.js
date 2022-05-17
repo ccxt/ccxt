@@ -1231,7 +1231,7 @@ module.exports = class okx extends Exchange {
         if (baseVolume === '') {
             baseVolume = undefined;
         }
-        let high = this.safeString (ticker, '24h');
+        let high = this.safeString (ticker, 'high24h');
         if (high === '') {
             high = undefined;
         }
