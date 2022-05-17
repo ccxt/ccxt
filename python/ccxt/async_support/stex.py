@@ -85,6 +85,7 @@ class stex(Exchange):
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': True,
                 'withdraw': True,
             },
             'version': 'v3',
@@ -93,6 +94,7 @@ class stex(Exchange):
                 'api': 'https://api3.stex.com',
                 'www': 'https://www.stex.com',
                 'doc': [
+                    'https://apidocs.stex.com/',
                     'https://help.stex.com/en/collections/1593608-api-v3-documentation',
                 ],
                 'fees': 'https://app.stex.com/en/pairs-specification',
@@ -269,6 +271,15 @@ class stex(Exchange):
                     'TRX': 24,
                     'SOL': 25,
                     'BEP20': 501,
+                },
+                'accountsByType': {
+                    'spot': 'spot',
+                    'hold': 'hold',
+                    'funding': 'funding',
+                    'referal': 'referal',
+                },
+                'transfer': {
+                    'fillResponseFromRequest': True,
                 },
             },
             'exceptions': {
@@ -1806,6 +1817,223 @@ class stex(Exchange):
         #
         withdrawals = self.safe_value(response, 'data', [])
         return self.parse_transactions(withdrawals, code, since, limit)
+
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        method = None
+        request = {}
+        if fromAccount == 'referal' and toAccount == 'spot':
+            request['currencyId'] = currency['id']
+            method = 'profilePostReferralBonusTransferCurrencyId'
+        elif toAccount == 'hold':
+            request['walletId'] = fromAccount
+            amount = self.currency_to_precision(code, amount)
+            amount = Precise.string_neg(amount)
+            request['amount'] = amount
+            method = 'profilePostWalletsWalletIdHoldAmount'
+        elif fromAccount == 'hold':
+            request['walletId'] = toAccount
+            request['amount'] = amount
+            method = 'profilePostWalletsWalletIdHoldAmount'
+        else:
+            raise ExchangeError(self.id + ' transfer() only allows transfers of referal to spot and between a walletId and funding')
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #  profilePostReferralBonusTransferCurrencyId
+        #     {
+        #         "success": True,
+        #         "data": ""
+        #     }
+        #
+        #  profilePostWalletsWalletIdHoldAmount
+        #     {
+        #         success: True,
+        #         data: {
+        #             id: '4055802',
+        #             currency_id: '272',
+        #             currency_code: 'USDT',
+        #             currency_name: 'TetherUSD',
+        #             balance: '10.00000000',
+        #             frozen_balance: '0.00000000',
+        #             bonus_balance: '0.00000000',
+        #             hold_balance: '1.00000000',
+        #             total_balance: '11.00000000',
+        #             disable_deposits: False,
+        #             disable_withdrawals: False,
+        #             withdrawal_limit: '0.00000000',
+        #             delisted: False,
+        #             disabled: False,
+        #             deposit_address: null,
+        #             multi_deposit_addresses: [{
+        #                 address: 'TYzhabfHWMLgLnMW46ZyUHkUVJPXaDgdxK',
+        #                 address_name: 'Deposit Address',
+        #                 additional_address_parameter: null,
+        #                 additional_address_parameter_name: null,
+        #                 notification: '',
+        #                 protocol_id: '24',
+        #                 protocol_name: 'TRON',
+        #                 supports_new_address_creation: False
+        #             }],
+        #             contract_or_asset_id: '31',
+        #             contract_field_name: null,
+        #             withdrawal_additional_field_name: null,
+        #             depo_message: '',
+        #             wd_message: '',
+        #             currency_type_id: '23',
+        #             protocol_specific_settings: [{
+        #                 {
+        #                     protocol_name: 'ERC20',
+        #                     protocol_id: '5',
+        #                     active: True,
+        #                     disable_deposits: False,
+        #                     disable_withdrawals: False,
+        #                     withdrawal_limit: '0',
+        #                     deposit_fee_currency_id: '272',
+        #                     deposit_fee_currency_code: 'USDT',
+        #                     deposit_fee_percent: '0',
+        #                     deposit_fee_const: '0',
+        #                     withdrawal_fee_currency_id: '272',
+        #                     withdrawal_fee_currency_code: 'USDT',
+        #                     withdrawal_fee_const: '10',
+        #                     withdrawal_fee_percent: '0',
+        #                     block_explorer_url: 'https://etherscan.io/tx/',
+        #                     contract_or_asset_id: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        #                     contract_field_name: '',
+        #                     withdrawal_additional_field_name: '',
+        #                     depo_message: '',
+        #                     wd_message: ''
+        #                 },
+        #                 ...
+        #             ],
+        #             coin_info: {
+        #                 twitter: 'https://twitter.com/Tether_to',
+        #                 version: '',
+        #                 facebook: 'https://www.facebook.com/tether.to',
+        #                 telegram: '',
+        #                 icon_large: 'https://app-coin-images.stex.com/large/usdt.png',
+        #                 icon_small: 'https://app-coin-images.stex.com/small/usdt.png',
+        #                 description: 'Tether(USDT) is a cryptocurrency with a value meant to mirror the value of the U.S. dollar. The idea was to create a stable cryptocurrency that can be used like digital dollars. Coins that serve self purpose of being a stable dollar substitute are called “stable coins.” Tether is the most popular stable coin and even acts as a dollar replacement on many popular exchanges! According to their site, Tether converts cash into digital currency, to anchor or “tether” the value of the coin to the price of national currencies like the US dollar, the Euro, and the Yen. Like other cryptos it uses blockchain. Unlike other cryptos, it is [according to the official Tether site] “100% backed by USD”(USD is held in reserve). The primary use of Tether is that it offers some stability to the otherwise volatile crypto space and offers liquidity to exchanges who can’t deal in dollars and with banks(for example to the sometimes controversial but leading exchange Bitfinex).The digital coins are issued by a company called Tether Limited that is governed by the laws of the British Virgin Islands, according to the legal part of its website. It is incorporated in Hong Kong. It has emerged that Jan Ludovicus van der Velde is the CEO of cryptocurrency exchange Bitfinex, which has been accused of being involved in the price manipulation of bitcoin, as well as tether. Many people trading on exchanges, including Bitfinex, will use tether to buy other cryptocurrencies like bitcoin. Tether Limited argues that using self method to buy virtual currencies allows users to move fiat in and out of an exchange more quickly and cheaply. Also, exchanges typically have rocky relationships with banks, and using Tether is a way to circumvent that.USDT is fairly simple to use. Once on exchanges like Poloniex or Bittrex, it can be used to purchase Bitcoin and other cryptocurrencies. It can be easily transferred from an exchange to any Omni Layer enabled wallet. Tether has no transaction fees, although external wallets and exchanges may charge one. In order to convert USDT to USD and vise versa through the Tether.to Platform, users must pay a small fee. Buying and selling Tether for Bitcoin can be done through a variety of exchanges like the ones mentioned previously or through the Tether.to platform, which also allows the conversion between USD to and from your bank account.',
+        #                 official_site: 'https://tether.to/',
+        #                 official_block_explorer: 'https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7'
+        #             },
+        #             rates: {
+        #                 BTC: '0.00003372',
+        #                 USD: '1'
+        #             }
+        #         },
+        #         unified_message: {
+        #             message_id: 'operation_successful',
+        #             substitutions: []
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        transfer = self.parse_transfer(data, currency)
+        transferOptions = self.safe_value(self.options, 'transfer', {})
+        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            transfer['fromAccount'] = fromAccount
+            transfer['toAccount'] = toAccount
+            if isinstance(amount, str) and Precise.string_lt(amount, '0'):
+                amount = self.parse_number(Precise.string_neg(amount))
+            transfer['amount'] = amount
+            if transfer['currency'] is None:
+                transfer['currency'] = code
+        return transfer
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         "id": 45875,
+        #         "currency_id": 1,
+        #         "currency_code": "USDT",
+        #         "currency_name": "TetherUSD",
+        #         "balance": "0.198752",
+        #         "frozen_balance": "1.5784",
+        #         "bonus_balance": "0.000",
+        #         "hold_balance": "0.000",
+        #         "total_balance": "1.777152",
+        #         "disable_deposits": False,
+        #         "disable_withdrawals": False,
+        #         "withdrawal_limit": "string",
+        #         "delisted": False,
+        #         "disabled": False,
+        #         "deposit_address": {
+        #             "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        #             "address_name": "Address",
+        #             "additional_address_parameter": "qwertyuiopasdfghjkl",
+        #             "additional_address_parameter_name": "Destination Tag",
+        #             "notification": "",
+        #             "protocol_id": 10,
+        #             "protocol_name": "Tether OMNI",
+        #             "supports_new_address_creation": False
+        #         },
+        #         "multi_deposit_addresses": [{
+        #             "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        #             "address_name": "Address",
+        #             "additional_address_parameter": "qwertyuiopasdfghjkl",
+        #             "additional_address_parameter_name": "Destination Tag",
+        #             "notification": "",
+        #             "protocol_id": 10,
+        #             "protocol_name": "Tether OMNI",
+        #             "supports_new_address_creation": False
+        #         }],
+        #         "withdrawal_additional_field_name": "Payment ID(optional)",
+        #         "currency_type_id": 23,
+        #         "protocol_specific_settings": [{
+        #             "protocol_name": "Tether OMNI",
+        #             "protocol_id": 10,
+        #             "active": True,
+        #             "disable_deposits": False,
+        #             "disable_withdrawals": False,
+        #             "withdrawal_limit": 0,
+        #             "deposit_fee_currency_id": 272,
+        #             "deposit_fee_currency_code": "USDT",
+        #             "deposit_fee_percent": 0,
+        #             "deposit_fee_const": 0,
+        #             "withdrawal_fee_currency_id": 1,
+        #             "withdrawal_fee_currency_code": "USDT",
+        #             "withdrawal_fee_const": 0.002,
+        #             "withdrawal_fee_percent": 0,
+        #             "block_explorer_url": "https://omniexplorer.info/search/",
+        #             "withdrawal_additional_field_name": ""
+        #         }],
+        #         "coin_info": {
+        #             "twitter": "https://twitter.com/btc",
+        #             "version": "",
+        #             "facebook": "https://www.facebook.com/bitcoins",
+        #             "telegram": "",
+        #             "icon_large": "https://app-coin-images.stex.com/large/btc.png",
+        #             "icon_small": "https://app-coin-images.stex.com/small/btc.png",
+        #             "description": "Bitcoin is the first successful internet money based on peer-to-peer technology;....",
+        #             "official_site": "http://www.bitcoin.org",
+        #             "official_block_explorer": "https://blockchair.com/bitcoin/"
+        #         },
+        #         "rates": {
+        #             "BTC": 0.000001
+        #         }
+        #     }
+        #
+        currencyId = self.safe_string(transfer, 'currency_id')
+        code = None
+        if currencyId in self.currencies_by_id:
+            currency = self.currencies_by_id[currencyId]
+        else:
+            code = self.common_currency_code(self.safe_string(transfer, 'currency_code'))
+        if code is None:
+            code = self.safe_value(currency, 'code')
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'id'),
+            'timestamp': None,
+            'datetime': None,
+            'currency': code,
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': None,
+        }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
