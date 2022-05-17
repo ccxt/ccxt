@@ -127,6 +127,7 @@ module.exports = class kucoin extends ccxt.kucoin {
     async watchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const negotiation = await this.negotiate ();
         const options = this.safeValue (this.options, 'watchTicker', {});
         const channel = this.safeString (options, 'topic', 'market/snapshot');
@@ -213,6 +214,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const period = this.timeframes[timeframe];
         const topic = '/market/candles:' + market['id'] + '_' + period;
         const messageHash = topic;
@@ -270,6 +272,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const topic = '/market/match:' + market['id'];
         const messageHash = topic;
         const trades = await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
@@ -338,6 +341,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const topic = '/market/level2:' + market['id'];
         const messageHash = topic;
         const orderbook = await this.subscribe (negotiation, topic, messageHash, this.handleOrderBookSubscription, symbol, params);
@@ -577,6 +581,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         let messageHash = topic;
         if (symbol !== undefined) {
             const market = this.market (symbol);
+            symbol = market['symbol'];
             messageHash = messageHash + ':' + market['symbol'];
         }
         const orders = await this.subscribe (negotiation, topic, messageHash, undefined, undefined, this.extend (request, params));
