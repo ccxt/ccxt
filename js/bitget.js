@@ -1939,8 +1939,8 @@ module.exports = class bitget extends Exchange {
         const stop = this.safeValue (params, 'stop');
         if (stop) {
             method = 'privateMixGetPlanCurrentPlan';
+            params = this.omit (params, 'stop');
         }
-        params = this.omit (params, 'stop');
         const response = await this[method] (this.extend (request, query));
         //
         //  spot
