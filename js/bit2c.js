@@ -573,6 +573,7 @@ module.exports = class bit2c extends Exchange {
             'Coin': currency['id'],
         };
         const response = await this.privatePostFundsAddCoinFundsRequest (this.extend (request, params));
+        //     {'address': '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42', 'hasTx': False}
         const address = this.safeString (response, 'address');
         this.checkAddress (address);
         return {
