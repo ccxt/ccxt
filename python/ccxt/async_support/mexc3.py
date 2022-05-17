@@ -663,7 +663,7 @@ class mexc3(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': None,
+                    'amount': self.safe_integer(market, 'baseAssetPrecision'),
                     'price': self.safe_integer(market, 'quotePrecision'),
                     'base': self.safe_integer(market, 'baseAssetPrecision'),
                     'quote': self.safe_integer(market, 'quoteAssetPrecision'),
@@ -2482,7 +2482,7 @@ class mexc3(Exchange):
             positionType = self.safe_number(params, 'positionType')  # 1 or 2
             market = self.market(symbol) if (symbol is not None) else None
             if (openType is None) or (positionType is None) or (market is None):
-                raise ArgumentsRequired(self.id + ' setLeverage() requires a positionId parameter or openType+positionType+Market parameters')
+                raise ArgumentsRequired(self.id + ' setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross margin respectively, use positionType 1 or 2 for long or short positions')
             else:
                 request['openType'] = openType
                 request['symbol'] = market['symbol']

@@ -1201,16 +1201,30 @@ class okx(Exchange):
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
         last = self.safe_string(ticker, 'last')
+        if last == '':
+            last = None
         open = self.safe_string(ticker, 'open24h')
+        if open == '':
+            open = None
         spot = self.safe_value(market, 'spot', False)
         quoteVolume = self.safe_string(ticker, 'volCcy24h') if spot else None
+        if quoteVolume == '':
+            quoteVolume = None
         baseVolume = self.safe_string(ticker, 'vol24h')
+        if baseVolume == '':
+            baseVolume = None
+        high = self.safe_string(ticker, '24h')
+        if high == '':
+            high = None
+        low = self.safe_string(ticker, 'low24h')
+        if low == '':
+            low = None
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_string(ticker, 'high24h'),
-            'low': self.safe_string(ticker, 'low24h'),
+            'high': high,
+            'low': low,
             'bid': self.safe_string(ticker, 'bidPx'),
             'bidVolume': self.safe_string(ticker, 'bidSz'),
             'ask': self.safe_string(ticker, 'askPx'),

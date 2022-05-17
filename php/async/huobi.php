@@ -2420,22 +2420,23 @@ class huobi extends Exchange {
 
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $options = $this->safe_value($this->options, 'fetchBalance', array());
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-        $type = $this->safe_string($options, 'type', $defaultType);
-        $type = $this->safe_string($params, 'type', $type);
-        $params = $this->omit($params, 'type');
         $request = array();
         $method = null;
         $spot = ($type === 'spot');
         $future = ($type === 'future');
         $swap = ($type === 'swap');
-        $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
-        $subType = $this->safe_string($options, 'subType', $defaultSubType);
-        $subType = $this->safe_string($params, 'subType', $subType);
+        $defaultSubType = $this->safe_string_2($this->options, 'defaultSubType', 'subType', 'inverse');
+        $subType = $this->safe_string_2($options, 'defaultSubType', 'subType', $defaultSubType);
+        $subType = $this->safe_string_2($params, 'defaultSubType', 'subType', $subType);
         $inverse = ($subType === 'inverse');
         $linear = ($subType === 'linear');
         $marginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'isolated');
+        $marginMode = $this->safe_string_2($options, 'defaultMarginMode', 'marginMode', $marginMode);
+        $marginMode = $this->safe_string_2($params, 'defaultMarginMode', 'marginMode', $marginMode);
+        $params = $this->omit($params, array( 'defaultSubType', 'subType', 'defaultMarginMode', 'marginMode' ));
         $isolated = ($marginMode === 'isolated');
         $cross = ($marginMode === 'cross');
         if ($spot) {
@@ -2558,6 +2559,8 @@ class huobi extends Exchange {
         //         ),
         //         "ts":1640915104870
         //     }
+        //
+        // TODO add $balance parsing for $linear $swap
         //
         $result = array( 'info' => $response );
         $data = $this->safe_value($response, 'data');
@@ -5094,7 +5097,7 @@ class huobi extends Exchange {
         $contracts = $this->safe_string($position, 'volume');
         $contractSize = $this->safe_value($market, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
-        $entryPrice = $this->safe_number($position, 'cost_hold');
+        $entryPrice = $this->safe_number($position, 'cost_open');
         $initialMargin = $this->safe_string($position, 'position_margin');
         $rawSide = $this->safe_string($position, 'direction');
         $side = ($rawSide === 'buy') ? 'long' : 'short';

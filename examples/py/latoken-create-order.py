@@ -12,7 +12,6 @@ import ccxt  # noqa: E402
 exchange = ccxt.latoken({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET',
-    'enableRateLimit': True, # this is required, as documented in the Manual!
 })
 
 symbol = 'ETH/BTC'

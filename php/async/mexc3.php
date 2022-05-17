@@ -677,7 +677,7 @@ class mexc3 extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => null,
+                    'amount' => $this->safe_integer($market, 'baseAssetPrecision'),
                     'price' => $this->safe_integer($market, 'quotePrecision'),
                     'base' => $this->safe_integer($market, 'baseAssetPrecision'),
                     'quote' => $this->safe_integer($market, 'quoteAssetPrecision'),
@@ -2635,7 +2635,7 @@ class mexc3 extends Exchange {
             $positionType = $this->safe_number($params, 'positionType'); // 1 or 2
             $market = ($symbol !== null) ? $this->market($symbol) : null;
             if (($openType === null) || ($positionType === null) || ($market === null)) {
-                throw new ArgumentsRequired($this->id . ' setLeverage() requires a $positionId parameter or $openType+$positionType+Market parameters');
+                throw new ArgumentsRequired($this->id . ' setLeverage() requires a $positionId parameter or a $symbol argument with $openType and $positionType parameters, use $openType 1 or 2 for isolated or cross margin respectively, use $positionType 1 or 2 for long or short positions');
             } else {
                 $request['openType'] = $openType;
                 $request['symbol'] = $market['symbol'];

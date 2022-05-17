@@ -502,7 +502,7 @@ module.exports = class mexc extends Exchange {
         const spot = (type === 'spot');
         const swap = (type === 'swap');
         if (!spot && !swap) {
-            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
+            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot' or 'swap''"); // eslint-disable-line quotes
         }
         if (spot) {
             return await this.fetchSpotMarkets (query);
@@ -2668,15 +2668,25 @@ module.exports = class mexc extends Exchange {
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
-        const positionId = this.safeInteger (params, 'positionId');
-        if (positionId === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires a positionId parameter');
-        }
         await this.loadMarkets ();
         const request = {
-            'positionId': positionId,
             'leverage': leverage,
         };
+        const positionId = this.safeInteger (params, 'positionId');
+        if (positionId === undefined) {
+            const openType = this.safeNumber (params, 'openType'); // 1 or 2
+            const positionType = this.safeNumber (params, 'positionType'); // 1 or 2
+            const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+            if ((openType === undefined) || (positionType === undefined) || (market === undefined)) {
+                throw new ArgumentsRequired (this.id + ' setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross margin respectively, use positionType 1 or 2 for long or short positions');
+            } else {
+                request['openType'] = openType;
+                request['symbol'] = market['symbol'];
+                request['positionType'] = positionType;
+            }
+        } else {
+            request['positionId'] = positionId;
+        }
         return await this.contractPrivatePostPositionChangeLeverage (this.extend (request, params));
     }
 

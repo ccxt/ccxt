@@ -1048,7 +1048,7 @@ module.exports = class kucoin extends Exchange {
         let method = 'publicGetMarketOrderbookLevelLevelLimit';
         const isAuthenticated = this.checkRequiredCredentials (false);
         let response = undefined;
-        if (!isAuthenticated) {
+        if (!isAuthenticated || limit !== undefined) {
             if (level === 2) {
                 request['level'] = level;
                 if (limit !== undefined) {
@@ -1059,13 +1059,11 @@ module.exports = class kucoin extends Exchange {
                     }
                 }
                 request['limit'] = limit ? limit : 100;
-                method = 'publicGetMarketOrderbookLevelLevelLimit';
-                response = await this[method] (this.extend (request, params));
             }
         } else {
             method = 'privateGetMarketOrderbookLevel2'; // recommended (v3)
-            response = await this[method] (this.extend (request, params));
         }
+        response = await this[method] (this.extend (request, params));
         //
         // public (v1) market/orderbook/level2_20 and market/orderbook/level2_100
         //
