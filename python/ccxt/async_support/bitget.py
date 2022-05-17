@@ -1724,6 +1724,14 @@ class bitget(Exchange):
             'symbol': market['id'],
             'orderId': id,
         }
+        stop = self.safe_value(params, 'stop')
+        if stop:
+            planType = self.safe_string(params, 'planType')
+            if planType is None:
+                raise ArgumentsRequired(self.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan or loss_plan')
+            request['planType'] = planType
+            method = 'privateMixPostPlanCancelPlan'
+            params = self.omit(params, ['stop', 'planType'])
         if marketType == 'swap':
             request['marginCoin'] = market['settleId']
         response = await getattr(self, method)(self.extend(request, query))
