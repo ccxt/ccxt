@@ -14,7 +14,7 @@ module.exports = class coinflex extends ccxt.coinflex {
             'has': {
                 'ws': true,
                 'watchBalance': true,
-                'watchMyTrades': false,
+                'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
@@ -411,10 +411,10 @@ module.exports = class coinflex extends ccxt.coinflex {
         //          status: 'FILLED',
         //          marketCode: 'BTC-USD-SWAP-LIN',
         //          timestamp: '1652713431854',
-        //          matchId: '304734619690202846',
-        //          matchPrice: '29480.0',
-        //          matchQuantity: '0.001',
-        //          orderMatchType: 'TAKER',
+        //          matchId: '304734619690202846', // trade field
+        //          matchPrice: '29480.0', // trade field
+        //          matchQuantity: '0.001', // trade field
+        //          orderMatchType: 'TAKER', // trade field
         //          remainQuantity: '0.0',
         //          notice: 'OrderMatched',
         //          orderType: 'MARKET',
@@ -435,10 +435,12 @@ module.exports = class coinflex extends ccxt.coinflex {
         const marketIds = {};
         for (let i = 0; i < rawOrders.length; i++) {
             const order = rawOrders[i];
-            // parseOrder does not support 'matchPrice'
-            const matchPrice = this.safeString (order, 'matchPrice');
-            if (matchPrice !== undefined) {
-                order['price'] = matchPrice;
+            const notice = this.safeString (order, 'notice');
+            if (notice === 'notice') {
+                // this means that the order has the trade info built in so
+                // it's a order + trade update combined
+                order['trades'] = [ order ];
+                this.handleMyTrade (client, order);
             }
             const parsed = this.parseOrder (order);
             stored.append (parsed);
@@ -456,6 +458,45 @@ module.exports = class coinflex extends ccxt.coinflex {
             const messageHash = channel + ':' + marketId;
             client.resolve (this.orders, messageHash);
         }
+    }
+
+    handleMyTrade (client, message) {
+        //
+        //  {
+        //          accountId: '39422',
+        //          clientOrderId: '1652713431643',
+        //          orderId: '1002215706472',
+        //          quantity: '0.001',
+        //          side: 'SELL',
+        //          status: 'FILLED',
+        //          marketCode: 'BTC-USD-SWAP-LIN',
+        //          timestamp: '1652713431854',
+        //          matchId: '304734619690202846', // trade field
+        //          matchPrice: '29480.0', // trade field
+        //          matchQuantity: '0.001', // trade field
+        //          orderMatchType: 'TAKER', // trade field
+        //          remainQuantity: '0.0',
+        //          notice: 'OrderMatched',
+        //          orderType: 'MARKET',
+        //          fees: '0.02358400',
+        //          feeInstrumentId: 'USD',
+        //          isTriggered: 'false'
+        //   }
+        //
+        const marketId = this.safeString (message, 'marketCode');
+        const market = this.safeMarket (marketId, undefined);
+        let trades = this.myTrades;
+        if (trades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            trades = new ArrayCacheBySymbolById (limit);
+        }
+        const parsed = this.parseTrade (message, market);
+        trades.append (parsed);
+        const channel = 'usertrade';
+        const messageHash = channel + ':' + market['id'];
+        client.resolve (trades, messageHash);
+        const genericHash = channel + ':all';
+        client.resolve (trades, genericHash);
     }
 
     async watchBalance (params = {}) {
