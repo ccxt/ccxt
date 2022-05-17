@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { AuthenticationError } = require ('ccxt/js/base/errors');
+const { AuthenticationError, BadRequest, InsufficientFunds } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -31,6 +31,15 @@ module.exports = class coinflex extends ccxt.coinflex {
                 },
             },
             'options': {
+            },
+            'exceptions': {
+                'ws': {
+                    'exact': {
+                        '20000': AuthenticationError, // { event: 'login', success: false,  message: 'Signature is invalid', code: '20000', timestamp: '1652709878447' }
+                        '710003': BadRequest, // { event: 'placeorder', submitted: false, tag: '1652714023869', message: 'FAILED sanity bound check as price (14000) > upper bound (13260)', code: '710003', timestamp: '1652714024078' }
+                        '710006': InsufficientFunds, // { event: 'placeorder', submitted: false, tag: '1652788574125', message: 'FAILED balance check as balance (46.8941381080) < value (3152.800)', code: '710006', timestamp: '1652788574376' }
+                    },
+                },
             },
         });
     }
@@ -656,7 +665,7 @@ module.exports = class coinflex extends ccxt.coinflex {
             if (!success) {
                 const error = this.safeString (message, 'code');
                 const feedback = this.id + ' ' + this.json (message);
-                this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+                this.throwExactlyMatchedException (this.exceptions['ws']['exact'], error, feedback);
             }
         } catch (e) {
             if (e instanceof AuthenticationError) {
