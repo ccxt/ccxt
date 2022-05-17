@@ -46,7 +46,6 @@ module.exports = class kucoin extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchFundingFee': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -70,6 +69,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
+                'fetchTransactionFee': true,
                 'fetchWithdrawals': true,
                 'transfer': true,
                 'withdraw': true,
@@ -311,6 +311,7 @@ module.exports = class kucoin extends Exchange {
                     '400370': InvalidOrder, // {"code":"400370","msg":"Max. price: 0.02500000000000000000"}
                     '400500': InvalidOrder, // {"code":"400500","msg":"Your located country/region is currently not supported for the trading of this token"}
                     '400600': BadSymbol, // {"code":"400600","msg":"validation.createOrder.symbolNotAvailable"}
+                    '400760': InvalidOrder, // {"code":"400760","msg":"order price should be more than XX"}
                     '401000': BadRequest, // {"code":"401000","msg":"The interface has been deprecated"}
                     '411100': AccountSuspended,
                     '415000': BadRequest, // {"code":"415000","msg":"Unsupported Media Type"}
@@ -704,7 +705,7 @@ module.exports = class kucoin extends Exchange {
         return result;
     }
 
-    async fetchFundingFee (code, params = {}) {
+    async fetchTransactionFee (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -1047,7 +1048,7 @@ module.exports = class kucoin extends Exchange {
         let method = 'publicGetMarketOrderbookLevelLevelLimit';
         const isAuthenticated = this.checkRequiredCredentials (false);
         let response = undefined;
-        if (!isAuthenticated) {
+        if (!isAuthenticated || limit !== undefined) {
             if (level === 2) {
                 request['level'] = level;
                 if (limit !== undefined) {
@@ -1058,13 +1059,11 @@ module.exports = class kucoin extends Exchange {
                     }
                 }
                 request['limit'] = limit ? limit : 100;
-                method = 'publicGetMarketOrderbookLevelLevelLimit';
-                response = await this[method] (this.extend (request, params));
             }
         } else {
             method = 'privateGetMarketOrderbookLevel2'; // recommended (v3)
-            response = await this[method] (this.extend (request, params));
         }
+        response = await this[method] (this.extend (request, params));
         //
         // public (v1) market/orderbook/level2_20 and market/orderbook/level2_100
         //

@@ -165,6 +165,7 @@ class cex(Exchange):
                     'There was an error while placing your order': InvalidOrder,
                     'Sorry, too many clients already': DDoSProtection,
                     'Invalid Symbols Pair': BadSymbol,
+                    'Wrong currency pair': BadSymbol,  # {"error":"There was an error while placing your order: Wrong currency pair.","safe":true}
                 },
             },
             'options': {

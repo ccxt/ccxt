@@ -48,7 +48,6 @@ class lbank2(Exchange):
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': False,
-                'fetchFundingFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -73,6 +72,7 @@ class lbank2(Exchange):
                 'fetchTickers': False,
                 'fetchTrades': True,
                 'fetchTradingFees': True,
+                'fetchTransactionFees': True,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
@@ -191,7 +191,7 @@ class lbank2(Exchange):
                 'fetchTrades': {
                     'method': 'publicGetTrades',  # or 'publicGetTradesSupplement'
                 },
-                'fetchFundingFees': {
+                'fetchTransactionFees': {
                     'method': 'fetchPrivateFundingFees',  # or 'fetchPublicFundingFees'
                 },
                 'fetchDepositAddress': {
@@ -1355,13 +1355,13 @@ class lbank2(Exchange):
         fee = self.safe_string(params, 'fee')
         params = self.omit(params, 'fee')
         if fee is None:
-            raise ArgumentsRequired(self.id + ' withdraw() requires a fee argument to be supplied in params, the relevant coin network fee can be found by calling fetchFundingFees(), note: if no network param is supplied then the default network will be used, self can also be found in fetchFundingFees()')
+            raise ArgumentsRequired(self.id + ' withdraw() requires a fee argument to be supplied in params, the relevant coin network fee can be found by calling fetchTransactionFees(), note: if no network param is supplied then the default network will be used, self can also be found in fetchTransactionFees()')
         currency = self.currency(code)
         request = {
             'address': address,
             'coin': currency['id'],
             'amount': amount,
-            'fee': fee,  # the correct coin-network fee must be supplied, which can be found by calling fetchFundingFees(private)
+            'fee': fee,  # the correct coin-network fee must be supplied, which can be found by calling fetchTransactionFees(private)
             # 'networkName': defaults to the defaultNetwork of the coin which can be found in the /supplement/user_info endpoint
             # 'memo': memo: memo word of bts and dct
             # 'mark': Withdrawal Notes
@@ -1583,7 +1583,7 @@ class lbank2(Exchange):
         withdraws = self.safe_value(data, 'withdraws', [])
         return self.parse_transactions(withdraws, code, since, limit)
 
-    async def fetch_funding_fees(self, params={}):
+    async def fetch_transaction_fees(self, codes=None, params={}):
         # private only returns information for currencies with non-zero balance
         await self.load_markets()
         isAuthorized = self.check_required_credentials(False)
@@ -1592,7 +1592,7 @@ class lbank2(Exchange):
             method = self.safe_string(params, 'method')
             params = self.omit(params, 'method')
             if method is None:
-                options = self.safe_value(self.options, 'fetchFundingFees', {})
+                options = self.safe_value(self.options, 'fetchTransactionFees', {})
                 method = self.safe_string(options, 'method', 'fetchPrivateFundingFees')
             result = await getattr(self, method)(params)
         else:

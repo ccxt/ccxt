@@ -31,7 +31,9 @@ module.exports = class delta extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDeposit': undefined,
                 'fetchDepositAddress': true,
+                'fetchDeposits': undefined,
                 'fetchLedger': true,
                 'fetchLeverageTiers': false, // An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
                 'fetchMarketLeverageTiers': false,
@@ -47,6 +49,12 @@ module.exports = class delta extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTransfer': undefined,
+                'fetchTransfers': undefined,
+                'fetchWithdrawal': undefined,
+                'fetchWithdrawals': undefined,
+                'transfer': false,
+                'withdraw': false,
             },
             'timeframes': {
                 '1m': '1m',

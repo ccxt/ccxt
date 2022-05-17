@@ -75,8 +75,6 @@ class okx(Exchange):
                 'fetchDepositAddresses': None,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
-                'fetchFundingFee': None,
-                'fetchFundingFees': None,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -113,6 +111,8 @@ class okx(Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': None,
                 'fetchTradingLimits': None,
+                'fetchTransactionFee': None,
+                'fetchTransactionFees': None,
                 'fetchTransactions': None,
                 'fetchTransfer': True,
                 'fetchTransfers': False,
@@ -1201,16 +1201,30 @@ class okx(Exchange):
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
         last = self.safe_string(ticker, 'last')
+        if last == '':
+            last = None
         open = self.safe_string(ticker, 'open24h')
+        if open == '':
+            open = None
         spot = self.safe_value(market, 'spot', False)
         quoteVolume = self.safe_string(ticker, 'volCcy24h') if spot else None
+        if quoteVolume == '':
+            quoteVolume = None
         baseVolume = self.safe_string(ticker, 'vol24h')
+        if baseVolume == '':
+            baseVolume = None
+        high = self.safe_string(ticker, '24h')
+        if high == '':
+            high = None
+        low = self.safe_string(ticker, 'low24h')
+        if low == '':
+            low = None
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_string(ticker, 'high24h'),
-            'low': self.safe_string(ticker, 'low24h'),
+            'high': high,
+            'low': low,
             'bid': self.safe_string(ticker, 'bidPx'),
             'bidVolume': self.safe_string(ticker, 'bidSz'),
             'ask': self.safe_string(ticker, 'askPx'),
@@ -3629,17 +3643,17 @@ class okx(Exchange):
         if market['inverse']:
             notionalString = Precise.string_div(Precise.string_mul(contractsAbs, contractSizeString), markPriceString)
         notional = self.parse_number(notionalString)
-        marginType = self.safe_string(position, 'mgnMode')
+        marginMode = self.safe_string(position, 'mgnMode')
         initialMarginString = None
         entryPriceString = self.safe_string(position, 'avgPx')
         unrealizedPnlString = self.safe_string(position, 'upl')
         leverageString = self.safe_string(position, 'lever')
         initialMarginPercentage = None
         collateralString = None
-        if marginType == 'cross':
+        if marginMode == 'cross':
             initialMarginString = self.safe_string(position, 'imr')
             collateralString = Precise.string_add(initialMarginString, unrealizedPnlString)
-        elif marginType == 'isolated':
+        elif marginMode == 'isolated':
             initialMarginPercentage = Precise.string_div('1', leverageString)
             collateralString = self.safe_string(position, 'margin')
         maintenanceMarginString = self.safe_string(position, 'mmr')
@@ -3660,7 +3674,8 @@ class okx(Exchange):
             'info': position,
             'symbol': symbol,
             'notional': notional,
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode,  # deprecated
             'liquidationPrice': liquidationPrice,
             'entryPrice': self.parse_number(entryPriceString),
             'unrealizedPnl': self.parse_number(unrealizedPnlString),
@@ -4111,14 +4126,14 @@ class okx(Exchange):
         #
         return response
 
-    def set_margin_mode(self, marginType, symbol=None, params={}):
+    def set_margin_mode(self, marginMode, symbol=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        marginType = marginType.lower()
-        if (marginType != 'cross') and (marginType != 'isolated'):
-            raise BadRequest(self.id + ' setMarginMode() marginType must be either cross or isolated')
+        marginMode = marginMode.lower()
+        if (marginMode != 'cross') and (marginMode != 'isolated'):
+            raise BadRequest(self.id + ' setMarginMode() marginMode must be either cross or isolated')
         self.load_markets()
         market = self.market(symbol)
         lever = self.safe_integer(params, 'lever')
@@ -4127,7 +4142,7 @@ class okx(Exchange):
         params = self.omit(params, ['lever'])
         request = {
             'lever': lever,
-            'mgnMode': marginType,
+            'mgnMode': marginMode,
             'instId': market['id'],
         }
         response = self.privatePostAccountSetLeverage(self.extend(request, params))
@@ -4502,15 +4517,17 @@ class okx(Exchange):
 
     def parse_borrow_interest(self, info, market=None):
         instId = self.safe_string(info, 'instId')
-        account = 'cross'  # todo rename it to margin/marginType and separate it from the symbol
+        account = 'cross'  # todo rename it to margin/marginMode and separate it from the symbol
         if instId is not None:
             market = self.safe_market(instId, market)
             account = self.safe_string(market, 'symbol')
         timestamp = self.safe_number(info, 'ts')
+        marginMode = 'cross' if (instId is None) else 'isolated'
         return {
             'account': account,  # deprecated
             'symbol': self.safe_string(market, 'symbol'),
-            'marginType': 'cross' if (instId is None) else 'isolated',
+            'marginType': marginMode,  # deprecated
+            'marginMode': marginMode,
             'currency': self.safe_currency_code(self.safe_string(info, 'ccy')),
             'interest': self.safe_number(info, 'interest'),
             'interestRate': self.safe_number(info, 'interestRate'),

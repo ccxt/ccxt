@@ -41,6 +41,7 @@ class phemex(Exchange):
                 'swap': True,
                 'future': False,
                 'option': False,
+                'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
@@ -83,7 +84,9 @@ class phemex(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchWithdrawals': True,
+                'reduceMargin': True,
                 'setLeverage': True,
+                'setMarginMode': True,
                 'setPositionMode': False,
                 'transfer': True,
                 'withdraw': None,
@@ -991,6 +994,7 @@ class phemex(Exchange):
         }
         duration = self.parse_timeframe(timeframe)
         now = self.seconds()
+        # the exchange does not return the last 1m candle
         if since is not None:
             if limit is None:
                 limit = 2000  # max 2000
@@ -2663,7 +2667,8 @@ class phemex(Exchange):
             'maintenanceMarginPercentage': self.parse_number(maintenanceMarginPercentageString),
             'marginRatio': self.parse_number(marginRatio),
             'datetime': None,
-            'marginType': None,
+            'marginMode': None,
+            'marginType': None,  # deprecated
             'side': side,
             'hedged': False,
             'percentage': self.parse_number(percentage),
@@ -2801,12 +2806,80 @@ class phemex(Exchange):
             'previousFundingDatetime': None,
         }
 
+    async def modify_margin_helper(self, symbol, amount, addOrReduce, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'posBalanceEv': self.to_ev(amount, market),
+        }
+        response = await self.privatePostPositionsAssign(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "data": "OK"
+        #     }
+        #
+        return self.extend(self.parse_modify_margin(response, market), {
+            'amount': amount,
+            'type': addOrReduce,
+        })
+
+    def parse_margin_status(self, status):
+        statuses = {
+            '0': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_modify_margin(self, data, market=None):
+        market = self.safe_market(None, market)
+        inverse = self.safe_value(market, 'inverse')
+        codeCurrency = 'base' if inverse else 'quote'
+        return {
+            'info': data,
+            'type': None,
+            'amount': None,
+            'code': market[codeCurrency],
+            'symbol': self.safe_symbol(None, market),
+            'status': self.parse_margin_status(self.safe_string(data, 'code')),
+        }
+
+    async def add_margin(self, symbol, amount, params={}):
+        return await self.modify_margin_helper(symbol, amount, 'add', params)
+
+    async def reduce_margin(self, symbol, amount, params={}):
+        if amount > 0:
+            raise BadRequest(self.id + ' reduceMargin() amount parameter must be a negative value')
+        return await self.modify_margin_helper(symbol, amount, 'reduce', params)
+
+    async def set_margin_mode(self, marginMode, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        marginMode = marginMode.lower()
+        if marginMode != 'isolated' and marginMode != 'cross':
+            raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
+        await self.load_markets()
+        market = self.market(symbol)
+        if market['type'] != 'swap':
+            raise BadSymbol(self.id + ' setMarginMode() supports swap contracts only')
+        leverage = self.safe_integer(params, 'leverage')
+        if marginMode == 'cross':
+            leverage = 0
+        if leverage is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a leverage parameter')
+        request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        }
+        return await self.privatePutPositionsLeverage(self.extend(request, params))
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
         requestPath = '/' + self.implode_params(path, params)
         url = requestPath
         queryString = ''
-        if (method == 'GET') or (method == 'DELETE') or (method == 'PUT'):
+        if (method == 'GET') or (method == 'DELETE') or (method == 'PUT') or (url == '/positions/assign'):
             if query:
                 queryString = self.urlencode_with_array_repeat(query)
                 url += '?' + queryString

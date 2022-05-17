@@ -820,12 +820,12 @@ module.exports = class zb extends Exchange {
         return this.safeBalance (result);
     }
 
-    parseMarginBalance (response, marginType) {
+    parseMarginBalance (response, marginMode) {
         const result = {
             'info': response,
         };
         let levers = undefined;
-        if (marginType === 'isolated') {
+        if (marginMode === 'isolated') {
             const message = this.safeValue (response, 'message', {});
             const data = this.safeValue (message, 'datas', {});
             levers = this.safeValue (data, 'levers', []);
@@ -908,7 +908,7 @@ module.exports = class zb extends Exchange {
             //     ],
             //
             const account = this.account ();
-            if (marginType === 'isolated') {
+            if (marginMode === 'isolated') {
                 const code = this.safeCurrencyCode (this.safeString (balance, 'fShowName'));
                 account['total'] = this.safeString (balance, 'fAvailableUSD'); // total amount in USD
                 account['free'] = this.safeString (balance, 'couldTransferOutFiat');
@@ -932,10 +932,10 @@ module.exports = class zb extends Exchange {
         const swap = (marketType === 'swap');
         let marginMethod = undefined;
         const defaultMargin = margin ? 'isolated' : 'cross';
-        const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
-        if (marginType === 'isolated') {
+        const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+        if (marginMode === 'isolated') {
             marginMethod = 'spotV1PrivateGetGetLeverAssetsInfo';
-        } else if (marginType === 'cross') {
+        } else if (marginMode === 'cross') {
             marginMethod = 'spotV1PrivateGetGetCrossAssets';
         }
         const method = this.getSupportedMapping (marketType, {
@@ -1110,7 +1110,7 @@ module.exports = class zb extends Exchange {
         if (swap) {
             return this.parseSwapBalance (response);
         } else if (margin) {
-            return this.parseMarginBalance (response, marginType);
+            return this.parseMarginBalance (response, marginMode);
         } else {
             return this.parseBalance (response);
         }
@@ -3567,7 +3567,7 @@ module.exports = class zb extends Exchange {
         const rawSide = this.safeString (position, 'side');
         const side = (rawSide === '1') ? 'long' : 'short';
         const openType = this.safeString (position, 'marginMode');
-        const marginType = (openType === '1') ? 'isolated' : 'cross';
+        const marginMode = (openType === '1') ? 'isolated' : 'cross';
         const leverage = this.safeString (position, 'leverage');
         const liquidationPrice = this.safeNumber (position, 'liquidatePrice');
         const unrealizedProfit = this.safeNumber (position, 'unrealizedPnl');
@@ -3587,7 +3587,8 @@ module.exports = class zb extends Exchange {
             'unrealizedProfit': unrealizedProfit,
             'leverage': this.parseNumber (leverage),
             'percentage': percentage,
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode, // deprecated
             'notional': notional,
             'markPrice': undefined,
             'liquidationPrice': liquidationPrice,
@@ -3787,15 +3788,15 @@ module.exports = class zb extends Exchange {
             request['side'] = side;
         } else {
             const defaultMargin = margin ? 'isolated' : 'cross';
-            const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
-            if (marginType === 'isolated') {
+            const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+            if (marginMode === 'isolated') {
                 if (fromAccount === 'spot' || toAccount === 'isolated') {
                     marginMethod = 'spotV1PrivateGetTransferInLever';
                 } else {
                     marginMethod = 'spotV1PrivateGetTransferOutLever';
                 }
                 request['marketName'] = this.safeString (params, 'marketName');
-            } else if (marginType === 'cross') {
+            } else if (marginMode === 'cross') {
                 if (fromAccount === 'spot' || toAccount === 'cross') {
                     marginMethod = 'spotV1PrivateGetTransferInCross';
                 } else {

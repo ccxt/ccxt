@@ -23,7 +23,7 @@ async def loop(exchange, symbol, n):
 
 
 async def main():
-    exchange = ccxtpro.kraken({'enableRateLimit': True})
+    exchange = ccxtpro.kraken()
     await exchange.load_markets()
     markets = list(exchange.markets.values())
     symbols = [market['symbol'] for market in markets if not market['darkpool']]
@@ -31,5 +31,5 @@ async def main():
     await exchange.close()
 
 
-if __name__ == '__main__':
-    asyncio.get_event_loop().run_until_complete(main())
+
+asyncio.run(main())

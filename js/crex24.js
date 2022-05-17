@@ -45,7 +45,6 @@ module.exports = class crex24 extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchFundingFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -71,6 +70,7 @@ module.exports = class crex24 extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransactionFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
@@ -463,7 +463,7 @@ module.exports = class crex24 extends Exchange {
         return result;
     }
 
-    async fetchFundingFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetCurrenciesWithdrawalFees (params);
         //

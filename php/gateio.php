@@ -86,7 +86,6 @@ class gateio extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
-                'fetchFundingFees' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -111,6 +110,7 @@ class gateio extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
+                'fetchTransactionFees' => true,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
                 'setMarginMode' => false,
@@ -1138,13 +1138,13 @@ class gateio extends Exchange {
          * @param {dict} $params $request parameters
          * @return the api $request object, and the new $params object with non-needed parameters removed
          */
-        list($marginType, $query) = $this->get_margin_type($stop, $params);
+        list($marginMode, $query) = $this->get_margin_mode($stop, $params);
         $request = array();
         if (!$stop) {
             if ($market === null) {
                 throw new ArgumentsRequired($this->id . ' spotOrderPrepareRequest() requires a $market argument for non-$stop orders');
             }
-            $request['account'] = $marginType;
+            $request['account'] = $marginMode;
             $request['currency_pair'] = $market['id']; // Should always be set for non-$stop
         }
         return array( $request, $query );
@@ -1159,9 +1159,9 @@ class gateio extends Exchange {
          * @param {dict} $params $request parameters
          * @return the api $request object, and the new $params object with non-needed parameters removed
          */
-        list($marginType, $query) = $this->get_margin_type($stop, $params);
+        list($marginMode, $query) = $this->get_margin_mode($stop, $params);
         $request = array(
-            'account' => $marginType,
+            'account' => $marginMode,
         );
         if ($market !== null) {
             if ($stop) {
@@ -1174,34 +1174,34 @@ class gateio extends Exchange {
         return array( $request, $query );
     }
 
-    public function get_margin_type($stop, $params) {
+    public function get_margin_mode($stop, $params) {
         /**
          * @ignore
          * Gets the margin type for this api call
          * @param {bool} $stop True if for a $stop order
          * @param {dict} $params Request $params
-         * @return The $marginType and the updated request $params with $marginType removed, $marginType value is the value that can be read by the "account" property specified in gateios api docs
+         * @return The $marginMode and the updated request $params with $marginMode removed, $marginMode value is the value that can be read by the "account" property specified in gateios api docs
          */
-        $defaultMarginType = $this->safe_string_lower_2($this->options, 'defaultMarginType', 'marginType', 'spot'); // 'margin' is isolated margin on gateio's api
-        $marginType = $this->safe_string_lower_2($params, 'marginType', 'account', $defaultMarginType);
-        $params = $this->omit($params, array( 'marginType', 'account' ));
-        if ($marginType === 'cross') {
-            $marginType = 'cross_margin';
-        } else if ($marginType === 'isolated') {
-            $marginType = 'margin';
-        } else if ($marginType === '') {
-            $marginType = 'spot';
+        $defaultMarginMode = $this->safe_string_lower_2($this->options, 'defaultMarginMode', 'marginMode', 'spot'); // 'margin' is isolated margin on gateio's api
+        $marginMode = $this->safe_string_lower_2($params, 'marginMode', 'account', $defaultMarginMode);
+        $params = $this->omit($params, array( 'marginMode', 'account' ));
+        if ($marginMode === 'cross') {
+            $marginMode = 'cross_margin';
+        } else if ($marginMode === 'isolated') {
+            $marginMode = 'margin';
+        } else if ($marginMode === '') {
+            $marginMode = 'spot';
         }
         if ($stop) {
-            if ($marginType === 'spot') {
+            if ($marginMode === 'spot') {
                 // gateio spot $stop orders use the term normal instead of spot
-                $marginType = 'normal';
+                $marginMode = 'normal';
             }
-            if ($marginType === 'cross_margin') {
-                throw new BadRequest($this->id . ' getMarginType() does not support $stop orders for cross margin');
+            if ($marginMode === 'cross_margin') {
+                throw new BadRequest($this->id . ' getMarginMode() does not support $stop orders for cross margin');
             }
         }
-        return array( $marginType, $params );
+        return array( $marginMode, $params );
     }
 
     public function get_settlement_currencies($type, $method) {
@@ -1606,7 +1606,7 @@ class gateio extends Exchange {
         );
     }
 
-    public function fetch_funding_fees($params = array ()) {
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privateWalletGetWithdrawStatus ($params);
         //
@@ -1933,7 +1933,7 @@ class gateio extends Exchange {
          * @param {dict} $params exchange specific parameters
          * @param {str} $params->type spot, $margin, swap or future, if not provided $this->options['defaultType'] is used
          * @param {str} $params->settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
-         * @param {str} $params->marginType 'cross' or 'isolated' - $marginType for $margin trading if not provided $this->options['defaultMarginType'] is used
+         * @param {str} $params->marginMode 'cross' or 'isolated' - $marginMode for $margin trading if not provided $this->options['defaultMarginMode'] is used
          * @param {str} $params->symbol $margin only - unified ccxt $symbol
          */
         $this->load_markets();
@@ -1941,13 +1941,13 @@ class gateio extends Exchange {
         $params = $this->omit($params, 'symbol');
         list($type, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         list($request, $requestParams) = $this->prepare_request(null, $type, $query);
-        list($marginType, $requestQuery) = $this->get_margin_type(false, $requestParams);
+        list($marginMode, $requestQuery) = $this->get_margin_mode(false, $requestParams);
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['currency_pair'] = $market['id'];
         }
         $method = $this->get_supported_mapping($type, array(
-            'spot' => $this->get_supported_mapping($marginType, array(
+            'spot' => $this->get_supported_mapping($marginMode, array(
                 'spot' => 'privateSpotGetAccounts',
                 'margin' => 'privateMarginGetAccounts',
                 'cross_margin' => 'privateMarginGetCrossAccounts',
@@ -2073,8 +2073,8 @@ class gateio extends Exchange {
         $result = array(
             'info' => $response,
         );
-        $crossMargin = $marginType === 'cross_margin';
-        $margin = $marginType === 'margin';
+        $crossMargin = $marginMode === 'cross_margin';
+        $margin = $marginMode === 'margin';
         $data = $response;
         if (is_array($data) && array_key_exists('balances', $data)) { // True for cross_margin
             $flatBalances = array();
@@ -2315,41 +2315,49 @@ class gateio extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * Fetch personal trading history
+         * @param {str} $symbol The $symbol for the $market to fetch trades for
+         * @param {int} $since The earliest timestamp, in ms, that fetched trades were made
+         * @param {int} $limit The max number of trades to fetch
+         * @param {dict} $params Exchange specific parameters
+         * @param {str} $params->marginMode 'cross' or 'isolated' - $marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
+         * @param {str} $params->type 'spot', 'swap', or 'future', if not provided $this->options['defaultMarginMode'] is used
+         * @param {int} $params->till The latest timestamp, in ms, that fetched trades were made
+         * @param {int} $params->page *spot only* Page number
+         * @param {str} $params->order_id *spot only* Filter trades with specified order ID. $symbol is also required if this field is present
+         * @param {str} $params->order *$contract only* Futures order ID, return related data only if specified
+         * @param {int} $params->offset *$contract only* list offset, starting from 0
+         * @param {str} $params->last_id *$contract only* specify list staring point using the id of last record in previous list-query results
+         * @param {int} $params->count_total *$contract only* whether to return total number matched, default to 0(no return)
+         * @return a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $this->load_markets();
-        $market = null;
-        $request = array();
         $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', null, $params);
-        if ($symbol) {
-            $market = $this->market($symbol);
-            list($request, $params) = $this->prepare_request($market, null, $params);
-            $type = $market['type'];
+        $marginMode = null;
+        $request = array();
+        $market = ($symbol !== null) ? $this->market($symbol) : null;
+        $till = $this->safe_number($params, 'till');
+        $params = $this->omit($params, 'till');
+        list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
+        $contract = ($type === 'swap') || ($type === 'future');
+        if ($contract) {
+            list($request, $params) = $this->prepare_request($market, $type, $params);
         } else {
-            if ($type === 'swap' || $type === 'future') {
-                $settle = $this->safe_string_lower($params, 'settle');
-                if (!$settle) {
-                    throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument or a $settle parameter for ' . $type . ' markets');
-                }
-                $request['settle'] = $settle;
+            if ($market !== null) {
+                $request['currency_pair'] = $market['id']; // Should always be set for non-stop
             }
+            list($marginMode, $params) = $this->get_margin_mode(false, $params);
+            $request['account'] = $marginMode;
         }
-        //
-        //     $request = array(
-        //         'currency_pair' => $market['id'],
-        //         // 'limit' => $limit,
-        //         // 'page' => 0,
-        //         // 'order_id' => 'Order ID',
-        //         // 'account' => 'spot', // default to spot and margin account if not specified, set to cross_margin to operate against margin account
-        //         // 'from' => $since, // default to 7 days before current time
-        //         // 'to' => $this->milliseconds(), // default to current time
-        //     );
-        //
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 1000
         }
         if ($since !== null) {
             $request['from'] = intval($since / 1000);
-            // $request['to'] = $since + 7 * 24 * 60 * 60;
+        }
+        if ($till !== null) {
+            $request['to'] = intval($till / 1000);
         }
         $method = $this->get_supported_mapping($type, array(
             'spot' => 'privateSpotGetMyTrades',
@@ -2691,7 +2699,7 @@ class gateio extends Exchange {
          * @param {dict} $params  Extra parameters specific to the exchange API endpoint
          * @param {float} $params->stopPrice The $price at which a $trigger order is triggered at
          * @param {str} $params->timeInForce "GTC", "IOC", or "PO"
-         * @param {str} $params->marginType 'cross' or 'isolated' - $marginType for margin trading if not provided $this->options['defaultMarginType'] is used
+         * @param {str} $params->marginMode 'cross' or 'isolated' - $marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
          * @param {int} $params->iceberg Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
          * @param {str} $params->text User defined information
          * @param {str} $params->account *spot and margin only* "spot", "margin" or "cross_margin"
@@ -2757,14 +2765,14 @@ class gateio extends Exchange {
                     $request['tif'] = $timeInForce;
                 }
             } else {
-                $marginType = null;
-                list($marginType, $params) = $this->get_margin_type(false, $params);
+                $marginMode = null;
+                list($marginMode, $params) = $this->get_margin_mode(false, $params);
                 // spot order
                 $request = array(
                     // 'text' => $clientOrderId, // 't-abcdef1234567890',
                     'currency_pair' => $market['id'], // filled in prepareRequest above
                     'type' => $type,
-                    'account' => $marginType, // 'spot', 'margin', 'cross_margin'
+                    'account' => $marginMode, // 'spot', 'margin', 'cross_margin'
                     'side' => $side,
                     'amount' => $this->amount_to_precision($symbol, $amount),
                     'price' => $this->price_to_precision($symbol, $price),
@@ -2829,8 +2837,8 @@ class gateio extends Exchange {
             } else {
                 // spot conditional order
                 $options = $this->safe_value($this->options, 'createOrder', array());
-                $marginType = null;
-                list($marginType, $params) = $this->get_margin_type(true, $params);
+                $marginMode = null;
+                list($marginMode, $params) = $this->get_margin_mode(true, $params);
                 $defaultExpiration = $this->safe_integer($options, 'expiration');
                 $expiration = $this->safe_integer($params, 'expiration', $defaultExpiration);
                 $rule = ($side === 'buy') ? '>=' : '<=';
@@ -2846,7 +2854,7 @@ class gateio extends Exchange {
                         'side' => $side,
                         'price' => $this->price_to_precision($symbol, $price),
                         'amount' => $this->amount_to_precision($symbol, $amount),
-                        'account' => $marginType,
+                        'account' => $marginMode,
                         'time_in_force' => $timeInForce, // gtc, ioc for taker only
                     ),
                     'market' => $market['id'],
@@ -3184,8 +3192,8 @@ class gateio extends Exchange {
          * @param {str} $symbol Unified $market $symbol, *required for spot and margin*
          * @param {dict} $params Parameters specified by the exchange api
          * @param {bool} $params->stop True if the order being fetched is a trigger order
-         * @param {str} $params->marginType 'cross' or 'isolated' - marginType for margin trading if not provided $this->options['defaultMarginType'] is used
-         * @param {str} $params->type 'spot', 'swap', or 'future', if not provided $this->options['defaultMarginType'] is used
+         * @param {str} $params->marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
+         * @param {str} $params->type 'spot', 'swap', or 'future', if not provided $this->options['defaultMarginMode'] is used
          * @param {str} $params->settle 'btc' or 'usdt' - settle currency for perpetual swap and future - $market settle currency is used if $symbol !== null, default="usdt" for swap and "btc" for future
          * @return An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -3219,179 +3227,194 @@ class gateio extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
-         * fetches all open $orders
+         * fetches all open orders
          * @param {str} $symbol Unified market $symbol
-         * @param {int} $since earliest time in ms for $orders in the $response
+         * @param {int} $since earliest time in ms for orders in the response
          * @param {int} $limit max number of order structures to return
          * @param {dict} $params exchange specific $params
+         * @param {bool} $params->stop true for fetching stop orders
          * @param {str} $params->type spot, margin, swap or future, if not provided $this->options['defaultType'] is used
-         * @param {str} $params->marginType 'cross' or 'isolated' - marginType for $type='margin', if not provided $this->options['defaultMarginType'] is used
+         * @param {str} $params->marginMode 'cross' or 'isolated' - marginMode for type='margin', if not provided $this->options['defaultMarginMode'] is used
          * @return An array of order structures
          */
-        $this->load_markets();
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchOpenOrders', null, $params);
-        if ($symbol === null && ($type === 'spot') || $type === 'margin' || $type === 'cross_margin') {
-            $request = array(
-                // 'page' => 1,
-                // 'limit' => $limit,
-                'account' => $type, // spot/margin (default), cross_margin
-            );
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $response = $this->privateSpotGetOpenOrders (array_merge($request, $params));
-            //
-            //     array(
-            //         {
-            //             "currency_pair" => "ETH_BTC",
-            //             "total" => 1,
-            //             "orders" => array(
-            //                 array(
-            //                     "id" => "12332324",
-            //                     "text" => "t-123456",
-            //                     "create_time" => "1548000000",
-            //                     "update_time" => "1548000100",
-            //                     "currency_pair" => "ETH_BTC",
-            //                     "status" => "open",
-            //                     "type" => "limit",
-            //                     "account" => "spot",
-            //                     "side" => "buy",
-            //                     "amount" => "1",
-            //                     "price" => "5.00032",
-            //                     "time_in_force" => "gtc",
-            //                     "left" => "0.5",
-            //                     "filled_total" => "2.50016",
-            //                     "fee" => "0.005",
-            //                     "fee_currency" => "ETH",
-            //                     "point_fee" => "0",
-            //                     "gt_fee" => "0",
-            //                     "gt_discount" => false,
-            //                     "rebated_fee" => "0",
-            //                     "rebated_fee_currency" => "BTC"
-            //                 }
-            //             )
-            //         ),
-            //         ...
-            //     )
-            //
-            // price_orders
-            //
-            //    array(
-            //        {
-            //            "market" => "ADA_USDT",
-            //            "user" => 6693577,
-            //            "trigger" => array(
-            //                "price" => "0.9",
-            //                "rule" => "\u003c=",
-            //                "expiration" => 86400
-            //            ),
-            //            "put" => array(
-            //                "type" => "limit",
-            //                "side" => "sell",
-            //                "price" => "0.9",
-            //                "amount" => "2.00000000000000000000",
-            //                "account" => "margin",
-            //                "time_in_force" => "gtc"
-            //            ),
-            //            "id" => 8308730,
-            //            "ctime" => 1650434238,
-            //            "status" => "open"
-            //        }
-            //    )
-            //
-            $allOrders = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $entry = $response[$i];
-                $orders = $this->safe_value($entry, 'orders', array());
-                $parsed = $this->parse_orders($orders, null, $since, $limit);
-                $allOrders = $this->array_concat($allOrders, $parsed);
-            }
-            return $this->filter_by_since_limit($allOrders, $since, $limit);
-        }
         return $this->fetch_orders_by_status('open', $symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches all closed orders
+         * @param {str} $symbol Unified market $symbol of the market to fetch orders for
+         * @param {int} $since earliest time in ms for orders in the response
+         * @param {int} $limit max number of order structures to return
+         * @param {dict} $params exchange specific $params
+         * @param {bool} $params->stop true for fetching stop orders
+         * @param {str} $params->type spot, swap or future, if not provided $this->options['defaultType'] is used
+         * @param {str} $params->marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
+         * @return An array of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         return $this->fetch_orders_by_status('finished', $symbol, $since, $limit, $params);
     }
 
     public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus() requires a $symbol argument');
-        }
         $this->load_markets();
-        $market = $this->market($symbol);
-        list($request, $query) = $this->prepare_request($market, null, $params);
+        $market = ($symbol === null) ? null : $this->market($symbol);
+        $stop = $this->safe_value($params, 'stop');
+        $params = $this->omit($params, 'stop');
+        list($type, $query) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
+        $spot = ($type === 'spot') || ($type === 'margin');
+        list($request, $requestParams) = $spot ? $this->multi_order_spot_prepare_request($market, $stop, $query) : $this->prepare_request($market, $type, $query);
+        if ($status === 'closed') {
+            $status = 'finished';
+        }
         $request['status'] = $status;
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        if ($since !== null && ($market['spot'] || $market['margin'])) {
+        if ($since !== null && $spot) {
             $request['from'] = intval($since / 1000);
         }
-        $method = $this->get_supported_mapping($market['type'], array(
-            'spot' => 'privateSpotGetOrders',
-            'margin' => 'privateSpotGetOrders',
-            'swap' => 'privateFuturesGetSettleOrders',
-            'future' => 'privateDeliveryGetSettleOrders',
-        ));
-        if ($market['type'] === 'margin' || $market['type'] === 'cross_margin') {
-            $request['account'] = $market['type'];
+        $methodTail = $stop ? 'PriceOrders' : 'Orders';
+        $openSpotOrders = $spot && ($status === 'open') && !$stop;
+        if ($openSpotOrders) {
+            $methodTail = 'OpenOrders';
         }
-        $response = $this->$method (array_merge($request, $query));
+        $method = $this->get_supported_mapping($type, array(
+            'spot' => 'privateSpotGet' . $methodTail,
+            'margin' => 'privateSpotGet' . $methodTail,
+            'swap' => 'privateFuturesGetSettle' . $methodTail,
+            'future' => 'privateDeliveryGetSettle' . $methodTail,
+        ));
+        $response = $this->$method (array_merge($request, $requestParams));
+        //
+        // SPOT Open Orders
+        //
+        //    array(
+        //        array(
+        //            "currency_pair" => "ADA_USDT",
+        //            "total" => 2,
+        //            "orders" => array(
+        //                array(
+        //                    "id" => "155498539874",
+        //                    "text" => "apiv4",
+        //                    "create_time" => "1652406843",
+        //                    "update_time" => "1652406843",
+        //                    "create_time_ms" => 1652406843295,
+        //                    "update_time_ms" => 1652406843295,
+        //                    "status" => "open",
+        //                    "currency_pair" => "ADA_USDT",
+        //                    "type" => "limit",
+        //                    "account" => "spot",
+        //                    "side" => "buy",
+        //                    "amount" => "3",
+        //                    "price" => "0.35",
+        //                    "time_in_force" => "gtc",
+        //                    "iceberg" => "0",
+        //                    "left" => "3",
+        //                    "fill_price" => "0",
+        //                    "filled_total" => "0",
+        //                    "fee" => "0",
+        //                    "fee_currency" => "ADA",
+        //                    "point_fee" => "0",
+        //                    "gt_fee" => "0",
+        //                    "gt_discount" => false,
+        //                    "rebated_fee" => "0",
+        //                    "rebated_fee_currency" => "USDT"
+        //                ),
+        //                ...
+        //            )
+        //        ),
+        //        ...
+        //    )
         //
         // SPOT
         //
-        //    {
-        //        "id" => "8834234273",
-        //        "text" => "3",
-        //        "create_time" => "1635406193",
-        //        "update_time" => "1635406193",
-        //        "create_time_ms" => 1635406193361,
-        //        "update_time_ms" => 1635406193361,
-        //        "status" => "closed",
-        //        "currency_pair" => "BTC_USDT",
-        //        "type" => "limit",
-        //        "account" => "spot",
-        //        "side" => "sell",
-        //        "amount" => "0.0002",
-        //        "price" => "58904.01",
-        //        "time_in_force" => "gtc",
-        //        "iceberg" => "0",
-        //        "left" => "0.0000",
-        //        "fill_price" => "11.790516",
-        //        "filled_total" => "11.790516",
-        //        "fee" => "0.023581032",
-        //        "fee_currency" => "USDT",
-        //        "point_fee" => "0",
-        //        "gt_fee" => "0",
-        //        "gt_discount" => false,
-        //        "rebated_fee_currency" => "BTC"
-        //    }
+        //    array(
+        //        {
+        //           "id" => "8834234273",
+        //           "text" => "3",
+        //           "create_time" => "1635406193",
+        //           "update_time" => "1635406193",
+        //           "create_time_ms" => 1635406193361,
+        //           "update_time_ms" => 1635406193361,
+        //           "status" => "closed",
+        //           "currency_pair" => "BTC_USDT",
+        //           "type" => "limit",
+        //           "account" => "spot", // margin for margin $orders
+        //           "side" => "sell",
+        //           "amount" => "0.0002",
+        //           "price" => "58904.01",
+        //           "time_in_force" => "gtc",
+        //           "iceberg" => "0",
+        //           "left" => "0.0000",
+        //           "fill_price" => "11.790516",
+        //           "filled_total" => "11.790516",
+        //           "fee" => "0.023581032",
+        //           "fee_currency" => "USDT",
+        //           "point_fee" => "0",
+        //           "gt_fee" => "0",
+        //           "gt_discount" => false,
+        //           "rebated_fee_currency" => "BTC"
+        //        }
+        //    )
+        //
+        // Spot Stop
+        //
+        //    array(
+        //        {
+        //            "market" => "ADA_USDT",
+        //            "user" => 10406147,
+        //            "trigger" => array(
+        //                "price" => "0.65",
+        //                "rule" => "\u003c=",
+        //                "expiration" => 86400
+        //            ),
+        //            "put" => array(
+        //                "type" => "limit",
+        //                "side" => "sell",
+        //                "price" => "0.65",
+        //                "amount" => "2.00000000000000000000",
+        //                "account" => "normal",  // margin for margin $orders
+        //                "time_in_force" => "gtc"
+        //            ),
+        //            "id" => 8449909,
+        //            "ctime" => 1652188982,
+        //            "status" => "open"
+        //        }
+        //    )
         //
         // Perpetual Swap
         //
-        //    {
-        //        "status" => "finished",
-        //        "size" => -1,
-        //        "left" => 0,
-        //        "id" => 82750739203,
-        //        "is_liq" => false,
-        //        "is_close" => false,
-        //        "contract" => "BTC_USDT",
-        //        "text" => "web",
-        //        "fill_price" => "60721.3",
-        //        "finish_as" => "filled",
-        //        "iceberg" => 0,
-        //        "tif" => "ioc",
-        //        "is_reduce_only" => true,
-        //        "create_time" => 1635403475.412,
-        //        "finish_time" => 1635403475.4127,
-        //        "price" => "0"
-        //    }
+        //    array(
+        //        {
+        //           "status" => "finished",
+        //           "size" => -1,
+        //           "left" => 0,
+        //           "id" => 82750739203,
+        //           "is_liq" => false,
+        //           "is_close" => false,
+        //           "contract" => "BTC_USDT",
+        //           "text" => "web",
+        //           "fill_price" => "60721.3",
+        //           "finish_as" => "filled",
+        //           "iceberg" => 0,
+        //           "tif" => "ioc",
+        //           "is_reduce_only" => true,
+        //           "create_time" => 1635403475.412,
+        //           "finish_time" => 1635403475.4127,
+        //           "price" => "0"
+        //        }
+        //    )
         //
-        return $this->parse_orders($response, $market, $since, $limit);
+        $result = $response;
+        if ($openSpotOrders) {
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $orders = $this->safe_value($response[$i], 'orders');
+                $result = $this->array_concat($result, $orders);
+            }
+        }
+        $orders = $this->parse_orders($result, $market, $since, $limit);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -3561,28 +3584,29 @@ class gateio extends Exchange {
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
-        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
-        if ($fromId === null) {
-            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' $transfer() $fromAccount must be one of ' . implode(', ', $keys));
-        }
-        if ($toId === null) {
-            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' $transfer() $toAccount must be one of ' . implode(', ', $keys));
-        }
+        $fromId = $this->parse_account($fromAccount);
+        $toId = $this->parse_account($toAccount);
         $truncated = $this->currency_to_precision($code, $amount);
         $request = array(
             'currency' => $currency['id'],
-            'from' => $fromId,
-            'to' => $toId,
             'amount' => $truncated,
         );
-        if ($fromAccount === 'margin' || $toAccount === 'margin') {
+        if (!(is_array($this->options['accountsByType']) && array_key_exists($fromId, $this->options['accountsByType']))) {
+            $request['from'] = 'margin';
+            $request['currency_pair'] = $fromId;
+        } else {
+            $request['from'] = $fromId;
+        }
+        if (!(is_array($this->options['accountsByType']) && array_key_exists($toId, $this->options['accountsByType']))) {
+            $request['to'] = 'margin';
+            $request['currency_pair'] = $toId;
+        } else {
+            $request['to'] = $toId;
+        }
+        if ($fromId === 'margin' || $toId === 'margin') {
             $symbol = $this->safe_string_2($params, 'symbol', 'currency_pair');
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' $transfer() requires $params->symbol for isolated margin transfers');
+                throw new ArgumentsRequired($this->id . ' $transfer requires $params["symbol"] for isolated margin transfers');
             }
             $market = $this->market($symbol);
             $request['currency_pair'] = $market['id'];
@@ -3609,6 +3633,19 @@ class gateio extends Exchange {
             'toAccount' => $toAccount,
             'amount' => $this->parse_number($truncated),
         ));
+    }
+
+    public function parse_account($account) {
+        $accountsByType = $this->options['accountsByType'];
+        if (is_array($accountsByType) && array_key_exists($account, $accountsByType)) {
+            return $accountsByType[$account];
+        } else if (is_array($this->markets) && array_key_exists($account, $this->markets)) {
+            $market = $this->market($account);
+            return $market['id'];
+        } else {
+            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+            throw new ExchangeError($this->id . ' accounts must be one of ' . implode(', ', $keys) . ' or an isolated margin symbol');
+        }
     }
 
     public function parse_transfer($transfer, $currency = null) {
@@ -3642,14 +3679,14 @@ class gateio extends Exchange {
             'future' => 'privateDeliveryPostSettlePositionsContractLeverage',
         ));
         list($request, $query) = $this->prepare_request($market, null, $params);
-        $defaultMarginType = $this->safe_string_2($this->options, 'marginType', 'defaultMarginType');
+        $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
         $crossLeverageLimit = $this->safe_string($query, 'cross_leverage_limit');
-        $marginType = $this->safe_string($query, 'marginType', $defaultMarginType);
+        $marginMode = $this->safe_string($query, 'marginMode', $defaultMarginMode);
         if ($crossLeverageLimit !== null) {
-            $marginType = 'cross';
+            $marginMode = 'cross';
             $leverage = $crossLeverageLimit;
         }
-        if ($marginType === 'cross' || $marginType === 'cross_margin') {
+        if ($marginMode === 'cross' || $marginMode === 'cross_margin') {
             $request['query'] = array(
                 'cross_leverage_limit' => (string) $leverage,
                 'leverage' => '0',
@@ -3730,11 +3767,11 @@ class gateio extends Exchange {
         $maintenanceRate = $this->safe_string($position, 'maintenance_rate');
         $notional = $this->safe_string($position, 'value');
         $leverage = $this->safe_string($position, 'leverage');
-        $marginType = null;
+        $marginMode = null;
         if ($leverage === '0') {
-            $marginType = 'cross';
+            $marginMode = 'cross';
         } else {
-            $marginType = 'isolated';
+            $marginMode = 'isolated';
         }
         $unrealisedPnl = $this->safe_string($position, 'unrealised_pnl');
         // Initial Position Margin = ( Position Value / Leverage ) . Close Position Fee
@@ -3759,12 +3796,13 @@ class gateio extends Exchange {
             'unrealizedPnl' => $this->parse_number($unrealisedPnl),
             'contracts' => $this->parse_number(Precise::string_abs($size)),
             'contractSize' => $this->safe_value($market, 'contractSize'),
-            //     realisedPnl => $position['realised_pnl'],
+            // 'realisedPnl' => $position['realised_pnl'],
             'marginRatio' => null,
             'liquidationPrice' => $this->safe_number($position, 'liq_price'),
             'markPrice' => $this->safe_number($position, 'mark_price'),
             'collateral' => $this->safe_number($position, 'margin'),
-            'marginType' => $marginType,
+            'marginMode' => $marginMode,
+            'marginType' => $marginMode, // deprecated
             'side' => $side,
             'percentage' => $this->parse_number($percentage),
         );

@@ -46,8 +46,6 @@ class bitmart extends Exchange {
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
-                'fetchFundingFee' => true,
-                'fetchFundingFees' => false,
                 'fetchFundingHistory' => null,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -64,6 +62,8 @@ class bitmart extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransactionFee' => true,
+                'fetchTransactionFees' => false,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'fetchWithdrawAddressesByNetwork' => false,
@@ -650,7 +650,7 @@ class bitmart extends Exchange {
         return $this->array_concat($spot, $contract);
     }
 
-    public function fetch_funding_fee($code, $params = array ()) {
+    public function fetch_transaction_fee($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(

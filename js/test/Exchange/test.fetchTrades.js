@@ -9,16 +9,18 @@ const assert = require ('assert')
 
 module.exports = async (exchange, symbol) => {
 
+    const method = 'fetchTrades'
+
     const skippedExchanges = []
 
     if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, 'found in ignored exchanges, skipping fetchTrades...')
+        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...')
         return
     }
 
-    if (exchange.has.fetchTrades) {
+    if (exchange.has[method]) {
 
-        const trades = await exchange.fetchTrades (symbol)
+        const trades = await exchange[method] (symbol)
         assert (trades instanceof Array)
         console.log (symbol, 'fetched', Object.values (trades).length, 'trades')
         const now = Date.now ()
@@ -34,6 +36,6 @@ module.exports = async (exchange, symbol) => {
 
     } else {
 
-        console.log (symbol, 'fetchTrades () not supported')
+        console.log (symbol, method + '() is not supported')
     }
 }

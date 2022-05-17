@@ -101,8 +101,8 @@ module.exports = class Exchange {
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': undefined,
                 'fetchDeposits': undefined,
-                'fetchFundingFee': undefined,
-                'fetchFundingFees': undefined,
+                'fetchTransactionFee': undefined,
+                'fetchTransactionFees': undefined,
                 'fetchFundingHistory': undefined,
                 'fetchFundingRate': undefined,
                 'fetchFundingRateHistory': undefined,
@@ -221,7 +221,6 @@ module.exports = class Exchange {
             'commonCurrencies': { // gets extended/overwritten in subclasses
                 'XBT': 'BTC',
                 'BCC': 'BCH',
-                'DRK': 'DASH',
                 'BCHABC': 'BCH',
                 'BCHSV': 'BSV',
             },
@@ -559,7 +558,7 @@ module.exports = class Exchange {
                     } else if (typeof config === 'number') {
                         this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, { cost: config })
                     } else {
-                        throw new NotSupported (this.id + ' defineRestApi() API format not supported, API leafs must strings, objects or numbers');
+                        throw new NotSupported (this.id + ' defineRestApi() API format is not supported, API leafs must strings, objects or numbers');
                     }
                 }
             } else {
@@ -993,7 +992,7 @@ module.exports = class Exchange {
                 return depositAddress;
             }
         } else {
-            throw new NotSupported (this.id + ' fetchDepositAddress() not supported yet');
+            throw new NotSupported (this.id + ' fetchDepositAddress() is not supported yet');
         }
     }
 
@@ -1153,7 +1152,7 @@ module.exports = class Exchange {
     }
 
     async fetchBalance (params = {}) {
-        throw new NotSupported (this.id + ' fetchBalance() not supported yet')
+        throw new NotSupported (this.id + ' fetchBalance() is not supported yet')
     }
 
     async fetchPartialBalance (part, params = {}) {
@@ -1184,14 +1183,41 @@ module.exports = class Exchange {
     }
 
     async fetchTradingFees (params = {}) {
-        throw new NotSupported (this.id + ' fetchTradingFees() not supported yet')
+        throw new NotSupported (this.id + ' fetchTradingFees() is not supported yet')
     }
 
     async fetchTradingFee (symbol, params = {}) {
         if (!this.has['fetchTradingFees']) {
-            throw new NotSupported (this.id + ' fetchTradingFee() not supported yet')
+            throw new NotSupported (this.id + ' fetchTradingFee() is not supported yet')
         }
         return await this.fetchTradingFees (params)
+    }
+
+    async fetchFundingFee (code, params = {}) {
+        const warnOnFetchFundingFee = this.safeValue (this.options, 'warnOnFetchFundingFee', true);
+        if (warnOnFetchFundingFee) {
+            throw new NotSupported (this.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
+        }
+        return this.fetchTransactionFee (code, params);
+    }
+
+    async fetchFundingFees (codes = undefined, params = {}) {
+        const warnOnFetchFundingFees = this.safeValue (this.options, 'warnOnFetchFundingFees', true);
+        if (warnOnFetchFundingFees) {
+            throw new NotSupported (this.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
+        }
+        return this.fetchTransactionFees (codes, params);
+    }
+
+    async fetchTransactionFee (code, params = {}) {
+        if (!this.has['fetchTransactionFees']) {
+            throw new NotSupported (this.id + ' fetchTransactionFee() is not supported yet');
+        }
+        return this.fetchTransactionFees ([code], params);
+    }
+
+    async fetchTransactionFees (codes = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchTransactionFees() is not supported yet');
     }
 
     async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
@@ -1601,7 +1627,7 @@ module.exports = class Exchange {
     }
 
     parseFundingRate (contract, market = undefined) {
-        throw new NotSupported (this.id + ' parseFundingRate() not supported yet')
+        throw new NotSupported (this.id + ' parseFundingRate() is not supported yet')
     }
 
     parseFundingRates (response, market = undefined) {
@@ -1641,9 +1667,6 @@ module.exports = class Exchange {
     }
 
     async editOrder (id, symbol, ...args) {
-        if (!this.enableRateLimit) {
-            throw new ExchangeError (this.id + ' editOrder() requires enableRateLimit = true')
-        }
         await this.cancelOrder (id, symbol);
         return this.createOrder (symbol, ...args)
     }
@@ -2192,6 +2215,11 @@ module.exports = class Exchange {
         return this.parseNumber (value, d)
     }
 
+    safeNumberN (object, arr, d = undefined) {
+        const value = this.safeStringN (object, arr)
+        return this.parseNumber(value, d)
+    }
+
     parsePrecision (precision) {
         if (precision === undefined) {
             return undefined
@@ -2367,5 +2395,16 @@ module.exports = class Exchange {
             interest.push (this.parseBorrowInterest (row, market));
         }
         return interest;
+    }
+
+    parseFundingRateHistories (response, market = undefined, since = undefined, limit = undefined) {
+        const rates = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            rates.push (this.parseFundingRateHistory (entry, market));
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        const symbol = (market === undefined) ? undefined : market['symbol'];
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 }

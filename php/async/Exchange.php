@@ -28,11 +28,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.81.95';
+$version = '1.82.74';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.81.95';
+    const VERSION = '1.82.74';
 
     public static $loop;
     public static $kernel;
@@ -190,7 +190,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function fetch_permissions($params = array()) {
-        throw new NotSupported($this->id . ' fetch_permissions() not supported yet');
+        throw new NotSupported($this->id . ' fetch_permissions() is not supported yet');
     }
 
 
@@ -279,7 +279,7 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array()) {
         if (!$this->has['fetchTrades']) {
-            throw new NotSupported($this->id . ' fetch_ohlcv() not supported yet');
+            throw new NotSupported($this->id . ' fetch_ohlcv() is not supported yet');
         }
         yield $this->load_markets();
         $trades = yield $this->fetch_trades($symbol, $since, $limit, $params);
@@ -321,9 +321,6 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array()) {
-        if (!$this->enableRateLimit) {
-            throw new ExchangeError($this->id . ' edit_order() requires enableRateLimit = true');
-        }
         yield $this->cancel_order($id, $symbol, $params);
         return yield $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
@@ -338,7 +335,7 @@ class Exchange extends \ccxt\Exchange {
                 return $deposit_address;
             }
         } else {
-            throw new NotSupported ($this->id . ' fetchDepositAddress not supported yet');
+            throw new NotSupported ($this->id . ' fetchDepositAddress() is not supported yet');
         }
     }
 
@@ -347,12 +344,12 @@ class Exchange extends \ccxt\Exchange {
             $tickers = yield $this->fetch_tickers(array( $symbol ), $params);
             $ticker = $this->safe_value($tickers, $symbol);
             if ($ticker === null) {
-                throw new BadSymbol($this->id . ' fetchTickers could not find a $ticker for ' . $symbol);
+                throw new BadSymbol($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
             } else {
                 return $ticker;
             }
         } else {
-            throw new NotSupported($this->id . ' fetchTicker not supported yet');
+            throw new NotSupported($this->id . ' fetchTicker() is not supported yet');
         }
     }
 

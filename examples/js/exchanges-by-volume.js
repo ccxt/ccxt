@@ -24,7 +24,7 @@ const ccxt = require ('../../ccxt.js')
 
             try {
 
-                const exchange = new ccxt[exchangeId] ({ enableRateLimit: true })
+                const exchange = new ccxt[exchangeId] ()
 
                 const ticker = await exchange.fetchTicker (symbol)
 

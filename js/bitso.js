@@ -35,8 +35,6 @@ module.exports = class bitso extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchDepositAddress': true,
-                'fetchFundingFee': false,
-                'fetchFundingFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -59,6 +57,8 @@ module.exports = class bitso extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransactionFee': false,
+                'fetchTransactionFees': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'reduceMargin': false,
@@ -844,7 +844,7 @@ module.exports = class bitso extends Exchange {
         };
     }
 
-    async fetchFundingFees (params = {}) {
+    async fetchTransactionFees (codes = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetFees (params);
         //

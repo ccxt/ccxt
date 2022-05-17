@@ -32,7 +32,7 @@ class stex extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
-                'createMarketOrder' => null, // limit orders only
+                'createMarketOrder' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
@@ -43,9 +43,9 @@ class stex extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrder' => true,
                 'fetchCurrencies' => true,
+                'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
-                'fetchFundingFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -71,11 +71,14 @@ class stex extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
+                'fetchTransactionFees' => true,
+                'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'version' => 'v3',
@@ -84,6 +87,7 @@ class stex extends Exchange {
                 'api' => 'https://api3.stex.com',
                 'www' => 'https://www.stex.com',
                 'doc' => array(
+                    'https://apidocs.stex.com/',
                     'https://help.stex.com/en/collections/1593608-api-v3-documentation',
                 ),
                 'fees' => 'https://app.stex.com/en/pairs-specification',
@@ -260,6 +264,15 @@ class stex extends Exchange {
                     'TRX' => 24,
                     'SOL' => 25,
                     'BEP20' => 501,
+                ),
+                'accountsByType' => array(
+                    'spot' => 'spot',
+                    'hold' => 'hold',
+                    'funding' => 'funding',
+                    'referal' => 'referal',
+                ),
+                'transfer' => array(
+                    'fillResponseFromRequest' => true,
                 ),
             ),
             'exceptions' => array(
@@ -1579,7 +1592,7 @@ class stex extends Exchange {
 
     public function parse_transaction($transaction, $currency = null) {
         //
-        // fetchDeposits
+        // fetchDeposit & fetchDeposits
         //
         //     {
         //         "id" => 123654789,
@@ -1599,7 +1612,7 @@ class stex extends Exchange {
         //         "confirmations" => "1 of 2"
         //     }
         //
-        // fetchWithdrawals
+        // fetchWithdrawal && fetchWithdrawals
         //
         //     {
         //         "id" => 65899,
@@ -1653,7 +1666,7 @@ class stex extends Exchange {
         $fee = null;
         $feeCost = $this->safe_number($transaction, 'fee');
         if ($feeCost !== null) {
-            $feeCurrencyId = $this->safe_string($transaction, 'fee_currency_id', 'deposit_fee_currency_id');
+            $feeCurrencyId = $this->safe_string_2($transaction, 'fee_currency_id', 'deposit_fee_currency_id');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
                 'cost' => $feeCost,
@@ -1681,6 +1694,48 @@ class stex extends Exchange {
             'updated' => $updated,
             'fee' => $fee,
         );
+    }
+
+    public function fetch_deposit($id, $code = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array(
+            'id' => $id,
+        );
+        $response = yield $this->profileGetDepositsId (array_merge($request, $params));
+        //
+        //     {
+        //         success => true,
+        //         $data => array(
+        //             $id => '21974074',
+        //             currency_id => '272',
+        //             block_explorer_url => 'https://omniexplorer.info/search/',
+        //             currency_code => 'USDT',
+        //             deposit_fee_currency_id => '272',
+        //             deposit_fee_currency_code => 'USDT',
+        //             amount => '11.00000000',
+        //             fee => '0.00000000',
+        //             deposit_status_id => '3',
+        //             status => 'FINISHED',
+        //             status_color => '#00BE75',
+        //             txid => '15b50da4600a5021dbddaed8f4a71de093bf206ea66eb4ab2f151e3e9e2fed71',
+        //             protocol_id => '24',
+        //             confirmations => '129 of 20',
+        //             created_at => '2022-05-16 16:38:40',
+        //             timestamp => '1652719120',
+        //             protocol_specific_settings => [array(
+        //                 protocol_name => 'TRON',
+        //                 protocol_id => '24',
+        //                 block_explorer_url => 'https://tronscan.org/#/transaction/'
+        //             )]
+        //         ),
+        //         unified_message => {
+        //             message_id => 'operation_successful',
+        //             substitutions => array()
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transaction($data);
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1729,6 +1784,55 @@ class stex extends Exchange {
         //
         $deposits = $this->safe_value($response, 'data', array());
         return $this->parse_transactions($deposits, $code, $since, $limit);
+    }
+
+    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array(
+            'id' => $id,
+        );
+        $response = yield $this->profileGetWithdrawalsId (array_merge($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //         "data" => {
+        //             "id" => 65899,
+        //             "amount" => "0.00600000",
+        //             "currency_id" => 1,
+        //             "currency_code" => "BTC",
+        //             "fee" => "0.00400000",
+        //             "fee_currency_id" => 1,
+        //             "fee_currency_code" => "BTC",
+        //             "withdrawal_status_id" => 1,
+        //             "status" => "Not Confirmed",
+        //             "status_color" => "#BC3D51",
+        //             "created_at" => "2019-01-21 09:36:05",
+        //             "created_ts" => "1548063365",
+        //             "updated_at" => "2019-01-21 09:36:05",
+        //             "updated_ts" => "1548063365",
+        //             "reason" => "string",
+        //             "txid" => null,
+        //             "protocol_id" => 0,
+        //             "withdrawal_address" => array(
+        //                 "address" => "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        //                 "address_name" => "Address",
+        //                 "additional_address_parameter" => "qwertyuiopasdfghjkl",
+        //                 "additional_address_parameter_name" => "Destination Tag",
+        //                 "notification" => "",
+        //                 "protocol_id" => 10,
+        //                 "protocol_name" => "Tether OMNI",
+        //                 "supports_new_address_creation" => false
+        //             ),
+        //             "protocol_specific_settings" => {
+        //                 "protocol_name" => "Tether OMNI",
+        //                 "protocol_id" => 10,
+        //                 "block_explorer_url" => "https://omniexplorer.info/search/"
+        //             }
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transaction($data);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1788,6 +1892,231 @@ class stex extends Exchange {
         //
         $withdrawals = $this->safe_value($response, 'data', array());
         return $this->parse_transactions($withdrawals, $code, $since, $limit);
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $method = null;
+        $request = array();
+        if ($fromAccount === 'referal' && $toAccount === 'spot') {
+            $request['currencyId'] = $currency['id'];
+            $method = 'profilePostReferralBonusTransferCurrencyId';
+        } else if ($toAccount === 'hold') {
+            $request['walletId'] = $fromAccount;
+            $amount = $this->currency_to_precision($code, $amount);
+            $amount = Precise::string_neg($amount);
+            $request['amount'] = $amount;
+            $method = 'profilePostWalletsWalletIdHoldAmount';
+        } else if ($fromAccount === 'hold') {
+            $request['walletId'] = $toAccount;
+            $request['amount'] = $amount;
+            $method = 'profilePostWalletsWalletIdHoldAmount';
+        } else {
+            throw new ExchangeError($this->id . ' $transfer() only allows transfers of referal to spot and between a walletId and funding');
+        }
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        //  profilePostReferralBonusTransferCurrencyId
+        //     {
+        //         "success" => true,
+        //         "data" => ""
+        //     }
+        //
+        //  profilePostWalletsWalletIdHoldAmount
+        //     {
+        //         success => true,
+        //         $data => {
+        //             id => '4055802',
+        //             currency_id => '272',
+        //             currency_code => 'USDT',
+        //             currency_name => 'TetherUSD',
+        //             balance => '10.00000000',
+        //             frozen_balance => '0.00000000',
+        //             bonus_balance => '0.00000000',
+        //             hold_balance => '1.00000000',
+        //             total_balance => '11.00000000',
+        //             disable_deposits => false,
+        //             disable_withdrawals => false,
+        //             withdrawal_limit => '0.00000000',
+        //             delisted => false,
+        //             disabled => false,
+        //             deposit_address => null,
+        //             multi_deposit_addresses => [array(
+        //                 address => 'TYzhabfHWMLgLnMW46ZyUHkUVJPXaDgdxK',
+        //                 address_name => 'Deposit Address',
+        //                 additional_address_parameter => null,
+        //                 additional_address_parameter_name => null,
+        //                 notification => '',
+        //                 protocol_id => '24',
+        //                 protocol_name => 'TRON',
+        //                 supports_new_address_creation => false
+        //             )],
+        //             contract_or_asset_id => '31',
+        //             contract_field_name => null,
+        //             withdrawal_additional_field_name => null,
+        //             depo_message => '',
+        //             wd_message => '',
+        //             currency_type_id => '23',
+        //             protocol_specific_settings => [{
+        //                 array(
+        //                     protocol_name => 'ERC20',
+        //                     protocol_id => '5',
+        //                     active => true,
+        //                     disable_deposits => false,
+        //                     disable_withdrawals => false,
+        //                     withdrawal_limit => '0',
+        //                     deposit_fee_currency_id => '272',
+        //                     deposit_fee_currency_code => 'USDT',
+        //                     deposit_fee_percent => '0',
+        //                     deposit_fee_const => '0',
+        //                     withdrawal_fee_currency_id => '272',
+        //                     withdrawal_fee_currency_code => 'USDT',
+        //                     withdrawal_fee_const => '10',
+        //                     withdrawal_fee_percent => '0',
+        //                     block_explorer_url => 'https://etherscan.io/tx/',
+        //                     contract_or_asset_id => '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        //                     contract_field_name => '',
+        //                     withdrawal_additional_field_name => '',
+        //                     depo_message => '',
+        //                     wd_message => ''
+        //                 ),
+        //                 ...
+        //             ],
+        //             coin_info => array(
+        //                 twitter => 'https://twitter.com/Tether_to',
+        //                 version => '',
+        //                 facebook => 'https://www.facebook.com/tether.to',
+        //                 telegram => '',
+        //                 icon_large => 'https://app-coin-images.stex.com/large/usdt.png',
+        //                 icon_small => 'https://app-coin-images.stex.com/small/usdt.png',
+        //                 description => 'Tether (USDT) is a cryptocurrency with a value meant to mirror the value of the U.S. dollar. The idea was to create a stable cryptocurrency that can be used like digital dollars. Coins that serve this purpose of being a stable dollar substitute are called “stable coins.” Tether is the most popular stable coin and even acts as a dollar replacement on many popular exchanges! According to their site, Tether converts cash into digital $currency, to anchor or “tether” the value of the coin to the price of national currencies like the US dollar, the Euro, and the Yen. Like other cryptos it uses blockchain. Unlike other cryptos, it is [according to the official Tether site] “100% backed by USD” (USD is held in reserve). The primary use of Tether is that it offers some stability to the otherwise volatile crypto space and offers liquidity to exchanges who can’t deal in dollars and with banks (for example to the sometimes controversial but leading exchange Bitfinex).The digital coins are issued by a company called Tether Limited that is governed by the laws of the British Virgin Islands, according to the legal part of its website. It is incorporated in Hong Kong. It has emerged that Jan Ludovicus van der Velde is the CEO of cryptocurrency exchange Bitfinex, which has been accused of being involved in the price manipulation of bitcoin, as well as tether. Many people trading on exchanges, including Bitfinex, will use tether to buy other cryptocurrencies like bitcoin. Tether Limited argues that using this $method to buy virtual currencies allows users to move fiat in and out of an exchange more quickly and cheaply. Also, exchanges typically have rocky relationships with banks, and using Tether is a way to circumvent that.USDT is fairly simple to use. Once on exchanges like Poloniex or Bittrex, it can be used to purchase Bitcoin and other cryptocurrencies. It can be easily transferred from an exchange to any Omni Layer enabled wallet. Tether has no transaction fees, although external wallets and exchanges may charge one. In order to convert USDT to USD and vise versa through the Tether.to Platform, users must pay a small fee. Buying and selling Tether for Bitcoin can be done through a variety of exchanges like the ones mentioned previously or through the Tether.to platform, which also allows the conversion between USD to and from your bank account.',
+        //                 official_site => 'https://tether.to/',
+        //                 official_block_explorer => 'https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7'
+        //             ),
+        //             rates => array(
+        //                 BTC => '0.00003372',
+        //                 USD => '1'
+        //             }
+        //         ),
+        //         unified_message => {
+        //             message_id => 'operation_successful',
+        //             substitutions => array()
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $transfer = $this->parse_transfer($data, $currency);
+        $transferOptions = $this->safe_value($this->options, 'transfer', array());
+        $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
+        if ($fillResponseFromRequest) {
+            $transfer['fromAccount'] = $fromAccount;
+            $transfer['toAccount'] = $toAccount;
+            if (gettype($amount) === 'string' && Precise::string_lt($amount, '0')) {
+                $amount = $this->parse_number(Precise::string_neg($amount));
+            }
+            $transfer['amount'] = $amount;
+            if ($transfer['currency'] === null) {
+                $transfer['currency'] = $code;
+            }
+        }
+        return $transfer;
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         "id" => 45875,
+        //         "currency_id" => 1,
+        //         "currency_code" => "USDT",
+        //         "currency_name" => "TetherUSD",
+        //         "balance" => "0.198752",
+        //         "frozen_balance" => "1.5784",
+        //         "bonus_balance" => "0.000",
+        //         "hold_balance" => "0.000",
+        //         "total_balance" => "1.777152",
+        //         "disable_deposits" => false,
+        //         "disable_withdrawals" => false,
+        //         "withdrawal_limit" => "string",
+        //         "delisted" => false,
+        //         "disabled" => false,
+        //         "deposit_address" => array(
+        //             "address" => "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        //             "address_name" => "Address",
+        //             "additional_address_parameter" => "qwertyuiopasdfghjkl",
+        //             "additional_address_parameter_name" => "Destination Tag",
+        //             "notification" => "",
+        //             "protocol_id" => 10,
+        //             "protocol_name" => "Tether OMNI",
+        //             "supports_new_address_creation" => false
+        //         ),
+        //         "multi_deposit_addresses" => [array(
+        //             "address" => "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        //             "address_name" => "Address",
+        //             "additional_address_parameter" => "qwertyuiopasdfghjkl",
+        //             "additional_address_parameter_name" => "Destination Tag",
+        //             "notification" => "",
+        //             "protocol_id" => 10,
+        //             "protocol_name" => "Tether OMNI",
+        //             "supports_new_address_creation" => false
+        //         )],
+        //         "withdrawal_additional_field_name" => "Payment ID (optional)",
+        //         "currency_type_id" => 23,
+        //         "protocol_specific_settings" => [array(
+        //             "protocol_name" => "Tether OMNI",
+        //             "protocol_id" => 10,
+        //             "active" => true,
+        //             "disable_deposits" => false,
+        //             "disable_withdrawals" => false,
+        //             "withdrawal_limit" => 0,
+        //             "deposit_fee_currency_id" => 272,
+        //             "deposit_fee_currency_code" => "USDT",
+        //             "deposit_fee_percent" => 0,
+        //             "deposit_fee_const" => 0,
+        //             "withdrawal_fee_currency_id" => 1,
+        //             "withdrawal_fee_currency_code" => "USDT",
+        //             "withdrawal_fee_const" => 0.002,
+        //             "withdrawal_fee_percent" => 0,
+        //             "block_explorer_url" => "https://omniexplorer.info/search/",
+        //             "withdrawal_additional_field_name" => ""
+        //         )],
+        //         "coin_info" => array(
+        //             "twitter" => "https://twitter.com/btc",
+        //             "version" => "",
+        //             "facebook" => "https://www.facebook.com/bitcoins",
+        //             "telegram" => "",
+        //             "icon_large" => "https://app-coin-images.stex.com/large/btc.png",
+        //             "icon_small" => "https://app-coin-images.stex.com/small/btc.png",
+        //             "description" => "Bitcoin is the first successful internet money based on peer-to-peer technology;....",
+        //             "official_site" => "http://www.bitcoin.org",
+        //             "official_block_explorer" => "https://blockchair.com/bitcoin/"
+        //         ),
+        //         "rates" => {
+        //             "BTC" => 0.000001
+        //         }
+        //     }
+        //
+        $currencyId = $this->safe_string($transfer, 'currency_id');
+        $code = null;
+        if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+            $currency = $this->currencies_by_id[$currencyId];
+        } else {
+            $code = $this->common_currency_code($this->safe_string($transfer, 'currency_code'));
+        }
+        if ($code === null) {
+            $code = $this->safe_value($currency, 'code');
+        }
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'id'),
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => $code,
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => null,
+        );
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
@@ -1850,7 +2179,7 @@ class stex extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function fetch_funding_fees($codes = null, $params = array ()) {
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
         yield $this->load_markets();
         $response = yield $this->publicGetCurrencies ($params);
         //
