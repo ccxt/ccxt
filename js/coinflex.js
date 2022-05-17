@@ -452,8 +452,8 @@ module.exports = class coinflex extends ccxt.coinflex {
                     'orderId': this.safeString (order, 'orderId'),
                     'marketCode': this.safeString (order, 'marketCode'),
                 };
-                // we don't use the own order object itself
-                // because would cause a circular import error in json
+                // we don't use the own order object itself (order['matchIds'] = order)
+                // because would cause a circular import error in json later on
                 order['matchIds'] = [ tradeObject ];
                 this.handleMyTrade (client, tradeObject);
             }
@@ -716,7 +716,6 @@ module.exports = class coinflex extends ccxt.coinflex {
             'depth': this.handleOrderBook,
             'order': this.handleOrder,
             'balance': this.handleBalance,
-            // 'usertrade': this.handleMyTrades,
         };
         const topic = this.safeString (message, 'table');
         // specific check because this topic has the timeframe attached
