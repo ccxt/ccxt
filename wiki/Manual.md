@@ -2322,6 +2322,30 @@ The `since` argument is an integer UTC timestamp **in milliseconds** (everywhere
 
 If `since` is not specified the `fetchOHLCV` method will return the time range as is the default from the exchange itself.  This is not a bug. Some exchanges will return candles from the beginning of time, others will return most recent candles only, the exchanges' default behaviour is expected. Thus, without specifying `since` the range of returned candles will be exchange-specific. One should pass  the `since` argument to ensure getting precisely the history range needed.
 
+### Notes On Latency
+
+Trading strategies require fresh up-to-date information for technical analysis, indicators and signals. Building a speculative trading strategy based on the OHLCV candles received from the exchange might have critical drawbacks. Developers have to account for the details explained in this section to build successful bots.
+
+The exchanges usually provide two categories of public market data:
+
+1. Fast primary first-order data that includes real time orderbooks and trades or fills
+2. Slow second-order data that includes secondary tickers and kline OHLCV candles, that are calculated from the first-order data
+
+The primary first-order data is updated by the exchanges APIs in pseudo real time, or as close to real time as possible, as fast as possible. The second-order data requires time for the exchange to calculate it. For example, a ticker is nothing more than a rolling 24-hour statistical cut of orderbooks and trades. OHLCV candles and volumes are also calculated from first-order trades and represent fixed statistical cuts of specific periods. The volume traded within an hour is just a sum of traded volumes of the corresponding trades that happened within that hour.
+
+Obviously, it takes some time for the exchange to collect the first-order data and calculate the secondary statistical data from it. That literally means that **tickers and OHLCVs are always slower than orderbooks and trades**. In other words, there is always some latency in the exchange API between the moment when a trade happens and the moment when a corresponding OHLCV candle is updated or published by the exchange API.
+
+The latency (or how much time is needed by the exchange API for calculating the secondary data) depends on how fast the exchange engine is, so it is exchange-specific. Top exchange engines will usually return and update fresh last-minute OHLCV candles and tickers at a very fast rate. Some exchanges might do it in regular intervals like once a second or once in a few seconds. Slow exchange engines might take minutes to update the secondary statistical information, the API might return the current most recent OHLCV candle a few minutes after.
+
+If your strategy depends on the last-minute most recent data you don't want to build it based on tickers or OHLCVs received from the exchange. Tickers and exchanges' OHLCVs are only suitable for display purposes, or for simple trading strategies not susceptible to latency, working with hour-timeframes or day-timeframes.
+
+Thankfully, with time-critical trading strategies developers don't have to rely on secondary data from the exchanges and can calculate the OHLCVs and tickers themselves in the userland. That may be faster and more efficient than waiting for the exchanges to update the info on their end. One can aggregate the public trade history by polling it frequently and calculate candles by walking over the list of trades. CCXT offer a `buildOHLCVC/build_ohlcvc` base method for that:
+
+- JavaScript: https://github.com/ccxt/ccxt/blob/master/js/base/functions/misc.js#L43
+- Python: https://github.com/ccxt/ccxt/blob/master/python/ccxt/base/exchange.py#L1933
+- PHP: https://github.com/ccxt/ccxt/blob/master/php/Exchange.php#L631
+
+Due to the differences in their internal implementations the exchanges may be faster to update their primary and secondary market data over WebSockets (see https://ccxt.pro). The latency remains exchange-specific, cause the exchange engine still needs time to calculate the secondary data, regardless of whether you're polling it over the RESTful API with CCXT or getting updates via WebSockets with CCXT Pro. WebSockets can improve the networking latency, so a fast exchange will work even better, but adding the support for WS subscriptions will not make a slow exchange engine work much faster. If you want to stay on top of the second-order data latency, then you will have to calculate it on your side and beat the exchange engine in speed of doing so. Depending on the needs of your application, it may be tricky, since you will need to handle redundancy, "data holes" in the history, exchange downtimes, and other aspects of data aggregation which is a whole universe in itself that is impossible to fully cover in this Manual.
 
 ### OHLCV Structure
 
