@@ -33,7 +33,6 @@ module.exports = class bibox extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchFundingFees': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -45,6 +44,7 @@ module.exports = class bibox extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransactionFees': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -1300,7 +1300,7 @@ module.exports = class bibox extends Exchange {
         return this.parseTransaction (firstResult, currency);
     }
 
-    async fetchFundingFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes = undefined, params = {}) {
         // by default it will try load withdrawal fees of all currencies (with separate requests)
         // however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
         await this.loadMarkets ();

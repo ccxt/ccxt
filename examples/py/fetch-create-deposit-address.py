@@ -21,8 +21,6 @@ exchange = getattr(ccxt, exchange_id)({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET',
 
-    'enableRateLimit': True,  # ←- required! https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
-
     # 'verbose': True, // ←- uncomment this for verbose output
 
     # additional credentials might be required in exchange-specific cases:

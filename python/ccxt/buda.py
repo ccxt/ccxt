@@ -46,7 +46,6 @@ class buda(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -69,11 +68,16 @@ class buda(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchTransactionFees': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': False,
                 'withdraw': True,
             },
             'urls': {
@@ -343,7 +347,7 @@ class buda(Exchange):
             }
         return result
 
-    def fetch_funding_fees(self, codes=None, params={}):
+    def fetch_transaction_fees(self, codes=None, params={}):
         #  by default it will try load withdrawal fees of all currencies(with separate requests)
         #  however if you define codes = ['ETH', 'BTC'] in args it will only load those
         self.load_markets()

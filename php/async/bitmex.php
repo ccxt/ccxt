@@ -39,6 +39,8 @@ class bitmex extends Exchange {
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRateHistory' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
                 'fetchLeverageTiers' => false,
@@ -1750,6 +1752,347 @@ class bitmex extends Exchange {
         );
         $response = yield $this->privatePostUserRequestWithdrawal (array_merge($request, $params));
         return $this->parse_transaction($response, $currency);
+    }
+
+    public function fetch_funding_rates($symbols = null, $params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->publicGetInstrumentActiveAndIndices ($params);
+        //
+        //    array(
+        //        {
+        //            "symbol" => "LTCUSDT",
+        //            "rootSymbol" => "LTC",
+        //            "state" => "Open",
+        //            "typ" => "FFWCSX",
+        //            "listing" => "2021-11-10T04:00:00.000Z",
+        //            "front" => "2021-11-10T04:00:00.000Z",
+        //            "expiry" => null,
+        //            "settle" => null,
+        //            "listedSettle" => null,
+        //            "relistInterval" => null,
+        //            "inverseLeg" => "",
+        //            "sellLeg" => "",
+        //            "buyLeg" => "",
+        //            "optionStrikePcnt" => null,
+        //            "optionStrikeRound" => null,
+        //            "optionStrikePrice" => null,
+        //            "optionMultiplier" => null,
+        //            "positionCurrency" => "LTC",
+        //            "underlying" => "LTC",
+        //            "quoteCurrency" => "USDT",
+        //            "underlyingSymbol" => "LTCT=",
+        //            "reference" => "BMEX",
+        //            "referenceSymbol" => ".BLTCT",
+        //            "calcInterval" => null,
+        //            "publishInterval" => null,
+        //            "publishTime" => null,
+        //            "maxOrderQty" => 1000000000,
+        //            "maxPrice" => 1000000,
+        //            "lotSize" => 1000,
+        //            "tickSize" => 0.01,
+        //            "multiplier" => 100,
+        //            "settlCurrency" => "USDt",
+        //            "underlyingToPositionMultiplier" => 10000,
+        //            "underlyingToSettleMultiplier" => null,
+        //            "quoteToSettleMultiplier" => 1000000,
+        //            "isQuanto" => false,
+        //            "isInverse" => false,
+        //            "initMargin" => 0.03,
+        //            "maintMargin" => 0.015,
+        //            "riskLimit" => 1000000000000,
+        //            "riskStep" => 1000000000000,
+        //            "limit" => null,
+        //            "capped" => false,
+        //            "taxed" => true,
+        //            "deleverage" => true,
+        //            "makerFee" => -0.0001,
+        //            "takerFee" => 0.0005,
+        //            "settlementFee" => 0,
+        //            "insuranceFee" => 0,
+        //            "fundingBaseSymbol" => ".LTCBON8H",
+        //            "fundingQuoteSymbol" => ".USDTBON8H",
+        //            "fundingPremiumSymbol" => ".LTCUSDTPI8H",
+        //            "fundingTimestamp" => "2022-01-14T20:00:00.000Z",
+        //            "fundingInterval" => "2000-01-01T08:00:00.000Z",
+        //            "fundingRate" => 0.0001,
+        //            "indicativeFundingRate" => 0.0001,
+        //            "rebalanceTimestamp" => null,
+        //            "rebalanceInterval" => null,
+        //            "openingTimestamp" => "2022-01-14T17:00:00.000Z",
+        //            "closingTimestamp" => "2022-01-14T18:00:00.000Z",
+        //            "sessionInterval" => "2000-01-01T01:00:00.000Z",
+        //            "prevClosePrice" => 138.511,
+        //            "limitDownPrice" => null,
+        //            "limitUpPrice" => null,
+        //            "bankruptLimitDownPrice" => null,
+        //            "bankruptLimitUpPrice" => null,
+        //            "prevTotalVolume" => 12699024000,
+        //            "totalVolume" => 12702160000,
+        //            "volume" => 3136000,
+        //            "volume24h" => 114251000,
+        //            "prevTotalTurnover" => 232418052349000,
+        //            "totalTurnover" => 232463353260000,
+        //            "turnover" => 45300911000,
+        //            "turnover24h" => 1604331340000,
+        //            "homeNotional24h" => 11425.1,
+        //            "foreignNotional24h" => 1604331.3400000003,
+        //            "prevPrice24h" => 135.48,
+        //            "vwap" => 140.42165,
+        //            "highPrice" => 146.42,
+        //            "lowPrice" => 135.08,
+        //            "lastPrice" => 144.36,
+        //            "lastPriceProtected" => 144.36,
+        //            "lastTickDirection" => "MinusTick",
+        //            "lastChangePcnt" => 0.0655,
+        //            "bidPrice" => 143.75,
+        //            "midPrice" => 143.855,
+        //            "askPrice" => 143.96,
+        //            "impactBidPrice" => 143.75,
+        //            "impactMidPrice" => 143.855,
+        //            "impactAskPrice" => 143.96,
+        //            "hasLiquidity" => true,
+        //            "openInterest" => 38103000,
+        //            "openValue" => 547963053300,
+        //            "fairMethod" => "FundingRate",
+        //            "fairBasisRate" => 0.1095,
+        //            "fairBasis" => 0.004,
+        //            "fairPrice" => 143.811,
+        //            "markMethod" => "FairPrice",
+        //            "markPrice" => 143.811,
+        //            "indicativeTaxRate" => null,
+        //            "indicativeSettlePrice" => 143.807,
+        //            "optionUnderlyingPrice" => null,
+        //            "settledPriceAdjustmentRate" => null,
+        //            "settledPrice" => null,
+        //            "timestamp" => "2022-01-14T17:49:55.000Z"
+        //        }
+        //    )
+        //
+        $filteredResponse = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $item = $response[$i];
+            $marketId = $this->safe_string($item, 'symbol');
+            $market = $this->safe_market($marketId);
+            $swap = $this->safe_value($market, 'swap', false);
+            if ($swap) {
+                $filteredResponse[] = $item;
+            }
+        }
+        return $this->parse_funding_rates($filteredResponse, $symbols);
+    }
+
+    public function parse_funding_rate($premiumIndex, $market = null) {
+        //
+        //    {
+        //        "symbol" => "LTCUSDT",
+        //        "rootSymbol" => "LTC",
+        //        "state" => "Open",
+        //        "typ" => "FFWCSX",
+        //        "listing" => "2021-11-10T04:00:00.000Z",
+        //        "front" => "2021-11-10T04:00:00.000Z",
+        //        "expiry" => null,
+        //        "settle" => null,
+        //        "listedSettle" => null,
+        //        "relistInterval" => null,
+        //        "inverseLeg" => "",
+        //        "sellLeg" => "",
+        //        "buyLeg" => "",
+        //        "optionStrikePcnt" => null,
+        //        "optionStrikeRound" => null,
+        //        "optionStrikePrice" => null,
+        //        "optionMultiplier" => null,
+        //        "positionCurrency" => "LTC",
+        //        "underlying" => "LTC",
+        //        "quoteCurrency" => "USDT",
+        //        "underlyingSymbol" => "LTCT=",
+        //        "reference" => "BMEX",
+        //        "referenceSymbol" => ".BLTCT",
+        //        "calcInterval" => null,
+        //        "publishInterval" => null,
+        //        "publishTime" => null,
+        //        "maxOrderQty" => 1000000000,
+        //        "maxPrice" => 1000000,
+        //        "lotSize" => 1000,
+        //        "tickSize" => 0.01,
+        //        "multiplier" => 100,
+        //        "settlCurrency" => "USDt",
+        //        "underlyingToPositionMultiplier" => 10000,
+        //        "underlyingToSettleMultiplier" => null,
+        //        "quoteToSettleMultiplier" => 1000000,
+        //        "isQuanto" => false,
+        //        "isInverse" => false,
+        //        "initMargin" => 0.03,
+        //        "maintMargin" => 0.015,
+        //        "riskLimit" => 1000000000000,
+        //        "riskStep" => 1000000000000,
+        //        "limit" => null,
+        //        "capped" => false,
+        //        "taxed" => true,
+        //        "deleverage" => true,
+        //        "makerFee" => -0.0001,
+        //        "takerFee" => 0.0005,
+        //        "settlementFee" => 0,
+        //        "insuranceFee" => 0,
+        //        "fundingBaseSymbol" => ".LTCBON8H",
+        //        "fundingQuoteSymbol" => ".USDTBON8H",
+        //        "fundingPremiumSymbol" => ".LTCUSDTPI8H",
+        //        "fundingTimestamp" => "2022-01-14T20:00:00.000Z",
+        //        "fundingInterval" => "2000-01-01T08:00:00.000Z",
+        //        "fundingRate" => 0.0001,
+        //        "indicativeFundingRate" => 0.0001,
+        //        "rebalanceTimestamp" => null,
+        //        "rebalanceInterval" => null,
+        //        "openingTimestamp" => "2022-01-14T17:00:00.000Z",
+        //        "closingTimestamp" => "2022-01-14T18:00:00.000Z",
+        //        "sessionInterval" => "2000-01-01T01:00:00.000Z",
+        //        "prevClosePrice" => 138.511,
+        //        "limitDownPrice" => null,
+        //        "limitUpPrice" => null,
+        //        "bankruptLimitDownPrice" => null,
+        //        "bankruptLimitUpPrice" => null,
+        //        "prevTotalVolume" => 12699024000,
+        //        "totalVolume" => 12702160000,
+        //        "volume" => 3136000,
+        //        "volume24h" => 114251000,
+        //        "prevTotalTurnover" => 232418052349000,
+        //        "totalTurnover" => 232463353260000,
+        //        "turnover" => 45300911000,
+        //        "turnover24h" => 1604331340000,
+        //        "homeNotional24h" => 11425.1,
+        //        "foreignNotional24h" => 1604331.3400000003,
+        //        "prevPrice24h" => 135.48,
+        //        "vwap" => 140.42165,
+        //        "highPrice" => 146.42,
+        //        "lowPrice" => 135.08,
+        //        "lastPrice" => 144.36,
+        //        "lastPriceProtected" => 144.36,
+        //        "lastTickDirection" => "MinusTick",
+        //        "lastChangePcnt" => 0.0655,
+        //        "bidPrice" => 143.75,
+        //        "midPrice" => 143.855,
+        //        "askPrice" => 143.96,
+        //        "impactBidPrice" => 143.75,
+        //        "impactMidPrice" => 143.855,
+        //        "impactAskPrice" => 143.96,
+        //        "hasLiquidity" => true,
+        //        "openInterest" => 38103000,
+        //        "openValue" => 547963053300,
+        //        "fairMethod" => "FundingRate",
+        //        "fairBasisRate" => 0.1095,
+        //        "fairBasis" => 0.004,
+        //        "fairPrice" => 143.811,
+        //        "markMethod" => "FairPrice",
+        //        "markPrice" => 143.811,
+        //        "indicativeTaxRate" => null,
+        //        "indicativeSettlePrice" => 143.807,
+        //        "optionUnderlyingPrice" => null,
+        //        "settledPriceAdjustmentRate" => null,
+        //        "settledPrice" => null,
+        //        "timestamp" => "2022-01-14T17:49:55.000Z"
+        //    }
+        //
+        $datetime = $this->safe_string($premiumIndex, 'timestamp');
+        $marketId = $this->safe_string($premiumIndex, 'symbol');
+        $fundingDatetime = $this->safe_string($premiumIndex, 'fundingTimestamp');
+        return array(
+            'info' => $premiumIndex,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'markPrice' => $this->safe_number($premiumIndex, 'markPrice'),
+            'indexPrice' => null,
+            'interestRate' => null,
+            'estimatedSettlePrice' => $this->safe_number($premiumIndex, 'indicativeSettlePrice'),
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
+            'fundingRate' => $this->safe_number($premiumIndex, 'fundingRate'),
+            'fundingTimestamp' => $this->iso8601($fundingDatetime),
+            'fundingDatetime' => $fundingDatetime,
+            'nextFundingRate' => $this->safe_number($premiumIndex, 'indicativeFundingRate'),
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+        );
+    }
+
+    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * Fetches the history of funding rates
+         * @param {str} $symbol Unified $market $symbol, use currency $code to get data for the nearest expiring contract in that series, can also send a timeframe, eg XBT:quarterly, Timeframes are nearest, daily, weekly, monthly, quarterly, biquarterly, and perpetual
+         * @param {int} $since timestamp in ms for starting date filter
+         * @param {int} $limit number of results to fetch
+         * @param {dict} $params exchange specific $params
+         * @param {int} $params->till timestamp in ms for ending date filter
+         * @param {bool} $params->reverse if true, will sort results newest first
+         * @param {int} $params->start starting point for results
+         * @param {str} $params->columns array of column names to fetch in info, if omitted, will return all columns
+         * @param {str} $params->filter generic table filter, send json key/value pairs, such as array("key" => "value"), you can key on individual fields, and do more advanced querying on timestamps, see the {@link https://www.bitmex.com/app/restAPI#Timestamp-Filters timestamp docs} for more details
+         * @return A list of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-history-structure funding rate history structures}
+         */
+        yield $this->load_markets();
+        $request = array();
+        $market = null;
+        if (is_array($this->currencies) && array_key_exists($symbol, $this->currencies)) {
+            $code = $this->currency($symbol);
+            $request['symbol'] = $code['id'];
+        } else if ($symbol !== null) {
+            $splitSymbol = explode(':', $symbol);
+            $splitSymbolLength = is_array($splitSymbol) ? count($splitSymbol) : 0;
+            $timeframes = array( 'nearest', 'daily', 'weekly', 'monthly', 'quarterly', 'biquarterly', 'perpetual' );
+            if (($splitSymbolLength > 1) && $this->in_array($splitSymbol[1], $timeframes)) {
+                $code = $this->currency($splitSymbol[0]);
+                $symbol = $code['id'] . ':' . $splitSymbol[1];
+                $request['symbol'] = $symbol;
+            } else {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+        }
+        if ($since !== null) {
+            $request['startTime'] = $this->iso8601($since);
+        }
+        if ($limit !== null) {
+            $request['count'] = $limit;
+        }
+        $till = $this->safe_integer($params, 'till');
+        $params = $this->omit($params, array( 'till' ));
+        if ($till !== null) {
+            $request['endTime'] = $this->iso8601($till);
+        }
+        $response = yield $this->publicGetFunding (array_merge($request, $params));
+        //
+        //    array(
+        //        {
+        //            "timestamp" => "2016-05-07T12:00:00.000Z",
+        //            "symbol" => "ETHXBT",
+        //            "fundingInterval" => "2000-01-02T00:00:00.000Z",
+        //            "fundingRate" => 0.0010890000000000001,
+        //            "fundingRateDaily" => 0.0010890000000000001
+        //        }
+        //    )
+        //
+        return $this->parse_funding_rate_histories($response, $market, $since, $limit);
+    }
+
+    public function parse_funding_rate_history($info, $market = null) {
+        //
+        //    {
+        //        "timestamp" => "2016-05-07T12:00:00.000Z",
+        //        "symbol" => "ETHXBT",
+        //        "fundingInterval" => "2000-01-02T00:00:00.000Z",
+        //        "fundingRate" => 0.0010890000000000001,
+        //        "fundingRateDaily" => 0.0010890000000000001
+        //    }
+        //
+        $marketId = $this->safe_string($info, 'symbol');
+        $datetime = $this->safe_string($info, 'timestamp');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'fundingRate' => $this->safe_number($info, 'fundingRate'),
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
+        );
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

@@ -148,6 +148,7 @@ module.exports = class bigone extends Exchange {
                     '40601': ExchangeError, // resource is locked
                     '40602': ExchangeError, // resource is depleted
                     '40603': InsufficientFunds, // insufficient resource
+                    '40604': InvalidOrder, // {"code":40604,"message":"Price exceed the maximum order price"}
                     '40605': InvalidOrder, // {"code":40605,"message":"Price less than the minimum order price"}
                     '40120': InvalidOrder, // Order is in trading
                     '40121': InvalidOrder, // Order is already cancelled or filled

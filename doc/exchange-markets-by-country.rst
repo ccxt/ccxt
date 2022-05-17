@@ -343,6 +343,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 1
      
    * - China
+     - .. image:: https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg
+          :target: https://www.lbex.io/invite?icode=7QCY
+          :alt: lbank2
+     
+     - lbank2
+     - `LBank <https://www.lbex.io/invite?icode=7QCY>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://github.com/LBank-exchange/lbank-official-api-docs
+          :alt: API Version 2
+     
+   * - China
      - .. image:: https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg
           :target: https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976
           :alt: liquid
@@ -482,7 +493,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - stex
      - `STEX <https://app.stex.com?ref=36416021>`__
      - .. image:: https://img.shields.io/badge/3-lightgray
-          :target: https://help.stex.com/en/collections/1593608-api-v3-documentation
+          :target: https://apidocs.stex.com/
           :alt: API Version 3
      
    * - Estonia
@@ -1001,6 +1012,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://mxcdevelop.github.io/APIDoc/
           :alt: API Version 2
+     
+   * - Seychelles
+     - .. image:: https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg
+          :target: https://m.mexc.com/auth/signup?inviteCode=1FQ1G
+          :alt: mexc3
+     
+     - mexc3
+     - `MEXC Global <https://m.mexc.com/auth/signup?inviteCode=1FQ1G>`__
+     - .. image:: https://img.shields.io/badge/3-lightgray
+          :target: https://mxcdevelop.github.io/apidocs/spot_v3_en/
+          :alt: API Version 3
      
    * - Seychelles
      - .. image:: https://user-images.githubusercontent.com/51840849/79268032-c4379480-7ea2-11ea-80b3-dd96bb29fd0d.jpg

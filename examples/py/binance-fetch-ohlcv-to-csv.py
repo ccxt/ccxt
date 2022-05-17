@@ -52,9 +52,7 @@ def write_to_csv(filename, data):
 
 def scrape_candles_to_csv(filename, exchange_id, max_retries, symbol, timeframe, since, limit):
     # instantiate the exchange by id
-    exchange = getattr(ccxt, exchange_id)({
-        'enableRateLimit': True,  # required by the Manual
-    })
+    exchange = getattr(ccxt, exchange_id)()
     # convert since from string to milliseconds integer if needed
     if isinstance(since, str):
         since = exchange.parse8601(since)

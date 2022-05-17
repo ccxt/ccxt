@@ -52,7 +52,6 @@ class bitfinex(Exchange):
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': None,
-                'fetchFundingFees': True,
                 'fetchIndexOHLCV': False,
                 'fetchLeverageTiers': False,
                 'fetchMarkets': True,
@@ -70,6 +69,7 @@ class bitfinex(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransactionFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': None,
                 'transfer': True,
@@ -400,7 +400,7 @@ class bitfinex(Exchange):
             },
         })
 
-    def fetch_funding_fees(self, params={}):
+    def fetch_transaction_fees(self, codes=None, params={}):
         self.load_markets()
         response = self.privatePostAccountFees(params)
         fees = response['withdraw']

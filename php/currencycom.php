@@ -58,8 +58,6 @@ class currencycom extends Exchange {
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
-                'fetchFundingFee' => null,
-                'fetchFundingFees' => null,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -92,6 +90,8 @@ class currencycom extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTradingLimits' => null,
+                'fetchTransactionFee' => null,
+                'fetchTransactionFees' => null,
                 'fetchTransactions' => true,
                 'fetchTransfers' => null,
                 'fetchWithdrawal' => null,
@@ -258,6 +258,7 @@ class currencycom extends Exchange {
                     '-1013' => '\\ccxt\\InvalidOrder', // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                     '-1021' => '\\ccxt\\InvalidNonce', // 'your time is ahead of server'
                     '-1022' => '\\ccxt\\AuthenticationError', // array("code":-1022,"msg":"Signature for this request is not valid.")
+                    '-1030' => '\\ccxt\\InvalidOrder', // array("code":"-1030","msg":"You mentioned an invalid value for the price parameter.")
                     '-1100' => '\\ccxt\\InvalidOrder', // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                     '-1104' => '\\ccxt\\ExchangeError', // Not all sent parameters were read, read 8 parameters but was sent 9
                     '-1025' => '\\ccxt\\AuthenticationError', // array("code":-1025,"msg":"Invalid API-key, IP, or permissions for action")
@@ -1702,7 +1703,8 @@ class currencycom extends Exchange {
             'unrealizedProfit' => $unrealizedProfit,
             'leverage' => $leverage,
             'percentage' => null,
-            'marginType' => null,
+            'marginMode' => null,
+            'marginType' => null, // deprecated
             'notional' => null,
             'markPrice' => null,
             'liquidationPrice' => null,

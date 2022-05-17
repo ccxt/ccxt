@@ -78,12 +78,15 @@ class qtrade(Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
                 'fetchTransactions': None,
+                'fetchTransfer': False,
+                'fetchTransfers': True,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -1207,6 +1210,65 @@ class qtrade(Exchange):
         data = self.safe_value(response, 'data', {})
         deposits = self.safe_value(data, 'deposits', [])
         return self.parse_transactions(deposits, currency, since, limit)
+
+    def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        response = self.privateGetTransfers(params)
+        #
+        #     {
+        #         "data": {
+        #             "transfers": [
+        #                 {
+        #                     "amount": "0.5",
+        #                     "created_at": "2018-12-10T00:06:41.066665Z",
+        #                     "currency": "BTC",
+        #                     "id": 9,
+        #                     "reason_code": "referral_payout",
+        #                     "reason_metadata": {
+        #                         "note": "January referral earnings"
+        #                     },
+        #                     "sender_email": "qtrade",
+        #                     "sender_id": 218
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        transfers = self.safe_value(data, 'transfers', [])
+        return self.parse_transfers(transfers, currency, since, limit)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         "amount": "0.5",
+        #         "created_at": "2018-12-10T00:06:41.066665Z",
+        #         "currency": "BTC",
+        #         "id": 9,
+        #         "reason_code": "referral_payout",
+        #         "reason_metadata": {
+        #             "note": "January referral earnings"
+        #         },
+        #         "sender_email": "qtrade",
+        #         "sender_id": 218
+        #     }
+        #
+        currencyId = self.safe_string(transfer, 'currency')
+        dateTime = self.safe_string(transfer, 'created_at')
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'id'),
+            'timestamp': self.parse8601(dateTime),
+            'datetime': dateTime,
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(transfer, 'amount'),
+            'fromAccount': self.safe_string(transfer, 'sender_id'),
+            'toAccount': None,
+            'status': 'ok',
+        }
 
     def fetch_withdrawal(self, id, code=None, params={}):
         self.load_markets()

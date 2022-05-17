@@ -66,7 +66,6 @@ class ftx extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
-                'fetchFundingFees' => null,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -93,6 +92,7 @@ class ftx extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchTransactionFees' => null,
                 'fetchTransfer' => null,
                 'fetchTransfers' => null,
                 'fetchWithdrawals' => true,
@@ -361,6 +361,7 @@ class ftx extends Exchange {
                     'No such future' => '\\ccxt\\BadSymbol',
                     'No such market' => '\\ccxt\\BadSymbol',
                     'Do not send more than' => '\\ccxt\\RateLimitExceeded',
+                    'Cannot send more than' => '\\ccxt\\RateLimitExceeded', // array("success":false,"error":"Cannot send more than 1500 requests per minute")
                     'An unexpected error occurred' => '\\ccxt\\ExchangeNotAvailable', // array("error":"An unexpected error occurred, please try again later (58BC21C795).","success":false)
                     'Please retry request' => '\\ccxt\\ExchangeNotAvailable', // array("error":"Please retry request","success":false)
                     'Please try again' => '\\ccxt\\ExchangeNotAvailable', // array("error":"Please try again","success":false)
@@ -1808,10 +1809,11 @@ class ftx extends Exchange {
         $defaultMethod = $this->safe_string($options, 'method', 'privateGetOrders');
         $method = $this->safe_string($params, 'method', $defaultMethod);
         $type = $this->safe_value($params, 'type');
-        if (($type === 'stop') || ($type === 'trailingStop') || ($type === 'takeProfit')) {
+        $stop = $this->safe_value($params, 'stop');
+        if ($stop || ($type === 'stop') || ($type === 'trailingStop') || ($type === 'takeProfit')) {
             $method = 'privateGetConditionalOrders';
         }
-        $query = $this->omit($params, array( 'method', 'type' ));
+        $query = $this->omit($params, array( 'method', 'type', 'stop' ));
         $response = $this->$method (array_merge($request, $query));
         //
         //     {
@@ -2168,7 +2170,8 @@ class ftx extends Exchange {
             'liquidationPrice' => $this->parse_number($liquidationPriceString),
             'markPrice' => $this->parse_number($markPriceString),
             'collateral' => $this->parse_number($collateral),
-            'marginType' => 'cross',
+            'marginMode' => 'cross',
+            'marginType' => 'cross', // deprecated
             'side' => $side,
             'percentage' => $percentage,
         );
@@ -2776,7 +2779,8 @@ class ftx extends Exchange {
         return array(
             'account' => 'cross',
             'symbol' => null,
-            'marginType' => 'cross',
+            'marginMode' => 'cross',
+            'marginType' => 'cross', // deprecated
             'currency' => $this->safe_currency_code($coin),
             'interest' => $this->safe_number($info, 'cost'),
             'interestRate' => $this->safe_number($info, 'rate'),

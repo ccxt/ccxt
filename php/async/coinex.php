@@ -135,7 +135,6 @@ class coinex extends Exchange {
                         'margin/config' => 1,
                         'margin/loan/history' => 1,
                         'margin/transfer/history' => 1,
-                        'order' => 1,
                         'order/deals' => 1,
                         'order/finished' => 1,
                         'order/pending' => 1,
@@ -255,7 +254,7 @@ class coinex extends Exchange {
                 'createMarketBuyOrderRequiresPrice' => true,
                 'defaultType' => 'spot', // spot, swap, margin
                 'defaultSubType' => 'linear', // linear, inverse
-                'defaultMarginType' => 'isolated', // isolated, cross
+                'defaultMarginMode' => 'isolated', // isolated, cross
             ),
             'commonCurrencies' => array(
                 'ACM' => 'Actinium',
@@ -1894,7 +1893,7 @@ class coinex extends Exchange {
         if ($swap) {
             $method = $stop ? 'perpetualPrivateGetOrderStopStatus' : 'perpetualPrivateGetOrderStatus';
         } else {
-            $method = 'privateGetOrder';
+            $method = 'privateGetOrderStatus';
         }
         $params = $this->omit($params, 'stop');
         $response = yield $this->$method (array_merge($request, $params));
@@ -2533,8 +2532,8 @@ class coinex extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $positionId = $this->safe_integer($position, 'position_id');
-        $marginTypeInteger = $this->safe_integer($position, 'type');
-        $marginType = ($marginTypeInteger === 1) ? 'isolated' : 'cross';
+        $marginModeInteger = $this->safe_integer($position, 'type');
+        $marginMode = ($marginModeInteger === 1) ? 'isolated' : 'cross';
         $liquidationPrice = $this->safe_string($position, 'liq_price');
         $entryPrice = $this->safe_string($position, 'open_price');
         $unrealizedPnl = $this->safe_string($position, 'profit_unreal');
@@ -2551,7 +2550,8 @@ class coinex extends Exchange {
             'id' => $positionId,
             'symbol' => $symbol,
             'notional' => null,
-            'marginType' => $marginType,
+            'marginMode' => $marginMode,
+            'marginType' => $marginMode, // deprecated
             'liquidationPrice' => $liquidationPrice,
             'entryPrice' => $entryPrice,
             'unrealizedPnl' => $unrealizedPnl,
@@ -2573,24 +2573,24 @@ class coinex extends Exchange {
         );
     }
 
-    public function set_margin_mode($marginType, $symbol = null, $params = array ()) {
+    public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
         }
-        $marginType = strtolower($marginType);
-        if ($marginType !== 'isolated' && $marginType !== 'cross') {
-            throw new BadRequest($this->id . ' setMarginMode() $marginType argument should be isolated or cross');
+        $marginMode = strtolower($marginMode);
+        if ($marginMode !== 'isolated' && $marginMode !== 'cross') {
+            throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
         if ($market['type'] !== 'swap') {
             throw new BadSymbol($this->id . ' setMarginMode() supports swap contracts only');
         }
-        $defaultMarginType = $this->safe_string_2($this->options, 'defaultMarginType', $marginType);
+        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', $marginMode);
         $defaultPositionType = null;
-        if ($defaultMarginType === 'isolated') {
+        if ($defaultMarginMode === 'isolated') {
             $defaultPositionType = 1;
-        } else if ($defaultMarginType === 'cross') {
+        } else if ($defaultMarginMode === 'cross') {
             $defaultPositionType = 2;
         }
         $leverage = $this->safe_integer($params, 'leverage');
@@ -2618,11 +2618,11 @@ class coinex extends Exchange {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
         yield $this->load_markets();
-        $defaultMarginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType');
+        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode');
         $defaultPositionType = null;
-        if ($defaultMarginType === 'isolated') {
+        if ($defaultMarginMode === 'isolated') {
             $defaultPositionType = 1;
-        } else if ($defaultMarginType === 'cross') {
+        } else if ($defaultMarginMode === 'cross') {
             $defaultPositionType = 2;
         }
         $positionType = $this->safe_integer($params, 'position_type', $defaultPositionType);

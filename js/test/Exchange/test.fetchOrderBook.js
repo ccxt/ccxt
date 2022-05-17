@@ -20,6 +20,6 @@ module.exports = async (exchange, symbol) => {
 
     } else {
 
-        console.log (method + '() not supported')
+        console.log (method + '() is not supported')
     }
 }

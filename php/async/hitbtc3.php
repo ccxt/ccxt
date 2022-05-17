@@ -2007,7 +2007,7 @@ class hitbtc3 extends Exchange {
         //         ),
         //     )
         //
-        $marginType = $this->safe_string($position, 'type');
+        $marginMode = $this->safe_string($position, 'type');
         $leverage = $this->safe_number($position, 'leverage');
         $datetime = $this->safe_string($position, 'updated_at');
         $positions = $this->safe_value($position, 'positions', array());
@@ -2033,7 +2033,8 @@ class hitbtc3 extends Exchange {
             'info' => $position,
             'symbol' => $symbol,
             'notional' => null,
-            'marginType' => $marginType,
+            'marginMode' => $marginMode,
+            'marginType' => $marginMode,
             'liquidationPrice' => $liquidationPrice,
             'entryPrice' => $entryPrice,
             'unrealizedPnl' => null,
