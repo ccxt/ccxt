@@ -71,8 +71,11 @@ class deribit extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => null,
+                'fetchTransfer' => false,
+                'fetchTransfers' => true,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -369,6 +372,9 @@ class deribit extends Exchange {
                 ),
                 'fetchPositions' => array(
                     'code' => 'BTC',
+                ),
+                'transfer' => array(
+                    'method' => 'privateGetSubmitTransferToSubaccount', // or 'privateGetSubmitTransferToUser'
                 ),
             ),
         ));
@@ -2075,6 +2081,135 @@ class deribit extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
+        if ($code === null) {
+            throw new ArgumentsRequired($this->id . ' transfer() requires a $currency $code argument');
+        }
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        if ($limit !== null) {
+            $request['count'] = $limit;
+        }
+        $response = $this->privateGetGetTransfers (array_merge($request, $params));
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "id" => 7606,
+        //         "result" => {
+        //             "count" => 2,
+        //             "data" => array(
+        //                 array(
+        //                     "amount" => 0.2,
+        //                     "created_timestamp" => 1550579457727,
+        //                     "currency" => "BTC",
+        //                     "direction" => "payment",
+        //                     "id" => 2,
+        //                     "other_side" => "2MzyQc5Tkik61kJbEpJV5D5H9VfWHZK9Sgy",
+        //                     "state" => "prepared",
+        //                     "type" => "user",
+        //                     "updated_timestamp" => 1550579457727
+        //                 ),
+        //                 {
+        //                     "amount" => 0.3,
+        //                     "created_timestamp" => 1550579255800,
+        //                     "currency" => "BTC",
+        //                     "direction" => "payment",
+        //                     "id" => 1,
+        //                     "other_side" => "new_user_1_1",
+        //                     "state" => "confirmed",
+        //                     "type" => "subaccount",
+        //                     "updated_timestamp" => 1550579255800
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        $transfers = $this->safe_value($result, 'data', array());
+        return $this->parse_transfers($transfers, $currency, $since, $limit, $params);
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'amount' => $amount,
+            'currency' => $currency['id'],
+            'destination' => $toAccount,
+        );
+        $method = $this->safe_string($params, 'method');
+        $params = $this->omit($params, 'method');
+        if ($method === null) {
+            $transferOptions = $this->safe_value($this->options, 'transfer', array());
+            $method = $this->safe_string($transferOptions, 'method', 'privateGetSubmitTransferToSubaccount');
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "id" => 9421,
+        //         "result" => {
+        //             "updated_timestamp" => 1550232862350,
+        //             "type" => "user",
+        //             "state" => "prepared",
+        //             "other_side" => "0x4aa0753d798d668056920094d65321a8e8913e26",
+        //             "id" => 3,
+        //             "direction" => "payment",
+        //             "currency" => "ETH",
+        //             "created_timestamp" => 1550232862350,
+        //             "amount" => 13.456
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_transfer($result, $currency);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         "updated_timestamp" => 1550232862350,
+        //         "type" => "user",
+        //         "state" => "prepared",
+        //         "other_side" => "0x4aa0753d798d668056920094d65321a8e8913e26",
+        //         "id" => 3,
+        //         "direction" => "payment",
+        //         "currency" => "ETH",
+        //         "created_timestamp" => 1550232862350,
+        //         "amount" => 13.456
+        //     }
+        //
+        $timestamp = $this->safe_timestamp($transfer, 'created_timestamp');
+        $status = $this->safe_string($transfer, 'state');
+        $account = $this->safe_string($transfer, 'other_side');
+        $direction = $this->safe_string($transfer, 'direction');
+        $currencyId = $this->safe_string($transfer, 'currency');
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'id'),
+            'status' => $this->parse_transfer_status($status),
+            'amount' => $this->safe_number($transfer, 'amount'),
+            'code' => $this->safe_currency_code($currencyId, $currency),
+            'fromAccount' => $direction !== 'payment' ? $account : null,
+            'toAccount' => $direction === 'payment' ? $account : null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'prepared' => 'pending',
+            'confirmed' => 'ok',
+            'cancelled' => 'cancelled',
+            'waiting_for_admin' => 'pending',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {

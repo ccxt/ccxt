@@ -83,8 +83,11 @@ class deribit(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactions': None,
+                'fetchTransfer': False,
+                'fetchTransfers': True,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -381,6 +384,9 @@ class deribit(Exchange):
                 },
                 'fetchPositions': {
                     'code': 'BTC',
+                },
+                'transfer': {
+                    'method': 'privateGetSubmitTransferToSubaccount',  # or 'privateGetSubmitTransferToUser'
                 },
             },
         })
@@ -2004,6 +2010,128 @@ class deribit(Exchange):
                 'volatility': volatility,
             })
         return result
+
+    async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+        if code is None:
+            raise ArgumentsRequired(self.id + ' transfer() requires a currency code argument')
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        if limit is not None:
+            request['count'] = limit
+        response = await self.privateGetGetTransfers(self.extend(request, params))
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "id": 7606,
+        #         "result": {
+        #             "count": 2,
+        #             "data": [
+        #                 {
+        #                     "amount": 0.2,
+        #                     "created_timestamp": 1550579457727,
+        #                     "currency": "BTC",
+        #                     "direction": "payment",
+        #                     "id": 2,
+        #                     "other_side": "2MzyQc5Tkik61kJbEpJV5D5H9VfWHZK9Sgy",
+        #                     "state": "prepared",
+        #                     "type": "user",
+        #                     "updated_timestamp": 1550579457727
+        #                 },
+        #                 {
+        #                     "amount": 0.3,
+        #                     "created_timestamp": 1550579255800,
+        #                     "currency": "BTC",
+        #                     "direction": "payment",
+        #                     "id": 1,
+        #                     "other_side": "new_user_1_1",
+        #                     "state": "confirmed",
+        #                     "type": "subaccount",
+        #                     "updated_timestamp": 1550579255800
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        transfers = self.safe_value(result, 'data', [])
+        return self.parse_transfers(transfers, currency, since, limit, params)
+
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'amount': amount,
+            'currency': currency['id'],
+            'destination': toAccount,
+        }
+        method = self.safe_string(params, 'method')
+        params = self.omit(params, 'method')
+        if method is None:
+            transferOptions = self.safe_value(self.options, 'transfer', {})
+            method = self.safe_string(transferOptions, 'method', 'privateGetSubmitTransferToSubaccount')
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "id": 9421,
+        #         "result": {
+        #             "updated_timestamp": 1550232862350,
+        #             "type": "user",
+        #             "state": "prepared",
+        #             "other_side": "0x4aa0753d798d668056920094d65321a8e8913e26",
+        #             "id": 3,
+        #             "direction": "payment",
+        #             "currency": "ETH",
+        #             "created_timestamp": 1550232862350,
+        #             "amount": 13.456
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        return self.parse_transfer(result, currency)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         "updated_timestamp": 1550232862350,
+        #         "type": "user",
+        #         "state": "prepared",
+        #         "other_side": "0x4aa0753d798d668056920094d65321a8e8913e26",
+        #         "id": 3,
+        #         "direction": "payment",
+        #         "currency": "ETH",
+        #         "created_timestamp": 1550232862350,
+        #         "amount": 13.456
+        #     }
+        #
+        timestamp = self.safe_timestamp(transfer, 'created_timestamp')
+        status = self.safe_string(transfer, 'state')
+        account = self.safe_string(transfer, 'other_side')
+        direction = self.safe_string(transfer, 'direction')
+        currencyId = self.safe_string(transfer, 'currency')
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'id'),
+            'status': self.parse_transfer_status(status),
+            'amount': self.safe_number(transfer, 'amount'),
+            'code': self.safe_currency_code(currencyId, currency),
+            'fromAccount': direction != account if 'payment' else None,
+            'toAccount': direction == account if 'payment' else None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'prepared': 'pending',
+            'confirmed': 'ok',
+            'cancelled': 'cancelled',
+            'waiting_for_admin': 'pending',
+        }
+        return self.safe_string(statuses, status, status)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
