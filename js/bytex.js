@@ -18,6 +18,7 @@ module.exports = class bytex extends Exchange {
             'rateLimit': 333,
             'version': 'v2',
             'has': {
+                'CORS': undefined,
                 'spot': true,
                 'margin': false,
                 'swap': false,
@@ -26,7 +27,6 @@ module.exports = class bytex extends Exchange {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': undefined,
                 'createLimitBuyOrder': true,
                 'createLimitSellOrder': true,
                 'createMarketBuyOrder': true,
@@ -906,7 +906,7 @@ module.exports = class bytex extends Exchange {
         //
         const marketId = this.safeString (order, 'symbol');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        const meta = this.safeString (order, 'meta');
+        const meta = this.safeValue (order, 'meta');
         const filled = this.safeString (order, 'filled');
         const amount = this.safeString (order, 'size');
         return this.safeOrder ({
