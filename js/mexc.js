@@ -1052,10 +1052,12 @@ module.exports = class mexc extends ccxt.mexc {
         const channel = this.safeString (message, 'channel');
         try {
             const feedback = this.id + ' ' + this.json (message);
-            if (channel.indexOf ('error') !== -1) {
-                const data = this.safeString (message, 'data');
-                this.throwExactlyMatchedException (this.exceptions['ws']['exact'], data, feedback);
-                this.throwBroadlyMatchedException (this.exceptions['ws']['broad'], message, feedback);
+            if (channel.indexOf ('error') >= 0) {
+                const data = this.safeValue (message, 'data');
+                if (typeof data === 'string') {
+                    this.throwExactlyMatchedException (this.exceptions['ws']['exact'], data, feedback);
+                    this.throwBroadlyMatchedException (this.exceptions['ws']['broad'], data, feedback);
+                }
             }
             if (channel === 'sub.personal') {
                 const msg = this.safeString (message, 'msg');
