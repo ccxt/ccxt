@@ -484,7 +484,7 @@ class bkex extends Exchange {
         $request = array();
         if ($symbols !== null) {
             if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) != 0) {
-                throw new BadRequest($this->id . ' fetchTickers() $symbols argument should be an array');
+                throw new BadRequest($this->id . ' fetchTickers () $symbols argument should be an array');
             }
         }
         if ($symbols !== null) {
@@ -497,6 +497,19 @@ class bkex extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
+        //
+        //    {
+        //          "change":-0.46,
+        //          "close":29664.46,
+        //          "high":30784.99,
+        //          "low":29455.36,
+        //          "open":29803.38,
+        //          "quoteVolume":714653752.6991,
+        //          "symbol":"BTC_USDT",
+        //          "ts":1652812048118,
+        //          "volume":23684.9416
+        //    }
+        //
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer($ticker, 'ts');
@@ -516,8 +529,8 @@ class bkex extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_string($ticker, 'change'),
-            'percentage' => null,
+            'change' => null,
+            'percentage' => $this->safe_string($ticker, 'change'), // 24h percentage change (close - open) / open * 100
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
