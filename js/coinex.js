@@ -128,6 +128,8 @@ module.exports = class coinex extends Exchange {
                         'margin/account': 1,
                         'margin/config': 1,
                         'margin/loan/history': 1,
+                        'margin/market': 1,
+                        'margin/transfer': 1,
                         'margin/transfer/history': 1,
                         'order/deals': 1,
                         'order/finished': 1,
@@ -246,6 +248,14 @@ module.exports = class coinex extends Exchange {
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
+                'accountsByType': {
+                    'spot': 0,
+                    'margin': 'margin',
+                    'future': 'future',
+                },
+                'transfer': {
+                    'fillResponseFromRequest': true,
+                },
                 'defaultType': 'spot', // spot, swap, margin
                 'defaultSubType': 'linear', // linear, inverse
                 'defaultMarginMode': 'isolated', // isolated, cross
@@ -257,21 +267,16 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let result = [];
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
-        if (type === 'spot' || type === 'margin') {
-            result = await this.fetchSpotMarkets (query);
-        } else if (type === 'swap') {
-            result = await this.fetchContractMarkets (query);
-        } else {
-            throw new ExchangeError (this.id + " does not support the '" + type + "' market type, set exchange.options['defaultType'] to 'spot', 'margin' or 'swap'");
+        const getMarginData = this.checkRequiredCredentials (false);
+        let promises = [];
+        promises.push (this.publicGetMarketInfo (params));
+        promises.push (this.publicGetMarginMarket (params));
+        if (getMarginData) {
+            promises.push (this.privateGetMarginConfig (params));
         }
-        return result;
-    }
-
-    async fetchSpotMarkets (params) {
-        const response = await this.publicGetMarketInfo (params);
+        promises = await Promise.all (promises);
         //
+        //     publicGetMarketInfo
         //     {
         //         "code": 0,
         //         "data": {
@@ -285,10 +290,47 @@ module.exports = class coinex extends Exchange {
         //                 "trading_name": "WAVES",
         //                 "trading_decimal": 8
         //             }
+        //             ...
         //         }
         //     }
         //
-        const markets = this.safeValue (response, 'data', {});
+        //     publicGetMarginMarket
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "BTCUSDT": 1,
+        //             "BCHUSDT": 2,
+        //             ...
+        //         },
+        //         "message": "Ok"
+        //     }
+        //
+        //     privateGetMarginConfig
+        //     {
+        //         code: 0,
+        //         data: [
+        //             {
+        //                 market: 'BTCUSDT',
+        //                 leverage: 10,
+        //                 BTC: { min_amount: '0.002', max_amount: '100', day_rate: '0.001' },
+        //                 USDT: { min_amount: '50', max_amount: '5000000', day_rate: '0.001' }
+        //             },
+        //             ...
+        //         ],
+        //     }
+        //
+        const leverages = {};
+        const marketInfoResponse = this.safeValue (promises, 0, {});
+        const marginMarketResponse = this.safeValue (promises, 1, {});
+        const marginMarkets = this.safeValue (marginMarketResponse, 'data', []);
+        const marginConfigResponse = this.safeValue (promises, 2, {});
+        const marginConfigData = this.safeValue (marginConfigResponse, 'data', []);
+        for (let i = 0; i < marginConfigData.length; i++) {
+            const config = marginConfigData[i];
+            const marketId = this.safeString (config, 'market');
+            leverages[marketId] = this.safeNumber (config, 'leverage');
+        }
+        const markets = this.safeValue (marketInfoResponse, 'data', {});
         const result = [];
         const keys = Object.keys (markets);
         for (let i = 0; i < keys.length; i++) {
@@ -304,8 +346,10 @@ module.exports = class coinex extends Exchange {
             if (tradingName === id) {
                 symbol = id;
             }
+            const leverage = this.safeNumber (leverages, id);
             result.push ({
                 'id': id,
+                'accountId': this.safeNumber (marginMarkets, id),
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -315,7 +359,7 @@ module.exports = class coinex extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': undefined,
+                'margin': leverage !== undefined,
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -336,8 +380,8 @@ module.exports = class coinex extends Exchange {
                 },
                 'limits': {
                     'leverage': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': leverage ? this.parseNumber ('1') : undefined,
+                        'max': leverage,
                     },
                     'amount': {
                         'min': this.safeNumber (market, 'min_amount'),
@@ -1833,7 +1877,7 @@ module.exports = class coinex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const accountId = this.safeString (params, 'id', '0');
+        const accountId = this.safeString (market, 'accountId', '0');
         const request = {
             'market': marketId,
             // 'account_id': accountId, // SPOT, main account ID: 0, margin account ID: See < Inquire Margin Account Market Info >, future account ID: See < Inquire Future Account Market Info >
@@ -3171,32 +3215,74 @@ module.exports = class coinex extends Exchange {
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets ();
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('transfer', undefined, params);
-        if (marketType !== 'spot') {
-            throw new BadRequest (this.id + ' transfer() requires defaultType to be spot');
-        }
-        const currency = this.safeCurrencyCode (code);
-        const amountToPrecision = this.currencyToPrecision (code, amount);
-        let transfer = undefined;
-        if ((fromAccount === 'spot') && (toAccount === 'swap')) {
-            transfer = 'in';
-        } else if ((fromAccount === 'swap') && (toAccount === 'spot')) {
-            transfer = 'out';
-        }
+        const currency = this.currency (code);
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeValue (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeValue (accountsByType, toAccount, toAccount);
         const request = {
-            'amount': amountToPrecision,
-            'coin_type': currency,
-            'transfer_side': transfer, // 'in': spot to swap, 'out': swap to spot
+            'coin_type': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
         };
-        const response = await this.privatePostContractBalanceTransfer (this.extend (request, query));
+        let method = undefined;
+        if (fromId === 'margin' || toId === 'margin') {
+            method = 'privatePostMarginTransfer';
+            let marketId = this.safeString (params, 'market');
+            let market = undefined;
+            if (marketId === undefined) {
+                const symbol = this.safeString (params, 'symbol');
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' transfer() requires an exchange-specific market parameter or a unified symbol parameter');
+                } else {
+                    params = this.omit (params, 'symbol');
+                    market = this.market (symbol);
+                    marketId = market['id'];
+                    request['market'] = marketId;
+                }
+            } else {
+                if (this.markets_by_id !== undefined && (marketId in this.markets_by_id)) {
+                    market = this.markets_by_id[marketId];
+                } else {
+                    throw new ExchangeError (this.id + ' transfer() market ' + marketId + ' not found');
+                }
+            }
+            const accountId = this.safeString (market, 'accountId');
+            if (fromId === 'margin') {
+                request['from_account'] = accountId;
+                request['to_account'] = toId;
+            } else if (toId === 'margin') {
+                request['from_account'] = fromId;
+                request['to_account'] = accountId;
+            }
+        } else if (fromId === 'future' && toId === 0) {
+            method = 'privatePostContractBalanceTransfer';
+            request['transfer_side'] = 'out';
+        } else if (fromId === 0 && toId === 'future') {
+            method = 'privatePostContractBalanceTransfer';
+            request['transfer_side'] = 'in';
+        } else if (fromAccount === 'main') {
+            method = 'privatePostSubAccountTransfer';
+            request['transfer_side'] = 'out';
+            request['transfer_account'] = toAccount;
+        } else if (toAccount === 'main') {
+            method = 'privatePostSubAccountTransfer';
+            request['transfer_side'] = 'in';
+            request['transfer_account'] = fromAccount;
+        } else {
+            throw new ExchangeError (this.id + ' transfer() Only allows between main account and sub accounts, between spot and future account and between spot and margin.');
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {"code": 0, "data": null, "message": "Success"}
         //
-        return this.extend (this.parseTransfer (response, currency), {
-            'amount': this.parseNumber (amountToPrecision),
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-        });
+        const transfer = this.parseTransfer (response, currency);
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
+            transfer['amount'] = amount;
+        }
+        return transfer;
     }
 
     parseTransferStatus (status) {
