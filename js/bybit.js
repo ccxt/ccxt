@@ -3361,7 +3361,9 @@ module.exports = class bybit extends Exchange {
             }
             request['symbol'] = market['id'];
             const type = this.safeStringLower (params, 'orderType');
-            const isConditional = (type === 'stop') || (type === 'conditional');
+            const isStop = this.safeValue (params, 'stop', false);
+            const isConditional = isStop || (type === 'stop') || (type === 'conditional');
+            params = this.omit (params, [ 'stop', 'orderType' ]);
             if (market['future']) {
                 method = isConditional ? 'privateGetFuturesPrivateStopOrder' : 'privateGetFuturesPrivateOrder';
             } else if (market['linear']) {
