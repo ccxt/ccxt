@@ -14,7 +14,7 @@ async def test_watch_trades(exchange, symbol):
         'currencycom',
         'idex2',  # rinkeby testnet, trades too rare
         'ripio',
-        'coinflex',  # too iliquid
+        'coinflex',  # too illiquid
     ]
 
     if exchange.id in skipped_exchanges:
