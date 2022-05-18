@@ -2300,7 +2300,8 @@ module.exports = class Exchange {
         return this.options['timeDifference'];
     }
 
-    parseLeverageTiers (response, symbols, marketIdKey) {
+    parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
+        // * marketIdKey should only be undefined when response is a dictionary
         const tiers = {};
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
@@ -2330,7 +2331,6 @@ module.exports = class Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchMarketLeverageTiers() is not supported yet');
         }
-
     }
 
     isPostOnly (type, timeInForce, exchangeSpecificOption, params = {}) {

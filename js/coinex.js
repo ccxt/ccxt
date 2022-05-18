@@ -36,9 +36,9 @@ module.exports = class coinex extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchLeverage': undefined,
-                'fetchLeverageTiers': undefined,
-                'fetchMarketLeverageTiers': undefined,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': true,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -2637,6 +2637,81 @@ module.exports = class coinex extends Exchange {
             'position_type': positionType, // 1: isolated, 2: cross
         };
         return await this.perpetualPrivatePostMarketAdjustLeverage (this.extend (request, params));
+    }
+
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.perpetualPublicGetMarketLimitConfig (params);
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "BTCUSD": [
+        //                 ["500001", "100", "0.005"],
+        //                 ["1000001", "50", "0.01"],
+        //                 ["2000001", "30", "0.015"],
+        //                 ["5000001", "20", "0.02"],
+        //                 ["10000001", "15", "0.025"],
+        //                 ["20000001", "10", "0.03"]
+        //             ],
+        //             ...
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseLeverageTiers (data, symbols, undefined);
+    }
+
+    parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
+        //
+        //     {
+        //         "BTCUSD": [
+        //             ["500001", "100", "0.005"],
+        //             ["1000001", "50", "0.01"],
+        //             ["2000001", "30", "0.015"],
+        //             ["5000001", "20", "0.02"],
+        //             ["10000001", "15", "0.025"],
+        //             ["20000001", "10", "0.03"]
+        //         ],
+        //         ...
+        //     }
+        //
+        const tiers = {};
+        const marketIds = Object.keys (response);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const market = this.safeMarket (marketId);
+            const symbol = this.safeString (market, 'symbol');
+            let symbolsLength = 0;
+            if (symbols !== undefined) {
+                symbolsLength = symbols.length;
+            }
+            if (symbol !== undefined && (symbolsLength === 0 || this.inArray (symbols, symbol))) {
+                tiers[symbol] = this.parseMarketLeverageTiers (response[marketId], market);
+            }
+        }
+        return tiers;
+    }
+
+    parseMarketLeverageTiers (item, market = undefined) {
+        const tiers = [];
+        let minNotional = 0;
+        for (let j = 0; j < item.length; j++) {
+            const bracket = item[j];
+            const maxNotional = this.safeNumber (bracket, 0);
+            tiers.push ({
+                'tier': j + 1,
+                'currency': market['linear'] ? market['base'] : market['quote'],
+                'minNotional': minNotional,
+                'maxNotional': maxNotional,
+                'maintenanceMarginRate': this.safeNumber (bracket, 2),
+                'maxLeverage': this.safeInteger (bracket, 1),
+                'info': bracket,
+            });
+            minNotional = maxNotional;
+        }
+        return tiers;
     }
 
     async modifyMarginHelper (symbol, amount, addOrReduce, params = {}) {
