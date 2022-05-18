@@ -2678,6 +2678,7 @@ module.exports = class binance extends Exchange {
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
+            'reduceOnly': this.safeValue (order, 'reduceOnly'),
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -2690,13 +2691,6 @@ module.exports = class binance extends Exchange {
             'fee': undefined,
             'trades': fills,
         }, market);
-    }
-
-    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        const request = {
-            'reduceOnly': true,
-        };
-        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

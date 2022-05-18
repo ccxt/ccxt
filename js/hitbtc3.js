@@ -1503,12 +1503,6 @@ module.exports = class hitbtc3 extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const reduceOnly = this.safeValue2 (params, 'reduce_only', 'reduceOnly');
-        if (reduceOnly !== undefined) {
-            if ((market['type'] !== 'swap') && (market['type'] !== 'margin')) {
-                throw new InvalidOrder (this.id + ' createOrder() does not support reduce_only for ' + market['type'] + ' orders, reduce_only orders are supported for swap and margin markets only');
-            }
-        }
         const request = {
             'type': type,
             'side': side,
@@ -1526,6 +1520,15 @@ module.exports = class hitbtc3 extends Exchange {
             // 'take_rate': 0.001, // Optional
             // 'make_rate': 0.001, // Optional
         };
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        if (reduceOnly !== undefined) {
+            if ((market['type'] !== 'swap') && (market['type'] !== 'margin')) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support reduce_only for ' + market['type'] + ' orders, reduce_only orders are supported for swap and margin markets only');
+            }
+        }
+        if (reduceOnly === true) {
+            request['reduce_only'] = reduceOnly;
+        }
         const timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force');
         const expireTime = this.safeString (params, 'expire_time');
         const stopPrice = this.safeNumber2 (params, 'stopPrice', 'stop_price');
@@ -1555,13 +1558,6 @@ module.exports = class hitbtc3 extends Exchange {
         });
         const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response, market);
-    }
-
-    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        const request = {
-            'reduce_only': true,
-        };
-        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
     parseOrderStatus (status) {
@@ -1680,6 +1676,7 @@ module.exports = class hitbtc3 extends Exchange {
             'side': side,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
+            'reduceOnly': this.safeValue (order, 'reduce_only'),
             'filled': filled,
             'remaining': undefined,
             'cost': undefined,

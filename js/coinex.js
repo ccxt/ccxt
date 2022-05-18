@@ -1460,6 +1460,7 @@ module.exports = class coinex extends Exchange {
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
+            'reduceOnly': undefined,
             'side': side,
             'price': priceString,
             'stopPrice': this.safeString (order, 'stop_price'),
@@ -1687,13 +1688,6 @@ module.exports = class coinex extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         return this.parseOrder (data, market);
-    }
-
-    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        const request = {
-            'reduceOnly': true,
-        };
-        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {

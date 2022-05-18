@@ -3168,6 +3168,7 @@ module.exports = class gateio extends Exchange {
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
+            'reduceOnly': this.safeValue (order, 'is_reduce_only'),
             'side': side,
             'price': this.parseNumber (price),
             'stopPrice': this.safeNumber (trigger, 'price'),
@@ -3181,13 +3182,6 @@ module.exports = class gateio extends Exchange {
             'trades': undefined,
             'info': order,
         }, market);
-    }
-
-    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        const request = {
-            'reduceOnly': true,
-        };
-        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
