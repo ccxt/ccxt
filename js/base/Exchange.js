@@ -2276,6 +2276,39 @@ module.exports = class Exchange {
         return rate;
     }
 
+    exchangeMethodProperties (methodName, key1, key2 = undefined, defaultValue = undefined) {
+        // This method can be used in implementations as a shorthand to get any exchange-wide or method-wide property
+        // At first, check exchange-wide property (if present)
+        const propValue = this.safeString2 (this.options, key1, key2, defaultValue);
+        // Second, check method-wide property (if present)
+        const methodOptions = this.safeValue (this.options, methodName, {});
+        return this.safeString2 (methodOptions, key1, key2, propValue);
+    }
+
+    handleSubTypeAndParams (methodName, market = undefined, params = {}) {
+        let subType = undefined;
+        // at first, check from market object
+        if (market !== undefined) {
+            if (market['linear']){
+                subType = 'linear';
+            } else if(market['inverse']) {
+                subType = 'inverse';
+            }
+        }
+        // if it was not defined in market object
+        if (subType === undefined) {
+            subType = this.exchangeMethodProperties (methodName,  'defaultSubType', 'subType', 'linear');
+        }
+        // if set in params, it should override everything
+        const subTypeInParams = this.safeString2 (params, 'defaultSubType', 'subType');
+        // for tiniest performance reason, avoid omitting if it's not present
+        if (subTypeInParams !== undefined) {
+            subType = subTypeInParams;
+            params = this.omit (params, [ 'defaultSubType', 'subType' ]);
+        }
+        return [ subType, params ];
+    }
+
     handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
         const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
         const methodOptions = this.safeValue (this.options, methodName);
