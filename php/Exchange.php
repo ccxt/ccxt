@@ -399,6 +399,7 @@ class Exchange {
         'fetchMarketLeverageTiers' => 'fetch_market_leverage_tiers',
         'isPostOnly' => 'is_post_only',
         'createPostOnlyOrder' => 'create_post_only_order',
+        'createReduceOnlyOrder' => 'create_reduce_only_order',
         'createStopOrder' => 'create_stop_order',
         'createStopLimitOrder' => 'create_stop_limit_order',
         'createStopMarketOrder' => 'create_stop_market_order',
@@ -1292,6 +1293,7 @@ class Exchange {
             'createMarketOrder' => true,
             'createOrder' => true,
             'createPostOnlyOrder' => null,
+            'createReduceOnlyOrder' => null,
             'createStopOrder' => null,
             'editOrder' => 'emulated',
             'fetchAccounts' => null,
@@ -3962,6 +3964,15 @@ class Exchange {
             throw new NotSupported($this->id . ' create_post_only_order() is not supported yet');
         }
         $array = array('postOnly' => true);
+        $query = $this->extend($params, $array);
+        return $this->create_order($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    public function create_reduce_only_order($symbol, $type, $side, $amount, $price, $params = array()) {
+        if (!$this->has['createReduceOnlyOrder']) {
+            throw new NotSupported($this->id . ' create_reduce_only_order() is not supported yet');
+        }
+        $array = array('reduceOnly' => true);
         $query = $this->extend($params, $array);
         return $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
