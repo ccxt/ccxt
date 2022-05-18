@@ -59,6 +59,7 @@ class therock(Exchange):
                 'fetchTransfers': False,
                 'fetchWithdrawals': True,
                 'transfer': False,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
@@ -143,6 +144,11 @@ class therock(Exchange):
                     'Address allocation limit reached for currency': InvalidAddress,
                     'is not a valid value for param currency': BadRequest,
                     ' is invalid': InvalidAddress,
+                },
+            },
+            'options': {
+                'withdraw': {
+                    'fillResponseFromRequest': True,
                 },
             },
         })
@@ -764,7 +770,10 @@ class therock(Exchange):
         #         }
         #     }
         #
-        id = self.safe_string(transaction, 'id')
+        # privatePostAtmsWithdraw
+        #    {"transaction_id": 65088485}
+        #
+        id = self.safe_string_2(transaction, 'id', 'transaction_id')
         type = self.parse_transaction_type(self.safe_string(transaction, 'type'))
         detail = self.safe_value(transaction, 'transfer_detail', {})
         method = self.safe_string(detail, 'method')
@@ -898,6 +907,39 @@ class therock(Exchange):
         transactionTypes = ['withdraw', 'atm_payment']
         depositsAndWithdrawals = self.filter_by_array(transactions, 'type', transactionTypes, False)
         return self.parse_transactions(depositsAndWithdrawals, currency, since, limit)
+
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        self.load_markets()
+        currency = self.currency(code)
+        amount = self.currency_to_precision(code, amount)
+        request = {
+            'currency': currency['id'],
+            'destination_address': address,
+            'amount': float(amount),
+        }
+        if tag is not None:
+            request['destination_tag'] = tag
+        # requires write permission on the wallet
+        response = self.privatePostAtmsWithdraw(self.extend(request, params))
+        #
+        #    {"transaction_id": 65088485}
+        #
+        transaction = self.parse_transaction(response, currency)
+        withdrawOptions = self.safe_value(self.options, 'withdraw', {})
+        fillResponseFromRequest = self.safe_value(withdrawOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            if transaction['addressTo'] == address:
+                transaction['addressTo'] = address
+            if transaction['address'] is None:
+                transaction['address'] = address
+            if transaction['tagTo'] is None:
+                transaction['tagTo'] = tag
+            if transaction['tag'] is None:
+                transaction['tag'] = tag
+            if transaction['amount'] is None:
+                transaction['amount'] = amount
+        return transaction
 
     def parse_order_status(self, status):
         statuses = {

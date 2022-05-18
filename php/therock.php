@@ -55,6 +55,7 @@ class therock extends Exchange {
                 'fetchTransfers' => false,
                 'fetchWithdrawals' => true,
                 'transfer' => false,
+                'withdraw' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
@@ -139,6 +140,11 @@ class therock extends Exchange {
                     'Address allocation limit reached for currency' => '\\ccxt\\InvalidAddress',
                     'is not a valid value for param currency' => '\\ccxt\\BadRequest',
                     ' is invalid' => '\\ccxt\\InvalidAddress',
+                ),
+            ),
+            'options' => array(
+                'withdraw' => array(
+                    'fillResponseFromRequest' => true,
                 ),
             ),
         ));
@@ -784,7 +790,10 @@ class therock extends Exchange {
         //         }
         //     }
         //
-        $id = $this->safe_string($transaction, 'id');
+        // privatePostAtmsWithdraw
+        //    array( "transaction_id" => 65088485 )
+        //
+        $id = $this->safe_string_2($transaction, 'id', 'transaction_id');
         $type = $this->parse_transaction_type($this->safe_string($transaction, 'type'));
         $detail = $this->safe_value($transaction, 'transfer_detail', array());
         $method = $this->safe_string($detail, 'method');
@@ -925,6 +934,47 @@ class therock extends Exchange {
         $transactionTypes = array( 'withdraw', 'atm_payment' );
         $depositsAndWithdrawals = $this->filter_by_array($transactions, 'type', $transactionTypes, false);
         return $this->parse_transactions($depositsAndWithdrawals, $currency, $since, $limit);
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $amount = $this->currency_to_precision($code, $amount);
+        $request = array(
+            'currency' => $currency['id'],
+            'destination_address' => $address,
+            'amount' => floatval($amount),
+        );
+        if ($tag !== null) {
+            $request['destination_tag'] = $tag;
+        }
+        // requires write permission on the wallet
+        $response = $this->privatePostAtmsWithdraw (array_merge($request, $params));
+        //
+        //    array( "transaction_id" => 65088485 )
+        //
+        $transaction = $this->parse_transaction($response, $currency);
+        $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
+        $fillResponseFromRequest = $this->safe_value($withdrawOptions, 'fillResponseFromRequest', true);
+        if ($fillResponseFromRequest) {
+            if ($transaction['addressTo'] === $address) {
+                $transaction['addressTo'] = $address;
+            }
+            if ($transaction['address'] === null) {
+                $transaction['address'] = $address;
+            }
+            if ($transaction['tagTo'] === null) {
+                $transaction['tagTo'] = $tag;
+            }
+            if ($transaction['tag'] === null) {
+                $transaction['tag'] = $tag;
+            }
+            if ($transaction['amount'] === null) {
+                $transaction['amount'] = $amount;
+            }
+        }
+        return $transaction;
     }
 
     public function parse_order_status($status) {

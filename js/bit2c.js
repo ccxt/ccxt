@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, NotSupported } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -32,6 +32,7 @@ module.exports = class bit2c extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
+                'fetchDepositAddress': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -81,7 +82,7 @@ module.exports = class bit2c extends Exchange {
                 'private': {
                     'post': [
                         'Merchant/CreateCheckout',
-                        'Order/AddCoinFundsRequest',
+                        'Funds/AddCoinFundsRequest',
                         'Order/AddFund',
                         'Order/AddOrder',
                         'Order/AddOrderMarketPriceBuy',
@@ -556,6 +557,48 @@ module.exports = class bit2c extends Exchange {
             'cost': undefined,
             'fee': fee,
         }, market);
+    }
+
+    isFiat (code) {
+        return code === 'NIS';
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        if (this.isFiat (code)) {
+            throw new NotSupported (this.id + ' fetchDepositAddress() does not support fiat currencies');
+        }
+        const request = {
+            'Coin': currency['id'],
+        };
+        const response = await this.privatePostFundsAddCoinFundsRequest (this.extend (request, params));
+        //
+        //     {
+        //         'address': '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
+        //         'hasTx': False
+        //     }
+        //
+        return this.parseDepositAddress (response, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         'address': '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
+        //         'hasTx': False
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        this.checkAddress (address);
+        const code = this.safeCurrencyCode (undefined, currency);
+        return {
+            'currency': code,
+            'network': undefined,
+            'address': address,
+            'tag': undefined,
+            'info': depositAddress,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

@@ -67,7 +67,8 @@ class phemex(Exchange):
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
-                'fetchLeverageTiers': False,
+                'fetchLeverageTiers': True,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -2873,6 +2874,126 @@ class phemex(Exchange):
             'leverage': leverage,
         }
         return self.privatePutPositionsLeverage(self.extend(request, params))
+
+    def fetch_leverage_tiers(self, symbols=None, params={}):
+        self.load_markets()
+        response = self.publicGetCfgV2Products(params)
+        #
+        #     {
+        #         "code":0,
+        #         "msg":"OK",
+        #         "data":{
+        #             "ratioScale":8,
+        #             "currencies":[
+        #                 {"currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"},
+        #                 {"currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"},
+        #                 {"currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"},
+        #             ],
+        #             "products":[
+        #                 {
+        #                     "symbol":"BTCUSD",
+        #                     "displaySymbol":"BTC / USD",
+        #                     "indexSymbol":".BTC",
+        #                     "markSymbol":".MBTC",
+        #                     "fundingRateSymbol":".BTCFR",
+        #                     "fundingRate8hSymbol":".BTCFR8H",
+        #                     "contractUnderlyingAssets":"USD",
+        #                     "settleCurrency":"BTC",
+        #                     "quoteCurrency":"USD",
+        #                     "contractSize":1.0,
+        #                     "lotSize":1,
+        #                     "tickSize":0.5,
+        #                     "priceScale":4,
+        #                     "ratioScale":8,
+        #                     "pricePrecision":1,
+        #                     "minPriceEp":5000,
+        #                     "maxPriceEp":10000000000,
+        #                     "maxOrderQty":1000000,
+        #                     "type":"Perpetual"
+        #                 },
+        #                 {
+        #                     "symbol":"sBTCUSDT",
+        #                     "displaySymbol":"BTC / USDT",
+        #                     "quoteCurrency":"USDT",
+        #                     "pricePrecision":2,
+        #                     "type":"Spot",
+        #                     "baseCurrency":"BTC",
+        #                     "baseTickSize":"0.000001 BTC",
+        #                     "baseTickSizeEv":100,
+        #                     "quoteTickSize":"0.01 USDT",
+        #                     "quoteTickSizeEv":1000000,
+        #                     "minOrderValue":"10 USDT",
+        #                     "minOrderValueEv":1000000000,
+        #                     "maxBaseOrderSize":"1000 BTC",
+        #                     "maxBaseOrderSizeEv":100000000000,
+        #                     "maxOrderValue":"5,000,000 USDT",
+        #                     "maxOrderValueEv":500000000000000,
+        #                     "defaultTakerFee":"0.001",
+        #                     "defaultTakerFeeEr":100000,
+        #                     "defaultMakerFee":"0.001",
+        #                     "defaultMakerFeeEr":100000,
+        #                     "baseQtyPrecision":6,
+        #                     "quoteQtyPrecision":2
+        #                 },
+        #             ],
+        #             "riskLimits":[
+        #                 {
+        #                     "symbol":"BTCUSD",
+        #                     "steps":"50",
+        #                     "riskLimits":[
+        #                         {"limit":100,"initialMargin":"1.0%","initialMarginEr":1000000,"maintenanceMargin":"0.5%","maintenanceMarginEr":500000},
+        #                         {"limit":150,"initialMargin":"1.5%","initialMarginEr":1500000,"maintenanceMargin":"1.0%","maintenanceMarginEr":1000000},
+        #                         {"limit":200,"initialMargin":"2.0%","initialMarginEr":2000000,"maintenanceMargin":"1.5%","maintenanceMarginEr":1500000},
+        #                     ]
+        #                 },
+        #             ],
+        #             "leverages":[
+        #                 {"initialMargin":"1.0%","initialMarginEr":1000000,"options":[1,2,3,5,10,25,50,100]},
+        #                 {"initialMargin":"1.5%","initialMarginEr":1500000,"options":[1,2,3,5,10,25,50,66]},
+        #                 {"initialMargin":"2.0%","initialMarginEr":2000000,"options":[1,2,3,5,10,25,33,50]},
+        #             ]
+        #         }
+        #     }
+        #
+        #
+        data = self.safe_value(response, 'data', {})
+        riskLimits = self.safe_value(data, 'riskLimits')
+        return self.parse_leverage_tiers(riskLimits, symbols, 'symbol')
+
+    def parse_market_leverage_tiers(self, info, market=None):
+        """
+        :param dict info: Exchange market response for 1 market
+        :param dict market: CCXT market
+        """
+        #
+        #     {
+        #         "symbol":"BTCUSD",
+        #         "steps":"50",
+        #         "riskLimits":[
+        #             {"limit":100,"initialMargin":"1.0%","initialMarginEr":1000000,"maintenanceMargin":"0.5%","maintenanceMarginEr":500000},
+        #             {"limit":150,"initialMargin":"1.5%","initialMarginEr":1500000,"maintenanceMargin":"1.0%","maintenanceMarginEr":1000000},
+        #             {"limit":200,"initialMargin":"2.0%","initialMarginEr":2000000,"maintenanceMargin":"1.5%","maintenanceMarginEr":1500000},
+        #         ]
+        #     },
+        #
+        market = self.safe_market(None, market)
+        riskLimits = (market['info']['riskLimits'])
+        tiers = []
+        minNotional = 0
+        for i in range(0, len(riskLimits)):
+            tier = riskLimits[i]
+            maxNotional = self.safe_integer(tier, 'limit')
+            tiers.append({
+                'tier': self.sum(i, 1),
+                'currency': market['settle'],
+                'minNotional': minNotional,
+                'maxNotional': maxNotional,
+                'maintenanceMarginRate': self.safe_string(tier, 'maintenanceMargin'),
+                'maxLeverage': None,
+                'info': tier,
+            })
+            minNotional = maxNotional
+        return tiers
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))

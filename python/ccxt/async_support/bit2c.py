@@ -9,6 +9,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.precise import Precise
 
@@ -38,6 +39,7 @@ class bit2c(Exchange):
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
+                'fetchDepositAddress': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -87,7 +89,7 @@ class bit2c(Exchange):
                 'private': {
                     'post': [
                         'Merchant/CreateCheckout',
-                        'Order/AddCoinFundsRequest',
+                        'Funds/AddCoinFundsRequest',
                         'Order/AddFund',
                         'Order/AddOrder',
                         'Order/AddOrderMarketPriceBuy',
@@ -532,6 +534,44 @@ class bit2c(Exchange):
             'cost': None,
             'fee': fee,
         }, market)
+
+    def is_fiat(self, code):
+        return code == 'NIS'
+
+    async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        if self.is_fiat(code):
+            raise NotSupported(self.id + ' fetchDepositAddress() does not support fiat currencies')
+        request = {
+            'Coin': currency['id'],
+        }
+        response = await self.privatePostFundsAddCoinFundsRequest(self.extend(request, params))
+        #
+        #     {
+        #         'address': '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
+        #         'hasTx': False
+        #     }
+        #
+        return self.parse_deposit_address(response, currency)
+
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        #     {
+        #         'address': '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
+        #         'hasTx': False
+        #     }
+        #
+        address = self.safe_string(depositAddress, 'address')
+        self.check_address(address)
+        code = self.safe_currency_code(None, currency)
+        return {
+            'currency': code,
+            'network': None,
+            'address': address,
+            'tag': None,
+            'info': depositAddress,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)

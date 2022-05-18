@@ -482,6 +482,19 @@ class bkex(Exchange):
         return self.parse_tickers(tickers, symbols, params)
 
     def parse_ticker(self, ticker, market=None):
+        #
+        #    {
+        #          "change":-0.46,
+        #          "close":29664.46,
+        #          "high":30784.99,
+        #          "low":29455.36,
+        #          "open":29803.38,
+        #          "quoteVolume":714653752.6991,
+        #          "symbol":"BTC_USDT",
+        #          "ts":1652812048118,
+        #          "volume":23684.9416
+        #    }
+        #
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(ticker, 'ts')
@@ -501,8 +514,8 @@ class bkex(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_string(ticker, 'change'),
-            'percentage': None,
+            'change': None,
+            'percentage': self.safe_string(ticker, 'change'),  # 24h percentage change(close - open) / open * 100
             'average': None,
             'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': self.safe_string(ticker, 'quoteVolume'),

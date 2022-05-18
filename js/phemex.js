@@ -53,7 +53,8 @@ module.exports = class phemex extends Exchange {
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
-                'fetchLeverageTiers': false,
+                'fetchLeverageTiers': true,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -3015,6 +3016,129 @@ module.exports = class phemex extends Exchange {
             'leverage': leverage,
         };
         return await this.privatePutPositionsLeverage (this.extend (request, params));
+    }
+
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetCfgV2Products (params);
+        //
+        //     {
+        //         "code":0,
+        //         "msg":"OK",
+        //         "data":{
+        //             "ratioScale":8,
+        //             "currencies":[
+        //                 {"currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"},
+        //                 {"currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"},
+        //                 {"currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"},
+        //             ],
+        //             "products":[
+        //                 {
+        //                     "symbol":"BTCUSD",
+        //                     "displaySymbol":"BTC / USD",
+        //                     "indexSymbol":".BTC",
+        //                     "markSymbol":".MBTC",
+        //                     "fundingRateSymbol":".BTCFR",
+        //                     "fundingRate8hSymbol":".BTCFR8H",
+        //                     "contractUnderlyingAssets":"USD",
+        //                     "settleCurrency":"BTC",
+        //                     "quoteCurrency":"USD",
+        //                     "contractSize":1.0,
+        //                     "lotSize":1,
+        //                     "tickSize":0.5,
+        //                     "priceScale":4,
+        //                     "ratioScale":8,
+        //                     "pricePrecision":1,
+        //                     "minPriceEp":5000,
+        //                     "maxPriceEp":10000000000,
+        //                     "maxOrderQty":1000000,
+        //                     "type":"Perpetual"
+        //                 },
+        //                 {
+        //                     "symbol":"sBTCUSDT",
+        //                     "displaySymbol":"BTC / USDT",
+        //                     "quoteCurrency":"USDT",
+        //                     "pricePrecision":2,
+        //                     "type":"Spot",
+        //                     "baseCurrency":"BTC",
+        //                     "baseTickSize":"0.000001 BTC",
+        //                     "baseTickSizeEv":100,
+        //                     "quoteTickSize":"0.01 USDT",
+        //                     "quoteTickSizeEv":1000000,
+        //                     "minOrderValue":"10 USDT",
+        //                     "minOrderValueEv":1000000000,
+        //                     "maxBaseOrderSize":"1000 BTC",
+        //                     "maxBaseOrderSizeEv":100000000000,
+        //                     "maxOrderValue":"5,000,000 USDT",
+        //                     "maxOrderValueEv":500000000000000,
+        //                     "defaultTakerFee":"0.001",
+        //                     "defaultTakerFeeEr":100000,
+        //                     "defaultMakerFee":"0.001",
+        //                     "defaultMakerFeeEr":100000,
+        //                     "baseQtyPrecision":6,
+        //                     "quoteQtyPrecision":2
+        //                 },
+        //             ],
+        //             "riskLimits":[
+        //                 {
+        //                     "symbol":"BTCUSD",
+        //                     "steps":"50",
+        //                     "riskLimits":[
+        //                         {"limit":100,"initialMargin":"1.0%","initialMarginEr":1000000,"maintenanceMargin":"0.5%","maintenanceMarginEr":500000},
+        //                         {"limit":150,"initialMargin":"1.5%","initialMarginEr":1500000,"maintenanceMargin":"1.0%","maintenanceMarginEr":1000000},
+        //                         {"limit":200,"initialMargin":"2.0%","initialMarginEr":2000000,"maintenanceMargin":"1.5%","maintenanceMarginEr":1500000},
+        //                     ]
+        //                 },
+        //             ],
+        //             "leverages":[
+        //                 {"initialMargin":"1.0%","initialMarginEr":1000000,"options":[1,2,3,5,10,25,50,100]},
+        //                 {"initialMargin":"1.5%","initialMarginEr":1500000,"options":[1,2,3,5,10,25,50,66]},
+        //                 {"initialMargin":"2.0%","initialMarginEr":2000000,"options":[1,2,3,5,10,25,33,50]},
+        //             ]
+        //         }
+        //     }
+        //
+        //
+        const data = this.safeValue (response, 'data', {});
+        const riskLimits = this.safeValue (data, 'riskLimits');
+        return this.parseLeverageTiers (riskLimits, symbols, 'symbol');
+    }
+
+    parseMarketLeverageTiers (info, market = undefined) {
+        /**
+         * @param {dict} info Exchange market response for 1 market
+         * @param {dict} market CCXT market
+         */
+        //
+        //     {
+        //         "symbol":"BTCUSD",
+        //         "steps":"50",
+        //         "riskLimits":[
+        //             {"limit":100,"initialMargin":"1.0%","initialMarginEr":1000000,"maintenanceMargin":"0.5%","maintenanceMarginEr":500000},
+        //             {"limit":150,"initialMargin":"1.5%","initialMarginEr":1500000,"maintenanceMargin":"1.0%","maintenanceMarginEr":1000000},
+        //             {"limit":200,"initialMargin":"2.0%","initialMarginEr":2000000,"maintenanceMargin":"1.5%","maintenanceMarginEr":1500000},
+        //         ]
+        //     },
+        //
+        market = this.safeMarket (undefined, market);
+        const riskLimits = (market['info']['riskLimits']);
+        const tiers = [];
+        let minNotional = 0;
+        for (let i = 0; i < riskLimits.length; i++) {
+            const tier = riskLimits[i];
+            const maxNotional = this.safeInteger (tier, 'limit');
+            tiers.push ({
+                'tier': this.sum (i, 1),
+                'currency': market['settle'],
+                'minNotional': minNotional,
+                'maxNotional': maxNotional,
+                'maintenanceMarginRate': this.safeString (tier, 'maintenanceMargin'),
+                'maxLeverage': undefined,
+                'info': tier,
+            });
+            minNotional = maxNotional;
+        }
+        return tiers;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

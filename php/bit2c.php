@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\NotSupported;
 
 class bit2c extends Exchange {
 
@@ -34,6 +35,7 @@ class bit2c extends Exchange {
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
+                'fetchDepositAddress' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -83,7 +85,7 @@ class bit2c extends Exchange {
                 'private' => array(
                     'post' => array(
                         'Merchant/CreateCheckout',
-                        'Order/AddCoinFundsRequest',
+                        'Funds/AddCoinFundsRequest',
                         'Order/AddFund',
                         'Order/AddOrder',
                         'Order/AddOrderMarketPriceBuy',
@@ -558,6 +560,48 @@ class bit2c extends Exchange {
             'cost' => null,
             'fee' => $fee,
         ), $market);
+    }
+
+    public function is_fiat($code) {
+        return $code === 'NIS';
+    }
+
+    public function fetch_deposit_address($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        if ($this->is_fiat($code)) {
+            throw new NotSupported($this->id . ' fetchDepositAddress() does not support fiat currencies');
+        }
+        $request = array(
+            'Coin' => $currency['id'],
+        );
+        $response = $this->privatePostFundsAddCoinFundsRequest (array_merge($request, $params));
+        //
+        //     {
+        //         'address' => '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
+        //         'hasTx' => False
+        //     }
+        //
+        return $this->parse_deposit_address($response, $currency);
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        //
+        //     {
+        //         'address' => '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
+        //         'hasTx' => False
+        //     }
+        //
+        $address = $this->safe_string($depositAddress, 'address');
+        $this->check_address($address);
+        $code = $this->safe_currency_code(null, $currency);
+        return array(
+            'currency' => $code,
+            'network' => null,
+            'address' => $address,
+            'tag' => null,
+            'info' => $depositAddress,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
