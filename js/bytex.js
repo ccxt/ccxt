@@ -905,37 +905,32 @@ module.exports = class bytex extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, '-');
-        const id = this.safeString (order, 'id');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        const type = this.safeString (order, 'type');
-        const side = this.safeString (order, 'side');
-        const price = this.safeString (order, 'price');
-        const amount = this.safeString (order, 'size');
+        const meta = this.safeString (order, 'meta');
         const filled = this.safeString (order, 'filled');
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const amount = this.safeString (order, 'size');
         return this.safeOrder ({
-            'id': id,
+            'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
+            'symbol': this.safeSymbol (marketId, market, '-'),
+            'type': this.safeString (order, 'type'),
             'timeInForce': undefined,
-            'postOnly': undefined,
-            'side': side,
-            'price': price,
-            'stopPrice': undefined,
+            'postOnly': this.safeValue (meta, 'post_only'),
+            'side': this.safeString (order, 'side'),
+            'price': this.safeString (order, 'price'),
+            'stopPrice': this.safeString (order, 'stop'),
             'amount': amount,
             'filled': filled,
             'remaining': undefined,
             'cost': undefined,
             'trades': undefined,
             'fee': undefined,
-            'info': order,
             'average': undefined,
+            'info': order,
         }, market);
     }
 
