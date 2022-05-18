@@ -3049,7 +3049,11 @@ class Exchange(object):
             market = self.market(symbol)
             if not market['contract']:
                 raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
-            rates = self.fetch_funding_rates([symbol], params)
-            return self.safe_value(rates, symbol)
+            rates = self.fetchFundingRates([symbol], params)
+            rate = self.safe_value(rates, symbol)
+            if rate is None:
+                raise BadSymbol(self.id + ' fetchFundingRate() returned no data for ' + symbol)
+            else:
+                return rate
         else:
             raise NotSupported(self.id + ' fetchFundingRate() is not supported yet')

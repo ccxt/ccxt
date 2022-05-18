@@ -428,8 +428,12 @@ class Exchange(BaseExchange):
         if self.has['fetchFundingRates']:
             market = self.market(symbol)
             if not market['contract']:
-                raise BadSymbol(self.id + ' fetch_funding_rate() supports contract markets only')
-            rates = self.fetch_funding_rates([symbol], params)
-            return await self.safe_value(rates, symbol)
+                raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
+            rates = await self.fetchFundingRates([symbol], params)
+            rate = self.safe_value(rates, symbol)
+            if rate is None:
+                raise BadSymbol(self.id + ' fetchFundingRate() returned no data for ' + symbol)
+            else:
+                return rate
         else:
-            raise NotSupported(self.id + ' fetch_funding_rate() is not supported yet')
+            raise NotSupported(self.id + ' fetchFundingRate() is not supported yet')

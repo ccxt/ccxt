@@ -427,12 +427,17 @@ class Exchange extends \ccxt\Exchange {
         if ($this->has['fetchFundingRates']) {
             $market = $this->market($symbol);
             if (!$market['contract']) {
-                throw new BadSymbol($this->id . ' fetch_funding_rate () supports contract markets only');
+                throw new BadSymbol($this->id . ' fetchFundingRate () supports contract markets only');
             }
-            $rates = $this->fetch_funding_rates(array( $symbol ), $params);
-            return yield $this->safe_value($rates, $symbol);
+            $rates = yield $this->fetchFundingRates (array( $symbol ), $params);
+            $rate = $this->safe_value($rates, $symbol);
+            if ($rate === null) {
+                throw new BadSymbol($this->id . ' fetchFundingRate () returned no data for ' . $symbol);
+            } else {
+                return $rate;
+            }
         } else {
-            throw new NotSupported($this->id . ' fetch_funding_rate () is not supported yet');
+            throw new NotSupported($this->id . ' fetchFundingRate () is not supported yet');
         }
     }
 }

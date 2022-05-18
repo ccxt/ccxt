@@ -2425,7 +2425,12 @@ module.exports = class Exchange {
                 throw new BadSymbol (this.id + ' fetchFundingRate () supports contract markets only');
             }
             const rates = await this.fetchFundingRates ([ symbol ], params);
-            return this.safeValue (rates, symbol);
+            const rate = this.safeValue (rates, symbol);
+            if (rate === undefined) {
+                throw new BadSymbol (this.id + ' fetchFundingRate () returned no data for ' + symbol);
+            } else {
+                return rate;
+            }
         } else {
             throw new NotSupported (this.id + ' fetchFundingRate () is not supported yet');
         }

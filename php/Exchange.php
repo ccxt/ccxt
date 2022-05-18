@@ -402,6 +402,7 @@ class Exchange {
         'createStopLimitOrder' => 'create_stop_limit_order',
         'createStopMarketOrder' => 'create_stop_market_order',
         'parseBorrowInterests' => 'parse_borrow_interests',
+        'fetchFundingRate' => 'fetch_funding_rate',
         'parseFundingRateHistories' => 'parse_funding_rate_histories',
     );
 
@@ -4012,8 +4013,13 @@ class Exchange {
             if (!$market['contract']) {
                 throw new BadSymbol($this->id . ' fetchFundingRate () supports contract markets only');
             }
-            $rates = $this->fetch_funding_rates(array( $symbol ), $params);
-            return $this->safe_value($rates, $symbol);
+            $rates = $this->fetchFundingRates (array( $symbol ), $params);
+            $rate = $this->safe_value($rates, $symbol);
+            if ($rate === null) {
+                throw new BadSymbol($this->id . ' fetchFundingRate () returned no data for ' . $symbol);
+            } else {
+                return $rate;
+            }
         } else {
             throw new NotSupported($this->id . ' fetchFundingRate () is not supported yet');
         }
