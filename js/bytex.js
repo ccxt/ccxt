@@ -1027,12 +1027,13 @@ module.exports = class bytex extends Exchange {
 
     async cancelAllOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
         const response = await this.privateDeleteOrderAll (this.extend (request, params));
         //
         //     [
