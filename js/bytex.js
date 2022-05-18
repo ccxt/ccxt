@@ -453,20 +453,6 @@ module.exports = class bytex extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseTickers (response, symbols = undefined, params = {}) {
-        const result = {};
-        const keys = Object.keys (response);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const ticker = response[key];
-            const marketId = this.safeString (ticker, 'symbol', key);
-            const market = this.safeMarket (marketId, undefined, '-');
-            const symbol = market['symbol'];
-            result[symbol] = this.extend (this.parseTicker (ticker, market), params);
-        }
-        return this.filterByArray (result, 'symbol', symbols);
-    }
-
     parseTicker (ticker, market = undefined) {
         //
         // fetchTicker
@@ -499,8 +485,8 @@ module.exports = class bytex extends Exchange {
         const timestamp = this.parse8601 (this.safeString2 (ticker, 'time', 'timestamp'));
         const close = this.safeNumber (ticker, 'close');
         const result = {
-            'symbol': symbol,
             'info': ticker,
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeNumber (ticker, 'high'),
