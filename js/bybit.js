@@ -19,7 +19,7 @@ module.exports = class bybit extends ccxt.bybit {
                 'watchOHLCV': false,
                 'watchOrderBook': true,
                 'watchOrders': true,
-                'watchTicker': false,
+                'watchTicker': true,
                 'watchTickers': false, // for now
                 'watchTrades': true,
             },
@@ -91,8 +91,7 @@ module.exports = class bybit extends ccxt.bybit {
         });
     }
 
-    async getUrlByMarketType (symbol = undefined, isPrivate = false, params = {}) {
-        await this.loadMarkets ();
+    getUrlByMarketType (symbol = undefined, isPrivate = false, params = {}) {
         const accessibility = isPrivate ? 'private' : 'public';
         let url = this.urls['api']['ws'];
         const market = this.market (symbol);
@@ -125,6 +124,35 @@ module.exports = class bybit extends ccxt.bybit {
         let url = undefined;
         [ url, params ] = this.getUrlByMarketType (symbol, false, params);
         return await this.watchPublic (url, channel, messageHash, reqParams, params);
+    }
+
+    handleTicker (client, message) {
+        //
+        //  spot
+        //    {
+        //        topic: 'realtimes',
+        //        params: { symbol: 'BTCUSDT', binary: 'false', symbolName: 'BTCUSDT' },
+        //        data: {
+        //          t: 1652883737410,
+        //          s: 'BTCUSDT',
+        //          o: '30422.68',
+        //          h: '30715',
+        //          l: '29288.44',
+        //          c: '29462.94',
+        //          v: '4350.340495',
+        //          qv: '130497543.0334267',
+        //          m: '-0.0315'
+        //        }
+        //    }
+        //
+        const topic = this.safeString (message, 'topic');
+        const data = this.safeValue (message, 'data');
+        const ticker = this.parseTicker (data);
+        const symbol = ticker['symbol'];
+        const market = this.market (symbol);
+        this.tickers[symbol] = ticker;
+        const messageHash = topic + ':' + market['id'];
+        client.resolve (ticker, messageHash);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -392,22 +420,38 @@ module.exports = class bybit extends ccxt.bybit {
 
     handleMessage (client, message) {
         //
+        //    {
+        //        topic: 'realtimes',
+        //        params: { symbol: 'BTCUSDT', binary: 'false', symbolName: 'BTCUSDT' },
+        //        data: {
+        //          t: 1652883737410,
+        //          s: 'BTCUSDT',
+        //          o: '30422.68',
+        //          h: '30715',
+        //          l: '29288.44',
+        //          c: '29462.94',
+        //          v: '4350.340495',
+        //          qv: '130497543.0334267',
+        //          m: '-0.0315'
+        //        }
+        //    }
+        //
         //
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
-        const content = this.safeString (message, 'message');
-        if (content === 'pong') {
+        const topic = this.safeString (message, 'topic');
+        if (topic === 'pong') {
             this.handlePong (client, message);
             return;
         }
         const methods = {
+            'realtimes': this.handleTicker,
             'trade': this.handleTrades,
             'orderbook': this.handleOrderBook,
             'order': this.handleOrder,
             'wallet': this.handleBalance,
         };
-        const topic = this.safeValue (message, 'topic');
         const method = this.safeValue (methods, topic);
         if (method !== undefined) {
             method.call (this, client, message);
