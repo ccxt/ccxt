@@ -711,6 +711,13 @@ module.exports = class bitfinex2 extends bitfinex {
         //         "1.0 Tether USDt transfered from Exchange to Margin"
         //     ]
         //
+        const error = this.safeString (response, 0);
+        if (error === 'error') {
+            const message = this.safeString (response, 2, '');
+            // same message as in v1
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
+            throw new ExchangeError (this.id + ' ' + message);
+        }
         return this.parseTransfer (response, currency);
     }
 
