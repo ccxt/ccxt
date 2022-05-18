@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.1.32'
+__version__ = '1.1.33'
 
 # -----------------------------------------------------------------------------
 
@@ -91,6 +91,7 @@ from ccxt.async_support.coinbase import coinbase                          # noqa
 from ccxt.async_support.coincheck import coincheck                        # noqa: F401
 from ccxt.async_support.coinex import coinex                              # noqa: F401
 from ccxt.async_support.coinfalcon import coinfalcon                      # noqa: F401
+from ccxt.async_support.coinflex import coinflex                          # noqa: F401
 from ccxt.async_support.coinmate import coinmate                          # noqa: F401
 from ccxt.async_support.coinone import coinone                            # noqa: F401
 from ccxt.async_support.coinspot import coinspot                          # noqa: F401
