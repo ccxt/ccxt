@@ -938,7 +938,7 @@ module.exports = class therock extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        amount = this.currencyToPrecision (code, amount); 
+        amount = this.currencyToPrecision (code, amount);
         const request = {
             'currency': currency['id'],
             'destination_address': address,
