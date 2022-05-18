@@ -75,6 +75,7 @@ class phemex extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
                 'setLeverage' => true,
@@ -3272,7 +3273,50 @@ class phemex extends Exchange {
         return $transfer;
     }
 
+    public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        if ($code === null) {
+            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $code argument');
+        }
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        if ($since !== null) {
+            $request['start'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = yield $this->privateGetAssetsTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "OK",
+        //         "data" => {
+        //             "rows" => array(
+        //                 {
+        //                     "linkKey" => "87c071a3-8628-4ac2-aca1-6ce0d1fad66c",
+        //                     "userId" => 4148428,
+        //                     "currency" => "BTC",
+        //                     "amountEv" => 67932,
+        //                     "side" => 2,
+        //                     "status" => 10,
+        //                     "createTime" => 1652832467000,
+        //                     "bizType" => 10
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $transfers = $this->safe_value($data, 'rows', array());
+        return $this->parse_transfers($transfers, $currency, $since, $limit);
+    }
+
     public function parse_transfer($transfer, $currency = null) {
+        //
+        // $transfer
         //
         //     {
         //         linkKey => '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
@@ -3281,6 +3325,19 @@ class phemex extends Exchange {
         //         $amountEv => '10',
         //         $side => '2',
         //         $status => '10'
+        //     }
+        //
+        // fetchTransfers
+        //
+        //     {
+        //         "linkKey" => "87c071a3-8628-4ac2-aca1-6ce0d1fad66c",
+        //         "userId" => 4148428,
+        //         "currency" => "BTC",
+        //         "amountEv" => 67932,
+        //         "side" => 2,
+        //         "status" => 10,
+        //         "createTime" => 1652832467000,
+        //         "bizType" => 10
         //     }
         //
         $id = $this->safe_string($transfer, 'linkKey');
@@ -3293,17 +3350,18 @@ class phemex extends Exchange {
         $fromId = null;
         $toId = null;
         if ($side === 1) {
-            $fromId = 'future';
+            $fromId = 'swap';
             $toId = 'spot';
         } else if ($side === 2) {
             $fromId = 'spot';
-            $toId = 'future';
+            $toId = 'swap';
         }
+        $timestamp = $this->safe_integer($transfer, 'createTime');
         return array(
             'info' => $transfer,
             'id' => $id,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'currency' => $code,
             'amount' => $amountTransfered,
             'fromAccount' => $fromId,

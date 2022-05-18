@@ -84,6 +84,7 @@ class phemex(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
                 'setLeverage': True,
@@ -3105,7 +3106,46 @@ class phemex(Exchange):
                 transfer['currency'] = code
         return transfer
 
+    def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchTransfers() requires a code argument')
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        if since is not None:
+            request['start'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privateGetAssetsTransfer(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "OK",
+        #         "data": {
+        #             "rows": [
+        #                 {
+        #                     "linkKey": "87c071a3-8628-4ac2-aca1-6ce0d1fad66c",
+        #                     "userId": 4148428,
+        #                     "currency": "BTC",
+        #                     "amountEv": 67932,
+        #                     "side": 2,
+        #                     "status": 10,
+        #                     "createTime": 1652832467000,
+        #                     "bizType": 10
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        transfers = self.safe_value(data, 'rows', [])
+        return self.parse_transfers(transfers, currency, since, limit)
+
     def parse_transfer(self, transfer, currency=None):
+        #
+        # transfer
         #
         #     {
         #         linkKey: '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
@@ -3114,6 +3154,19 @@ class phemex(Exchange):
         #         amountEv: '10',
         #         side: '2',
         #         status: '10'
+        #     }
+        #
+        # fetchTransfers
+        #
+        #     {
+        #         "linkKey": "87c071a3-8628-4ac2-aca1-6ce0d1fad66c",
+        #         "userId": 4148428,
+        #         "currency": "BTC",
+        #         "amountEv": 67932,
+        #         "side": 2,
+        #         "status": 10,
+        #         "createTime": 1652832467000,
+        #         "bizType": 10
         #     }
         #
         id = self.safe_string(transfer, 'linkKey')
@@ -3126,16 +3179,17 @@ class phemex(Exchange):
         fromId = None
         toId = None
         if side == 1:
-            fromId = 'future'
+            fromId = 'swap'
             toId = 'spot'
         elif side == 2:
             fromId = 'spot'
-            toId = 'future'
+            toId = 'swap'
+        timestamp = self.safe_integer(transfer, 'createTime')
         return {
             'info': transfer,
             'id': id,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'currency': code,
             'amount': amountTransfered,
             'fromAccount': fromId,
