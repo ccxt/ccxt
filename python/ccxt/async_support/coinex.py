@@ -47,9 +47,9 @@ class coinex(Exchange):
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchLeverage': None,
-                'fetchLeverageTiers': None,
-                'fetchMarketLeverageTiers': None,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': True,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -2528,6 +2528,74 @@ class coinex(Exchange):
             'position_type': positionType,  # 1: isolated, 2: cross
         }
         return await self.perpetualPrivatePostMarketAdjustLeverage(self.extend(request, params))
+
+    async def fetch_leverage_tiers(self, symbols=None, params={}):
+        await self.load_markets()
+        response = await self.perpetualPublicGetMarketLimitConfig(params)
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "BTCUSD": [
+        #                 ["500001", "100", "0.005"],
+        #                 ["1000001", "50", "0.01"],
+        #                 ["2000001", "30", "0.015"],
+        #                 ["5000001", "20", "0.02"],
+        #                 ["10000001", "15", "0.025"],
+        #                 ["20000001", "10", "0.03"]
+        #             ],
+        #             ...
+        #         },
+        #         "message": "OK"
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_leverage_tiers(data, symbols, None)
+
+    def parse_leverage_tiers(self, response, symbols=None, marketIdKey=None):
+        #
+        #     {
+        #         "BTCUSD": [
+        #             ["500001", "100", "0.005"],
+        #             ["1000001", "50", "0.01"],
+        #             ["2000001", "30", "0.015"],
+        #             ["5000001", "20", "0.02"],
+        #             ["10000001", "15", "0.025"],
+        #             ["20000001", "10", "0.03"]
+        #         ],
+        #         ...
+        #     }
+        #
+        tiers = {}
+        marketIds = list(response.keys())
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            market = self.safe_market(marketId)
+            symbol = self.safe_string(market, 'symbol')
+            symbolsLength = 0
+            if symbols is not None:
+                symbolsLength = len(symbols)
+            if symbol is not None and (symbolsLength == 0 or self.in_array(symbols, symbol)):
+                tiers[symbol] = self.parse_market_leverage_tiers(response[marketId], market)
+        return tiers
+
+    def parse_market_leverage_tiers(self, item, market=None):
+        tiers = []
+        minNotional = 0
+        for j in range(0, len(item)):
+            bracket = item[j]
+            maxNotional = self.safe_number(bracket, 0)
+            tiers.append({
+                'tier': j + 1,
+                'currency': market['base'] if market['linear'] else market['quote'],
+                'minNotional': minNotional,
+                'maxNotional': maxNotional,
+                'maintenanceMarginRate': self.safe_number(bracket, 2),
+                'maxLeverage': self.safe_integer(bracket, 1),
+                'info': bracket,
+            })
+            minNotional = maxNotional
+        return tiers
 
     async def modify_margin_helper(self, symbol, amount, addOrReduce, params={}):
         await self.load_markets()

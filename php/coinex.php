@@ -41,9 +41,9 @@ class coinex extends Exchange {
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
-                'fetchLeverage' => null,
-                'fetchLeverageTiers' => null,
-                'fetchMarketLeverageTiers' => null,
+                'fetchLeverage' => false,
+                'fetchLeverageTiers' => true,
+                'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -2642,6 +2642,81 @@ class coinex extends Exchange {
             'position_type' => $positionType, // 1 => isolated, 2 => cross
         );
         return $this->perpetualPrivatePostMarketAdjustLeverage (array_merge($request, $params));
+    }
+
+    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->perpetualPublicGetMarketLimitConfig ($params);
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             "BTCUSD" => [
+        //                 ["500001", "100", "0.005"],
+        //                 ["1000001", "50", "0.01"],
+        //                 ["2000001", "30", "0.015"],
+        //                 ["5000001", "20", "0.02"],
+        //                 ["10000001", "15", "0.025"],
+        //                 ["20000001", "10", "0.03"]
+        //             ],
+        //             ...
+        //         ),
+        //         "message" => "OK"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_leverage_tiers($data, $symbols, null);
+    }
+
+    public function parse_leverage_tiers($response, $symbols = null, $marketIdKey = null) {
+        //
+        //     {
+        //         "BTCUSD" => [
+        //             ["500001", "100", "0.005"],
+        //             ["1000001", "50", "0.01"],
+        //             ["2000001", "30", "0.015"],
+        //             ["5000001", "20", "0.02"],
+        //             ["10000001", "15", "0.025"],
+        //             ["20000001", "10", "0.03"]
+        //         ],
+        //         ...
+        //     }
+        //
+        $tiers = array();
+        $marketIds = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $market = $this->safe_market($marketId);
+            $symbol = $this->safe_string($market, 'symbol');
+            $symbolsLength = 0;
+            if ($symbols !== null) {
+                $symbolsLength = is_array($symbols) ? count($symbols) : 0;
+            }
+            if ($symbol !== null && ($symbolsLength === 0 || $this->in_array($symbols, $symbol))) {
+                $tiers[$symbol] = $this->parse_market_leverage_tiers($response[$marketId], $market);
+            }
+        }
+        return $tiers;
+    }
+
+    public function parse_market_leverage_tiers($item, $market = null) {
+        $tiers = array();
+        $minNotional = 0;
+        for ($j = 0; $j < count($item); $j++) {
+            $bracket = $item[$j];
+            $maxNotional = $this->safe_number($bracket, 0);
+            $tiers[] = array(
+                'tier' => $j + 1,
+                'currency' => $market['linear'] ? $market['base'] : $market['quote'],
+                'minNotional' => $minNotional,
+                'maxNotional' => $maxNotional,
+                'maintenanceMarginRate' => $this->safe_number($bracket, 2),
+                'maxLeverage' => $this->safe_integer($bracket, 1),
+                'info' => $bracket,
+            );
+            $minNotional = $maxNotional;
+        }
+        return $tiers;
     }
 
     public function modify_margin_helper($symbol, $amount, $addOrReduce, $params = array ()) {
