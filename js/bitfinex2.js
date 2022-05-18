@@ -1831,6 +1831,23 @@ module.exports = class bitfinex2 extends bitfinex {
         //         "Invalid bitcoin address (abcdef)", // TEXT Text of the notification
         //     ]
         //
+        // in case of failure:
+        //
+        //     [
+        //         "error",
+        //         10001,
+        //         "Momentary balance check. Please wait few seconds and try the transfer again."
+        //     ]
+        //
+        const statusMessage = this.safeString (response, 0);
+        if (statusMessage === 'error') {
+            const feedback = this.id + ' ' + response;
+            const message = this.safeString (response, 2, '');
+            // same message as in v1
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
         const text = this.safeString (response, 7);
         if (text !== 'success') {
             this.throwBroadlyMatchedException (this.exceptions['broad'], text, text);
@@ -1937,19 +1954,6 @@ module.exports = class bitfinex2 extends bitfinex {
             this.throwExactlyMatchedException (this.exceptions['exact'], errorText, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], errorText, feedback);
             throw new ExchangeError (this.id + ' ' + errorText + ' (#' + errorCode + ')');
-        }
-        // specifically for transfer
-        if (url.indexOf ('auth/w/transfer') > -1) {
-            //  ["error",10001,"Momentary balance check. Please wait few seconds and try the transfer again."]
-            const statusMessage = this.safeString (response, 0);
-            if (statusMessage === 'error') {
-                const feedback = this.id + ' ' + body;
-                const message = this.safeString (response, 2, '');
-                // same message as in v1
-                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-                throw new ExchangeError (feedback); // unknown message
-            }
         }
         return response;
     }
