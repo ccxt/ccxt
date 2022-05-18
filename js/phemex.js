@@ -3221,11 +3221,11 @@ module.exports = class phemex extends Exchange {
         let fromId = undefined;
         let toId = undefined;
         if (side === 1) {
-            fromId = 'future';
+            fromId = 'swap';
             toId = 'spot';
         } else if (side === 2) {
             fromId = 'spot';
-            toId = 'future';
+            toId = 'swap';
         }
         const timestamp = this.safeInteger (transfer, 'createTime');
         return {
