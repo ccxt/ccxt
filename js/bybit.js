@@ -5,7 +5,7 @@
 const ccxt = require ('ccxt');
 // BadSymbol, BadRequest
 const { AuthenticationError } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,7 +16,7 @@ module.exports = class bybit extends ccxt.bybit {
                 'ws': true,
                 'watchBalance': true,
                 'watchMyTrades': false,
-                'watchOHLCV': false,
+                'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': true,
@@ -114,16 +114,22 @@ module.exports = class bybit extends ccxt.bybit {
     }
 
     async watchTicker (symbol, params = {}) {
-        const channel = 'realtimes';
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const messageHash = 'channel' + market['symbol'];
-        const reqParams = {
-            'symbol': market['id'],
-        };
+        const messageHash = 'ticker:' + market['symbol'];
         let url = undefined;
         [ url, params ] = this.getUrlByMarketType (symbol, false, params);
-        return await this.watchPublic (url, channel, messageHash, reqParams, params);
+        if (market['spot']) {
+            const channel = 'realtimes';
+            const reqParams = {
+                'symbol': market['id'],
+            };
+            return await this.watchSpotPublic (url, channel, messageHash, reqParams, params);
+        } else {
+            const channel = 'instrument_info.100ms.' + market['id'];
+            const reqParams = [ channel ];
+            return await this.watchSwapPublic (url, messageHash, reqParams, params);
+        }
     }
 
     handleTicker (client, message) {
@@ -153,6 +159,131 @@ module.exports = class bybit extends ccxt.bybit {
         this.tickers[symbol] = ticker;
         const messageHash = topic + ':' + market['id'];
         client.resolve (ticker, messageHash);
+    }
+
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const interval = this.timeframes[timeframe];
+        let url = undefined;
+        [ url, params ] = this.getUrlByMarketType (symbol, false, params);
+        const messageHash = 'kline' + ':' + interval + ':' + market['id'];
+        let ohlcv = undefined;
+        if (market['spot']) {
+            const channel = 'kline';
+            const reqParams = {
+                'symbol': market['id'],
+                'klineType': timeframe, // spot uses the same timeframe as ours
+            };
+            ohlcv = await this.watchSpotPublic (url, channel, messageHash, reqParams, params);
+        } else {
+            const channel = 'klineV2.' + interval + '.' + market['id'];
+            const reqParams = [ channel ];
+            ohlcv = await this.watchSwapPublic (url, messageHash, reqParams, params);
+        }
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    handleOHLCV (client, message) {
+        //
+        // swap
+        //    {
+        //        topic: 'klineV2.1.LTCUSD',
+        //        data: [
+        //          {
+        //            start: 1652893140,
+        //            end: 1652893200,
+        //            open: 67.9,
+        //            close: 67.84,
+        //            high: 67.91,
+        //            low: 67.84,
+        //            volume: 56,
+        //            turnover: 0.82528936,
+        //            timestamp: '1652893152874413',
+        //            confirm: false,
+        //            cross_seq: 63544166
+        //          }
+        //        ],
+        //        timestamp_e6: 1652893152874413
+        //    }
+        //
+        // spot
+        //    {
+        //        topic: 'kline',
+        //        params: {
+        //          symbol: 'LTCUSDT',
+        //          binary: 'false',
+        //          klineType: '1m',
+        //          symbolName: 'LTCUSDT'
+        //        },
+        //        data: {
+        //          t: 1652893440000,
+        //          s: 'LTCUSDT',
+        //          sn: 'LTCUSDT',
+        //          c: '67.92',
+        //          h: '68.05',
+        //          l: '67.92',
+        //          o: '68.05',
+        //          v: '9.71302'
+        //        }
+        //    }
+        //
+        const data = this.safeValue (message, 'data', {});
+        if (Array.isArray (data)) {
+            // swap messages
+            const topic = this.safeString (message, 'topic');
+            const topicParts = topic.split ('.');
+            const topicLength = topicParts.length;
+            const marketId = this.safeString (topicParts, topicLength - 1);
+            const timeframe = this.safeString (topicParts, topicLength - 2);
+            const marketIds = {};
+            for (let i = 0; i < data.length; i++) {
+                const ohlcv = data[i];
+                const market = this.market (marketId);
+                const symbol = market['symbol'];
+                const parsed = this.parseOHLCV (ohlcv, market);
+                let stored = this.safeValue (this.ohlcvs, symbol);
+                if (stored === undefined) {
+                    const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                    stored = new ArrayCacheByTimestamp (limit);
+                    this.ohlcvs[symbol] = stored;
+                }
+                stored.append (parsed);
+                marketIds[symbol] = timeframe;
+            }
+            const keys = Object.keys (marketIds);
+            for (let i = 0; i < keys.length; i++) {
+                const symbol = keys[i];
+                const timeframe = marketIds[symbol];
+                const interval = this.timeframes[timeframe];
+                const hash = 'kline' + ':' + interval + ':' + symbol;
+                const stored = this.safeValue (this.ohlcvs, symbol);
+                client.resolve (stored, hash);
+            }
+        }
+        // const marketId = this.safeString (message, 's');
+        // const symbol = this.safeSymbol (marketId);
+        // const channel = this.safeString (message, 'm');
+        // const data = this.safeValue (message, 'data', {});
+        // const interval = this.safeString (data, 'i');
+        // const messageHash = channel + ':' + interval + ':' + marketId;
+        // const timeframe = this.findTimeframe (interval);
+        // const market = this.market (symbol);
+        // const parsed = this.parseOHLCV (message, market);
+        // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        // let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        // if (stored === undefined) {
+        //     const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+        //     stored = new ArrayCacheByTimestamp (limit);
+        //     this.ohlcvs[symbol][timeframe] = stored;
+        // }
+        // stored.append (parsed);
+        // client.resolve (stored, messageHash);
+        // return message;
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -357,7 +488,16 @@ module.exports = class bybit extends ccxt.bybit {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchPublic (url, channel, messageHash, reqParams = {}, params = {}) {
+    async watchSwapPublic (url, messageHash, reqParams = {}, params = {}) {
+        const request = {
+            'op': 'subscribe',
+            'args': reqParams,
+        };
+        const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, messageHash);
+    }
+
+    async watchSpotPublic (url, channel, messageHash, reqParams = {}, params = {}) {
         reqParams = this.extend (reqParams, {
             'binary': false,
         });
@@ -401,8 +541,14 @@ module.exports = class bybit extends ccxt.bybit {
 
     handleErrorMessage (client, message) {
         //
-        //     { error: 'Bearer or HMAC authentication required' }
-        //     { error: 'Error: wrong input' }
+        //   {
+        //       success: false,
+        //       ret_msg: 'error:invalid op',
+        //       conn_id: '5e079fdd-9c7f-404d-9dbf-969d650838b5',
+        //       request: { op: '', args: null }
+        //   }
+        //
+        //   { code: '-10009', desc: 'Invalid period!' }
         //
         const error = this.safeInteger (message, 'error');
         try {
@@ -435,14 +581,55 @@ module.exports = class bybit extends ccxt.bybit {
         //          m: '-0.0315'
         //        }
         //    }
+        //    {
+        //        topic: 'klineV2.1.LTCUSD',
+        //        data: [
+        //          {
+        //            start: 1652893140,
+        //            end: 1652893200,
+        //            open: 67.9,
+        //            close: 67.84,
+        //            high: 67.91,
+        //            low: 67.84,
+        //            volume: 56,
+        //            turnover: 0.82528936,
+        //            timestamp: '1652893152874413',
+        //            confirm: false,
+        //            cross_seq: 63544166
+        //          }
+        //        ],
+        //        timestamp_e6: 1652893152874413
+        //    }
+        //
+        //    {
+        //        topic: 'kline',
+        //        event: 'sub',
+        //        params: {
+        //          symbol: 'LTCUSDT',
+        //          binary: 'false',
+        //          klineType: '1m',
+        //          symbolName: 'LTCUSDT'
+        //        },
+        //        code: '0',
+        //        msg: 'Success'
+        //    }
         //
         //
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
+        const event = this.safeString (message, 'event');
+        if (event === 'sub') {
+            this.handleSubscriptionStatus (client, message);
+            return;
+        }
         const topic = this.safeString (message, 'topic');
         if (topic === 'pong') {
             this.handlePong (client, message);
+            return;
+        }
+        if (topic !== undefined && topic.indexOf ('kline') >= 0) {
+            // this.handleOHLCV (client, message);
             return;
         }
         const methods = {
@@ -465,6 +652,23 @@ module.exports = class bybit extends ccxt.bybit {
 
     handlePong (client, message) {
         client.lastPong = this.milliseconds ();
+        return message;
+    }
+
+    handleSubscriptionStatus (client, message) {
+        //
+        //    {
+        //        topic: 'kline',
+        //        event: 'sub',
+        //        params: {
+        //          symbol: 'LTCUSDT',
+        //          binary: 'false',
+        //          klineType: '1m',
+        //          symbolName: 'LTCUSDT'
+        //        },
+        //        code: '0',
+        //        msg: 'Success'
+        //    }
         return message;
     }
 };
