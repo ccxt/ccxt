@@ -671,21 +671,36 @@ module.exports = class bytex extends Exchange {
         const response = await this.privateGetUserBalance (params);
         //
         //     {
-        //         "updated_at": "2020-03-02T22:27:38.428Z",
+        //         "user_id": '...',
         //         "btc_balance": 0,
         //         "btc_pending": 0,
         //         "btc_available": 0,
         //         "eth_balance": 0,
         //         "eth_pending": 0,
         //         "eth_available": 0,
-        //         // ...
+        //         ...
         //     }
         //
-        const timestamp = this.parse8601 (this.safeString (response, 'updated_at'));
+        return this.parseBalance (response);
+    }
+
+    parseBalance (response) {
+        //
+        //     {
+        //         "user_id": '...',
+        //         "btc_balance": 0,
+        //         "btc_pending": 0,
+        //         "btc_available": 0,
+        //         "eth_balance": 0,
+        //         "eth_pending": 0,
+        //         "eth_available": 0,
+        //         ...
+        //     }
+        //
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         const currencyIds = Object.keys (this.currencies_by_id);
         for (let i = 0; i < currencyIds.length; i++) {
@@ -696,7 +711,7 @@ module.exports = class bytex extends Exchange {
             account['total'] = this.safeString (response, currencyId + '_balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return result;
     }
 
     async fetchOpenOrder (id, symbol = undefined, params = {}) {
