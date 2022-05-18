@@ -3297,8 +3297,10 @@ module.exports = class bybit extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a symbol argument for ' + symbol + ' markets');
             }
-            const type = this.safeStringLower (params, 'type');
-            const isConditional = (type === 'stop') || (type === 'conditional');
+            const type = this.safeStringLower (params, 'orderType');
+            const isStop = this.safeValue (params, 'stop', false);
+            const isConditional = isStop || (type === 'stop') || (type === 'conditional');
+            params = this.omit (params, [ 'orderType', 'stop' ]);
             let defaultStatuses = undefined;
             if (!isConditional) {
                 defaultStatuses = [
