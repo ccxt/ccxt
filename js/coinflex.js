@@ -119,7 +119,7 @@ module.exports = class coinflex extends Exchange {
                 '1d': '86400s',
             },
             'urls': {
-                'logo': '',
+                'logo': 'https://user-images.githubusercontent.com/1294454/168937923-80d6af4a-43b5-4ed9-9d53-31065656be4f.jpg',
                 'api': {
                     'public': 'https://v2api.coinflex.com',
                     'private': 'https://v2api.coinflex.com',
@@ -135,6 +135,7 @@ module.exports = class coinflex extends Exchange {
                     'public': 'https://v2stgapi.coinflex.com',
                     'private': 'https://v2stgapi.coinflex.com',
                 },
+                'referral': 'https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P'
             },
             'api': {
                 'public': {
