@@ -194,30 +194,43 @@ module.exports = class bytex extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const market = pairs[key];
-            const id = this.safeString (market, 'name');
             const baseId = this.safeString (market, 'pair_base');
             const quoteId = this.safeString (market, 'pair_2');
-            const base = this.commonCurrencyCode (baseId.toUpperCase ());
-            const quote = this.commonCurrencyCode (quoteId.toUpperCase ());
-            const symbol = base + '/' + quote;
-            const active = this.safeValue (market, 'active');
-            const maker = this.fees['trading']['maker'];
-            const taker = this.fees['trading']['taker'];
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             result.push ({
-                'id': id,
-                'symbol': symbol,
+                'id': this.safeString (market, 'name'),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': this.safeValue (market, 'active'),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
                 'precision': {
-                    'price': this.safeNumber (market, 'increment_price'),
                     'amount': this.safeNumber (market, 'increment_size'),
+                    'price': this.safeNumber (market, 'increment_price'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'min_size'),
                         'max': this.safeNumber (market, 'max_size'),
@@ -228,8 +241,6 @@ module.exports = class bytex extends Exchange {
                     },
                     'cost': { 'min': undefined, 'max': undefined },
                 },
-                'taker': taker,
-                'maker': maker,
                 'info': market,
             });
         }
