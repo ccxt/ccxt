@@ -1918,9 +1918,13 @@ module.exports = class ftx extends Exchange {
         if (marketId !== undefined) {
             request['market'] = marketId;
         }
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         const till = this.safeInteger (params, 'till');
         if (since !== undefined) {
             request['start_time'] = parseInt (since / 1000);
+            request['end_time'] = this.seconds ();
         }
         if (till !== undefined) {
             request['end_time'] = parseInt (till / 1000);
