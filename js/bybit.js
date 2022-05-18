@@ -2877,7 +2877,9 @@ module.exports = class bybit extends Exchange {
             // 'p_r_trigger_price': 123.45, // new trigger price also known as stop_px
         };
         const orderType = this.safeString (params, 'orderType');
-        const isConditionalOrder = (orderType === 'stop' || orderType === 'conditional');
+        const isStop = this.safeValue (params, 'stop', false);
+        const isConditionalOrder = isStop || (orderType === 'stop' || orderType === 'conditional');
+        params = this.omit (params, [ 'orderType', 'stop' ]);
         const idKey = isConditionalOrder ? 'stop_order_id' : 'order_id';
         request[idKey] = id;
         if (amount !== undefined) {
