@@ -279,6 +279,50 @@ module.exports = class bytex extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetConstants (params);
+        //
+        //     {
+        //         coins: {
+        //             xmr: {
+        //                 id: 7,
+        //                 fullname: "Monero",
+        //                 symbol: "xmr",
+        //                 active: true,
+        //                 allow_deposit: true,
+        //                 allow_withdrawal: true,
+        //                 withdrawal_fee: 0.02,
+        //                 min: 0.001,
+        //                 max: 100000,
+        //                 increment_unit: 0.001,
+        //                 deposit_limits: { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0 },
+        //                 withdrawal_limits: { '1': 10, '2': 15, '3': 100, '4': 100, '5': 200, '6': 300, '7': 350, '8': 400, '9': 500, '10': -1 },
+        //                 created_at: "2019-12-09T07:14:02.720Z",
+        //                 updated_at: "2020-01-16T12:12:53.162Z"
+        //             },
+        //             // ...
+        //         },
+        //         pairs: {
+        //             'btc-usdt': {
+        //                 id: 2,
+        //                 name: "btc-usdt",
+        //                 pair_base: "btc",
+        //                 pair_2: "usdt",
+        //                 taker_fees: { '1': 0.3, '2': 0.25, '3': 0.2, '4': 0.18, '5': 0.1, '6': 0.09, '7': 0.08, '8': 0.06, '9': 0.04, '10': 0 },
+        //                 maker_fees: { '1': 0.1, '2': 0.08, '3': 0.05, '4': 0.03, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0, '10': 0 },
+        //                 min_size: 0.0001,
+        //                 max_size: 1000,
+        //                 min_price: 100,
+        //                 max_price: 100000,
+        //                 increment_size: 0.0001,
+        //                 increment_price: 0.05,
+        //                 active: true,
+        //                 created_at: "2019-12-09T07:15:54.537Z",
+        //                 updated_at: "2019-12-09T07:15:54.537Z"
+        //             },
+        //         },
+        //         config: { tiers: 10 },
+        //         status: true
+        //     }
+        //
         const coins = this.safeValue (response, 'coins', {});
         const keys = Object.keys (coins);
         const result = {};
@@ -294,12 +338,16 @@ module.exports = class bytex extends Exchange {
             const precision = this.safeNumber (currency, 'increment_unit');
             const withdrawalLimits = this.safeValue (currency, 'withdrawal_limits', []);
             result[code] = {
+                'info': currency,
                 'id': id,
                 'numericId': numericId,
                 'code': code,
-                'info': currency,
+                'type': undefined,
                 'name': name,
+                'network': undefined,
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
