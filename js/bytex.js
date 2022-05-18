@@ -914,7 +914,7 @@ module.exports = class bytex extends Exchange {
         const amount = this.safeString (order, 'size');
         const filled = this.safeString (order, 'filled');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
@@ -940,25 +940,48 @@ module.exports = class bytex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name bytex#createOrder
+         * @description Create an order on the exchange
+         * @param {str} symbol Unified CCXT market symbol
+         * @param {str} type "limit" or "market" *"market" is contract only*
+         * @param {str} side "buy" or "sell"
+         * @param {float} amount the amount of currency to trade
+         * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+         * @param {dict} params  Extra parameters specific to the exchange API endpoint
+         * @param {float} params.stopPrice The price at which a trigger order is triggered at
+         * @param {dict} params.meta Object with other options such as post_only
+         * @returns [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const stopPrice = this.safeFloat2 (params, 'stopPrice', 'stop');
+        params = this.omit (params, [ 'stopPrice', 'stop' ]);
+        const meta = this.safeString (params, 'meta');
+        const metaPostOnly = this.safeValue (meta, 'post_only');
+        const [ exchangeType, postOnly, timeInForce, query ] = this.isPostOnly (type, undefined, metaPostOnly, params);
         const request = {
             'symbol': market['id'],
             'side': side,
             'size': amount,
-            'type': type,
-            // 'stop': parseFloat (this.priceToPrecision (symbol, stopPrice)),
-            // 'meta': {}, // other options such as post_only
+            'type': exchangeType,
         };
         if (type !== 'market') {
             request['price'] = price;
         }
-        const stopPrice = this.safeFloat2 (params, 'stopPrice', 'stop');
         if (stopPrice !== undefined) {
             request['stop'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
-            params = this.omit (params, [ 'stopPrice', 'stop' ]);
         }
-        const response = await this.privatePostOrder (this.extend (request, params));
+        if (postOnly) {
+            request['meta'] = {
+                'post_only': true,
+            };
+        }
+        if (timeInForce !== undefined) {
+            params = this.omit (params, 'timeInForce'); // here to prevent unused variable error // TODO: check if time_in_force can go in meta
+        }
+        const response = await this.privatePostOrder (this.deepExtend (request, query));
         //
         //     {
         //         "fee": 0,
