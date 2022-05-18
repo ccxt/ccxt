@@ -1826,14 +1826,26 @@ class ftx(Exchange):
         return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch trades specific to you account
+        :param str symbol: unified market symbol
+        :param int since: timestamp in ms of the earliest trade
+        :param int limit: not sent to exchange but filtered internally by CCXT
+        :param dict params: exchange specific parameters
+        :param int params['till']: timestamp in ms of the latest trade
+        :returns: A list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         self.load_markets()
         market, marketId = self.get_market_params(symbol, 'market', params)
         request = {}
         if marketId is not None:
             request['market'] = marketId
+        till = self.safe_integer(params, 'till')
         if since is not None:
             request['start_time'] = int(since / 1000)
-            request['end_time'] = self.seconds()
+        if till is not None:
+            request['end_time'] = int(till / 1000)
+            params = self.omit(params, 'till')
         response = self.privateGetFills(self.extend(request, params))
         #
         #     {
