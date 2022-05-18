@@ -1901,15 +1901,30 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ftx#fetchMyTrades
+         * @description fetch trades specific to you account
+         * @param {str} symbol unified market symbol
+         * @param {int} since timestamp in ms of the earliest trade
+         * @param {int} limit not sent to exchange but filtered internally by CCXT
+         * @param {dict} params exchange specific parameters
+         * @param {int} params.till timestamp in ms of the latest trade
+         * @returns A list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         await this.loadMarkets ();
         const [ market, marketId ] = this.getMarketParams (symbol, 'market', params);
         const request = {};
         if (marketId !== undefined) {
             request['market'] = marketId;
         }
+        const till = this.safeInteger (params, 'till');
         if (since !== undefined) {
             request['start_time'] = parseInt (since / 1000);
-            request['end_time'] = this.seconds ();
+        }
+        if (till !== undefined) {
+            request['end_time'] = parseInt (till / 1000);
+            params = this.omit (params, 'till');
         }
         const response = await this.privateGetFills (this.extend (request, params));
         //
