@@ -69,6 +69,7 @@ module.exports = class phemex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'setLeverage': true,
@@ -3143,7 +3144,50 @@ module.exports = class phemex extends Exchange {
         return transfer;
     }
 
+    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a code argument');
+        }
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetAssetsTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "OK",
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "linkKey": "87c071a3-8628-4ac2-aca1-6ce0d1fad66c",
+        //                     "userId": 4148428,
+        //                     "currency": "BTC",
+        //                     "amountEv": 67932,
+        //                     "side": 2,
+        //                     "status": 10,
+        //                     "createTime": 1652832467000,
+        //                     "bizType": 10
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const transfers = this.safeValue (data, 'rows', []);
+        return this.parseTransfers (transfers, currency, since, limit);
+    }
+
     parseTransfer (transfer, currency = undefined) {
+        //
+        // transfer
         //
         //     {
         //         linkKey: '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
@@ -3152,6 +3196,19 @@ module.exports = class phemex extends Exchange {
         //         amountEv: '10',
         //         side: '2',
         //         status: '10'
+        //     }
+        //
+        // fetchTransfers
+        //
+        //     {
+        //         "linkKey": "87c071a3-8628-4ac2-aca1-6ce0d1fad66c",
+        //         "userId": 4148428,
+        //         "currency": "BTC",
+        //         "amountEv": 67932,
+        //         "side": 2,
+        //         "status": 10,
+        //         "createTime": 1652832467000,
+        //         "bizType": 10
         //     }
         //
         const id = this.safeString (transfer, 'linkKey');
@@ -3170,11 +3227,12 @@ module.exports = class phemex extends Exchange {
             fromId = 'spot';
             toId = 'future';
         }
+        const timestamp = this.safeInteger (transfer, 'createTime');
         return {
             'info': transfer,
             'id': id,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'currency': code,
             'amount': amountTransfered,
             'fromAccount': fromId,
