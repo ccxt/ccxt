@@ -58,7 +58,8 @@ class phemex extends Exchange {
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverage' => false,
-                'fetchLeverageTiers' => false,
+                'fetchLeverageTiers' => true,
+                'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -3020,6 +3021,129 @@ class phemex extends Exchange {
             'leverage' => $leverage,
         );
         return yield $this->privatePutPositionsLeverage (array_merge($request, $params));
+    }
+
+    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->publicGetCfgV2Products ($params);
+        //
+        //     {
+        //         "code":0,
+        //         "msg":"OK",
+        //         "data":{
+        //             "ratioScale":8,
+        //             "currencies":array(
+        //                 array("currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"),
+        //                 array("currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"),
+        //                 array("currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"),
+        //             ),
+        //             "products":array(
+        //                 array(
+        //                     "symbol":"BTCUSD",
+        //                     "displaySymbol":"BTC / USD",
+        //                     "indexSymbol":".BTC",
+        //                     "markSymbol":".MBTC",
+        //                     "fundingRateSymbol":".BTCFR",
+        //                     "fundingRate8hSymbol":".BTCFR8H",
+        //                     "contractUnderlyingAssets":"USD",
+        //                     "settleCurrency":"BTC",
+        //                     "quoteCurrency":"USD",
+        //                     "contractSize":1.0,
+        //                     "lotSize":1,
+        //                     "tickSize":0.5,
+        //                     "priceScale":4,
+        //                     "ratioScale":8,
+        //                     "pricePrecision":1,
+        //                     "minPriceEp":5000,
+        //                     "maxPriceEp":10000000000,
+        //                     "maxOrderQty":1000000,
+        //                     "type":"Perpetual"
+        //                 ),
+        //                 array(
+        //                     "symbol":"sBTCUSDT",
+        //                     "displaySymbol":"BTC / USDT",
+        //                     "quoteCurrency":"USDT",
+        //                     "pricePrecision":2,
+        //                     "type":"Spot",
+        //                     "baseCurrency":"BTC",
+        //                     "baseTickSize":"0.000001 BTC",
+        //                     "baseTickSizeEv":100,
+        //                     "quoteTickSize":"0.01 USDT",
+        //                     "quoteTickSizeEv":1000000,
+        //                     "minOrderValue":"10 USDT",
+        //                     "minOrderValueEv":1000000000,
+        //                     "maxBaseOrderSize":"1000 BTC",
+        //                     "maxBaseOrderSizeEv":100000000000,
+        //                     "maxOrderValue":"5,000,000 USDT",
+        //                     "maxOrderValueEv":500000000000000,
+        //                     "defaultTakerFee":"0.001",
+        //                     "defaultTakerFeeEr":100000,
+        //                     "defaultMakerFee":"0.001",
+        //                     "defaultMakerFeeEr":100000,
+        //                     "baseQtyPrecision":6,
+        //                     "quoteQtyPrecision":2
+        //                 ),
+        //             ),
+        //             "riskLimits":array(
+        //                 array(
+        //                     "symbol":"BTCUSD",
+        //                     "steps":"50",
+        //                     "riskLimits":array(
+        //                         array("limit":100,"initialMargin":"1.0%","initialMarginEr":1000000,"maintenanceMargin":"0.5%","maintenanceMarginEr":500000),
+        //                         array("limit":150,"initialMargin":"1.5%","initialMarginEr":1500000,"maintenanceMargin":"1.0%","maintenanceMarginEr":1000000),
+        //                         array("limit":200,"initialMargin":"2.0%","initialMarginEr":2000000,"maintenanceMargin":"1.5%","maintenanceMarginEr":1500000),
+        //                     )
+        //                 ),
+        //             ),
+        //             "leverages":[
+        //                 array("initialMargin":"1.0%","initialMarginEr":1000000,"options":[1,2,3,5,10,25,50,100]),
+        //                 array("initialMargin":"1.5%","initialMarginEr":1500000,"options":[1,2,3,5,10,25,50,66]),
+        //                 array("initialMargin":"2.0%","initialMarginEr":2000000,"options":[1,2,3,5,10,25,33,50]),
+        //             ]
+        //         }
+        //     }
+        //
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $riskLimits = $this->safe_value($data, 'riskLimits');
+        return $this->parse_leverage_tiers($riskLimits, $symbols, 'symbol');
+    }
+
+    public function parse_market_leverage_tiers($info, $market = null) {
+        /**
+         * @param {dict} $info Exchange $market response for 1 $market
+         * @param {dict} $market CCXT $market
+         */
+        //
+        //     array(
+        //         "symbol":"BTCUSD",
+        //         "steps":"50",
+        //         "riskLimits":array(
+        //             array("limit":100,"initialMargin":"1.0%","initialMarginEr":1000000,"maintenanceMargin":"0.5%","maintenanceMarginEr":500000),
+        //             array("limit":150,"initialMargin":"1.5%","initialMarginEr":1500000,"maintenanceMargin":"1.0%","maintenanceMarginEr":1000000),
+        //             array("limit":200,"initialMargin":"2.0%","initialMarginEr":2000000,"maintenanceMargin":"1.5%","maintenanceMarginEr":1500000),
+        //         )
+        //     ),
+        //
+        $market = $this->safe_market(null, $market);
+        $riskLimits = ($market['info']['riskLimits']);
+        $tiers = array();
+        $minNotional = 0;
+        for ($i = 0; $i < count($riskLimits); $i++) {
+            $tier = $riskLimits[$i];
+            $maxNotional = $this->safe_integer($tier, 'limit');
+            $tiers[] = array(
+                'tier' => $this->sum($i, 1),
+                'currency' => $market['settle'],
+                'minNotional' => $minNotional,
+                'maxNotional' => $maxNotional,
+                'maintenanceMarginRate' => $this->safe_string($tier, 'maintenanceMargin'),
+                'maxLeverage' => null,
+                'info' => $tier,
+            );
+            $minNotional = $maxNotional;
+        }
+        return $tiers;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
