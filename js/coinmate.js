@@ -60,6 +60,7 @@ module.exports = class coinmate extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': false,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg',
@@ -160,6 +161,20 @@ module.exports = class coinmate extends Exchange {
                             [ this.parseNumber ('3000000'), this.parseNumber ('0.0002') ],
                             [ this.parseNumber ('15000000'), this.parseNumber ('0') ],
                         ],
+                    },
+                },
+            },
+            'options': {
+                'withdraw': {
+                    'fillResponsefromRequest': true,
+                    'methods': {
+                        'BTC': 'privatePostBitcoinWithdrawal',
+                        'LTC': 'privatePostLitecoinWithdrawal',
+                        'BCH': 'privatePostBitcoinCashWithdrawal',
+                        'ETH': 'privatePostEthereumWithdrawal',
+                        'XRP': 'privatePostRippleWithdrawal',
+                        'DASH': 'privatePostDashWithdrawal',
+                        'DAI': 'privatePostDaiWithdrawal',
                     },
                 },
             },
@@ -351,8 +366,13 @@ module.exports = class coinmate extends Exchange {
 
     parseTransactionStatus (status) {
         const statuses = {
-            // any other types ?
             'COMPLETED': 'ok',
+            'WAITING': 'pending',
+            'SENT': 'pending',
+            'CREATED': 'pending',
+            'OK': 'ok',
+            'NEW': 'pending',
+            'CANCELED': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
@@ -392,6 +412,12 @@ module.exports = class coinmate extends Exchange {
         //         destinationTag: null
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "id": 2132583,
+        //     }
+        //
         const timestamp = this.safeInteger (transaction, 'timestamp');
         const amount = this.safeNumber (transaction, 'amount');
         const fee = this.safeNumber (transaction, 'fee');
@@ -402,7 +428,7 @@ module.exports = class coinmate extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const type = this.safeStringLower (transaction, 'transferType');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'transferStatus'));
-        const id = this.safeString (transaction, 'transactionId');
+        const id = this.safeString2 (transaction, 'transactionId', 'id');
         const network = this.safeString (transaction, 'walletType');
         return {
             'id': id,
@@ -426,6 +452,49 @@ module.exports = class coinmate extends Exchange {
             },
             'info': transaction,
         };
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
+        const methods = this.safeValue (withdrawOptions, 'methods', {});
+        const method = this.safeString (methods, code);
+        if (method === undefined) {
+            const allowedCurrencies = Object.keys (methods);
+            throw new ExchangeError (this.id + ' withdraw() only allows withdrawing the following currencies: ' + allowedCurrencies.join (', '));
+        }
+        const request = {
+            'amount': this.currencyToPrecision (code, amount),
+            'address': address,
+        };
+        if (tag !== undefined) {
+            request['destinationTag'] = tag;
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "error": false,
+        //         "errorMessage": null,
+        //         "data": {
+        //             "id": "9e0a37fc-4ab4-4b9d-b9e7-c9c8f7c4c8e0"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const transaction = this.parseTransaction (data, currency);
+        const fillResponseFromRequest = this.safeValue (withdrawOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            transaction['amount'] = amount;
+            transaction['currency'] = code;
+            transaction['address'] = address;
+            transaction['tag'] = tag;
+            transaction['type'] = 'withdrawal';
+            transaction['status'] = 'pending';
+        }
+        return transaction;
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
