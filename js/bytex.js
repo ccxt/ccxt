@@ -168,6 +168,12 @@ module.exports = class bytex extends Exchange {
             'options': {
                 // how many seconds before the authenticated request expires
                 'api-expires': parseInt (this.timeout / 1000),
+                'networks': {
+                    'TRC20': 'trx',
+                    'ERC20': 'eth',
+                    'trx': 'trx',
+                    'eth': 'eth',
+                },
             },
         });
     }
@@ -1081,15 +1087,30 @@ module.exports = class bytex extends Exchange {
             'currency': currency['code'],
             'address': address,
             'tag': tag,
-            'network': network,
+            'network': this.safeNetwork (network),
             'info': depositAddress,
         };
+    }
+
+    safeNetwork (networkId) {
+        const networksById = {
+            'trx': 'TRC20',
+            'eth': 'ERC20',
+        };
+        return this.safeString (networksById, networkId, networkId);
     }
 
     async fetchDepositAddresses (codes = undefined, params = {}) {
         await this.loadMarkets ();
         const network = this.safeString (params, 'network');
+        let exchangeNetwork = undefined;
         params = this.omit (params, 'network');
+        if (network !== undefined) {
+            exchangeNetwork = this.safeString (this.options['networks'], network);
+            if (exchangeNetwork === undefined) {
+                throw new BadRequest (this.name + ' has no network ' + network);
+            }
+        }
         const response = await this.privateGetUser (params);
         //
         //     {
@@ -1137,7 +1158,7 @@ module.exports = class bytex extends Exchange {
         //     }
         //
         const wallet = this.safeValue (response, 'wallet', []);
-        const addresses = (network === undefined) ? wallet : this.filterBy (wallet, 'network', network);
+        const addresses = (network === undefined) ? wallet : this.filterBy (wallet, 'network', exchangeNetwork);
         return this.parseDepositAddresses (addresses, codes);
     }
 
