@@ -2687,7 +2687,7 @@ module.exports = class coinex extends Exchange {
             if (symbols !== undefined) {
                 symbolsLength = symbols.length;
             }
-            if (symbol !== undefined && (symbolsLength === 0 || symbols.includes (symbol))) {
+            if (symbol !== undefined && (symbolsLength === 0 || this.inArray (symbols, symbol))) {
                 tiers[symbol] = this.parseMarketLeverageTiers (response[marketId], market);
             }
         }
