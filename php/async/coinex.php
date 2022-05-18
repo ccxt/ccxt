@@ -687,7 +687,7 @@ class coinex extends Exchange {
         }
         $request = array(
             'market' => $this->market_id($symbol),
-            'merge' => '0.0000000001',
+            'merge' => '0',
             'limit' => (string) $limit,
         );
         $method = $market['swap'] ? 'perpetualPublicGetMarketDepth' : 'publicGetMarketDepth';
