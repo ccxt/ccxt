@@ -3956,15 +3956,6 @@ class Exchange {
         return $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
 
-    public function parse_borrow_interests($response, $market = null) {
-        $interest = array();
-        for ($i = 0; $i < count($response); $i++){
-            $row = $response[$i];
-            array_push($interest, $this->parseBorrowInterest($row, $market));
-        }
-        return $interest;
-    }
-
     public function create_stop_order($symbol, $type, $side, $amount, $price = null, $stopPrice = null, $params = array()) {
         if (!$this->has['createStopOrder']) {
             throw new NotSupported($this->id . ' create_stop_order() is not supported yet');
@@ -3993,6 +3984,26 @@ class Exchange {
         $array = array('stopPrice' => $stopPrice);
         $query = $this->extend($params, $array);
         return $this->create_order($symbol, 'market', $side, $amount, null, $query);
+    }
+    
+    public function check_order_arguments ($market, $type, $side, $amount, $price, $params) {
+        if ($price === null) {
+            if ($type === 'limit') {
+                  throw new ArgumentsRequired ($this->id + ' create_order() requires a price argument for a limit order');
+             }
+        }
+        if ($amount <= 0) {
+            throw new ArgumentsRequired ($this->id + ' create_order() amount should be above 0');
+        }
+    }
+
+    public function parse_borrow_interests($response, $market = null) {
+        $interest = array();
+        for ($i = 0; $i < count($response); $i++){
+            $row = $response[$i];
+            array_push($interest, $this->parseBorrowInterest($row, $market));
+        }
+        return $interest;
     }
 
     public function parse_funding_rate_histories($response, $market = null, $since = null, $limit = null) {
