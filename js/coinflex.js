@@ -135,7 +135,7 @@ module.exports = class coinflex extends Exchange {
                     'public': 'https://v2stgapi.coinflex.com',
                     'private': 'https://v2stgapi.coinflex.com',
                 },
-                'referral': 'https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P'
+                'referral': 'https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P',
             },
             'api': {
                 'public': {
