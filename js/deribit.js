@@ -2135,7 +2135,7 @@ module.exports = class deribit extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'amount': parseFloat (this.currencyToPrecision (code, amount)),
+            'amount': amount,
             'currency': currency['id'],
             'destination': toAccount,
         };
