@@ -590,6 +590,7 @@ module.exports = class bytex extends Exchange {
             'amount': amount,
             'cost': cost,
             'fee': fee,
+            'fees': [],
         };
     }
 
