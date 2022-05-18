@@ -681,7 +681,7 @@ module.exports = class coinex extends Exchange {
         }
         const request = {
             'market': this.marketId (symbol),
-            'merge': '0.0000000001',
+            'merge': '0',
             'limit': limit.toString (),
         };
         const method = market['swap'] ? 'perpetualPublicGetMarketDepth' : 'publicGetMarketDepth';

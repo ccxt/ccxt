@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.82.93';
+$version = '1.82.96';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.82.93';
+    const VERSION = '1.82.96';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -3926,26 +3926,34 @@ class Exchange {
         sleep($milliseconds / 1000);
     }
 
-    public function is_post_only($type, $time_in_force, $exchange_specific_option, $params = array()){
+    public function is_post_only($type, $time_in_force = null, $exchange_specific_option = null, $params = array ()) {
+        /**
+         * @param {string} $type Order type
+         * @param {string} $time_in_force
+         * @param {boolean} $exchange_specific_option True if the exchange specific post only setting is set
+         * @param {dict} $params Exchange specific $params
+         * @return {boolean} true if a post only order, false otherwise
+         */
         $post_only = $this->safe_value_2($params, 'postOnly', 'post_only', false);
-        $params = $this->omit($params, array('post_only', 'postOnly'));
-        $time_in_force_upper = strtoupper($time_in_force);
+        $params = $this->omit($params, array( 'post_only', 'postOnly' ));
+        $time_in_force_upper = ($time_in_force !== null) ? strtoupper($time_in_force) : null;
         $type_lower = strtolower($type);
         $ioc = $time_in_force_upper === 'IOC';
+        $fok = $time_in_force_upper === 'FOK';
         $time_in_force_post_only = $time_in_force_upper === 'PO';
         $is_market = $type_lower === 'market';
-        $post_only = $post_only || $type_lower === 'postonly' || $time_in_force_post_only || $exchange_specific_option;
+        $post_only = $post_only || ($type_lower === 'postonly') || $time_in_force_post_only || $exchange_specific_option;
         if ($post_only) {
-            if ($ioc) {
-                throw new InvalidOrder($this->id . ' postOnly orders cannot have timeInForce equal to ' . $time_in_force);
+            if ($ioc || $fok) {
+                throw new InvalidOrder($this->id . ' postOnly orders cannot have $timeInForce equal to ' . $time_in_force);
             } else if ($is_market) {
-                throw new InvalidOrder($this->id . ' postOnly orders cannot have type ' . $type);
+                throw new InvalidOrder($this->id . ' postOnly orders cannot have $type ' . $type);
             } else {
                 $time_in_force = $time_in_force_post_only ? null : $time_in_force;
-                return array('limit', true, $time_in_force, $params);
+                return array( 'limit', true, $time_in_force, $params );
             }
         } else {
-            return array($type, false, $time_in_force, $params);
+            return array( $type, false, $time_in_force, $params );
         }
     }
 
