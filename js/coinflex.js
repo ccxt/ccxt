@@ -56,8 +56,6 @@ module.exports = class coinflex extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
-                'fetchFundingFee': true,
-                'fetchFundingFees': false,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': 'emulated',
@@ -94,6 +92,8 @@ module.exports = class coinflex extends Exchange {
                 'fetchTradingFees': undefined,
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
+                'fetchTransactionFee': true,
+                'fetchTransactionFees': false,
                 'fetchTransfers': true,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
@@ -2250,19 +2250,19 @@ module.exports = class coinflex extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    async fetchFundingFee (code, params = {}) {
+    async fetchTransactionFee (code, params = {}) {
         const networkName = this.safeStringUpper (params, 'network');
         if (networkName === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchFundingFee() requires "network"  parameter');
+            throw new ArgumentsRequired (this.id + ' fetchTransactionFee() requires "network"  parameter');
         }
         const address = this.safeString (params, 'address');
         if (address === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchFundingFee() requires recipient "address"  param to calculate fee');
+            throw new ArgumentsRequired (this.id + ' fetchTransactionFee() requires recipient "address"  param to calculate fee');
         }
         const amount = this.safeNumber (params, 'quantity');
         params = this.omit (params, 'quantity');
         if (address === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchFundingFee() requires "quantity"  param to calculate fee');
+            throw new ArgumentsRequired (this.id + ' fetchTransactionFee() requires "quantity"  param to calculate fee');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
