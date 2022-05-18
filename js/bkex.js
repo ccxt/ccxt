@@ -480,7 +480,7 @@ module.exports = class bkex extends Exchange {
         const request = {};
         if (symbols !== undefined) {
             if (!Array.isArray (symbols)) {
-                throw new BadRequest (this.id + ' fetchTickers() symbols argument should be an array');
+                throw new BadRequest (this.id + ' fetchTickers () symbols argument should be an array');
             }
         }
         if (symbols !== undefined) {
@@ -493,6 +493,19 @@ module.exports = class bkex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        //    {
+        //          "change":-0.46,
+        //          "close":29664.46,
+        //          "high":30784.99,
+        //          "low":29455.36,
+        //          "open":29803.38,
+        //          "quoteVolume":714653752.6991,
+        //          "symbol":"BTC_USDT",
+        //          "ts":1652812048118,
+        //          "volume":23684.9416
+        //    }
+        //
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (ticker, 'ts');
@@ -512,8 +525,8 @@ module.exports = class bkex extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeString (ticker, 'change'),
-            'percentage': undefined,
+            'change': undefined,
+            'percentage': this.safeString (ticker, 'change'), // 24h percentage change (close - open) / open * 100
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),
