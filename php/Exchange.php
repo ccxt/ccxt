@@ -104,6 +104,7 @@ class Exchange {
         'bw',
         'bybit',
         'bytetrade',
+        'bytex',
         'cdax',
         'cex',
         'coinbase',
@@ -3944,7 +3945,7 @@ class Exchange {
         if ($post_only) {
             if ($ioc || $fok) {
                 throw new InvalidOrder($this->id . ' postOnly orders cannot have $timeInForce equal to ' . $time_in_force);
-            } else if ($isMarket) {
+            } else if ($is_market) {
                 throw new InvalidOrder($this->id . ' postOnly orders cannot have $type ' . $type);
             } else {
                 $time_in_force = $time_in_force_post_only ? null : $time_in_force;
