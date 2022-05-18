@@ -2563,7 +2563,7 @@ module.exports = class bybit extends Exchange {
         const orderKey = isUsdcSettled ? 'orderId' : 'order_id';
         params[orderKey] = id;
         if (isUsdcSettled || market['future'] || market['inverse']) {
-            throw NotSupported (this.id + 'fetchOrder does not support ' + symbol + ' markets');
+            throw NotSupported (this.id + 'fetchOrder() supports spot markets and linear non-USDC perpetual swap markets only');
         } else {
             // only linear swap markets allow using all purpose
             // fetchOrders endpoint filtering by id
