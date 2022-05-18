@@ -27,6 +27,7 @@ SOFTWARE.
 */
 
 //-----------------------------------------------------------------------------
+
 const Exchange  = require ('./js/base/Exchange')
     , Precise   = require ('./js/base/Precise')
     , functions = require ('./js/base/functions')
