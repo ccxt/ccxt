@@ -67,6 +67,7 @@ class coinmate(Exchange):
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'transfer': False,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg',
@@ -167,6 +168,20 @@ class coinmate(Exchange):
                             [self.parse_number('3000000'), self.parse_number('0.0002')],
                             [self.parse_number('15000000'), self.parse_number('0')],
                         ],
+                    },
+                },
+            },
+            'options': {
+                'withdraw': {
+                    'fillResponsefromRequest': True,
+                    'methods': {
+                        'BTC': 'privatePostBitcoinWithdrawal',
+                        'LTC': 'privatePostLitecoinWithdrawal',
+                        'BCH': 'privatePostBitcoinCashWithdrawal',
+                        'ETH': 'privatePostEthereumWithdrawal',
+                        'XRP': 'privatePostRippleWithdrawal',
+                        'DASH': 'privatePostDashWithdrawal',
+                        'DAI': 'privatePostDaiWithdrawal',
                     },
                 },
             },
@@ -346,8 +361,13 @@ class coinmate(Exchange):
 
     def parse_transaction_status(self, status):
         statuses = {
-            # any other types ?
             'COMPLETED': 'ok',
+            'WAITING': 'pending',
+            'SENT': 'pending',
+            'CREATED': 'pending',
+            'OK': 'ok',
+            'NEW': 'pending',
+            'CANCELED': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
@@ -386,6 +406,12 @@ class coinmate(Exchange):
         #         destinationTag: null
         #     }
         #
+        # withdraw
+        #
+        #     {
+        #         "id": 2132583,
+        #     }
+        #
         timestamp = self.safe_integer(transaction, 'timestamp')
         amount = self.safe_number(transaction, 'amount')
         fee = self.safe_number(transaction, 'fee')
@@ -396,7 +422,7 @@ class coinmate(Exchange):
         code = self.safe_currency_code(currencyId, currency)
         type = self.safe_string_lower(transaction, 'transferType')
         status = self.parse_transaction_status(self.safe_string(transaction, 'transferStatus'))
-        id = self.safe_string(transaction, 'transactionId')
+        id = self.safe_string_2(transaction, 'transactionId', 'id')
         network = self.safe_string(transaction, 'walletType')
         return {
             'id': id,
@@ -420,6 +446,45 @@ class coinmate(Exchange):
             },
             'info': transaction,
         }
+
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        self.check_address(address)
+        self.load_markets()
+        currency = self.currency(code)
+        withdrawOptions = self.safe_value(self.options, 'withdraw', {})
+        methods = self.safe_value(withdrawOptions, 'methods', {})
+        method = self.safe_string(methods, code)
+        if method is None:
+            allowedCurrencies = list(methods.keys())
+            raise ExchangeError(self.id + ' withdraw() only allows withdrawing the following currencies: ' + ', '.join(allowedCurrencies))
+        request = {
+            'amount': self.currency_to_precision(code, amount),
+            'address': address,
+        }
+        if tag is not None:
+            request['destinationTag'] = tag
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "error": False,
+        #         "errorMessage": null,
+        #         "data": {
+        #             "id": "9e0a37fc-4ab4-4b9d-b9e7-c9c8f7c4c8e0"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        transaction = self.parse_transaction(data, currency)
+        fillResponseFromRequest = self.safe_value(withdrawOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            transaction['amount'] = amount
+            transaction['currency'] = code
+            transaction['address'] = address
+            transaction['tag'] = tag
+            transaction['type'] = 'withdrawal'
+            transaction['status'] = 'pending'
+        return transaction
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

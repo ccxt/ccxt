@@ -63,6 +63,7 @@ class coinmate extends Exchange {
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'transfer' => false,
+                'withdraw' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg',
@@ -163,6 +164,20 @@ class coinmate extends Exchange {
                             array( $this->parse_number('3000000'), $this->parse_number('0.0002') ),
                             array( $this->parse_number('15000000'), $this->parse_number('0') ),
                         ),
+                    ),
+                ),
+            ),
+            'options' => array(
+                'withdraw' => array(
+                    'fillResponsefromRequest' => true,
+                    'methods' => array(
+                        'BTC' => 'privatePostBitcoinWithdrawal',
+                        'LTC' => 'privatePostLitecoinWithdrawal',
+                        'BCH' => 'privatePostBitcoinCashWithdrawal',
+                        'ETH' => 'privatePostEthereumWithdrawal',
+                        'XRP' => 'privatePostRippleWithdrawal',
+                        'DASH' => 'privatePostDashWithdrawal',
+                        'DAI' => 'privatePostDaiWithdrawal',
                     ),
                 ),
             ),
@@ -354,8 +369,13 @@ class coinmate extends Exchange {
 
     public function parse_transaction_status($status) {
         $statuses = array(
-            // any other types ?
             'COMPLETED' => 'ok',
+            'WAITING' => 'pending',
+            'SENT' => 'pending',
+            'CREATED' => 'pending',
+            'OK' => 'ok',
+            'NEW' => 'pending',
+            'CANCELED' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -395,6 +415,12 @@ class coinmate extends Exchange {
         //         destinationTag => null
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "id" => 2132583,
+        //     }
+        //
         $timestamp = $this->safe_integer($transaction, 'timestamp');
         $amount = $this->safe_number($transaction, 'amount');
         $fee = $this->safe_number($transaction, 'fee');
@@ -405,7 +431,7 @@ class coinmate extends Exchange {
         $code = $this->safe_currency_code($currencyId, $currency);
         $type = $this->safe_string_lower($transaction, 'transferType');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'transferStatus'));
-        $id = $this->safe_string($transaction, 'transactionId');
+        $id = $this->safe_string_2($transaction, 'transactionId', 'id');
         $network = $this->safe_string($transaction, 'walletType');
         return array(
             'id' => $id,
@@ -429,6 +455,49 @@ class coinmate extends Exchange {
             ),
             'info' => $transaction,
         );
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        $this->check_address($address);
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
+        $methods = $this->safe_value($withdrawOptions, 'methods', array());
+        $method = $this->safe_string($methods, $code);
+        if ($method === null) {
+            $allowedCurrencies = is_array($methods) ? array_keys($methods) : array();
+            throw new ExchangeError($this->id . ' withdraw() only allows withdrawing the following currencies => ' . implode(', ', $allowedCurrencies));
+        }
+        $request = array(
+            'amount' => $this->currency_to_precision($code, $amount),
+            'address' => $address,
+        );
+        if ($tag !== null) {
+            $request['destinationTag'] = $tag;
+        }
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "error" => false,
+        //         "errorMessage" => null,
+        //         "data" => {
+        //             "id" => "9e0a37fc-4ab4-4b9d-b9e7-c9c8f7c4c8e0"
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        $transaction = $this->parse_transaction($data, $currency);
+        $fillResponseFromRequest = $this->safe_value($withdrawOptions, 'fillResponseFromRequest', true);
+        if ($fillResponseFromRequest) {
+            $transaction['amount'] = $amount;
+            $transaction['currency'] = $code;
+            $transaction['address'] = $address;
+            $transaction['tag'] = $tag;
+            $transaction['type'] = 'withdrawal';
+            $transaction['status'] = 'pending';
+        }
+        return $transaction;
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
