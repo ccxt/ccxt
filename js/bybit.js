@@ -2560,8 +2560,19 @@ module.exports = class bybit extends Exchange {
             return this.parseOrder (result);
         }
         const isUsdcSettled = (market['settle'] === 'USDC');
-        const orderKey = isUsdcSettled ? 'orderId' : 'order_id';
-        params[orderKey] = id;
+        const stopOrderId = this.safeString (params, 'stop_order_id');
+        const stop = this.safeValue (params, 'stop', false);
+        const orderType = this.safeStringLower (params, 'orderType');
+        const isConditional = stop || (stopOrderId !== undefined) || (orderType === 'stop' || orderType === 'conditional');
+        if (stopOrderId === undefined) {
+            let orderKey = undefined;
+            if (isConditional) {
+                orderKey = 'stop_order_id';
+            } else {
+                orderKey = isUsdcSettled ? 'orderId' : 'order_id';
+            }
+            params[orderKey] = id;
+        }
         if (isUsdcSettled || market['future'] || market['inverse']) {
             throw NotSupported (this.id + 'fetchOrder() supports spot markets and linear non-USDC perpetual swap markets only');
         } else {
@@ -2955,7 +2966,9 @@ module.exports = class bybit extends Exchange {
             // 'orderId': id
         };
         const orderType = this.safeStringLower (params, 'orderType');
-        const isConditional = (orderType === 'stop') || (orderType === 'conditional');
+        const isStop = this.safeValue (params, 'stop', false);
+        const isConditional = isStop || (orderType === 'stop') || (orderType === 'conditional');
+        params = this.omit (params, [ 'orderType', 'stop' ]);
         const isUsdcSettled = market['settle'] === 'USDC';
         let method = undefined;
         if (market['spot']) {
@@ -3047,7 +3060,9 @@ module.exports = class bybit extends Exchange {
             request['symbol'] = market['id'];
         }
         const orderType = this.safeStringLower (params, 'orderType');
-        const isConditional = (orderType === 'stop') || (orderType === 'conditional');
+        const isStop = this.safeValue (params, 'stop', false);
+        const isConditional = isStop || (orderType === 'stop') || (orderType === 'conditional');
+        params = this.omit (params, [ 'stop', 'orderType' ]);
         let method = undefined;
         if (type === 'spot') {
             method = 'privateDeleteSpotOrderBatchCancel';
@@ -3143,9 +3158,11 @@ module.exports = class bybit extends Exchange {
             throw new NotSupported (this.id + ' fetchOrders() does not support market ' + market['symbol']);
         }
         let method = undefined;
-        const type = this.safeStringLower (params, 'type');
-        params = this.omit (params, 'type');
-        const isConditionalOrder = (type === 'stop') || (type === 'conditional');
+        const isStop = this.safeValue (params, 'stop', false);
+        const orderType = this.safeStringLower (params, 'orderType');
+        const stopOrderId = this.safeString (params, 'stop_order_id'); // might want to filter by id
+        const isConditionalOrder = isStop || (stopOrderId !== undefined) || (orderType === 'stop' || orderType === 'conditional');
+        params = this.omit (params, [ 'orderType', 'stop', 'orderType' ]);
         if (market['linear']) {
             method = isConditionalOrder ? 'privateGetPrivateLinearStopOrderList' : 'privateGetPrivateLinearOrderList';
         } else if (market['future']) {
