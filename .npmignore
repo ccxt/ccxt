@@ -5,6 +5,7 @@ build/**/*
 !build/fs.js
 !build/transpile.js
 !build/vss.js
+!build/cleanup-old-tags.js
 examples/
 node_modules/
 python/

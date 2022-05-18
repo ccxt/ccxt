@@ -6,12 +6,19 @@ const CryptoJS = require ('../../static_dependencies/crypto-js/crypto-js')
 const qs       = require ('../../static_dependencies/qs/index')
 const BN = require ('../../static_dependencies/BN/bn')
 
+
+/*  ------------------------------------------------------------------------ */
+
+// global vars for base58 encoding
+const base58Alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+let base58Decoder = null
+let base58Encoder = null
+
 /*  ------------------------------------------------------------------------ */
 
 module.exports =
 
     { json:   (data, params = undefined) => JSON.stringify (data)
-    , unjson: JSON.parse
 
     , isJsonEncodedObject: object => (
         (typeof object === 'string') &&
@@ -19,14 +26,8 @@ module.exports =
         ((object[0] === '{') || (object[0] === '['))
     )
 
-    , stringToBinary (str) {
-        const arr = new Uint8Array (str.length)
-        for (let i = 0; i < str.length; i++) { arr[i] = str.charCodeAt (i); }
-        return CryptoJS.lib.WordArray.create (arr)
-    }
-
+    , stringToBinary: string => CryptoJS.enc.Latin1.parse (string)
     , stringToBase64: string => CryptoJS.enc.Latin1.parse (string).toString (CryptoJS.enc.Base64)
-    , utf16ToBase64:  string => CryptoJS.enc.Utf16 .parse (string).toString (CryptoJS.enc.Base64)
     , base64ToBinary: string => CryptoJS.enc.Base64.parse (string)
     , base64ToString: string => CryptoJS.enc.Base64.parse (string).toString (CryptoJS.enc.Utf8)
     , binaryToBase64: binary => binary.toString (CryptoJS.enc.Base64)
@@ -36,6 +37,7 @@ module.exports =
     , binaryConcatArray: (arr) => arr.reduce ((a, b) => a.concat (b))
 
     , urlencode: object => qs.stringify (object)
+    , urlencodeNested: object => qs.stringify (object) // implemented only in python
     , urlencodeWithArrayRepeat: object => qs.stringify (object, { arrayFormat: 'repeat' })
     , rawencode: object => qs.stringify (object, { encode: false })
     , encode: x => x
@@ -56,9 +58,54 @@ module.exports =
         const hexArray = new BN (n).toArray ('be', padding)
         return byteArrayToWordArray (hexArray)
     }
+
+    , base58ToBinary: (string) => {
+        if (!base58Decoder) {
+            base58Decoder = {}
+            base58Encoder = {}
+            for (let i = 0; i < 58; i++) {
+                const c = base58Alphabet[i]
+                const bigNum = new BN (i)
+                base58Decoder[c] = bigNum
+                base58Encoder[bigNum] = c
+            }
+        }
+        let result = new BN (0)
+        const base = new BN (58)
+        for (let i = 0; i < string.length; i++) {
+            const character = string[i]
+            result.imul (base)
+            result.iadd (base58Decoder[character])
+        }
+        return byteArrayToWordArray (result.toArray ('be'))
+    }
+
+    , binaryToBase58: (wordArray) => {
+        if (!base58Encoder) {
+            base58Decoder = {}
+            base58Encoder = {}
+            for (let i = 0; i < 58; i++) {
+                const c = base58Alphabet[i]
+                const bigNum = new BN (i)
+                base58Decoder[c] = bigNum
+                base58Encoder[bigNum] = c
+            }
+        }
+        const base = new BN (58)
+        // hex is only compatible encoding between cryptojs and BN
+        const hexString = wordArray.toString (CryptoJS.enc.Hex)
+        let result = new BN (hexString, 16)
+        let string = []
+        while (!result.isZero ()) {
+            const { div, mod } = result.divmod (base)
+            result = div
+            string.push (base58Encoder[mod])
+        }
+        return string.reverse ().join ('')
+    }
 }
 
-function byteArrayToWordArray(ba) {
+function byteArrayToWordArray (ba) {
     const wa = []
     for (let i = 0; i < ba.length; i++) {
         wa[(i / 4) | 0] |= ba[i] << (24 - 8 * i)

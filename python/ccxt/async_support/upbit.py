@@ -4,14 +4,15 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import AddressPending
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.precise import Precise
 
 
 class upbit(Exchange):
@@ -23,25 +24,49 @@ class upbit(Exchange):
             'countries': ['KR'],
             'version': 'v1',
             'rateLimit': 1000,
-            'certified': True,
+            'pro': True,
             # new metainfo interface
             'has': {
                 'CORS': True,
+                'spot': True,
+                'margin': None,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'cancelOrder': True,
                 'createDepositAddress': True,
                 'createMarketOrder': True,
-                'fetchDepositAddress': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
-                'fetchMyTrades': False,
-                'fetchOHLCV': True,
-                'fetchOrder': True,
-                'fetchOrderBooks': True,
-                'fetchOpenOrders': True,
-                'fetchOrders': False,
-                'fetchTickers': True,
-                'withdraw': True,
+                'fetchDepositAddress': True,
+                'fetchDepositAddresses': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
+                'fetchMyTrades': None,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrderBooks': True,
+                'fetchOrders': None,
+                'fetchPremiumIndexOHLCV': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': False,
+                'fetchTransactions': None,
                 'fetchWithdrawals': True,
-                'fetchTransactions': False,
+                'transfer': False,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': 'minutes',
@@ -58,7 +83,10 @@ class upbit(Exchange):
             'hostname': 'api.upbit.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg',
-                'api': 'https://{hostname}',
+                'api': {
+                    'public': 'https://{hostname}',
+                    'private': 'https://{hostname}',
+                },
                 'www': 'https://upbit.com',
                 'doc': 'https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C',
                 'fees': 'https://upbit.com/service_center/guide',
@@ -114,8 +142,8 @@ class upbit(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.0025,
-                    'taker': 0.0025,
+                    'maker': self.parse_number('0.0025'),
+                    'taker': self.parse_number('0.0025'),
                 },
                 'funding': {
                     'tierBased': False,
@@ -147,10 +175,12 @@ class upbit(Exchange):
                 'createMarketBuyOrderRequiresPrice': True,
                 'fetchTickersMaxLength': 4096,  # 2048,
                 'fetchOrderBooksMaxLength': 4096,  # 2048,
-                'symbolSeparator': '-',
                 'tradingFeesByQuoteCurrency': {
                     'KRW': 0.0005,
                 },
+            },
+            'commonCurrencies': {
+                'TON': 'Tokamak Network',
             },
         })
 
@@ -214,7 +244,7 @@ class upbit(Exchange):
         walletLocked = self.safe_value(memberInfo, 'wallet_locked')
         locked = self.safe_value(memberInfo, 'locked')
         active = True
-        if (canWithdraw is not None) and canWithdraw:
+        if (canWithdraw is not None) and not canWithdraw:
             active = False
         elif walletState != 'working':
             active = False
@@ -222,9 +252,9 @@ class upbit(Exchange):
             active = False
         elif (locked is not None) and locked:
             active = False
-        maxOnetimeWithdrawal = self.safe_float(withdrawLimits, 'onetime')
-        maxDailyWithdrawal = self.safe_float(withdrawLimits, 'daily', maxOnetimeWithdrawal)
-        remainingDailyWithdrawal = self.safe_float(withdrawLimits, 'remaining_daily', maxDailyWithdrawal)
+        maxOnetimeWithdrawal = self.safe_number(withdrawLimits, 'onetime')
+        maxDailyWithdrawal = self.safe_number(withdrawLimits, 'daily', maxOnetimeWithdrawal)
+        remainingDailyWithdrawal = self.safe_number(withdrawLimits, 'remaining_daily', maxDailyWithdrawal)
         maxWithdrawLimit = None
         if remainingDailyWithdrawal > 0:
             maxWithdrawLimit = remainingDailyWithdrawal
@@ -239,11 +269,11 @@ class upbit(Exchange):
             'code': code,
             'name': code,
             'active': active,
-            'fee': self.safe_float(currencyInfo, 'withdraw_fee'),
+            'fee': self.safe_number(currencyInfo, 'withdraw_fee'),
             'precision': precision,
             'limits': {
                 'withdraw': {
-                    'min': self.safe_float(withdrawLimits, 'minimum'),
+                    'min': self.safe_number(withdrawLimits, 'minimum'),
                     'max': maxWithdrawLimit,
                 },
             },
@@ -264,30 +294,36 @@ class upbit(Exchange):
         }
         response = await self.privateGetOrdersChance(self.extend(request, params))
         #
-        #     {    bid_fee:   "0.0005",
-        #           ask_fee:   "0.0005",
-        #            market: {         id:   "KRW-BTC",
-        #                             name:   "BTC/KRW",
-        #                      order_types: ["limit"],
-        #                      order_sides: ["ask", "bid"],
-        #                              bid: {  currency: "KRW",
-        #                                     price_unit:  null,
-        #                                      min_total:  1000  },
-        #                              ask: {  currency: "BTC",
-        #                                     price_unit:  null,
-        #                                      min_total:  1000  },
-        #                        max_total:   "1000000000.0",
-        #                            state:   "active"              },
-        #       bid_account: {         currency: "KRW",
-        #                                balance: "0.0",
-        #                                 locked: "0.0",
-        #                      avg_krw_buy_price: "0",
-        #                               modified:  False},
-        #       ask_account: {         currency: "BTC",
-        #                                balance: "0.00780836",
-        #                                 locked: "0.0",
-        #                      avg_krw_buy_price: "6465564.67",
-        #                               modified:  False        }      }
+        #     {
+        #         "bid_fee": "0.0015",
+        #         "ask_fee": "0.0015",
+        #         "market": {
+        #             "id": "KRW-BTC",
+        #             "name": "BTC/KRW",
+        #             "order_types": ["limit"],
+        #             "order_sides": ["ask", "bid"],
+        #             "bid": {"currency": "KRW", "price_unit": null, "min_total": 1000},
+        #             "ask": {"currency": "BTC", "price_unit": null, "min_total": 1000},
+        #             "max_total": "100000000.0",
+        #             "state": "active",
+        #         },
+        #         "bid_account": {
+        #             "currency": "KRW",
+        #             "balance": "0.0",
+        #             "locked": "0.0",
+        #             "avg_buy_price": "0",
+        #             "avg_buy_price_modified": False,
+        #             "unit_currency": "KRW",
+        #         },
+        #         "ask_account": {
+        #             "currency": "BTC",
+        #             "balance": "10.0",
+        #             "locked": "0.0",
+        #             "avg_buy_price": "8042000",
+        #             "avg_buy_price_modified": False,
+        #             "unit_currency": "KRW",
+        #         }
+        #     }
         #
         marketInfo = self.safe_value(response, 'market')
         bid = self.safe_value(marketInfo, 'bid')
@@ -297,63 +333,72 @@ class upbit(Exchange):
         quoteId = self.safe_string(bid, 'currency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = base + '/' + quote
-        precision = {
-            'amount': 8,
-            'price': 8,
-        }
         state = self.safe_string(marketInfo, 'state')
-        active = (state == 'active')
-        bidFee = self.safe_float(response, 'bid_fee')
-        askFee = self.safe_float(response, 'ask_fee')
+        bidFee = self.safe_number(response, 'bid_fee')
+        askFee = self.safe_number(response, 'ask_fee')
         fee = max(bidFee, askFee)
         return {
-            'info': response,
             'id': marketId,
-            'symbol': symbol,
+            'symbol': base + '/' + quote,
             'base': base,
             'quote': quote,
+            'settle': None,
             'baseId': baseId,
             'quoteId': quoteId,
-            'active': active,
-            'precision': precision,
-            'maker': fee,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': (state == 'active'),
+            'contract': False,
+            'linear': None,
+            'inverse': None,
             'taker': fee,
+            'maker': fee,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': int('8'),
+                'price': int('8'),
+            },
             'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
                 'amount': {
-                    'min': self.safe_float(ask, 'min_total'),
+                    'min': self.safe_number(ask, 'min_total'),
                     'max': None,
                 },
                 'price': {
-                    'min': math.pow(10, -precision['price']),
+                    'min': None,
                     'max': None,
                 },
                 'cost': {
-                    'min': self.safe_float(bid, 'min_total'),
-                    'max': self.safe_float(marketInfo, 'max_total'),
+                    'min': self.safe_number(bid, 'min_total'),
+                    'max': self.safe_number(marketInfo, 'max_total'),
                 },
+                'info': response,
             },
         }
 
     async def fetch_markets(self, params={}):
         response = await self.publicGetMarketAll(params)
         #
-        #     [{      market: "KRW-BTC",
-        #          korean_name: "비트코인",
-        #         english_name: "Bitcoin"  },
-        #       {      market: "KRW-DASH",
-        #          korean_name: "대시",
-        #         english_name: "Dash"      },
-        #       {      market: "KRW-ETH",
-        #          korean_name: "이더리움",
-        #         english_name: "Ethereum"},
-        #       {      market: "BTC-ETH",
-        #          korean_name: "이더리움",
-        #         english_name: "Ethereum"},
-        #       ...,
-        #       {      market: "BTC-BSV",
-        #          korean_name: "비트코인에스브이",
-        #         english_name: "Bitcoin SV"}]
+        #    [
+        #        {
+        #            market: "KRW-BTC",
+        #            korean_name: "비트코인",
+        #            english_name: "Bitcoin"
+        #        },
+        #        ...,
+        #    ]
         #
         result = []
         for i in range(0, len(response)):
@@ -362,33 +407,47 @@ class upbit(Exchange):
             quoteId, baseId = id.split('-')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': 8,
-                'price': 8,
-            }
-            active = True
-            makerFee = self.safe_float(self.options['tradingFeesByQuoteCurrency'], quote, self.fees['trading']['maker'])
-            takerFee = self.safe_float(self.options['tradingFeesByQuoteCurrency'], quote, self.fees['trading']['taker'])
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': active,
-                'info': market,
-                'precision': precision,
-                'maker': makerFee,
-                'taker': takerFee,
+                'settleId': None,
+                'type': 'spot',
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': True,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': self.safe_number(self.options['tradingFeesByQuoteCurrency'], quote, self.fees['trading']['taker']),
+                'maker': self.safe_number(self.options['tradingFeesByQuoteCurrency'], quote, self.fees['trading']['maker']),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': 8,
+                    'amount': 8,
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
+                        'min': None,
                         'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
+                        'min': None,
                         'max': None,
                     },
                     'cost': {
@@ -396,8 +455,25 @@ class upbit(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
+
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'locked')
+            result[code] = account
+        return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -414,29 +490,9 @@ class upbit(Exchange):
         #         avg_krw_buy_price: "250000",
         #                  modified:  False    }   ]
         #
-        result = {'info': response}
-        for i in range(0, len(response)):
-            balance = response[i]
-            currencyId = self.safe_string(balance, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_float(balance, 'balance')
-            account['used'] = self.safe_float(balance, 'locked')
-            result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(response)
 
-    def get_symbol_from_market_id(self, marketId, market=None):
-        if marketId is None:
-            return None
-        market = self.safe_value(self.markets_by_id, marketId, market)
-        if market is not None:
-            return market['symbol']
-        baseId, quoteId = marketId.split(self.options['symbolSeparator'])
-        base = self.safe_currency_code(baseId)
-        quote = self.safe_currency_code(quoteId)
-        return base + '/' + quote
-
-    async def fetch_order_books(self, symbols=None, params={}):
+    async def fetch_order_books(self, symbols=None, limit=None, params={}):
         await self.load_markets()
         ids = None
         if symbols is None:
@@ -444,7 +500,7 @@ class upbit(Exchange):
             # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if len(ids) > self.options['fetchOrderBooksMaxLength']:
                 numIds = len(self.ids)
-                raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols(' + str(len(ids)) + ' characters) exceeding max URL length(' + str(self.options['fetchOrderBooksMaxLength']) + ' characters), you are required to specify a list of symbols in the first argument to fetchOrderBooks')
+                raise ExchangeError(self.id + ' fetchOrderBooks() has ' + str(numIds) + ' symbols(' + str(len(ids)) + ' characters) exceeding max URL length(' + str(self.options['fetchOrderBooksMaxLength']) + ' characters), you are required to specify a list of symbols in the first argument to fetchOrderBooks')
         else:
             ids = self.market_ids(symbols)
             ids = ','.join(ids)
@@ -483,9 +539,11 @@ class upbit(Exchange):
         result = {}
         for i in range(0, len(response)):
             orderbook = response[i]
-            symbol = self.get_symbol_from_market_id(self.safe_string(orderbook, 'market'))
+            marketId = self.safe_string(orderbook, 'market')
+            symbol = self.safe_symbol(marketId, None, '-')
             timestamp = self.safe_integer(orderbook, 'timestamp')
             result[symbol] = {
+                'symbol': symbol,
                 'bids': self.sort_by(self.parse_bids_asks(orderbook['orderbook_units'], 'bid_price', 'bid_size'), 0, True),
                 'asks': self.sort_by(self.parse_bids_asks(orderbook['orderbook_units'], 'ask_price', 'ask_size'), 0),
                 'timestamp': timestamp,
@@ -495,7 +553,7 @@ class upbit(Exchange):
         return result
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
-        orderbooks = await self.fetch_order_books([symbol], params)
+        orderbooks = await self.fetch_order_books([symbol], limit, params)
         return self.safe_value(orderbooks, symbol)
 
     def parse_ticker(self, ticker, market=None):
@@ -528,33 +586,31 @@ class upbit(Exchange):
         #                     timestamp:  1542883543813  }
         #
         timestamp = self.safe_integer(ticker, 'trade_timestamp')
-        symbol = self.get_symbol_from_market_id(self.safe_string(ticker, 'market'), market)
-        previous = self.safe_float(ticker, 'prev_closing_price')
-        last = self.safe_float(ticker, 'trade_price')
-        change = self.safe_float(ticker, 'signed_change_price')
-        percentage = self.safe_float(ticker, 'signed_change_rate')
-        return {
-            'symbol': symbol,
+        marketId = self.safe_string_2(ticker, 'market', 'code')
+        market = self.safe_market(marketId, market, '-')
+        last = self.safe_string(ticker, 'trade_price')
+        return self.safe_ticker({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high_price'),
-            'low': self.safe_float(ticker, 'low_price'),
+            'high': self.safe_string(ticker, 'high_price'),
+            'low': self.safe_string(ticker, 'low_price'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_float(ticker, 'opening_price'),
+            'open': self.safe_string(ticker, 'opening_price'),
             'close': last,
             'last': last,
-            'previousClose': previous,
-            'change': change,
-            'percentage': percentage,
+            'previousClose': self.safe_string(ticker, 'prev_closing_price'),
+            'change': self.safe_string(ticker, 'signed_change_price'),
+            'percentage': self.safe_string(ticker, 'signed_change_rate'),
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'acc_trade_volume_24h'),
-            'quoteVolume': self.safe_float(ticker, 'acc_trade_price_24h'),
+            'baseVolume': self.safe_string(ticker, 'acc_trade_volume_24h'),
+            'quoteVolume': self.safe_string(ticker, 'acc_trade_price_24h'),
             'info': ticker,
-        }
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -564,7 +620,7 @@ class upbit(Exchange):
             # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if len(ids) > self.options['fetchTickersMaxLength']:
                 numIds = len(self.ids)
-                raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers')
+                raise ExchangeError(self.id + ' fetchTickers() has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers')
         else:
             ids = self.market_ids(symbols)
             ids = ','.join(ids)
@@ -605,7 +661,7 @@ class upbit(Exchange):
             ticker = self.parse_ticker(response[t])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
         tickers = await self.fetch_tickers([symbol], params)
@@ -651,48 +707,33 @@ class upbit(Exchange):
             side = 'sell'
         elif askOrBid == 'bid':
             side = 'buy'
-        cost = self.safe_float(trade, 'funds')
-        price = self.safe_float_2(trade, 'trade_price', 'price')
-        amount = self.safe_float_2(trade, 'trade_volume', 'volume')
-        if cost is None:
-            if amount is not None:
-                if price is not None:
-                    cost = price * amount
-        marketId = self.safe_string(trade, 'market')
-        market = self.safe_value(self.markets_by_id, marketId)
+        cost = self.safe_string(trade, 'funds')
+        price = self.safe_string_2(trade, 'trade_price', 'price')
+        amount = self.safe_string_2(trade, 'trade_volume', 'volume')
+        marketId = self.safe_string_2(trade, 'market', 'code')
+        market = self.safe_market(marketId, market, '-')
         fee = None
-        feeCurrency = None
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-            feeCurrency = market['quote']
-        else:
-            baseId, quoteId = marketId.split('-')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            feeCurrency = quote
         feeCost = self.safe_string(trade, askOrBid + '_fee')
         if feeCost is not None:
             fee = {
-                'currency': feeCurrency,
+                'currency': market['quote'],
                 'cost': feeCost,
             }
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
-            'type': 'limit',
+            'symbol': market['symbol'],
+            'type': None,
             'side': side,
             'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -728,27 +769,85 @@ class upbit(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
+    async def fetch_trading_fee(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+        }
+        response = await self.privateGetOrdersChance(self.extend(request, params))
         #
-        #       {                 market: "BTC-ETH",
-        #            candle_date_time_utc: "2018-11-22T13:47:00",
-        #            candle_date_time_kst: "2018-11-22T22:47:00",
-        #                   opening_price:  0.02915963,
-        #                      high_price:  0.02915963,
-        #                       low_price:  0.02915448,
-        #                     trade_price:  0.02915448,
-        #                       timestamp:  1542894473674,
-        #          candle_acc_trade_price:  0.0981629437535248,
-        #         candle_acc_trade_volume:  3.36693173,
-        #                            unit:  1                     },
+        #     {
+        #         "bid_fee": "0.0005",
+        #         "ask_fee": "0.0005",
+        #         "maker_bid_fee": "0.0005",
+        #         "maker_ask_fee": "0.0005",
+        #         "market": {
+        #             "id": "KRW-BTC",
+        #             "name": "BTC/KRW",
+        #             "order_types": ["limit"],
+        #             "order_sides": ["ask", "bid"],
+        #             "bid": {"currency": "KRW", "price_unit": null, "min_total": 5000},
+        #             "ask": {"currency": "BTC", "price_unit": null, "min_total": 5000},
+        #             "max_total": "1000000000.0",
+        #             "state": "active"
+        #         },
+        #         "bid_account": {
+        #             "currency": "KRW",
+        #             "balance": "0.34202414",
+        #             "locked": "4999.99999922",
+        #             "avg_buy_price": "0",
+        #             "avg_buy_price_modified": True,
+        #             "unit_currency": "KRW"
+        #         },
+        #         "ask_account": {
+        #             "currency": "BTC",
+        #             "balance": "0.00048",
+        #             "locked": "0.0",
+        #             "avg_buy_price": "20870000",
+        #             "avg_buy_price_modified": False,
+        #             "unit_currency": "KRW"
+        #         }
+        #     }
+        #
+        askFee = self.safe_string(response, 'ask_fee')
+        bidFee = self.safe_string(response, 'bid_fee')
+        taker = Precise.string_max(askFee, bidFee)
+        makerAskFee = self.safe_string(response, 'maker_ask_fee')
+        makerBidFee = self.safe_string(response, 'maker_bid_fee')
+        maker = Precise.string_max(makerAskFee, makerBidFee)
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': self.parse_number(maker),
+            'taker': self.parse_number(taker),
+            'percentage': True,
+            'tierBased': False,
+        }
+
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     {
+        #         market: "BTC-ETH",
+        #         candle_date_time_utc: "2018-11-22T13:47:00",
+        #         candle_date_time_kst: "2018-11-22T22:47:00",
+        #         opening_price: 0.02915963,
+        #         high_price: 0.02915963,
+        #         low_price: 0.02915448,
+        #         trade_price: 0.02915448,
+        #         timestamp: 1542894473674,
+        #         candle_acc_trade_price: 0.0981629437535248,
+        #         candle_acc_trade_volume: 3.36693173,
+        #         unit: 1
+        #     }
         #
         return [
             self.parse8601(self.safe_string(ohlcv, 'candle_date_time_utc')),
-            self.safe_float(ohlcv, 'opening_price'),
-            self.safe_float(ohlcv, 'high_price'),
-            self.safe_float(ohlcv, 'low_price'),
-            self.safe_float(ohlcv, 'trade_price'),
-            self.safe_float(ohlcv, 'candle_acc_trade_volume'),  # base volume
+            self.safe_number(ohlcv, 'opening_price'),
+            self.safe_number(ohlcv, 'high_price'),
+            self.safe_number(ohlcv, 'low_price'),
+            self.safe_number(ohlcv, 'trade_price'),
+            self.safe_number(ohlcv, 'candle_acc_trade_volume'),  # base volume
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -773,28 +872,34 @@ class upbit(Exchange):
             request['to'] = self.iso8601(self.sum(since, timeframePeriod * limit * 1000))
         response = await getattr(self, method)(self.extend(request, params))
         #
-        #     [{                 market: "BTC-ETH",
-        #            candle_date_time_utc: "2018-11-22T13:47:00",
-        #            candle_date_time_kst: "2018-11-22T22:47:00",
-        #                   opening_price:  0.02915963,
-        #                      high_price:  0.02915963,
-        #                       low_price:  0.02915448,
-        #                     trade_price:  0.02915448,
-        #                       timestamp:  1542894473674,
-        #          candle_acc_trade_price:  0.0981629437535248,
-        #         candle_acc_trade_volume:  3.36693173,
-        #                            unit:  1                     },
-        #       {                 market: "BTC-ETH",
-        #            candle_date_time_utc: "2018-11-22T10:06:00",
-        #            candle_date_time_kst: "2018-11-22T19:06:00",
-        #                   opening_price:  0.0294,
-        #                      high_price:  0.02940882,
-        #                       low_price:  0.02934283,
-        #                     trade_price:  0.02937354,
-        #                       timestamp:  1542881219276,
-        #          candle_acc_trade_price:  0.0762597110943884,
-        #         candle_acc_trade_volume:  2.5949617,
-        #                            unit:  1                     }  ]
+        #     [
+        #         {
+        #             market: "BTC-ETH",
+        #             candle_date_time_utc: "2018-11-22T13:47:00",
+        #             candle_date_time_kst: "2018-11-22T22:47:00",
+        #             opening_price: 0.02915963,
+        #             high_price: 0.02915963,
+        #             low_price: 0.02915448,
+        #             trade_price: 0.02915448,
+        #             timestamp: 1542894473674,
+        #             candle_acc_trade_price: 0.0981629437535248,
+        #             candle_acc_trade_volume: 3.36693173,
+        #             unit: 1
+        #         },
+        #         {
+        #             market: "BTC-ETH",
+        #             candle_date_time_utc: "2018-11-22T10:06:00",
+        #             candle_date_time_kst: "2018-11-22T19:06:00",
+        #             opening_price: 0.0294,
+        #             high_price: 0.02940882,
+        #             low_price: 0.02934283,
+        #             trade_price: 0.02937354,
+        #             timestamp: 1542881219276,
+        #             candle_acc_trade_price: 0.0762597110943884,
+        #             candle_acc_trade_volume: 2.5949617,
+        #             unit: 1
+        #         }
+        #     ]
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
@@ -813,7 +918,7 @@ class upbit(Exchange):
         elif side == 'sell':
             orderSide = 'ask'
         else:
-            raise InvalidOrder(self.id + ' createOrder allows buy or sell side only!')
+            raise InvalidOrder(self.id + ' createOrder() allows buy or sell side only!')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -831,6 +936,10 @@ class upbit(Exchange):
             elif side == 'sell':
                 request['ord_type'] = type
                 request['volume'] = self.amount_to_precision(symbol, amount)
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'identifier')
+        if clientOrderId is not None:
+            request['identifier'] = clientOrderId
+        params = self.omit(params, ['clientOrderId', 'identifier'])
         response = await self.privatePostOrders(self.extend(request, params))
         #
         #     {
@@ -945,8 +1054,6 @@ class upbit(Exchange):
 
     def parse_transaction_status(self, status):
         statuses = {
-            'ACCEPTED': 'ok',  # deposits
-            # withdrawals:
             'submitting': 'pending',  # 처리 중
             'submitted': 'pending',  # 처리 완료
             'almost_accepted': 'pending',  # 출금대기중
@@ -990,7 +1097,7 @@ class upbit(Exchange):
         #     }
         #
         id = self.safe_string(transaction, 'uuid')
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         address = None  # not present in the data structure received from the exchange
         tag = None  # not present in the data structure received from the exchange
         txid = self.safe_string(transaction, 'txid')
@@ -1001,15 +1108,20 @@ class upbit(Exchange):
             type = 'withdrawal'
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId)
-        status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
-        feeCost = self.safe_float(transaction, 'fee')
+        status = self.parse_transaction_status(self.safe_string_lower(transaction, 'state'))
+        feeCost = self.safe_number(transaction, 'fee')
         return {
             'info': transaction,
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': None,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': tag,
+            'tagTo': None,
+            'tagFrom': None,
             'status': status,
             'type': type,
             'updated': updated,
@@ -1084,10 +1196,10 @@ class upbit(Exchange):
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         status = self.parse_order_status(self.safe_string(order, 'state'))
         lastTradeTimestamp = None
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'volume')
-        remaining = self.safe_float(order, 'remaining_volume')
-        filled = self.safe_float(order, 'executed_volume')
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'volume')
+        remaining = self.safe_number(order, 'remaining_volume')
+        filled = self.safe_number(order, 'executed_volume')
         cost = None
         if type == 'price':
             type = 'market'
@@ -1095,22 +1207,14 @@ class upbit(Exchange):
             price = None
         average = None
         fee = None
-        feeCost = self.safe_float(order, 'paid_fee')
-        feeCurrency = None
+        feeCost = self.safe_number(order, 'paid_fee')
         marketId = self.safe_string(order, 'market')
-        market = self.safe_value(self.markets_by_id, marketId)
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-            feeCurrency = market['quote']
-        else:
-            baseId, quoteId = marketId.split('-')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            feeCurrency = quote
+        market = self.safe_market(marketId, market)
         trades = self.safe_value(order, 'trades', [])
-        trades = self.parse_trades(trades, market, None, None, {'order': id})
+        trades = self.parse_trades(trades, market, None, None, {
+            'order': id,
+            'type': type,
+        })
         numTrades = len(trades)
         if numTrades > 0:
             # the timestamp in fetchOrder trades is missing
@@ -1125,25 +1229,29 @@ class upbit(Exchange):
                 cost = self.sum(cost, trade['cost'])
                 if getFeesFromTrades:
                     tradeFee = self.safe_value(trades[i], 'fee', {})
-                    tradeFeeCost = self.safe_float(tradeFee, 'cost')
+                    tradeFeeCost = self.safe_number(tradeFee, 'cost')
                     if tradeFeeCost is not None:
                         feeCost = self.sum(feeCost, tradeFeeCost)
             average = cost / filled
         if feeCost is not None:
             fee = {
-                'currency': feeCurrency,
+                'currency': market['quote'],
                 'cost': feeCost,
             }
         result = {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'average': average,
             'amount': amount,
@@ -1251,12 +1359,6 @@ class upbit(Exchange):
         #
         return self.parse_order(response)
 
-    def parse_deposit_addresses(self, addresses):
-        result = []
-        for i in range(0, len(addresses)):
-            result.append(self.parse_deposit_address(addresses[i]))
-        return result
-
     async def fetch_deposit_addresses(self, codes=None, params={}):
         await self.load_markets()
         response = await self.privateGetDepositsCoinAddresses(params)
@@ -1298,6 +1400,7 @@ class upbit(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,
             'info': depositAddress,
         }
 
@@ -1322,7 +1425,8 @@ class upbit(Exchange):
         request = {
             'currency': currency['id'],
         }
-        response = await self.fetch_deposit_address(code, self.extend(request, params))
+        # https://github.com/ccxt/ccxt/issues/6452
+        response = await self.privatePostDepositsGenerateCoinAddress(self.extend(request, params))
         #
         # https://docs.upbit.com/v1.0/reference#%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%83%9D%EC%84%B1-%EC%9A%94%EC%B2%AD
         # can be any of the two responses:
@@ -1340,15 +1444,11 @@ class upbit(Exchange):
         #
         message = self.safe_string(response, 'message')
         if message is not None:
-            return {
-                'currency': code,
-                'address': None,
-                'tag': None,
-                'info': response,
-            }
+            raise AddressPending(self.id + ' is generating ' + code + ' deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address')
         return self.parse_deposit_address(response)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
@@ -1385,7 +1485,7 @@ class upbit(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.implode_params(self.urls['api'], {
+        url = self.implode_params(self.urls['api'][api], {
             'hostname': self.hostname,
         })
         url += '/' + self.version + '/' + self.implode_params(path, params)
@@ -1418,7 +1518,7 @@ class upbit(Exchange):
         if response is None:
             return  # fallback to default error handler
         #
-        #   {'error': {'message': "Missing request parameter error. Check the required parameters!", 'name':  400}},
+        #   {'error': {'message': "Missing request parameter error. Check the required parameters!", 'name': 400}},
         #   {'error': {'message': "side is missing, side does not have a valid value", 'name': "validation_error"}},
         #   {'error': {'message': "개인정보 제 3자 제공 동의가 필요합니다.", 'name': "thirdparty_agreement_required"}},
         #   {'error': {'message': "권한이 부족합니다.", 'name': "out_of_scope"}},

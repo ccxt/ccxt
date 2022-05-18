@@ -18,19 +18,40 @@ class bitflyer(Exchange):
             'countries': ['JP'],
             'version': 'v1',
             'rateLimit': 1000,  # their nonce-timestamp is in seconds...
+            'hostname': 'bitflyer.com',  # or bitflyer.com
             'has': {
-                'CORS': False,
-                'withdraw': True,
-                'fetchMyTrades': True,
-                'fetchOrders': True,
-                'fetchOrder': 'emulated',
-                'fetchOpenOrders': 'emulated',
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': None,  # has but not fully implemented
+                'future': None,  # has but not fully implemented
+                'option': False,
+                'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': 'emulated',
+                'fetchDeposits': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOpenOrders': 'emulated',
+                'fetchOrder': 'emulated',
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchPositions': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': False,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'fetchWithdrawals': True,
+                'transfer': False,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
-                'api': 'https://api.bitflyer.jp',
-                'www': 'https://bitflyer.jp',
+                'api': 'https://api.{hostname}',
+                'www': 'https://bitflyer.com',
                 'doc': 'https://lightning.bitflyer.com/docs?lang=en',
             },
             'api': {
@@ -81,20 +102,64 @@ class bitflyer(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
-                },
-                'BTC/JPY': {
-                    'maker': 0.15 / 100,
-                    'taker': 0.15 / 100,
+                    'maker': self.parse_number('0.002'),
+                    'taker': self.parse_number('0.002'),
                 },
             },
         })
 
+    def parse_expiry_date(self, expiry):
+        day = expiry[0:2]
+        monthName = expiry[2:5]
+        year = expiry[5:9]
+        months = {
+            'JAN': '01',
+            'FEB': '02',
+            'MAR': '03',
+            'APR': '04',
+            'MAY': '05',
+            'JUN': '06',
+            'JUL': '07',
+            'AUG': '08',
+            'SEP': '09',
+            'OCT': '10',
+            'NOV': '11',
+            'DEC': '12',
+        }
+        month = self.safe_string(months, monthName)
+        return self.parse8601(year + '-' + month + '-' + day + 'T00:00:00Z')
+
     def fetch_markets(self, params={}):
         jp_markets = self.publicGetGetmarkets(params)
+        #
+        #     [
+        #         # spot
+        #         {"product_code": "BTC_JPY", "market_type": "Spot"},
+        #         {"product_code": "BCH_BTC", "market_type": "Spot"},
+        #         # forex swap
+        #         {"product_code": "FX_BTC_JPY", "market_type": "FX"},
+        #         # future
+        #         {
+        #             "product_code": "BTCJPY11FEB2022",
+        #             "alias": "BTCJPY_MAT1WK",
+        #             "market_type": "Futures",
+        #         },
+        #     ]
+        #
         us_markets = self.publicGetGetmarketsUsa(params)
+        #
+        #     [
+        #         {"product_code": "BTC_USD", "market_type": "Spot"},
+        #         {"product_code": "BTC_JPY", "market_type": "Spot"},
+        #     ]
+        #
         eu_markets = self.publicGetGetmarketsEu(params)
+        #
+        #     [
+        #         {"product_code": "BTC_EUR", "market_type": "Spot"},
+        #         {"product_code": "BTC_JPY", "market_type": "Spot"},
+        #     ]
+        #
         markets = self.array_concat(jp_markets, us_markets)
         markets = self.array_concat(markets, eu_markets)
         result = []
@@ -102,50 +167,118 @@ class bitflyer(Exchange):
             market = markets[i]
             id = self.safe_string(market, 'product_code')
             currencies = id.split('_')
+            marketType = self.safe_string(market, 'market_type')
+            swap = (marketType == 'FX')
+            future = (marketType == 'Futures')
+            spot = not swap and not future
+            type = 'spot'
+            settle = None
             baseId = None
             quoteId = None
-            base = None
-            quote = None
-            numCurrencies = len(currencies)
-            if numCurrencies == 1:
-                baseId = id[0:3]
-                quoteId = id[3:6]
-            elif numCurrencies == 2:
-                baseId = currencies[0]
-                quoteId = currencies[1]
-            else:
-                baseId = currencies[1]
-                quoteId = currencies[2]
+            expiry = None
+            if spot:
+                baseId = self.safe_string(currencies, 0)
+                quoteId = self.safe_string(currencies, 1)
+            elif swap:
+                type = 'swap'
+                baseId = self.safe_string(currencies, 1)
+                quoteId = self.safe_string(currencies, 2)
+            elif future:
+                alias = self.safe_string(market, 'alias')
+                if alias is None:
+                    # no alias:
+                    # {product_code: 'BTCJPY11MAR2022', market_type: 'Futures'}
+                    # TODO self will break if there are products with 4 chars
+                    baseId = id[0:3]
+                    quoteId = id[3:6]
+                    # last 9 chars are expiry date
+                    expiryDate = id[-9:]
+                    expiry = self.parse_expiry_date(expiryDate)
+                else:
+                    splitAlias = alias.split('_')
+                    currencyIds = self.safe_string(splitAlias, 0)
+                    baseId = currencyIds[0:-3]
+                    quoteId = currencyIds[-3:]
+                    splitId = id.split(currencyIds)
+                    expiryDate = self.safe_string(splitId, 1)
+                    expiry = self.parse_expiry_date(expiryDate)
+                type = 'future'
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = (base + '/' + quote) if (numCurrencies == 2) else id
-            fees = self.safe_value(self.fees, symbol, self.fees['trading'])
-            maker = self.safe_value(fees, 'maker', self.fees['trading']['maker'])
-            taker = self.safe_value(fees, 'taker', self.fees['trading']['taker'])
-            spot = True
-            future = False
-            type = 'spot'
-            if ('alias' in market) or (currencies[0] == 'FX'):
-                type = 'future'
-                future = True
-                spot = False
+            symbol = base + '/' + quote
+            taker = self.fees['trading']['taker']
+            maker = self.fees['trading']['maker']
+            contract = swap or future
+            if contract:
                 maker = 0.0
                 taker = 0.0
+                settle = 'JPY'
+                symbol = symbol + ':' + settle
+                if future:
+                    symbol = symbol + '-' + self.yymmdd(expiry)
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'maker': maker,
-                'taker': taker,
+                'settleId': None,
                 'type': type,
                 'spot': spot,
+                'margin': False,
+                'swap': swap,
                 'future': future,
+                'option': False,
+                'active': True,
+                'contract': contract,
+                'linear': None if spot else True,
+                'inverse': None if spot else False,
+                'taker': taker,
+                'maker': maker,
+                'contractSize': None,
+                'expiry': expiry,
+                'expiryDatetime': self.iso8601(expiry),
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': None,
+                    'price': None,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
                 'info': market,
             })
         return result
+
+    def parse_balance(self, response):
+        result = {'info': response}
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string(balance, 'currency_code')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_string(balance, 'amount')
+            account['free'] = self.safe_string(balance, 'available')
+            result[code] = account
+        return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -169,16 +302,7 @@ class bitflyer(Exchange):
         #         }
         #     ]
         #
-        result = {'info': response}
-        for i in range(0, len(response)):
-            balance = response[i]
-            currencyId = self.safe_string(balance, 'currency_code')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['total'] = self.safe_float(balance, 'amount')
-            account['free'] = self.safe_float(balance, 'available')
-            result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -186,25 +310,21 @@ class bitflyer(Exchange):
             'product_code': self.market_id(symbol),
         }
         orderbook = self.publicGetGetboard(self.extend(request, params))
-        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'size')
+        return self.parse_order_book(orderbook, symbol, None, 'bids', 'asks', 'price', 'size')
 
-    def fetch_ticker(self, symbol, params={}):
-        self.load_markets()
-        request = {
-            'product_code': self.market_id(symbol),
-        }
-        ticker = self.publicGetGetticker(self.extend(request, params))
+    def parse_ticker(self, ticker, market=None):
+        symbol = self.safe_symbol(None, market)
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
-        last = self.safe_float(ticker, 'ltp')
-        return {
+        last = self.safe_string(ticker, 'ltp')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_float(ticker, 'best_bid'),
+            'bid': self.safe_string(ticker, 'best_bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'best_ask'),
+            'ask': self.safe_string(ticker, 'best_ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -214,12 +334,45 @@ class bitflyer(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'volume_by_product'),
+            'baseVolume': self.safe_string(ticker, 'volume_by_product'),
             'quoteVolume': None,
             'info': ticker,
+        }, market, False)
+
+    def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'product_code': market['id'],
         }
+        response = self.publicGetGetticker(self.extend(request, params))
+        return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public) v1
+        #
+        #     {
+        #          "id":2278466664,
+        #          "side":"SELL",
+        #          "price":56810.7,
+        #          "size":0.08798,
+        #          "exec_date":"2021-11-19T11:46:39.323",
+        #          "buy_child_order_acceptance_id":"JRF20211119-114209-236525",
+        #          "sell_child_order_acceptance_id":"JRF20211119-114639-236919"
+        #      }
+        #
+        #      {
+        #          "id":2278463423,
+        #          "side":"BUY",
+        #          "price":56757.83,
+        #          "size":0.6003,"exec_date":"2021-11-19T11:28:00.523",
+        #          "buy_child_order_acceptance_id":"JRF20211119-112800-236526",
+        #          "sell_child_order_acceptance_id":"JRF20211119-112734-062017"
+        #      }
+        #
+        #
+        #
         side = self.safe_string_lower(trade, 'side')
         if side is not None:
             if len(side) < 1:
@@ -232,31 +385,25 @@ class bitflyer(Exchange):
         if order is None:
             order = self.safe_string(trade, 'child_order_acceptance_id')
         timestamp = self.parse8601(self.safe_string(trade, 'exec_date'))
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'size')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'size')
         id = self.safe_string(trade, 'id')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        return {
+        market = self.safe_market(None, market)
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': order,
             'type': None,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -266,6 +413,26 @@ class bitflyer(Exchange):
         }
         response = self.publicGetGetexecutions(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
+
+    def fetch_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'product_code': market['id'],
+        }
+        response = self.privateGetGettradingcommission(self.extend(request, params))
+        #
+        #   {
+        #       commission_rate: '0.0020'
+        #   }
+        #
+        fee = self.safe_number(response, 'commission_rate')
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': fee,
+            'taker': fee,
+        }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -306,23 +473,17 @@ class bitflyer(Exchange):
 
     def parse_order(self, order, market=None):
         timestamp = self.parse8601(self.safe_string(order, 'child_order_date'))
-        amount = self.safe_float(order, 'size')
-        remaining = self.safe_float(order, 'outstanding_size')
-        filled = self.safe_float(order, 'executed_size')
-        price = self.safe_float(order, 'price')
-        cost = price * filled
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'size')
+        filled = self.safe_string(order, 'executed_size')
+        remaining = self.safe_string(order, 'outstanding_size')
         status = self.parse_order_status(self.safe_string(order, 'child_order_state'))
         type = self.safe_string_lower(order, 'child_order_type')
         side = self.safe_string_lower(order, 'side')
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(order, 'product_code')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(order, 'product_code')
+        symbol = self.safe_symbol(marketId, market)
         fee = None
-        feeCost = self.safe_float(order, 'total_commission')
+        feeCost = self.safe_number(order, 'total_commission')
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -330,8 +491,9 @@ class bitflyer(Exchange):
                 'rate': None,
             }
         id = self.safe_string(order, 'child_order_acceptance_id')
-        return {
+        return self.safe_order({
             'id': id,
+            'clientOrderId': None,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -339,14 +501,19 @@ class bitflyer(Exchange):
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
-            'cost': cost,
+            'stopPrice': None,
+            'cost': None,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
-        }
+            'average': None,
+            'trades': None,
+        }, market)
 
     def fetch_orders(self, symbol=None, since=None, limit=100, params={}):
         if symbol is None:
@@ -386,7 +553,7 @@ class bitflyer(Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a `symbol` argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a `symbol` argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -396,6 +563,34 @@ class bitflyer(Exchange):
             request['count'] = limit
         response = self.privateGetGetexecutions(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
+
+    def fetch_positions(self, symbols=None, params={}):
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' fetchPositions() requires a `symbols` argument, exactly one symbol in an array')
+        self.load_markets()
+        request = {
+            'product_code': self.market_ids(symbols),
+        }
+        response = self.privateGetpositions(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "product_code": "FX_BTC_JPY",
+        #             "side": "BUY",
+        #             "price": 36000,
+        #             "size": 10,
+        #             "commission": 0,
+        #             "swap_point_accumulate": -35,
+        #             "require_collateral": 120000,
+        #             "open_date": "2015-11-03T10:04:45.011",
+        #             "leverage": 3,
+        #             "pnl": 965,
+        #             "sfd": -0.5
+        #         }
+        #     ]
+        #
+        # todo unify parsePosition/parsePositions
+        return response
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
@@ -409,10 +604,155 @@ class bitflyer(Exchange):
             # 'bank_account_id': 1234,
         }
         response = self.privatePostWithdraw(self.extend(request, params))
-        id = self.safe_string(response, 'message_id')
+        #
+        #     {
+        #         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
+        #     }
+        #
+        return self.parse_transaction(response, currency)
+
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+        if limit is not None:
+            request['count'] = limit  # default 100
+        response = self.privateGetGetcoinins(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "id": 100,
+        #             "order_id": "CDP20151227-024141-055555",
+        #             "currency_code": "BTC",
+        #             "amount": 0.00002,
+        #             "address": "1WriteySQufKZ2pVuM1oMhPrTtTVFq35j",
+        #             "tx_hash": "9f92ee65a176bb9545f7becb8706c50d07d4cee5ffca34d8be3ef11d411405ae",
+        #             "status": "COMPLETED",
+        #             "event_date": "2015-11-27T08:59:20.301"
+        #         }
+        #     ]
+        #
+        return self.parse_transactions(response, currency, since, limit)
+
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+        if limit is not None:
+            request['count'] = limit  # default 100
+        response = self.privateGetGetcoinouts(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "id": 500,
+        #             "order_id": "CWD20151224-014040-077777",
+        #             "currency_code": "BTC",
+        #             "amount": 0.1234,
+        #             "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+        #             "tx_hash": "724c07dfd4044abcb390b0412c3e707dd5c4f373f0a52b3bd295ce32b478c60a",
+        #             "fee": 0.0005,
+        #             "additional_fee": 0.0001,
+        #             "status": "COMPLETED",
+        #             "event_date": "2015-12-24T01:40:40.397"
+        #         }
+        #     ]
+        #
+        return self.parse_transactions(response, currency, since, limit)
+
+    def parse_deposit_status(self, status):
+        statuses = {
+            'PENDING': 'pending',
+            'COMPLETED': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_withdrawal_status(self, status):
+        statuses = {
+            'PENDING': 'pending',
+            'COMPLETED': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # fetchDeposits
+        #
+        #     {
+        #         "id": 100,
+        #         "order_id": "CDP20151227-024141-055555",
+        #         "currency_code": "BTC",
+        #         "amount": 0.00002,
+        #         "address": "1WriteySQufKZ2pVuM1oMhPrTtTVFq35j",
+        #         "tx_hash": "9f92ee65a176bb9545f7becb8706c50d07d4cee5ffca34d8be3ef11d411405ae",
+        #         "status": "COMPLETED",
+        #         "event_date": "2015-11-27T08:59:20.301"
+        #     }
+        #
+        # fetchWithdrawals
+        #
+        #     {
+        #         "id": 500,
+        #         "order_id": "CWD20151224-014040-077777",
+        #         "currency_code": "BTC",
+        #         "amount": 0.1234,
+        #         "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+        #         "tx_hash": "724c07dfd4044abcb390b0412c3e707dd5c4f373f0a52b3bd295ce32b478c60a",
+        #         "fee": 0.0005,
+        #         "additional_fee": 0.0001,
+        #         "status": "COMPLETED",
+        #         "event_date": "2015-12-24T01:40:40.397"
+        #     }
+        #
+        # withdraw
+        #
+        #     {
+        #         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
+        #     }
+        #
+        id = self.safe_string_2(transaction, 'id', 'message_id')
+        address = self.safe_string(transaction, 'address')
+        currencyId = self.safe_string(transaction, 'currency_code')
+        code = self.safe_currency_code(currencyId, currency)
+        timestamp = self.parse8601(self.safe_string(transaction, 'event_date'))
+        amount = self.safe_number(transaction, 'amount')
+        txId = self.safe_string(transaction, 'tx_hash')
+        rawStatus = self.safe_string(transaction, 'status')
+        type = None
+        status = None
+        fee = None
+        if 'fee' in transaction:
+            type = 'withdrawal'
+            status = self.parse_withdrawal_status(rawStatus)
+            feeCost = self.safe_number(transaction, 'fee')
+            additionalFee = self.safe_number(transaction, 'additional_fee')
+            fee = {'currency': code, 'cost': feeCost + additionalFee}
+        else:
+            type = 'deposit'
+            status = self.parse_deposit_status(rawStatus)
         return {
-            'info': response,
+            'info': transaction,
             'id': id,
+            'txid': txId,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'network': None,
+            'address': address,
+            'addressTo': address,
+            'addressFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': None,
+            'internal': None,
+            'fee': fee,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -423,7 +763,8 @@ class bitflyer(Exchange):
         if method == 'GET':
             if params:
                 request += '?' + self.urlencode(params)
-        url = self.urls['api'] + request
+        baseUrl = self.implode_hostname(self.urls['api'])
+        url = baseUrl + request
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())

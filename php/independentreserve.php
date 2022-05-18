@@ -9,17 +9,58 @@ use Exception; // a common import
 
 class independentreserve extends Exchange {
 
-    public function describe () {
-        return array_replace_recursive(parent::describe (), array(
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'independentreserve',
             'name' => 'Independent Reserve',
             'countries' => array( 'AU', 'NZ' ), // Australia, New Zealand
             'rateLimit' => 1000,
             'has' => array(
-                'CORS' => false,
+                'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'createReduceOnlyOrder' => false,
+                'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
+                'fetchClosedOrders' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
+                'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
+                'fetchMyTrades' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/30521662-cf3f477c-9bcb-11e7-89bc-d1ac85012eda.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87182090-1e9e9080-c2ec-11ea-8e49-563db9a38f37.jpg',
                 'api' => array(
                     'public' => 'https://api.independentreserve.com/Public',
                     'private' => 'https://api.independentreserve.com/Private',
@@ -42,26 +83,31 @@ class independentreserve extends Exchange {
                         'GetTradeHistorySummary',
                         'GetRecentTrades',
                         'GetFxRates',
+                        'GetOrderMinimumVolumes',
+                        'GetCryptoWithdrawalFees',
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'PlaceLimitOrder',
-                        'PlaceMarketOrder',
-                        'CancelOrder',
                         'GetOpenOrders',
                         'GetClosedOrders',
                         'GetClosedFilledOrders',
                         'GetOrderDetails',
                         'GetAccounts',
                         'GetTransactions',
+                        'GetFiatBankAccounts',
                         'GetDigitalCurrencyDepositAddress',
                         'GetDigitalCurrencyDepositAddresses',
-                        'SynchDigitalCurrencyDepositAddressWithBlockchain',
-                        'WithdrawDigitalCurrency',
-                        'RequestFiatWithdrawal',
                         'GetTrades',
                         'GetBrokerageFees',
+                        'GetDigitalCurrencyWithdrawal',
+                        'PlaceLimitOrder',
+                        'PlaceMarketOrder',
+                        'CancelOrder',
+                        'SynchDigitalCurrencyDepositAddressWithBlockchain',
+                        'RequestFiatWithdrawal',
+                        'WithdrawFiatCurrency',
+                        'WithdrawDigitalCurrency',
                     ),
                 ),
             ),
@@ -73,28 +119,78 @@ class independentreserve extends Exchange {
                     'tierBased' => false,
                 ),
             ),
+            'commonCurrencies' => array(
+                'PLA' => 'PlayChip',
+            ),
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $baseCurrencies = $this->publicGetGetValidPrimaryCurrencyCodes ($params);
         $quoteCurrencies = $this->publicGetGetValidSecondaryCurrencyCodes ($params);
+        $limits = $this->publicGetGetOrderMinimumVolumes ($params);
+        //
+        //     {
+        //         "Xbt" => 0.0001,
+        //         "Bch" => 0.001,
+        //         "Bsv" => 0.001,
+        //         "Eth" => 0.001,
+        //         "Ltc" => 0.01,
+        //         "Xrp" => 1,
+        //     }
+        //
         $result = array();
         for ($i = 0; $i < count($baseCurrencies); $i++) {
             $baseId = $baseCurrencies[$i];
             $base = $this->safe_currency_code($baseId);
+            $minAmount = $this->safe_number($limits, $baseId);
             for ($j = 0; $j < count($quoteCurrencies); $j++) {
                 $quoteId = $quoteCurrencies[$j];
                 $quote = $this->safe_currency_code($quoteId);
                 $id = $baseId . '/' . $quoteId;
-                $symbol = $base . '/' . $quote;
                 $result[] = array(
                     'id' => $id,
-                    'symbol' => $symbol,
+                    'symbol' => $base . '/' . $quote,
                     'base' => $base,
                     'quote' => $quote,
+                    'settle' => null,
                     'baseId' => $baseId,
                     'quoteId' => $quoteId,
+                    'settleId' => null,
+                    'type' => 'spot',
+                    'spot' => true,
+                    'margin' => false,
+                    'swap' => false,
+                    'future' => false,
+                    'option' => false,
+                    'active' => null,
+                    'contract' => false,
+                    'linear' => null,
+                    'inverse' => null,
+                    'contractSize' => null,
+                    'expiry' => null,
+                    'expiryDatetime' => null,
+                    'strike' => null,
+                    'optionType' => null,
+                    'precision' => $this->precision,
+                    'limits' => array(
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'amount' => array(
+                            'min' => $minAmount,
+                            'max' => null,
+                        ),
+                        'price' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'cost' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
                     'info' => $id,
                 );
             }
@@ -102,50 +198,71 @@ class independentreserve extends Exchange {
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
-        $this->load_markets();
-        $balances = $this->privatePostGetAccounts ($params);
-        $result = array( 'info' => $balances );
-        for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+    public function parse_balance($response) {
+        $result = array( 'info' => $response );
+        for ($i = 0; $i < count($response); $i++) {
+            $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'CurrencyCode');
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
-            $account['free'] = $this->safe_float($balance, 'AvailableBalance');
-            $account['total'] = $this->safe_float($balance, 'TotalBalance');
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'AvailableBalance');
+            $account['total'] = $this->safe_string($balance, 'TotalBalance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $response = $this->privatePostGetAccounts ($params);
+        return $this->parse_balance($response);
+    }
+
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
             'primaryCurrencyCode' => $market['baseId'],
             'secondaryCurrencyCode' => $market['quoteId'],
         );
         $response = $this->publicGetGetOrderBook (array_merge($request, $params));
-        $timestamp = $this->parse8601 ($this->safe_string($response, 'CreatedTimestampUtc'));
-        return $this->parse_order_book($response, $timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
+        $timestamp = $this->parse8601($this->safe_string($response, 'CreatedTimestampUtc'));
+        return $this->parse_order_book($response, $symbol, $timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
     }
 
-    public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->parse8601 ($this->safe_string($ticker, 'CreatedTimestampUtc'));
-        $symbol = null;
-        if ($market) {
-            $symbol = $market['symbol'];
+    public function parse_ticker($ticker, $market = null) {
+        // {
+        //     "DayHighestPrice":43489.49,
+        //     "DayLowestPrice":41998.32,
+        //     "DayAvgPrice":42743.9,
+        //     "DayVolumeXbt":44.54515625000,
+        //     "DayVolumeXbtInSecondaryCurrrency":0.12209818,
+        //     "CurrentLowestOfferPrice":43619.64,
+        //     "CurrentHighestBidPrice":43153.58,
+        //     "LastPrice":43378.43,
+        //     "PrimaryCurrencyCode":"Xbt",
+        //     "SecondaryCurrencyCode":"Usd",
+        //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
+        // }
+        $timestamp = $this->parse8601($this->safe_string($ticker, 'CreatedTimestampUtc'));
+        $baseId = $this->safe_string($ticker, 'PrimaryCurrencyCode');
+        $quoteId = $this->safe_string($ticker, 'SecondaryCurrencyCode');
+        $defaultMarketId = null;
+        if (($baseId !== null) && ($quoteId !== null)) {
+            $defaultMarketId = $baseId . '/' . $quoteId;
         }
-        $last = $this->safe_float($ticker, 'LastPrice');
-        return array(
+        $market = $this->safe_market($defaultMarketId, $market, '/');
+        $symbol = $market['symbol'];
+        $last = $this->safe_string($ticker, 'LastPrice');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'high' => $this->safe_float($ticker, 'DayHighestPrice'),
-            'low' => $this->safe_float($ticker, 'DayLowestPrice'),
-            'bid' => $this->safe_float($ticker, 'CurrentHighestBidPrice'),
+            'datetime' => $this->iso8601($timestamp),
+            'high' => $this->safe_string($ticker, 'DayHighestPrice'),
+            'low' => $this->safe_string($ticker, 'DayLowestPrice'),
+            'bid' => $this->safe_string($ticker, 'CurrentHighestBidPrice'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'CurrentLowestOfferPrice'),
+            'ask' => $this->safe_string($ticker, 'CurrentLowestOfferPrice'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -154,28 +271,75 @@ class independentreserve extends Exchange {
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
-            'average' => $this->safe_float($ticker, 'DayAvgPrice'),
-            'baseVolume' => $this->safe_float($ticker, 'DayVolumeXbtInSecondaryCurrrency'),
+            'average' => $this->safe_string($ticker, 'DayAvgPrice'),
+            'baseVolume' => $this->safe_string($ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'primaryCurrencyCode' => $market['baseId'],
             'secondaryCurrencyCode' => $market['quoteId'],
         );
         $response = $this->publicGetGetMarketSummary (array_merge($request, $params));
+        // {
+        //     "DayHighestPrice":43489.49,
+        //     "DayLowestPrice":41998.32,
+        //     "DayAvgPrice":42743.9,
+        //     "DayVolumeXbt":44.54515625000,
+        //     "DayVolumeXbtInSecondaryCurrrency":0.12209818,
+        //     "CurrentLowestOfferPrice":43619.64,
+        //     "CurrentHighestBidPrice":43153.58,
+        //     "LastPrice":43378.43,
+        //     "PrimaryCurrencyCode":"Xbt",
+        //     "SecondaryCurrencyCode":"Usd",
+        //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
+        // }
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
+        //
+        // fetchOrder
+        //
+        //     {
+        //         "OrderGuid" => "c7347e4c-b865-4c94-8f74-d934d4b0b177",
+        //         "CreatedTimestampUtc" => "2014-09-23T12:39:34.3817763Z",
+        //         "Type" => "MarketBid",
+        //         "VolumeOrdered" => 5.0,
+        //         "VolumeFilled" => 5.0,
+        //         "Price" => null,
+        //         "AvgPrice" => 100.0,
+        //         "ReservedAmount" => 0.0,
+        //         "Status" => "Filled",
+        //         "PrimaryCurrencyCode" => "Xbt",
+        //         "SecondaryCurrencyCode" => "Usd"
+        //     }
+        //
+        // fetchOpenOrders & fetchClosedOrders
+        //
+        //     {
+        //         "OrderGuid" => "b8f7ad89-e4e4-4dfe-9ea3-514d38b5edb3",
+        //         "CreatedTimestampUtc" => "2020-09-08T03:04:18.616367Z",
+        //         "OrderType" => "LimitOffer",
+        //         "Volume" => 0.0005,
+        //         "Outstanding" => 0.0005,
+        //         "Price" => 113885.83,
+        //         "AvgPrice" => 113885.83,
+        //         "Value" => 56.94,
+        //         "Status" => "Open",
+        //         "PrimaryCurrencyCode" => "Xbt",
+        //         "SecondaryCurrencyCode" => "Usd",
+        //         "FeePercent" => 0.005,
+        //     }
+        //
         $symbol = null;
         $baseId = $this->safe_string($order, 'PrimaryCurrencyCode');
-        $quoteId = $this->safe_string($order, 'PrimaryCurrencyCode');
+        $quoteId = $this->safe_string($order, 'SecondaryCurrencyCode');
         $base = null;
         $quote = null;
         if (($baseId !== null) && ($quoteId !== null)) {
@@ -187,34 +351,26 @@ class independentreserve extends Exchange {
             $base = $market['base'];
             $quote = $market['quote'];
         }
-        $orderType = $this->safe_value($order, 'Type');
-        if (mb_strpos($orderType, 'Market') !== false) {
-            $orderType = 'market';
-        } else if (mb_strpos($orderType, 'Limit') !== false) {
-            $orderType = 'limit';
-        }
+        $orderType = $this->safe_string_2($order, 'Type', 'OrderType');
         $side = null;
         if (mb_strpos($orderType, 'Bid') !== false) {
             $side = 'buy';
         } else if (mb_strpos($orderType, 'Offer') !== false) {
             $side = 'sell';
         }
-        $timestamp = $this->parse8601 ($this->safe_string($order, 'CreatedTimestampUtc'));
-        $amount = $this->safe_float($order, 'VolumeOrdered');
-        if ($amount === null) {
-            $amount = $this->safe_float($order, 'Volume');
+        if (mb_strpos($orderType, 'Market') !== false) {
+            $orderType = 'market';
+        } else if (mb_strpos($orderType, 'Limit') !== false) {
+            $orderType = 'limit';
         }
-        $filled = $this->safe_float($order, 'VolumeFilled');
-        $remaining = null;
-        $feeRate = $this->safe_float($order, 'FeePercent');
+        $timestamp = $this->parse8601($this->safe_string($order, 'CreatedTimestampUtc'));
+        $amount = $this->safe_string_2($order, 'VolumeOrdered', 'Volume');
+        $filled = $this->safe_string($order, 'VolumeFilled');
+        $remaining = $this->safe_string($order, 'Outstanding');
+        $feeRate = $this->safe_number($order, 'FeePercent');
         $feeCost = null;
-        if ($amount !== null) {
-            if ($filled !== null) {
-                $remaining = $amount - $filled;
-                if ($feeRate !== null) {
-                    $feeCost = $feeRate * $filled;
-                }
-            }
+        if ($feeRate !== null && $filled !== null) {
+            $feeCost = $feeRate * $filled;
         }
         $fee = array(
             'rate' => $feeRate,
@@ -223,19 +379,23 @@ class independentreserve extends Exchange {
         );
         $id = $this->safe_string($order, 'OrderGuid');
         $status = $this->parse_order_status($this->safe_string($order, 'Status'));
-        $cost = $this->safe_float($order, 'Value');
-        $average = $this->safe_float($order, 'AvgPrice');
-        $price = $this->safe_float($order, 'Price', $average);
-        return array(
+        $cost = $this->safe_string($order, 'Value');
+        $average = $this->safe_string($order, 'AvgPrice');
+        $price = $this->safe_string($order, 'Price');
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $orderType,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'average' => $average,
             'amount' => $amount,
@@ -243,10 +403,11 @@ class independentreserve extends Exchange {
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
-        );
+            'trades' => null,
+        ), $market);
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             'Open' => 'open',
             'PartiallyFilled' => 'open',
@@ -259,52 +420,90 @@ class independentreserve extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostGetOrderDetails (array_merge(array(
             'orderGuid' => $id,
         ), $params));
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
         }
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = 50, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = $this->ordered(array());
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['primaryCurrencyCode'] = $market['baseId'];
+            $request['secondaryCurrencyCode'] = $market['quoteId'];
+        }
+        if ($limit === null) {
+            $limit = 50;
+        }
+        $request['pageIndex'] = 1;
+        $request['pageSize'] = $limit;
+        $response = $this->privatePostGetOpenOrders (array_merge($request, $params));
+        $data = $this->safe_value($response, 'Data', array());
+        return $this->parse_orders($data, $market, $since, $limit);
+    }
+
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = $this->ordered(array());
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['primaryCurrencyCode'] = $market['baseId'];
+            $request['secondaryCurrencyCode'] = $market['quoteId'];
+        }
+        if ($limit === null) {
+            $limit = 50;
+        }
+        $request['pageIndex'] = 1;
+        $request['pageSize'] = $limit;
+        $response = $this->privatePostGetClosedOrders (array_merge($request, $params));
+        $data = $this->safe_value($response, 'Data', array());
+        return $this->parse_orders($data, $market, $since, $limit);
+    }
+
+    public function fetch_my_trades($symbol = null, $since = null, $limit = 50, $params = array ()) {
         $this->load_markets();
         $pageIndex = $this->safe_integer($params, 'pageIndex', 1);
         if ($limit === null) {
             $limit = 50;
         }
-        $request = $this->ordered (array(
+        $request = $this->ordered(array(
             'pageIndex' => $pageIndex,
             'pageSize' => $limit,
         ));
         $response = $this->privatePostGetTrades (array_merge($request, $params));
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
         }
         return $this->parse_trades($response['Data'], $market, $since, $limit);
     }
 
-    public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->parse8601 ($trade['TradeTimestampUtc']);
+    public function parse_trade($trade, $market = null) {
+        $timestamp = $this->parse8601($trade['TradeTimestampUtc']);
         $id = $this->safe_string($trade, 'TradeGuid');
         $orderId = $this->safe_string($trade, 'OrderGuid');
-        $price = $this->safe_float_2($trade, 'Price', 'SecondaryCurrencyTradePrice');
-        $amount = $this->safe_float_2($trade, 'VolumeTraded', 'PrimaryCurrencyAmount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
+        $priceString = $this->safe_string_2($trade, 'Price', 'SecondaryCurrencyTradePrice');
+        $amountString = $this->safe_string_2($trade, 'VolumeTraded', 'PrimaryCurrencyAmount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        $baseId = $this->safe_string($trade, 'PrimaryCurrencyCode');
+        $quoteId = $this->safe_string($trade, 'SecondaryCurrencyCode');
+        $marketId = null;
+        if (($baseId !== null) && ($quoteId !== null)) {
+            $marketId = $baseId . '/' . $quoteId;
         }
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '/');
         $side = $this->safe_string($trade, 'OrderType');
         if ($side !== null) {
             if (mb_strpos($side, 'Bid') !== false) {
@@ -317,7 +516,7 @@ class independentreserve extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => $orderId,
             'type' => null,
@@ -330,9 +529,9 @@ class independentreserve extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'primaryCurrencyCode' => $market['baseId'],
             'secondaryCurrencyCode' => $market['quoteId'],
@@ -342,14 +541,54 @@ class independentreserve extends Exchange {
         return $this->parse_trades($response['Trades'], $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_trading_fees($params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $capitalizedOrderType = $this->capitalize ($type);
+        $response = $this->privatePostGetBrokerageFees ($params);
+        //
+        //     array(
+        //         {
+        //             "CurrencyCode" => "Xbt",
+        //             "Fee" => 0.005
+        //         }
+        //         ...
+        //     )
+        //
+        $fees = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $fee = $response[$i];
+            $currencyId = $this->safe_string($fee, 'CurrencyCode');
+            $code = $this->safe_currency_code($currencyId);
+            $tradingFee = $this->safe_number($fee, 'Fee');
+            $fees[$code] = array(
+                'info' => $fee,
+                'fee' => $tradingFee,
+            );
+        }
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $market = $this->market($symbol);
+            $fee = $this->safe_value($fees, $market['base'], array());
+            $result[$symbol] = array(
+                'info' => $this->safe_value($fee, 'info'),
+                'symbol' => $symbol,
+                'maker' => $this->safe_number($fee, 'fee'),
+                'taker' => $this->safe_number($fee, 'fee'),
+                'percentage' => true,
+                'tierBased' => true,
+            );
+        }
+        return $result;
+    }
+
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $capitalizedOrderType = $this->capitalize($type);
         $method = 'privatePostPlace' . $capitalizedOrderType . 'Order';
         $orderType = $capitalizedOrderType;
         $orderType .= ($side === 'sell') ? 'Offer' : 'Bid';
-        $request = $this->ordered (array(
+        $request = $this->ordered(array(
             'primaryCurrencyCode' => $market['baseId'],
             'secondaryCurrencyCode' => $market['quoteId'],
             'orderType' => $orderType,
@@ -365,7 +604,7 @@ class independentreserve extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'orderGuid' => $id,
@@ -373,15 +612,15 @@ class independentreserve extends Exchange {
         return $this->privatePostCancelOrder (array_merge($request, $params));
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api === 'public') {
             if ($params) {
-                $url .= '?' . $this->urlencode ($params);
+                $url .= '?' . $this->urlencode($params);
             }
         } else {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
+            $nonce = $this->nonce();
             $auth = array(
                 $url,
                 'apiKey=' . $this->apiKey,
@@ -394,8 +633,8 @@ class independentreserve extends Exchange {
                 $auth[] = $key . '=' . $value;
             }
             $message = implode(',', $auth);
-            $signature = $this->hmac ($this->encode ($message), $this->encode ($this->secret));
-            $query = $this->ordered (array());
+            $signature = $this->hmac($this->encode($message), $this->encode($this->secret));
+            $query = $this->ordered(array());
             $query['apiKey'] = $this->apiKey;
             $query['nonce'] = $nonce;
             $query['signature'] = strtoupper($signature);
@@ -403,7 +642,7 @@ class independentreserve extends Exchange {
                 $key = $keys[$i];
                 $query[$key] = $params[$key];
             }
-            $body = $this->json ($query);
+            $body = $this->json($query);
             $headers = array( 'Content-Type' => 'application/json' );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

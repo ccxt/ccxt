@@ -15,19 +15,40 @@ module.exports = class bitflyer extends Exchange {
             'countries': [ 'JP' ],
             'version': 'v1',
             'rateLimit': 1000, // their nonce-timestamp is in seconds...
+            'hostname': 'bitflyer.com', // or bitflyer.com
             'has': {
-                'CORS': false,
-                'withdraw': true,
-                'fetchMyTrades': true,
-                'fetchOrders': true,
-                'fetchOrder': 'emulated',
-                'fetchOpenOrders': 'emulated',
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': undefined, // has but not fully implemented
+                'future': undefined, // has but not fully implemented
+                'option': false,
+                'cancelOrder': true,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': 'emulated',
+                'fetchDeposits': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOpenOrders': 'emulated',
+                'fetchOrder': 'emulated',
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchPositions': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': false,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
+                'fetchWithdrawals': true,
+                'transfer': false,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
-                'api': 'https://api.bitflyer.jp',
-                'www': 'https://bitflyer.jp',
+                'api': 'https://api.{hostname}',
+                'www': 'https://bitflyer.com',
                 'doc': 'https://lightning.bitflyer.com/docs?lang=en',
             },
             'api': {
@@ -78,21 +99,66 @@ module.exports = class bitflyer extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
-                },
-                'BTC/JPY': {
-                    'maker': 0.15 / 100,
-                    'taker': 0.15 / 100,
+                    'maker': this.parseNumber ('0.002'),
+                    'taker': this.parseNumber ('0.002'),
                 },
             },
         });
     }
 
+    parseExpiryDate (expiry) {
+        const day = expiry.slice (0, 2);
+        const monthName = expiry.slice (2, 5);
+        const year = expiry.slice (5, 9);
+        const months = {
+            'JAN': '01',
+            'FEB': '02',
+            'MAR': '03',
+            'APR': '04',
+            'MAY': '05',
+            'JUN': '06',
+            'JUL': '07',
+            'AUG': '08',
+            'SEP': '09',
+            'OCT': '10',
+            'NOV': '11',
+            'DEC': '12',
+        };
+        const month = this.safeString (months, monthName);
+        return this.parse8601 (year + '-' + month + '-' + day + 'T00:00:00Z');
+    }
+
     async fetchMarkets (params = {}) {
         const jp_markets = await this.publicGetGetmarkets (params);
+        //
+        //     [
+        //         // spot
+        //         { "product_code": "BTC_JPY", "market_type": "Spot" },
+        //         { "product_code": "BCH_BTC", "market_type": "Spot" },
+        //         // forex swap
+        //         { "product_code": "FX_BTC_JPY", "market_type": "FX" },
+        //         // future
+        //         {
+        //             "product_code": "BTCJPY11FEB2022",
+        //             "alias": "BTCJPY_MAT1WK",
+        //             "market_type": "Futures",
+        //         },
+        //     ];
+        //
         const us_markets = await this.publicGetGetmarketsUsa (params);
+        //
+        //     [
+        //         { "product_code": "BTC_USD", "market_type": "Spot" },
+        //         { "product_code": "BTC_JPY", "market_type": "Spot" },
+        //     ];
+        //
         const eu_markets = await this.publicGetGetmarketsEu (params);
+        //
+        //     [
+        //         { "product_code": "BTC_EUR", "market_type": "Spot" },
+        //         { "product_code": "BTC_JPY", "market_type": "Spot" },
+        //     ];
+        //
         let markets = this.arrayConcat (jp_markets, us_markets);
         markets = this.arrayConcat (markets, eu_markets);
         const result = [];
@@ -100,53 +166,125 @@ module.exports = class bitflyer extends Exchange {
             const market = markets[i];
             const id = this.safeString (market, 'product_code');
             const currencies = id.split ('_');
+            const marketType = this.safeString (market, 'market_type');
+            const swap = (marketType === 'FX');
+            const future = (marketType === 'Futures');
+            const spot = !swap && !future;
+            let type = 'spot';
+            let settle = undefined;
             let baseId = undefined;
             let quoteId = undefined;
-            let base = undefined;
-            let quote = undefined;
-            const numCurrencies = currencies.length;
-            if (numCurrencies === 1) {
-                baseId = id.slice (0, 3);
-                quoteId = id.slice (3, 6);
-            } else if (numCurrencies === 2) {
-                baseId = currencies[0];
-                quoteId = currencies[1];
-            } else {
-                baseId = currencies[1];
-                quoteId = currencies[2];
-            }
-            base = this.safeCurrencyCode (baseId);
-            quote = this.safeCurrencyCode (quoteId);
-            const symbol = (numCurrencies === 2) ? (base + '/' + quote) : id;
-            const fees = this.safeValue (this.fees, symbol, this.fees['trading']);
-            let maker = this.safeValue (fees, 'maker', this.fees['trading']['maker']);
-            let taker = this.safeValue (fees, 'taker', this.fees['trading']['taker']);
-            let spot = true;
-            let future = false;
-            let type = 'spot';
-            if (('alias' in market) || (currencies[0] === 'FX')) {
+            let expiry = undefined;
+            if (spot) {
+                baseId = this.safeString (currencies, 0);
+                quoteId = this.safeString (currencies, 1);
+            } else if (swap) {
+                type = 'swap';
+                baseId = this.safeString (currencies, 1);
+                quoteId = this.safeString (currencies, 2);
+            } else if (future) {
+                const alias = this.safeString (market, 'alias');
+                if (alias === undefined) {
+                    // no alias:
+                    // { product_code: 'BTCJPY11MAR2022', market_type: 'Futures' }
+                    // TODO this will break if there are products with 4 chars
+                    baseId = id.slice (0, 3);
+                    quoteId = id.slice (3, 6);
+                    // last 9 chars are expiry date
+                    const expiryDate = id.slice (-9);
+                    expiry = this.parseExpiryDate (expiryDate);
+                } else {
+                    const splitAlias = alias.split ('_');
+                    const currencyIds = this.safeString (splitAlias, 0);
+                    baseId = currencyIds.slice (0, -3);
+                    quoteId = currencyIds.slice (-3);
+                    const splitId = id.split (currencyIds);
+                    const expiryDate = this.safeString (splitId, 1);
+                    expiry = this.parseExpiryDate (expiryDate);
+                }
                 type = 'future';
-                future = true;
-                spot = false;
+            }
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            let symbol = base + '/' + quote;
+            let taker = this.fees['trading']['taker'];
+            let maker = this.fees['trading']['maker'];
+            const contract = swap || future;
+            if (contract) {
                 maker = 0.0;
                 taker = 0.0;
+                settle = 'JPY';
+                symbol = symbol + ':' + settle;
+                if (future) {
+                    symbol = symbol + '-' + this.yymmdd (expiry);
+                }
             }
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'maker': maker,
-                'taker': taker,
+                'settleId': undefined,
                 'type': type,
                 'spot': spot,
+                'margin': false,
+                'swap': swap,
                 'future': future,
+                'option': false,
+                'active': true,
+                'contract': contract,
+                'linear': spot ? undefined : true,
+                'inverse': spot ? undefined : false,
+                'taker': taker,
+                'maker': maker,
+                'contractSize': undefined,
+                'expiry': expiry,
+                'expiryDatetime': this.iso8601 (expiry),
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': undefined,
+                    'price': undefined,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }
         return result;
+    }
+
+    parseBalance (response) {
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'currency_code');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'amount');
+            account['free'] = this.safeString (balance, 'available');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     async fetchBalance (params = {}) {
@@ -171,17 +309,7 @@ module.exports = class bitflyer extends Exchange {
         //         }
         //     ]
         //
-        const result = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
-            const currencyId = this.safeString (balance, 'currency_code');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['total'] = this.safeFloat (balance, 'amount');
-            account['free'] = this.safeFloat (balance, 'available');
-            result[code] = account;
-        }
-        return this.parseBalance (result);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -190,26 +318,22 @@ module.exports = class bitflyer extends Exchange {
             'product_code': this.marketId (symbol),
         };
         const orderbook = await this.publicGetGetboard (this.extend (request, params));
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'size');
+        return this.parseOrderBook (orderbook, symbol, undefined, 'bids', 'asks', 'price', 'size');
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'product_code': this.marketId (symbol),
-        };
-        const ticker = await this.publicGetGetticker (this.extend (request, params));
+    parseTicker (ticker, market = undefined) {
+        const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
-        const last = this.safeFloat (ticker, 'ltp');
-        return {
+        const last = this.safeString (ticker, 'ltp');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': this.safeFloat (ticker, 'best_bid'),
+            'bid': this.safeString (ticker, 'best_bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'best_ask'),
+            'ask': this.safeString (ticker, 'best_ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -219,13 +343,47 @@ module.exports = class bitflyer extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume_by_product'),
+            'baseVolume': this.safeString (ticker, 'volume_by_product'),
             'quoteVolume': undefined,
             'info': ticker,
+        }, market, false);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'product_code': market['id'],
         };
+        const response = await this.publicGetGetticker (this.extend (request, params));
+        return this.parseTicker (response, market);
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public) v1
+        //
+        //     {
+        //          "id":2278466664,
+        //          "side":"SELL",
+        //          "price":56810.7,
+        //          "size":0.08798,
+        //          "exec_date":"2021-11-19T11:46:39.323",
+        //          "buy_child_order_acceptance_id":"JRF20211119-114209-236525",
+        //          "sell_child_order_acceptance_id":"JRF20211119-114639-236919"
+        //      }
+        //
+        //      {
+        //          "id":2278463423,
+        //          "side":"BUY",
+        //          "price":56757.83,
+        //          "size":0.6003,"exec_date":"2021-11-19T11:28:00.523",
+        //          "buy_child_order_acceptance_id":"JRF20211119-112800-236526",
+        //          "sell_child_order_acceptance_id":"JRF20211119-112734-062017"
+        //      }
+        //
+        //
+        //
         let side = this.safeStringLower (trade, 'side');
         if (side !== undefined) {
             if (side.length < 1) {
@@ -243,34 +401,25 @@ module.exports = class bitflyer extends Exchange {
             order = this.safeString (trade, 'child_order_acceptance_id');
         }
         const timestamp = this.parse8601 (this.safeString (trade, 'exec_date'));
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'size');
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'size');
         const id = this.safeString (trade, 'id');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        return {
+        market = this.safeMarket (undefined, market);
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': order,
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -281,6 +430,27 @@ module.exports = class bitflyer extends Exchange {
         };
         const response = await this.publicGetGetexecutions (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'product_code': market['id'],
+        };
+        const response = await this.privateGetGettradingcommission (this.extend (request, params));
+        //
+        //   {
+        //       commission_rate: '0.0020'
+        //   }
+        //
+        const fee = this.safeNumber (response, 'commission_rate');
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': fee,
+            'taker': fee,
+        };
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -326,26 +496,17 @@ module.exports = class bitflyer extends Exchange {
 
     parseOrder (order, market = undefined) {
         const timestamp = this.parse8601 (this.safeString (order, 'child_order_date'));
-        const amount = this.safeFloat (order, 'size');
-        const remaining = this.safeFloat (order, 'outstanding_size');
-        const filled = this.safeFloat (order, 'executed_size');
-        const price = this.safeFloat (order, 'price');
-        const cost = price * filled;
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'size');
+        const filled = this.safeString (order, 'executed_size');
+        const remaining = this.safeString (order, 'outstanding_size');
         const status = this.parseOrderStatus (this.safeString (order, 'child_order_state'));
         const type = this.safeStringLower (order, 'child_order_type');
         const side = this.safeStringLower (order, 'side');
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (order, 'product_code');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (order, 'product_code');
+        const symbol = this.safeSymbol (marketId, market);
         let fee = undefined;
-        const feeCost = this.safeFloat (order, 'total_commission');
+        const feeCost = this.safeNumber (order, 'total_commission');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -354,8 +515,9 @@ module.exports = class bitflyer extends Exchange {
             };
         }
         const id = this.safeString (order, 'child_order_acceptance_id');
-        return {
+        return this.safeOrder ({
             'id': id,
+            'clientOrderId': undefined,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -363,14 +525,19 @@ module.exports = class bitflyer extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
-            'cost': cost,
+            'stopPrice': undefined,
+            'cost': undefined,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
-        };
+            'average': undefined,
+            'trades': undefined,
+        }, market);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
@@ -419,7 +586,7 @@ module.exports = class bitflyer extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a `symbol` argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a `symbol` argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -431,6 +598,36 @@ module.exports = class bitflyer extends Exchange {
         }
         const response = await this.privateGetGetexecutions (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchPositions() requires a `symbols` argument, exactly one symbol in an array');
+        }
+        await this.loadMarkets ();
+        const request = {
+            'product_code': this.marketIds (symbols),
+        };
+        const response = await this.privateGetpositions (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "product_code": "FX_BTC_JPY",
+        //             "side": "BUY",
+        //             "price": 36000,
+        //             "size": 10,
+        //             "commission": 0,
+        //             "swap_point_accumulate": -35,
+        //             "require_collateral": 120000,
+        //             "open_date": "2015-11-03T10:04:45.011",
+        //             "leverage": 3,
+        //             "pnl": 965,
+        //             "sfd": -0.5
+        //         }
+        //     ]
+        //
+        // todo unify parsePosition/parsePositions
+        return response;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -446,10 +643,165 @@ module.exports = class bitflyer extends Exchange {
             // 'bank_account_id': 1234,
         };
         const response = await this.privatePostWithdraw (this.extend (request, params));
-        const id = this.safeString (response, 'message_id');
+        //
+        //     {
+        //         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
+        //     }
+        //
+        return this.parseTransaction (response, currency);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        if (limit !== undefined) {
+            request['count'] = limit; // default 100
+        }
+        const response = await this.privateGetGetcoinins (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": 100,
+        //             "order_id": "CDP20151227-024141-055555",
+        //             "currency_code": "BTC",
+        //             "amount": 0.00002,
+        //             "address": "1WriteySQufKZ2pVuM1oMhPrTtTVFq35j",
+        //             "tx_hash": "9f92ee65a176bb9545f7becb8706c50d07d4cee5ffca34d8be3ef11d411405ae",
+        //             "status": "COMPLETED",
+        //             "event_date": "2015-11-27T08:59:20.301"
+        //         }
+        //     ]
+        //
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        if (limit !== undefined) {
+            request['count'] = limit; // default 100
+        }
+        const response = await this.privateGetGetcoinouts (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": 500,
+        //             "order_id": "CWD20151224-014040-077777",
+        //             "currency_code": "BTC",
+        //             "amount": 0.1234,
+        //             "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+        //             "tx_hash": "724c07dfd4044abcb390b0412c3e707dd5c4f373f0a52b3bd295ce32b478c60a",
+        //             "fee": 0.0005,
+        //             "additional_fee": 0.0001,
+        //             "status": "COMPLETED",
+        //             "event_date": "2015-12-24T01:40:40.397"
+        //         }
+        //     ]
+        //
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
+    parseDepositStatus (status) {
+        const statuses = {
+            'PENDING': 'pending',
+            'COMPLETED': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseWithdrawalStatus (status) {
+        const statuses = {
+            'PENDING': 'pending',
+            'COMPLETED': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         "id": 100,
+        //         "order_id": "CDP20151227-024141-055555",
+        //         "currency_code": "BTC",
+        //         "amount": 0.00002,
+        //         "address": "1WriteySQufKZ2pVuM1oMhPrTtTVFq35j",
+        //         "tx_hash": "9f92ee65a176bb9545f7becb8706c50d07d4cee5ffca34d8be3ef11d411405ae",
+        //         "status": "COMPLETED",
+        //         "event_date": "2015-11-27T08:59:20.301"
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "id": 500,
+        //         "order_id": "CWD20151224-014040-077777",
+        //         "currency_code": "BTC",
+        //         "amount": 0.1234,
+        //         "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+        //         "tx_hash": "724c07dfd4044abcb390b0412c3e707dd5c4f373f0a52b3bd295ce32b478c60a",
+        //         "fee": 0.0005,
+        //         "additional_fee": 0.0001,
+        //         "status": "COMPLETED",
+        //         "event_date": "2015-12-24T01:40:40.397"
+        //     }
+        //
+        // withdraw
+        //
+        //     {
+        //         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
+        //     }
+        //
+        const id = this.safeString2 (transaction, 'id', 'message_id');
+        const address = this.safeString (transaction, 'address');
+        const currencyId = this.safeString (transaction, 'currency_code');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const timestamp = this.parse8601 (this.safeString (transaction, 'event_date'));
+        const amount = this.safeNumber (transaction, 'amount');
+        const txId = this.safeString (transaction, 'tx_hash');
+        const rawStatus = this.safeString (transaction, 'status');
+        let type = undefined;
+        let status = undefined;
+        let fee = undefined;
+        if ('fee' in transaction) {
+            type = 'withdrawal';
+            status = this.parseWithdrawalStatus (rawStatus);
+            const feeCost = this.safeNumber (transaction, 'fee');
+            const additionalFee = this.safeNumber (transaction, 'additional_fee');
+            fee = { 'currency': code, 'cost': feeCost + additionalFee };
+        } else {
+            type = 'deposit';
+            status = this.parseDepositStatus (rawStatus);
+        }
         return {
-            'info': response,
+            'info': transaction,
             'id': id,
+            'txid': txId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': undefined,
+            'address': address,
+            'addressTo': address,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': undefined,
+            'internal': undefined,
+            'fee': fee,
         };
     }
 
@@ -464,7 +816,8 @@ module.exports = class bitflyer extends Exchange {
                 request += '?' + this.urlencode (params);
             }
         }
-        const url = this.urls['api'] + request;
+        const baseUrl = this.implodeHostname (this.urls['api']);
+        const url = baseUrl + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();

@@ -1,0 +1,101 @@
+/*!
+ * @author        Anthony Post
+ *
+ * Modified by Aloïs Dreyfus: 20200527-1037
+ * Modified by Carlo Revelli
+ */
+
+:root {
+    --dark-body: #3c3c3c;
+    --dark-outer: rgba(0,0,0,.6);
+    --dark-code: #2d2d2d;
+    --dark-text: #d9d9d9;
+    --dark-hover: #343131;
+    --dark-blue: #222222;
+}
+
+html[data-theme='dark'] pre {
+	background-color: var(--dark-code); !important;
+}
+
+html[data-theme='dark'] .wy-nav-content, html[data-theme='dark'] .head {
+	background: var(--dark-body);
+	color: var(--dark-text);
+}
+
+html[data-theme='dark'] code.literal {
+	background-color: var(--dark-body) !important;
+    border: 1px solid var(--dark-body) !important;
+}
+
+html[data-theme='dark'] .wy-nav-content-wrap {
+	background-color: var(--dark-outer) !important;
+}
+
+html[data-theme='dark'] ul > .toctree-l1.current > a {
+    background: var(--dark-body)!important;
+    border-color: var(--dark-hover)!important;
+    color: var(--dark-text);
+}
+
+html[data-theme='dark'] ul > .toctree-l1.current > ul > .toctree-l2 {
+   background: var(--dark-hover) !important;
+}
+
+html[data-theme='dark'] ul > .toctree-l1.current > ul > .toctree-l2 > a {
+   color: var(--dark-text);
+}
+
+html[data-theme='dark'] ul > .toctree-l1.current > ul > .toctree-l2.current > a, .wy-menu-vertical a:hover {
+   color: var(--dark-hover) !important;
+}
+
+html[data-theme='dark'] .rst-content div[class^=highlight-] {
+    border: 1px solid var(--dark-body);
+}
+
+html[data-theme='dark'] .row-even td {
+    background-color: var(--dark-hover) !important;
+}
+
+html[data-theme='dark'] td, html[data-theme='dark'] th {
+    border: 1px solid var(--dark-code) !important;
+}
+
+html[data-theme='dark'] .wy-side-nav-search {
+    background-color: var(--dark-blue) !important;
+}
+
+html[data-theme='dark'] #widget-wrapper {
+    border-color: #1e6395;
+}
+
+html[data-theme='dark'] .theme-switcher {
+    filter: invert(100%);
+}
+
+.theme-switcher {
+    text-align: center;
+    border-radius: 50%;
+    position: relative;
+    border: none;
+    background-color: inherit;
+    font-size: 20px;
+    color: #404040;
+    transition: all 0.3s ease-in-out;
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+}
+
+#btn-wrapper {
+    display: inline-block;
+    text-align: center;
+    width: calc(100% - 104px - 78px - 5px);
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select:none;
+    user-select:none;
+    -o-user-select:none;
+}

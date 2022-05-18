@@ -5,3 +5,124 @@ div.body p {
 #supported-cryptocurrency-exchange-markets td:first-child {
     width: 85px;
 }
+
+.wy-nav-content {
+    max-width: 940px;
+}
+
+.wy-nav-side {
+    padding-bottom: 1em;
+}
+
+.wy-menu > ul {
+    z-index: 1000;
+}
+
+ul.current {
+    position: sticky;
+    background: #fcfcfc;
+}
+
+.wy-menu-vertical .caption, .wy-menu .toctree-l1 {
+    background: #343131;
+}
+
+ul > .toctree-l1.current > ul > .toctree-l2 {
+   background: #edf0f2;
+}
+
+.wy-menu-vertical a:hover {
+    background: #c9c9c9;
+    color: #404040;
+}
+
+.caption {
+    margin-top: 0;
+}
+
+.caption-text {
+    padding: 20px 0 20px 0;
+}
+
+#widget {
+    display: none;
+}
+
+#widget-wrapper {
+    height: calc(200px * 0.5625 + 18px);
+    width: 200px;
+    margin: 0 auto 20px auto;
+    border-style: dashed;
+    border-color: #69A2CC;
+    border-width: 1px;
+    border-radius: 5px;
+}
+
+.wy-side-nav-search {
+    position: fixed;
+    top: 0px;
+    z-index: 10000;
+}
+
+.version {
+    display: inline-block;
+}
+
+/* this fixes a bug in the broker widget in safari */
+/* it interacts with the code of the binance portal sdk and stops the css translate from glitching */
+.swiper-container {
+    direction: rtl;
+}
+
+.bnc-broker-widget-prev, .bnc-broker-widget-next {
+    transform: rotate(180deg);
+}
+
+/* another change due to rtl */
+.swiper-pagination-bullet:first-of-type {
+    margin-right: 0!important;
+}
+
+.swiper-pagination-bullet {
+    margin-right: 8px!important;
+}
+
+/* fix for readthedocs-doc-embed.css */
+.rst-versions {
+    display: none!important;
+}
+
+nav.wy-nav-side {
+    padding-bottom: 0!important;
+}
+
+/* don't change color of visited links */
+a:visited:not(.icon) {
+    color: #2980b9;
+}
+
+.wy-menu-vertical a, .wy-menu-vertical a:visited {
+    color: #d9d9d9;
+}
+
+/* fix for mobile */
+@media screen and (max-width: 768px) {
+    .shift .wy-side-nav-search {
+        width: 85%;
+    }
+}
+
+.wy-side-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.wy-side-scroll {
+   scrollbar-width: none;
+    -ms-overflow-style: none;
+    overscroll-behavior: contain;
+}
+
+td:first-child {
+    box-sizing: content-box;
+    width: 85px;
+}

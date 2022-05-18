@@ -16,7 +16,7 @@ def print_exchanges():
 def print_usage():
     print("Usage: python", sys.argv[0], 'id')
     print("python", sys.argv[0], 'kraken')
-    print("python", sys.argv[0], 'gdax')
+    print("python", sys.argv[0], 'coinbasepro')
     print_exchanges()
 
 
@@ -32,9 +32,7 @@ try:
         print('Instantiating', id)
 
         # instantiate the exchange by id
-        exchange = getattr(ccxt, id)({
-            'enableRateLimit': True,  # https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
-        })
+        exchange = getattr(ccxt, id)()
 
         if exchange.has['fetchTickers'] != True:
             raise ccxt.NotSupported ('Exchange ' + exchange.id + ' does not have the endpoint to fetch all tickers from the API.')

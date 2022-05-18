@@ -3,7 +3,10 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ArgumentsRequired, ExchangeError, InvalidOrder, BadRequest, OrderNotFound, DDoSProtection, BadSymbol } = require ('./base/errors');
+const { AuthenticationError, ExchangeNotAvailable, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, BadSymbol, NotSupported } = require ('./base/errors');
+const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
+
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitmart extends Exchange {
@@ -12,36 +15,75 @@ module.exports = class bitmart extends Exchange {
             'id': 'bitmart',
             'name': 'BitMart',
             'countries': [ 'US', 'CN', 'HK', 'KR' ],
-            'rateLimit': 1000,
-            'version': 'v2',
+            'rateLimit': 250, // a bit slower than 50 times per second ~40 times per second
+            'version': 'v1',
+            'certified': true,
+            'pro': true,
             'has': {
-                'CORS': true,
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but unimplemented
+                'swap': undefined, // has but unimplemented
+                'future': undefined, // has but unimplemented
+                'option': undefined,
+                'cancelAllOrders': true,
+                'cancelOrder': true,
+                'cancelOrders': false,
+                'createOrder': true,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
+                'fetchBalance': true,
+                'fetchCanceledOrders': true,
+                'fetchClosedOrders': true,
+                'fetchCurrencies': true,
+                'fetchDeposit': true,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
+                'fetchDeposits': true,
+                'fetchFundingHistory': undefined,
                 'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': false,
+                'fetchOrderTrades': true,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
-                'fetchCurrencies': true,
-                'fetchOrderBook': true,
                 'fetchTrades': true,
-                'fetchMyTrades': true,
-                'fetchOHLCV': true,
-                'fetchBalance': true,
-                'createOrder': true,
-                'cancelOrder': true,
-                'cancelAllOrders': true,
-                'fetchOrders': false,
-                'fetchOrderTrades': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchCanceledOrders': true,
-                'fetchOrder': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
+                'fetchTransactionFee': true,
+                'fetchTransactionFees': false,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
+                'fetchWithdrawAddressesByNetwork': false,
+                'fetchWithdrawal': true,
+                'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'transfer': false,
+                'withdraw': true,
             },
+            'hostname': 'bitmart.com', // bitmart.info, bitmart.news for Hong Kong users
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg',
-                'api': 'https://openapi.bitmart.com',
+                'logo': 'https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg',
+                'api': {
+                    'rest': 'https://api-cloud.{hostname}', // bitmart.info for Hong Kong users
+                },
                 'www': 'https://www.bitmart.com/',
-                'doc': 'https://github.com/bitmartexchange/bitmart-official-api-docs',
-                'referral': 'http://www.bitmart.com/?r=rQCFLh',
+                'doc': 'https://developer-pro.bitmart.com/',
+                'referral': {
+                    'url': 'http://www.bitmart.com/?r=rQCFLh',
+                    'discount': 0.3,
+                },
+                'fees': 'https://www.bitmart.com/fee/en',
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -49,39 +91,62 @@ module.exports = class bitmart extends Exchange {
                 'uid': true,
             },
             'api': {
-                'token': {
-                    'post': [
-                        'authentication',
-                    ],
-                },
                 'public': {
-                    'get': [
-                        'currencies',
-                        'ping',
-                        'steps',
-                        'symbols',
-                        'symbols_details',
-                        'symbols/{symbol}/kline',
-                        'symbols/{symbol}/orders',
-                        'symbols/{symbol}/trades',
-                        'ticker',
-                        'time',
-                    ],
+                    'system': {
+                        'get': {
+                            'time': 5, // https://api-cloud.bitmart.com/system/time
+                            'service': 5, // https://api-cloud.bitmart.com/system/service
+                        },
+                    },
+                    'account': {
+                        'get': {
+                            'currencies': 10, // https://api-cloud.bitmart.com/account/v1/currencies
+                        },
+                    },
+                    'spot': {
+                        'get': {
+                            'currencies': 1,
+                            'symbols': 1,
+                            'symbols/details': 1,
+                            'ticker': 1, // ?symbol=BTC_USDT
+                            'steps': 1, // ?symbol=BMX_ETH
+                            'symbols/kline': 1, // ?symbol=BMX_ETH&step=15&from=1525760116&to=1525769116
+                            'symbols/book': 1, // ?symbol=BMX_ETH&precision=6
+                            'symbols/trades': 1, // ?symbol=BMX_ETH
+                        },
+                    },
+                    'contract': {
+                        'get': {
+                            'tickers': 0.5,
+                        },
+                    },
                 },
                 'private': {
-                    'get': [
-                        'orders',
-                        'orders/{id}',
-                        'trades',
-                        'wallet',
-                    ],
-                    'post': [
-                        'orders',
-                    ],
-                    'delete': [
-                        'orders',
-                        'orders/{id}',
-                    ],
+                    'account': {
+                        'get': {
+                            'wallet': 0.5, // ?account_type=1
+                            'deposit/address': 1, // ?currency=USDT-TRC20
+                            'withdraw/charge': 1, // ?currency=BTC
+                            'deposit-withdraw/history': 1, // ?limit=10&offset=1&operationType=withdraw
+                            'deposit-withdraw/detail': 1, // ?id=1679952
+                        },
+                        'post': {
+                            'withdraw/apply': 1,
+                        },
+                    },
+                    'spot': {
+                        'get': {
+                            'wallet': 0.5,
+                            'order_detail': 0.1,
+                            'orders': 0.5,
+                            'trades': 0.5,
+                        },
+                        'post': {
+                            'submit_order': 0.1, // https://api-cloud.bitmart.com/spot/v1/submit_order
+                            'cancel_order': 0.1, // https://api-cloud.bitmart.com/spot/v2/cancel_order
+                            'cancel_orders': 0.1,
+                        },
+                    },
                 },
             },
             'timeframes': {
@@ -103,106 +168,293 @@ module.exports = class bitmart extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.001,
+                    'taker': this.parseNumber ('0.0025'),
+                    'maker': this.parseNumber ('0.0025'),
                     'tiers': {
                         'taker': [
-                            [0, 0.20 / 100],
-                            [10, 0.18 / 100],
-                            [50, 0.16 / 100],
-                            [250, 0.14 / 100],
-                            [1000, 0.12 / 100],
-                            [5000, 0.10 / 100],
-                            [25000, 0.08 / 100],
-                            [50000, 0.06 / 100],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0020') ],
+                            [ this.parseNumber ('10'), this.parseNumber ('0.18') ],
+                            [ this.parseNumber ('50'), this.parseNumber ('0.0016') ],
+                            [ this.parseNumber ('250'), this.parseNumber ('0.0014') ],
+                            [ this.parseNumber ('1000'), this.parseNumber ('0.0012') ],
+                            [ this.parseNumber ('5000'), this.parseNumber ('0.0010') ],
+                            [ this.parseNumber ('25000'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('50000'), this.parseNumber ('0.0006') ],
                         ],
                         'maker': [
-                            [0, 0.1 / 100],
-                            [10, 0.09 / 100],
-                            [50, 0.08 / 100],
-                            [250, 0.07 / 100],
-                            [1000, 0.06 / 100],
-                            [5000, 0.05 / 100],
-                            [25000, 0.04 / 100],
-                            [50000, 0.03 / 100],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('10'), this.parseNumber ('0.0009') ],
+                            [ this.parseNumber ('50'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('250'), this.parseNumber ('0.0007') ],
+                            [ this.parseNumber ('1000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('5000'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('25000'), this.parseNumber ('0.0004') ],
+                            [ this.parseNumber ('50000'), this.parseNumber ('0.0003') ],
                         ],
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    'Place order error': InvalidOrder, // {"message":"Place order error"}
-                    'Not found': OrderNotFound, // {"message":"Not found"}
-                    'Visit too often, please try again later': DDoSProtection, // {"code":-30,"msg":"Visit too often, please try again later","subMsg":"","data":{}}
-                    'Unknown symbol': BadSymbol, // {"message":"Unknown symbol"}
+                    // general errors
+                    '30000': ExchangeError, // 404, Not found
+                    '30001': AuthenticationError, // 401, Header X-BM-KEY is empty
+                    '30002': AuthenticationError, // 401, Header X-BM-KEY not found
+                    '30003': AccountSuspended, // 401, Header X-BM-KEY has frozen
+                    '30004': AuthenticationError, // 401, Header X-BM-SIGN is empty
+                    '30005': AuthenticationError, // 401, Header X-BM-SIGN is wrong
+                    '30006': AuthenticationError, // 401, Header X-BM-TIMESTAMP is empty
+                    '30007': AuthenticationError, // 401, Header X-BM-TIMESTAMP range. Within a minute
+                    '30008': AuthenticationError, // 401, Header X-BM-TIMESTAMP invalid format
+                    '30010': PermissionDenied, // 403, IP is forbidden. We recommend enabling IP whitelist for API trading. After that reauth your account
+                    '30011': AuthenticationError, // 403, Header X-BM-KEY over expire time
+                    '30012': AuthenticationError, // 403, Header X-BM-KEY is forbidden to request it
+                    '30013': RateLimitExceeded, // 429, Request too many requests
+                    '30014': ExchangeNotAvailable, // 503, Service unavailable
+                    // funding account errors
+                    '60000': BadRequest, // 400, Invalid request (maybe the body is empty, or the int parameter passes string data)
+                    '60001': BadRequest, // 400, Asset account type does not exist
+                    '60002': BadRequest, // 400, currency does not exist
+                    '60003': ExchangeError, // 400, Currency has been closed recharge channel, if there is any problem, please consult customer service
+                    '60004': ExchangeError, // 400, Currency has been closed withdraw channel, if there is any problem, please consult customer service
+                    '60005': ExchangeError, // 400, Minimum amount is %s
+                    '60006': ExchangeError, // 400, Maximum withdraw precision is %d
+                    '60007': InvalidAddress, // 400, Only withdrawals from added addresses are allowed
+                    '60008': InsufficientFunds, // 400, Balance not enough
+                    '60009': ExchangeError, // 400, Beyond the limit
+                    '60010': ExchangeError, // 400, Withdraw id or deposit id not found
+                    '60011': InvalidAddress, // 400, Address is not valid
+                    '60012': ExchangeError, // 400, This action is not supported in this currency(If IOTA, HLX recharge and withdraw calls are prohibited)
+                    '60020': PermissionDenied, // 403, Your account is not allowed to recharge
+                    '60021': PermissionDenied, // 403, Your account is not allowed to withdraw
+                    '60022': PermissionDenied, // 403, No withdrawals for 24 hours
+                    '60030': BadRequest, // 405, Method Not Allowed
+                    '60031': BadRequest, // 415, Unsupported Media Type
+                    '60050': ExchangeError, // 500, User account not found
+                    '60051': ExchangeError, // 500, Internal Server Error
+                    // spot errors
+                    '50000': BadRequest, // 400, Bad Request
+                    '50001': BadSymbol, // 400, Symbol not found
+                    '50002': BadRequest, // 400, From Or To format error
+                    '50003': BadRequest, // 400, Step format error
+                    '50004': BadRequest, // 400, Kline size over 500
+                    '50005': OrderNotFound, // 400, Order Id not found
+                    '50006': InvalidOrder, // 400, Minimum size is %s
+                    '50007': InvalidOrder, // 400, Maximum size is %s
+                    '50008': InvalidOrder, // 400, Minimum price is %s
+                    '50009': InvalidOrder, // 400, Minimum count*price is %s
+                    '50010': InvalidOrder, // 400, RequestParam size is required
+                    '50011': InvalidOrder, // 400, RequestParam price is required
+                    '50012': InvalidOrder, // 400, RequestParam notional is required
+                    '50013': InvalidOrder, // 400, Maximum limit*offset is %d
+                    '50014': BadRequest, // 400, RequestParam limit is required
+                    '50015': BadRequest, // 400, Minimum limit is 1
+                    '50016': BadRequest, // 400, Maximum limit is %d
+                    '50017': BadRequest, // 400, RequestParam offset is required
+                    '50018': BadRequest, // 400, Minimum offset is 1
+                    '50019': BadRequest, // 400, Maximum price is %s
+                    // '50019': ExchangeError, // 400, Invalid status. validate status is [1=Failed, 2=Success, 3=Frozen Failed, 4=Frozen Success, 5=Partially Filled, 6=Fully Fulled, 7=Canceling, 8=Canceled
+                    '50020': InsufficientFunds, // 400, Balance not enough
+                    '50021': BadRequest, // 400, Invalid %s
+                    '50022': ExchangeNotAvailable, // 400, Service unavailable
+                    '50023': BadSymbol, // 400, This Symbol can't place order by api
+                    '50029': InvalidOrder, // {"message":"param not match : size * price >=1000","code":50029,"trace":"f931f030-b692-401b-a0c5-65edbeadc598","data":{}}
+                    '50030': InvalidOrder, // {"message":"Order is already canceled","code":50030,"trace":"8d6f64ee-ad26-45a4-9efd-1080f9fca1fa","data":{}}
+                    // below Error codes used interchangeably for both failed postOnly and IOC orders depending on market price and order side
+                    '50035': InvalidOrder, // {"message":"The price is low and there is no matching depth","code":50035,"trace":"677f01c7-8b88-4346-b097-b4226c75c90e","data":{}}
+                    '50034': InvalidOrder, // {"message":"The price is high and there is no matching depth","code":50034,"trace":"ebfae59a-ba69-4735-86b2-0ed7b9ca14ea","data":{}}
+                    '53000': AccountSuspended, // 403, Your account is frozen due to security policies. Please contact customer service
+                    '53001': AccountSuspended, // {"message":"Your kyc country is restricted. Please contact customer service.","code":53001,"trace":"8b445940-c123-4de9-86d7-73c5be2e7a24","data":{}}
+                    '57001': BadRequest, // 405, Method Not Allowed
+                    '58001': BadRequest, // 415, Unsupported Media Type
+                    '59001': ExchangeError, // 500, User account not found
+                    '59002': ExchangeError, // 500, Internal Server Error
+                    // contract errors
+                    '40001': ExchangeError, // 400, Cloud account not found
+                    '40002': ExchangeError, // 400, out_trade_no not found
+                    '40003': ExchangeError, // 400, out_trade_no already existed
+                    '40004': ExchangeError, // 400, Cloud account count limit
+                    '40005': ExchangeError, // 400, Transfer vol precision error
+                    '40006': PermissionDenied, // 400, Invalid ip error
+                    '40007': BadRequest, // 400, Parse parameter error
+                    '40008': InvalidNonce, // 400, Check nonce error
+                    '40009': BadRequest, // 400, Check ver error
+                    '40010': BadRequest, // 400, Not found func error
+                    '40011': BadRequest, // 400, Invalid request
+                    '40012': ExchangeError, // 500, System error
+                    '40013': ExchangeError, // 400, Access too often" CLIENT_TIME_INVALID, "Please check your system time.
+                    '40014': BadSymbol, // 400, This contract is offline
+                    '40015': BadSymbol, // 400, This contract's exchange has been paused
+                    '40016': InvalidOrder, // 400, This order would trigger user position liquidate
+                    '40017': InvalidOrder, // 400, It is not possible to open and close simultaneously in the same position
+                    '40018': InvalidOrder, // 400, Your position is closed
+                    '40019': ExchangeError, // 400, Your position is in liquidation delegating
+                    '40020': InvalidOrder, // 400, Your position volume is not enough
+                    '40021': ExchangeError, // 400, The position is not exsit
+                    '40022': ExchangeError, // 400, The position is not isolated
+                    '40023': ExchangeError, // 400, The position would liquidate when sub margin
+                    '40024': ExchangeError, // 400, The position would be warnning of liquidation when sub margin
+                    '40025': ExchangeError, // 400, The position’s margin shouldn’t be lower than the base limit
+                    '40026': ExchangeError, // 400, You cross margin position is in liquidation delegating
+                    '40027': InsufficientFunds, // 400, You contract account available balance not enough
+                    '40028': PermissionDenied, // 400, Your plan order's count is more than system maximum limit.
+                    '40029': InvalidOrder, // 400, The order's leverage is too large.
+                    '40030': InvalidOrder, // 400, The order's leverage is too small.
+                    '40031': InvalidOrder, // 400, The deviation between current price and trigger price is too large.
+                    '40032': InvalidOrder, // 400, The plan order's life cycle is too long.
+                    '40033': InvalidOrder, // 400, The plan order's life cycle is too short.
+                    '40034': BadSymbol, // 400, This contract is not found
+                    '53002': PermissionDenied, // 403, Your account has not yet completed the kyc advanced certification, please complete first
                 },
-                'broad': {
-                    'Invalid limit. limit must be in the range': InvalidOrder,
-                    'Maximum price is': InvalidOrder, // {"message":"Maximum price is 0.112695"}
-                    // {"message":"Required Integer parameter 'status' is not present"}
-                    // {"message":"Required String parameter 'symbol' is not present"}
-                    // {"message":"Required Integer parameter 'offset' is not present"}
-                    // {"message":"Required Integer parameter 'limit' is not present"}
-                    // {"message":"Required Long parameter 'from' is not present"}
-                    // {"message":"Required Long parameter 'to' is not present"}
-                    'is not present': BadRequest,
-                },
+                'broad': {},
             },
             'commonCurrencies': {
+                '$GM': 'GOLDMINER',
+                '$HERO': 'Step Hero',
+                '$PAC': 'PAC',
+                'AUR': 'Aurum',
+                'BP': 'BEYOND',
+                'COT': 'Community Coin',
+                'CPC': 'CPCoin',
+                'DMS': 'DimSum', // conflict with Dragon Mainland Shards
+                'FOX': 'Fox Finance',
+                'GDT': 'Gorilla Diamond',
+                'GLD': 'Goldario',
+                'MIM': 'MIM Swarm',
+                'MVP': 'MVP Coin',
                 'ONE': 'Menlo One',
+                'PLA': 'Plair',
+                'TCT': 'TacoCat Token',
+                'TRU': 'Truebit', // conflict with TrueFi
+                'ULT': 'Ultiledger',
+            },
+            'options': {
+                'networks': {
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
+                },
+                'defaultNetworks': {
+                    'USDT': 'ERC20',
+                },
+                'defaultType': 'spot', // 'spot', 'swap'
+                'fetchBalance': {
+                    'type': 'spot', // 'spot', 'swap', 'contract', 'account'
+                },
+                'createMarketBuyOrderRequiresPrice': true,
             },
         });
     }
 
     async fetchTime (params = {}) {
-        const response = await this.publicGetTime (params);
+        const response = await this.publicSystemGetTime (params);
         //
         //     {
-        //         "server_time": 1527777538000
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"c4e5e5b7-fe9f-4191-89f7-53f6c5bf9030",
+        //         "data":{
+        //             "server_time":1599843709578
+        //         }
         //     }
         //
-        return this.safeInteger (response, 'server_time');
+        const data = this.safeValue (response, 'data', {});
+        return this.safeInteger (data, 'server_time');
     }
 
-    async signIn (params = {}) {
-        const message = this.apiKey + ':' + this.secret + ':' + this.uid;
-        const data = {
-            'grant_type': 'client_credentials',
-            'client_id': this.apiKey,
-            'client_secret': this.hmac (this.encode (message), this.encode (this.secret), 'sha256'),
-        };
-        const response = await this.tokenPostAuthentication (this.extend (data, params));
-        const accessToken = this.safeString (response, 'access_token');
-        if (!accessToken) {
-            throw new AuthenticationError (this.id + ' signIn() failed to authenticate. Access token missing from response.');
-        }
-        const expiresIn = this.safeInteger (response, 'expires_in');
-        this.options['expires'] = this.sum (this.nonce (), expiresIn * 1000);
-        this.options['accessToken'] = accessToken;
-        return response;
-    }
-
-    async fetchMarkets (params = {}) {
-        const markets = await this.publicGetSymbolsDetails (params);
+    async fetchStatus (params = {}) {
+        const options = this.safeValue (this.options, 'fetchBalance', {});
+        const defaultType = this.safeString (this.options, 'defaultType');
+        let type = this.safeString (options, 'type', defaultType);
+        type = this.safeString (params, 'type', type);
+        params = this.omit (params, 'type');
+        const response = await this.publicSystemGetService (params);
         //
-        //     [
-        //         {
-        //             "id":"1SG_BTC",
-        //             "base_currency":"1SG",
-        //             "quote_currency":"BTC",
-        //             "quote_increment":"0.1",
-        //             "base_min_size":"0.1000000000",
-        //             "base_max_size":"10000000.0000000000",
-        //             "price_min_precision":4,
-        //             "price_max_precision":6,
-        //             "expiration":"NA"
+        //     {
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "1d3f28b0-763e-4f78-90c4-5e3ad19dc595",
+        //         "data": {
+        //           "service": [
+        //             {
+        //               "title": "Spot API Stop",
+        //               "service_type": "spot",
+        //               "status": 2,
+        //               "start_time": 1648639069125,
+        //               "end_time": 1648639069125
+        //             },
+        //             {
+        //               "title": "Contract API Stop",
+        //               "service_type": "contract",
+        //               "status": 2,
+        //               "start_time": 1648639069125,
+        //               "end_time": 1648639069125
+        //             }
+        //           ]
         //         }
-        //     ]
+        //     }
         //
+        const data = this.safeValue (response, 'data', {});
+        const services = this.safeValue (data, 'service', []);
+        const servicesByType = this.indexBy (services, 'service_type');
+        if ((type === 'swap') || (type === 'future')) {
+            type = 'contract';
+        }
+        const service = this.safeValue (servicesByType, type);
+        let status = undefined;
+        let eta = undefined;
+        if (service !== undefined) {
+            const statusCode = this.safeInteger (service, 'status');
+            if (statusCode === 2) {
+                status = 'ok';
+            } else {
+                status = 'maintenance';
+                eta = this.safeInteger (service, 'end_time');
+            }
+        }
+        return {
+            'status': status,
+            'updated': this.milliseconds (),
+            'eta': eta,
+            'url': undefined,
+            'info': response,
+        };
+    }
+
+    async fetchSpotMarkets (params = {}) {
+        const response = await this.publicSpotGetSymbolsDetails (params);
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"a67c9146-086d-4d3f-9897-5636a9bb26e1",
+        //         "data":{
+        //             "symbols":[
+        //                 {
+        //                     "symbol":"PRQ_BTC",
+        //                     "symbol_id":1232,
+        //                     "base_currency":"PRQ",
+        //                     "quote_currency":"BTC",
+        //                     "quote_increment":"1.0000000000",
+        //                     "base_min_size":"1.0000000000",
+        //                     "base_max_size":"10000000.0000000000",
+        //                     "price_min_precision":8,
+        //                     "price_max_precision":10,
+        //                     "expiration":"NA",
+        //                     "min_buy_amount":"0.0001000000",
+        //                     "min_sell_amount":"0.0001000000"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const symbols = this.safeValue (data, 'symbols', []);
         const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString (market, 'id');
+        for (let i = 0; i < symbols.length; i++) {
+            const market = symbols[i];
+            const id = this.safeString (market, 'symbol');
+            const numericId = this.safeInteger (market, 'symbol_id');
             const baseId = this.safeString (market, 'base_currency');
             const quoteId = this.safeString (market, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
@@ -217,153 +469,434 @@ module.exports = class bitmart extends Exchange {
             //
             // the docs are wrong: https://github.com/ccxt/ccxt/issues/5612
             //
-            const quoteIncrement = this.safeString (market, 'quote_increment');
-            const amountPrecision = this.precisionFromString (quoteIncrement);
-            const pricePrecision = this.safeInteger (market, 'price_max_precision');
-            const precision = {
-                'amount': amountPrecision,
-                'price': pricePrecision,
-            };
-            const limits = {
-                'amount': {
-                    'min': this.safeFloat (market, 'base_min_size'),
-                    'max': this.safeFloat (market, 'base_max_size'),
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
+            const minBuyCost = this.safeString (market, 'min_buy_amount');
+            const minSellCost = this.safeString (market, 'min_sell_amount');
+            const minCost = Precise.stringMax (minBuyCost, minSellCost);
+            const pricePrecision = this.parsePrecision (this.safeString (market, 'price_max_precision'));
             result.push ({
                 'id': id,
+                'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'precision': precision,
-                'limits': limits,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': true,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeNumber (market, 'base_min_size'),
+                    'price': this.parseNumber (pricePrecision),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'base_min_size'),
+                        'max': this.safeNumber (market, 'base_max_size'),
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.parseNumber (minCost),
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }
         return result;
     }
 
+    async fetchContractMarkets (params = {}) {
+        const response = await this.publicContractGetTickers (params);
+        //
+        //    {
+        //        "message": "OK",
+        //        "code": 1000,
+        //        "trace": "045d13a8-4bc7-4974-9748-97d0ea183ef0",
+        //        "data": {
+        //            "tickers": [
+        //                {
+        //                    "contract_symbol": "RAYUSDT",
+        //                    "last_price": "3.893",
+        //                    "index_price": "3.90248043",
+        //                    "last_funding_rate": "-0.00054285",
+        //                    "price_change_percent_24h": "-6.955",
+        //                    "volume_24h": "10450969.34602996",
+        //                    "url": "https://futures.bitmart.com/en?symbol=RAYUSDT",
+        //                    "high_price": "4.299",
+        //                    "low_price": "3.887",
+        //                    "legal_coin_price": "3.893056"
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const tickers = this.safeValue (data, 'tickers', []);
+        const result = [];
+        for (let i = 0; i < tickers.length; i++) {
+            const market = tickers[i];
+            const id = this.safeString (market, 'contract_symbol');
+            const baseId = id.slice (0, -4);
+            const quoteId = id.slice (-4);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const splitId = id.split ('_');
+            const splitIdEnding = this.safeString (splitId, 1);
+            let settle = 'USDT';
+            let symbol = base + '/' + quote + ':' + settle;
+            let type = 'swap';
+            let swap = true;
+            let future = false;
+            let expiry = undefined;
+            if (splitIdEnding !== undefined) {
+                settle = 'BTC';
+                symbol = base + '/' + quote + ':' + settle;
+                if (splitIdEnding !== 'PERP') {
+                    const date = this.iso8601 (this.milliseconds ());
+                    const splitDate = date.split ('-');
+                    const year = splitDate[0];
+                    const shortYear = year.slice (0, 2);
+                    const expiryMonth = splitIdEnding.slice (0, 2);
+                    const expiryDay = splitIdEnding.slice (2, 4);
+                    expiry = this.parse8601 (year + '-' + expiryMonth + '-' + expiryDay + 'T00:00:00Z');
+                    symbol = symbol + '-' + shortYear + splitIdEnding;
+                    type = 'future';
+                    swap = false;
+                    future = true;
+                }
+            }
+            result.push ({
+                'id': id,
+                'numericId': undefined,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
+                'type': type,
+                'spot': false,
+                'margin': false,
+                'swap': swap,
+                'future': future,
+                'option': false,
+                'active': true,
+                'contract': true,
+                'linear': true,
+                'inverse': false,
+                'contractSize': undefined,
+                'expiry': expiry,
+                'expiryDatetime': this.iso8601 (expiry),
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': undefined,
+                    'price': undefined,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': market,
+            });
+        }
+        return result;
+    }
+
+    async fetchMarkets (params = {}) {
+        const spot = await this.fetchSpotMarkets (params);
+        const contract = await this.fetchContractMarkets (params);
+        return this.arrayConcat (spot, contract);
+    }
+
+    async fetchTransactionFee (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateAccountGetWithdrawCharge (this.extend (request, params));
+        //
+        //     {
+        //         message: 'OK',
+        //         code: '1000',
+        //         trace: '3ecc0adf-91bd-4de7-aca1-886c1122f54f',
+        //         data: {
+        //             today_available_withdraw_BTC: '100.0000',
+        //             min_withdraw: '0.005',
+        //             withdraw_precision: '8',
+        //             withdraw_fee: '0.000500000000000000000000000000'
+        //         }
+        //     }
+        //
+        const data = response['data'];
+        const withdrawFees = {};
+        withdrawFees[code] = this.safeNumber (data, 'withdraw_fee');
+        return {
+            'info': response,
+            'withdraw': withdrawFees,
+            'deposit': {},
+        };
+    }
+
     parseTicker (ticker, market = undefined) {
-        const timestamp = this.milliseconds ();
-        const marketId = this.safeString (ticker, 'symbol_id');
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else if (marketId !== undefined) {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
+        //
+        // spot
+        //
+        //      {
+        //          "symbol":"DOGE_USDT",
+        //          "last_price":"0.128300",
+        //          "quote_volume_24h":"2296619.060420",
+        //          "base_volume_24h":"17508866.000000000000000000000000000000",
+        //          "high_24h":"0.133900",
+        //          "low_24h":"0.127799",
+        //          "open_24h":"0.133100",
+        //          "close_24h":"0.128300",
+        //          "best_ask":"0.128530",
+        //          "best_ask_size":"15170",
+        //          "best_bid":"0.128200",
+        //          "best_bid_size":"21232",
+        //          "fluctuation":"-0.0361",
+        //          "s_t": 1610936002, // ws only
+        //          "url":"https://www.bitmart.com/trade?symbol=DOGE_USDT"
+        //      }
+        //
+        // contract
+        //
+        //      {
+        //          "contract_symbol":"DOGEUSDT",
+        //          "last_price":"0.130340",
+        //          "index_price":"0.13048245",
+        //          "last_funding_rate":"0.00002287",
+        //          "price_change_percent_24h":"-2.074",
+        //          "volume_24h":"113705028.59482228",
+        //          "url":"https://futures.bitmart.com/en?symbol=DOGEUSDT",
+        //          "high_price":"0.134520",
+        //          "low_price":"0.128570",
+        //          "legal_coin_price":"0.1302699"
+        //      }
+        //
+        const timestamp = this.safeTimestamp2 (ticker, 'timestamp', 's_t', this.milliseconds ());
+        const marketId = this.safeString2 (ticker, 'symbol', 'contract_symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const last = this.safeString2 (ticker, 'close_24h', 'last_price');
+        let percentage = this.safeString (ticker, 'price_change_percent_24h');
+        if (percentage === undefined) {
+            const percentageRaw = this.safeString (ticker, 'fluctuation');
+            if ((percentageRaw !== undefined) && (percentageRaw !== '0')) { // a few tickers show strictly '0' in fluctuation field
+                const direction = percentageRaw[0];
+                percentage = direction + Precise.stringMul (percentageRaw.replace (direction, ''), '100');
+            } else if (percentageRaw === '0') {
+                percentage = '0';
             }
         }
-        const last = this.safeFloat (ticker, 'current_price');
-        const percentage = this.safeFloat (ticker, 'fluctuation');
-        return {
+        const baseVolume = this.safeString (ticker, 'base_volume_24h');
+        let quoteVolume = this.safeString (ticker, 'quote_volume_24h');
+        quoteVolume = this.safeString (ticker, 'volume_24h', quoteVolume);
+        const average = this.safeString2 (ticker, 'avg_price', 'index_price');
+        const price = this.safeString (ticker, 'depth_price', ticker);
+        const high = this.safeString2 (ticker, 'high_24h', 'high_price');
+        const low = this.safeString2 (ticker, 'low_24h', 'low_price');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'highest_price'),
-            'low': this.safeFloat (ticker, 'lowest_price'),
-            'bid': this.safeFloat (ticker, 'bid_1'),
-            'bidVolume': this.safeFloat (ticker, 'bid_1_amount'),
-            'ask': this.safeFloat (ticker, 'ask_1'),
-            'askVolume': this.safeFloat (ticker, 'ask_1_amount'),
+            'high': high,
+            'low': low,
+            'bid': this.safeString (price, 'best_bid'),
+            'bidVolume': this.safeString (ticker, 'best_bid_size'),
+            'ask': this.safeString (price, 'best_ask'),
+            'askVolume': this.safeString (ticker, 'best_ask_size'),
             'vwap': undefined,
-            'open': undefined,
+            'open': this.safeString (ticker, 'open_24h'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': percentage * 100,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': this.safeFloat (ticker, 'base_volume'),
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'symbol': this.marketId (symbol),
-        };
-        const response = await this.publicGetTicker (this.extend (request, params));
+        const market = this.market (symbol);
+        const request = {};
+        let method = undefined;
+        if (market['swap'] || market['future']) {
+            method = 'publicContractGetTickers';
+            request['contract_symbol'] = market['id'];
+        } else if (market['spot']) {
+            method = 'publicSpotGetTicker';
+            request['symbol'] = market['id'];
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
         //
         //     {
-        //         "volume":"97487.38",
-        //         "ask_1":"0.00148668",
-        //         "base_volume":"144.59",
-        //         "lowest_price":"0.00144362",
-        //         "bid_1":"0.00148017",
-        //         "highest_price":"0.00151000",
-        //         "ask_1_amount":"92.03",
-        //         "current_price":"0.00148230",
-        //         "fluctuation":"+0.0227",
-        //         "symbol_id":"XRP_ETH",
-        //         "url":"https://www.bitmart.com/trade?symbol=XRP_ETH",
-        //         "bid_1_amount":"134.78"
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"6aa5b923-2f57-46e3-876d-feca190e0b82",
+        //         "data":{
+        //             "tickers":[
+        //                 {
+        //                     "symbol":"ETH_BTC",
+        //                     "last_price":"0.036037",
+        //                     "quote_volume_24h":"4380.6660000000",
+        //                     "base_volume_24h":"159.3582006712",
+        //                     "high_24h":"0.036972",
+        //                     "low_24h":"0.035524",
+        //                     "open_24h":"0.036561",
+        //                     "close_24h":"0.036037",
+        //                     "best_ask":"0.036077",
+        //                     "best_ask_size":"9.9500",
+        //                     "best_bid":"0.035983",
+        //                     "best_bid_size":"4.2792",
+        //                     "fluctuation":"-0.0143",
+        //                     "url":"https://www.bitmart.com/trade?symbol=ETH_BTC"
+        //                 }
+        //             ]
+        //         }
         //     }
         //
-        return this.parseTicker (response);
+        // contract
+        //
+        //      {
+        //          "message":"OK",
+        //          "code":1000,
+        //          "trace":"4a0ebceb-d3f7-45a3-8feb-f61e230e24cd",
+        //          "data":{
+        //              "tickers":[
+        //                  {
+        //                      "contract_symbol":"DOGEUSDT",
+        //                      "last_price":"0.130180",
+        //                      "index_price":"0.13028635",
+        //                      "last_funding_rate":"0.00002025",
+        //                      "price_change_percent_24h":"-2.326",
+        //                      "volume_24h":"116789313.01797258",
+        //                      "url":"https://futures.bitmart.com/en?symbol=DOGEUSDT",
+        //                      "high_price":"0.134520",
+        //                      "low_price":"0.128570",
+        //                      "legal_coin_price":"0.13017401"
+        //                  }
+        //              ]
+        //          }
+        //      }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const tickers = this.safeValue (data, 'tickers', []);
+        // fails in naming for contract tickers 'contract_symbol'
+        let tickersById = undefined;
+        if (market['spot']) {
+            tickersById = this.indexBy (tickers, 'symbol');
+        } else if (market['swap'] || market['future']) {
+            tickersById = this.indexBy (tickers, 'contract_symbol');
+        }
+        const ticker = this.safeValue (tickersById, market['id']);
+        return this.parseTicker (ticker, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const tickers = await this.publicGetTicker (params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'publicSpotGetTicker',
+            'swap': 'publicContractGetTickers',
+            'future': 'publicContractGetTickers',
+        });
+        const response = await this[method] (query);
+        const data = this.safeValue (response, 'data', {});
+        const tickers = this.safeValue (data, 'tickers', []);
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchCurrencies (params = {}) {
-        const currencies = await this.publicGetCurrencies (params);
+        const response = await this.publicAccountGetCurrencies (params);
         //
-        //     [
-        //         {
-        //             "name":"CNY1",
-        //             "withdraw_enabled":false,
-        //             "id":"CNY1",
-        //             "deposit_enabled":false
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"8c768b3c-025f-413f-bec5-6d6411d46883",
+        //         "data":{
+        //             "currencies":[
+        //                 {"currency":"MATIC","name":"Matic Network","withdraw_enabled":true,"deposit_enabled":true},
+        //                 {"currency":"KTN","name":"Kasoutuuka News","withdraw_enabled":true,"deposit_enabled":false},
+        //                 {"currency":"BRT","name":"Berith","withdraw_enabled":true,"deposit_enabled":true},
+        //             ]
         //         }
-        //     ]
+        //     }
         //
+        const data = this.safeValue (response, 'data', {});
+        const currencies = this.safeValue (data, 'currencies', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
-            const currencyId = this.safeString (currency, 'id');
-            const code = this.safeCurrencyCode (currencyId);
+            const id = this.safeString (currency, 'currency');
+            const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'name');
             const withdrawEnabled = this.safeValue (currency, 'withdraw_enabled');
             const depositEnabled = this.safeValue (currency, 'deposit_enabled');
             const active = withdrawEnabled && depositEnabled;
             result[code] = {
-                'id': currencyId,
+                'id': id,
                 'code': code,
                 'name': name,
                 'info': currency, // the original payload
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': undefined,
                 'precision': undefined,
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
-                    'price': { 'min': undefined, 'max': undefined },
-                    'cost': { 'min': undefined, 'max': undefined },
                     'withdraw': { 'min': undefined, 'max': undefined },
                 },
             };
@@ -373,101 +906,166 @@ module.exports = class bitmart extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'symbol': this.marketId (symbol),
-            // 'precision': 4, // optional price precision / depth level whose range is defined in symbol details
-        };
-        const response = await this.publicGetSymbolsSymbolOrders (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'buys', 'sells', 'price', 'amount');
+        const market = this.market (symbol);
+        const request = {};
+        if (market['spot']) {
+            request['symbol'] = market['id'];
+            if (limit !== undefined) {
+                request['size'] = limit; // default 50, max 200
+            }
+            // request['precision'] = 4; // optional price precision / depth level whose range is defined in symbol details
+        } else if (market['swap'] || market['future']) {
+            throw new NotSupported (this.id + ' fetchOrderBook () does not accept swap or future markets, only spot markets are allowed');
+        }
+        const response = await this.publicSpotGetSymbolsBook (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"8254f8fc-431d-404f-ad9a-e716339f66c7",
+        //         "data":{
+        //             "buys":[
+        //                 {"amount":"4.7091","total":"4.71","price":"0.034047","count":"1"},
+        //                 {"amount":"5.7439","total":"10.45","price":"0.034039","count":"1"},
+        //                 {"amount":"2.5249","total":"12.98","price":"0.032937","count":"1"},
+        //             ],
+        //             "sells":[
+        //                 {"amount":"41.4365","total":"41.44","price":"0.034174","count":"1"},
+        //                 {"amount":"4.2317","total":"45.67","price":"0.034183","count":"1"},
+        //                 {"amount":"0.3000","total":"45.97","price":"0.034240","count":"1"},
+        //             ]
+        //         }
+        //     }
+        //
+        // contract
+        //
+        //     {
+        //         "errno":"OK",
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"c330dfca-ca5b-4f15-b350-9fef3f049b4f",
+        //         "data":{
+        //             "sells":[
+        //                 {"price":"347.6","vol":"6678"},
+        //                 {"price":"347.7","vol":"3452"},
+        //                 {"price":"347.8","vol":"6331"},
+        //             ],
+        //             "buys":[
+        //                 {"price":"347.5","vol":"6222"},
+        //                 {"price":"347.4","vol":"20979"},
+        //                 {"price":"347.3","vol":"15179"},
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrderBook (data, symbol, undefined, 'buys', 'sells', 'price', 'amount');
     }
 
     parseTrade (trade, market = undefined) {
         //
-        // fetchTrades (public)
+        // public fetchTrades spot ( amount = count * price )
         //
         //     {
-        //         "amount":"2.29275119",
-        //         "price":"0.021858",
-        //         "count":"104.8930",
-        //         "order_time":1563997286061,
-        //         "type":"sell"
+        //          "amount": "818.94",
+        //          "order_time": "1637601839035",    // ETH/USDT
+        //          "price": "4221.99",
+        //          "count": "0.19397",
+        //          "type": "buy"
+        //      }
+        //
+        // public fetchTrades contract, private fetchMyTrades contract
+        //
+        //     {
+        //         "order_id":109159616160,
+        //         "trade_id":109159616197,
+        //         "contract_id":2,
+        //         "deal_price":"347.6",
+        //         "deal_vol":"5623",
+        //         "make_fee":"-5.8636644",
+        //         "take_fee":"9.772774",
+        //         "created_at":"2020-09-09T11:49:50.749170536Z",
+        //         "way":1,
+        //         "fluctuation":"0"
         //     }
         //
-        // fetchMyTrades (private)
+        // private fetchMyTrades spot
         //
         //     {
-        //         active: true,
-        //             amount: '0.2000',
-        //             entrustType: 1,
-        //             entrust_id: 979648824,
-        //             fees: '0.0000085532',
-        //             price: '0.021383',
-        //             symbol: 'ETH_BTC',
-        //             timestamp: 1574343514000,
-        //             trade_id: 329418828
-        //     },
+        //         "detail_id":256348632,
+        //         "order_id":2147484350,
+        //         "symbol":"BTC_USDT",
+        //         "create_time":1590462303000,
+        //         "side":"buy",
+        //         "fees":"0.00001350",
+        //         "fee_coin_name":"BTC",
+        //         "notional":"88.00000000",
+        //         "price_avg":"8800.00",
+        //         "size":"0.01000",
+        //         "exec_type":"M"
+        //     }
         //
-        const id = this.safeString (trade, 'trade_id');
-        const timestamp = this.safeInteger2 (trade, 'timestamp', 'order_time');
+        const id = this.safeString2 (trade, 'trade_id', 'detail_id');
+        let timestamp = this.safeInteger2 (trade, 'order_time', 'create_time');
+        if (timestamp === undefined) {
+            timestamp = this.safeTimestamp (trade, 's_t');
+        }
+        if (timestamp === undefined) {
+            timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
+        }
         const type = undefined;
-        let side = this.safeStringLower (trade, 'type');
-        if ((side === undefined) && ('entrustType' in trade)) {
-            side = trade['entrustType'] ? 'sell' : 'buy';
-        }
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = amount * price;
-            }
-        }
-        const orderId = this.safeInteger (trade, 'entrust_id');
-        const marketId = this.safeString (trade, 'symbol');
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
+        const way = this.safeInteger (trade, 'way');
+        let side = this.safeStringLower2 (trade, 'type', 'side');
+        if ((side === undefined) && (way !== undefined)) {
+            if (way < 5) {
+                side = 'buy';
             } else {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
+                side = 'sell';
             }
         }
-        if (symbol === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
+        let takerOrMaker = undefined;
+        const execType = this.safeString (trade, 'exec_type');
+        if (execType !== undefined) {
+            takerOrMaker = (execType === 'M') ? 'maker' : 'taker';
         }
-        const feeCost = this.safeFloat (trade, 'fees');
+        let priceString = this.safeString2 (trade, 'price', 'deal_price');
+        priceString = this.safeString (trade, 'price_avg', priceString);
+        let amountString = this.safeString2 (trade, 'count', 'deal_vol');
+        amountString = this.safeString (trade, 'size', amountString);
+        const costString = this.safeString2 (trade, 'amount', 'notional');
+        const orderId = this.safeInteger (trade, 'order_id');
+        const marketId = this.safeString2 (trade, 'contract_id', 'symbol');
+        market = this.safeMarket (marketId, market, '_');
+        const feeCostString = this.safeString (trade, 'fees');
         let fee = undefined;
-        if (feeCost !== undefined) {
-            let feeCurrencyCode = undefined;
-            if (market !== undefined) {
+        if (feeCostString !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'fee_coin_name');
+            let feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            if (feeCurrencyCode === undefined) {
                 feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
             }
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'takerOrMaker': undefined,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
+            'takerOrMaker': takerOrMaker,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -476,138 +1074,425 @@ module.exports = class bitmart extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetSymbolsSymbolTrades (this.extend (request, params));
+        if (market['spot']) {
+            request['symbol'] = market['id'];
+        } else if (market['swap'] || market['future']) {
+            throw new NotSupported (this.id + ' fetchTrades () does not accept swap or future markets, only spot markets are allowed');
+        }
+        const response = await this.publicSpotGetSymbolsTrades (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"222d74c0-8f6d-49d9-8e1b-98118c50eeba",
+        //         "data":{
+        //             "trades":[
+        //                 {
+        //                     "amount":"0.005703",
+        //                     "order_time":1599652045394,
+        //                     "price":"0.034029",
+        //                     "count":"0.1676",
+        //                     "type":"sell"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        // contract
+        //
+        //     {
+        //         "errno":"OK",
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"782bc746-b86e-43bf-8d1a-c68b479c9bdd",
+        //         "data":{
+        //             "trades":[
+        //                 {
+        //                     "order_id":109159616160,
+        //                     "trade_id":109159616197,
+        //                     "contract_id":2,
+        //                     "deal_price":"347.6",
+        //                     "deal_vol":"5623",
+        //                     "make_fee":"-5.8636644",
+        //                     "take_fee":"9.772774",
+        //                     "created_at":"2020-09-09T11:49:50.749170536Z",
+        //                     "way":1,
+        //                     "fluctuation":"0"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const trades = this.safeValue (data, 'trades', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        // spot
+        //
+        //     {
+        //         "last_price":"0.034987",
+        //         "timestamp":1598787420,
+        //         "volume":"1.0198",
+        //         "open":"0.035007",
+        //         "close":"0.034987",
+        //         "high":"0.035007",
+        //         "low":"0.034986"
+        //     }
+        //
+        // contract
+        //
+        //     {
+        //         "low":"404.4",
+        //         "high":"404.4",
+        //         "open":"404.4",
+        //         "close":"404.4",
+        //         "last_price":"404.4",
+        //         "avg_price":"404.4",
+        //         "volume":"7670",
+        //         "timestamp":1598758441,
+        //         "rise_fall_rate":"0",
+        //         "rise_fall_value":"0",
+        //         "base_coin_volume":"76.7",
+        //         "quote_coin_volume":"31017.48"
+        //     }
+        //
+        // ws
         //
         //     [
-        //         {
-        //             "amount":"2.29275119",
-        //             "price":"0.021858",
-        //             "count":"104.8930",
-        //             "order_time":1563997286061,
-        //             "type":"sell"
-        //         }
+        //         1631056350, // timestamp
+        //         '46532.83', // oopen
+        //         '46555.71', // high
+        //         '46511.41', // low
+        //         '46555.71', // close
+        //         '0.25', // volume
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        if (Array.isArray (ohlcv)) {
+            return [
+                this.safeTimestamp (ohlcv, 0),
+                this.safeNumber (ohlcv, 1),
+                this.safeNumber (ohlcv, 2),
+                this.safeNumber (ohlcv, 3),
+                this.safeNumber (ohlcv, 4),
+                this.safeNumber (ohlcv, 5),
+            ];
+        } else {
+            return [
+                this.safeTimestamp (ohlcv, 'timestamp'),
+                this.safeNumber (ohlcv, 'open'),
+                this.safeNumber (ohlcv, 'high'),
+                this.safeNumber (ohlcv, 'low'),
+                this.safeNumber (ohlcv, 'close'),
+                this.safeNumber (ohlcv, 'volume'),
+            ];
+        }
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const type = market['type'];
+        const request = {};
+        const duration = this.parseTimeframe (timeframe);
+        if (type === 'spot') {
+            request['symbol'] = market['id'];
+            request['step'] = this.timeframes[timeframe];
+            // the exchange will return an empty array if more than 500 candles is requested
+            const maxLimit = 500;
+            if (limit === undefined) {
+                limit = maxLimit;
+            }
+            limit = Math.min (maxLimit, limit);
+            if (since === undefined) {
+                const end = parseInt (this.milliseconds () / 1000);
+                const start = end - limit * duration;
+                request['from'] = start;
+                request['to'] = end;
+            } else {
+                const start = parseInt (since / 1000) - 1;
+                const end = this.sum (start, limit * duration);
+                request['from'] = start;
+                request['to'] = end;
+            }
+        } else if ((type === 'swap') || (type === 'future')) {
+            throw new NotSupported (this.id + ' fetchOHLCV () does not accept swap or future markets, only spot markets are allowed');
+        }
+        const response = await this.publicSpotGetSymbolsKline (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"80d86378-ab4e-4c70-819e-b42146cf87ad",
+        //         "data":{
+        //             "klines":[
+        //                 {"last_price":"0.034987","timestamp":1598787420,"volume":"1.0198","open":"0.035007","close":"0.034987","high":"0.035007","low":"0.034986"},
+        //                 {"last_price":"0.034986","timestamp":1598787480,"volume":"0.3959","open":"0.034982","close":"0.034986","high":"0.034986","low":"0.034980"},
+        //                 {"last_price":"0.034978","timestamp":1598787540,"volume":"0.3259","open":"0.034987","close":"0.034978","high":"0.034987","low":"0.034977"},
+        //             ]
+        //         }
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "errno":"OK",
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"32965074-5804-4655-b693-e953e36026a0",
+        //         "data":[
+        //             {"low":"404.4","high":"404.4","open":"404.4","close":"404.4","last_price":"404.4","avg_price":"404.4","volume":"7670","timestamp":1598758441,"rise_fall_rate":"0","rise_fall_value":"0","base_coin_volume":"76.7","quote_coin_volume":"31017.48"},
+        //             {"low":"404.1","high":"404.4","open":"404.4","close":"404.1","last_price":"404.1","avg_price":"404.15881086","volume":"12076","timestamp":1598758501,"rise_fall_rate":"-0.000741839762611276","rise_fall_value":"-0.3","base_coin_volume":"120.76","quote_coin_volume":"48806.2179994536"},
+        //             {"low":"404","high":"404.3","open":"404.1","close":"404","last_price":"404","avg_price":"404.08918918","volume":"740","timestamp":1598758561,"rise_fall_rate":"-0.000247463499133878","rise_fall_value":"-0.1","base_coin_volume":"7.4","quote_coin_volume":"2990.259999932"},
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const klines = this.safeValue (data, 'klines', []);
+        return this.parseOHLCVs (klines, market, timeframe, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades () requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // limit is required, must be in the range (0, 50)
-        const maxLimit = 50;
-        limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
-        const request = {
-            'symbol': market['id'],
-            'offset': 0, // current page, starts from 0
-            'limit': limit, // required
-        };
-        const response = await this.privateGetTrades (this.extend (request, params));
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        if ((marketType === 'swap') || (marketType === 'future')) {
+            throw new NotSupported (this.id + ' fetchMyTrades () does not accept swap or future markets, only spot markets are allowed');
+        }
+        const request = {};
+        if (market['spot']) {
+            request['symbol'] = market['id'];
+            request['offset'] = 1; // max offset * limit < 500
+            if (limit === undefined) {
+                limit = 100; // max 100
+            }
+            request['limit'] = limit;
+        } else if (market['swap'] || market['future']) {
+            throw new NotSupported (this.id + ' fetchMyTrades () does not accept swap or future markets, only spot markets are allowed');
+        }
+        const response = await this.privateSpotGetTrades (this.extend (request, query));
+        //
+        // spot
         //
         //     {
-        //         "total_trades": 216,
-        //         "total_pages": 22,
-        //         "current_page": 0,
-        //         "trades": [
-        //             {
-        //                 "symbol": "BMX_ETH",
-        //                 "amount": "1.0",
-        //                 "fees": "0.0005000000",
-        //                 "trade_id": 2734956,
-        //                 "price": "0.00013737",
-        //                 "active": true,
-        //                 "entrust_id": 5576623,
-        //                 "timestamp": 1545292334000
-        //             },
-        //         ]
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"a06a5c53-8e6f-42d6-8082-2ff4718d221c",
+        //         "data":{
+        //             "current_page":1,
+        //             "trades":[
+        //                 {
+        //                     "detail_id":256348632,
+        //                     "order_id":2147484350,
+        //                     "symbol":"BTC_USDT",
+        //                     "create_time":1590462303000,
+        //                     "side":"buy",
+        //                     "fees":"0.00001350",
+        //                     "fee_coin_name":"BTC",
+        //                     "notional":"88.00000000",
+        //                     "price_avg":"8800.00",
+        //                     "size":"0.01000",
+        //                     "exec_type":"M"
+        //                 },
+        //             ]
+        //         }
         //     }
         //
-        const trades = this.safeValue (response, 'trades', []);
+        // contract
+        //
+        //     {
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": {
+        //             "trades": [
+        //                 {
+        //                     "order_id": 10116361,
+        //                     "trade_id": 10116363,
+        //                     "contract_id": 1,
+        //                     "deal_price": "16",
+        //                     "deal_vol": "10",
+        //                     "make_fee": "0.04",
+        //                     "take_fee": "0.12",
+        //                     "created_at": null,
+        //                     "way": 5,
+        //                     "fluctuation": "0"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const trades = this.safeValue (data, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'entrust_id': id,
-        };
-        return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
-    }
-
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        return [
-            this.safeInteger (ohlcv, 'timestamp'),
-            this.safeFloat (ohlcv, 'open_price'),
-            this.safeFloat (ohlcv, 'highest_price'),
-            this.safeFloat (ohlcv, 'lowest_price'),
-            this.safeFloat (ohlcv, 'current_price'),
-            this.safeFloat (ohlcv, 'volume'),
-        ];
-    }
-
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        if (since === undefined && limit === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV requires either a `since` argument or a `limit` argument (or both)');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const periodInSeconds = this.parseTimeframe (timeframe);
-        const duration = periodInSeconds * limit * 1000;
-        let to = this.milliseconds ();
-        if (since === undefined) {
-            since = to - duration;
-        } else {
-            to = this.sum (since, duration);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
+        if ((marketType === 'swap') || (marketType === 'future')) {
+            throw new NotSupported (this.id + ' fetchOrderTrades () does not accept swap or future orders, only spot orders are allowed');
         }
-        const request = {
-            'symbol': market['id'],
-            'from': since, // start time of k-line data (in milliseconds, required)
-            'to': to, // end time of k-line data (in milliseconds, required)
-            'step': this.timeframes[timeframe], // steps of sampling (in minutes, default 1 minute, optional)
-        };
-        const response = await this.publicGetSymbolsSymbolKline (this.extend (request, params));
+        const request = {};
+        if (market['spot']) {
+            request['symbol'] = market['id'];
+            request['order_id'] = id;
+        } else if (market['swap'] || market['future']) {
+            throw new NotSupported (this.id + ' fetchOrderTrades () does not accept swap or future orders, only spot orders are allowed');
+        }
+        const response = await this.privateSpotGetTrades (this.extend (request, query));
         //
-        //     [
-        //         {
-        //             "timestamp":1525761000000,
-        //             "open_price":"0.010130",
-        //             "highest_price":"0.010130",
-        //             "lowest_price":"0.010130",
-        //             "current_price":"0.010130",
-        //             "volume":"0.000000"
+        // spot
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"a06a5c53-8e6f-42d6-8082-2ff4718d221c",
+        //         "data":{
+        //             "current_page":1,
+        //             "trades":[
+        //                 {
+        //                     "detail_id":256348632,
+        //                     "order_id":2147484350,
+        //                     "symbol":"BTC_USDT",
+        //                     "create_time":1590462303000,
+        //                     "side":"buy",
+        //                     "fees":"0.00001350",
+        //                     "fee_coin_name":"BTC",
+        //                     "notional":"88.00000000",
+        //                     "price_avg":"8800.00",
+        //                     "size":"0.01000",
+        //                     "exec_type":"M"
+        //                 },
+        //             ]
         //         }
-        //     ]
+        //     }
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        // contract
+        //
+        //     {
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": {
+        //             "trades": [
+        //                 {
+        //                     "order_id": 10116361,
+        //                     "trade_id": 10116363,
+        //                     "contract_id": 1,
+        //                     "deal_price": "16",
+        //                     "deal_vol": "10",
+        //                     "make_fee": "0.04",
+        //                     "take_fee": "0.12",
+        //                     "created_at": null,
+        //                     "way": 5,
+        //                     "fluctuation": "0"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const trades = this.safeValue (data, 'trades', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    parseBalance (response) {
+        const data = this.safeValue (response, 'data', {});
+        const wallet = this.safeValue2 (data, 'wallet', 'accounts', []);
+        const result = { 'info': response };
+        for (let i = 0; i < wallet.length; i++) {
+            const balance = wallet[i];
+            let currencyId = this.safeString2 (balance, 'id', 'currency');
+            currencyId = this.safeString (balance, 'coin_code', currencyId);
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString2 (balance, 'available', 'available_vol');
+            account['used'] = this.safeString2 (balance, 'frozen', 'freeze_vol');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const balances = await this.privateGetWallet (params);
-        //
-        //     [
-        //         {
-        //             "name":"Bitcoin",
-        //             "available":"0.0000000000",
-        //             "frozen":"0.0000000000",
-        //             "id":"BTC"
-        //         }
-        //     ]
-        //
-        const result = { 'info': balances };
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyId = this.safeString (balance, 'id');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'frozen');
-            result[code] = account;
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        if ((marketType === 'swap') || (marketType === 'future')) {
+            throw new NotSupported (this.id + ' fetchBalance () does not accept swap or future balances, only spot and account balances are allowed');
         }
-        return this.parseBalance (result);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotGetWallet',
+            'account': 'privateAccountGetWallet',
+        });
+        const response = await this[method] (query);
+        //
+        // spot
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"39069916-72f9-44c7-acde-2ad5afd21cad",
+        //         "data":{
+        //             "wallet":[
+        //                 {"id":"BTC","name":"Bitcoin","available":"0.00000062","frozen":"0.00000000"},
+        //                 {"id":"ETH","name":"Ethereum","available":"0.00002277","frozen":"0.00000000"},
+        //                 {"id":"BMX","name":"BitMart Token","available":"0.00000000","frozen":"0.00000000"}
+        //             ]
+        //         }
+        //     }
+        //
+        // account
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"5c3b7fc7-93b2-49ef-bb59-7fdc56915b59",
+        //         "data":{
+        //             "wallet":[
+        //                 {"currency":"BTC","name":"Bitcoin","available":"0.00000062","frozen":"0.00000000"},
+        //                 {"currency":"ETH","name":"Ethereum","available":"0.00002277","frozen":"0.00000000"}
+        //             ]
+        //         }
+        //     }
+        //
+        // contract
+        //
+        //     {
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": {
+        //             "accounts": [
+        //                 {
+        //                     "account_id": 10,
+        //                     "coin_code": "USDT",
+        //                     "freeze_vol": "1201.8",
+        //                     "available_vol": "8397.65",
+        //                     "cash_vol": "0",
+        //                     "realised_vol": "-0.5",
+        //                     "unrealised_vol": "-0.5",
+        //                     "earnings_vol": "-0.5",
+        //                     "created_at": "2018-07-13T16:48:49+08:00",
+        //                     "updated_at": "2018-07-13T18:34:45.900387+08:00"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        return this.parseBalance (response);
     }
 
     parseOrder (order, market = undefined) {
@@ -615,237 +1500,811 @@ module.exports = class bitmart extends Exchange {
         // createOrder
         //
         //     {
-        //         "entrust_id":1223181
+        //         "order_id": 2707217580
         //     }
         //
         // cancelOrder
         //
-        //     {}
+        //     '2707217580' // order id
         //
-        // fetchOrder, fetchOrdersByStatus, fetchOpenOrders, fetchClosedOrders
+        // spot fetchOrder, fetchOrdersByStatus, fetchOpenOrders, fetchClosedOrders
         //
         //     {
-        //         "entrust_id":1223181,
-        //         "symbol":"BMX_ETH",
-        //         "timestamp":1528060666000,
-        //         "side":"buy",
-        //         "price":"1.000000",
-        //         "fees":"0.1",
-        //         "original_amount":"1",
-        //         "executed_amount":"1",
-        //         "remaining_amount":"0",
-        //         "status":3
+        //         "order_id":1736871726781,
+        //         "symbol":"BTC_USDT",
+        //         "create_time":1591096004000,
+        //         "side":"sell",
+        //         "type":"market",
+        //         "price":"0.00",
+        //         "price_avg":"0.00",
+        //         "size":"0.02000",
+        //         "notional":"0.00000000",
+        //         "filled_notional":"0.00000000",
+        //         "filled_size":"0.00000",
+        //         "status":"8"
         //     }
         //
-        const id = this.safeString (order, 'entrust_id');
-        const timestamp = this.milliseconds ();
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let symbol = undefined;
-        const marketId = this.safeString (order, 'symbol');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
+        // contract fetchOrder, fetchOrdersByStatus, fetchOpenOrders, fetchClosedOrders, fetchOrders
+        //
+        //     {
+        //         "order_id": 10539098,
+        //         "contract_id": 1,
+        //         "position_id": 10539088,
+        //         "account_id": 10,
+        //         "price": "16",
+        //         "vol": "1",
+        //         "done_avg_price": "16",
+        //         "done_vol": "1",
+        //         "way": 3,
+        //         "category": 1,
+        //         "open_type": 2,
+        //         "make_fee": "0.00025",
+        //         "take_fee": "0.012",
+        //         "origin": "",
+        //         "created_at": "2018-07-23T11:55:56.715305Z",
+        //         "finished_at": "2018-07-23T11:55:56.763941Z",
+        //         "status": 4,
+        //         "errno": 0
+        //     }
+        //
+        let id = undefined;
+        if (typeof order === 'string') {
+            id = order;
+            order = {};
         }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
+        id = this.safeString (order, 'order_id', id);
+        let timestamp = this.parse8601 (this.safeString (order, 'created_at'));
+        timestamp = this.safeInteger (order, 'create_time', timestamp);
+        const marketId = this.safeString2 (order, 'symbol', 'contract_id');
+        const symbol = this.safeSymbol (marketId, market, '_');
+        let status = undefined;
+        if (market !== undefined) {
+            status = this.parseOrderStatusByType (market['type'], this.safeString (order, 'status'));
         }
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'original_amount');
-        let cost = undefined;
-        let filled = this.safeFloat (order, 'executed_amount');
-        let remaining = this.safeFloat (order, 'remaining_amount');
-        if (amount !== undefined) {
-            if (remaining !== undefined) {
-                if (filled === undefined) {
-                    filled = amount - remaining;
-                }
-            }
-            if (filled !== undefined) {
-                if (remaining === undefined) {
-                    remaining = amount - filled;
-                }
-                if (cost === undefined) {
-                    if (price !== undefined) {
-                        cost = price * filled;
-                    }
-                }
-            }
+        const amount = this.safeString2 (order, 'size', 'vol');
+        const filled = this.safeString2 (order, 'filled_size', 'done_vol');
+        const average = this.safeString2 (order, 'price_avg', 'done_avg_price');
+        const price = this.safeString (order, 'price');
+        const side = this.safeString2 (order, 'way', 'side');
+        // 1 = Open long
+        // 2 = Close short
+        // 3 = Close long
+        // 4 = Open short
+        const category = this.safeInteger (order, 'category');
+        let type = this.safeString (order, 'type');
+        if (category === 1) {
+            type = 'limit';
+        } else if (category === 2) {
+            type = 'market';
         }
-        const side = this.safeString (order, 'side');
-        const type = undefined;
-        return {
+        return this.safeOrder ({
             'id': id,
+            'clientOrderId': undefined,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': undefined,
-            'average': undefined,
+            'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        };
+        }, market);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
-            '0': 'all',
-            '1': 'open',
-            '2': 'open',
-            '3': 'closed',
-            '4': 'canceled',
-            '5': 'open',
-            '6': 'closed',
+    parseOrderStatusByType (type, status) {
+        const statusesByType = {
+            'spot': {
+                '1': 'failed', // Order failure
+                '2': 'open', // Placing order
+                '3': 'failed', // Order failure, Freeze failure
+                '4': 'open', // Order success, Pending for fulfilment
+                '5': 'open', // Partially filled
+                '6': 'closed', // Fully filled
+                '7': 'canceling', // Canceling
+                '8': 'canceled', // Canceled
+            },
+            'swap': {
+                '1': 'open', // Submitting
+                '2': 'open', // Commissioned
+                '4': 'closed', // Completed
+            },
         };
+        const statuses = this.safeValue (statusesByType, type, {});
         return this.safeString (statuses, status, status);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-            'side': side.toLowerCase (),
-            'amount': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
-        };
-        const response = await this.privatePostOrders (this.extend (request, params));
+        const request = {};
+        let method = undefined;
+        if (market['spot']) {
+            request['symbol'] = market['id'];
+            request['side'] = side;
+            request['type'] = type;
+            method = 'privateSpotPostSubmitOrder';
+            if (type === 'limit') {
+                request['size'] = this.amountToPrecision (symbol, amount);
+                request['price'] = this.priceToPrecision (symbol, price);
+            } else if (type === 'market') {
+                // for market buy it requires the amount of quote currency to spend
+                if (side === 'buy') {
+                    let notional = this.safeNumber (params, 'notional');
+                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                    if (createMarketBuyOrderRequiresPrice) {
+                        if (price !== undefined) {
+                            if (notional === undefined) {
+                                notional = amount * price;
+                            }
+                        } else if (notional === undefined) {
+                            throw new InvalidOrder (this.id + " createOrder () requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter (the exchange-specific behaviour)");
+                        }
+                    } else {
+                        notional = (notional === undefined) ? amount : notional;
+                    }
+                    const precision = market['precision']['price'];
+                    request['notional'] = this.decimalToPrecision (notional, TRUNCATE, precision, this.precisionMode);
+                } else if (side === 'sell') {
+                    request['size'] = this.amountToPrecision (symbol, amount);
+                }
+            }
+        } else if (market['swap'] || market['future']) {
+            throw new NotSupported (this.id + ' createOrder () does not accept swap or future orders, only spot orders are allowed');
+        }
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        if ((timeInForce !== undefined) || postOnly || (type === 'limit_maker') || (type === 'ioc')) {
+            if (timeInForce === 'FOK') {
+                throw new InvalidOrder (this.id + ' createOrder () only accepts timeInForce parameter values of IOC or PO');
+            }
+            const maker = ((timeInForce === 'PO') || postOnly || (type === 'limit_maker'));
+            const ioc = ((timeInForce === 'IOC') || (type === 'ioc'));
+            if (maker && ioc) {
+                throw new InvalidOrder (this.id + ' createOrder () does not accept IOC postOnly orders, the order cannot be both postOnly and IOC');
+            }
+            if (type === 'market') {
+                throw new InvalidOrder (this.id + ' createOrder () does not accept market postOnly orders or market IOC orders, only limit postOnly order or limit IOC orders are allowed');
+            }
+            if (maker) {
+                request['type'] = 'limit_maker';
+            } else if (ioc) {
+                request['type'] = 'ioc';
+            }
+            params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot and contract
         //
         //     {
-        //         "entrust_id":1223181
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": {
+        //             "order_id": 2707217580
+        //         }
         //     }
         //
-        return this.parseOrder (response, market);
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder () requires a symbol argument');
+        }
         await this.loadMarkets ();
-        const intId = parseInt (id);
-        const request = {
-            'id': intId,
-            'entrust_id': intId,
-        };
-        const response = await this.privateDeleteOrdersId (this.extend (request, params));
+        const market = this.market (symbol);
+        const request = {};
+        if (market['spot']) {
+            request['order_id'] = parseInt (id);
+            request['symbol'] = market['id'];
+        } else if (market['swap'] || market['future']) {
+            throw new NotSupported (this.id + ' cancelOrder () does not accept swap or future orders, only spot orders are allowed');
+        }
+        const response = await this.privateSpotPostCancelOrder (this.extend (request, params));
         //
-        // responds with an empty object {}
+        // spot
         //
-        return this.parseOrder (response);
+        //     {
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": {
+        //             "result": true
+        //         }
+        //     }
+        //
+        // spot alternative
+        //
+        //     {
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": true
+        //     }
+        //
+        // contract
+        //
+        //     {
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": {
+        //             "succeed": [
+        //                 2707219612
+        //             ],
+        //             "failed": []
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        if (data === true) {
+            return this.parseOrder (id, market);
+        }
+        const succeeded = this.safeValue (data, 'succeed');
+        if (succeeded !== undefined) {
+            id = this.safeString (succeeded, 0);
+            if (id === undefined) {
+                throw new InvalidOrder (this.id + ' cancelOrder() failed to cancel ' + symbol + ' order id ' + id);
+            }
+        } else {
+            const result = this.safeValue (data, 'result');
+            if (!result) {
+                throw new InvalidOrder (this.id + ' cancelOrder() ' + symbol + ' order id ' + id + ' is filled or canceled');
+            }
+        }
+        const order = this.parseOrder (id, market);
+        return this.extend (order, { 'id': id });
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
         const side = this.safeString (params, 'side');
         if (side === undefined) {
-            throw new ArgumentsRequired (this.id + " cancelAllOrders requires a `side` parameter ('buy' or 'sell')");
+            throw new ArgumentsRequired (this.id + " cancelAllOrders() requires a `side` parameter ('buy' or 'sell')");
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' cancelAllOrders() does not support ' + market['type'] + ' orders, only spot orders are accepted');
+        }
         const request = {
             'symbol': market['id'],
             'side': side, // 'buy' or 'sell'
         };
-        const response = await this.privateDeleteOrders (this.extend (request, params));
+        const response = await this.privateSpotPostCancelOrders (this.extend (request, params));
         //
-        // responds with an empty object {}
+        //     {
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": {}
+        //     }
         //
         return response;
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (limit === undefined) {
-            limit = 500; // default 500, max 1000
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
+        if ((marketType === 'swap') || (marketType === 'future')) {
+            throw new NotSupported (this.id + ' fetchOrdersByStatus () does not support swap or futures orders, only spot orders are allowed');
         }
-        const request = {
-            'symbol': market['id'],
-            'status': status,
-            'offset': 0, // current page, starts from 0
-            'limit': limit,
-        };
-        const response = await this.privateGetOrders (this.extend (request, params));
+        const request = {};
+        if (market['spot']) {
+            request['symbol'] = market['id'];
+            request['offset'] = 1; // max offset * limit < 500
+            request['limit'] = 100; // max limit is 100
+            //  1 = Order failure
+            //  2 = Placing order
+            //  3 = Order failure, Freeze failure
+            //  4 = Order success, Pending for fulfilment
+            //  5 = Partially filled
+            //  6 = Fully filled
+            //  7 = Canceling
+            //  8 = Canceled
+            //  9 = Outstanding (4 and 5)
+            // 10 = 6 and 8
+            if (status === 'open') {
+                request['status'] = 9;
+            } else if (status === 'closed') {
+                request['status'] = 6;
+            } else if (status === 'canceled') {
+                request['status'] = 8;
+            } else {
+                request['status'] = status;
+            }
+        } else if (market['swap'] || market['future']) {
+            throw new NotSupported (this.id + ' fetchOrdersByStatus () does not support swap or futures orders, only spot orders are allowed');
+        }
+        const response = await this.privateSpotGetOrders (this.extend (request, query));
+        //
+        // spot
         //
         //     {
-        //         "orders":[
-        //             {
-        //                 "entrust_id":1223181,
-        //                 "symbol":"BMX_ETH",
-        //                 "timestamp":1528060666000,
-        //                 "side":"buy",
-        //                 "price":"1.000000",
-        //                 "fees":"0.1",
-        //                 "original_amount":"1",
-        //                 "executed_amount":"1",
-        //                 "remaining_amount":"0",
-        //                 "status":3
-        //             }
-        //         ],
-        //         "total_pages":1,
-        //         "total_orders":1,
-        //         "current_page":0,
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"70e7d427-7436-4fb8-8cdd-97e1f5eadbe9",
+        //         "data":{
+        //             "current_page":1,
+        //             "orders":[
+        //                 {
+        //                     "order_id":2147601241,
+        //                     "symbol":"BTC_USDT",
+        //                     "create_time":1591099963000,
+        //                     "side":"sell",
+        //                     "type":"limit",
+        //                     "price":"9000.00",
+        //                     "price_avg":"0.00",
+        //                     "size":"1.00000",
+        //                     "notional":"9000.00000000",
+        //                     "filled_notional":"0.00000000",
+        //                     "filled_size":"0.00000",
+        //                     "status":"4"
+        //                 }
+        //             ]
+        //         }
         //     }
         //
-        const orders = this.safeValue (response, 'orders', []);
+        // contract
+        //
+        //     {
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "order_id": 10284160,
+        //                     "contract_id": 1,
+        //                     "price": "8",
+        //                     "vol": "4",
+        //                     "done_avg_price": "0",
+        //                     "done_vol": "0",
+        //                     "way": 1,
+        //                     "category": 1,
+        //                     "open_type": 2,
+        //                     "make_fee": "0",
+        //                     "take_fee": "0",
+        //                     "origin": "",
+        //                     "created_at": "2018-07-17T07:24:13.410507Z",
+        //                     "finished_at": null,
+        //                     "status": 2,
+        //                     "errno": 0
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const orders = this.safeValue (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // 5 = pending & partially filled orders
-        return await this.fetchOrdersByStatus (5, symbol, since, limit, params);
+        return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // 3 = closed orders
-        return await this.fetchOrdersByStatus (3, symbol, since, limit, params);
+        return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
     }
 
     async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // 4 = canceled orders
-        return await this.fetchOrdersByStatus (4, symbol, since, limit, params);
+        return await this.fetchOrdersByStatus ('canceled', symbol, since, limit, params);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const request = {};
+        const market = this.market (symbol);
+        if (typeof id !== 'string') {
+            id = id.toString ();
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        if ((marketType === 'swap') || (marketType === 'future')) {
+            throw new NotSupported (this.id + ' fetchOrder () does not support swap or futures orders, only spot orders are allowed');
+        }
+        if (market['spot']) {
+            request['symbol'] = market['id'];
+            request['order_id'] = id;
+        } else if (market['swap'] || market['future']) {
+            throw new NotSupported (this.id + ' fetchOrder () does not support swap or futures orders, only spot orders are allowed');
+        }
+        const response = await this.privateSpotGetOrderDetail (this.extend (request, query));
+        //
+        // spot
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"a27c2cb5-ead4-471d-8455-1cfeda054ea6",
+        //         "data": {
+        //             "order_id":1736871726781,
+        //             "symbol":"BTC_USDT",
+        //             "create_time":1591096004000,
+        //             "side":"sell",
+        //             "type":"market",
+        //             "price":"0.00",
+        //             "price_avg":"0.00",
+        //             "size":"0.02000",
+        //             "notional":"0.00000000",
+        //             "filled_notional":"0.00000000",
+        //             "filled_size":"0.00000",
+        //             "status":"8"
+        //         }
+        //     }
+        //
+        // contract
+        //
+        //     {
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "order_id": 10539098,
+        //                     "contract_id": 1,
+        //                     "position_id": 10539088,
+        //                     "account_id": 10,
+        //                     "price": "16",
+        //                     "vol": "1",
+        //                     "done_avg_price": "16",
+        //                     "done_vol": "1",
+        //                     "way": 3,
+        //                     "category": 1,
+        //                     "make_fee": "0.00025",
+        //                     "take_fee": "0.012",
+        //                     "origin": "",
+        //                     "created_at": "2018-07-23T11:55:56.715305Z",
+        //                     "finished_at": "2018-07-23T11:55:56.763941Z",
+        //                     "status": 4,
+        //                     "errno": 0
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        if ('orders' in data) {
+            const orders = this.safeValue (data, 'orders', []);
+            const firstOrder = this.safeValue (orders, 0);
+            if (firstOrder === undefined) {
+                throw new OrderNotFound (this.id + ' fetchOrder() could not find ' + symbol + ' order id ' + id);
+            }
+            return this.parseOrder (firstOrder, market);
+        } else {
+            return this.parseOrder (data, market);
+        }
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        if (code === 'USDT') {
+            const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
+            const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
+            const networks = this.safeValue (this.options, 'networks', {});
+            let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
+            network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+            if (network !== undefined) {
+                request['currency'] += '-' + network; // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                params = this.omit (params, 'network');
+            }
+        }
+        const response = await this.privateAccountGetDepositAddress (this.extend (request, params));
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"0e6edd79-f77f-4251-abe5-83ba75d06c1a",
+        //         "data":{
+        //             "currency":"USDT-TRC20",
+        //             "chain":"USDT-TRC20",
+        //             "address":"TGR3ghy2b5VLbyAYrmiE15jasR6aPHTvC5",
+        //             "address_memo":""
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const address = this.safeString (data, 'address');
+        const tag = this.safeString (data, 'address_memo');
+        const chain = this.safeString (data, 'chain');
+        let network = undefined;
+        if (chain !== undefined) {
+            const parts = chain.split ('-');
+            const networkId = this.safeString (parts, 1);
+            network = this.safeNetwork (networkId);
+        }
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'network': network,
+            'info': response,
+        };
+    }
+
+    safeNetwork (networkId) {
+        // TODO: parse
+        return networkId;
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'amount': amount,
+            'destination': 'To Digital Address', // To Digital Address, To Binance, To OKEX
+            'address': address,
+        };
+        if (tag !== undefined) {
+            request['address_memo'] = tag;
+        }
+        if (code === 'USDT') {
+            const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
+            const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
+            const networks = this.safeValue (this.options, 'networks', {});
+            let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
+            network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+            if (network !== undefined) {
+                request['currency'] += '-' + network; // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                params = this.omit (params, 'network');
+            }
+        }
+        const response = await this.privateAccountPostWithdrawApply (this.extend (request, params));
+        //
+        //     {
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": {
+        //             "withdraw_id": "121212"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const transaction = this.parseTransaction (data, currency);
+        return this.extend (transaction, {
+            'code': code,
+            'address': address,
+            'tag': tag,
+        });
+    }
+
+    async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (limit === undefined) {
+            limit = 50; // max 50
+        }
+        const request = {
+            'operation_type': type, // deposit or withdraw
+            'offset': 1,
+            'limit': limit,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.privateAccountGetDepositWithdrawHistory (this.extend (request, params));
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"142bf92a-fc50-4689-92b6-590886f90b97",
+        //         "data":{
+        //             "records":[
+        //                 {
+        //                     "withdraw_id":"1679952",
+        //                     "deposit_id":"",
+        //                     "operation_type":"withdraw",
+        //                     "currency":"BMX",
+        //                     "apply_time":1588867374000,
+        //                     "arrival_amount":"59.000000000000",
+        //                     "fee":"1.000000000000",
+        //                     "status":0,
+        //                     "address":"0xe57b69a8776b37860407965B73cdFFBDFe668Bb5",
+        //                     "address_memo":"",
+        //                     "tx_id":""
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const records = this.safeValue (data, 'records', []);
+        return this.parseTransactions (records, currency, since, limit);
+    }
+
+    async fetchDeposit (id, code = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'id': id,
         };
-        const response = await this.privateGetOrdersId (this.extend (request, params));
+        const response = await this.privateAccountGetDepositWithdrawDetail (this.extend (request, params));
         //
         //     {
-        //         "entrust_id":1223181,
-        //         "symbol":"BMX_ETH",
-        //         "timestamp":1528060666000,
-        //         "side":"buy",
-        //         "price":"1.000000",
-        //         "fees":"0.1",
-        //         "original_amount":"1",
-        //         "executed_amount":"1",
-        //         "remaining_amount":"0",
-        //         "status":3
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"f7f74924-14da-42a6-b7f2-d3799dd9a612",
+        //         "data":{
+        //             "record":{
+        //                 "withdraw_id":"",
+        //                 "deposit_id":"1679952",
+        //                 "operation_type":"deposit",
+        //                 "currency":"BMX",
+        //                 "apply_time":1588867374000,
+        //                 "arrival_amount":"59.000000000000",
+        //                 "fee":"1.000000000000",
+        //                 "status":0,
+        //                 "address":"0xe57b69a8776b37860407965B73cdFFBDFe668Bb5",
+        //                 "address_memo":"",
+        //                 "tx_id":""
+        //             }
+        //         }
         //     }
         //
-        return this.parseOrder (response);
+        const data = this.safeValue (response, 'data', {});
+        const record = this.safeValue (data, 'record', {});
+        return this.parseTransaction (record);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('deposit', code, since, limit, params);
+    }
+
+    async fetchWithdrawal (id, code = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'id': id,
+        };
+        const response = await this.privateAccountGetDepositWithdrawDetail (this.extend (request, params));
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"f7f74924-14da-42a6-b7f2-d3799dd9a612",
+        //         "data":{
+        //             "record":{
+        //                 "withdraw_id":"1679952",
+        //                 "deposit_id":"",
+        //                 "operation_type":"withdraw",
+        //                 "currency":"BMX",
+        //                 "apply_time":1588867374000,
+        //                 "arrival_amount":"59.000000000000",
+        //                 "fee":"1.000000000000",
+        //                 "status":0,
+        //                 "address":"0xe57b69a8776b37860407965B73cdFFBDFe668Bb5",
+        //                 "address_memo":"",
+        //                 "tx_id":""
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const record = this.safeValue (data, 'record', {});
+        return this.parseTransaction (record);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('withdraw', code, since, limit, params);
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            '0': 'pending', // Create
+            '1': 'pending', // Submitted, waiting for withdrawal
+            '2': 'pending', // Processing
+            '3': 'ok', // Success
+            '4': 'canceled', // Cancel
+            '5': 'failed', // Fail
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "withdraw_id": "121212"
+        //     }
+        //
+        // fetchDeposits, fetchWithdrawals, fetchWithdrawal
+        //
+        //     {
+        //         "withdraw_id":"1679952",
+        //         "deposit_id":"",
+        //         "operation_type":"withdraw",
+        //         "currency":"BMX",
+        //         "apply_time":1588867374000,
+        //         "arrival_amount":"59.000000000000",
+        //         "fee":"1.000000000000",
+        //         "status":0,
+        //         "address":"0xe57b69a8776b37860407965B73cdFFBDFe668Bb5",
+        //         "address_memo":"",
+        //         "tx_id":""
+        //     }
+        //
+        let id = undefined;
+        const withdrawId = this.safeString (transaction, 'withdraw_id');
+        const depositId = this.safeString (transaction, 'deposit_id');
+        let type = undefined;
+        if ((withdrawId !== undefined) && (withdrawId !== '')) {
+            type = 'withdraw';
+            id = withdrawId;
+        } else if ((depositId !== undefined) && (depositId !== '')) {
+            type = 'deposit';
+            id = depositId;
+        }
+        const amount = this.safeNumber (transaction, 'arrival_amount');
+        const timestamp = this.safeInteger (transaction, 'apply_time');
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const feeCost = this.safeNumber (transaction, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            };
+        }
+        let txid = this.safeString (transaction, 'tx_id');
+        if (txid === '') {
+            txid = undefined;
+        }
+        const address = this.safeString (transaction, 'address');
+        const tag = this.safeString (transaction, 'address_memo');
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'network': undefined,
+            'address': address,
+            'addressFrom': undefined,
+            'addressTo': undefined,
+            'tag': tag,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'status': status,
+            'type': type,
+            'updated': undefined,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': fee,
+        };
     }
 
     nonce () {
@@ -853,45 +2312,38 @@ module.exports = class bitmart extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
+        const access = this.safeString (api, 0);
+        const type = this.safeString (api, 1);
+        const baseUrl = this.implodeHostname (this.urls['api']['rest']);
+        let url = baseUrl + '/' + type;
+        if (type !== 'system') {
+            url += '/' + this.version;
+        }
+        url += '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
+        let queryString = '';
+        const getOrDelete = (method === 'GET') || (method === 'DELETE');
+        if (getOrDelete) {
             if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+                queryString = this.urlencode (query);
+                url += '?' + queryString;
             }
-        } else if (api === 'token') {
+        }
+        if (access === 'private') {
             this.checkRequiredCredentials ();
-            body = this.urlencode (query);
+            const timestamp = this.milliseconds ().toString ();
             headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            };
-        } else {
-            const nonce = this.nonce ();
-            this.checkRequiredCredentials ();
-            const token = this.safeString (this.options, 'accessToken');
-            if (token === undefined) {
-                throw new AuthenticationError (this.id + ' ' + path + ' endpoint requires an accessToken option or a prior call to signIn() method');
-            }
-            const expires = this.safeInteger (this.options, 'expires');
-            if (expires !== undefined) {
-                if (nonce >= expires) {
-                    throw new AuthenticationError (this.id + ' accessToken expired, supply a new accessToken or call the signIn() method');
-                }
-            }
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-            headers = {
+                'X-BM-KEY': this.apiKey,
+                'X-BM-TIMESTAMP': timestamp,
                 'Content-Type': 'application/json',
-                'X-BM-TIMESTAMP': nonce.toString (),
-                'X-BM-AUTHORIZATION': 'Bearer ' + token,
             };
-            if (method !== 'GET') {
-                query = this.keysort (query);
+            if (!getOrDelete) {
                 body = this.json (query);
-                const message = this.urlencode (query);
-                headers['X-BM-SIGNATURE'] = this.hmac (this.encode (message), this.encode (this.secret), 'sha256');
+                queryString = body;
             }
+            const auth = timestamp + '#' + this.uid + '#' + queryString;
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            headers['X-BM-SIGN'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -901,20 +2353,23 @@ module.exports = class bitmart extends Exchange {
             return;
         }
         //
-        //     {"message":"Maximum price is 0.112695"}
-        //     {"message":"Required Integer parameter 'status' is not present"}
-        //     {"message":"Required String parameter 'symbol' is not present"}
-        //     {"message":"Required Integer parameter 'offset' is not present"}
-        //     {"message":"Required Integer parameter 'limit' is not present"}
-        //     {"message":"Required Long parameter 'from' is not present"}
-        //     {"message":"Required Long parameter 'to' is not present"}
-        //     {"message":"Invalid status. status=6 not support any more, please use 3:deal_success orders, 4:cancelled orders"}
-        //     {"message":"Not found"}
-        //     {"message":"Place order error"}
+        // spot
         //
-        const feedback = this.id + ' ' + body;
-        const message = this.safeString2 (response, 'message', 'msg');
-        if (message !== undefined) {
+        //     {"message":"Bad Request [to is empty]","code":50000,"trace":"f9d46e1b-4edb-4d07-a06e-4895fb2fc8fc","data":{}}
+        //     {"message":"Bad Request [from is empty]","code":50000,"trace":"579986f7-c93a-4559-926b-06ba9fa79d76","data":{}}
+        //     {"message":"Kline size over 500","code":50004,"trace":"d625caa8-e8ca-4bd2-b77c-958776965819","data":{}}
+        //     {"message":"Balance not enough","code":50020,"trace":"7c709d6a-3292-462c-98c5-32362540aeef","data":{}}
+        //
+        // contract
+        //
+        //     {"errno":"OK","message":"INVALID_PARAMETER","code":49998,"trace":"eb5ebb54-23cd-4de2-9064-e090b6c3b2e3","data":null}
+        //
+        const message = this.safeString (response, 'message');
+        const errorCode = this.safeString (response, 'code');
+        if (((errorCode !== undefined) && (errorCode !== '1000')) || ((message !== undefined) && (message !== 'OK'))) {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorCode, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message

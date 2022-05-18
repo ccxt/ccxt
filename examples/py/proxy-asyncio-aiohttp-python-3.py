@@ -12,7 +12,7 @@ sys.path.append(root + '/python')
 import ccxt.async_support as ccxt  # noqa: E402
 
 
-async def test_gdax():
+async def test():
 
     exchange = ccxt.poloniex({
         #
@@ -40,10 +40,10 @@ async def test_gdax():
 
     ticker = await exchange.fetch_ticker('ETH/BTC')
 
+    pprint(ticker)
+
     # don't forget to free the used resources, when you don't need them anymore
     await exchange.close()
 
-    return ticker
 
-if __name__ == '__main__':
-    pprint(asyncio.get_event_loop().run_until_complete(test_gdax()))
+asyncio.run(test())

@@ -12,7 +12,6 @@ import ccxt  # noqa: E402
 exchange = ccxt.binance({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET',
-    'enableRateLimit': True,
 })
 
 symbol = 'ETH/BTC'

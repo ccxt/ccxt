@@ -6,14 +6,30 @@ const now = Date.now // TODO: figure out how to utilize performance.now () prope
 const microseconds = () => now () * 1000 // TODO: utilize performance.now for that purpose
 const milliseconds = now
 const seconds      = () => Math.floor (now () / 1000)
+const uuidv1 = () => {
+    const biasSeconds = 12219292800  // seconds from 15th Oct 1572 to Jan 1st 1970
+    const bias = biasSeconds * 10000000  // in hundreds of nanoseconds
+    const time = microseconds () * 10 + bias
+    const timeHex = time.toString (16)
+    const arranged = timeHex.slice (7, 15) + timeHex.slice (3, 7) + '1' + timeHex.slice (0, 3)
+    // these should be random, but we're not making more than 10 requests per microsecond so who cares
+    const clockId = '9696' // a 14 bit number
+    const macAddress = 'ff'.repeat (6)
+    return arranged + clockId + macAddress
+}
 
 /*  ------------------------------------------------------------------------ */
 
 const setTimeout_original = setTimeout
 const setTimeout_safe = (done, ms, setTimeout = setTimeout_original /* overrideable for mocking purposes */, targetTime = now () + ms) => {
 
-/*  The built-in setTimeout function can fire its callback earlier than specified, so we
-    need to ensure that it does not happen: sleep recursively until `targetTime` is reached...   */
+    // avoid MAX_INT issue https://stackoverflow.com/questions/60474110
+    if (ms >= 2147483647) {
+        throw new Exception('setTimeout() function was called with unrealistic value of ' + ms.toString ())
+    }
+    
+    // The built-in setTimeout function can fire its callback earlier than specified, so we
+    // need to ensure that it does not happen: sleep recursively until `targetTime` is reached...
 
     let clearInnerTimeout = () => {}
     let active = true
@@ -115,6 +131,8 @@ const parseDate = (x) => {
     return parse8601 (x);
 }
 
+const rfc2616 = (timestamp = undefined) => new Date (timestamp).toUTCString ();
+
 const mdy = (timestamp, infix = '-') => {
     infix = infix || ''
     const date = new Date (timestamp)
@@ -126,16 +144,21 @@ const mdy = (timestamp, infix = '-') => {
     return m + infix + d + infix + Y
 }
 
-const ymd = (timestamp, infix = '-') => {
+const ymd = (timestamp, infix, fullYear = true) => {
     infix = infix || ''
     const date = new Date (timestamp)
-    const Y = date.getUTCFullYear ().toString ()
+    const intYear = date.getUTCFullYear ()
+    const year = fullYear ? intYear : (intYear - 2000)
+    const Y = year.toString ()
     let m = date.getUTCMonth () + 1
     let d = date.getUTCDate ()
     m = m < 10 ? ('0' + m) : m.toString ()
     d = d < 10 ? ('0' + d) : d.toString ()
     return Y + infix + m + infix + d
 }
+
+const yymmdd = (timestamp, infix = '') => ymd (timestamp, infix, false)
+const yyyymmdd = (timestamp, infix = '-') => ymd (timestamp, infix, true)
 
 const ymdhms = (timestamp, infix = ' ') => {
     const date = new Date (timestamp)
@@ -153,33 +176,35 @@ const ymdhms = (timestamp, infix = ' ') => {
     return Y + '-' + m + '-' + d + infix + H + ':' + M + ':' + S
 }
 
-module.exports =
+module.exports = {
+    now
+    , microseconds
+    , milliseconds
+    , seconds
+    , iso8601
+    , parse8601
+    , rfc2616
+    , uuidv1
+    , parseDate
+    , mdy
+    , ymd
+    , yymmdd
+    , yyyymmdd
+    , ymdhms
+    , setTimeout_safe
+    , sleep: (ms) => new Promise ((resolve) => setTimeout_safe (resolve, ms))
+    , TimedOut
+    , timeout: async (ms, promise) => {
 
-    {
-        now
-        , microseconds
-        , milliseconds
-        , seconds
-        , iso8601
-        , parse8601
-        , parseDate
-        , mdy
-        , ymd
-        , ymdhms
-        , setTimeout_safe
-        , sleep: ms => new Promise (resolve => setTimeout_safe (resolve, ms))
-        , TimedOut
-        , timeout: async (ms, promise) => {
+        let clear = () => {}
+        const expires = new Promise ((resolve) => (clear = setTimeout_safe (resolve, ms)))
 
-            let clear = () => {}
-            const expires = new Promise (resolve => (clear = setTimeout_safe (resolve, ms)))
-
-            try {
-                return await Promise.race ([promise, expires.then (() => { throw new TimedOut () })])
-            } finally {
-                clear () // fixes https://github.com/ccxt/ccxt/issues/749
-            }
+        try {
+            return await Promise.race ([promise, expires.then (() => { throw new TimedOut () })])
+        } finally {
+            clear () // fixes https://github.com/ccxt/ccxt/issues/749
         }
+    }
 }
 
 /*  ------------------------------------------------------------------------ */

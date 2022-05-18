@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 
@@ -19,10 +20,47 @@ class tidebit(Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
+                'createOrder': True,
+                'createReduceOnlyOrder': False,
+                'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchDepositAddress': True,
-                'CORS': True,
-                'fetchTickers': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
+                'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
+                'fetchOrderBook': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -39,7 +77,7 @@ class tidebit(Exchange):
                 '1w': '10080',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87460811-1e690280-c616-11ea-8652-69f187305add.jpg',
                 'api': 'https://www.tidebit.com',
                 'www': 'https://www.tidebit.com',
                 'doc': [
@@ -105,8 +143,8 @@ class tidebit(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.3 / 100,
-                    'taker': 0.3 / 100,
+                    'maker': self.parse_number('0.003'),
+                    'taker': self.parse_number('0.003'),
                 },
                 'funding': {
                     'tierBased': False,
@@ -146,22 +184,42 @@ class tidebit(Exchange):
             id = self.safe_string(market, 'id')
             symbol = self.safe_string(market, 'name')
             baseId, quoteId = symbol.split('/')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
             result.append({
                 'id': id,
                 'symbol': symbol,
-                'base': base,
-                'quote': quote,
+                'base': self.safe_currency_code(baseId),
+                'quote': self.safe_currency_code(quoteId),
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
+                'type': 'spot',
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': None,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': self.precision,
+                'limits': self.extend({
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                }, self.limits),
                 'info': market,
             })
         return result
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privateGetMembersMe(params)
+    def parse_balance(self, response):
         balances = self.safe_value(response, 'accounts')
         result = {'info': balances}
         for i in range(0, len(balances)):
@@ -169,10 +227,15 @@ class tidebit(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'balance')
-            account['used'] = self.safe_float(balance, 'locked')
+            account['free'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'locked')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privateGetMembersMe(params)
+        return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -185,23 +248,34 @@ class tidebit(Exchange):
         request['market'] = market['id']
         response = self.publicGetDepth(self.extend(request, params))
         timestamp = self.safe_timestamp(response, 'timestamp')
-        return self.parse_order_book(response, timestamp)
+        return self.parse_order_book(response, symbol, timestamp)
 
     def parse_ticker(self, ticker, market=None):
+        #
+        #     {
+        #         "at":1398410899,
+        #         "ticker": {
+        #             "buy": "3000.0",
+        #             "sell":"3100.0",
+        #             "low":"3000.0",
+        #             "high":"3000.0",
+        #             "last":"3000.0",
+        #             "vol":"0.11"
+        #         }
+        #     }
+        #
         timestamp = self.safe_timestamp(ticker, 'at')
         ticker = self.safe_value(ticker, 'ticker', {})
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        last = self.safe_float(ticker, 'last')
-        return {
-            'symbol': symbol,
+        market = self.safe_market(None, market)
+        last = self.safe_string(ticker, 'last')
+        return self.safe_ticker({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'buy'),
-            'ask': self.safe_float(ticker, 'sell'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
+            'ask': self.safe_string(ticker, 'sell'),
             'bidVolume': None,
             'askVolume': None,
             'vwap': None,
@@ -212,10 +286,10 @@ class tidebit(Exchange):
             'percentage': None,
             'previousClose': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'vol'),
+            'baseVolume': self.safe_string(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
@@ -224,20 +298,11 @@ class tidebit(Exchange):
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            market = None
-            symbol = id
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
-            else:
-                baseId = id[0:3]
-                quoteId = id[3:6]
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
+            market = self.safe_market(id)
+            symbol = market['symbol']
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -246,32 +311,42 @@ class tidebit(Exchange):
             'market': market['id'],
         }
         response = self.publicGetTickersMarket(self.extend(request, params))
+        #
+        #     {
+        #         "at":1398410899,
+        #         "ticker": {
+        #             "buy": "3000.0",
+        #             "sell":"3100.0",
+        #             "low":"3000.0",
+        #             "high":"3000.0",
+        #             "last":"3000.0",
+        #             "vol":"0.11"
+        #         }
+        #     }
+        #
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         id = self.safe_string(trade, 'id')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'volume')
-        cost = self.safe_float(trade, 'funds')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        return {
+        price = self.safe_string(trade, 'price')
+        amount = self.safe_string(trade, 'volume')
+        market = self.safe_market(None, market)
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
             'side': None,
             'order': None,
             'takerOrMaker': None,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -282,14 +357,24 @@ class tidebit(Exchange):
         response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     [
+        #         1498530360,
+        #         2700.0,
+        #         2700.0,
+        #         2700.0,
+        #         2700.0,
+        #         0.01
+        #     ]
+        #
         return [
-            ohlcv[0] * 1000,
-            ohlcv[1],
-            ohlcv[2],
-            ohlcv[3],
-            ohlcv[4],
-            ohlcv[5],
+            self.safe_timestamp(ohlcv, 0),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -307,6 +392,13 @@ class tidebit(Exchange):
         else:
             request['timestamp'] = 1800000
         response = self.publicGetK(self.extend(request, params))
+        #
+        #     [
+        #         [1498530360,2700.0,2700.0,2700.0,2700.0,0.01],
+        #         [1498530420,2700.0,2700.0,2700.0,2700.0,0],
+        #         [1498530480,2700.0,2700.0,2700.0,2700.0,0],
+        #     ]
+        #
         if response == 'None':
             return []
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
@@ -320,43 +412,76 @@ class tidebit(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        else:
-            marketId = order['market']
-            symbol = self.markets_by_id[marketId]['symbol']
+        #
+        #     {
+        #         "id": 7,                              # 唯一的 Order ID
+        #         "side": "sell",                       # Buy/Sell 代表买单/卖单
+        #         "price": "3100.0",                    # 出价
+        #         "avg_price": "3101.2",                # 平均成交价
+        #         "state": "wait",                      # 订单的当前状态 [wait,done,cancel]
+        #                                               #   wait   表明订单正在市场上挂单
+        #                                               #          是一个active order
+        #                                               #          此时订单可能部分成交或者尚未成交
+        #                                               #   done   代表订单已经完全成交
+        #                                               #   cancel 代表订单已经被撤销
+        #         "market": "btccny",                   # 订单参与的交易市场
+        #         "created_at": "2014-04-18T02:02:33Z",  # 下单时间 ISO8601格式
+        #         "volume": "100.0",                    # 购买/卖出数量
+        #         "remaining_volume": "89.8",           # 还未成交的数量 remaining_volume 总是小于等于 volume
+        #                                               #   在订单完全成交时变成 0
+        #         "executed_volume": "10.2",            # 已成交的数量
+        #                                               #   volume = remaining_volume + executed_volume
+        #         "trades_count": 1,                    # 订单的成交数 整数值
+        #                                               #   未成交的订单为 0 有一笔成交的订单为 1
+        #                                               #   通过该字段可以判断订单是否处于部分成交状态
+        #         "trades": [                          # 订单的详细成交记录 参见Trade
+        #                                               #   注意: 只有某些返回详细订单数据的 API 才会包含 Trade 数据
+        #             {
+        #                 "id": 2,
+        #                 "price": "3100.0",
+        #                 "volume": "10.2",
+        #                 "market": "btccny",
+        #                 "created_at": "2014-04-18T02:04:49Z",
+        #                 "side": "sell"
+        #             }
+        #         ]
+        #     }
+        #
+        marketId = self.safe_string(order, 'market')
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         status = self.parse_order_status(self.safe_string(order, 'state'))
         id = self.safe_string(order, 'id')
         type = self.safe_string(order, 'ord_type')
         side = self.safe_string(order, 'side')
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'volume')
-        filled = self.safe_float(order, 'executed_volume')
-        remaining = self.safe_float(order, 'remaining_volume')
-        cost = None
-        if price is not None:
-            if filled is not None:
-                cost = price * filled
-        return {
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'volume')
+        filled = self.safe_string(order, 'executed_volume')
+        remaining = self.safe_string(order, 'remaining_volume')
+        average = self.safe_string(order, 'avg_price')
+        return self.safe_order({
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'cost': cost,
+            'cost': None,
             'trades': None,
             'fee': None,
             'info': order,
-        }
+            'average': average,
+        }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -369,8 +494,7 @@ class tidebit(Exchange):
         if type == 'limit':
             request['price'] = str(price)
         response = self.privatePostOrders(self.extend(request, params))
-        market = self.markets_by_id[response['market']]
-        return self.parse_order(response, market)
+        return self.parse_order(response)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -385,12 +509,13 @@ class tidebit(Exchange):
         return order
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
         id = self.safe_string(params, 'id')
         if id is None:
-            raise ExchangeError(self.id + ' withdraw() requires an extra `id` param(withdraw account id according to withdraws/bind_account_list endpoint')
+            raise ArgumentsRequired(self.id + ' withdraw() requires an extra `id` param(withdraw account id according to withdraws/bind_account_list endpoint')
         request = {
             'id': id,
             'currency_type': 'coin',  # or 'cash'
@@ -401,9 +526,30 @@ class tidebit(Exchange):
         if tag is not None:
             request['memo'] = tag
         result = self.privatePostWithdrawsApply(self.extend(request, params))
+        return self.parse_transaction(result, currency)
+
+    def parse_transaction(self, transaction, currency=None):
+        currency = self.safe_currency(None, currency)
         return {
-            'info': result,
             'id': None,
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'amount': None,
+            'type': None,
+            'currency': currency['code'],
+            'status': None,
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': None,
+            'fee': None,
+            'info': transaction,
         }
 
     def nonce(self):

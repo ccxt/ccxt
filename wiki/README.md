@@ -42,7 +42,7 @@ Welcome to the ccxt wiki!
   - [Trading](https://github.com/ccxt/ccxt/wiki/Manual#trading)
     - [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication)
     - [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup)
-    - [Querying Account Balance](https://github.com/ccxt/ccxt/wiki/Manual#querying-account-balance)
+    - [Querying Account Balance](https://github.com/ccxt/ccxt/wiki/Manual#account-balance)
     - [Orders](https://github.com/ccxt/ccxt/wiki/Manual#orders)
       - [Querying Orders](https://github.com/ccxt/ccxt/wiki/Manual#querying-orders)
         - [`.orders` Cache](https://github.com/ccxt-dev/ccxt/wiki/Manual#orders-cache)
@@ -67,6 +67,10 @@ Welcome to the ccxt wiki!
     - [Fees](https://github.com/ccxt/ccxt/wiki/Manual#fees)
       - [Trading Fees](https://github.com/ccxt/ccxt/wiki/Manual#trading-fees)
       - [Funding Fees](https://github.com/ccxt/ccxt/wiki/Manual#funding-fees)
+
+## WebSocket Support
+
+- [CCXT Pro](https://github.com/ccxt/ccxt/wiki/ccxt.pro)
 
 ## Troubleshooting
 

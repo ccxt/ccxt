@@ -6,11 +6,21 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import BadResponse
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import CancelPending
+from ccxt.base.errors import DuplicateOrderId
+from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class ftx(Exchange):
@@ -19,35 +29,89 @@ class ftx(Exchange):
         return self.deep_extend(super(ftx, self).describe(), {
             'id': 'ftx',
             'name': 'FTX',
-            'countries': ['HK'],
-            'rateLimit': 100,
+            'countries': ['BS'],  # Bahamas
+            #  hard limit of 7 requests per 200ms => 35 requests per 1000ms => 1000ms / 35 = 28.5714 ms between requests
+            # 10 withdrawal requests per 30 seconds = (1000ms / rateLimit) / (1/3) = 90.1
+            # cancels do not count towards rateLimit
+            # only 'order-making' requests count towards ratelimit
+            'rateLimit': 28.57,
             'certified': True,
+            'pro': True,
+            'hostname': 'ftx.com',  # or ftx.us
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg',
                 'www': 'https://ftx.com',
-                'api': 'https://ftx.com',
+                'api': {
+                    'public': 'https://{hostname}',
+                    'private': 'https://{hostname}',
+                },
                 'doc': 'https://github.com/ftexchange/ftx',
                 'fees': 'https://ftexchange.zendesk.com/hc/en-us/articles/360024479432-Fees',
-                'referral': 'https://ftx.com/#a=1623029',
+                'referral': {
+                    'url': 'https://ftx.com/#a=ccxt',
+                    'discount': 0.05,
+                },
             },
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': True,
+                'swap': True,
+                'future': True,
+                'option': False,
                 'cancelAllOrders': True,
-                'fetchClosedOrders': False,
+                'cancelOrder': True,
+                'createOrder': True,
+                'createReduceOnlyOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
+                'editOrder': True,
+                'fetchBalance': True,
+                'fetchBorrowInterest': True,
+                'fetchBorrowRate': True,
+                'fetchBorrowRateHistories': True,
+                'fetchBorrowRateHistory': True,
+                'fetchBorrowRates': True,
+                'fetchClosedOrders': None,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': False,
+                'fetchFundingHistory': True,
+                'fetchFundingRate': True,
+                'fetchFundingRateHistory': True,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': True,
+                'fetchLeverageTiers': False,
+                'fetchMarketLeverageTiers': False,
+                'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchOrderTrades': True,
+                'fetchPosition': False,
+                'fetchPositions': True,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': False,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransactionFees': None,
+                'fetchTransfer': None,
+                'fetchTransfers': None,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': True,
+                'setMarginMode': False,  # FTX only supports cross margin
+                'setPositionMode': False,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -58,89 +122,215 @@ class ftx(Exchange):
                 '1h': '3600',
                 '4h': '14400',
                 '1d': '86400',
+                '3d': '259200',
+                '1w': '604800',
+                '2w': '1209600',
+                # the exchange does not align candles to the start of the month
+                # it can only fetch candles in fixed intervals of multiples of whole days
+                # that works for all timeframes, except the monthly timeframe
+                # because months have varying numbers of days
+                '1M': '2592000',
             },
             'api': {
                 'public': {
-                    'get': [
-                        'coins',
-                        'markets',
-                        'markets/{market_name}',
-                        'markets/{market_name}/orderbook',  # ?depth={depth}
-                        'markets/{market_name}/trades',  # ?limit={limit}&start_time={start_time}&end_time={end_time}
-                        'markets/{market_name}/candles',  # ?resolution={resolution}&limit={limit}&start_time={start_time}&end_time={end_time}
-                        'futures',
-                        'futures/{future_name}',
-                        'futures/{future_name}/stats',
-                        'funding_rates',
-                        'lt/tokens',
-                        'lt/{token_name}',
-                    ],
+                    'get': {
+                        'coins': 1,
+                        # markets
+                        'markets': 1,
+                        'markets/{market_name}': 1,
+                        'markets/{market_name}/orderbook': 1,  # ?depth={depth}
+                        'markets/{market_name}/trades': 1,  # ?limit={limit}&start_time={start_time}&end_time={end_time}
+                        'markets/{market_name}/candles': 1,  # ?resolution={resolution}&limit={limit}&start_time={start_time}&end_time={end_time}
+                        # futures
+                        'futures': 1,
+                        'futures/{future_name}': 1,
+                        'futures/{future_name}/stats': 1,
+                        'funding_rates': 1,
+                        'indexes/{index_name}/weights': 1,
+                        'expired_futures': 1,
+                        'indexes/{market_name}/candles': 1,  # ?resolution={resolution}&limit={limit}&start_time={start_time}&end_time={end_time}
+                        # wallet
+                        'wallet/coins': 1,
+                        # leverage tokens
+                        'lt/tokens': 1,
+                        'lt/{token_name}': 1,
+                        # etfs
+                        'etfs/rebalance_info': 1,
+                        # options
+                        'options/requests': 1,
+                        'options/trades': 1,
+                        'options/historical_volumes/BTC': 1,
+                        'stats/24h_options_volume': 1,
+                        'options/open_interest/BTC': 1,
+                        'options/historical_open_interest/BTC': 1,
+                        # spot margin
+                        'spot_margin/history': 1,
+                        'spot_margin/borrow_summary': 1,
+                        # nfts
+                        'nft/nfts': 1,
+                        'nft/{nft_id}': 1,
+                        'nft/{nft_id}/trades': 1,
+                        'nft/all_trades': 1,
+                        'nft/{nft_id}/account_info': 1,
+                        'nft/collections': 1,
+                        # ftx pay
+                        'ftxpay/apps/{user_specific_id}/details': 1,
+                    },
+                    'post': {
+                        'ftxpay/apps/{user_specific_id}/orders': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'account',
-                        'positions',
-                        'wallet/coins',
-                        'wallet/balances',
-                        'wallet/deposit_address/{coin}',
-                        'wallet/deposits',
-                        'wallet/withdrawals',
-                        'orders',  # ?market={market}
-                        'orders/history',  # ?market={market}
-                        'orders/{order_id}',
-                        'orders/by_client_id/{client_order_id}',
-                        'conditional_orders',  # ?market={market}
-                        'conditional_orders/history',  # ?market={market}
-                        'fills',  # ?market={market}
-                        'funding_payments',
-                        'lt/balances',
-                        'lt/creations',
-                        'lt/redemptions',
-                        'subaccounts',
-                        'subaccounts/{nickname}/balances',
-                    ],
-                    'post': [
-                        'account/leverage',
-                        'wallet/withdrawals',
-                        'orders',
-                        'conditional_orders',
-                        'lt/{token_name}/create',
-                        'lt/{token_name}/redeem',
-                        'subaccounts',
-                        'subaccounts/update_name',
-                        'subaccounts/transfer',
-                    ],
-                    'delete': [
-                        'orders/{order_id}',
-                        'orders/by_client_id/{client_order_id}',
-                        'orders',
-                        'conditional_orders/{order_id}',
-                        'subaccounts',
-                    ],
+                    'get': {
+                        # subaccounts
+                        'subaccounts': 1,
+                        'subaccounts/{nickname}/balances': 1,
+                        # account
+                        'account': 1,
+                        'positions': 1,
+                        # wallet
+                        'wallet/balances': 1,
+                        'wallet/all_balances': 1,
+                        'wallet/deposit_address/{coin}': 1,  # ?method={method}
+                        'wallet/deposits': 1,
+                        'wallet/withdrawals': 1,
+                        'wallet/airdrops': 1,
+                        'wallet/withdrawal_fee': 1,
+                        'wallet/saved_addresses': 1,
+                        # orders
+                        'orders': 1,  # ?market={market}
+                        'orders/history': 1,  # ?market={market}
+                        'orders/{order_id}': 1,
+                        'orders/by_client_id/{client_order_id}': 1,
+                        # conditional orders
+                        'conditional_orders': 1,  # ?market={market}
+                        'conditional_orders/{conditional_order_id}/triggers': 1,
+                        'conditional_orders/history': 1,  # ?market={market}
+                        'fills': 1,  # ?market={market}
+                        'funding_payments': 1,
+                        # leverage tokens
+                        'lt/balances': 1,
+                        'lt/creations': 1,
+                        'lt/redemptions': 1,
+                        # options
+                        'options/my_requests': 1,
+                        'options/requests/{request_id}/quotes': 1,
+                        'options/my_quotes': 1,
+                        'options/account_info': 1,
+                        'options/positions': 1,
+                        'options/fills': 1,
+                        # staking
+                        'staking/stakes': 1,
+                        'staking/unstake_requests': 1,
+                        'staking/balances': 1,
+                        'staking/staking_rewards': 1,
+                        # otc
+                        'otc/quotes/{quoteId}': 1,
+                        # spot margin
+                        'spot_margin/borrow_rates': 1,
+                        'spot_margin/lending_rates': 1,
+                        'spot_margin/market_info': 1,  # ?market={market}
+                        'spot_margin/borrow_history': 1,
+                        'spot_margin/lending_history': 1,
+                        'spot_margin/offers': 1,
+                        'spot_margin/lending_info': 1,
+                        # nfts
+                        'nft/balances': 1,
+                        'nft/bids': 1,
+                        'nft/deposits': 1,
+                        'nft/withdrawals': 1,
+                        'nft/fills': 1,
+                        'nft/gallery/{gallery_id}': 1,
+                        'nft/gallery_settings': 1,
+                        # latency statistics
+                        'stats/latency_stats': 1,
+                        # pnl
+                        'pnl/historical_changes': 1,
+                    },
+                    'post': {
+                        # subaccounts
+                        'subaccounts': 1,
+                        'subaccounts/update_name': 1,
+                        'subaccounts/transfer': 1,
+                        # account
+                        'account/leverage': 1,
+                        # wallet
+                        'wallet/deposit_address/list': 1,
+                        'wallet/withdrawals': 90,
+                        'wallet/saved_addresses': 1,
+                        # orders
+                        'orders': 1,
+                        'conditional_orders': 1,
+                        'orders/{order_id}/modify': 1,
+                        'orders/by_client_id/{client_order_id}/modify': 1,
+                        'conditional_orders/{order_id}/modify': 1,
+                        # leverage tokens
+                        'lt/{token_name}/create': 1,
+                        'lt/{token_name}/redeem': 1,
+                        # options
+                        'options/requests': 1,
+                        'options/requests/{request_id}/quotes': 1,
+                        'options/quotes/{quote_id}/accept': 1,
+                        # staking
+                        'staking/unstake_requests': 1,
+                        'srm_stakes/stakes': 1,
+                        # otc
+                        'otc/quotes/{quote_id}/accept': 1,
+                        'otc/quotes': 1,
+                        # spot margin
+                        'spot_margin/offers': 1,
+                        # nfts
+                        'nft/offer': 1,
+                        'nft/buy': 1,
+                        'nft/auction': 1,
+                        'nft/edit_auction': 1,
+                        'nft/cancel_auction': 1,
+                        'nft/bids': 1,
+                        'nft/redeem': 1,
+                        'nft/gallery_settings': 1,
+                        # ftx pay
+                        'ftxpay/apps/{user_specific_id}/orders': 1,
+                    },
+                    'delete': {
+                        # subaccounts
+                        'subaccounts': 1,
+                        # wallet
+                        'wallet/saved_addresses/{saved_address_id}': 1,
+                        # orders
+                        'orders/{order_id}': 1,
+                        'orders/by_client_id/{client_order_id}': 1,
+                        'orders': 1,
+                        'conditional_orders/{order_id}': 1,
+                        # options
+                        'options/requests/{request_id}': 1,
+                        'options/quotes/{quote_id}': 1,
+                        # staking
+                        'staking/unstake_requests/{request_id}': 1,
+                    },
                 },
             },
             'fees': {
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'maker': 0.02 / 100,
-                    'taker': 0.07 / 100,
+                    'maker': self.parse_number('0.0002'),
+                    'taker': self.parse_number('0.0007'),
                     'tiers': {
                         'taker': [
-                            [0, 0.07 / 100],
-                            [1000000, 0.06 / 100],
-                            [5000000, 0.055 / 100],
-                            [10000000, 0.05 / 100],
-                            [15000000, 0.045 / 100],
-                            [35000000, 0.04 / 100],
+                            [self.parse_number('0'), self.parse_number('0.0007')],
+                            [self.parse_number('2000000'), self.parse_number('0.0006')],
+                            [self.parse_number('5000000'), self.parse_number('0.00055')],
+                            [self.parse_number('10000000'), self.parse_number('0.0005')],
+                            [self.parse_number('25000000'), self.parse_number('0.0045')],
+                            [self.parse_number('50000000'), self.parse_number('0.0004')],
                         ],
                         'maker': [
-                            [0, 0.02 / 100],
-                            [1000000, 0.02 / 100],
-                            [5000000, 0.015 / 100],
-                            [10000000, 0.015 / 100],
-                            [15000000, 0.01 / 100],
-                            [35000000, 0.01 / 100],
+                            [self.parse_number('0'), self.parse_number('0.0002')],
+                            [self.parse_number('2000000'), self.parse_number('0.00015')],
+                            [self.parse_number('5000000'), self.parse_number('0.0001')],
+                            [self.parse_number('10000000'), self.parse_number('0.00005')],
+                            [self.parse_number('25000000'), self.parse_number('0')],
+                            [self.parse_number('50000000'), self.parse_number('0')],
                         ],
                     },
                 },
@@ -150,21 +340,85 @@ class ftx(Exchange):
             },
             'exceptions': {
                 'exact': {
+                    'Slow down': RateLimitExceeded,  # {"error":"Slow down","success":false}
+                    'Size too small for provide': InvalidOrder,  # {"error":"Size too small for provide","success":false}
                     'Not enough balances': InsufficientFunds,  # {"error":"Not enough balances","success":false}
                     'InvalidPrice': InvalidOrder,  # {"error":"Invalid price","success":false}
                     'Size too small': InvalidOrder,  # {"error":"Size too small","success":false}
+                    'Size too large': InvalidOrder,  # {"error":"Size too large","success":false}
+                    'Invalid price': InvalidOrder,  # {"success":false,"error":"Invalid price"}
                     'Missing parameter price': InvalidOrder,  # {"error":"Missing parameter price","success":false}
                     'Order not found': OrderNotFound,  # {"error":"Order not found","success":false}
+                    'Order already closed': InvalidOrder,  # {"error":"Order already closed","success":false}
+                    'Trigger price too high': InvalidOrder,  # {"error":"Trigger price too high","success":false}
+                    'Trigger price too low': InvalidOrder,  # {"error":"Trigger price too low","success":false}
+                    'Order already queued for cancellation': CancelPending,  # {"error":"Order already queued for cancellation","success":false}
+                    'Duplicate client order ID': DuplicateOrderId,  # {"error":"Duplicate client order ID","success":false}
+                    'Spot orders cannot be reduce-only': InvalidOrder,  # {"error":"Spot orders cannot be reduce-only","success":false}
+                    'Invalid reduce-only order': InvalidOrder,  # {"error":"Invalid reduce-only order","success":false}
+                    'Account does not have enough balances': InsufficientFunds,  # {"success":false,"error":"Account does not have enough balances"}
+                    'Not authorized for subaccount-specific access': PermissionDenied,  # {"success":false,"error":"Not authorized for subaccount-specific access"}
+                    'Not approved to trade self product': PermissionDenied,  # {"success":false,"error":"Not approved to trade self product"}
                 },
                 'broad': {
+                    # {"error":"Not logged in","success":false}
+                    # {"error":"Not logged in: Invalid API key","success":false}
+                    'Not logged in': AuthenticationError,
+                    'Account does not have enough margin for order': InsufficientFunds,
                     'Invalid parameter': BadRequest,  # {"error":"Invalid parameter start_time","success":false}
                     'The requested URL was not found on the server': BadRequest,
                     'No such coin': BadRequest,
-                    'No such market': BadRequest,
-                    'An unexpected error occurred': ExchangeError,  # {"error":"An unexpected error occurred, please try again later(58BC21C795).","success":false}
+                    'No such subaccount': AuthenticationError,
+                    'No such future': BadSymbol,
+                    'No such market': BadSymbol,
+                    'Do not send more than': RateLimitExceeded,
+                    'Cannot send more than': RateLimitExceeded,  # {"success":false,"error":"Cannot send more than 1500 requests per minute"}
+                    'An unexpected error occurred': ExchangeNotAvailable,  # {"error":"An unexpected error occurred, please try again later(58BC21C795).","success":false}
+                    'Please retry request': ExchangeNotAvailable,  # {"error":"Please retry request","success":false}
+                    'Please try again': ExchangeNotAvailable,  # {"error":"Please try again","success":false}
+                    'Try again': ExchangeNotAvailable,  # {"error":"Try again","success":false}
+                    'Only have permissions for subaccount': PermissionDenied,  # {"success":false,"error":"Only have permissions for subaccount *sub_name*"}
                 },
             },
             'precisionMode': TICK_SIZE,
+            'options': {
+                # support for canceling conditional orders
+                # https://github.com/ccxt/ccxt/issues/6669
+                'fetchMarkets': {
+                    # the expiry datetime may be None for expiring futures, https://github.com/ccxt/ccxt/pull/12692
+                    'throwOnUndefinedExpiry': False,
+                },
+                'cancelOrder': {
+                    'method': 'privateDeleteOrdersOrderId',  # privateDeleteConditionalOrdersOrderId
+                },
+                'fetchOpenOrders': {
+                    'method': 'privateGetOrders',  # privateGetConditionalOrders
+                },
+                'fetchOrders': {
+                    'method': 'privateGetOrdersHistory',  # privateGetConditionalOrdersHistory
+                },
+                'sign': {
+                    'ftx.com': 'FTX',
+                    'ftx.us': 'FTXUS',
+                },
+                'networks': {
+                    'SOL': 'sol',
+                    'SPL': 'sol',
+                    'TRX': 'trx',
+                    'TRC20': 'trx',
+                    'ETH': 'erc20',
+                    'ERC20': 'erc20',
+                    'OMNI': 'omni',
+                    'BEP2': 'bep2',
+                    'BNB': 'bep2',
+                    'BEP20': 'bsc',
+                    'BSC': 'bsc',
+                },
+            },
+            'commonCurrencies': {
+                'AMC': 'AMC Entertainment Holdings',
+                'STARS': 'StarLaunch',
+            },
         })
 
     def fetch_currencies(self, params={}):
@@ -194,13 +448,13 @@ class ftx(Exchange):
                 'type': None,
                 'name': name,
                 'active': None,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'precision': None,
                 'limits': {
                     'withdraw': {'min': None, 'max': None},
                     'amount': {'min': None, 'max': None},
-                    'price': {'min': None, 'max': None},
-                    'cost': {'min': None, 'max': None},
                 },
             }
         return result
@@ -252,44 +506,174 @@ class ftx(Exchange):
         #         ],
         #     }
         #
+        #     {
+        #         name: "BTC-PERP",
+        #         enabled:  True,
+        #         postOnly:  False,
+        #         priceIncrement: "1.0",
+        #         sizeIncrement: "0.0001",
+        #         minProvideSize: "0.001",
+        #         last: "60397.0",
+        #         bid: "60387.0",
+        #         ask: "60388.0",
+        #         price: "60388.0",
+        #         type: "future",
+        #         baseCurrency:  null,
+        #         quoteCurrency:  null,
+        #         underlying: "BTC",
+        #         restricted:  False,
+        #         highLeverageFeeExempt:  True,
+        #         change1h: "-0.0036463231533270636",
+        #         change24h: "-0.01844838515677064",
+        #         changeBod: "-0.010130151132675475",
+        #         quoteVolume24h: "2892083192.6099",
+        #         volumeUsd24h: "2892083192.6099"
+        #     }
+        #
+        allFuturesResponse = None
+        if self.has['future'] and (self.hostname != 'ftx.us'):
+            allFuturesResponse = self.publicGetFutures()
+        #
+        #    {
+        #        success: True,
+        #        result: [
+        #            {
+        #                name: "1INCH-PERP",
+        #                underlying: "1INCH",
+        #                description: "1INCH Token Perpetual Futures",
+        #                type: "perpetual",
+        #                expiry: null,
+        #                perpetual: True,
+        #                expired: False,
+        #                enabled: True,
+        #                postOnly: False,
+        #                priceIncrement: "0.0001",
+        #                sizeIncrement: "1.0",
+        #                last: "2.5556",
+        #                bid: "2.5555",
+        #                ask: "2.5563",
+        #                index: "2.5612449804010833",
+        #                mark: "2.5587",
+        #                imfFactor: "0.0005",
+        #                lowerBound: "2.4315",
+        #                upperBound: "2.6893",
+        #                underlyingDescription: "1INCH Token",
+        #                expiryDescription: "Perpetual",
+        #                moveStart: null,
+        #                marginPrice: "2.5587",
+        #                positionLimitWeight: "20.0",
+        #                group: "perpetual",
+        #                change1h: "0.00799716356760164",
+        #                change24h: "0.004909276569004792",
+        #                changeBod: "0.008394419484511705",
+        #                volumeUsd24h: "17834492.0818",
+        #                volume: "7224898.0",
+        #                openInterest: "5597917.0",
+        #                openInterestUsd: "14323390.2279",
+        #            },
+        #            ...
+        #        ],
+        #    }
+        #
         result = []
         markets = self.safe_value(response, 'result', [])
+        allFutures = self.safe_value(allFuturesResponse, 'result', [])
+        allFuturesDict = self.index_by(allFutures, 'name')
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'name')
+            future = self.safe_value(allFuturesDict, id)
+            marketType = self.safe_string(market, 'type')
+            contract = (marketType == 'future')
             baseId = self.safe_string_2(market, 'baseCurrency', 'underlying')
             quoteId = self.safe_string(market, 'quoteCurrency', 'USD')
-            type = self.safe_string(market, 'type')
+            settleId = 'USD' if contract else None
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            settle = self.safe_currency_code(settleId)
+            spot = not contract
+            margin = not contract
+            perpetual = self.safe_value(future, 'perpetual', False)
+            swap = perpetual
+            option = False
+            isFuture = contract and not swap
+            expiry = None
+            expiryDatetime = self.safe_string(future, 'expiry')
+            type = 'spot'
+            symbol = base + '/' + quote
+            if swap:
+                type = 'swap'
+                symbol = base + '/' + quote + ':' + settle
+            elif isFuture:
+                type = 'future'
+                expiry = self.parse8601(expiryDatetime)
+                if expiry is None:
+                    # it is likely a future that is expiring in self moment
+                    options = self.safe_value(self.options, 'fetchMarkets', {})
+                    throwOnUndefinedExpiry = self.safe_value(options, 'throwOnUndefinedExpiry', False)
+                    if throwOnUndefinedExpiry:
+                        raise BadResponse(self.id + " symbol '" + id + "' is a future contract with an invalid expiry datetime.")
+                    else:
+                        continue
+                parsedId = id.split('-')
+                length = len(parsedId)
+                if length > 2:
+                    # handling for MOVE contracts
+                    # BTC-MOVE-2022Q1
+                    # BTC-MOVE-0106
+                    # BTC-MOVE-WK-0121
+                    parsedId.pop()
+                    # remove expiry
+                    # ['BTC', 'MOVE']
+                    # ['BTC', 'MOVE']
+                    # ['BTC', 'MOVE', 'WK']
+                    base = '-'.join(parsedId)
+                symbol = base + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry, '')
             # check if a market is a spot or future market
-            symbol = self.safe_string(market, 'name') if (type == 'future') else (base + '/' + quote)
-            active = self.safe_value(market, 'enabled')
-            sizeIncrement = self.safe_float(market, 'sizeIncrement')
-            priceIncrement = self.safe_float(market, 'priceIncrement')
-            precision = {
-                'amount': sizeIncrement,
-                'price': priceIncrement,
-            }
-            entry = {
+            sizeIncrement = self.safe_string(market, 'sizeIncrement')
+            minProvideSize = self.safe_string(market, 'minProvideSize')
+            minAmountString = sizeIncrement
+            if minProvideSize is not None:
+                minAmountString = sizeIncrement if Precise.string_gt(minProvideSize, sizeIncrement) else minProvideSize
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': settleId,
                 'type': type,
-                'future': (type == 'future'),
-                'spot': (type == 'spot'),
-                'active': active,
-                'precision': precision,
+                'spot': spot,
+                'margin': margin,
+                'swap': swap,
+                'future': isFuture,
+                'option': option,
+                'active': self.safe_value(market, 'enabled'),
+                'contract': contract,
+                'linear': True if contract else None,
+                'inverse': False if contract else None,
+                'contractSize': self.parse_number('1'),
+                'expiry': expiry,
+                'expiryDatetime': self.iso8601(expiry),
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.parse_number(sizeIncrement),
+                    'price': self.safe_number(market, 'priceIncrement'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': self.parse_number('1'),
+                        'max': self.parse_number('20'),
+                    },
                     'amount': {
-                        'min': sizeIncrement,
+                        'min': self.parse_number(minAmountString),
                         'max': None,
                     },
                     'price': {
-                        'min': priceIncrement,
+                        'min': None,
                         'max': None,
                     },
                     'cost': {
@@ -298,8 +682,7 @@ class ftx(Exchange):
                     },
                 },
                 'info': market,
-            }
-            result.append(entry)
+            })
         return result
 
     def parse_ticker(self, ticker, market=None):
@@ -324,44 +707,37 @@ class ftx(Exchange):
         #         "volumeUsd24h":8570651.12113,
         #     }
         #
-        symbol = None
         marketId = self.safe_string(ticker, 'name')
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
-        else:
-            type = self.safe_string(ticker, 'type')
-            if type == 'future':
-                symbol = marketId
-            else:
-                base = self.safe_currency_code(self.safe_string(ticker, 'baseCurrency'))
-                quote = self.safe_currency_code(self.safe_string(ticker, 'quoteCurrency'))
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-        last = self.safe_float(ticker, 'last')
-        timestamp = self.milliseconds()
-        return {
+        symbol = self.safe_symbol(marketId, market)
+        last = self.safe_string(ticker, 'last')
+        timestamp = self.safe_timestamp(ticker, 'time', self.milliseconds())
+        percentage = self.safe_string(ticker, 'change24h')
+        if percentage is not None:
+            percentage = Precise.string_mul(percentage, '100')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
-            'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
-            'askVolume': None,
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
+            'bidVolume': self.safe_string(ticker, 'bidSize'),
+            'ask': self.safe_string(ticker, 'ask'),
+            'askVolume': self.safe_string(ticker, 'askSize'),
             'vwap': None,
             'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': self.safe_float(ticker, 'change24h'),
+            'percentage': percentage,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': self.safe_float(ticker, 'quoteVolume24h'),
+            'quoteVolume': self.safe_string(ticker, 'quoteVolume24h'),
             'info': ticker,
-        }
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -396,12 +772,6 @@ class ftx(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         return self.parse_ticker(result, market)
-
-    def parse_tickers(self, tickers, symbols=None):
-        result = []
-        for i in range(0, len(tickers)):
-            result.append(self.parse_ticker(tickers[i]))
-        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
@@ -462,9 +832,9 @@ class ftx(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        return self.parse_order_book(result)
+        return self.parse_order_book(result, symbol)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "close":177.23,
@@ -478,25 +848,58 @@ class ftx(Exchange):
         #
         return [
             self.safe_integer(ohlcv, 'time'),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volume'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
         ]
+
+    def get_market_id(self, symbol, key, params={}):
+        parts = self.get_market_params(symbol, key, params)
+        return self.safe_string(parts, 1, symbol)
+
+    def get_market_params(self, symbol, key, params={}):
+        market = None
+        marketId = None
+        if symbol in self.markets:
+            market = self.market(symbol)
+            marketId = market['id']
+        else:
+            marketId = self.safe_string(params, key, symbol)
+        return [market, marketId]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
-        market = self.market(symbol)
+        market, marketId = self.get_market_params(symbol, 'market_name', params)
+        # max 1501 candles, including the current candle when since is not specified
+        maxLimit = 5000
+        defaultLimit = 1500
+        limit = defaultLimit if (limit is None) else min(limit, maxLimit)
         request = {
-            'market_name': market['id'],
             'resolution': self.timeframes[timeframe],
+            'market_name': marketId,
+            # 'start_time': int(since / 1000),
+            # 'end_time': self.seconds(),
+            'limit': limit,
         }
-        if limit is not None:
-            request['limit'] = limit
+        price = self.safe_string(params, 'price')
+        params = self.omit(params, 'price')
         if since is not None:
-            request['start_time'] = int(since / 1000)
-        response = self.publicGetMarketsMarketNameCandles(self.extend(request, params))
+            startTime = int(since / 1000)
+            request['start_time'] = startTime
+            duration = self.parse_timeframe(timeframe)
+            endTime = self.sum(startTime, limit * duration)
+            request['end_time'] = min(endTime, self.seconds())
+            if duration > 86400:
+                wholeDaysInTimeframe = int(duration / 86400)
+                request['limit'] = min(limit * wholeDaysInTimeframe, maxLimit)
+        method = 'publicGetMarketsMarketNameCandles'
+        if price == 'index':
+            if symbol in self.markets:
+                request['market_name'] = market['baseId']
+            method = 'publicGetIndexesMarketNameCandles'
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "success": True,
@@ -525,6 +928,12 @@ class ftx(Exchange):
         result = self.safe_value(response, 'result', [])
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
+    def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'index',
+        }
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
     def parse_trade(self, trade, market=None):
         #
         # fetchTrades(public)
@@ -543,6 +952,7 @@ class ftx(Exchange):
         #     {
         #         "fee": 20.1374935,
         #         "feeRate": 0.0005,
+        #         "feeCurrency": "USD",
         #         "future": "EOS-0329",
         #         "id": 11215,
         #         "liquidity": "taker",
@@ -557,39 +967,92 @@ class ftx(Exchange):
         #         "type": "order"
         #     }
         #
+        #     {
+        #         "baseCurrency": "BTC",
+        #         "fee": 0,
+        #         "feeCurrency": "USD",
+        #         "feeRate": 0,
+        #         "future": null,
+        #         "id": 664079556,
+        #         "liquidity": "taker",
+        #         "market": null,
+        #         "orderId": null,
+        #         "price": 34830.61359,
+        #         "quoteCurrency": "USD",
+        #         "side": "sell",
+        #         "size": 0.0005996,
+        #         "time": "2021-01-15T16:05:29.246135+00:00",
+        #         "tradeId": null,
+        #         "type": "otc"
+        #     }
+        #
+        #     with -ve fee
+        #     {
+        #         "id": 1171258927,
+        #         "fee": -0.0000713875,
+        #         "side": "sell",
+        #         "size": 1,
+        #         "time": "2021-03-11T13:34:35.523627+00:00",
+        #         "type": "order",
+        #         "price": 14.2775,
+        #         "future": null,
+        #         "market": "SOL/USD",
+        #         "feeRate": -0.000005,
+        #         "orderId": 33182929044,
+        #         "tradeId": 582936801,
+        #         "liquidity": "maker",
+        #         "feeCurrency": "USD",
+        #         "baseCurrency": "SOL",
+        #         "quoteCurrency": "USD"
+        #     }
+        #
+        #     # from OTC order
+        #     {
+        #         "id": 1172129651,
+        #         "fee": 0,
+        #         "side": "sell",
+        #         "size": 1.47568846,
+        #         "time": "2021-03-11T15:04:46.893383+00:00",
+        #         "type": "otc",
+        #         "price": 14.60932598,
+        #         "future": null,
+        #         "market": null,
+        #         "feeRate": 0,
+        #         "orderId": null,
+        #         "tradeId": null,
+        #         "liquidity": "taker",
+        #         "feeCurrency": "USD",
+        #         "baseCurrency": "BCHA",
+        #         "quoteCurrency": "USD"
+        #     }
+        #
         id = self.safe_string(trade, 'id')
         takerOrMaker = self.safe_string(trade, 'liquidity')
-        marketId = self.safe_string(trade, 'market')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                base = self.safe_currency_code(self.safe_string(trade, 'baseCurrency'))
-                quote = self.safe_currency_code(self.safe_string(trade, 'quoteCurrency'))
-                if (base is not None) and (quote is not None):
-                    symbol = base + '/' + quote
-                else:
-                    symbol = marketId
+        # a workaround for the OTC trades, they don't have a symbol
+        baseId = self.safe_string(trade, 'baseCurrency')
+        quoteId = self.safe_string(trade, 'quoteCurrency')
+        defaultMarketId = None
+        if (baseId is not None) and (quoteId is not None):
+            defaultMarketId = baseId + '/' + quoteId
+        marketId = self.safe_string(trade, 'market', defaultMarketId)
+        market = self.safe_market(marketId, market, '/')
+        symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string(trade, 'time'))
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'size')
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'size')
         side = self.safe_string(trade, 'side')
-        cost = None
-        if price is not None and amount is not None:
-            cost = price * amount
         fee = None
-        feeCost = self.safe_float(trade, 'fee')
-        if feeCost is not None:
+        feeCostString = self.safe_string(trade, 'fee')
+        if feeCostString is not None:
+            feeCurrencyId = self.safe_string(trade, 'feeCurrency')
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': feeCost,
-                'rate': self.safe_float(trade, 'feeRate'),
+                'cost': feeCostString,
+                'currency': feeCurrencyCode,
+                'rate': self.safe_string(trade, 'feeRate'),
             }
         orderId = self.safe_string(trade, 'orderId')
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -599,19 +1062,24 @@ class ftx(Exchange):
             'type': None,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
-        market = self.market(symbol)
+        market, marketId = self.get_market_params(symbol, 'market_name', params)
         request = {
-            'market_name': market['id'],
+            'market_name': marketId,
         }
         if since is not None:
+            # the exchange aligns results to end_time returning 5000 trades max
+            # the user must set the end_time(in seconds) close enough to start_time
+            # for a proper pagination, fetch the most recent trades first
+            # then set the end_time parameter to the timestamp of the last trade
+            # start_time and end_time must be in seconds, divided by a thousand
             request['start_time'] = int(since / 1000)
             # start_time doesn't work without end_time
             request['end_time'] = self.seconds()
@@ -685,11 +1153,88 @@ class ftx(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        return {
+        maker = self.safe_number(result, 'makerFee')
+        taker = self.safe_number(result, 'takerFee')
+        tradingFees = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            tradingFees[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': True,
+                'tierBased': True,
+            }
+        return tradingFees
+
+    def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+        #
+        # Gets a history of funding rates with their timestamps
+        #  (param) symbol: Future currency pair(e.g. "BTC-PERP")
+        #  (param) limit: Not used by ftx
+        #  (param) since: Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        #  (param) params: Object containing more params for the request
+        #             - until: Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        #  return: [{symbol, fundingRate, timestamp}]
+        #
+        self.load_markets()
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
+            request['future'] = market['id']
+        if since is not None:
+            request['start_time'] = int(since / 1000)
+        till = self.safe_integer(params, 'till')  # unified in milliseconds
+        endTime = self.safe_string(params, 'end_time')  # exchange-specific in seconds
+        params = self.omit(params, ['end_time', 'till'])
+        if till is not None:
+            request['end_time'] = int(till / 1000)
+        elif endTime is not None:
+            request['end_time'] = endTime
+        response = self.publicGetFundingRates(self.extend(request, params))
+        #
+        #     {
+        #        "success": True,
+        #        "result": [
+        #          {
+        #            "future": "BTC-PERP",
+        #            "rate": 0.0025,
+        #            "time": "2019-06-02T08:00:00+00:00"
+        #          }
+        #        ]
+        #      }
+        #
+        result = self.safe_value(response, 'result')
+        rates = []
+        for i in range(0, len(result)):
+            entry = result[i]
+            marketId = self.safe_string(entry, 'future')
+            timestamp = self.parse8601(self.safe_string(result[i], 'time'))
+            rates.append({
+                'info': entry,
+                'symbol': self.safe_symbol(marketId),
+                'fundingRate': self.safe_number(entry, 'rate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            })
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def parse_balance(self, response):
+        result = {
             'info': response,
-            'maker': self.safe_float(result, 'makerFee'),
-            'taker': self.safe_float(result, 'takerFee'),
         }
+        balances = self.safe_value(response, 'result', [])
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            code = self.safe_currency_code(self.safe_string(balance, 'coin'))
+            account = self.account()
+            account['free'] = self.safe_string_2(balance, 'availableWithoutBorrow', 'free')
+            account['total'] = self.safe_string(balance, 'total')
+            result[code] = account
+        return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -706,30 +1251,20 @@ class ftx(Exchange):
         #         ],
         #     }
         #
-        result = {
-            'info': response,
-        }
-        balances = self.safe_value(response, 'result', [])
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            code = self.safe_currency_code(self.safe_string(balance, 'coin'))
-            account = self.account()
-            account['free'] = self.safe_float(balance, 'free')
-            account['total'] = self.safe_float(balance, 'total')
-            result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(response)
 
     def parse_order_status(self, status):
         statuses = {
             'new': 'open',
             'open': 'open',
             'closed': 'closed',  # filled or canceled
+            'triggered': 'closed',
         }
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         #
-        # fetchOrder, fetchOrders, fetchOpenOrders, createOrder("limit", "market")
+        # limit orders - fetchOrder, fetchOrders, fetchOpenOrders, createOrder, editOrder
         #
         #     {
         #         "createdAt": "2019-03-05T09:56:55.728933+00:00",
@@ -747,6 +1282,27 @@ class ftx(Exchange):
         #         "ioc": False,
         #         "postOnly": False,
         #         "clientId": null,
+        #     }
+        #
+        # market orders - fetchOrder, fetchOrders, fetchOpenOrders, createOrder
+        #
+        #     {
+        #         "avgFillPrice": 2666.0,
+        #         "clientId": None,
+        #         "createdAt": "2020-02-12T00: 53: 49.009726+00: 00",
+        #         "filledSize": 0.0007,
+        #         "future": None,
+        #         "id": 3109208514,
+        #         "ioc": True,
+        #         "market": "BNBBULL/USD",
+        #         "postOnly": False,
+        #         "price": None,
+        #         "reduceOnly": False,
+        #         "remainingSize": 0.0,
+        #         "side": "buy",
+        #         "size": 0.0007,
+        #         "status": "closed",
+        #         "type": "market"
         #     }
         #
         # createOrder(conditional, "stop", "trailingStop", or "takeProfit")
@@ -768,45 +1324,105 @@ class ftx(Exchange):
         #         "reduceOnly": False
         #     }
         #
+        # editOrder(conditional, stop, trailing stop, take profit)
+        #
+        #     {
+        #         "createdAt": "2019-03-05T09:56:55.728933+00:00",
+        #         "future": "XRP-PERP",
+        #         "id": 9596912,
+        #         "market": "XRP-PERP",
+        #         "triggerPrice": 0.306225,
+        #         "orderId": null,
+        #         "side": "sell",
+        #         "size": 31431,
+        #         "status": "open",
+        #         "type": "stop",
+        #         "orderPrice": null,
+        #         "error": null,
+        #         "triggeredAt": null,
+        #         "reduceOnly": False,
+        #         "orderType": "market",
+        #         "filledSize": 0,
+        #         "avgFillPrice": null,
+        #         "retryUntilFilled": False
+        #     }
+        #
+        # canceled order with a closed status
+        #
+        #     {
+        #         "avgFillPrice":null,
+        #         "clientId":null,
+        #         "createdAt":"2020-09-01T13:45:57.119695+00:00",
+        #         "filledSize":0.0,
+        #         "future":null,
+        #         "id":8553541288,
+        #         "ioc":false,
+        #         "liquidation":false,
+        #         "market":"XRP/USDT",
+        #         "postOnly":false,
+        #         "price":0.5,
+        #         "reduceOnly":false,
+        #         "remainingSize":0.0,
+        #         "side":"sell",
+        #         "size":46.0,
+        #         "status":"closed",
+        #         "type":"limit"
+        #     }
+        #
         id = self.safe_string(order, 'id')
         timestamp = self.parse8601(self.safe_string(order, 'createdAt'))
-        filled = self.safe_float(order, 'filledSize')
-        remaining = self.safe_float(order, 'remainingSize')
-        symbol = None
-        marketId = self.safe_string(order, 'market')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
         status = self.parse_order_status(self.safe_string(order, 'status'))
+        amount = self.safe_string(order, 'size')
+        filled = self.safe_string(order, 'filledSize')
+        remaining = self.safe_string(order, 'remainingSize')
+        if Precise.string_equals(remaining, '0'):
+            remaining = Precise.string_sub(amount, filled)
+            if Precise.string_gt(remaining, '0'):
+                status = 'canceled'
+        marketId = self.safe_string(order, 'market')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        if symbol is None:
+            # support for delisted market ids
+            # https://github.com/ccxt/ccxt/issues/7113
+            symbol = marketId
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'type')
-        amount = self.safe_float(order, 'size')
-        cost = None
-        if filled is not None and amount is not None:
-            cost = filled * amount
-        price = self.safe_float_2(order, 'price', 'triggerPrice')
+        average = self.safe_string(order, 'avgFillPrice')
+        price = self.safe_string_2(order, 'price', 'triggerPrice', average)
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'triggeredAt'))
-        return {
+        clientOrderId = self.safe_string(order, 'clientId')
+        stopPrice = self.safe_number(order, 'triggerPrice')
+        postOnly = self.safe_value(order, 'postOnly')
+        ioc = self.safe_value(order, 'ioc')
+        timeInForce = None
+        if ioc:
+            timeInForce = 'IOC'
+        if postOnly:
+            timeInForce = 'PO'
+        return self.safe_order({
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
-            'cost': cost,
-            'average': None,
+            'cost': None,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': None,
             'trades': None,
-        }
+        }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -821,22 +1437,56 @@ class ftx(Exchange):
             # 'ioc': False,  # optional, default is False, limit or market orders only
             # 'postOnly': False,  # optional, default is False, limit or market orders only
             # 'clientId': 'abcdef0123456789',  # string, optional, client order id, limit or market orders only
+            # 'triggerPrice': 0.306525,  # required for stop and takeProfit orders
+            # 'trailValue': -0.306525,  # required for trailingStop orders, negative for "sell"; positive for "buy"
+            # 'orderPrice': 0.306525,  # optional, for stop and takeProfit orders only(market by default). If not specified, a market order will be submitted
         }
-        priceToPrecision = None
-        if price is not None:
-            priceToPrecision = float(self.price_to_precision(symbol, price))
-        method = 'privatePostConditionalOrders'
-        if type == 'limit':
+        clientOrderId = self.safe_string_2(params, 'clientId', 'clientOrderId')
+        if clientOrderId is not None:
+            request['clientId'] = clientOrderId
+            params = self.omit(params, ['clientId', 'clientOrderId'])
+        method = None
+        stopPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
+        params = self.omit(params, ['stopPrice', 'triggerPrice'])
+        if ((type == 'limit') or (type == 'market')) and (stopPrice is None):
             method = 'privatePostOrders'
-            request['price'] = priceToPrecision
-        elif type == 'market':
-            method = 'privatePostOrders'
-            request['price'] = None
-        elif (type == 'stop') or (type == 'takeProfit'):
-            request['triggerPrice'] = priceToPrecision
-            # request['orderPrice'] = number  # optional, order type is limit if self is specified, otherwise market
+            if type == 'limit':
+                request['price'] = float(self.price_to_precision(symbol, price))
+            elif type == 'market':
+                request['price'] = None
+            timeInForce = self.safe_string(params, 'timeInForce')
+            postOnly = self.safe_value(params, 'postOnly', False)
+            params = self.omit(params, ['timeInForce', 'postOnly'])
+            if timeInForce is not None:
+                if not ((timeInForce == 'IOC') or (timeInForce == 'PO')):
+                    raise InvalidOrder(self.id + ' createOrder() does not accept timeInForce: ' + timeInForce + ' orders, only IOC and PO orders are allowed')
+            maker = ((timeInForce == 'PO') or postOnly)
+            if (type == 'market') and maker:
+                raise InvalidOrder(self.id + ' createOrder() does not accept postOnly: True or timeInForce: PO for market orders')
+            ioc = (timeInForce == 'IOC')
+            if maker:
+                request['postOnly'] = True
+            if ioc:
+                request['ioc'] = True
+        elif (type == 'stop') or (type == 'takeProfit') or (stopPrice is not None):
+            method = 'privatePostConditionalOrders'
+            if stopPrice is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders')
+            else:
+                request['triggerPrice'] = float(self.price_to_precision(symbol, stopPrice))
+            if (type == 'limit') and (price is None):
+                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for stop limit orders')
+            if price is not None:
+                request['orderPrice'] = float(self.price_to_precision(symbol, price))  # optional, order type is limit if self is specified, otherwise market
+            if (type == 'limit') or (type == 'market'):
+                # default to stop orders for main argument
+                request['type'] = 'stop'
         elif type == 'trailingStop':
-            request['trailValue'] = priceToPrecision  # negative for "sell", positive for "buy"
+            trailValue = self.safe_number(params, 'trailValue', price)
+            if trailValue is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a trailValue parameter or a price argument(negative or positive) for a ' + type + ' order')
+            method = 'privatePostConditionalOrders'
+            request['trailValue'] = float(self.price_to_precision(symbol, trailValue))  # negative for "sell", positive for "buy"
         else:
             raise InvalidOrder(self.id + ' createOrder() does not support order type ' + type + ', only limit, market, stop, trailingStop, or takeProfit orders are supported')
         response = getattr(self, method)(self.extend(request, params))
@@ -894,12 +1544,121 @@ class ftx(Exchange):
         result = self.safe_value(response, 'result', [])
         return self.parse_order(result, market)
 
+    def create_reduce_only_order(self, symbol, type, side, amount, price=None, params={}):
+        request = {
+            'reduceOnly': True,
+        }
+        return self.create_order(symbol, type, side, amount, price, self.extend(request, params))
+
+    def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {}
+        method = None
+        clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
+        triggerPrice = self.safe_number(params, 'triggerPrice')
+        orderPrice = self.safe_number(params, 'orderPrice')
+        trailValue = self.safe_number(params, 'trailValue')
+        params = self.omit(params, ['client_order_id', 'clientOrderId', 'triggerPrice', 'orderPrice', 'trailValue'])
+        triggerPriceIsDefined = (triggerPrice is not None)
+        orderPriceIsDefined = (orderPrice is not None)
+        trailValueIsDefined = (trailValue is not None)
+        if triggerPriceIsDefined or orderPriceIsDefined or trailValueIsDefined:
+            method = 'privatePostConditionalOrdersOrderIdModify'
+            request['order_id'] = id
+            if triggerPriceIsDefined:
+                request['triggerPrice'] = float(self.price_to_precision(symbol, triggerPrice))
+            if orderPriceIsDefined:
+                # only for stop limit or take profit limit orders
+                request['orderPrice'] = float(self.price_to_precision(symbol, orderPrice))
+            if trailValueIsDefined:
+                # negative for sell orders, positive for buy orders
+                request['trailValue'] = float(self.price_to_precision(symbol, trailValue))
+        else:
+            if clientOrderId is None:
+                method = 'privatePostOrdersOrderIdModify'
+                request['order_id'] = id
+            else:
+                method = 'privatePostOrdersByClientIdClientOrderIdModify'
+                request['client_order_id'] = clientOrderId
+                # request['clientId'] = clientOrderId
+            if price is not None:
+                request['price'] = float(self.price_to_precision(symbol, price))
+        if amount is not None:
+            request['size'] = float(self.amount_to_precision(symbol, amount))
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # regular order
+        #
+        #     {
+        #         "success": True,
+        #         "result": {
+        #             "createdAt": "2019-03-05T11:56:55.728933+00:00",
+        #             "filledSize": 0,
+        #             "future": "XRP-PERP",
+        #             "id": 9596932,
+        #             "market": "XRP-PERP",
+        #             "price": 0.326525,
+        #             "remainingSize": 31431,
+        #             "side": "sell",
+        #             "size": 31431,
+        #             "status": "open",
+        #             "type": "limit",
+        #             "reduceOnly": False,
+        #             "ioc": False,
+        #             "postOnly": False,
+        #             "clientId": null,
+        #         }
+        #     }
+        #
+        # conditional trigger order
+        #
+        #     {
+        #         "success": True,
+        #         "result": {
+        #             "createdAt": "2019-03-05T09:56:55.728933+00:00",
+        #             "future": "XRP-PERP",
+        #             "id": 9596912,
+        #             "market": "XRP-PERP",
+        #             "triggerPrice": 0.306225,
+        #             "orderId": null,
+        #             "side": "sell",
+        #             "size": 31431,
+        #             "status": "open",
+        #             "type": "stop",
+        #             "orderPrice": null,
+        #             "error": null,
+        #             "triggeredAt": null,
+        #             "reduceOnly": False,
+        #             "orderType": "market",
+        #             "filledSize": 0,
+        #             "avgFillPrice": null,
+        #             "retryUntilFilled": False
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        return self.parse_order(result, market)
+
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        request = {
-            'order_id': int(id),
-        }
-        response = self.privateDeleteOrdersOrderId(self.extend(request, params))
+        request = {}
+        # support for canceling conditional orders
+        # https://github.com/ccxt/ccxt/issues/6669
+        options = self.safe_value(self.options, 'cancelOrder', {})
+        defaultMethod = self.safe_string(options, 'method', 'privateDeleteOrdersOrderId')
+        method = self.safe_string(params, 'method', defaultMethod)
+        type = self.safe_value(params, 'type')
+        clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
+        if clientOrderId is None:
+            request['order_id'] = int(id)
+            if (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
+                method = 'privateDeleteConditionalOrdersOrderId'
+        else:
+            request['client_order_id'] = clientOrderId
+            method = 'privateDeleteOrdersByClientIdClientOrderId'
+        query = self.omit(params, ['method', 'type', 'client_order_id', 'clientOrderId'])
+        response = getattr(self, method)(self.extend(request, query))
         #
         #     {
         #         "success": True,
@@ -913,13 +1672,12 @@ class ftx(Exchange):
         self.load_markets()
         request = {
             # 'market': market['id'],  # optional
-            'conditionalOrdersOnly': False,  # cancel conditional orders only
-            'limitOrdersOnly': False,  # cancel existing limit orders(non-conditional orders) only
+            # 'conditionalOrdersOnly': False,  # cancel conditional orders only
+            # 'limitOrdersOnly': False,  # cancel existing limit orders(non-conditional orders) only
         }
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            request['market'] = market['id']
+        marketId = self.get_market_id(symbol, 'market', params)
+        if marketId is not None:
+            request['market'] = marketId
         response = self.privateDeleteOrders(self.extend(request, params))
         result = self.safe_value(response, 'result', {})
         #
@@ -932,10 +1690,16 @@ class ftx(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        request = {
-            'order_id': id,
-        }
-        response = self.privateGetOrdersOrderId(self.extend(request, params))
+        request = {}
+        clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
+        method = 'privateGetOrdersOrderId'
+        if clientOrderId is None:
+            request['order_id'] = id
+        else:
+            request['client_order_id'] = clientOrderId
+            params = self.omit(params, ['client_order_id', 'clientOrderId'])
+            method = 'privateGetOrdersByClientIdClientOrderId'
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "success": True,
@@ -965,11 +1729,20 @@ class ftx(Exchange):
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {}
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            request['market'] = market['id']
-        response = self.privateGetOrders(self.extend(request, params))
+        market, marketId = self.get_market_params(symbol, 'market', params)
+        if marketId is not None:
+            request['market'] = marketId
+        # support for canceling conditional orders
+        # https://github.com/ccxt/ccxt/issues/6669
+        options = self.safe_value(self.options, 'fetchOpenOrders', {})
+        defaultMethod = self.safe_string(options, 'method', 'privateGetOrders')
+        method = self.safe_string(params, 'method', defaultMethod)
+        type = self.safe_value(params, 'type')
+        stop = self.safe_value(params, 'stop')
+        if stop or (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
+            method = 'privateGetConditionalOrders'
+        query = self.omit(params, ['method', 'type', 'stop'])
+        response = getattr(self, method)(self.extend(request, query))
         #
         #     {
         #         "success": True,
@@ -1001,15 +1774,23 @@ class ftx(Exchange):
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {}
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            request['market'] = market['id']
+        market, marketId = self.get_market_params(symbol, 'market', params)
+        if marketId is not None:
+            request['market'] = marketId
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
         if since is not None:
             request['start_time'] = int(since / 1000)
-        response = self.privateGetOrdersHistory(self.extend(request, params))
+        # support for canceling conditional orders
+        # https://github.com/ccxt/ccxt/issues/6669
+        options = self.safe_value(self.options, 'fetchOrders', {})
+        defaultMethod = self.safe_string(options, 'method', 'privateGetOrdersHistory')
+        method = self.safe_string(params, 'method', defaultMethod)
+        type = self.safe_value(params, 'type')
+        if (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
+            method = 'privateGetConditionalOrdersHistory'
+        query = self.omit(params, ['method', 'type'])
+        response = getattr(self, method)(self.extend(request, query))
         #
         #     {
         #         "success": True,
@@ -1038,16 +1819,21 @@ class ftx(Exchange):
         result = self.safe_value(response, 'result', [])
         return self.parse_orders(result, market, since, limit)
 
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        request = {
+            'orderId': id,
+        }
+        return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
+
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'market': market['id'],
-        }
-        if limit is not None:
-            request['limit'] = limit
+        market, marketId = self.get_market_params(symbol, 'market', params)
+        request = {}
+        if marketId is not None:
+            request['market'] = marketId
         if since is not None:
             request['start_time'] = int(since / 1000)
+            request['end_time'] = self.seconds()
         response = self.privateGetFills(self.extend(request, params))
         #
         #     {
@@ -1075,7 +1861,72 @@ class ftx(Exchange):
         trades = self.safe_value(response, 'result', [])
         return self.parse_trades(trades, market, since, limit)
 
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+            'source': fromAccount,
+            'destination': toAccount,
+            'size': amount,
+        }
+        response = self.privatePostSubaccountsTransfer(self.extend(request, params))
+        #
+        #     {
+        #         success: True,
+        #         result: {
+        #             id: '31222278',
+        #             coin: 'USDT',
+        #             size: '1.0',
+        #             time: '2022-04-01T11:18:27.194188+00:00',
+        #             notes: 'Transfer from main account to testSubaccount',
+        #             status: 'complete'
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        return self.parse_transfer(result, currency)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         id: '31222278',
+        #         coin: 'USDT',
+        #         size: '1.0',
+        #         time: '2022-04-01T11:18:27.194188+00:00',
+        #         notes: 'Transfer from main account to testSubaccount',
+        #         status: 'complete'
+        #     }
+        #
+        currencyId = self.safe_string(transfer, 'coin')
+        notes = self.safe_string(transfer, 'notes', '')
+        status = self.safe_string(transfer, 'status')
+        fromTo = notes.replace('Transfer from ', '')
+        parts = fromTo.split(' to ')
+        fromAccount = self.safe_string(parts, 0)
+        fromAccount = fromAccount.replace(' account', '')
+        toAccount = self.safe_string(parts, 1)
+        toAccount = toAccount.replace(' account', '')
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'id'),
+            'timestamp': None,
+            'datetime': self.safe_string(transfer, 'time'),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(transfer, 'size'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': self.parse_transfer_status(status),
+        }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'complete': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
     def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
@@ -1086,8 +1937,16 @@ class ftx(Exchange):
             # 'password': 'string',  # optional withdrawal password if it is required for your account
             # 'code': '192837',  # optional 2fa code if it is required for your account
         }
+        if self.password is not None:
+            request['password'] = self.password
         if tag is not None:
             request['tag'] = tag
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_lower(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['method'] = network
+            params = self.omit(params, 'network')
         response = self.privatePostWalletWithdrawals(self.extend(request, params))
         #
         #     {
@@ -1108,44 +1967,193 @@ class ftx(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_transaction(result, currency)
 
+    def fetch_positions(self, symbols=None, params={}):
+        self.load_markets()
+        request = {
+            'showAvgPrice': True,
+        }
+        response = self.privateGetPositions(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "result": [
+        #             {
+        #                 "cost": -31.7906,
+        #                 "entryPrice": 138.22,
+        #                 "estimatedLiquidationPrice": 152.1,
+        #                 "future": "ETH-PERP",
+        #                 "initialMarginRequirement": 0.1,
+        #                 "longOrderSize": 1744.55,
+        #                 "maintenanceMarginRequirement": 0.04,
+        #                 "netSize": -0.23,
+        #                 "openSize": 1744.32,
+        #                 "realizedPnl": 3.39441714,
+        #                 "shortOrderSize": 1732.09,
+        #                 "recentAverageOpenPrice": 278.98,
+        #                 "recentPnl": 2.44,
+        #                 "recentBreakEvenPrice": 278.98,
+        #                 "side": "sell",
+        #                 "size": 0.23,
+        #                 "unrealizedPnl": 0,
+        #                 "collateralUsed": 3.17906
+        #             }
+        #         ]
+        #     }
+        #
+        result = self.safe_value(response, 'result', [])
+        results = []
+        for i in range(0, len(result)):
+            results.append(self.parse_position(result[i]))
+        return self.filter_by_array(results, 'symbol', symbols, False)
+
+    def parse_position(self, position, market=None):
+        #
+        #   {
+        #     "future": "XMR-PERP",
+        #     "size": "0.0",
+        #     "side": "buy",
+        #     "netSize": "0.0",
+        #     "longOrderSize": "0.0",
+        #     "shortOrderSize": "0.0",
+        #     "cost": "0.0",
+        #     "entryPrice": null,
+        #     "unrealizedPnl": "0.0",
+        #     "realizedPnl": "0.0",
+        #     "initialMarginRequirement": "0.02",
+        #     "maintenanceMarginRequirement": "0.006",
+        #     "openSize": "0.0",
+        #     "collateralUsed": "0.0",
+        #     "estimatedLiquidationPrice": null
+        #   }
+        #
+        contractsString = self.safe_string(position, 'size')
+        rawSide = self.safe_string(position, 'side')
+        side = 'long' if (rawSide == 'buy') else 'short'
+        marketId = self.safe_string(position, 'future')
+        symbol = self.safe_symbol(marketId, market)
+        liquidationPriceString = self.safe_string(position, 'estimatedLiquidationPrice')
+        initialMarginPercentage = self.safe_string(position, 'initialMarginRequirement')
+        leverage = int(Precise.string_div('1', initialMarginPercentage, 0))
+        # on ftx the entryPrice is actually the mark price
+        markPriceString = self.safe_string(position, 'entryPrice')
+        notionalString = Precise.string_mul(contractsString, markPriceString)
+        initialMargin = Precise.string_mul(notionalString, initialMarginPercentage)
+        maintenanceMarginPercentageString = self.safe_string(position, 'maintenanceMarginRequirement')
+        maintenanceMarginString = Precise.string_mul(notionalString, maintenanceMarginPercentageString)
+        unrealizedPnlString = self.safe_string(position, 'recentPnl')
+        percentage = self.parse_number(Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMargin, 4), '100'))
+        entryPriceString = self.safe_string(position, 'recentAverageOpenPrice')
+        difference = None
+        collateral = None
+        marginRatio = None
+        if (entryPriceString is not None) and (Precise.string_gt(liquidationPriceString, '0')):
+            # collateral = maintenanceMargin ±((markPrice - liquidationPrice) * size)
+            if side == 'long':
+                difference = Precise.string_sub(markPriceString, liquidationPriceString)
+            else:
+                difference = Precise.string_sub(liquidationPriceString, markPriceString)
+            loss = Precise.string_mul(difference, contractsString)
+            collateral = Precise.string_add(loss, maintenanceMarginString)
+            marginRatio = self.parse_number(Precise.string_div(maintenanceMarginString, collateral, 4))
+        # ftx has a weird definition of realizedPnl
+        # it keeps the historical record of the realizedPnl per contract forever
+        # so we cannot use self data
+        return {
+            'info': position,
+            'symbol': symbol,
+            'timestamp': None,
+            'datetime': None,
+            'initialMargin': self.parse_number(initialMargin),
+            'initialMarginPercentage': self.parse_number(initialMarginPercentage),
+            'maintenanceMargin': self.parse_number(maintenanceMarginString),
+            'maintenanceMarginPercentage': self.parse_number(maintenanceMarginPercentageString),
+            'entryPrice': self.parse_number(entryPriceString),
+            'notional': self.parse_number(notionalString),
+            'leverage': leverage,
+            'unrealizedPnl': self.parse_number(unrealizedPnlString),
+            'contracts': self.parse_number(contractsString),
+            'contractSize': self.safe_value(market, 'contractSize'),
+            'marginRatio': marginRatio,
+            'liquidationPrice': self.parse_number(liquidationPriceString),
+            'markPrice': self.parse_number(markPriceString),
+            'collateral': self.parse_number(collateral),
+            'marginMode': 'cross',
+            'marginType': 'cross',  # deprecated
+            'side': side,
+            'percentage': percentage,
+        }
+
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
         request = {
             'coin': currency['id'],
         }
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_lower(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['method'] = network
+            params = self.omit(params, 'network')
         response = self.privateGetWalletDepositAddressCoin(self.extend(request, params))
         #
         #     {
         #         "success": True,
         #         "result": {
         #             "address": "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
-        #             "tag": "null"
+        #             "tag": null,
+        #             "method": "erc20",
+        #             "coin": null
         #         }
         #     }
         #
         result = self.safe_value(response, 'result', {})
+        networkId = self.safe_string(result, 'method')
         address = self.safe_string(result, 'address')
-        tag = self.safe_string(result, 'tag')
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
-            'tag': tag,
+            'tag': self.safe_string(result, 'tag'),
+            'network': self.safe_network(networkId),
             'info': response,
         }
+
+    def safe_network(self, networkId):
+        networksById = {
+            'trx': 'TRC20',
+            'erc20': 'ERC20',
+            'sol': 'SOL',
+            'bsc': 'BEP20',
+            'bep2': 'BEP2',
+        }
+        return self.safe_string(networksById, networkId, networkId)
 
     def parse_transaction_status(self, status):
         statuses = {
             # what are other statuses here?
             'confirmed': 'ok',  # deposits
             'complete': 'ok',  # withdrawals
+            'cancelled': 'canceled',  # deposits
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction):
+    def parse_transaction(self, transaction, currency=None):
         #
         # fetchDeposits
+        #
+        #     airdrop
+        #
+        #     {
+        #         "id": 9147072,
+        #         "coin": "SRM_LOCKED",
+        #         "size": 3.12,
+        #         "time": "2021-04-27T23:59:03.565983+00:00",
+        #         "notes": "SRM Airdrop for FTT holdings",
+        #         "status": "complete"
+        #     }
+        #
+        #     regular deposits
         #
         #     {
         #         "coin": "TUSD",
@@ -1174,27 +2182,45 @@ class ftx(Exchange):
         #         "txid": "0x8078356ae4b06a036d64747546c274af19581f1c78c510b60505798a7ffcaf1"
         #     }
         #
+        #     {
+        #         "coin": 'BTC',
+        #         "id": 1969806,
+        #         "notes": 'Transfer to Dd6gi7m2Eg4zzBbPAxuwfEaHs6tYvyUX5hbPpsTcNPXo',
+        #         "size": 0.003,
+        #         "status": 'complete',
+        #         "time": '2021-02-03T20:28:54.918146+00:00'
+        #     }
+        #
         code = self.safe_currency_code(self.safe_string(transaction, 'coin'))
-        id = self.safe_integer(transaction, 'id')
-        amount = self.safe_float(transaction, 'size')
+        id = self.safe_string(transaction, 'id')
+        amount = self.safe_number(transaction, 'size')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         timestamp = self.parse8601(self.safe_string(transaction, 'time'))
         txid = self.safe_string(transaction, 'txid')
-        address = self.safe_string(transaction, 'address')
-        tag = self.safe_string(transaction, 'tag')
-        fee = self.safe_float(transaction, 'fee')
+        tag = None
+        address = self.safe_value(transaction, 'address')
+        if not isinstance(address, str):
+            tag = self.safe_string(address, 'tag')
+            address = self.safe_string(address, 'address')
+        if address is None:
+            # parse address from internal transfer
+            notes = self.safe_string(transaction, 'notes')
+            if (notes is not None) and (notes.find('Transfer to') >= 0):
+                address = notes[12:]
+        fee = self.safe_number(transaction, 'fee')
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'addressFrom': None,
-            'address': None,
+            'address': address,
             'addressTo': address,
             'tagFrom': None,
             'tag': tag,
-            'tagTo': None,
+            'tagTo': tag,
             'type': None,
             'amount': amount,
             'currency': code,
@@ -1228,9 +2254,12 @@ class ftx(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', [])
-        return self.parse_transactions(result)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        return self.parse_transactions(result, currency, since, limit, {'type': 'deposit'})
 
-    def fetch_withdrawals(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
         response = self.privateGetWalletWithdrawals(params)
         #
@@ -1250,12 +2279,22 @@ class ftx(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', [])
-        return self.parse_transactions(result)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        return self.parse_transactions(result, currency, since, limit, {'type': 'withdrawal'})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/api/' + self.implode_params(path, params)
+        signOptions = self.safe_value(self.options, 'sign', {})
+        headerPrefix = self.safe_string(signOptions, self.hostname, 'FTX')
+        subaccountField = headerPrefix + '-SUBACCOUNT'
+        chosenSubaccount = self.safe_string_2(params, subaccountField, 'subaccount')
+        if chosenSubaccount is not None:
+            params = self.omit(params, [subaccountField, 'subaccount'])
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'] + request
+        baseUrl = self.implode_hostname(self.urls['api'][api])
+        url = baseUrl + request
         if method != 'POST':
             if query:
                 suffix = '?' + self.urlencode(query)
@@ -1265,16 +2304,17 @@ class ftx(Exchange):
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
             auth = timestamp + method + request
-            headers = {
-                'FTX-KEY': self.apiKey,
-                'FTX-TS': timestamp,
-            }
-            if method == 'POST':
+            headers = {}
+            if (method == 'POST') or (method == 'DELETE'):
                 body = self.json(query)
                 auth += body
                 headers['Content-Type'] = 'application/json'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            headers['FTX-SIGN'] = signature
+            headers[headerPrefix + '-KEY'] = self.apiKey
+            headers[headerPrefix + '-TS'] = timestamp
+            headers[headerPrefix + '-SIGN'] = signature
+            if chosenSubaccount is not None:
+                headers[subaccountField] = chosenSubaccount
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
@@ -1291,3 +2331,310 @@ class ftx(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             raise ExchangeError(feedback)  # unknown message
+
+    def set_leverage(self, leverage, symbol=None, params={}):
+        # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if (leverage < 1) or (leverage > 20):
+            raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 20')
+        request = {
+            'leverage': leverage,
+        }
+        return self.privatePostAccountLeverage(self.extend(request, params))
+
+    def parse_income(self, income, market=None):
+        #
+        #   {
+        #       "future": "ETH-PERP",
+        #        "id": 33830,
+        #        "payment": 0.0441342,
+        #        "time": "2019-05-15T18:00:00+00:00",
+        #        "rate": 0.0001
+        #   }
+        #
+        marketId = self.safe_string(income, 'future')
+        symbol = self.safe_symbol(marketId, market)
+        amount = self.safe_number(income, 'payment')
+        code = self.safe_currency_code('USD')
+        id = self.safe_string(income, 'id')
+        time = self.safe_string(income, 'time')
+        timestamp = self.parse8601(time)
+        rate = self.safe_number(income, 'rate')
+        return {
+            'info': income,
+            'symbol': symbol,
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': id,
+            'amount': amount,
+            'rate': rate,
+        }
+
+    def parse_incomes(self, incomes, market=None, since=None, limit=None):
+        result = []
+        for i in range(0, len(incomes)):
+            entry = incomes[i]
+            parsed = self.parse_income(entry, market)
+            result.append(parsed)
+        sorted = self.sort_by(result, 'timestamp')
+        return self.filter_by_since_limit(sorted, since, limit, 'timestamp')
+
+    def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['future'] = market['id']
+        if since is not None:
+            request['startTime'] = since
+        response = self.privateGetFundingPayments(self.extend(request, params))
+        result = self.safe_value(response, 'result', [])
+        return self.parse_incomes(result, market, since, limit)
+
+    def parse_funding_rate(self, fundingRate, market=None):
+        #
+        # perp
+        #     {
+        #       "volume": "71294.7636",
+        #       "nextFundingRate": "0.000033",
+        #       "nextFundingTime": "2021-10-14T20:00:00+00:00",
+        #       "openInterest": "47142.994"
+        #     }
+        #
+        # delivery
+        #     {
+        #       "volume": "4998.727",
+        #       "predictedExpirationPrice": "3798.820141757",
+        #       "openInterest": "48307.96"
+        #     }
+        #
+        fundingRateDatetimeRaw = self.safe_string(fundingRate, 'nextFundingTime')
+        fundingRateTimestamp = self.parse8601(fundingRateDatetimeRaw)
+        estimatedSettlePrice = self.safe_number(fundingRate, 'predictedExpirationPrice')
+        return {
+            'info': fundingRate,
+            'symbol': market['symbol'],
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': self.parse_number('0'),
+            'estimatedSettlePrice': estimatedSettlePrice,
+            'timestamp': None,
+            'datetime': None,
+            'fundingRate': self.safe_number(fundingRate, 'nextFundingRate'),
+            'fundingTimestamp': fundingRateTimestamp,
+            'fundingDatetime': self.iso8601(fundingRateTimestamp),
+            'nextFundingRate': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+        }
+
+    def fetch_funding_rate(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'future_name': market['id'],
+        }
+        response = self.publicGetFuturesFutureNameStats(self.extend(request, params))
+        #
+        #     {
+        #       "success": True,
+        #       "result": {
+        #         "volume": "71294.7636",
+        #         "nextFundingRate": "0.000033",
+        #         "nextFundingTime": "2021-10-14T20:00:00+00:00",
+        #         "openInterest": "47142.994"
+        #       }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        return self.parse_funding_rate(result, market)
+
+    def fetch_borrow_rates(self, params={}):
+        self.load_markets()
+        response = self.privateGetSpotMarginBorrowRates(params)
+        #
+        #     {
+        #         "success":true,
+        #         "result":[
+        #             {"coin":"1INCH","previous":4.8763e-6,"estimate":4.8048e-6},
+        #             {"coin":"AAPL","previous":0.0000326469,"estimate":0.0000326469},
+        #             {"coin":"AAVE","previous":1.43e-6,"estimate":1.43e-6},
+        #         ]
+        #     }
+        #
+        result = self.safe_value(response, 'result')
+        return self.parse_borrow_rates(result, 'coin')
+
+    def fetch_borrow_rate_histories(self, codes=None, since=None, limit=None, params={}):
+        """
+        Gets the history of the borrow rate for mutiple currencies
+        :param str code: Unified currency code
+        :param int since: Timestamp in ms of the earliest time to fetch the borrow rate
+        :param int limit: Max number of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` to return per currency, max=48 for multiple currencies, max=5000 for a single currency
+        :param dict params: Exchange specific parameters
+        :param dict params['till']: Timestamp in ms of the latest time to fetch the borrow rate
+        :returns: A dictionary of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` with unified currency codes as keys
+        """
+        self.load_markets()
+        request = {}
+        numCodes = 0
+        endTime = self.safe_number_2(params, 'till', 'end_time')
+        if codes is not None:
+            numCodes = len(codes)
+        if numCodes == 1:
+            millisecondsPer5000Hours = 18000000000
+            if (limit is not None) and (limit > 5000):
+                raise BadRequest(self.id + ' fetchBorrowRateHistories() limit cannot exceed 5000 for a single currency')
+            if (endTime is not None) and (since is not None) and ((endTime - since) > millisecondsPer5000Hours):
+                raise BadRequest(self.id + ' fetchBorrowRateHistories() requires the time range between the since time and the end time to be less than 5000 hours for a single currency')
+            currency = self.currency(codes[0])
+            request['coin'] = currency['id']
+        else:
+            millisecondsPer2Days = 172800000
+            if (limit is not None) and (limit > 48):
+                raise BadRequest(self.id + ' fetchBorrowRateHistories() limit cannot exceed 48 for multiple currencies')
+            if (endTime is not None) and (since is not None) and ((endTime - since) > millisecondsPer2Days):
+                raise BadRequest(self.id + ' fetchBorrowRateHistories() requires the time range between the since time and the end time to be less than 48 hours for multiple currencies')
+        millisecondsPerHour = 3600000
+        if since is not None:
+            request['start_time'] = int(since / 1000)
+            if endTime is None:
+                now = self.milliseconds()
+                sinceLimit = 2 if (limit is None) else limit
+                endTime = self.sum(since, millisecondsPerHour * (sinceLimit - 1))
+                endTime = min(endTime, now)
+        else:
+            if limit is not None:
+                if endTime is None:
+                    endTime = self.milliseconds()
+                startTime = self.sum((endTime - millisecondsPerHour * limit), 1000)
+                request['start_time'] = int(startTime / 1000)
+        if endTime is not None:
+            request['end_time'] = int(endTime / 1000)
+        response = self.publicGetSpotMarginHistory(self.extend(request, params))
+        #
+        #    {
+        #        "success": True,
+        #        "result": [
+        #            {
+        #                "coin": "PYPL",
+        #                "time": "2022-01-24T13:00:00+00:00",
+        #                "size": 0.00500172,
+        #                "rate": 1e-6
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        result = self.safe_value(response, 'result')
+        return self.parse_borrow_rate_histories(result, codes, since, limit)
+
+    def fetch_borrow_rate_history(self, code, since=None, limit=None, params={}):
+        """
+        Gets the history of the borrow rate for a currency
+        :param str code: Unified currency code
+        :param int since: Timestamp in ms of the earliest time to fetch the borrow rate
+        :param int limit: Max number of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` to return, max=5000
+        :param dict params: Exchange specific parameters
+        :param dict params['till']: Timestamp in ms of the latest time to fetch the borrow rate
+        :returns: An array of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        """
+        histories = self.fetch_borrow_rate_histories([code], since, limit, params)
+        borrowRateHistory = self.safe_value(histories, code)
+        if borrowRateHistory is None:
+            raise BadRequest(self.id + ' fetchBorrowRateHistory() returned no data for ' + code)
+        return borrowRateHistory
+
+    def parse_borrow_rate_histories(self, response, codes, since, limit):
+        # How to calculate borrow rate
+        # https://help.ftx.com/hc/en-us/articles/360053007671-Spot-Margin-Trading-Explainer
+        takerFee = str(self.fees['trading']['taker'])
+        spotMarginBorrowRate = Precise.string_mul('500', takerFee)
+        borrowRateHistories = {}
+        for i in range(0, len(response)):
+            item = response[i]
+            code = self.safe_currency_code(self.safe_string(item, 'coin'))
+            if codes is None or self.in_array(code, codes):
+                if not (code in borrowRateHistories):
+                    borrowRateHistories[code] = []
+                lendingRate = self.safe_string(item, 'rate')
+                borrowRate = Precise.string_mul(lendingRate, Precise.string_add('1', spotMarginBorrowRate))
+                borrowRateStructure = self.extend(self.parse_borrow_rate(item), {'rate': borrowRate})
+                borrowRateHistories[code].append(borrowRateStructure)
+        keys = list(borrowRateHistories.keys())
+        for i in range(0, len(keys)):
+            code = keys[i]
+            borrowRateHistories[code] = self.filter_by_currency_since_limit(borrowRateHistories[code], code, since, limit)
+        return borrowRateHistories
+
+    def parse_borrow_rates(self, response, codeKey):
+        result = {}
+        for i in range(0, len(response)):
+            item = response[i]
+            currency = self.safe_string(item, codeKey)
+            code = self.safe_currency_code(currency)
+            borrowRate = self.parse_borrow_rate(item)
+            result[code] = borrowRate
+        return result
+
+    def parse_borrow_rate(self, info, currency=None):
+        #
+        #    {
+        #        "coin": "1INCH",
+        #        "previous": 0.0000462375,
+        #        "estimate": 0.0000462375
+        #    }
+        #
+        coin = self.safe_string(info, 'coin')
+        datetime = self.safe_string(info, 'time')
+        timestamp = self.parse8601(datetime)
+        return {
+            'currency': self.safe_currency_code(coin),
+            'rate': self.safe_number(info, 'previous'),
+            'period': 3600000,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
+
+    def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        if since is not None:
+            request['start_time'] = int(since / 1000)
+        response = self.privateGetSpotMarginBorrowHistory(self.extend(request, params))
+        #
+        #     {
+        #         "success":true,
+        #         "result":[
+        #             {"coin":"USDT","time":"2021-12-26T01:00:00+00:00","size":4593.74214725,"rate":3.3003e-6,"cost":0.0151607272085692,"feeUsd":0.0151683341034461},
+        #             {"coin":"USDT","time":"2021-12-26T00:00:00+00:00","size":4593.97110361,"rate":3.3003e-6,"cost":0.0151614828332441,"feeUsd":0.015169697173028324},
+        #             {"coin":"USDT","time":"2021-12-25T23:00:00+00:00","size":4594.20005922,"rate":3.3003e-6,"cost":0.0151622384554438,"feeUsd":0.015170200298479137},
+        #         ]
+        #     }
+        #
+        result = self.safe_value(response, 'result')
+        interest = self.parse_borrow_interests(result)
+        return self.filter_by_currency_since_limit(interest, code, since, limit)
+
+    def parse_borrow_interest(self, info, market=None):
+        coin = self.safe_string(info, 'coin')
+        datetime = self.safe_string(info, 'time')
+        return {
+            'account': 'cross',
+            'symbol': None,
+            'marginMode': 'cross',
+            'marginType': 'cross',  # deprecated
+            'currency': self.safe_currency_code(coin),
+            'interest': self.safe_number(info, 'cost'),
+            'interestRate': self.safe_number(info, 'rate'),
+            'amountBorrowed': self.safe_number(info, 'size'),
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+            'info': info,
+        }

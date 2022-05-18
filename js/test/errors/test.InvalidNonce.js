@@ -2,18 +2,14 @@
 
 // ----------------------------------------------------------------------------
 
-const log       = require ('ololog')
-    , ansi      = require ('ansicolor').nice
-    , chai      = require ('chai')
-    , ccxt      = require ('../../../ccxt.js')
-    , expect    = chai.expect
-    , assert    = chai.assert
+const assert = require ('assert')
+    , ccxt = require ('../../../ccxt.js')
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 
 module.exports = async (exchange, symbol) => {
 
-    log.green ('AuthenticationError (bad nonce) test...')
+    console.log ('AuthenticationError (bad nonce) test...')
 
     const hasFetchBalance  = exchange.has.fetchBalance
     const hasFetchMyTrades = exchange.has.fetchMyTrades
@@ -31,16 +27,17 @@ module.exports = async (exchange, symbol) => {
             // responds with an error on a bad nonce
             // (still, some exchanges that require nonce silently eat bad nonce w/o an error)
 
-            if (hasFetchBalance)
+            if (hasFetchBalance) {
                 await exchange.fetchBalance ()
-            else if (hasFetchMyTrades)
+            } else if (hasFetchMyTrades) {
                 await exchange.fetchMyTrades (symbol, 0)
-            else
+            } else {
                 await exchange.fetchOrders (symbol)
+            }
 
             // restore the nonce so the caller may proceed in case bad nonce was accepted by an exchange
             exchange.nonce = nonce
-            log.warn (exchange.id + ': AuthenticationError: bad nonce swallowed')
+            console.log (exchange.id + ': AuthenticationError: bad nonce swallowed')
 
         } catch (e) {
 
@@ -50,7 +47,7 @@ module.exports = async (exchange, symbol) => {
             if (e instanceof ccxt.AuthenticationError || e instanceof ccxt.InvalidNonce) {
 
                 // it has thrown the exception as expected
-                log.green ('AuthenticationError test passed')
+                console.log ('AuthenticationError test passed')
 
             } else {
 
@@ -61,7 +58,7 @@ module.exports = async (exchange, symbol) => {
 
     } else {
 
-        log (exchange.id + ' has no means of testing for bad nonce')
+        console.log (exchange.id + ' has no means of testing for bad nonce')
 
     }
 }

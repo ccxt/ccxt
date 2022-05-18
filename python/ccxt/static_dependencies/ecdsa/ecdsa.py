@@ -53,7 +53,6 @@ Revision history:
 Written in 2005 by Peter Pearson and placed in the public domain.
 """
 
-from six import int2byte, b
 from . import ellipticcurve
 from . import numbertheory
 
@@ -63,99 +62,101 @@ class RSZeroError(RuntimeError):
 
 
 class Signature(object):
-  """ECDSA signature.
+    """ECDSA signature.
   """
-  def __init__(self, r, s, recovery_param):
-    self.r = r
-    self.s = s
-    self.recovery_param = recovery_param
 
-  def recover_public_keys(self, hash, generator):
-    """Returns two public keys for which the signature is valid
+    def __init__(self, r, s, recovery_param):
+        self.r = r
+        self.s = s
+        self.recovery_param = recovery_param
+
+    def recover_public_keys(self, hash, generator):
+        """Returns two public keys for which the signature is valid
     hash is signed hash
     generator is the used generator of the signature
     """
-    curve = generator.curve()
-    n = generator.order()
-    r = self.r
-    s = self.s
-    e = hash
-    x = r
+        curve = generator.curve()
+        n = generator.order()
+        r = self.r
+        s = self.s
+        e = hash
+        x = r
 
-    # Compute the curve point with x as x-coordinate
-    alpha = (pow(x, 3, curve.p()) + (curve.a() * x) + curve.b()) % curve.p()
-    beta = numbertheory.square_root_mod_prime(alpha, curve.p())
-    y = beta if beta % 2 == 0 else curve.p() - beta
+        # Compute the curve point with x as x-coordinate
+        alpha = (pow(x, 3, curve.p()) + (curve.a() * x) + curve.b()) % curve.p()
+        beta = numbertheory.square_root_mod_prime(alpha, curve.p())
+        y = beta if beta % 2 == 0 else curve.p() - beta
 
-    # Compute the public key
-    R1 = ellipticcurve.Point(curve, x, y, n)
-    Q1 = numbertheory.inverse_mod(r, n) * (s * R1 + (-e % n) * generator)
-    Pk1 = Public_key(generator, Q1)
+        # Compute the public key
+        R1 = ellipticcurve.Point(curve, x, y, n)
+        Q1 = numbertheory.inverse_mod(r, n) * (s * R1 + (-e % n) * generator)
+        Pk1 = Public_key(generator, Q1)
 
-    # And the second solution
-    R2 = ellipticcurve.Point(curve, x, -y, n)
-    Q2 = numbertheory.inverse_mod(r, n) * (s * R2 + (-e % n) * generator)
-    Pk2 = Public_key(generator, Q2)
+        # And the second solution
+        R2 = ellipticcurve.Point(curve, x, -y, n)
+        Q2 = numbertheory.inverse_mod(r, n) * (s * R2 + (-e % n) * generator)
+        Pk2 = Public_key(generator, Q2)
 
-    return [Pk1, Pk2]
+        return [Pk1, Pk2]
+
 
 class Public_key(object):
-  """Public key for ECDSA.
+    """Public key for ECDSA.
   """
 
-  def __init__(self, generator, point):
-    """generator is the Point that generates the group,
+    def __init__(self, generator, point):
+        """generator is the Point that generates the group,
     point is the Point that defines the public key.
     """
 
-    self.curve = generator.curve()
-    self.generator = generator
-    self.point = point
-    n = generator.order()
-    if not n:
-      raise RuntimeError("Generator point must have order.")
-    if not n * point == ellipticcurve.INFINITY:
-      raise RuntimeError("Generator point order is bad.")
-    if point.x() < 0 or n <= point.x() or point.y() < 0 or n <= point.y():
-      raise RuntimeError("Generator point has x or y out of range.")
+        self.curve = generator.curve()
+        self.generator = generator
+        self.point = point
+        n = generator.order()
+        if not n:
+            raise RuntimeError("Generator point must have order.")
+        if not n * point == ellipticcurve.INFINITY:
+            raise RuntimeError("Generator point order is bad.")
+        if point.x() < 0 or n <= point.x() or point.y() < 0 or n <= point.y():
+            raise RuntimeError("Generator point has x or y out of range.")
 
-  def verifies(self, hash, signature):
-    """Verify that signature is a valid signature of hash.
+    def verifies(self, hash, signature):
+        """Verify that signature is a valid signature of hash.
     Return True if the signature is valid.
     """
 
-    # From X9.62 J.3.1.
+        # From X9.62 J.3.1.
 
-    G = self.generator
-    n = G.order()
-    r = signature.r
-    s = signature.s
-    if r < 1 or r > n - 1:
-      return False
-    if s < 1 or s > n - 1:
-      return False
-    c = numbertheory.inverse_mod(s, n)
-    u1 = (hash * c) % n
-    u2 = (r * c) % n
-    xy = u1 * G + u2 * self.point
-    v = xy.x() % n
-    return v == r
+        G = self.generator
+        n = G.order()
+        r = signature.r
+        s = signature.s
+        if r < 1 or r > n - 1:
+            return False
+        if s < 1 or s > n - 1:
+            return False
+        c = numbertheory.inverse_mod(s, n)
+        u1 = (hash * c) % n
+        u2 = (r * c) % n
+        xy = u1 * G + u2 * self.point
+        v = xy.x() % n
+        return v == r
 
 
 class Private_key(object):
-  """Private key for ECDSA.
+    """Private key for ECDSA.
   """
 
-  def __init__(self, public_key, secret_multiplier):
-    """public_key is of class Public_key;
+    def __init__(self, public_key, secret_multiplier):
+        """public_key is of class Public_key;
     secret_multiplier is a large integer.
     """
 
-    self.public_key = public_key
-    self.secret_multiplier = secret_multiplier
+        self.public_key = public_key
+        self.secret_multiplier = secret_multiplier
 
-  def sign(self, hash, random_k):
-    """Return a signature for the provided hash, using the provided
+    def sign(self, hash, random_k):
+        """Return a signature for the provided hash, using the provided
     random nonce.  It is absolutely vital that random_k be an unpredictable
     number in the range [1, self.public_key.point.order()-1].  If
     an attacker can guess random_k, he can compute our private key from a
@@ -169,72 +170,72 @@ class Private_key(object):
     random value k is in order.
     """
 
-    G = self.public_key.generator
-    n = G.order()
-    k = random_k % n
-    p1 = k * G
-    r = p1.x() % n
-    if r == 0:
-      raise RSZeroError("amazingly unlucky random number r")
-    s = (numbertheory.inverse_mod(k, n) *
-         (hash + (self.secret_multiplier * r) % n)) % n
-    if s == 0:
-      raise RSZeroError("amazingly unlucky random number s")
-    recovery_param = p1.y() % 2 or (2 if p1.x() == k else 0)
-    return Signature(r, s, recovery_param)
+        G = self.public_key.generator
+        n = G.order()
+        k = random_k % n
+        p1 = k * G
+        r = p1.x() % n
+        if r == 0:
+            raise RSZeroError("amazingly unlucky random number r")
+        s = (numbertheory.inverse_mod(k, n) *
+             (hash + (self.secret_multiplier * r) % n)) % n
+        if s == 0:
+            raise RSZeroError("amazingly unlucky random number s")
+        recovery_param = p1.y() % 2 or (2 if p1.x() == k else 0)
+        return Signature(r, s, recovery_param)
 
 
 def int_to_string(x):
-  """Convert integer x into a string of bytes, as per X9.62."""
-  assert x >= 0
-  if x == 0:
-    return b('\0')
-  result = []
-  while x:
-    ordinal = x & 0xFF
-    result.append(int2byte(ordinal))
-    x >>= 8
+    """Convert integer x into a string of bytes, as per X9.62."""
+    assert x >= 0
+    if x == 0:
+        return b'\0'
+    result = []
+    while x:
+        ordinal = x & 0xFF
+        result.append(int.to_bytes(ordinal, 1, 'big'))
+        x >>= 8
 
-  result.reverse()
-  return b('').join(result)
+    result.reverse()
+    return b''.join(result)
 
 
 def string_to_int(s):
-  """Convert a string of bytes into an integer, as per X9.62."""
-  result = 0
-  for c in s:
-    if not isinstance(c, int):
-      c = ord(c)
-    result = 256 * result + c
-  return result
+    """Convert a string of bytes into an integer, as per X9.62."""
+    result = 0
+    for c in s:
+        if not isinstance(c, int):
+            c = ord(c)
+        result = 256 * result + c
+    return result
 
 
 def digest_integer(m):
-  """Convert an integer into a string of bytes, compute
+    """Convert an integer into a string of bytes, compute
      its SHA-1 hash, and convert the result to an integer."""
-  #
-  # I don't expect this function to be used much. I wrote
-  # it in order to be able to duplicate the examples
-  # in ECDSAVS.
-  #
-  from hashlib import sha1
-  return string_to_int(sha1(int_to_string(m)).digest())
+    #
+    # I don't expect this function to be used much. I wrote
+    # it in order to be able to duplicate the examples
+    # in ECDSAVS.
+    #
+    from hashlib import sha1
+    return string_to_int(sha1(int_to_string(m)).digest())
 
 
 def point_is_valid(generator, x, y):
-  """Is (x,y) a valid public key based on the specified generator?"""
+    """Is (x,y) a valid public key based on the specified generator?"""
 
-  # These are the tests specified in X9.62.
+    # These are the tests specified in X9.62.
 
-  n = generator.order()
-  curve = generator.curve()
-  if x < 0 or n <= x or y < 0 or n <= y:
-    return False
-  if not curve.contains_point(x, y):
-    return False
-  if not n * ellipticcurve.Point(curve, x, y) == ellipticcurve.INFINITY:
-    return False
-  return True
+    n = generator.order()
+    curve = generator.curve()
+    if x < 0 or n <= x or y < 0 or n <= y:
+        return False
+    if not curve.contains_point(x, y):
+        return False
+    if not n * ellipticcurve.Point(curve, x, y) == ellipticcurve.INFINITY:
+        return False
+    return True
 
 
 # NIST Curve P-192:
@@ -248,7 +249,6 @@ _Gy = 0x07192b95ffc8da78631011ed6b24cdd573f977a11e794811
 
 curve_192 = ellipticcurve.CurveFp(_p, -3, _b)
 generator_192 = ellipticcurve.Point(curve_192, _Gx, _Gy, _r)
-
 
 # NIST Curve P-224:
 _p = 26959946667150639794667015087019630673557916260026308143510066298881

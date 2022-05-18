@@ -1,7 +1,8 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError, PermissionDenied } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 module.exports = class tidex extends Exchange {
     describe () {
@@ -13,17 +14,50 @@ module.exports = class tidex extends Exchange {
             'version': '3',
             'userAgent': this.userAgents['chrome'],
             'has': {
-                'CORS': false,
-                'createMarketOrder': false,
-                'fetchOrderBooks': true,
-                'fetchOrder': true,
-                'fetchOrders': 'emulated',
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': 'emulated',
-                'fetchTickers': true,
-                'fetchMyTrades': true,
-                'withdraw': true,
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
+                'createMarketOrder': undefined,
+                'createOrder': true,
+                'createReduceOnlyOrder': false,
+                'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCurrencies': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
+                'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
+                'fetchMyTrades': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrderBooks': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg',
@@ -69,19 +103,19 @@ module.exports = class tidex extends Exchange {
                         'OrderInfo',
                         'CancelOrder',
                         'TradeHistory',
-                        'CoinDepositAddress',
-                        'WithdrawCoin',
-                        'CreateCoupon',
-                        'RedeemCoupon',
+                        'getDepositAddress',
+                        'createWithdraw',
+                        'getWithdraw',
                     ],
                 },
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': false,
                     'percentage': true,
-                    'taker': 0.1 / 100,
-                    'maker': 0.1 / 100,
+                    'taker': this.parseNumber ('0.001'),
+                    'maker': this.parseNumber ('0.001'),
                 },
             },
             'commonCurrencies': {
@@ -111,64 +145,87 @@ module.exports = class tidex extends Exchange {
                     'not available': ExchangeNotAvailable,
                     'data unavailable': ExchangeNotAvailable,
                     'external service unavailable': ExchangeNotAvailable,
+                    'IP restricted': PermissionDenied, // {"success":0,"code":0,"error":"IP restricted (223.xxx.xxx.xxx)"}
                 },
             },
             'options': {
                 'fetchTickersMaxLength': 2048,
             },
+            'orders': {}, // orders cache / emulation
         });
     }
 
     async fetchCurrencies (params = {}) {
         const response = await this.webGetCurrency (params);
+        //
+        //     [
+        //         {
+        //             "id":2,
+        //             "symbol":"BTC",
+        //             "type":2,
+        //             "name":"Bitcoin",
+        //             "amountPoint":8,
+        //             "depositEnable":true,
+        //             "depositMinAmount":0.0005,
+        //             "withdrawEnable":true,
+        //             "withdrawFee":0.0004,
+        //             "withdrawMinAmount":0.0005,
+        //             "settings":{
+        //                 "Blockchain":"https://blockchair.com/bitcoin/",
+        //                 "TxUrl":"https://blockchair.com/bitcoin/transaction/{0}",
+        //                 "AddrUrl":"https://blockchair.com/bitcoin/address/{0}",
+        //                 "ConfirmationCount":3,
+        //                 "NeedMemo":false
+        //             },
+        //             "visible":true,
+        //             "isDelisted":false
+        //         }
+        //     ]
+        //
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString (currency, 'symbol');
-            const precision = currency['amountPoint'];
+            const precision = this.safeInteger (currency, 'amountPoint');
             const code = this.safeCurrencyCode (id);
-            let active = currency['visible'] === true;
-            const canWithdraw = currency['withdrawEnable'] === true;
-            const canDeposit = currency['depositEnable'] === true;
-            if (!canWithdraw || !canDeposit) {
+            const visible = this.safeValue (currency, 'visible');
+            let active = visible === true;
+            const withdrawEnable = this.safeValue (currency, 'withdrawEnable', true);
+            const depositEnable = this.safeValue (currency, 'depositEnable', true);
+            if (!withdrawEnable || !depositEnable) {
                 active = false;
             }
             const name = this.safeString (currency, 'name');
+            const fee = this.safeNumber (currency, 'withdrawFee');
             result[code] = {
                 'id': id,
                 'code': code,
                 'name': name,
                 'active': active,
+                'deposit': depositEnable,
+                'withdraw': withdrawEnable,
                 'precision': precision,
                 'funding': {
                     'withdraw': {
-                        'active': canWithdraw,
-                        'fee': currency['withdrawFee'],
+                        'active': withdrawEnable,
+                        'fee': fee,
                     },
                     'deposit': {
-                        'active': canDeposit,
-                        'fee': 0.0,
+                        'active': depositEnable,
+                        'fee': this.parseNumber ('0'),
                     },
                 },
                 'limits': {
                     'amount': {
                         'min': undefined,
-                        'max': Math.pow (10, precision),
-                    },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': currency['withdrawMinAmout'],
+                        'min': this.safeNumber (currency, 'withdrawMinAmount'),
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': currency['depositMinAmount'],
+                        'min': this.safeNumber (currency, 'depositMinAmount'),
                         'max': undefined,
                     },
                 },
@@ -178,26 +235,25 @@ module.exports = class tidex extends Exchange {
         return result;
     }
 
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const market = this.markets[symbol];
-        let key = 'quote';
-        const rate = market[takerOrMaker];
-        let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
-        if (side === 'sell') {
-            cost *= price;
-        } else {
-            key = 'base';
-        }
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': cost,
-        };
-    }
-
     async fetchMarkets (params = {}) {
         const response = await this.publicGetInfo (params);
+        //
+        //     {
+        //         "server_time":1615861869,
+        //         "pairs":{
+        //             "ltc_btc":{
+        //                 "decimal_places":8,
+        //                 "min_price":0.00000001,
+        //                 "max_price":3.0,
+        //                 "min_amount":0.001,
+        //                 "max_amount":1000000.0,
+        //                 "min_total":0.0001,
+        //                 "hidden":0,
+        //                 "fee":0.1,
+        //             },
+        //         },
+        //     }
+        //
         const markets = response['pairs'];
         const keys = Object.keys (markets);
         const result = [];
@@ -207,48 +263,70 @@ module.exports = class tidex extends Exchange {
             const [ baseId, quoteId ] = id.split ('_');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.safeInteger (market, 'decimal_places'),
-                'price': this.safeInteger (market, 'decimal_places'),
-            };
-            const limits = {
-                'amount': {
-                    'min': this.safeFloat (market, 'min_amount'),
-                    'max': this.safeFloat (market, 'max_amount'),
-                },
-                'price': {
-                    'min': this.safeFloat (market, 'min_price'),
-                    'max': this.safeFloat (market, 'max_price'),
-                },
-                'cost': {
-                    'min': this.safeFloat (market, 'min_total'),
-                },
-            };
             const hidden = this.safeInteger (market, 'hidden');
-            const active = (hidden === 0);
+            let takerFeeString = this.safeString (market, 'fee');
+            takerFeeString = Precise.stringDiv (takerFeeString, '100');
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': active,
-                'taker': market['fee'] / 100,
-                'precision': precision,
-                'limits': limits,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': (hidden === 0),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.parseNumber (takerFeeString),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (market, 'decimal_places'),
+                    'price': this.safeInteger (market, 'decimal_places'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'min_amount'),
+                        'max': this.safeNumber (market, 'max_amount'),
+                    },
+                    'price': {
+                        'min': this.safeNumber (market, 'min_price'),
+                        'max': this.safeNumber (market, 'max_price'),
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'min_total'),
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privatePostGetInfoExt (params);
+    parseBalance (response) {
         const balances = this.safeValue (response, 'return');
-        const result = { 'info': balances };
+        const timestamp = this.safeTimestamp (balances, 'server_time');
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
         const funds = this.safeValue (balances, 'funds', {});
         const currencyIds = Object.keys (funds);
         for (let i = 0; i < currencyIds.length; i++) {
@@ -256,11 +334,43 @@ module.exports = class tidex extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const balance = this.safeValue (funds, currencyId, {});
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'value');
-            account['used'] = this.safeFloat (balance, 'inOrders');
+            account['free'] = this.safeString (balance, 'value');
+            account['used'] = this.safeString (balance, 'inOrders');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostGetInfoExt (params);
+        //
+        //     {
+        //         "success":1,
+        //         "return":{
+        //             "funds":{
+        //                 "btc":{"value":0.0000499885629956,"inOrders":0.0},
+        //                 "eth":{"value":0.000000030741708,"inOrders":0.0},
+        //                 "tdx":{"value":0.0000000155385356,"inOrders":0.0}
+        //             },
+        //             "rights":{
+        //                 "info":true,
+        //                 "trade":true,
+        //                 "withdraw":false
+        //             },
+        //             "transaction_count":0,
+        //             "open_orders":0,
+        //             "server_time":1619436907
+        //         },
+        //         "stat":{
+        //             "isSuccess":true,
+        //             "serverTime":"00:00:00.0001157",
+        //             "time":"00:00:00.0101364",
+        //             "errors":null
+        //         }
+        //     }
+        //
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -278,10 +388,10 @@ module.exports = class tidex extends Exchange {
             throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
         }
         const orderbook = response[market['id']];
-        return this.parseOrderBook (orderbook);
+        return this.parseOrderBook (orderbook, symbol);
     }
 
-    async fetchOrderBooks (symbols = undefined, params = {}) {
+    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
         if (symbols === undefined) {
@@ -289,7 +399,7 @@ module.exports = class tidex extends Exchange {
             // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if (ids.length > 2048) {
                 const numIds = this.ids.length;
-                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
+                throw new ExchangeError (this.id + ' fetchOrderBooks() has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
             }
         } else {
             ids = this.marketIds (symbols);
@@ -298,15 +408,15 @@ module.exports = class tidex extends Exchange {
         const request = {
             'pair': ids,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default = 150, max = 2000
+        }
         const response = await this.publicGetDepthPair (this.extend (request, params));
         const result = {};
         ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            let symbol = id;
-            if (id in this.markets_by_id) {
-                symbol = this.markets_by_id[id]['symbol'];
-            }
+            const symbol = this.safeSymbol (id);
             result[symbol] = this.parseOrderBook (response[id]);
         }
         return result;
@@ -314,31 +424,30 @@ module.exports = class tidex extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        //   {    high: 0.03497582,
+        //     {
+        //         high: 0.03497582,
         //         low: 0.03248474,
         //         avg: 0.03373028,
         //         vol: 120.11485715062999,
-        //     vol_cur: 3572.24914074,
-        //        last: 0.0337611,
+        //         vol_cur: 3572.24914074,
+        //         last: 0.0337611,
         //         buy: 0.0337442,
-        //        sell: 0.03377798,
-        //     updated: 1537522009          }
+        //         sell: 0.03377798,
+        //         updated: 1537522009
+        //     }
         //
         const timestamp = this.safeTimestamp (ticker, 'updated');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        const last = this.safeFloat (ticker, 'last');
-        return {
-            'symbol': symbol,
+        market = this.safeMarket (undefined, market);
+        const last = this.safeString (ticker, 'last');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
+            'ask': this.safeString (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -347,11 +456,11 @@ module.exports = class tidex extends Exchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': this.safeFloat (ticker, 'avg'),
-            'baseVolume': this.safeFloat (ticker, 'vol_cur'),
-            'quoteVolume': this.safeFloat (ticker, 'vol'),
+            'average': this.safeString (ticker, 'avg'),
+            'baseVolume': this.safeString (ticker, 'vol_cur'),
+            'quoteVolume': this.safeString (ticker, 'vol'),
             'info': ticker,
-        };
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -363,7 +472,7 @@ module.exports = class tidex extends Exchange {
             // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
             if (ids.length > this.options['fetchTickersMaxLength']) {
                 const maxLength = this.safeInteger (this.options, 'fetchTickersMaxLength', 2048);
-                throw new ArgumentsRequired (this.id + ' has ' + numIds.toString () + ' markets exceeding max URL length for this endpoint (' + maxLength.toString () + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers');
+                throw new ArgumentsRequired (this.id + ' fetchTickers() has ' + numIds.toString () + ' markets exceeding max URL length for this endpoint (' + maxLength.toString () + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers');
             }
         } else {
             ids = this.marketIds (symbols);
@@ -377,15 +486,11 @@ module.exports = class tidex extends Exchange {
         const keys = Object.keys (response);
         for (let i = 0; i < keys.length; i++) {
             const id = keys[i];
-            let symbol = id;
-            let market = undefined;
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
-                symbol = market['symbol'];
-            }
+            const market = this.safeMarket (id);
+            const symbol = market['symbol'];
             result[symbol] = this.parseTicker (response[id], market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -401,22 +506,19 @@ module.exports = class tidex extends Exchange {
         } else if (side === 'bid') {
             side = 'buy';
         }
-        const price = this.safeFloat2 (trade, 'rate', 'price');
+        const priceString = this.safeString2 (trade, 'rate', 'price');
         const id = this.safeString2 (trade, 'trade_id', 'tid');
         const orderId = this.safeString (trade, 'order_id');
-        if ('pair' in trade) {
-            const marketId = this.safeString (trade, 'pair');
-            market = this.safeValue (this.markets_by_id, marketId, market);
-        }
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        const amount = this.safeFloat (trade, 'amount');
+        const marketId = this.safeString (trade, 'pair');
+        const symbol = this.safeSymbol (marketId, market);
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const type = 'limit'; // all trades are still limit trades
         let takerOrMaker = undefined;
         let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'commission');
+        const feeCost = this.safeNumber (trade, 'commission');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'commissionCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -433,12 +535,6 @@ module.exports = class tidex extends Exchange {
             }
             if (fee === undefined) {
                 fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
-            }
-        }
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = amount * price;
             }
         }
         return {
@@ -479,8 +575,10 @@ module.exports = class tidex extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type === 'market') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
+            throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
+        const amountString = amount.toString ();
+        const priceString = price.toString ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -489,24 +587,23 @@ module.exports = class tidex extends Exchange {
             'amount': this.amountToPrecision (symbol, amount),
             'rate': this.priceToPrecision (symbol, price),
         };
-        price = parseFloat (price);
-        amount = parseFloat (amount);
         const response = await this.privatePostTrade (this.extend (request, params));
         let id = undefined;
         let status = 'open';
-        let filled = 0.0;
-        let remaining = amount;
-        if ('return' in response) {
-            id = this.safeString (response['return'], 'order_id');
+        let filledString = '0.0';
+        let remainingString = amountString;
+        const returnResult = this.safeValue (response, 'return');
+        if (returnResult !== undefined) {
+            id = this.safeString (returnResult, 'order_id');
             if (id === '0') {
-                id = this.safeString (response['return'], 'init_order_id');
+                id = this.safeString (returnResult, 'init_order_id');
                 status = 'closed';
             }
-            filled = this.safeFloat (response['return'], 'received', 0.0);
-            remaining = this.safeFloat (response['return'], 'remains', amount);
+            filledString = this.safeString (returnResult, 'received', filledString);
+            remainingString = this.safeString (returnResult, 'remains', amountString);
         }
         const timestamp = this.milliseconds ();
-        const order = {
+        return this.safeOrder ({
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -515,16 +612,18 @@ module.exports = class tidex extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': price,
-            'cost': price * filled,
-            'amount': amount,
-            'remaining': remaining,
-            'filled': filled,
+            'price': priceString,
+            'cost': undefined,
+            'amount': amountString,
+            'remaining': remainingString,
+            'filled': filledString,
             'fee': undefined,
             // 'trades': this.parseTrades (order['trades'], market),
-        };
-        this.orders[id] = order;
-        return this.extend ({ 'info': response }, order);
+            'info': response,
+            'clientOrderId': undefined,
+            'average': undefined,
+            'trades': undefined,
+        }, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -532,11 +631,7 @@ module.exports = class tidex extends Exchange {
         const request = {
             'order_id': parseInt (id),
         };
-        const response = await this.privatePostCancelOrder (this.extend (request, params));
-        if (id in this.orders) {
-            this.orders[id]['status'] = 'canceled';
-        }
-        return response;
+        return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
     parseOrderStatus (status) {
@@ -553,69 +648,41 @@ module.exports = class tidex extends Exchange {
         const id = this.safeString (order, 'id');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const timestamp = this.safeTimestamp (order, 'timestamp_created');
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (order, 'pair');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (order, 'pair');
+        const symbol = this.safeSymbol (marketId, market);
         let remaining = undefined;
         let amount = undefined;
-        const price = this.safeFloat (order, 'rate');
-        let filled = undefined;
-        let cost = undefined;
+        const price = this.safeString (order, 'rate');
         if ('start_amount' in order) {
-            amount = this.safeFloat (order, 'start_amount');
-            remaining = this.safeFloat (order, 'amount');
+            amount = this.safeString (order, 'start_amount');
+            remaining = this.safeString (order, 'amount');
         } else {
-            remaining = this.safeFloat (order, 'amount');
-            if (id in this.orders) {
-                amount = this.orders[id]['amount'];
-            }
-        }
-        if (amount !== undefined) {
-            if (remaining !== undefined) {
-                filled = amount - remaining;
-                cost = price * filled;
-            }
+            remaining = this.safeString (order, 'amount');
         }
         const fee = undefined;
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'type': 'limit',
-            'side': order['type'],
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': this.safeString (order, 'type'),
             'price': price,
-            'cost': cost,
+            'stopPrice': undefined,
+            'cost': undefined,
             'amount': amount,
             'remaining': remaining,
-            'filled': filled,
+            'filled': undefined,
             'status': status,
             'fee': fee,
-        };
-    }
-
-    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
-        const result = [];
-        const ids = Object.keys (orders);
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const order = this.extend ({ 'id': id }, orders[id]);
-            result.push (this.extend (this.parseOrder (order, market), params));
-        }
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+            'average': undefined,
+            'trades': undefined,
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -625,62 +692,12 @@ module.exports = class tidex extends Exchange {
         };
         const response = await this.privatePostOrderInfo (this.extend (request, params));
         id = id.toString ();
-        const newOrder = this.parseOrder (this.extend ({ 'id': id }, response['return'][id]));
-        const oldOrder = (id in this.orders) ? this.orders[id] : {};
-        this.orders[id] = this.extend (oldOrder, newOrder);
-        return this.orders[id];
+        const result = this.safeValue (response, 'return', {});
+        const order = this.safeValue (result, id);
+        return this.parseOrder (this.extend ({ 'id': id }, order));
     }
 
-    updateCachedOrders (openOrders, symbol) {
-        // update local cache with open orders
-        // this will add unseen orders and overwrite existing ones
-        for (let j = 0; j < openOrders.length; j++) {
-            const id = openOrders[j]['id'];
-            this.orders[id] = openOrders[j];
-        }
-        const openOrdersIndexedById = this.indexBy (openOrders, 'id');
-        const cachedOrderIds = Object.keys (this.orders);
-        for (let k = 0; k < cachedOrderIds.length; k++) {
-            // match each cached order to an order in the open orders array
-            // possible reasons why a cached order may be missing in the open orders array:
-            // - order was closed or canceled -> update cache
-            // - symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
-            const cachedOrderId = cachedOrderIds[k];
-            let cachedOrder = this.orders[cachedOrderId];
-            if (!(cachedOrderId in openOrdersIndexedById)) {
-                // cached order is not in open orders array
-                // if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
-                if (symbol !== undefined && symbol !== cachedOrder['symbol']) {
-                    continue;
-                }
-                // cached order is absent from the list of open orders -> mark the cached order as closed
-                if (cachedOrder['status'] === 'open') {
-                    cachedOrder = this.extend (cachedOrder, {
-                        'status': 'closed', // likewise it might have been canceled externally (unnoticed by "us")
-                        'cost': undefined,
-                        'filled': cachedOrder['amount'],
-                        'remaining': 0.0,
-                    });
-                    if (cachedOrder['cost'] === undefined) {
-                        if (cachedOrder['filled'] !== undefined) {
-                            cachedOrder['cost'] = cachedOrder['filled'] * cachedOrder['price'];
-                        }
-                    }
-                    this.orders[cachedOrderId] = cachedOrder;
-                }
-            }
-        }
-        return this.toArray (this.orders);
-    }
-
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if ('fetchOrdersRequiresSymbol' in this.options) {
-            if (this.options['fetchOrdersRequiresSymbol']) {
-                if (symbol === undefined) {
-                    throw new ArgumentsRequired (this.id + ' fetchOrders requires a `symbol` argument');
-                }
-            }
-        }
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -689,22 +706,30 @@ module.exports = class tidex extends Exchange {
             request['pair'] = market['id'];
         }
         const response = await this.privatePostActiveOrders (this.extend (request, params));
+        //
+        //     {
+        //         "success":1,
+        //         "return":{
+        //             "1255468911":{
+        //                 "status":0,
+        //                 "pair":"spike_usdt",
+        //                 "type":"sell",
+        //                 "amount":35028.44256388,
+        //                 "rate":0.00199989,
+        //                 "timestamp_created":1602684432
+        //             }
+        //         },
+        //         "stat":{
+        //             "isSuccess":true,
+        //             "serverTime":"00:00:00.0000826",
+        //             "time":"00:00:00.0091423",
+        //             "errors":null
+        //         }
+        //     }
+        //
         // it can only return 'open' orders (i.e. no way to fetch 'closed' orders)
         const orders = this.safeValue (response, 'return', []);
-        const openOrders = this.parseOrders (orders, market);
-        const allOrders = this.updateCachedOrders (openOrders, symbol);
-        const result = this.filterBySymbol (allOrders, symbol);
-        return this.filterBySinceLimit (result, since, limit);
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'open');
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'closed');
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -737,22 +762,88 @@ module.exports = class tidex extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'coinName': currency['id'],
+            'asset': currency['id'],
             'amount': parseFloat (amount),
             'address': address,
         };
-        // no docs on the tag, yet...
         if (tag !== undefined) {
-            throw new ExchangeError (this.id + ' withdraw() does not support the tag argument yet due to a lack of docs on withdrawing with tag/memo on behalf of the exchange.');
+            request['memo'] = tag;
         }
-        const response = await this.privatePostWithdrawCoin (this.extend (request, params));
+        const response = await this.privatePostCreateWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         "success":1,
+        //         "return":{
+        //             "withdraw_id":1111,
+        //             "withdraw_info":{
+        //                 "id":1111,
+        //                 "asset_id":1,
+        //                 "asset":"BTC",
+        //                 "amount":0.0093,
+        //                 "fee":0.0007,
+        //                 "create_time":1575128018,
+        //                 "status":"Created",
+        //                 "data":{
+        //                     "address":"1KFHE7w8BhaENAswwryaoccDb6qcT6DbYY",
+        //                     "memo":"memo",
+        //                     "tx":null,
+        //                     "error":null
+        //                 },
+        //                 "in_blockchain":false
+        //             }
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'return', {});
+        const withdrawInfo = this.safeValue (result, 'withdraw_info', {});
+        return this.parseTransaction (withdrawInfo, currency);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //     {
+        //         "id":1111,
+        //         "asset_id":1,
+        //         "asset":"BTC",
+        //         "amount":0.0093,
+        //         "fee":0.0007,
+        //         "create_time":1575128018,
+        //         "status":"Created",
+        //         "data":{
+        //             "address":"1KFHE7w8BhaENAswwryaoccDb6qcT6DbYY",
+        //             "memo":"memo",
+        //             "tx":null,
+        //             "error":null
+        //         },
+        //         "in_blockchain":false
+        //     }
+        //
+        currency = this.safeCurrency (undefined, currency);
         return {
-            'info': response,
-            'id': response['return']['tId'],
+            'id': this.safeString (transaction, 'id'),
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': undefined,
+            'type': undefined,
+            'currency': currency['code'],
+            'status': undefined,
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+            'info': transaction,
         };
     }
 

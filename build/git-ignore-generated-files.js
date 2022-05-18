@@ -34,13 +34,13 @@ let files = [
 
     'dist/ccxt.browser.js',
 
-    'python/test/test_decimal_to_precision.py',
+    'python/ccxt/test/test_decimal_to_precision.py',
     'php/test/decimal_to_precision.php',
 
-    'python/test/test_exchange_datetime_functions.py',
+    'python/ccxt/test/test_exchange_datetime_functions.py',
     'php/test/test_exchange_datetime_functions.php',
 
-    'python/test/test.py',
+    'python/ccxt/test/test_sync.py',
 
     'wiki/Exchange-Markets-By-Country.md',
     'wiki/Exchange-Markets.md',
@@ -61,6 +61,7 @@ for (const id of require ('../exchanges.json').ids) {
     files.push (`python/ccxt/${id}.py`)
     files.push (`python/ccxt/async_support/${id}.py`)
     files.push (`php/${id}.php`)
+    files.push (`php/async/${id}.php`)
 }
 
 // Filter untracked files (otherwise "git update-index" would fail)

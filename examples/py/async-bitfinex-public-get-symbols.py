@@ -12,8 +12,8 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 async def test():
     bitfinex = ccxt.bitfinex({
-        'apiKey': "4FlEDtxDl35gdEiobnfZ72vJeZteE4Bb7JdvqzjIjHq",
-        'secret': "D4DXM8DZdHuAq9YptUsb42aWT1XBnGlIJgLi8a7tzFH",
+        'apiKey': "YOUR_API_KEY",
+        'secret': "YOUR_SECRET",
         'verbose': True,  # switch it to False if you don't want the HTTP log
     })
     print(await bitfinex.public_get_symbols())

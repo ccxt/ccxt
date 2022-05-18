@@ -8,6 +8,8 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 
 
@@ -21,44 +23,46 @@ class bw(Exchange):
             'rateLimit': 1500,
             'version': 'v1',
             'has': {
-                'cancelAllOrders': False,
+                'CORS': None,
+                'spot': True,
+                'margin': None,  # has but unimplemented
+                'swap': None,  # has but unimplemented
+                'future': None,
+                'option': None,
+                'cancelAllOrders': None,
                 'cancelOrder': True,
-                'cancelOrders': False,
-                'CORS': False,
-                'createDepositAddress': False,
+                'cancelOrders': None,
+                'createDepositAddress': None,
                 'createLimitOrder': True,
-                'createMarketOrder': False,
+                'createMarketOrder': None,
                 'createOrder': True,
-                'deposit': False,
-                'editOrder': False,
+                'editOrder': None,
                 'fetchBalance': True,
-                'fetchBidsAsks': False,
-                'fetchClosedOrders': False,
+                'fetchBidsAsks': None,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': False,
-                'fetchL2OrderBook': False,
-                'fetchLedger': False,
+                'fetchL2OrderBook': None,
+                'fetchLedger': None,
                 'fetchMarkets': True,
-                'fetchMyTrades': False,
+                'fetchMyTrades': None,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrderBooks': False,
+                'fetchOrderBooks': None,
                 'fetchOrders': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
-                'fetchTradingFees': False,
-                'fetchTradingLimits': False,
-                'fetchTransactions': False,
+                'fetchTradingFees': True,
+                'fetchTradingLimits': None,
+                'fetchTransactionFees': None,
+                'fetchTransactions': None,
                 'fetchWithdrawals': True,
-                'privateAPI': False,
-                'publicAPI': False,
-                'withdraw': False,
+                'withdraw': None,
             },
             'timeframes': {
                 '1m': '1M',
@@ -75,6 +79,7 @@ class bw(Exchange):
                 'www': 'https://www.bw.com',
                 'doc': 'https://github.com/bw-exchange/api_docs_en/wiki',
                 'fees': 'https://www.bw.com/feesRate',
+                'referral': 'https://www.bw.com/regGetCommission/N3JuT1R3bWxKTE0',
             },
             'requiredCredentials': {
                 'apiKey': True,
@@ -84,16 +89,8 @@ class bw(Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'taker': 0.2 / 100,
-                    'maker': 0.2 / 100,
-                    'tiers': {
-                        'taker': [
-                            [0, 0.2 / 100],
-                        ],
-                        'maker': [
-                            [0, 0.2 / 100],
-                        ],
-                    },
+                    'taker': self.parse_number('0.002'),
+                    'maker': self.parse_number('0.002'),
                 },
                 'funding': {
                 },
@@ -102,7 +99,9 @@ class bw(Exchange):
                 'exact': {
                     '999': AuthenticationError,
                     '1000': ExchangeNotAvailable,  # {"datas":null,"resMsg":{"message":"getKlines error:data not exitsts\uff0cplease wait ,dataType=4002_KLINE_1M","method":null,"code":"1000"}}
+                    '2012': OrderNotFound,  # {"datas":null,"resMsg":{"message":"entrust not exists or on dealing with system","method":null,"code":"2012"}}
                     '5017': BadSymbol,  # {"datas":null,"resMsg":{"message":"market not exist","method":null,"code":"5017"}}
+                    '10001': RateLimitExceeded,  # {"resMsg":{"code":"10001","message":"API frequency limit"}}
                 },
             },
             'api': {
@@ -124,6 +123,7 @@ class bw(Exchange):
                         'exchange/entrust/controller/website/EntrustController/getUserEntrustList',
                         'exchange/fund/controller/website/fundwebsitecontroller/getwithdrawaddress',
                         'exchange/fund/controller/website/fundwebsitecontroller/getpayoutcoinrecord',
+                        'exchange/entrust/controller/website/EntrustController/getUserEntrustList',
                         # the docs say that the following URLs are HTTP POST
                         # in the docs header and HTTP GET in the docs body
                         # the docs contradict themselves, a typo most likely
@@ -145,36 +145,41 @@ class bw(Exchange):
     async def fetch_markets(self, params={}):
         response = await self.publicGetExchangeConfigControllerWebsiteMarketcontrollerGetByWebId(params)
         #
-        #     {
-        #         "datas": [
-        #             {
-        #                 "orderNum":null,
-        #                 "leverEnable":true,
-        #                 "leverMultiple":10,
-        #                 "marketId":"291",
-        #                 "webId":"102",
-        #                 "serverId":"entrust_bw_23",
-        #                 "name":"eos_usdt",
-        #                 "leverType":"2",
-        #                 "buyerCurrencyId":"11",
-        #                 "sellerCurrencyId":"7",
-        #                 "amountDecimal":4,
-        #                 "priceDecimal":3,
-        #                 "minAmount":"0.0100000000",
-        #                 "state":1,
-        #                 "openTime":1572537600000,
-        #                 "defaultFee":"0.00200000",
-        #                 "createUid":null,
-        #                 "createTime":0,
-        #                 "modifyUid":null,
-        #                 "modifyTime":1574160113735,
-        #                 "combineMarketId":"",
-        #                 "isCombine":0,
-        #                 "isMining":0
-        #             }
-        #         ],
-        #         "resMsg": {"message":"success !", "method":null, "code":"1"}
-        #     }
+        #    {
+        #        resMsg: {
+        #            method: null,
+        #            code: '1',
+        #            message: 'success !'
+        #        },
+        #        datas: [
+        #            {
+        #                leverMultiple: '10',
+        #                amountDecimal: '4',
+        #                minAmount: '0.0100000000',
+        #                modifyUid: null,
+        #                buyerCurrencyId: '11',
+        #                isCombine: '0',
+        #                priceDecimal: '3',
+        #                combineMarketId: '',
+        #                openPrice: '0',
+        #                leverEnable: True,
+        #                marketId: '291',
+        #                serverId: 'entrust_bw_2',
+        #                isMining: '0',
+        #                webId: '102',
+        #                modifyTime: '1581595375498',
+        #                defaultFee: '0.00200000',
+        #                sellerCurrencyId: '7',
+        #                createTime: '0',
+        #                state: '1',
+        #                name: 'eos_usdt',
+        #                leverType: '2',
+        #                createUid: null,
+        #                orderNum: null,
+        #                openTime: '1574956800000'
+        #            },
+        #        ]
+        #    }
         #
         markets = self.safe_value(response, 'datas', [])
         result = []
@@ -188,44 +193,60 @@ class bw(Exchange):
             quote = self.safe_currency_code(quote)
             baseId = self.safe_string(market, 'sellerCurrencyId')
             quoteId = self.safe_string(market, 'buyerCurrencyId')
-            baseNumericId = int(baseId)
-            quoteNumericId = int(quoteId)
-            symbol = base + '/' + quote
             state = self.safe_integer(market, 'state')
-            active = (state == 1)
-            fee = self.safe_float(market, 'defaultFee')
+            fee = self.safe_number(market, 'defaultFee')
             result.append({
                 'id': id,
-                'active': active,
                 'numericId': numericId,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'baseNumericId': baseNumericId,
-                'quoteNumericId': quoteNumericId,
-                'maker': fee,
+                'settleId': None,
+                'baseNumericId': int(baseId),
+                'quoteNumericId': int(quoteId),
+                'type': 'spot',
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': (state == 1),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
                 'taker': fee,
-                'info': market,
+                'maker': fee,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
                 'precision': {
                     'amount': self.safe_integer(market, 'amountDecimal'),
                     'price': self.safe_integer(market, 'priceDecimal'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
-                        'min': self.safe_float(market, 'minAmount'),
+                        'min': self.safe_number(market, 'minAmount'),
                         'max': None,
                     },
                     'price': {
-                        'min': 0,
+                        'min': self.parse_number('0'),
                         'max': None,
                     },
                     'cost': {
-                        'min': 0,
+                        'min': self.parse_number('0'),
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 
@@ -291,6 +312,10 @@ class bw(Exchange):
             id = self.safe_string(currency, 'currencyId')
             code = self.safe_currency_code(self.safe_string_upper(currency, 'name'))
             state = self.safe_integer(currency, 'state')
+            rechargeFlag = self.safe_integer(currency, 'rechargeFlag')
+            drawFlag = self.safe_integer(currency, 'drawFlag')
+            deposit = rechargeFlag == 1
+            withdraw = drawFlag == 1
             active = state == 1
             result[code] = {
                 'id': id,
@@ -298,24 +323,18 @@ class bw(Exchange):
                 'info': currency,
                 'name': code,
                 'active': active,
-                'fee': self.safe_float(currency, 'drawFee'),
+                'deposit': deposit,
+                'withdraw': withdraw,
+                'fee': self.safe_number(currency, 'drawFee'),
                 'precision': None,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(currency, 'limitAmount', 0),
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
+                        'min': self.safe_number(currency, 'limitAmount', 0),
                         'max': None,
                     },
                     'withdraw': {
                         'min': None,
-                        'max': float(self.safe_integer(currency, 'onceDrawLimit')),
+                        'max': self.safe_number(currency, 'onceDrawLimit'),
                     },
                 },
             }
@@ -337,38 +356,35 @@ class bw(Exchange):
         #         "469849357.2364"  # quote volume
         #     ]
         #
-        symbol = None
         marketId = self.safe_string(ticker, 0)
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         timestamp = self.milliseconds()
-        close = float(self.safe_value(ticker, 1))
+        close = self.safe_string(ticker, 1)
         bid = self.safe_value(ticker, 'bid', {})
         ask = self.safe_value(ticker, 'ask', {})
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(self.safe_value(ticker, 2)),
-            'low': float(self.safe_value(ticker, 3)),
-            'bid': float(self.safe_value(ticker, 7)),
-            'bidVolume': self.safe_float(bid, 'quantity'),
-            'ask': float(self.safe_value(ticker, 8)),
-            'askVolume': self.safe_float(ask, 'quantity'),
+            'high': self.safe_string(ticker, 2),
+            'low': self.safe_string(ticker, 3),
+            'bid': self.safe_string(ticker, 7),
+            'bidVolume': self.safe_string(bid, 'quantity'),
+            'ask': self.safe_string(ticker, 8),
+            'askVolume': self.safe_string(ask, 'quantity'),
             'vwap': None,
             'open': None,
             'close': close,
             'last': close,
             'previousClose': None,
-            'change': float(self.safe_value(ticker, 5)),
+            'change': self.safe_string(ticker, 5),
             'percentage': None,
             'average': None,
-            'baseVolume': float(self.safe_value(ticker, 4)),
-            'quoteVolume': float(self.safe_value(ticker, 9)),
+            'baseVolume': self.safe_string(ticker, 4),
+            'quoteVolume': self.safe_string(ticker, 9),
             'info': ticker,
-        }
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -426,7 +442,7 @@ class bw(Exchange):
             symbol = ticker['symbol']
             if (symbols is None) or self.in_array(symbol, symbols):
                 result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -457,7 +473,7 @@ class bw(Exchange):
         #
         orderbook = self.safe_value(response, 'datas', [])
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, timestamp)
+        return self.parse_order_book(orderbook, symbol, timestamp)
 
     def parse_trade(self, trade, market=None):
         #
@@ -478,42 +494,32 @@ class bw(Exchange):
         #     ...
         #
         timestamp = self.safe_timestamp(trade, 2)
-        price = self.safe_float(trade, 5)
-        amount = self.safe_float(trade, 6)
+        priceString = self.safe_string(trade, 5)
+        amountString = self.safe_string(trade, 6)
         marketId = self.safe_string(trade, 1)
-        symbol = None
+        delimiter = None
         if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                marketName = self.safe_string(trade, 3)
-                baseId, quoteId = marketName.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = self.cost_to_precision(symbol, price * amount)
+            if not (marketId in self.markets_by_id):
+                delimiter = '_'
+                marketId = self.safe_string(trade, 3)
+        market = self.safe_market(marketId, market, delimiter)
         sideString = self.safe_string(trade, 4)
         side = 'sell' if (sideString == 'ask') else 'buy'
-        return {
+        return self.safe_trade({
             'id': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': None,
             'type': 'limit',
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': float(cost),
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': None,
             'info': trade,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -543,14 +549,86 @@ class bw(Exchange):
         trades = self.safe_value(response, 'datas', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    async def fetch_trading_fees(self, params={}):
+        await self.load_markets()
+        response = await self.publicGetExchangeConfigControllerWebsiteMarketcontrollerGetByWebId()
+        #
+        #    {
+        #        resMsg: {method: null, code: '1', message: 'success !'},
+        #        datas: [
+        #            {
+        #                leverMultiple: '10',
+        #                amountDecimal: '4',
+        #                minAmount: '0.0100000000',
+        #                modifyUid: null,
+        #                buyerCurrencyId: '11',
+        #                isCombine: '0',
+        #                priceDecimal: '3',
+        #                combineMarketId: '',
+        #                openPrice: '0',
+        #                leverEnable: True,
+        #                marketId: '291',
+        #                serverId: 'entrust_bw_2',
+        #                isMining: '0',
+        #                webId: '102',
+        #                modifyTime: '1581595375498',
+        #                defaultFee: '0.00200000',
+        #                sellerCurrencyId: '7',
+        #                createTime: '0',
+        #                state: '1',
+        #                name: 'eos_usdt',
+        #                leverType: '2',
+        #                createUid: null,
+        #                orderNum: null,
+        #                openTime: '1574956800000'
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        datas = self.safe_value(response, 'datas', [])
+        result = {}
+        for i in range(0, len(datas)):
+            data = datas[i]
+            marketId = self.safe_string(data, 'name')
+            symbol = self.safe_symbol(marketId, None, '_')
+            fee = self.safe_number(data, 'defaultFee')
+            result[symbol] = {
+                'info': data,
+                'symbol': symbol,
+                'maker': fee,
+                'taker': fee,
+                'percentage': True,
+                'tierBased': True,
+            }
+        return result
+
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     [
+        #         "K",
+        #         "305",
+        #         "eth_btc",
+        #         "1591511280",
+        #         "0.02504",
+        #         "0.02504",
+        #         "0.02504",
+        #         "0.02504",
+        #         "0.0123",
+        #         "0",
+        #         "285740.17",
+        #         "1M",
+        #         "false",
+        #         "0.000308"
+        #     ]
+        #
         return [
             self.safe_timestamp(ohlcv, 3),
-            self.safe_float(ohlcv, 4),
-            self.safe_float(ohlcv, 5),
-            self.safe_float(ohlcv, 6),
-            self.safe_float(ohlcv, 7),
-            self.safe_float(ohlcv, 8),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
+            self.safe_number(ohlcv, 6),
+            self.safe_number(ohlcv, 7),
+            self.safe_number(ohlcv, 8),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -564,9 +642,32 @@ class bw(Exchange):
         if limit is not None:
             request['dataSize'] = limit
         response = await self.publicGetApiDataV1Klines(self.extend(request, params))
+        #
+        #     {
+        #         "datas":[
+        #             ["K","305","eth_btc","1591511280","0.02504","0.02504","0.02504","0.02504","0.0123","0","285740.17","1M","false","0.000308"],
+        #             ["K","305","eth_btc","1591511220","0.02504","0.02504","0.02504","0.02504","0.0006","0","285740.17","1M","false","0.00001502"],
+        #             ["K","305","eth_btc","1591511100","0.02505","0.02505","0.02504","0.02504","0.0012","-0.0399","285740.17","1M","false","0.00003005"],
+        #         ],
+        #         "resMsg":{"code":"1","method":null,"message":"success !"}
+        #     }
+        #
         data = self.safe_value(response, 'datas', [])
-        ohlcvs = self.parse_ohlcvs(data, market, timeframe, since, limit)
-        return self.sort_by(ohlcvs, 0)
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
+
+    def parse_balance(self, response):
+        data = self.safe_value(response, 'datas', {})
+        balances = self.safe_value(data, 'list', [])
+        result = {'info': response}
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currencyTypeId')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'amount')
+            account['used'] = self.safe_string(balance, 'freeze')
+            result[code] = account
+        return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -588,22 +689,11 @@ class bw(Exchange):
         #         "resMsg": {"code": "1", "message": "success !"}
         #     }
         #
-        data = self.safe_value(response, 'datas', {})
-        balances = self.safe_value(data, 'list', [])
-        result = {'info': response}
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            currencyId = self.safe_integer(balance, 'currencyTypeId')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_float(balance, 'amount')
-            account['used'] = self.safe_float(balance, 'freeze')
-            result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(response)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if price is None:
-            raise ExchangeError(self.id + ' allows limit orders only')
+            raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -646,6 +736,7 @@ class bw(Exchange):
             'status': 'open',
             'fee': None,
             'trades': None,
+            'clientOrderId': None,
         }
 
     def parse_order_status(self, status):
@@ -682,37 +773,33 @@ class bw(Exchange):
         #     }
         #
         marketId = self.safe_string(order, 'marketId')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(order, 'createTime')
         side = self.safe_string(order, 'type')
         if side == '0':
             side = 'sell'
         elif side == '1':
             side = 'buy'
-        amount = self.safe_float(order, 'amount')
-        price = self.safe_float(order, 'price')
-        filled = self.safe_float(order, 'completeAmount')
-        remaining = self.safe_float_2(order, 'availabelAmount', 'availableAmount')  # typo in the docs or in the API, availabel vs available
-        cost = self.safe_float(order, 'totalMoney')
-        if filled is not None:
-            if amount is not None:
-                if remaining is None:
-                    remaining = amount - filled
-            if cost is None:
-                if price is not None:
-                    cost = filled * cost
+        amount = self.safe_string(order, 'amount')
+        price = self.safe_string(order, 'price')
+        filled = self.safe_string(order, 'completeAmount')
+        remaining = self.safe_string_2(order, 'availabelAmount', 'availableAmount')  # typo in the docs or in the API, availabel vs available
+        cost = self.safe_string(order, 'totalMoney')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        return {
+        return self.safe_order({
             'info': order,
             'id': self.safe_string(order, 'entrustId'),
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'symbol': self.safe_string(market, 'symbol'),
+            'symbol': symbol,
             'type': 'limit',
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'cost': cost,
             'average': None,
@@ -721,11 +808,11 @@ class bw(Exchange):
             'status': status,
             'fee': None,
             'trades': None,
-        }
+        }, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -758,7 +845,7 @@ class bw(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -821,6 +908,23 @@ class bw(Exchange):
         orders = self.safe_value(data, 'entrustList', [])
         return self.parse_orders(orders, market, since, limit)
 
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'marketId': market['id'],
+        }
+        if limit is not None:
+            request['pageSize'] = limit  # default limit is 20
+        if since is not None:
+            request['startDateTime'] = since
+        response = await self.privateGetExchangeEntrustControllerWebsiteEntrustControllerGetUserEntrustList(self.extend(request, params))
+        data = self.safe_value(response, 'datas', {})
+        orders = self.safe_value(data, 'entrustList', [])
+        return self.parse_orders(orders, market, since, limit)
+
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
@@ -872,7 +976,7 @@ class bw(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.implode_params(self.urls['api'], {'hostname': self.hostname}) + '/' + path
+        url = self.implode_hostname(self.urls['api']) + '/' + path
         if method == 'GET':
             if params:
                 url += '?' + self.urlencode(params)
@@ -886,7 +990,7 @@ class bw(Exchange):
                 keys = list(sortedParams.keys())
                 for i in range(0, len(keys)):
                     key = keys[i]
-                    content += key + sortedParams[key]
+                    content += key + str(sortedParams[key])
             else:
                 content = body
             signature = self.apiKey + ms + content + self.secret
@@ -924,6 +1028,7 @@ class bw(Exchange):
             'currency': code,
             'address': self.check_address(address),
             'tag': tag,
+            'network': None,
             'info': response,
         }
 
@@ -972,12 +1077,12 @@ class bw(Exchange):
         if (code is None) and (currency is not None):
             code = currency['code']
         type = 'deposit' if ('depositId' in transaction) else 'withdrawal'
-        amount = self.safe_float_2(transaction, 'actuallyAmount', 'amount')
+        amount = self.safe_number_2(transaction, 'actuallyAmount', 'amount')
         status = self.parse_transaction_status(self.safe_string_2(transaction, 'verifyStatus', 'state'))
         timestamp = self.safe_integer(transaction, 'createTime')
         txid = self.safe_string(transaction, 'txId')
         fee = None
-        feeCost = self.safe_float(transaction, 'fees')
+        feeCost = self.safe_number(transaction, 'fees')
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -989,6 +1094,7 @@ class bw(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'addressFrom': None,
             'address': address,
             'addressTo': None,

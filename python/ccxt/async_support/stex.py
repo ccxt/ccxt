@@ -4,15 +4,18 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.precise import Precise
 
 
 class stex(Exchange):
@@ -22,27 +25,67 @@ class stex(Exchange):
             'id': 'stex',
             'name': 'STEX',  # formerly known as stocks.exchange
             'countries': ['EE'],  # Estonia
-            'rateLimit': 500,  # https://help.stex.com/en/articles/2815043-api-3-rate-limits
+            'rateLimit': 1000 / 3,  # https://help.stex.com/en/articles/2815043-api-3-rate-limits
             'certified': False,
             # new metainfo interface
             'has': {
-                'CORS': False,
-                'createMarketOrder': False,  # limit orders only
-                'fetchCurrencies': True,
-                'fetchMarkets': True,
-                'fetchTicker': True,
-                'fetchTickers': True,
-                'fetchOrderBook': True,
-                'fetchOHLCV': True,
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelAllOrders': True,
+                'cancelOrder': True,
+                'createDepositAddress': True,
+                'createMarketOrder': False,
+                'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
+                'fetchClosedOrder': True,
+                'fetchCurrencies': True,
+                'fetchDeposit': True,
+                'fetchDepositAddress': True,
+                'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
+                'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
-                'fetchMyTrades': True,
+                'fetchOrderBook': True,
                 'fetchOrderTrades': True,
-                'fetchDepositAddress': True,
-                'createDepositAddress': True,
-                'fetchDeposits': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTime': True,
+                'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': False,
+                'fetchTransactionFees': True,
+                'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
+                'transfer': True,
                 'withdraw': True,
             },
             'version': 'v3',
@@ -51,6 +94,7 @@ class stex(Exchange):
                 'api': 'https://api3.stex.com',
                 'www': 'https://www.stex.com',
                 'doc': [
+                    'https://apidocs.stex.com/',
                     'https://help.stex.com/en/collections/1593608-api-v3-documentation',
                 ],
                 'fees': 'https://app.stex.com/en/pairs-specification',
@@ -72,119 +116,171 @@ class stex(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'currencies',  # Available Currencies
-                        'currencies/{currencyId}',  # Get currency info
-                        'markets',  # Available markets
-                        'pairs-groups',  # Available currency pairs groups(as displayed at stex trading page)
-                        'currency_pairs/list/{code}',  # Available currency pairs
-                        'currency_pairs/group/{currencyPairGroupId}',  # Available currency pairs for a given group
-                        'currency_pairs/{currencyPairId}',  # Get currency pair information
-                        'ticker',  # Tickers list for all currency pairs
-                        'ticker/{currencyPairId}',  # Ticker for currency pair
-                        'trades/{currencyPairId}',  # Trades for given currency pair
-                        'orderbook/{currencyPairId}',  # Orderbook for given currency pair
-                        'chart/{currencyPairId}/{candlesType}',  # A list of candles for given currency pair
-                        'deposit-statuses',  # Available Deposit Statuses
-                        'deposit-statuses/{statusId}',  # Get deposit status info
-                        'withdrawal-statuses',  # Available Withdrawal Statuses
-                        'withdrawal-statuses/{statusId}',  # Get status info
-                        'ping',  # Test API is working and get server time
-                        'mobile-versions',  # Shows the official mobile applications data
-                    ],
+                    'get': {
+                        'currencies': 1,  # Available Currencies
+                        'currencies/{currencyId}': 1,  # Get currency info
+                        'markets': 1,  # Available markets
+                        'pairs-groups': 1,  # Available currency pairs groups(as displayed at stex trading page)
+                        'currency_pairs/list/{code}': 1,  # Available currency pairs
+                        'currency_pairs/group/{currencyPairGroupId}': 1,  # Available currency pairs for a given group
+                        'currency_pairs/{currencyPairId}': 1,  # Get currency pair information
+                        'ticker': 1,  # Tickers list for all currency pairs
+                        'ticker/{currencyPairId}': 1,  # Ticker for currency pair
+                        'trades/{currencyPairId}': 1,  # Trades for given currency pair
+                        'orderbook/{currencyPairId}': 1,  # Orderbook for given currency pair
+                        'chart/{currencyPairId}/{candlesType}': 1,  # A list of candles for given currency pair
+                        'deposit-statuses': 1,  # Available Deposit Statuses
+                        'deposit-statuses/{statusId}': 1,  # Get deposit status info
+                        'withdrawal-statuses': 1,  # Available Withdrawal Statuses
+                        'withdrawal-statuses/{statusId}': 1,  # Get status info
+                        'ping': 1,  # Test API is working and get server time
+                        'mobile-versions': 1,  # Shows the official mobile applications data
+                        'twitter': 1,  # Get the last 20 posts(stex.com) on Twitter
+                    },
                 },
                 'trading': {
-                    'get': [
-                        'fees/{currencyPairId}',  # Returns the user's fees for a given currency pair
-                        'orders',  # List your currently open orders
-                        'orders/{currencyPairId}',  # List your currently open orders for given currency pair
-                        'order/{orderId}',  # Get a single order
-                    ],
-                    'post': [
-                        'orders/{currencyPairId}',  # Create new order and put it to the orders processing queue
-                    ],
-                    'delete': [
-                        'orders',  # Delete all active orders
-                        'orders/{currencyPairId}',  # Delete active orders for given currency pair
-                        'order/{orderId}',  # Cancel order
-                    ],
+                    'get': {
+                        'fees/{currencyPairId}': 1,  # Returns the user's fees for a given currency pair
+                        'orders': 12,  # List your currently open orders
+                        'orders/{currencyPairId}': 6,  # List your currently open orders for given currency pair
+                        'order/{orderId}': 12,  # Get a single order
+                    },
+                    'post': {
+                        'orders/{currencyPairId}': 1.5,  # Create new order and put it to the orders processing queue
+                        'orders/bulk/{currencyPairId}': 12,  # Create new orders in a bulk and put it to the orders processing queue
+                    },
+                    'delete': {
+                        'orders': 30,  # Delete all active orders
+                        'orders/{currencyPairId}': 12,  # Delete active orders for given currency pair
+                        'order/{orderId}': 1.5,  # Cancel order
+                    },
                 },
                 'reports': {
-                    'get': [
-                        'orders',  # Get past orders
-                        'orders/{orderId}',  # Get specified order details
-                        'trades/{currencyPairId}',  # Get a list of user trades according to request parameters
-                        'background/{listMode}',  # Get reports list for category
-                        'background/{id}',  # Get some report info
-                        'background/download/{id}',  # Get file by id
-                    ],
-                    'post': [
-                        'background/create',  # Create new report
-                    ],
-                    'delete': [
-                        'background/{id}',  # Remove report by id
-                    ],
+                    'get': {
+                        'currencies': 12,  # Get a list of currencies user had any activity in
+                        'currency_pairs': 12,  # Gets the list of currency pairs the user had orders in for all the time
+                        'orders': 12,  # Get past orders
+                        'orders/{orderId}': 12,  # Get specified order details
+                        'trades/{currencyPairId}': 12,  # Get a list of user trades according to request parameters
+                        'background/{listMode}': 12,  # Get reports list for category
+                        'background/{id}': 12,  # Get some report info
+                        'background/download/{id}': 12,  # Get file by id
+                    },
+                    'post': {
+                        'background/create': 12,  # Create new report
+                    },
+                    'delete': {
+                        'background/{id}': 12,  # Remove report by id
+                    },
                 },
                 'profile': {
-                    'get': [
-                        'info',  # Account information
-                        'wallets',  # Get a list of user wallets
-                        'wallets/{walletId}',  # Single wallet information
-                        'wallets/address/{walletId}',  # Get deposit address for given wallet
-                        'deposits',  # Get a list of deposits made by user
-                        'deposits/{id}',  # Get deposit by id
-                        'withdrawals',  # Get a list of withdrawals made by user
-                        'withdrawals/{id}',  # Get withdrawal by id
-                        'notifications',  # Get notifications
-                        'favorite/currency_pairs',  # Get favorite currency pairs
-                        'token-scopes',  # Get current token scopes
-                    ],
-                    'post': [
-                        'wallets/burn/{walletId}',  # Burns the given wallet
-                        'wallets/{currencyId}',  # Create a wallet for given currency
-                        'wallets/address/{walletId}',  # Create new deposit address
-                        'withdraw',  # Create withdrawal request
-                        'referral/program',  # Create referral program
-                        'referral/insert/{code}',  # Insert referral code
-                        'referral/bonus_transfer/{currencyId}',  # Transfer referral bonuses balance to main balance for given currency
-                    ],
-                    'put': [
-                        'profile/favorite/currency_pairs/set',  # Set favorite currency pairs
-                    ],
-                    'delete': [
-                        'profile/withdraw/{withdrawalId}',  # Cancel unconfirmed withdrawal
-                    ],
+                    'get': {
+                        'info': 3,  # Account information
+                        'wallets': 3,  # Get a list of user wallets
+                        'wallets/{walletId}': 3,  # Single wallet information
+                        'wallets/address/{walletId}': 3,  # Get deposit address for given wallet
+                        'deposits': 3,  # Get a list of deposits made by user
+                        'deposits/{id}': 3,  # Get deposit by id
+                        'rewards': 3,  # Get a list of rewards obtained by user(e.g. in trading competitions)
+                        'rewards/{id}': 3,  # Get reward by id
+                        'addressbook': 3,  # Get a list of user address book items
+                        'addressbook/{itemId}': 3,  # Single address book item
+                        'withdrawals': 3,  # Get a list of withdrawals made by user
+                        'withdrawals/{id}': 3,  # Get withdrawal by id
+                        'notifications': 3,  # Get notifications
+                        'notifications/price': 3,  # Get a list of active price alerts
+                        'favorite/currency_pairs': 3,  # Get favorite currency pairs
+                        'token-scopes': 3,  # Get current token scopes
+                    },
+                    'post': {
+                        'wallets/burn/{walletId}': 3,  # Burns the given wallet
+                        'wallets/{walletId}/hold_amount': 3,  # Move a part of the funds on the wallet to the "hold" to keep it safe from trading
+                        'wallets/{currencyId}': 3,  # Create a wallet for given currency
+                        'wallets/address/{walletId}': 3,  # Create new deposit address
+                        'addressbook/disable_item/{itemId}': 3,  # Disables the address book item
+                        'addressbook/enable_item/{itemId}': 3,  # Enable the address book item
+                        'addressbook/enable_strict_wd': 3,  # Restrict the withdrawals to only addresses that are active in addressbook
+                        'addressbook/disable_strict_wd': 3,  # Remove restriction to withdraw to only addresses that are active in addressbook. E.g. allow to withdraw to any address.
+                        'withdraw': 30,  # Create withdrawal request
+                        'notifications/price': 3,  # Create new price alert
+                        'referral/program': 3,  # Create referral program
+                        'referral/insert/{code}': 3,  # Insert referral code
+                        'referral/bonus_transfer/{currencyId}': 3,  # Transfer referral bonuses balance to main balance for given currency
+                    },
+                    'put': {
+                        'favorite/currency_pairs/set': 3,  # Set favorite currency pairs
+                    },
+                    'delete': {
+                        'addressbook/{itemId}': 3,  # Deletes address book item
+                        'withdraw/{withdrawalId}': 30,  # Cancel unconfirmed withdrawal
+                        'notifications/price/{priceAlertId}': 3,  # Delete the price alert by ID
+                    },
                 },
                 'verification': {
-                    'get': [
-                        'verification/countries',  # Countries list, beta
-                        'verification/stex',  # Get information about your KYC, beta
-                    ],
-                    'post': [
-                        'verification/stex',  # Update information regarding of your KYC verification, beta
-                    ],
+                    'get': {
+                        'countries': 1,  # Countries list, beta
+                        'status': 1,  # Get status verify
+                        'fractal/url': 1,  # Generate verify url from Fractal
+                        'smart-id': 1,  # Check Smart-ID verify
+                        'stex': 1,  # Get information about your KYC, beta
+                        'cryptonomica/code': 1,  # Get Discount code for Cryptonomica
+                    },
+                    'post': {
+                        'smart-id': 1,  # Initialization Smart-ID verify(Send request to Smart-ID App)
+                        'stex': 1,  # Update information regarding of your KYC verification, beta
+                        'cryptonomica': 1,  # Add verification from Cryptonomica
+                    },
                 },
                 'settings': {
-                    'get': [
-                        'notifications/{event}',  # User event notification settings
-                        'notifications',  # User events notification settings
-                    ],
-                    'put': [
-                        'notifications',  # Set notification settings
-                        'notifications/set',
-                    ],
+                    'get': {
+                        'notifications/{event}': 1,  # User event notification settings
+                        'notifications': 1,  # User events notification settings
+                    },
+                    'put': {
+                        'notifications': 1,  # Set notification settings
+                        'notifications/set': 1,
+                    },
                 },
             },
             'fees': {
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'taker': 0.002,
-                    'maker': 0.002,
+                    'taker': self.parse_number('0.002'),
+                    'maker': self.parse_number('0.002'),
                 },
+            },
+            'commonCurrencies': {
+                'BC': 'Bitcoin Confidential',
+                'BITS': 'Bitcoinus',
+                'BITSW': 'BITS',
+                'BHD': 'Bithold',
+                'BTH': 'Bithereum',
+                'MPH': 'Chasyr Token',
+                'SBTC': 'SBTCT',  # SiamBitcoin
             },
             'options': {
                 'parseOrderToPrecision': False,
+                'networks': {
+                    'ERC20': 5,
+                    'ETH': 5,
+                    'OMNI': 10,
+                    'XLM': 20,
+                    'BEP2': 22,
+                    'TRC20': 24,
+                    'TRX': 24,
+                    'SOL': 25,
+                    'BEP20': 501,
+                },
+                'accountsByType': {
+                    'spot': 'spot',
+                    'hold': 'hold',
+                    'funding': 'funding',
+                    'referal': 'referal',
+                },
+                'transfer': {
+                    'fillResponseFromRequest': True,
+                },
             },
             'exceptions': {
                 'exact': {
@@ -195,6 +291,10 @@ class stex(Exchange):
                     'Server Error': ExchangeError,  # {"message": "Server Error"}
                     'This feature is only enabled for users verifies by Cryptonomica': PermissionDenied,  # {"success":false,"message":"This feature is only enabled for users verifies by Cryptonomica"}
                     'Too Many Attempts.': DDoSProtection,  # {"message": "Too Many Attempts."}
+                    'Selected Pair is disabled': BadSymbol,  # {"success":false,"message":"Selected Pair is disabled"}
+                    'Invalid scope(s) provided.': PermissionDenied,  # {"message": "Invalid scope(s) provided."}
+                    'The maximum amount of open orders with the same price cannot exceed 10': InvalidOrder,  # {"success":false,"message":"The maximum amount of open orders with the same price cannot exceed 10"}
+                    'Your account not verified!': AccountSuspended,  # {"success":false,"message":"Your account not verified!","unified_message":{"message_id":"verification_required_to_continue","substitutions":null},"notice":"Please be informed that parameter `message` is deprecated and will be removed. Use unified_message instead."}
                 },
                 'broad': {
                     'Not enough': InsufficientFunds,  # {"success":false,"message":"Not enough  ETH"}
@@ -242,8 +342,9 @@ class stex(Exchange):
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             code = self.safe_currency_code(self.safe_string(currency, 'code'))
-            precision = self.safe_integer(currency, 'precision')
-            fee = self.safe_float(currency, 'withdrawal_fee_const')  # todo: redesign
+            precision = self.safe_string(currency, 'precision')
+            amountLimit = self.parse_precision(precision)
+            fee = self.safe_number(currency, 'withdrawal_fee_const')  # todo: redesign
             active = self.safe_value(currency, 'active', True)
             result[code] = {
                 'id': id,
@@ -253,18 +354,21 @@ class stex(Exchange):
                 'type': None,
                 'name': self.safe_string(currency, 'name'),
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'fee': fee,
-                'precision': precision,
+                'precision': int(precision),
                 'limits': {
-                    'amount': {'min': math.pow(10, -precision), 'max': None},
-                    'price': {'min': math.pow(10, -precision), 'max': None},
-                    'cost': {'min': None, 'max': None},
+                    'amount': {
+                        'min': self.parse_number(amountLimit),
+                        'max': None,
+                    },
                     'deposit': {
-                        'min': self.safe_float(currency, 'minimum_deposit_amount'),
+                        'min': self.safe_number(currency, 'minimum_deposit_amount'),
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.safe_float(currency, 'minimum_withdrawal_amount'),
+                        'min': self.safe_number(currency, 'minimum_withdrawal_amount'),
                         'max': None,
                     },
                 },
@@ -317,44 +421,64 @@ class stex(Exchange):
             quoteNumericId = self.safe_integer(market, 'market_currency_id')
             base = self.safe_currency_code(self.safe_string(market, 'currency_code'))
             quote = self.safe_currency_code(self.safe_string(market, 'market_code'))
-            symbol = base + '/' + quote
-            precision = {
-                'amount': self.safe_integer(market, 'currency_precision'),
-                'price': self.safe_integer(market, 'market_precision'),
-            }
-            active = self.safe_value(market, 'active')
-            minBuyPrice = self.safe_float(market, 'min_buy_price')
-            minSellPrice = self.safe_float(market, 'min_sell_price')
-            minPrice = max(minBuyPrice, minSellPrice)
-            buyFee = self.safe_float(market, 'buy_fee_percent') / 100
-            sellFee = self.safe_float(market, 'sell_fee_percent') / 100
-            fee = max(buyFee, sellFee)
+            minBuyPrice = self.safe_string(market, 'min_buy_price')
+            minSellPrice = self.safe_string(market, 'min_sell_price')
+            minPrice = Precise.string_max(minBuyPrice, minSellPrice)
+            buyFee = Precise.string_div(self.safe_string(market, 'buy_fee_percent'), '100')
+            sellFee = Precise.string_div(self.safe_string(market, 'sell_fee_percent'), '100')
+            fee = Precise.string_max(buyFee, sellFee)
             result.append({
                 'id': id,
                 'numericId': numericId,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'baseNumericId': baseNumericId,
                 'quoteNumericId': quoteNumericId,
-                'info': market,
-                'active': active,
-                'maker': fee,
+                'type': 'spot',
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': self.safe_value(market, 'active'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
                 'taker': fee,
-                'precision': precision,
+                'maker': fee,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_integer(market, 'currency_precision'),
+                    'price': self.safe_integer(market, 'market_precision'),
+                },
                 'limits': {
-                    'amount': {
-                        'min': self.safe_float(market, 'min_order_amount'),
+                    'leverage': {
+                        'min': None,
                         'max': None,
                     },
-                    'price': {'min': minPrice, 'max': None},
+                    'amount': {
+                        'min': self.safe_number(market, 'min_order_amount'),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': minPrice,
+                        'max': None,
+                    },
                     'cost': {
                         'min': None,
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 
@@ -410,6 +534,25 @@ class stex(Exchange):
         ticker = self.safe_value(response, 'data', {})
         return self.parse_ticker(ticker, market)
 
+    async def fetch_time(self, params={}):
+        response = await self.publicGetPing(params)
+        #
+        #     {
+        #         "success": True,
+        #         "data": {
+        #             "server_datetime": {
+        #                 "date": "2019-01-22 15:13:34.233796",
+        #                 "timezone_type": 3,
+        #                 "timezone": "UTC"
+        #             },
+        #             "server_timestamp": 1548170014
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        serverDatetime = self.safe_value(data, 'server_datetime', {})
+        return self.parse8601(self.safe_string(serverDatetime, 'date'))
+
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
@@ -440,7 +583,7 @@ class stex(Exchange):
         #     }
         #
         orderbook = self.safe_value(response, 'data', {})
-        return self.parse_order_book(orderbook, None, 'bid', 'ask', 'price', 'amount')
+        return self.parse_order_book(orderbook, symbol, None, 'bid', 'ask', 'price', 'amount')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -483,48 +626,32 @@ class stex(Exchange):
         #     }
         #
         timestamp = self.safe_integer(ticker, 'timestamp')
-        symbol = None
-        marketId = self.safe_string(ticker, 'id')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        else:
-            marketId = self.safe_string(ticker, 'symbol')
-            if marketId is not None:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-        last = self.safe_float(ticker, 'last')
-        return {
+        marketId = self.safe_string_2(ticker, 'id', 'symbol')
+        symbol = self.safe_symbol(marketId, market, '_')
+        last = self.safe_string(ticker, 'last')
+        open = self.safe_string(ticker, 'open')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_float(ticker, 'open'),
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': None,  # previous day close
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'volumeQuote'),
-            'quoteVolume': self.safe_float(ticker, 'volume'),
+            'baseVolume': self.safe_string(ticker, 'volumeQuote'),
+            'quoteVolume': self.safe_string(ticker, 'volume'),
             'info': ticker,
-        }
-
-    def parse_tickers(self, tickers, symbols=None):
-        result = []
-        for i in range(0, len(tickers)):
-            result.append(self.parse_ticker(tickers[i]))
-        return self.filter_by_array(result, 'symbol', symbols)
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -577,7 +704,7 @@ class stex(Exchange):
         tickers = self.safe_value(response, 'data', [])
         return self.parse_tickers(tickers, symbols)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "time": 1566086400000,
@@ -590,11 +717,11 @@ class stex(Exchange):
         #
         return [
             self.safe_integer(ohlcv, 'time'),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volume'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1d', since=None, limit=None, params={}):
@@ -636,8 +763,8 @@ class stex(Exchange):
         #         ]
         #     }
         #
-        ohlcvs = self.safe_value(response, 'data', [])
-        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
         #
@@ -665,16 +792,13 @@ class stex(Exchange):
         #
         id = self.safe_string(trade, 'id')
         timestamp = self.safe_timestamp(trade, 'timestamp')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if (price is not None) and (amount is not None):
-            cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
         symbol = None
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
         side = self.safe_string_lower_2(trade, 'type', 'trade_type')
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -684,11 +808,11 @@ class stex(Exchange):
             'type': None,
             'takerOrMaker': None,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -723,6 +847,46 @@ class stex(Exchange):
         #
         trades = self.safe_value(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
+
+    async def fetch_trading_fee(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currencyPairId': market['id'],
+        }
+        response = await self.tradingGetFeesCurrencyPairId(self.extend(request, params))
+        #
+        #     {
+        #         success: True,
+        #         data: {buy_fee: '0.00200000', sell_fee: '0.00200000'},
+        #         unified_message: {message_id: 'operation_successful', substitutions: []}
+        #      }
+        #
+        data = self.safe_value(response, 'data')
+        return {
+            'info': response,
+            'symbol': market['symbol'],
+            'maker': self.safe_number(data, 'sell_fee'),
+            'taker': self.safe_number(data, 'buy_fee'),
+            'percentage': True,
+            'tierBased': True,
+        }
+
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        balances = self.safe_value(response, 'data', [])
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            code = self.safe_currency_code(self.safe_string(balance, 'currency_id'))
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'frozen_balance')
+            result[code] = account
+        return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -771,16 +935,7 @@ class stex(Exchange):
         #         ]
         #     }
         #
-        result = {'info': response}
-        balances = self.safe_value(response, 'data', [])
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            code = self.safe_currency_code(self.safe_string(balance, 'currency_id'))
-            account = self.account()
-            account['free'] = self.safe_float(balance, 'balance')
-            account['used'] = self.safe_float(balance, 'frozen_balance')
-            result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(response)
 
     def parse_order_status(self, status):
         statuses = {
@@ -834,23 +989,12 @@ class stex(Exchange):
         #
         id = self.safe_string(order, 'id')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        symbol = None
-        marketId = self.safe_string(order, 'currency_pair_id')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        else:
-            marketId = self.safe_string(order, 'currency_pair_name')
-            if marketId is not None:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        marketId = self.safe_string_2(order, 'currency_pair_id', 'currency_pair_name')
+        symbol = self.safe_symbol(marketId, market, '_')
         timestamp = self.safe_timestamp(order, 'timestamp')
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'initial_amount')
-        filled = self.safe_float(order, 'processed_amount')
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'initial_amount')
+        filled = self.safe_number(order, 'processed_amount')
         remaining = None
         cost = None
         if filled is not None:
@@ -873,16 +1017,21 @@ class stex(Exchange):
                 'symbol': symbol,
                 'order': id,
             })
+        stopPrice = self.safe_number(order, 'trigger_price')
         result = {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': None,
@@ -899,7 +1048,7 @@ class stex(Exchange):
             if numFees > 0:
                 result['fees'] = []
                 for i in range(0, len(fees)):
-                    feeCost = self.safe_float(fees[i], 'amount')
+                    feeCost = self.safe_number(fees[i], 'amount')
                     if feeCost is not None:
                         feeCurrencyId = self.safe_string(fees[i], 'currency_id')
                         feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -913,7 +1062,7 @@ class stex(Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
-            raise ExchangeError(self.id + ' createOrder allows limit orders only')
+            raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         await self.load_markets()
         market = self.market(symbol)
         if type == 'limit':
@@ -1122,14 +1271,14 @@ class stex(Exchange):
         numRejectedOrders = len(rejectedOrders)
         if numAcceptedOrders < 1:
             if numRejectedOrders < 1:
-                raise OrderNotFound(self.id + ' cancelOrder received an empty response: ' + self.json(response))
+                raise OrderNotFound(self.id + ' cancelOrder() received an empty response: ' + self.json(response))
             else:
                 return self.parse_order(rejectedOrders[0])
         else:
             if numRejectedOrders < 1:
                 return self.parse_order(acceptedOrders[0])
             else:
-                raise OrderNotFound(self.id + ' cancelOrder received an empty response: ' + self.json(response))
+                raise OrderNotFound(self.id + ' cancelOrder() received an empty response: ' + self.json(response))
 
     async def cancel_all_orders(self, symbol=None, params={}):
         await self.load_markets()
@@ -1154,7 +1303,7 @@ class stex(Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1338,6 +1487,7 @@ class stex(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,
             'info': response,
         }
 
@@ -1368,7 +1518,7 @@ class stex(Exchange):
             'hodl': 'pending',
             'amount too low': 'failed',
             'not confirmed': 'pending',
-            'cancelled by User': 'canceled',
+            'cancelled by user': 'canceled',
             'approved': 'pending',
             'finished': 'ok',
             'withdrawal error': 'failed',
@@ -1380,7 +1530,7 @@ class stex(Exchange):
 
     def parse_transaction(self, transaction, currency=None):
         #
-        # fetchDeposits
+        # fetchDeposit & fetchDeposits
         #
         #     {
         #         "id": 123654789,
@@ -1400,7 +1550,7 @@ class stex(Exchange):
         #         "confirmations": "1 of 2"
         #     }
         #
-        # fetchWithdrawals
+        # fetchWithdrawal and fetchWithdrawals
         #
         #     {
         #         "id": 65899,
@@ -1443,27 +1593,29 @@ class stex(Exchange):
             code = self.common_currency_code(self.safe_string(transaction, 'currency_code'))
         if (code is None) and (currency is not None):
             code = currency['code']
-        type = 'deposit' if ('depositId' in transaction) else 'withdrawal'
-        amount = self.safe_float(transaction, 'amount')
+        type = 'deposit' if ('deposit_status_id' in transaction) else 'withdrawal'
+        amount = self.safe_number(transaction, 'amount')
         status = self.parse_transaction_status(self.safe_string_lower(transaction, 'status'))
         timestamp = self.safe_timestamp_2(transaction, 'timestamp', 'created_ts')
         updated = self.safe_timestamp(transaction, 'updated_ts')
         txid = self.safe_string(transaction, 'txid')
         fee = None
-        feeCost = self.safe_float(transaction, 'fee')
+        feeCost = self.safe_number(transaction, 'fee')
         if feeCost is not None:
-            feeCurrencyId = self.safe_string(transaction, 'fee_currency_id', 'deposit_fee_currency_id')
+            feeCurrencyId = self.safe_string_2(transaction, 'fee_currency_id', 'deposit_fee_currency_id')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
+        network = self.safe_string(withdrawalAddress, 'protocol_name')
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': network,
             'addressFrom': None,
             'address': address,
             'addressTo': address,
@@ -1478,20 +1630,59 @@ class stex(Exchange):
             'fee': fee,
         }
 
-    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
+    async def fetch_deposit(self, id, code=None, params={}):
         await self.load_markets()
-        currency = self.currency(code)
         request = {
-            'currencyTypeName': currency['name'],
-            # 'pageSize': limit,  # documented as required, but it works without it
-            # 'pageNum': 0,  # also works without it, most likely a typo in the docs
-            # 'sort': 1,  # 1 = asc, 0 = desc
+            'id': id,
         }
+        response = await self.profileGetDepositsId(self.extend(request, params))
+        #
+        #     {
+        #         success: True,
+        #         data: {
+        #             id: '21974074',
+        #             currency_id: '272',
+        #             block_explorer_url: 'https://omniexplorer.info/search/',
+        #             currency_code: 'USDT',
+        #             deposit_fee_currency_id: '272',
+        #             deposit_fee_currency_code: 'USDT',
+        #             amount: '11.00000000',
+        #             fee: '0.00000000',
+        #             deposit_status_id: '3',
+        #             status: 'FINISHED',
+        #             status_color: '#00BE75',
+        #             txid: '15b50da4600a5021dbddaed8f4a71de093bf206ea66eb4ab2f151e3e9e2fed71',
+        #             protocol_id: '24',
+        #             confirmations: '129 of 20',
+        #             created_at: '2022-05-16 16:38:40',
+        #             timestamp: '1652719120',
+        #             protocol_specific_settings: [{
+        #                 protocol_name: 'TRON',
+        #                 protocol_id: '24',
+        #                 block_explorer_url: 'https://tronscan.org/#/transaction/'
+        #             }]
+        #         },
+        #         unified_message: {
+        #             message_id: 'operation_successful',
+        #             substitutions: []
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_transaction(data)
+
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['currencyId'] = currency['id']
         if limit is not None:
-            request['pageSize'] = limit  # default 50
-        response = await self.privatePostExchangeFundControllerWebsiteFundcontrollerGetPayinCoinRecord(self.extend(request, params))
+            request['limit'] = limit
+        if since is not None:
+            request['timeStart'] = since
+        response = await self.profileGetDeposits(self.extend(request, params))
         #
         #     {
         #         "success": True,
@@ -1511,28 +1702,79 @@ class stex(Exchange):
         #                 "status_color": "#BC3D51",
         #                 "created_at": "2018-11-28 12:32:08",
         #                 "timestamp": "1543409389",
-        #                 "confirmations": "1 of 2"
+        #                 "confirmations": "1 of 2",
+        #                 "protocol_specific_settings": {
+        #                     "protocol_name": "Tether OMNI",
+        #                     "protocol_id": 10,
+        #                     "block_explorer_url": "https://omniexplorer.info/search/"
+        #                 }
         #             }
         #         ]
         #     }
         #
-        deposits = self.safe_value(response, 'datas', {})
+        deposits = self.safe_value(response, 'data', [])
         return self.parse_transactions(deposits, code, since, limit)
 
-    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
+    async def fetch_withdrawal(self, id, code=None, params={}):
         await self.load_markets()
-        currency = self.currency(code)
         request = {
-            'currencyId': currency['id'],
-            # 'pageSize': limit,  # documented as required, but it works without it
-            # 'pageIndex': 0,  # also works without it, most likely a typo in the docs
-            # 'tab': 'all',  # all, wait(submitted, not audited), success(auditing passed), fail(auditing failed), cancel(canceled by user)
+            'id': id,
         }
+        response = await self.profileGetWithdrawalsId(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "data": {
+        #             "id": 65899,
+        #             "amount": "0.00600000",
+        #             "currency_id": 1,
+        #             "currency_code": "BTC",
+        #             "fee": "0.00400000",
+        #             "fee_currency_id": 1,
+        #             "fee_currency_code": "BTC",
+        #             "withdrawal_status_id": 1,
+        #             "status": "Not Confirmed",
+        #             "status_color": "#BC3D51",
+        #             "created_at": "2019-01-21 09:36:05",
+        #             "created_ts": "1548063365",
+        #             "updated_at": "2019-01-21 09:36:05",
+        #             "updated_ts": "1548063365",
+        #             "reason": "string",
+        #             "txid": null,
+        #             "protocol_id": 0,
+        #             "withdrawal_address": {
+        #                 "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        #                 "address_name": "Address",
+        #                 "additional_address_parameter": "qwertyuiopasdfghjkl",
+        #                 "additional_address_parameter_name": "Destination Tag",
+        #                 "notification": "",
+        #                 "protocol_id": 10,
+        #                 "protocol_name": "Tether OMNI",
+        #                 "supports_new_address_creation": False
+        #             },
+        #             "protocol_specific_settings": {
+        #                 "protocol_name": "Tether OMNI",
+        #                 "protocol_id": 10,
+        #                 "block_explorer_url": "https://omniexplorer.info/search/"
+        #             }
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_transaction(data)
+
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['currencyId'] = currency['id']
         if limit is not None:
-            request['pageSize'] = limit  # default 50
-        response = await self.privateGetExchangeFundControllerWebsiteFundwebsitecontrollerGetpayoutcoinrecord(self.extend(request, params))
+            request['limit'] = limit
+        if since is not None:
+            request['timeStart'] = since
+        response = await self.profileGetWithdrawals(self.extend(request, params))
         #
         #     {
         #         "success": True,
@@ -1563,6 +1805,11 @@ class stex(Exchange):
         #                     "protocol_id": 10,
         #                     "protocol_name": "Tether OMNI",
         #                     "supports_new_address_creation": False
+        #                 },
+        #                 "protocol_specific_settings": {
+        #                     "protocol_name": "Tether OMNI",
+        #                     "protocol_id": 10,
+        #                     "block_explorer_url": "https://omniexplorer.info/search/"
         #                 }
         #             }
         #         ]
@@ -1571,7 +1818,225 @@ class stex(Exchange):
         withdrawals = self.safe_value(response, 'data', [])
         return self.parse_transactions(withdrawals, code, since, limit)
 
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        method = None
+        request = {}
+        if fromAccount == 'referal' and toAccount == 'spot':
+            request['currencyId'] = currency['id']
+            method = 'profilePostReferralBonusTransferCurrencyId'
+        elif toAccount == 'hold':
+            request['walletId'] = fromAccount
+            amount = self.currency_to_precision(code, amount)
+            amount = Precise.string_neg(amount)
+            request['amount'] = amount
+            method = 'profilePostWalletsWalletIdHoldAmount'
+        elif fromAccount == 'hold':
+            request['walletId'] = toAccount
+            request['amount'] = amount
+            method = 'profilePostWalletsWalletIdHoldAmount'
+        else:
+            raise ExchangeError(self.id + ' transfer() only allows transfers of referal to spot and between a walletId and funding')
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #  profilePostReferralBonusTransferCurrencyId
+        #     {
+        #         "success": True,
+        #         "data": ""
+        #     }
+        #
+        #  profilePostWalletsWalletIdHoldAmount
+        #     {
+        #         success: True,
+        #         data: {
+        #             id: '4055802',
+        #             currency_id: '272',
+        #             currency_code: 'USDT',
+        #             currency_name: 'TetherUSD',
+        #             balance: '10.00000000',
+        #             frozen_balance: '0.00000000',
+        #             bonus_balance: '0.00000000',
+        #             hold_balance: '1.00000000',
+        #             total_balance: '11.00000000',
+        #             disable_deposits: False,
+        #             disable_withdrawals: False,
+        #             withdrawal_limit: '0.00000000',
+        #             delisted: False,
+        #             disabled: False,
+        #             deposit_address: null,
+        #             multi_deposit_addresses: [{
+        #                 address: 'TYzhabfHWMLgLnMW46ZyUHkUVJPXaDgdxK',
+        #                 address_name: 'Deposit Address',
+        #                 additional_address_parameter: null,
+        #                 additional_address_parameter_name: null,
+        #                 notification: '',
+        #                 protocol_id: '24',
+        #                 protocol_name: 'TRON',
+        #                 supports_new_address_creation: False
+        #             }],
+        #             contract_or_asset_id: '31',
+        #             contract_field_name: null,
+        #             withdrawal_additional_field_name: null,
+        #             depo_message: '',
+        #             wd_message: '',
+        #             currency_type_id: '23',
+        #             protocol_specific_settings: [{
+        #                 {
+        #                     protocol_name: 'ERC20',
+        #                     protocol_id: '5',
+        #                     active: True,
+        #                     disable_deposits: False,
+        #                     disable_withdrawals: False,
+        #                     withdrawal_limit: '0',
+        #                     deposit_fee_currency_id: '272',
+        #                     deposit_fee_currency_code: 'USDT',
+        #                     deposit_fee_percent: '0',
+        #                     deposit_fee_const: '0',
+        #                     withdrawal_fee_currency_id: '272',
+        #                     withdrawal_fee_currency_code: 'USDT',
+        #                     withdrawal_fee_const: '10',
+        #                     withdrawal_fee_percent: '0',
+        #                     block_explorer_url: 'https://etherscan.io/tx/',
+        #                     contract_or_asset_id: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        #                     contract_field_name: '',
+        #                     withdrawal_additional_field_name: '',
+        #                     depo_message: '',
+        #                     wd_message: ''
+        #                 },
+        #                 ...
+        #             ],
+        #             coin_info: {
+        #                 twitter: 'https://twitter.com/Tether_to',
+        #                 version: '',
+        #                 facebook: 'https://www.facebook.com/tether.to',
+        #                 telegram: '',
+        #                 icon_large: 'https://app-coin-images.stex.com/large/usdt.png',
+        #                 icon_small: 'https://app-coin-images.stex.com/small/usdt.png',
+        #                 description: 'Tether(USDT) is a cryptocurrency with a value meant to mirror the value of the U.S. dollar. The idea was to create a stable cryptocurrency that can be used like digital dollars. Coins that serve self purpose of being a stable dollar substitute are called “stable coins.” Tether is the most popular stable coin and even acts as a dollar replacement on many popular exchanges! According to their site, Tether converts cash into digital currency, to anchor or “tether” the value of the coin to the price of national currencies like the US dollar, the Euro, and the Yen. Like other cryptos it uses blockchain. Unlike other cryptos, it is [according to the official Tether site] “100% backed by USD”(USD is held in reserve). The primary use of Tether is that it offers some stability to the otherwise volatile crypto space and offers liquidity to exchanges who can’t deal in dollars and with banks(for example to the sometimes controversial but leading exchange Bitfinex).The digital coins are issued by a company called Tether Limited that is governed by the laws of the British Virgin Islands, according to the legal part of its website. It is incorporated in Hong Kong. It has emerged that Jan Ludovicus van der Velde is the CEO of cryptocurrency exchange Bitfinex, which has been accused of being involved in the price manipulation of bitcoin, as well as tether. Many people trading on exchanges, including Bitfinex, will use tether to buy other cryptocurrencies like bitcoin. Tether Limited argues that using self method to buy virtual currencies allows users to move fiat in and out of an exchange more quickly and cheaply. Also, exchanges typically have rocky relationships with banks, and using Tether is a way to circumvent that.USDT is fairly simple to use. Once on exchanges like Poloniex or Bittrex, it can be used to purchase Bitcoin and other cryptocurrencies. It can be easily transferred from an exchange to any Omni Layer enabled wallet. Tether has no transaction fees, although external wallets and exchanges may charge one. In order to convert USDT to USD and vise versa through the Tether.to Platform, users must pay a small fee. Buying and selling Tether for Bitcoin can be done through a variety of exchanges like the ones mentioned previously or through the Tether.to platform, which also allows the conversion between USD to and from your bank account.',
+        #                 official_site: 'https://tether.to/',
+        #                 official_block_explorer: 'https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7'
+        #             },
+        #             rates: {
+        #                 BTC: '0.00003372',
+        #                 USD: '1'
+        #             }
+        #         },
+        #         unified_message: {
+        #             message_id: 'operation_successful',
+        #             substitutions: []
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        transfer = self.parse_transfer(data, currency)
+        transferOptions = self.safe_value(self.options, 'transfer', {})
+        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            transfer['fromAccount'] = fromAccount
+            transfer['toAccount'] = toAccount
+            if isinstance(amount, str) and Precise.string_lt(amount, '0'):
+                amount = self.parse_number(Precise.string_neg(amount))
+            transfer['amount'] = amount
+            if transfer['currency'] is None:
+                transfer['currency'] = code
+        return transfer
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         "id": 45875,
+        #         "currency_id": 1,
+        #         "currency_code": "USDT",
+        #         "currency_name": "TetherUSD",
+        #         "balance": "0.198752",
+        #         "frozen_balance": "1.5784",
+        #         "bonus_balance": "0.000",
+        #         "hold_balance": "0.000",
+        #         "total_balance": "1.777152",
+        #         "disable_deposits": False,
+        #         "disable_withdrawals": False,
+        #         "withdrawal_limit": "string",
+        #         "delisted": False,
+        #         "disabled": False,
+        #         "deposit_address": {
+        #             "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        #             "address_name": "Address",
+        #             "additional_address_parameter": "qwertyuiopasdfghjkl",
+        #             "additional_address_parameter_name": "Destination Tag",
+        #             "notification": "",
+        #             "protocol_id": 10,
+        #             "protocol_name": "Tether OMNI",
+        #             "supports_new_address_creation": False
+        #         },
+        #         "multi_deposit_addresses": [{
+        #             "address": "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        #             "address_name": "Address",
+        #             "additional_address_parameter": "qwertyuiopasdfghjkl",
+        #             "additional_address_parameter_name": "Destination Tag",
+        #             "notification": "",
+        #             "protocol_id": 10,
+        #             "protocol_name": "Tether OMNI",
+        #             "supports_new_address_creation": False
+        #         }],
+        #         "withdrawal_additional_field_name": "Payment ID(optional)",
+        #         "currency_type_id": 23,
+        #         "protocol_specific_settings": [{
+        #             "protocol_name": "Tether OMNI",
+        #             "protocol_id": 10,
+        #             "active": True,
+        #             "disable_deposits": False,
+        #             "disable_withdrawals": False,
+        #             "withdrawal_limit": 0,
+        #             "deposit_fee_currency_id": 272,
+        #             "deposit_fee_currency_code": "USDT",
+        #             "deposit_fee_percent": 0,
+        #             "deposit_fee_const": 0,
+        #             "withdrawal_fee_currency_id": 1,
+        #             "withdrawal_fee_currency_code": "USDT",
+        #             "withdrawal_fee_const": 0.002,
+        #             "withdrawal_fee_percent": 0,
+        #             "block_explorer_url": "https://omniexplorer.info/search/",
+        #             "withdrawal_additional_field_name": ""
+        #         }],
+        #         "coin_info": {
+        #             "twitter": "https://twitter.com/btc",
+        #             "version": "",
+        #             "facebook": "https://www.facebook.com/bitcoins",
+        #             "telegram": "",
+        #             "icon_large": "https://app-coin-images.stex.com/large/btc.png",
+        #             "icon_small": "https://app-coin-images.stex.com/small/btc.png",
+        #             "description": "Bitcoin is the first successful internet money based on peer-to-peer technology;....",
+        #             "official_site": "http://www.bitcoin.org",
+        #             "official_block_explorer": "https://blockchair.com/bitcoin/"
+        #         },
+        #         "rates": {
+        #             "BTC": 0.000001
+        #         }
+        #     }
+        #
+        currencyId = self.safe_string(transfer, 'currency_id')
+        code = None
+        if currencyId in self.currencies_by_id:
+            currency = self.currencies_by_id[currencyId]
+        else:
+            code = self.common_currency_code(self.safe_string(transfer, 'currency_code'))
+        if code is None:
+            code = self.safe_value(currency, 'code')
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'id'),
+            'timestamp': None,
+            'datetime': None,
+            'currency': code,
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': None,
+        }
+
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
@@ -1584,6 +2049,12 @@ class stex(Exchange):
         }
         if tag is not None:
             request['additional_address_parameter'] = tag
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_integer(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['protocol_id'] = network
+            params = self.omit(params, 'network')
         response = await self.profilePostWithdraw(self.extend(request, params))
         #
         #     {
@@ -1620,6 +2091,62 @@ class stex(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         return self.parse_transaction(data, currency)
+
+    async def fetch_transaction_fees(self, codes=None, params={}):
+        await self.load_markets()
+        response = await self.publicGetCurrencies(params)
+        #
+        #     {
+        #         "success": True,
+        #         "data": [
+        #             {
+        #                 "id": 1,
+        #                 "code": "BTC",
+        #                 "name": "Bitcoin",
+        #                 "active": True,
+        #                 "delisted": False,
+        #                 "precision": 8,
+        #                 "minimum_tx_confirmations": 24,
+        #                 "minimum_withdrawal_amount": "0.009",
+        #                 "minimum_deposit_amount": "0.000003",
+        #                 "deposit_fee_currency_id": 1,
+        #                 "deposit_fee_currency_code": "ETH",
+        #                 "deposit_fee_const": "0.00001",
+        #                 "deposit_fee_percent": "0",
+        #                 "withdrawal_fee_currency_id": 1,
+        #                 "withdrawal_fee_currency_code": "ETH",
+        #                 "withdrawal_fee_const": "0.0015",
+        #                 "withdrawal_fee_percent": "0",
+        #                 "withdrawal_limit": "string",
+        #                 "block_explorer_url": "https://blockchain.info/tx/",
+        #                 "protocol_specific_settings": [
+        #                     {
+        #                         "protocol_name": "Tether OMNI",
+        #                         "protocol_id": 10,
+        #                         "active": True,
+        #                         "withdrawal_fee_currency_id": 1,
+        #                         "withdrawal_fee_const": 0.002,
+        #                         "withdrawal_fee_percent": 0,
+        #                         "block_explorer_url": "https://omniexplorer.info/search/"
+        #                     }
+        #                 ]
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        withdrawFees = {}
+        depositFees = {}
+        for i in range(0, len(data)):
+            id = self.safe_string(data[i], 'id')
+            code = self.safe_currency_code(id)
+            withdrawFees[code] = self.safe_number(data[i], 'withdrawal_fee_const')
+            depositFees[code] = self.safe_number(data[i], 'deposit_fee_const')
+        return {
+            'withdraw': withdrawFees,
+            'deposit': depositFees,
+            'info': response,
+        }
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

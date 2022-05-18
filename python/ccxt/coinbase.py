@@ -8,6 +8,8 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class coinbase(Exchange):
@@ -25,34 +27,67 @@ class coinbase(Exchange):
             },
             'has': {
                 'CORS': True,
-                'cancelOrder': False,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': None,
                 'createDepositAddress': True,
-                'createOrder': False,
-                'deposit': False,
+                'createOrder': None,
+                'createReduceOnlyOrder': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
+                'fetchAccounts': True,
                 'fetchBalance': True,
-                'fetchClosedOrders': False,
+                'fetchBidsAsks': None,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
+                'fetchClosedOrders': None,
                 'fetchCurrencies': True,
-                'fetchDepositAddress': False,
-                'fetchMarkets': True,
-                'fetchMyTrades': False,
-                'fetchOHLCV': False,
-                'fetchOpenOrders': False,
-                'fetchOrder': False,
-                'fetchOrderBook': False,
+                'fetchDepositAddress': None,
+                'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
                 'fetchL2OrderBook': False,
                 'fetchLedger': True,
-                'fetchOrders': False,
-                'fetchTicker': True,
-                'fetchTickers': False,
-                'fetchTime': True,
-                'fetchBidsAsks': False,
-                'fetchTrades': False,
-                'withdraw': False,
-                'fetchTransactions': False,
-                'fetchDeposits': True,
-                'fetchWithdrawals': True,
-                'fetchMySells': True,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
+                'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyBuys': True,
+                'fetchMySells': True,
+                'fetchMyTrades': None,
+                'fetchOHLCV': False,
+                'fetchOpenOrders': None,
+                'fetchOrder': None,
+                'fetchOrderBook': False,
+                'fetchOrders': None,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTime': True,
+                'fetchTrades': None,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
+                'fetchTransactions': None,
+                'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
+                'withdraw': None,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
@@ -127,23 +162,32 @@ class coinbase(Exchange):
                 },
             },
             'exceptions': {
-                'two_factor_required': AuthenticationError,  # 402 When sending money over 2fa limit
-                'param_required': ExchangeError,  # 400 Missing parameter
-                'validation_error': ExchangeError,  # 400 Unable to validate POST/PUT
-                'invalid_request': ExchangeError,  # 400 Invalid request
-                'personal_details_required': AuthenticationError,  # 400 User’s personal detail required to complete self request
-                'identity_verification_required': AuthenticationError,  # 400 Identity verification is required to complete self request
-                'jumio_verification_required': AuthenticationError,  # 400 Document verification is required to complete self request
-                'jumio_face_match_verification_required': AuthenticationError,  # 400 Document verification including face match is required to complete self request
-                'unverified_email': AuthenticationError,  # 400 User has not verified their email
-                'authentication_error': AuthenticationError,  # 401 Invalid auth(generic)
-                'invalid_token': AuthenticationError,  # 401 Invalid Oauth token
-                'revoked_token': AuthenticationError,  # 401 Revoked Oauth token
-                'expired_token': AuthenticationError,  # 401 Expired Oauth token
-                'invalid_scope': AuthenticationError,  # 403 User hasn’t authenticated necessary scope
-                'not_found': ExchangeError,  # 404 Resource not found
-                'rate_limit_exceeded': RateLimitExceeded,  # 429 Rate limit exceeded
-                'internal_server_error': ExchangeError,  # 500 Internal server error
+                'exact': {
+                    'two_factor_required': AuthenticationError,  # 402 When sending money over 2fa limit
+                    'param_required': ExchangeError,  # 400 Missing parameter
+                    'validation_error': ExchangeError,  # 400 Unable to validate POST/PUT
+                    'invalid_request': ExchangeError,  # 400 Invalid request
+                    'personal_details_required': AuthenticationError,  # 400 User’s personal detail required to complete self request
+                    'identity_verification_required': AuthenticationError,  # 400 Identity verification is required to complete self request
+                    'jumio_verification_required': AuthenticationError,  # 400 Document verification is required to complete self request
+                    'jumio_face_match_verification_required': AuthenticationError,  # 400 Document verification including face match is required to complete self request
+                    'unverified_email': AuthenticationError,  # 400 User has not verified their email
+                    'authentication_error': AuthenticationError,  # 401 Invalid auth(generic)
+                    'invalid_authentication_method': AuthenticationError,  # 401 API access is blocked for deleted users.
+                    'invalid_token': AuthenticationError,  # 401 Invalid Oauth token
+                    'revoked_token': AuthenticationError,  # 401 Revoked Oauth token
+                    'expired_token': AuthenticationError,  # 401 Expired Oauth token
+                    'invalid_scope': AuthenticationError,  # 403 User hasn’t authenticated necessary scope
+                    'not_found': ExchangeError,  # 404 Resource not found
+                    'rate_limit_exceeded': RateLimitExceeded,  # 429 Rate limit exceeded
+                    'internal_server_error': ExchangeError,  # 500 Internal server error
+                },
+                'broad': {
+                    'request timestamp expired': InvalidNonce,  # {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
+                },
+            },
+            'commonCurrencies': {
+                'CGLD': 'CELO',
             },
             'options': {
                 'fetchCurrencies': {
@@ -159,11 +203,23 @@ class coinbase(Exchange):
 
     def fetch_time(self, params={}):
         response = self.publicGetTime(params)
+        #
+        #     {
+        #         "data": {
+        #             "epoch": 1589295679,
+        #             "iso": "2020-05-12T15:01:19Z"
+        #         }
+        #     }
+        #
         data = self.safe_value(response, 'data', {})
-        return self.parse8601(self.safe_string(data, 'iso'))
+        return self.safe_timestamp(data, 'epoch')
 
     def fetch_accounts(self, params={}):
-        response = self.privateGetAccounts(params)
+        self.load_markets()
+        request = {
+            'limit': 100,
+        }
+        response = self.privateGetAccounts(self.extend(request, params))
         #
         #     {
         #         "id": "XLM",
@@ -220,7 +276,7 @@ class coinbase(Exchange):
                     accountId = account['id']
                     break
         if accountId is None:
-            raise ExchangeError(self.id + ' createDepositAddress could not find the account with matching currency code, specify an `account_id` extra param')
+            raise ExchangeError(self.id + ' createDepositAddress() could not find the account with matching currency code, specify an `account_id` extra param')
         request = {
             'account_id': accountId,
         }
@@ -380,10 +436,10 @@ class coinbase(Exchange):
         timestamp = self.parse8601(self.safe_value(transaction, 'created_at'))
         updated = self.parse8601(self.safe_value(transaction, 'updated_at'))
         type = self.safe_string(transaction, 'resource')
-        amount = self.safe_float(subtotalObject, 'amount')
+        amount = self.safe_number(subtotalObject, 'amount')
         currencyId = self.safe_string(subtotalObject, 'currency')
         currency = self.safe_currency_code(currencyId)
-        feeCost = self.safe_float(feeObject, 'amount')
+        feeCost = self.safe_number(feeObject, 'amount')
         feeCurrencyId = self.safe_string(feeObject, 'currency')
         feeCurrency = self.safe_currency_code(feeCurrencyId)
         fee = {
@@ -400,8 +456,13 @@ class coinbase(Exchange):
             'txid': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': None,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,
             'amount': amount,
             'currency': currency,
@@ -446,8 +507,8 @@ class coinbase(Exchange):
         id = self.safe_string(trade, 'id')
         timestamp = self.parse8601(self.safe_value(trade, 'created_at'))
         if market is None:
-            baseId = self.safe_string(totalObject, 'currency')
-            quoteId = self.safe_string(amountObject, 'currency')
+            baseId = self.safe_string(amountObject, 'currency')
+            quoteId = self.safe_string(totalObject, 'currency')
             if (baseId is not None) and (quoteId is not None):
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
@@ -455,13 +516,12 @@ class coinbase(Exchange):
         orderId = None
         side = self.safe_string(trade, 'resource')
         type = None
-        cost = self.safe_float(subtotalObject, 'amount')
-        amount = self.safe_float(amountObject, 'amount')
-        price = None
-        if cost is not None:
-            if amount is not None:
-                price = cost / amount
-        feeCost = self.safe_float(feeObject, 'amount')
+        costString = self.safe_string(subtotalObject, 'amount')
+        amountString = self.safe_string(amountObject, 'amount')
+        cost = self.parse_number(costString)
+        amount = self.parse_number(amountString)
+        price = self.parse_number(Precise.string_div(costString, amountString))
+        feeCost = self.safe_number(feeObject, 'amount')
         feeCurrencyId = self.safe_string(feeObject, 'currency')
         feeCurrency = self.safe_currency_code(feeCurrencyId)
         fee = {
@@ -503,22 +563,39 @@ class coinbase(Exchange):
                     quoteCurrency = data[j]
                     quoteId = self.safe_string(quoteCurrency, 'id')
                     quote = self.safe_currency_code(quoteId)
-                    symbol = base + '/' + quote
-                    id = baseId + '-' + quoteId
                     result.append({
-                        'id': id,
-                        'symbol': symbol,
+                        'id': baseId + '-' + quoteId,
+                        'symbol': base + '/' + quote,
                         'base': base,
                         'quote': quote,
+                        'settle': None,
                         'baseId': baseId,
                         'quoteId': quoteId,
+                        'settleId': None,
+                        'type': 'spot',
+                        'spot': True,
+                        'margin': False,
+                        'swap': False,
+                        'future': False,
+                        'option': False,
                         'active': None,
-                        'info': quoteCurrency,
+                        'contract': False,
+                        'linear': None,
+                        'inverse': None,
+                        'contractSize': None,
+                        'expiry': None,
+                        'expiryDatetime': None,
+                        'strike': None,
+                        'optionType': None,
                         'precision': {
                             'amount': None,
                             'price': None,
                         },
                         'limits': {
+                            'leverage': {
+                                'min': None,
+                                'max': None,
+                            },
                             'amount': {
                                 'min': None,
                                 'max': None,
@@ -528,10 +605,11 @@ class coinbase(Exchange):
                                 'max': None,
                             },
                             'cost': {
-                                'min': self.safe_float(quoteCurrency, 'min_size'),
+                                'min': self.safe_number(quoteCurrency, 'min_size'),
                                 'max': None,
                             },
                         },
+                        'info': quoteCurrency,
                     })
         return result
 
@@ -600,19 +678,13 @@ class coinbase(Exchange):
                 'type': type,
                 'name': name,
                 'active': True,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'precision': None,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(currency, 'min_size'),
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
+                        'min': self.safe_number(currency, 'min_size'),
                         'max': None,
                     },
                     'withdraw': {
@@ -623,20 +695,86 @@ class coinbase(Exchange):
             }
         return result
 
+    def fetch_tickers(self, symbols=None, params={}):
+        self.load_markets()
+        request = {
+            # 'currency': 'USD',
+        }
+        response = self.publicGetExchangeRates(self.extend(request, params))
+        #
+        #     {
+        #         "data":{
+        #             "currency":"USD",
+        #             "rates":{
+        #                 "AED":"3.6731",
+        #                 "AFN":"103.163942",
+        #                 "ALL":"106.973038",
+        #             }
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        rates = self.safe_value(data, 'rates', {})
+        quoteId = self.safe_string(data, 'currency')
+        result = {}
+        baseIds = list(rates.keys())
+        delimiter = '-'
+        for i in range(0, len(baseIds)):
+            baseId = baseIds[i]
+            marketId = baseId + delimiter + quoteId
+            market = self.safe_market(marketId, None, delimiter)
+            symbol = market['symbol']
+            result[symbol] = self.parse_ticker(rates[baseId], market)
+        return self.filter_by_array(result, 'symbol', symbols)
+
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
-        timestamp = self.seconds()
         market = self.market(symbol)
         request = self.extend({
             'symbol': market['id'],
         }, params)
-        buy = self.publicGetPricesSymbolBuy(request)
-        sell = self.publicGetPricesSymbolSell(request)
         spot = self.publicGetPricesSymbolSpot(request)
-        ask = self.safe_float(buy['data'], 'amount')
-        bid = self.safe_float(sell['data'], 'amount')
-        last = self.safe_float(spot['data'], 'amount')
-        return {
+        #
+        #     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
+        #
+        buy = self.publicGetPricesSymbolBuy(request)
+        #
+        #     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
+        #
+        sell = self.publicGetPricesSymbolSell(request)
+        #
+        #     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
+        #
+        return self.parse_ticker([spot, buy, sell], market)
+
+    def parse_ticker(self, ticker, market=None):
+        #
+        # fetchTicker
+        #
+        #     [
+        #         "48691.23",  # spot
+        #         "48691.23",  # buy
+        #         "48691.23",  # sell
+        #     ]
+        #
+        # fetchTickers
+        #
+        #     "48691.23"
+        #
+        symbol = self.safe_symbol(None, market)
+        ask = None
+        bid = None
+        last = None
+        timestamp = self.milliseconds()
+        if not isinstance(ticker, str):
+            spot, buy, sell = ticker
+            spotData = self.safe_value(spot, 'data', {})
+            buyData = self.safe_value(buy, 'data', {})
+            sellData = self.safe_value(sell, 'data', {})
+            last = self.safe_string(spotData, 'amount')
+            bid = self.safe_string(buyData, 'amount')
+            ask = self.safe_string(sellData, 'amount')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -656,48 +794,51 @@ class coinbase(Exchange):
             'average': None,
             'baseVolume': None,
             'quoteVolume': None,
-            'info': {
-                'buy': buy,
-                'sell': sell,
-                'spot': spot,
-            },
-        }
+            'info': ticker,
+        }, market, False)
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privateGetAccounts(params)
+        request = {
+            'limit': 100,
+        }
+        response = self.privateGetAccounts(self.extend(request, params))
         balances = self.safe_value(response, 'data')
         accounts = self.safe_value(params, 'type', self.options['accounts'])
         result = {'info': response}
         for b in range(0, len(balances)):
             balance = balances[b]
-            if self.in_array(balance['type'], accounts):
-                currencyId = self.safe_string(balance['balance'], 'currency')
-                code = self.safe_currency_code(currencyId)
-                total = self.safe_float(balance['balance'], 'amount')
-                free = total
-                used = None
-                if code in result:
-                    result[code]['free'] = self.sum(result[code]['free'], total)
-                    result[code]['total'] = self.sum(result[code]['total'], total)
-                else:
-                    account = {
-                        'free': free,
-                        'used': used,
-                        'total': total,
-                    }
+            type = self.safe_string(balance, 'type')
+            if self.in_array(type, accounts):
+                value = self.safe_value(balance, 'balance')
+                if value is not None:
+                    currencyId = self.safe_string(value, 'currency')
+                    code = self.safe_currency_code(currencyId)
+                    total = self.safe_string(value, 'amount')
+                    free = total
+                    account = self.safe_value(result, code)
+                    if account is None:
+                        account = self.account()
+                        account['free'] = free
+                        account['total'] = total
+                    else:
+                        account['free'] = Precise.string_add(account['free'], total)
+                        account['total'] = Precise.string_add(account['total'], total)
                     result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         request = self.prepare_account_request_with_currency_code(code, limit, params)
         query = self.omit(params, ['account_id', 'accountId'])
         # for pagination use parameter 'starting_after'
         # the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         # eg: instance.last_json_response.pagination.next_starting_after
         response = self.privateGetAccountsAccountIdTransactions(self.extend(request, query))
-        return self.parse_ledger(response['data'], None, since, limit)
+        return self.parse_ledger(response['data'], currency, since, limit)
 
     def parse_ledger_entry_status(self, status):
         types = {
@@ -964,7 +1105,7 @@ class coinbase(Exchange):
         #     }
         #
         amountInfo = self.safe_value(item, 'amount', {})
-        amount = self.safe_float(amountInfo, 'amount')
+        amount = self.safe_number(amountInfo, 'amount')
         direction = None
         if amount < 0:
             direction = 'out'
@@ -989,7 +1130,7 @@ class coinbase(Exchange):
         if feeInfo is not None:
             feeCurrencyId = self.safe_string(feeInfo, 'currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId, currency)
-            feeAmount = self.safe_float(feeInfo, 'amount')
+            feeAmount = self.safe_number(feeInfo, 'amount')
             fee = {
                 'cost': feeAmount,
                 'currency': feeCurrencyCode,
@@ -1035,7 +1176,7 @@ class coinbase(Exchange):
     def prepare_account_request(self, limit=None, params={}):
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
         if accountId is None:
-            raise ArgumentsRequired(self.id + ' method requires an account_id(or accountId) parameter')
+            raise ArgumentsRequired(self.id + ' prepareAccountRequest() method requires an account_id(or accountId) parameter')
         request = {
             'account_id': accountId,
         }
@@ -1047,10 +1188,10 @@ class coinbase(Exchange):
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
         if accountId is None:
             if code is None:
-                raise ArgumentsRequired(self.id + ' method requires an account_id(or accountId) parameter OR a currency code argument')
+                raise ArgumentsRequired(self.id + ' prepareAccountRequestWithCurrencyCode() method requires an account_id(or accountId) parameter OR a currency code argument')
             accountId = self.find_account_id(code)
             if accountId is None:
-                raise ExchangeError(self.id + ' could not find account id for ' + code)
+                raise ExchangeError(self.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code)
         request = {
             'account_id': accountId,
         }
@@ -1066,21 +1207,33 @@ class coinbase(Exchange):
                 fullPath += '?' + self.urlencode(query)
         url = self.urls['api'] + fullPath
         if api == 'private':
-            self.check_required_credentials()
-            nonce = str(self.nonce())
-            payload = ''
-            if method != 'GET':
-                if query:
-                    body = self.json(query)
-                    payload = body
-            auth = nonce + method + fullPath + payload
-            signature = self.hmac(self.encode(auth), self.encode(self.secret))
-            headers = {
-                'CB-ACCESS-KEY': self.apiKey,
-                'CB-ACCESS-SIGN': signature,
-                'CB-ACCESS-TIMESTAMP': nonce,
-                'Content-Type': 'application/json',
-            }
+            authorization = self.safe_string(self.headers, 'Authorization')
+            if authorization is not None:
+                headers = {
+                    'Authorization': authorization,
+                    'Content-Type': 'application/json',
+                }
+            elif self.token:
+                headers = {
+                    'Authorization': 'Bearer ' + self.token,
+                    'Content-Type': 'application/json',
+                }
+            else:
+                self.check_required_credentials()
+                nonce = str(self.nonce())
+                payload = ''
+                if method != 'GET':
+                    if query:
+                        body = self.json(query)
+                        payload = body
+                auth = nonce + method + fullPath + payload
+                signature = self.hmac(self.encode(auth), self.encode(self.secret))
+                headers = {
+                    'CB-ACCESS-KEY': self.apiKey,
+                    'CB-ACCESS-SIGN': signature,
+                    'CB-ACCESS-TIMESTAMP': nonce,
+                    'Content-Type': 'application/json',
+                }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
@@ -1103,7 +1256,9 @@ class coinbase(Exchange):
         #
         errorCode = self.safe_string(response, 'error')
         if errorCode is not None:
-            self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+            errorMessage = self.safe_string(response, 'error_description')
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
             raise ExchangeError(feedback)
         errors = self.safe_value(response, 'errors')
         if errors is not None:
@@ -1111,8 +1266,10 @@ class coinbase(Exchange):
                 numErrors = len(errors)
                 if numErrors > 0:
                     errorCode = self.safe_string(errors[0], 'id')
+                    errorMessage = self.safe_string(errors[0], 'message')
                     if errorCode is not None:
-                        self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+                        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+                        self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
                         raise ExchangeError(feedback)
         data = self.safe_value(response, 'data')
         if data is None:

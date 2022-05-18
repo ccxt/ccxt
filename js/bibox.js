@@ -3,7 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AccountSuspended, ArgumentsRequired, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder, OrderNotFound, PermissionDenied, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, AccountSuspended, ArgumentsRequired, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder, OrderNotFound, PermissionDenied, InsufficientFunds, BadSymbol, RateLimitExceeded, BadRequest } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -14,22 +15,37 @@ module.exports = class bibox extends Exchange {
             'name': 'Bibox',
             'countries': [ 'CN', 'US', 'KR' ],
             'version': 'v1',
+            'hostname': 'bibox.com',
             'has': {
-                'CORS': false,
-                'publicAPI': false,
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but unimplemented
+                'swap': undefined, // has but unimplemented
+                'future': undefined,
+                'option': undefined,
+                'cancelOrder': true,
+                'createMarketOrder': undefined, // or they will return https://github.com/ccxt/ccxt/issues/2338
+                'createOrder': true,
                 'fetchBalance': true,
-                'fetchDeposits': true,
-                'fetchWithdrawals': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRates': false,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchFundingFees': true,
-                'fetchTickers': true,
-                'fetchOrder': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
+                'fetchDeposits': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'createMarketOrder': false, // or they will return https://github.com/ccxt/ccxt/issues/2338
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
+                'fetchTransactionFees': true,
+                'fetchWithdrawals': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -46,14 +62,14 @@ module.exports = class bibox extends Exchange {
                 '1w': 'week',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/34902611-2be8bf1a-f830-11e7-91a2-11b2f292e750.jpg',
-                'api': 'https://api.bibox.com',
-                'www': 'https://www.bibox.com',
+                'logo': 'https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg',
+                'api': 'https://api.{hostname}',
+                'www': 'https://www.bibox365.com',
                 'doc': [
                     'https://biboxcom.github.io/en/',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
-                'referral': 'https://www.bibox.com/signPage?id=11114745&lang=en',
+                'referral': 'https://w2.bibox365.com/login/register?invite_code=05Kj3I',
             },
             'api': {
                 'public': {
@@ -62,11 +78,16 @@ module.exports = class bibox extends Exchange {
                         'mdata',
                     ],
                     'get': [
+                        'cquery',
                         'mdata',
+                        'cdata',
+                        'orderpending',
                     ],
                 },
                 'private': {
                     'post': [
+                        'cquery',
+                        'ctrade',
                         'user',
                         'orderpending',
                         'transfer',
@@ -82,8 +103,8 @@ module.exports = class bibox extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'taker': 0.001,
-                    'maker': 0.001,
+                    'taker': this.parseNumber ('0.002'),
+                    'maker': this.parseNumber ('0.001'),
                 },
                 'funding': {
                     'tierBased': false,
@@ -98,94 +119,157 @@ module.exports = class bibox extends Exchange {
                 '2021': InsufficientFunds, // Insufficient balance available for withdrawal
                 '2027': InsufficientFunds, // Insufficient balance available (for trade)
                 '2033': OrderNotFound, // operation failed! Orders have been completed or revoked
+                '2065': InvalidOrder, // Precatory price is exorbitant, please reset
+                '2066': InvalidOrder, // Precatory price is low, please reset
                 '2067': InvalidOrder, // Does not support market orders
                 '2068': InvalidOrder, // The number of orders can not be less than
+                '2078': InvalidOrder, // unvalid order price
                 '2085': InvalidOrder, // Order quantity is too small
+                '2091': RateLimitExceeded, // request is too frequency, please try again later
+                '2092': InvalidOrder, // Minimum amount not met
+                '2131': InvalidOrder, // The order quantity cannot be greater than
+                '3000': BadRequest, // Requested parameter incorrect
+                '3002': BadRequest, // Parameter cannot be null
                 '3012': AuthenticationError, // invalid apiKey
+                '3016': BadSymbol, // Trading pair error
                 '3024': PermissionDenied, // wrong apikey permissions
                 '3025': AuthenticationError, // signature failed
                 '4000': ExchangeNotAvailable, // current network is unstable
                 '4003': DDoSProtection, // server busy please try again later
             },
             'commonCurrencies': {
+                'APENFT(NFT)': 'NFT',
+                'BOX': 'DefiBox',
+                'BPT': 'BlockPool Token',
+                'GMT': 'GMT Token',
                 'KEY': 'Bihu',
                 'MTC': 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
+                'NFT': 'NFT Protocol',
                 'PAI': 'PCHAIN',
+                'REVO': 'Revo Network',
+                'STAR': 'Starbase',
+                'TERN': 'Ternio-ERC20',
             },
         });
     }
 
     async fetchMarkets (params = {}) {
         const request = {
-            'cmd': 'marketAll',
+            'cmd': 'pairList',
         };
         const response = await this.publicGetMdata (this.extend (request, params));
         //
         //     {
         //         "result": [
         //             {
-        //                 "is_hide":0,
-        //                 "high_cny":"1.9478",
-        //                 "amount":"272.41",
-        //                 "coin_symbol":"BIX",
-        //                 "last":"0.00002487",
-        //                 "currency_symbol":"BTC",
-        //                 "change":"+0.00000073",
-        //                 "low_cny":"1.7408",
-        //                 "base_last_cny":"1.84538041",
-        //                 "area_id":7,
-        //                 "percent":"+3.02%",
-        //                 "last_cny":"1.8454",
-        //                 "high":"0.00002625",
-        //                 "low":"0.00002346",
-        //                 "pair_type":0,
-        //                 "last_usd":"0.2686",
-        //                 "vol24H":"10940613",
         //                 "id":1,
-        //                 "high_usd":"0.2835",
-        //                 "low_usd":"0.2534"
+        //                 "pair":"BIX_BTC",
+        //                 "pair_type":0,
+        //                 "area_id":7,
+        //                 "is_hide":0,
+        //                 "decimal":8,
+        //                 "amount_scale":4
         //             }
         //         ],
-        //         "cmd":"marketAll",
+        //         "cmd":"pairList",
         //         "ver":"1.1"
         //     }
         //
         const markets = this.safeValue (response, 'result');
+        const request2 = {
+            'cmd': 'tradeLimit',
+        };
+        const response2 = await this.publicGetOrderpending (this.extend (request2, params));
+        //
+        //    {
+        //         result: {
+        //             min_trade_price: { default: '0.00000001', USDT: '0.0001', DAI: '0.0001' },
+        //             min_trade_amount: { default: '0.0001' },
+        //             min_trade_money: {
+        //                 USDT: '1',
+        //                 USDC: '1',
+        //                 DAI: '1',
+        //                 GUSD: '1',
+        //                 BIX: '3',
+        //                 BTC: '0.0002',
+        //                 ETH: '0.005'
+        //             }
+        //         },
+        //         cmd: 'tradeLimit'
+        //     }
+        //
+        const result2 = this.safeValue (response2, 'result', {});
+        const minCosts = this.safeValue (result2, 'min_trade_money', {});
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const numericId = this.safeInteger (market, 'id');
-            const baseId = this.safeString (market, 'coin_symbol');
-            const quoteId = this.safeString (market, 'currency_symbol');
+            const id = this.safeString (market, 'pair');
+            let baseId = undefined;
+            let quoteId = undefined;
+            if (id !== undefined) {
+                const parts = id.split ('_');
+                baseId = this.safeString (parts, 0);
+                quoteId = this.safeString (parts, 1);
+            }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const id = baseId + '_' + quoteId;
-            const precision = {
-                'amount': 4,
-                'price': 8,
-            };
+            const type = 'spot';
+            const spot = true;
+            const areaId = this.safeInteger (market, 'area_id');
+            if (areaId === 16) {
+                // TODO: update to v3 api
+                continue;
+            }
             result.push ({
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'baseId': base,
-                'quoteId': quote,
-                'active': true,
-                'info': market,
-                'precision': precision,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
+                'type': type,
+                'spot': spot,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': undefined,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (market, 'amount_scale'),
+                    'price': this.safeInteger (market, 'decimal'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeNumber (minCosts, quoteId),
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;
@@ -194,40 +278,32 @@ module.exports = class bibox extends Exchange {
     parseTicker (ticker, market = undefined) {
         // we don't set values that are not defined by the exchange
         const timestamp = this.safeInteger (ticker, 'timestamp');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        } else {
-            const baseId = this.safeString (ticker, 'coin_symbol');
-            const quoteId = this.safeString (ticker, 'currency_symbol');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            symbol = base + '/' + quote;
+        let marketId = undefined;
+        const baseId = this.safeString (ticker, 'coin_symbol');
+        const quoteId = this.safeString (ticker, 'currency_symbol');
+        if ((baseId !== undefined) && (quoteId !== undefined)) {
+            marketId = baseId + '_' + quoteId;
         }
-        const last = this.safeFloat (ticker, 'last');
-        const change = this.safeFloat (ticker, 'change');
-        const baseVolume = this.safeFloat2 (ticker, 'vol', 'vol24H');
-        let open = undefined;
-        if ((last !== undefined) && (change !== undefined)) {
-            open = last - change;
-        }
+        market = this.safeMarket (marketId, market);
+        const last = this.safeString (ticker, 'last');
+        const change = this.safeString (ticker, 'change');
+        const baseVolume = this.safeString2 (ticker, 'vol', 'vol24H');
         let percentage = this.safeString (ticker, 'percent');
         if (percentage !== undefined) {
             percentage = percentage.replace ('%', '');
-            percentage = parseFloat (percentage);
         }
-        return {
-            'symbol': symbol,
+        return this.safeTicker ({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
-            'askVolume': undefined,
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'buy'),
+            'bidVolume': this.safeString (ticker, 'buy_amount'),
+            'ask': this.safeString (ticker, 'sell'),
+            'askVolume': this.safeString (ticker, 'sell_amount'),
             'vwap': undefined,
-            'open': open,
+            'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
@@ -235,9 +311,9 @@ module.exports = class bibox extends Exchange {
             'percentage': percentage,
             'average': undefined,
             'baseVolume': baseVolume,
-            'quoteVolume': this.safeFloat (ticker, 'amount'),
+            'quoteVolume': this.safeString (ticker, 'amount'),
             'info': ticker,
-        };
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -251,87 +327,57 @@ module.exports = class bibox extends Exchange {
         return this.parseTicker (response['result'], market);
     }
 
-    parseTickers (rawTickers, symbols = undefined) {
-        const tickers = [];
-        for (let i = 0; i < rawTickers.length; i++) {
-            const ticker = this.parseTicker (rawTickers[i]);
-            if ((symbols === undefined) || (this.inArray (ticker['symbol'], symbols))) {
-                tickers.push (ticker);
-            }
-        }
-        return tickers;
-    }
-
     async fetchTickers (symbols = undefined, params = {}) {
         const request = {
             'cmd': 'marketAll',
         };
         const response = await this.publicGetMdata (this.extend (request, params));
         const tickers = this.parseTickers (response['result'], symbols);
-        return this.indexBy (tickers, 'symbol');
+        const result = this.indexBy (tickers, 'symbol');
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     parseTrade (trade, market = undefined) {
         const timestamp = this.safeInteger2 (trade, 'time', 'createdAt');
         let side = this.safeInteger2 (trade, 'side', 'order_side');
         side = (side === 1) ? 'buy' : 'sell';
-        let symbol = undefined;
-        if (market === undefined) {
-            let marketId = this.safeString (trade, 'pair');
-            if (marketId === undefined) {
-                const baseId = this.safeString (trade, 'coin_symbol');
-                const quoteId = this.safeString (trade, 'currency_symbol');
-                if ((baseId !== undefined) && (quoteId !== undefined)) {
-                    marketId = baseId + '_' + quoteId;
-                }
-            }
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
+        let marketId = this.safeString (trade, 'pair');
+        if (marketId === undefined) {
+            const baseId = this.safeString (trade, 'coin_symbol');
+            const quoteId = this.safeString (trade, 'currency_symbol');
+            if ((baseId !== undefined) && (quoteId !== undefined)) {
+                marketId = baseId + '_' + quoteId;
             }
         }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (marketId, market);
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
         let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'fee');
-        let feeCurrency = this.safeString (trade, 'fee_symbol');
-        if (feeCurrency !== undefined) {
-            if (feeCurrency in this.currencies_by_id) {
-                feeCurrency = this.currencies_by_id[feeCurrency]['code'];
-            } else {
-                feeCurrency = this.safeCurrencyCode (feeCurrency);
-            }
-        }
-        const feeRate = undefined; // todo: deduce from market if market is defined
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
-        let cost = undefined;
-        if (price !== undefined && amount !== undefined) {
-            cost = price * amount;
-        }
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (trade, 'fee');
+        if (feeCostString !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'fee_symbol');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCost,
-                'currency': feeCurrency,
-                'rate': feeRate,
+                'cost': Precise.stringNeg (feeCostString),
+                'currency': feeCurrencyCode,
             };
         }
         const id = this.safeString (trade, 'id');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'order': undefined, // Bibox does not have it (documented) yet
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': 'limit',
             'takerOrMaker': undefined,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -359,17 +405,27 @@ module.exports = class bibox extends Exchange {
             request['size'] = limit; // default = 200
         }
         const response = await this.publicGetMdata (this.extend (request, params));
-        return this.parseOrderBook (response['result'], this.safeFloat (response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
+        return this.parseOrderBook (response['result'], symbol, this.safeNumber (response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     {
+        //         "time":1591448220000,
+        //         "open":"0.02507029",
+        //         "high":"0.02507029",
+        //         "low":"0.02506349",
+        //         "close":"0.02506349",
+        //         "vol":"5.92000000"
+        //     }
+        //
         return [
-            ohlcv['time'],
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'vol'),
+            this.safeInteger (ohlcv, 'time'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'vol'),
         ];
     }
 
@@ -383,11 +439,92 @@ module.exports = class bibox extends Exchange {
             'size': limit,
         };
         const response = await this.publicGetMdata (this.extend (request, params));
-        return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
+        //
+        //     {
+        //         "result":[
+        //             {"time":1591448220000,"open":"0.02507029","high":"0.02507029","low":"0.02506349","close":"0.02506349","vol":"5.92000000"},
+        //             {"time":1591448280000,"open":"0.02506449","high":"0.02506975","low":"0.02506108","close":"0.02506843","vol":"5.72000000"},
+        //             {"time":1591448340000,"open":"0.02506698","high":"0.02506698","low":"0.02506452","close":"0.02506519","vol":"4.86000000"},
+        //         ],
+        //         "cmd":"kline",
+        //         "ver":"1.1"
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
     async fetchCurrencies (params = {}) {
-        if (!this.apiKey || !this.secret) {
+        if (this.checkRequiredCredentials (false)) {
+            return await this.fetchCurrenciesPrivate (params);
+        } else {
+            return await this.fetchCurrenciesPublic (params);
+        }
+    }
+
+    async fetchCurrenciesPublic (params = {}) {
+        const request = {
+            'cmd': 'currencies',
+        };
+        const response = await this.publicGetCdata (this.extend (request, params));
+        //
+        // publicGetCdata
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "symbol":"BTC",
+        //                 "name":"BTC",
+        //                 "valid_decimals":8,
+        //                 "original_decimals":8,
+        //                 "is_erc20":0,
+        //                 "enable_withdraw":1,
+        //                 "enable_deposit":1,
+        //                 "withdraw_min":0.005,
+        //                 "describe_summary":"[{\"lang\":\"zh-cn\",\"text\":\"Bitcoin 比特币的概念最初由中本聪在2009年提出，是点对点的基于 SHA-256 算法的一种P2P形式的数字货币，点对点的传输意味着一个去中心化的支付系统。\"},{\"lang\":\"en-ww\",\"text\":\"Bitcoin is a digital asset and a payment system invented by Satoshi Nakamoto who published a related paper in 2008 and released it as open-source software in 2009. The system featured as peer-to-peer; users can transact directly without an intermediary.\"}]"
+        //             }
+        //         ],
+        //         "cmd":"currencies"
+        //     }
+        //
+        const currencies = this.safeValue (response, 'result');
+        const result = {};
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = currencies[i];
+            const id = this.safeString (currency, 'symbol');
+            const name = this.safeString (currency, 'name'); // contains hieroglyphs causing python ASCII bug
+            const code = this.safeCurrencyCode (id);
+            const precision = this.safeInteger (currency, 'valid_decimals');
+            const deposit = this.safeValue (currency, 'enable_deposit');
+            const withdraw = this.safeValue (currency, 'enable_withdraw');
+            const active = (deposit && withdraw);
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': name,
+                'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
+                'fee': undefined,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision),
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeNumber (currency, 'withdraw_min'),
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
+    }
+
+    async fetchCurrenciesPrivate (params = {}) {
+        if (!this.checkRequiredCredentials (false)) {
             throw new AuthenticationError (this.id + " fetchCurrencies is an authenticated endpoint, therefore it requires 'apiKey' and 'secret' credentials. If you don't need currency details, set exchange.has['fetchCurrencies'] = false before calling its methods.");
         }
         const request = {
@@ -395,12 +532,65 @@ module.exports = class bibox extends Exchange {
             'body': {},
         };
         const response = await this.privatePostTransfer (this.extend (request, params));
-        const currencies = this.safeValue (response, 'result');
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result":[
+        //                     {
+        //                         "totalBalance":"14.60987476",
+        //                         "balance":"14.60987476",
+        //                         "freeze":"0.00000000",
+        //                         "id":60,
+        //                         "symbol":"USDT",
+        //                         "icon_url":"/appimg/USDT_icon.png",
+        //                         "describe_url":"[{\"lang\":\"zh-cn\",\"link\":\"https://bibox.zendesk.com/hc/zh-cn/articles/115004798234\"},{\"lang\":\"en-ww\",\"link\":\"https://bibox.zendesk.com/hc/en-us/articles/115004798234\"}]",
+        //                         "name":"USDT",
+        //                         "enable_withdraw":1,
+        //                         "enable_deposit":1,
+        //                         "enable_transfer":1,
+        //                         "confirm_count":2,
+        //                         "is_erc20":1,
+        //                         "forbid_info":null,
+        //                         "describe_summary":"[{\"lang\":\"zh-cn\",\"text\":\"USDT 是 Tether 公司推出的基于稳定价值货币美元（USD）的代币 Tether USD（简称USDT），1USDT=1美元，用户可以随时使用 USDT 与 USD 进行1:1的兑换。\"},{\"lang\":\"en-ww\",\"text\":\"USDT is a cryptocurrency asset issued on the Bitcoin blockchain via the Omni Layer Protocol. Each USDT unit is backed by a U.S Dollar held in the reserves of the Tether Limited and can be redeemed through the Tether Platform.\"}]",
+        //                         "total_amount":4776930644,
+        //                         "supply_amount":4642367414,
+        //                         "price":"--",
+        //                         "contract_father":"OMNI",
+        //                         "supply_time":"--",
+        //                         "comment":null,
+        //                         "chain_type":"OMNI",
+        //                         "general_name":"USDT",
+        //                         "contract":"31",
+        //                         "original_decimals":8,
+        //                         "deposit_type":0,
+        //                         "hasCobo":0,
+        //                         "BTCValue":"0.00027116",
+        //                         "CNYValue":"90.36087919",
+        //                         "USDValue":"14.61090236",
+        //                         "children":[
+        //                             {"type":"ERC20","symbol":"eUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":13},
+        //                             {"type":"TRC20","symbol":"tUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":20},
+        //                             {"type":"OMNI","symbol":"USDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":2},
+        //                             {"type":"HECO","symbol":"hUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":12},
+        //                             {"type":"BSC(BEP20)","symbol":"bUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":5},
+        //                             {"type":"HPB","symbol":"pUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":20}
+        //                         ]
+        //                     }
+        //                 ],
+        //                 "cmd":"transfer/coinList"
+        //             }
+        //         ]
+        //     }
+        //
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        const currencies = this.safeValue (firstResult, 'result');
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'symbol');
-            const name = this.safeString (currency, 'name');
+            const name = currency['name']; // contains hieroglyphs causing python ASCII bug
             const code = this.safeCurrencyCode (id);
             const precision = 8;
             const deposit = this.safeValue (currency, 'enable_deposit');
@@ -419,14 +609,6 @@ module.exports = class bibox extends Exchange {
                         'min': Math.pow (10, -precision),
                         'max': Math.pow (10, precision),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': undefined,
                         'max': Math.pow (10, precision),
@@ -435,6 +617,24 @@ module.exports = class bibox extends Exchange {
             };
         }
         return result;
+    }
+
+    parseBalance (response) {
+        const outerResult = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResult, 0, {});
+        const innerResult = this.safeValue (firstResult, 'result');
+        const result = { 'info': response };
+        const assetsList = this.safeValue (innerResult, 'assets_list', []);
+        for (let i = 0; i < assetsList.length; i++) {
+            const balance = assetsList[i];
+            const currencyId = this.safeString (balance, 'coin_symbol');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'freeze');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     async fetchBalance (params = {}) {
@@ -448,60 +648,81 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostTransfer (request);
-        const balances = this.safeValue (response, 'result');
-        const result = { 'info': balances };
-        let indexed = undefined;
-        if ('assets_list' in balances) {
-            indexed = this.indexBy (balances['assets_list'], 'coin_symbol');
-        } else {
-            indexed = balances;
-        }
-        const keys = Object.keys (indexed);
-        for (let i = 0; i < keys.length; i++) {
-            const id = keys[i];
-            let code = id.toUpperCase ();
-            if (code.indexOf ('TOTAL_') >= 0) {
-                code = code.slice (6);
-            }
-            if (code in this.currencies_by_id) {
-                code = this.currencies_by_id[code]['code'];
-            }
-            const account = this.account ();
-            let balance = indexed[id];
-            if (typeof balance === 'string') {
-                balance = parseFloat (balance);
-                account['free'] = balance;
-                account['used'] = 0.0;
-                account['total'] = balance;
-            } else {
-                account['free'] = this.safeFloat (balance, 'balance');
-                account['used'] = this.safeFloat (balance, 'freeze');
-            }
-            result[code] = account;
-        }
-        return this.parseBalance (result);
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result":{
+        //                     "total_btc":"0.00000298",
+        //                     "total_cny":"0.99",
+        //                     "total_usd":"0.16",
+        //                     "assets_list":[
+        //                         {"coin_symbol":"BTC","BTCValue":"0.00000252","CNYValue":"0.84","USDValue":"0.14","balance":"0.00000252","freeze":"0.00000000"},
+        //                         {"coin_symbol":"LTC","BTCValue":"0.00000023","CNYValue":"0.07","USDValue":"0.01","balance":"0.00006765","freeze":"0.00000000"},
+        //                         {"coin_symbol":"USDT","BTCValue":"0.00000023","CNYValue":"0.08","USDValue":"0.01","balance":"0.01252100","freeze":"0.00000000"}
+        //                     ]
+        //                 },
+        //                 "cmd":"transfer/assets"
+        //             }
+        //         ]
+        //     }
+        //
+        return this.parseBalance (response);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let currency = undefined;
+        if (limit === undefined) {
+            limit = 100;
+        }
         const request = {
             'page': 1,
+            'size': limit,
         };
+        let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['symbol'] = currency['id'];
-        }
-        if (limit !== undefined) {
-            request['size'] = limit;
-        } else {
-            request['size'] = 100;
         }
         const response = await this.privatePostTransfer ({
             'cmd': 'transfer/transferInList',
             'body': this.extend (request, params),
         });
-        const deposits = this.safeValue (response['result'], 'items', []);
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result":{
+        //                     "count":2,
+        //                     "page":1,
+        //                     "items":[
+        //                         {
+        //                             "coin_symbol":"ETH",                        // token
+        //                             "to_address":"xxxxxxxxxxxxxxxxxxxxxxxxxx",  // address
+        //                             "amount":"1.00000000",                      // amount
+        //                             "confirmCount":"15",                        // the acknowledgment number
+        //                             "createdAt":1540641511000,
+        //                             "status":2                                 // status,  1-deposit is in process，2-deposit finished，3-deposit failed
+        //                         },
+        //                         {
+        //                             "coin_symbol":"BIX",
+        //                             "to_address":"xxxxxxxxxxxxxxxxxxxxxxxxxx",
+        //                             "amount":"1.00000000",
+        //                             "confirmCount":"15",
+        //                             "createdAt":1540622460000,
+        //                             "status":2
+        //                         }
+        //                     ]
+        //                 },
+        //                 "cmd":"transfer/transferInList"
+        //             }
+        //         ]
+        //     }
+        //
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        const innerResult = this.safeValue (firstResult, 'result', {});
+        const deposits = this.safeValue (innerResult, 'items', []);
         for (let i = 0; i < deposits.length; i++) {
             deposits[i]['type'] = 'deposit';
         }
@@ -510,24 +731,54 @@ module.exports = class bibox extends Exchange {
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let currency = undefined;
+        if (limit === undefined) {
+            limit = 100;
+        }
         const request = {
             'page': 1,
+            'size': limit,
         };
+        let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['symbol'] = currency['id'];
-        }
-        if (limit !== undefined) {
-            request['size'] = limit;
-        } else {
-            request['size'] = 100;
         }
         const response = await this.privatePostTransfer ({
             'cmd': 'transfer/transferOutList',
             'body': this.extend (request, params),
         });
-        const withdrawals = this.safeValue (response['result'], 'items', []);
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result":{
+        //                     "count":1,
+        //                     "page":1,
+        //                     "items":[
+        //                         {
+        //                             "id":612867,
+        //                             "coin_symbol":"ETH",
+        //                             "chain_type":"ETH",
+        //                             "to_address":"0xd41de7a88ab5fc59edc6669f54873576be95bff1",
+        //                             "tx_id":"0xc60950596227af3f27c3a1b5911ea1c79bae53bdce67274e48a0ce87a5ef2df8",
+        //                             "addr_remark":"binance",
+        //                             "amount":"2.34550946",
+        //                             "fee":"0.00600000",
+        //                             "createdAt":1561339330000,
+        //                             "memo":"",
+        //                             "status":3
+        //                         }
+        //                     ]
+        //                 },
+        //                 "cmd":"transfer/transferOutList"
+        //             }
+        //         ]
+        //     }
+        //
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        const innerResult = this.safeValue (firstResult, 'result', {});
+        const withdrawals = this.safeValue (innerResult, 'items', []);
         for (let i = 0; i < withdrawals.length; i++) {
             withdrawals[i]['type'] = 'withdrawal';
         }
@@ -562,7 +813,14 @@ module.exports = class bibox extends Exchange {
         //         'status': 3
         //     }
         //
-        const id = this.safeString (transaction, 'id');
+        // withdraw
+        //
+        //     {
+        //         "result": 228, // withdrawal id
+        //         "cmd":"transfer/transferOut"
+        //     }
+        //
+        const id = this.safeString2 (transaction, 'id', 'result');
         const address = this.safeString (transaction, 'to_address');
         const currencyId = this.safeString (transaction, 'coin_symbol');
         const code = this.safeCurrencyCode (currencyId, currency);
@@ -570,8 +828,8 @@ module.exports = class bibox extends Exchange {
         let tag = this.safeString (transaction, 'addr_remark');
         const type = this.safeString (transaction, 'type');
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
-        const amount = this.safeFloat (transaction, 'amount');
-        let feeCost = this.safeFloat (transaction, 'fee');
+        const amount = this.safeNumber (transaction, 'amount');
+        let feeCost = this.safeNumber (transaction, 'fee');
         if (type === 'deposit') {
             feeCost = 0;
             tag = undefined;
@@ -586,8 +844,13 @@ module.exports = class bibox extends Exchange {
             'txid': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': tag,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type,
             'amount': amount,
             'currency': code,
@@ -629,9 +892,23 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostOrderpending (request);
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result": "100055558128036", // order id
+        //                 "index": 12345, // random index, specific one in a batch
+        //                 "cmd":"orderpending/trade"
+        //             }
+        //         ]
+        //     }
+        //
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        const id = this.safeValue (firstResult, 'result');
         return {
             'info': response,
-            'id': this.safeString (response, 'result'),
+            'id': id,
         };
     }
 
@@ -643,7 +920,20 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostOrderpending (request);
-        return response;
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result":"OK", // only indicates if the server received the cancelling request, and the cancelling result can be obtained from the order record
+        //                 "index": 12345, // random index, specific one in a batch
+        //                 "cmd":"orderpending/cancelTrade"
+        //             }
+        //         ]
+        //     }
+        //
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        return firstResult;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -656,7 +946,34 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostOrderpending (request);
-        const order = this.safeValue (response, 'result');
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result":{
+        //                     "id":"100055558128036",
+        //                     "createdAt": 1512756997000,
+        //                     "account_type":0,
+        //                     "coin_symbol":"LTC",        // Trading Token
+        //                     "currency_symbol":"BTC",    // Pricing Token
+        //                     "order_side":2,             // Trading side 1-Buy, 2-Sell
+        //                     "order_type":2,             // 2-limit order
+        //                     "price":"0.00900000",       // order price
+        //                     "amount":"1.00000000",      // order amount
+        //                     "money":"0.00900000",       // currency amount (price * amount)
+        //                     "deal_amount":"0.00000000", // deal amount
+        //                     "deal_percent":"0.00%",     // deal percentage
+        //                     "unexecuted":"0.00000000",  // unexecuted amount
+        //                     "status":3                  // Status, -1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
+        //                 },
+        //                 "cmd":"orderpending/order"
+        //             }
+        //         ]
+        //     }
+        //
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        const order = this.safeValue (firstResult, 'result');
         if (this.isEmpty (order)) {
             throw new OrderNotFound (this.id + ' order ' + id + ' not found');
         }
@@ -664,41 +981,26 @@ module.exports = class bibox extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let symbol = undefined;
-        if (market === undefined) {
-            let marketId = undefined;
-            const baseId = this.safeString (order, 'coin_symbol');
-            const quoteId = this.safeString (order, 'currency_symbol');
-            if ((baseId !== undefined) && (quoteId !== undefined)) {
-                marketId = baseId + '_' + quoteId;
-            }
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
+        let marketId = undefined;
+        const baseId = this.safeString (order, 'coin_symbol');
+        const quoteId = this.safeString (order, 'currency_symbol');
+        if ((baseId !== undefined) && (quoteId !== undefined)) {
+            marketId = baseId + '_' + quoteId;
         }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        const type = (order['order_type'] === 1) ? 'market' : 'limit';
-        const timestamp = order['createdAt'];
-        const price = this.safeFloat (order, 'price');
-        const average = this.safeFloat (order, 'deal_price');
-        const filled = this.safeFloat (order, 'deal_amount');
-        const amount = this.safeFloat (order, 'amount');
-        let cost = this.safeFloat2 (order, 'deal_money', 'money');
-        let remaining = undefined;
-        if (filled !== undefined) {
-            if (amount !== undefined) {
-                remaining = amount - filled;
-            }
-            if (cost === undefined) {
-                cost = price * filled;
-            }
-        }
-        const side = (order['order_side'] === 1) ? 'buy' : 'sell';
+        market = this.safeMarket (marketId, market);
+        const rawType = this.safeString (order, 'order_type');
+        const type = (rawType === '1') ? 'market' : 'limit';
+        const timestamp = this.safeInteger (order, 'createdAt');
+        const price = this.safeString (order, 'price');
+        const average = this.safeString (order, 'deal_price');
+        const filled = this.safeString (order, 'deal_amount');
+        const amount = this.safeString (order, 'amount');
+        const cost = this.safeString2 (order, 'deal_money', 'money');
+        const rawSide = this.safeString (order, 'order_side');
+        const side = (rawSide === '1') ? 'buy' : 'sell';
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const id = this.safeString (order, 'id');
-        const feeCost = this.safeFloat (order, 'fee');
+        const feeCost = this.safeString (order, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -706,25 +1008,29 @@ module.exports = class bibox extends Exchange {
                 'currency': undefined,
             };
         }
-        cost = cost ? cost : (parseFloat (price) * filled);
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': cost,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': fee,
-        };
+            'trades': undefined,
+        }, market);
     }
 
     parseOrderStatus (status) {
@@ -759,13 +1065,47 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostOrderpending (request);
-        const orders = this.safeValue (response['result'], 'items', []);
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result":{
+        //                     "count":1,
+        //                     "page":1,
+        //                     "items":[
+        //                         {
+        //                             "id":"100055558128036",
+        //                             "createdAt": 1512756997000,
+        //                             "account_type":0,
+        //                             "coin_symbol":"LTC",        // Trading Token
+        //                             "currency_symbol":"BTC",    // Pricing Token
+        //                             "order_side":2,             // Trading side 1-Buy, 2-Sell
+        //                             "order_type":2,             // 2-limit order
+        //                             "price":"0.00900000",       // order price
+        //                             "amount":"1.00000000",      // order amount
+        //                             "money":"0.00900000",       // currency amount (price * amount)
+        //                             "deal_amount":"0.00000000", // deal amount
+        //                             "deal_percent":"0.00%",     // deal percentage
+        //                             "unexecuted":"0.00000000",  // unexecuted amount
+        //                             "status":1                  // Status,-1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
+        //                         }
+        //                     ]
+        //                 },
+        //                 "cmd":"orderpending/orderPendingList"
+        //             }
+        //         ]
+        //     }
+        //
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        const innerResult = this.safeValue (firstResult, 'result', {});
+        const orders = this.safeValue (innerResult, 'items', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = 200, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a `symbol` argument');
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a `symbol` argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -779,13 +1119,47 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostOrderpending (request);
-        const orders = this.safeValue (response['result'], 'items', []);
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result":{
+        //                     "count":1,
+        //                     "page":1,
+        //                     "items":[
+        //                         {
+        //                             "id":"100055558128036",
+        //                             "createdAt": 1512756997000,
+        //                             "account_type":0,
+        //                             "coin_symbol":"LTC",        // Trading Token
+        //                             "currency_symbol":"BTC",    // Pricing Token
+        //                             "order_side":2,             // Trading side 1-Buy, 2-Sell
+        //                             "order_type":2,             // 2-limit order
+        //                             "price":"0.00900000",       // order price
+        //                             "amount":"1.00000000",      // order amount
+        //                             "money":"0.00900000",       // currency amount (price * amount)
+        //                             "deal_amount":"0.00000000", // deal amount
+        //                             "deal_percent":"0.00%",     // deal percentage
+        //                             "unexecuted":"0.00000000",  // unexecuted amount
+        //                             "status":3                  // Status,-1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
+        //                         }
+        //                     ]
+        //                 },
+        //                 "cmd":"orderpending/pendingHistoryList"
+        //             }
+        //         ]
+        //     }
+        //
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        const innerResult = this.safeValue (firstResult, 'result', {});
+        const orders = this.safeValue (innerResult, 'items', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a `symbol` argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a `symbol` argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -802,7 +1176,38 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostOrderpending (request);
-        const trades = this.safeValue (response['result'], 'items', []);
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result":{
+        //                     "count":1,
+        //                     "page":1,
+        //                     "items":[
+        //                         {
+        //                             "id":"100055558128033",
+        //                             "createdAt": 1512756997000,
+        //                             "account_type":0,
+        //                             "coin_symbol":"LTC",
+        //                             "currency_symbol":"BTC",
+        //                             "order_side":2,
+        //                             "order_type":2,
+        //                             "price":"0.00886500",
+        //                             "amount":"1.00000000",
+        //                             "money":"0.00886500",
+        //                             "fee":0
+        //                         }
+        //                     ]
+        //                 },
+        //                 "cmd":"orderpending/orderHistoryList"
+        //             }
+        //         ]
+        //     }
+        //
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        const innerResult = this.safeValue (firstResult, 'result', {});
+        const trades = this.safeValue (innerResult, 'items', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -818,21 +1223,44 @@ module.exports = class bibox extends Exchange {
         const response = await this.privatePostTransfer (request);
         //
         //     {
-        //         "result":"{\"account\":\"PERSONALLY OMITTED\",\"memo\":\"PERSONALLY OMITTED\"}","cmd":"transfer/transferIn"
+        //         "result":[
+        //             {
+        //                 "result":"3Jx6RZ9TNMsAoy9NUzBwZf68QBppDruSKW",
+        //                 "cmd":"transfer/transferIn"
+        //             }
+        //         ]
         //     }
         //
-        const result = JSON.parse (this.safeString (response, 'result'));
-        const address = this.safeString (result, 'account');
-        const tag = this.safeString (result, 'memo');
+        //     {
+        //         "result":[
+        //             {
+        //                 "result":"{\"account\":\"PERSONALLY OMITTED\",\"memo\":\"PERSONALLY OMITTED\"}",
+        //                 "cmd":"transfer/transferIn"
+        //             }
+        //         ]
+        //     }
+        //
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        const innerResult = this.safeValue (firstResult, 'result');
+        let address = innerResult;
+        let tag = undefined;
+        if (this.isJsonEncodedObject (innerResult)) {
+            const parsed = JSON.parse (innerResult);
+            address = this.safeString (parsed, 'account');
+            tag = this.safeString (parsed, 'memo');
+        }
         return {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
             'info': response,
         };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -857,13 +1285,22 @@ module.exports = class bibox extends Exchange {
             'cmd': 'transfer/transferOut',
             'body': this.extend (request, params),
         });
-        return {
-            'info': response,
-            'id': undefined,
-        };
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result": 228, // withdrawal id
+        //                 "cmd":"transfer/transferOut"
+        //             }
+        //         ]
+        //     }
+        //
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        return this.parseTransaction (firstResult, currency);
     }
 
-    async fetchFundingFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes = undefined, params = {}) {
         // by default it will try load withdrawal fees of all currencies (with separate requests)
         // however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
         await this.loadMarkets ();
@@ -882,8 +1319,33 @@ module.exports = class bibox extends Exchange {
                 }, params),
             };
             const response = await this.privatePostTransfer (request);
-            info[code] = response;
-            withdrawFees[code] = this.safeFloat (response['result'], 'withdraw_fee');
+            //     {
+            //         "result":[
+            //             {
+            //                 "result":[
+            //                     {
+            //                         "coin_symbol":"ETH",
+            //                         "is_active":1,
+            //                         "original_decimals":18,
+            //                         "enable_deposit":1,
+            //                         "enable_withdraw":1,
+            //                         "withdraw_fee":0.008,
+            //                         "withdraw_min":0.05,
+            //                         "deposit_avg_spent":173700,
+            //                         "withdraw_avg_spent":322600
+            //                     }
+            //                 ],
+            //                 "cmd":"transfer/coinConfig"
+            //             }
+            //         ]
+            //     }
+            //
+            const outerResults = this.safeValue (response, 'result', []);
+            const firstOuterResult = this.safeValue (outerResults, 0, {});
+            const innerResults = this.safeValue (firstOuterResult, 'result', []);
+            const firstInnerResult = this.safeValue (innerResults, 0, {});
+            info[code] = firstInnerResult;
+            withdrawFees[code] = this.safeNumber (firstInnerResult, 'withdraw_fee');
         }
         return {
             'info': info,
@@ -893,7 +1355,7 @@ module.exports = class bibox extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + path;
+        let url = this.implodeHostname (this.urls['api']) + '/' + this.version + '/' + path;
         const cmds = this.json ([ params ]);
         if (api === 'public') {
             if (method !== 'GET') {
@@ -903,7 +1365,7 @@ module.exports = class bibox extends Exchange {
             }
         } else if (api === 'v2private') {
             this.checkRequiredCredentials ();
-            url = this.urls['api'] + '/v2/' + path;
+            url = this.implodeHostname (this.urls['api']) + '/v2/' + path;
             const json_params = this.json (params);
             body = {
                 'body': json_params,
@@ -940,15 +1402,6 @@ module.exports = class bibox extends Exchange {
         }
         if (!('result' in response)) {
             throw new ExchangeError (this.id + ' ' + body);
-        }
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
-        if (method === 'GET') {
-            return response;
-        } else {
-            return response['result'][0];
         }
     }
 };

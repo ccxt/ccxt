@@ -14,25 +14,57 @@ use \ccxt\NotSupported;
 
 class cex extends Exchange {
 
-    public function describe () {
-        return array_replace_recursive(parent::describe (), array(
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'cex',
             'name' => 'CEX.IO',
             'countries' => array( 'GB', 'EU', 'CY', 'RU' ),
             'rateLimit' => 1500,
             'has' => array(
-                'CORS' => true,
-                'fetchCurrencies' => true,
-                'fetchTickers' => true,
-                'fetchOHLCV' => true,
-                'fetchOrder' => true,
-                'fetchOpenOrders' => true,
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null, // has but unimplemented
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'editOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
+                'fetchCurrencies' => true,
+                'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
+                'fetchDeposits' => false,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPremiumIndexOHLCV' => false,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
+                'fetchWithdrawal' => false,
+                'fetchWithdrawals' => false,
+                'transfer' => false,
+                'withdraw' => false,
             ),
             'timeframes' => array(
                 '1m' => '1m',
+                '1h' => '1h',
+                '1d' => '1d',
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -86,33 +118,22 @@ class cex extends Exchange {
                         'open_position/{pair}/',
                         'open_positions/{pair}/',
                         'place_order/{pair}/',
+                        'raw_tx_history',
                     ),
                 ),
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => 0.16 / 100,
-                    'taker' => 0.25 / 100,
+                    'maker' => $this->parse_number('0.0016'),
+                    'taker' => $this->parse_number('0.0025'),
                 ),
                 'funding' => array(
-                    'withdraw' => array(
-                        // 'USD' => null,
-                        // 'EUR' => null,
-                        // 'RUB' => null,
-                        // 'GBP' => null,
-                        'BTC' => 0.001,
-                        'ETH' => 0.01,
-                        'BCH' => 0.001,
-                        'DASH' => 0.01,
-                        'BTG' => 0.001,
-                        'ZEC' => 0.001,
-                        'XRP' => 0.02,
-                    ),
+                    'withdraw' => array(),
                     'deposit' => array(
-                        // 'USD' => amount => amount * 0.035 . 0.25,
-                        // 'EUR' => amount => amount * 0.035 . 0.24,
-                        // 'RUB' => amount => amount * 0.05 . 15.57,
-                        // 'GBP' => amount => amount * 0.035 . 0.2,
+                        // 'USD' => amount => amount * 0.035 + 0.25,
+                        // 'EUR' => amount => amount * 0.035 + 0.24,
+                        // 'RUB' => amount => amount * 0.05 + 15.57,
+                        // 'GBP' => amount => amount * 0.035 + 0.2,
                         'BTC' => 0.0,
                         'ETH' => 0.0,
                         'BCH' => 0.0,
@@ -131,7 +152,12 @@ class cex extends Exchange {
                     'Nonce must be incremented' => '\\ccxt\\InvalidNonce',
                     'Invalid Order' => '\\ccxt\\InvalidOrder',
                     'Order not found' => '\\ccxt\\OrderNotFound',
-                    'Rate limit exceeded' => '\\ccxt\\RateLimitExceeded',
+                    'limit exceeded' => '\\ccxt\\RateLimitExceeded', // array("error":"rate limit exceeded")
+                    'Invalid API key' => '\\ccxt\\AuthenticationError',
+                    'There was an error while placing your order' => '\\ccxt\\InvalidOrder',
+                    'Sorry, too many clients already' => '\\ccxt\\DDoSProtection',
+                    'Invalid Symbols Pair' => '\\ccxt\\BadSymbol',
+                    'Wrong currency pair' => '\\ccxt\\BadSymbol', // array("error":"There was an error while placing your order => Wrong currency pair.","safe":true)
                 ),
             ),
             'options' => array(
@@ -141,7 +167,7 @@ class cex extends Exchange {
                     'status' => array(
                         'c' => 'canceled',
                         'd' => 'closed',
-                        'cd' => 'closed',
+                        'cd' => 'canceled',
                         'a' => 'open',
                     ),
                 ),
@@ -149,13 +175,13 @@ class cex extends Exchange {
         ));
     }
 
-    public function fetch_currencies_from_cache ($params = array ()) {
+    public function fetch_currencies_from_cache($params = array ()) {
         // this method is $now redundant
         // currencies are $now fetched before markets
         $options = $this->safe_value($this->options, 'fetchCurrencies', array());
         $timestamp = $this->safe_integer($options, 'timestamp');
         $expires = $this->safe_integer($options, 'expires', 1000);
-        $now = $this->milliseconds ();
+        $now = $this->milliseconds();
         if (($timestamp === null) || (($now - $timestamp) > $expires)) {
             $response = $this->publicGetCurrencyProfile ($params);
             $this->options['fetchCurrencies'] = array_merge($options, array(
@@ -166,47 +192,47 @@ class cex extends Exchange {
         return $this->safe_value($this->options['fetchCurrencies'], 'response');
     }
 
-    public function fetch_currencies ($params = array ()) {
-        $response = $this->fetch_currencies_from_cache ($params);
+    public function fetch_currencies($params = array ()) {
+        $response = $this->fetch_currencies_from_cache($params);
         $this->options['currencies'] = array(
-            'timestamp' => $this->milliseconds (),
+            'timestamp' => $this->milliseconds(),
             'response' => $response,
         );
         //
         //     {
         //         "e":"currency_profile",
         //         "ok":"ok",
-        //         "$data":{
+        //         "data":{
         //             "symbols":array(
         //                 array(
-        //                     "$code":"GHS",
+        //                     "code":"GHS",
         //                     "contract":true,
         //                     "commodity":true,
         //                     "fiat":false,
         //                     "description":"CEX.IO doesn't provide cloud mining services anymore.",
-        //                     "$precision":8,
+        //                     "precision":8,
         //                     "scale":0,
         //                     "minimumCurrencyAmount":"0.00000001",
         //                     "minimalWithdrawalAmount":-1
         //                 ),
         //                 array(
-        //                     "$code":"BTC",
+        //                     "code":"BTC",
         //                     "contract":false,
         //                     "commodity":false,
         //                     "fiat":false,
         //                     "description":"",
-        //                     "$precision":8,
+        //                     "precision":8,
         //                     "scale":0,
         //                     "minimumCurrencyAmount":"0.00000001",
         //                     "minimalWithdrawalAmount":0.002
         //                 ),
         //                 {
-        //                     "$code":"ETH",
+        //                     "code":"ETH",
         //                     "contract":false,
         //                     "commodity":false,
         //                     "fiat":false,
         //                     "description":"",
-        //                     "$precision":8,
+        //                     "precision":8,
         //                     "scale":2,
         //                     "minimumCurrencyAmount":"0.00000100",
         //                     "minimalWithdrawalAmount":0.01
@@ -247,23 +273,17 @@ class cex extends Exchange {
                 'code' => $code,
                 'name' => $id,
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
                 'precision' => $precision,
                 'fee' => null,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($currency, 'minimumCurrencyAmount'),
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($currency, 'minimumCurrencyAmount'),
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => $this->safe_float($currency, 'minimalWithdrawalAmount'),
+                        'min' => $this->safe_number($currency, 'minimalWithdrawalAmount'),
                         'max' => null,
                     ),
                 ),
@@ -273,8 +293,8 @@ class cex extends Exchange {
         return $result;
     }
 
-    public function fetch_markets ($params = array ()) {
-        $currenciesResponse = $this->fetch_currencies_from_cache ($params);
+    public function fetch_markets($params = array ()) {
+        $currenciesResponse = $this->fetch_currencies_from_cache($params);
         $currenciesData = $this->safe_value($currenciesResponse, 'data', array());
         $currencies = $this->safe_value($currenciesData, 'symbols', array());
         $currenciesById = $this->index_by($currencies, 'code');
@@ -285,7 +305,7 @@ class cex extends Exchange {
         //         "e":"currency_limits",
         //         "ok":"ok",
         //         "data" => {
-        //             "$pairs":array(
+        //             "pairs":array(
         //                 array(
         //                     "symbol1":"BTC",
         //                     "symbol2":"USD",
@@ -314,10 +334,8 @@ class cex extends Exchange {
             $market = $markets[$i];
             $baseId = $this->safe_string($market, 'symbol1');
             $quoteId = $this->safe_string($market, 'symbol2');
-            $id = $baseId . '/' . $quoteId;
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
             $baseCurrency = $this->safe_value($currenciesById, $baseId, array());
             $quoteCurrency = $this->safe_value($currenciesById, $quoteId, array());
             $pricePrecision = $this->safe_integer($quoteCurrency, 'precision', 8);
@@ -328,62 +346,85 @@ class cex extends Exchange {
                     $pricePrecision = $this->safe_integer($pair, 'pricePrecision', $pricePrecision);
                 }
             }
-            $baseCcyPrecision = $this->safe_integer($baseCurrency, 'precision', 8);
-            $baseCcyScale = $this->safe_integer($baseCurrency, 'scale', 0);
-            $amountPrecision = $baseCcyPrecision - $baseCcyScale;
-            $precision = array(
-                'amount' => $amountPrecision,
-                'price' => $pricePrecision,
-            );
+            $baseCcyPrecision = $this->safe_string($baseCurrency, 'precision', '8');
+            $baseCcyScale = $this->safe_string($baseCurrency, 'scale', '0');
             $result[] = array(
-                'id' => $id,
-                'info' => $market,
-                'symbol' => $symbol,
+                'id' => $baseId . '/' . $quoteId,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'precision' => $precision,
+                'settleId' => null,
+                'type' => 'spot',
+                'spot' => true,
+                'margin' => null,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => null,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => intval(Precise::string_sub($baseCcyPrecision, $baseCcyScale)),
+                    'price' => $pricePrecision,
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
-                        'min' => $this->safe_float($market, 'minLotSize'),
-                        'max' => $this->safe_float($market, 'maxLotSize'),
+                        'min' => $this->safe_number($market, 'minLotSize'),
+                        'max' => $this->safe_number($market, 'maxLotSize'),
                     ),
                     'price' => array(
-                        'min' => $this->safe_float($market, 'minPrice'),
-                        'max' => $this->safe_float($market, 'maxPrice'),
+                        'min' => $this->safe_number($market, 'minPrice'),
+                        'max' => $this->safe_number($market, 'maxPrice'),
                     ),
                     'cost' => array(
-                        'min' => $this->safe_float($market, 'minLotSizeS2'),
+                        'min' => $this->safe_number($market, 'minLotSizeS2'),
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
-        $this->load_markets();
-        $response = $this->privatePostBalance ($params);
+    public function parse_balance($response) {
         $result = array( 'info' => $response );
         $ommited = array( 'username', 'timestamp' );
-        $balances = $this->omit ($response, $ommited);
+        $balances = $this->omit($response, $ommited);
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $balance = $this->safe_value($balances, $currencyId, array());
-            $account = $this->account ();
-            $account['free'] = $this->safe_float($balance, 'available');
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'available');
             // https://github.com/ccxt/ccxt/issues/5484
-            $account['used'] = $this->safe_float($balance, 'orders', 0.0);
+            $account['used'] = $this->safe_string($balance, 'orders', '0');
             $code = $this->safe_currency_code($currencyId);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostBalance ($params);
+        return $this->parse_balance($response);
+    }
+
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'pair' => $this->market_id($symbol),
@@ -393,41 +434,55 @@ class cex extends Exchange {
         }
         $response = $this->publicGetOrderBookPair (array_merge($request, $params));
         $timestamp = $this->safe_timestamp($response, 'timestamp');
-        return $this->parse_order_book($response, $timestamp);
+        return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        return [
-            $ohlcv[0] * 1000,
-            $ohlcv[1],
-            $ohlcv[2],
-            $ohlcv[3],
-            $ohlcv[4],
-            $ohlcv[5],
-        ];
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //     array(
+        //         1591403940,
+        //         0.024972,
+        //         0.024972,
+        //         0.024969,
+        //         0.024969,
+        //         0.49999900
+        //     )
+        //
+        return array(
+            $this->safe_timestamp($ohlcv, 0),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 5),
+        );
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         if ($since === null) {
-            $since = $this->milliseconds () - 86400000; // yesterday
+            $since = $this->milliseconds() - 86400000; // yesterday
         } else {
             if ($this->options['fetchOHLCVWarning']) {
                 throw new ExchangeError($this->id . " fetchOHLCV warning => CEX can return historical candles for a certain date only, this might produce an empty or null reply. Set exchange.options['fetchOHLCVWarning'] = false or add (array( 'options' => array( 'fetchOHLCVWarning' => false ))) to constructor $params to suppress this warning message.");
             }
         }
-        $ymd = $this->ymd ($since);
-        $ymd = explode('-', $ymd);
-        $ymd = implode('', $ymd);
         $request = array(
             'pair' => $market['id'],
-            'yyyymmdd' => $ymd,
+            'yyyymmdd' => $this->yyyymmdd($since, ''),
         );
         try {
             $response = $this->publicGetOhlcvHdYyyymmddPair (array_merge($request, $params));
+            //
+            //     {
+            //         "time":20200606,
+            //         "data1m":"[[1591403940,0.024972,0.024972,0.024969,0.024969,0.49999900]]",
+            //     }
+            //
             $key = 'data' . $this->timeframes[$timeframe];
-            $ohlcvs = json_decode($response[$key], $as_associative_array = true);
+            $data = $this->safe_string($response, $key);
+            $ohlcvs = json_decode($data, $as_associative_array = true);
             return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
         } catch (Exception $e) {
             if ($e instanceof NullResponse) {
@@ -436,22 +491,19 @@ class cex extends Exchange {
         }
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
-        $volume = $this->safe_float($ticker, 'volume');
-        $high = $this->safe_float($ticker, 'high');
-        $low = $this->safe_float($ticker, 'low');
-        $bid = $this->safe_float($ticker, 'bid');
-        $ask = $this->safe_float($ticker, 'ask');
-        $last = $this->safe_float($ticker, 'last');
-        $symbol = null;
-        if ($market) {
-            $symbol = $market['symbol'];
-        }
-        return array(
+        $volume = $this->safe_string($ticker, 'volume');
+        $high = $this->safe_string($ticker, 'high');
+        $low = $this->safe_string($ticker, 'low');
+        $bid = $this->safe_string($ticker, 'bid');
+        $ask = $this->safe_string($ticker, 'ask');
+        $last = $this->safe_string($ticker, 'last');
+        $symbol = $this->safe_symbol(null, $market);
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $high,
             'low' => $low,
             'bid' => $bid,
@@ -469,30 +521,31 @@ class cex extends Exchange {
             'baseVolume' => $volume,
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
         $request = array(
             'currencies' => implode('/', $currencies),
         );
         $response = $this->publicGetTickersCurrencies (array_merge($request, $params));
-        $tickers = $response['data'];
+        $tickers = $this->safe_value($response, 'data', array());
         $result = array();
         for ($t = 0; $t < count($tickers); $t++) {
             $ticker = $tickers[$t];
-            $symbol = str_replace(':', '/', $ticker['pair']);
-            $market = $this->markets[$symbol];
+            $marketId = $this->safe_string($ticker, 'pair');
+            $market = $this->safe_market($marketId, null, ':');
+            $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -500,43 +553,45 @@ class cex extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "type" => "sell",
+        //          "date" => "1638401878",
+        //          "amount" => "0.401000",
+        //          "price" => "249",
+        //          "tid" => "11922"
+        //      }
+        //
         $timestamp = $this->safe_timestamp($trade, 'date');
         $id = $this->safe_string($trade, 'tid');
         $type = null;
         $side = $this->safe_string($trade, 'type');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $amount * $price;
-            }
-        }
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        return array(
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $market = $this->safe_market(null, $market);
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $symbol,
+            'datetime' => $this->iso8601($timestamp),
+            'symbol' => $market['symbol'],
             'type' => $type,
             'side' => $side,
             'order' => null,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => null,
-        );
+        ), $market);
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -544,7 +599,42 @@ class cex extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_trading_fees($params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostGetMyfee ($params);
+        //
+        //      {
+        //          e => 'get_myfee',
+        //          ok => 'ok',
+        //          $data => {
+        //            'BTC:USD' => array( buy => '0.25', sell => '0.25', buyMaker => '0.15', sellMaker => '0.15' ),
+        //            'ETH:USD' => array( buy => '0.25', sell => '0.25', buyMaker => '0.15', sellMaker => '0.15' ),
+        //            ..
+        //          }
+        //      }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $market = $this->market($symbol);
+            $fee = $this->safe_value($data, $market['id'], array());
+            $makerString = $this->safe_string($fee, 'buyMaker');
+            $takerString = $this->safe_string($fee, 'buy');
+            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
+            $taker = $this->parse_number(Precise::string_div($takerString, '100'));
+            $result[$symbol] = array(
+                'info' => $fee,
+                'symbol' => $symbol,
+                'maker' => $maker,
+                'taker' => $taker,
+                'percentage' => true,
+            );
+        }
+        return $result;
+    }
+
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         // for market buy it requires the $amount of quote currency to spend
         if (($type === 'market') && ($side === 'buy')) {
             if ($this->options['createMarketBuyOrderRequiresPrice']) {
@@ -567,13 +657,49 @@ class cex extends Exchange {
             $request['order_type'] = $type;
         }
         $response = $this->privatePostPlaceOrderPair (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => "12978363524",
+        //         "time" => 1586610022259,
+        //         "type" => "buy",
+        //         "price" => "0.033934",
+        //         "amount" => "0.10722802",
+        //         "pending" => "0.10722802",
+        //         "complete" => false
+        //     }
+        //
+        $placedAmount = $this->safe_number($response, 'amount');
+        $remaining = $this->safe_number($response, 'pending');
+        $timestamp = $this->safe_value($response, 'time');
+        $complete = $this->safe_value($response, 'complete');
+        $status = $complete ? 'closed' : 'open';
+        $filled = null;
+        if (($placedAmount !== null) && ($remaining !== null)) {
+            $filled = max ($placedAmount - $remaining, 0);
+        }
         return array(
+            'id' => $this->safe_string($response, 'id'),
             'info' => $response,
-            'id' => $response['id'],
+            'clientOrderId' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'lastTradeTimestamp' => null,
+            'type' => $type,
+            'side' => $this->safe_string($response, 'type'),
+            'symbol' => $symbol,
+            'status' => $status,
+            'price' => $this->safe_number($response, 'price'),
+            'amount' => $placedAmount,
+            'cost' => null,
+            'average' => null,
+            'remaining' => $remaining,
+            'filled' => $filled,
+            'fee' => null,
+            'trades' => null,
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => $id,
@@ -581,16 +707,16 @@ class cex extends Exchange {
         return $this->privatePostCancelOrder (array_merge($request, $params));
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         // Depending on the call, 'time' can be a unix int, unix string or ISO string
         // Yes, really
         $timestamp = $this->safe_value($order, 'time');
         if (gettype($timestamp) === 'string' && mb_strpos($timestamp, 'T') !== false) {
             // ISO8601 string
-            $timestamp = $this->parse8601 ($timestamp);
+            $timestamp = $this->parse8601($timestamp);
         } else {
             // either integer or string integer
-            $timestamp = intval ($timestamp);
+            $timestamp = intval($timestamp);
         }
         $symbol = null;
         if ($market === null) {
@@ -600,47 +726,46 @@ class cex extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
-                $market = $this->market ($symbol);
+                $market = $this->market($symbol);
             }
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'amount');
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'amount');
         // sell orders can have a negative $amount
         // https://github.com/ccxt/ccxt/issues/5338
         if ($amount !== null) {
             $amount = abs($amount);
         }
-        $remaining = $this->safe_float_2($order, 'pending', 'remains');
+        $remaining = $this->safe_number_2($order, 'pending', 'remains');
         $filled = $amount - $remaining;
         $fee = null;
         $cost = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
-            $cost = $this->safe_float($order, 'ta:' . $market['quote']);
-            if ($cost === null) {
-                $cost = $this->safe_float($order, 'tta:' . $market['quote']);
-            }
+            $taCost = $this->safe_number($order, 'ta:' . $market['quote']);
+            $ttaCost = $this->safe_number($order, 'tta:' . $market['quote']);
+            $cost = $this->sum($taCost, $ttaCost);
             $baseFee = 'fa:' . $market['base'];
             $baseTakerFee = 'tfa:' . $market['base'];
             $quoteFee = 'fa:' . $market['quote'];
             $quoteTakerFee = 'tfa:' . $market['quote'];
-            $feeRate = $this->safe_float($order, 'tradingFeeMaker');
+            $feeRate = $this->safe_number($order, 'tradingFeeMaker');
             if (!$feeRate) {
-                $feeRate = $this->safe_float($order, 'tradingFeeTaker', $feeRate);
+                $feeRate = $this->safe_number($order, 'tradingFeeTaker', $feeRate);
             }
             if ($feeRate) {
                 $feeRate /= 100.0; // convert to mathematically-correct percentage coefficients => 1.0 = 100%
             }
             if ((is_array($order) && array_key_exists($baseFee, $order)) || (is_array($order) && array_key_exists($baseTakerFee, $order))) {
-                $baseFeeCost = $this->safe_float_2($order, $baseFee, $baseTakerFee);
+                $baseFeeCost = $this->safe_number_2($order, $baseFee, $baseTakerFee);
                 $fee = array(
                     'currency' => $market['base'],
                     'rate' => $feeRate,
                     'cost' => $baseFeeCost,
                 );
             } else if ((is_array($order) && array_key_exists($quoteFee, $order)) || (is_array($order) && array_key_exists($quoteTakerFee, $order))) {
-                $quoteFeeCost = $this->safe_float_2($order, $quoteFee, $quoteTakerFee);
+                $quoteFeeCost = $this->safe_number_2($order, $quoteFee, $quoteTakerFee);
                 $fee = array(
                     'currency' => $market['quote'],
                     'rate' => $feeRate,
@@ -680,13 +805,13 @@ class cex extends Exchange {
                     //     ds => 0 }
                     continue;
                 }
-                $tradePrice = $this->safe_float($item, 'price');
+                $tradePrice = $this->safe_number($item, 'price');
                 if ($tradePrice === null) {
                     // this represents the $order
                     //   {
                     //     "a" => "0.47000000",
                     //     "c" => "user:up106404164:a:EUR",
-                    //     "d" => "$order:6065499239:a:EUR",
+                    //     "d" => "order:6065499239:a:EUR",
                     //     "cs" => "1432.93",
                     //     "ds" => "476.72",
                     //     "id" => "6065499249",
@@ -697,9 +822,9 @@ class cex extends Exchange {
                     //     "time" => "2018-04-22T13:07:22.152Z",
                     //     "type" => "buy",
                     //     "user" => "up106404164",
-                    //     "$order" => "6065499239",
-                    //     "$amount" => "-715.97000000",
-                    //     "$symbol" => "EUR",
+                    //     "order" => "6065499239",
+                    //     "amount" => "-715.97000000",
+                    //     "symbol" => "EUR",
                     //     "balance" => "1432.93000000" }
                     continue;
                 }
@@ -717,7 +842,7 @@ class cex extends Exchange {
                 //   {
                 //     "a" => "0.01589885",
                 //     "c" => "user:up106404164:a:BTC",
-                //     "d" => "$order:6065499239:a:BTC",
+                //     "d" => "order:6065499239:a:BTC",
                 //     "cs" => "0.36300000",
                 //     "ds" => 0,
                 //     "id" => "6067991213",
@@ -728,10 +853,10 @@ class cex extends Exchange {
                 //     "time" => "2018-04-22T23:09:11.773Z",
                 //     "type" => "buy",
                 //     "user" => "up106404164",
-                //     "$order" => "6065499239",
-                //     "$price" => 7146.5,
-                //     "$amount" => "0.01589885",
-                //     "$symbol" => "BTC",
+                //     "order" => "6065499239",
+                //     "price" => 7146.5,
+                //     "amount" => "0.01589885",
+                //     "symbol" => "BTC",
                 //     "balance" => "0.36300000",
                 //     "symbol2" => "EUR",
                 //     "fee_amount" => "0.19" }
@@ -740,7 +865,7 @@ class cex extends Exchange {
                 //   {
                 //     "a" => "0.00000000",
                 //     "c" => "user:up106404164:a:EUR",
-                //     "d" => "$order:5840654423:a:EUR",
+                //     "d" => "order:5840654423:a:EUR",
                 //     "cs" => 559744,
                 //     "ds" => 0,
                 //     "id" => "5840654429",
@@ -751,10 +876,10 @@ class cex extends Exchange {
                 //     "time" => "2018-03-15T03:20:14.010Z",
                 //     "type" => "sell",
                 //     "user" => "up106404164",
-                //     "$order" => "5840654423",
-                //     "$price" => 730,
-                //     "$amount" => "0.00000000",
-                //     "$symbol" => "EUR",
+                //     "order" => "5840654423",
+                //     "price" => 730,
+                //     "amount" => "0.00000000",
+                //     "symbol" => "EUR",
                 //     "balance" => "5597.44000000",
                 //     "symbol2" => "BCH",
                 //     "fee_amount" => "0.01" }
@@ -763,7 +888,7 @@ class cex extends Exchange {
                 //   {
                 //     "a" => "16.70000000",
                 //     "c" => "user:up106404164:a:GBP",
-                //     "d" => "$order:9927386681:a:GBP",
+                //     "d" => "order:9927386681:a:GBP",
                 //     "cs" => "86.90",
                 //     "ds" => 0,
                 //     "id" => "9927401610",
@@ -774,30 +899,30 @@ class cex extends Exchange {
                 //     "time" => "2019-08-21T15:25:37.777Z",
                 //     "type" => "sell",
                 //     "user" => "up106404164",
-                //     "$order" => "9927386681",
-                //     "$price" => 8365,
-                //     "$amount" => "16.70000000",
+                //     "order" => "9927386681",
+                //     "price" => 8365,
+                //     "amount" => "16.70000000",
                 //     "office" => "UK",
-                //     "$symbol" => "GBP",
+                //     "symbol" => "GBP",
                 //     "balance" => "86.90000000",
                 //     "symbol2" => "BTC",
                 //     "fee_amount" => "0.03"
                 //   }
-                $tradeTimestamp = $this->parse8601 ($this->safe_string($item, 'time'));
-                $tradeAmount = $this->safe_float($item, 'amount');
-                $feeCost = $this->safe_float($item, 'fee_amount');
+                $tradeTimestamp = $this->parse8601($this->safe_string($item, 'time'));
+                $tradeAmount = $this->safe_number($item, 'amount');
+                $feeCost = $this->safe_number($item, 'fee_amount');
                 $absTradeAmount = ($tradeAmount < 0) ? -$tradeAmount : $tradeAmount;
                 $tradeCost = null;
                 if ($tradeSide === 'sell') {
                     $tradeCost = $absTradeAmount;
-                    $absTradeAmount = $this->sum ($feeCost, $tradeCost) / $tradePrice;
+                    $absTradeAmount = $this->sum($feeCost, $tradeCost) / $tradePrice;
                 } else {
                     $tradeCost = $absTradeAmount * $tradePrice;
                 }
                 $trades[] = array(
                     'id' => $this->safe_string($item, 'id'),
                     'timestamp' => $tradeTimestamp,
-                    'datetime' => $this->iso8601 ($tradeTimestamp),
+                    'datetime' => $this->iso8601($tradeTimestamp),
                     'order' => $orderId,
                     'symbol' => $symbol,
                     'price' => $tradePrice,
@@ -809,19 +934,25 @@ class cex extends Exchange {
                         'currency' => $market['quote'],
                     ),
                     'info' => $item,
+                    'type' => null,
+                    'takerOrMaker' => null,
                 );
             }
         }
         return array(
             'id' => $orderId,
-            'datetime' => $this->iso8601 ($timestamp),
+            'clientOrderId' => null,
+            'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
             'type' => ($price === null) ? 'market' : 'limit',
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
@@ -829,16 +960,17 @@ class cex extends Exchange {
             'trades' => $trades,
             'fee' => $fee,
             'info' => $order,
+            'average' => null,
         );
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         $method = 'privatePostOpenOrders';
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['pair'] = $market['id'];
             $method .= 'Pair';
         }
@@ -849,30 +981,131 @@ class cex extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $method = 'privatePostArchivedOrdersPair';
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchClosedOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
         }
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array( 'pair' => $market['id'] );
         $response = $this->$method (array_merge($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => (string) $id,
         );
         $response = $this->privatePostGetOrderTx (array_merge($request, $params));
-        return $this->parse_order($response['data']);
+        $data = $this->safe_value($response, 'data', array());
+        //
+        //     {
+        //         "id" => "5442731603",
+        //         "type" => "sell",
+        //         "time" => 1516132358071,
+        //         "lastTxTime" => 1516132378452,
+        //         "lastTx" => "5442734452",
+        //         "pos" => null,
+        //         "user" => "up106404164",
+        //         "status" => "d",
+        //         "symbol1" => "ETH",
+        //         "symbol2" => "EUR",
+        //         "amount" => "0.50000000",
+        //         "kind" => "api",
+        //         "price" => "923.3386",
+        //         "tfacf" => "1",
+        //         "fa:EUR" => "0.55",
+        //         "ta:EUR" => "369.77",
+        //         "remains" => "0.00000000",
+        //         "tfa:EUR" => "0.22",
+        //         "tta:EUR" => "91.95",
+        //         "a:ETH:cds" => "0.50000000",
+        //         "a:EUR:cds" => "461.72",
+        //         "f:EUR:cds" => "0.77",
+        //         "tradingFeeMaker" => "0.15",
+        //         "tradingFeeTaker" => "0.23",
+        //         "tradingFeeStrategy" => "userVolumeAmount",
+        //         "tradingFeeUserVolumeAmount" => "2896912572",
+        //         "orderId" => "5442731603",
+        //         "next" => false,
+        //         "vtx" => array(
+        //             array(
+        //                 "id" => "5442734452",
+        //                 "type" => "sell",
+        //                 "time" => "2018-01-16T19:52:58.452Z",
+        //                 "user" => "up106404164",
+        //                 "c" => "user:up106404164:a:EUR",
+        //                 "d" => "order:5442731603:a:EUR",
+        //                 "a" => "104.53000000",
+        //                 "amount" => "104.53000000",
+        //                 "balance" => "932.71000000",
+        //                 "symbol" => "EUR",
+        //                 "order" => "5442731603",
+        //                 "buy" => "5442734443",
+        //                 "sell" => "5442731603",
+        //                 "pair" => null,
+        //                 "pos" => null,
+        //                 "office" => null,
+        //                 "cs" => "932.71",
+        //                 "ds" => 0,
+        //                 "price" => 923.3386,
+        //                 "symbol2" => "ETH",
+        //                 "fee_amount" => "0.16"
+        //             ),
+        //             array(
+        //                 "id" => "5442731609",
+        //                 "type" => "sell",
+        //                 "time" => "2018-01-16T19:52:38.071Z",
+        //                 "user" => "up106404164",
+        //                 "c" => "user:up106404164:a:EUR",
+        //                 "d" => "order:5442731603:a:EUR",
+        //                 "a" => "91.73000000",
+        //                 "amount" => "91.73000000",
+        //                 "balance" => "563.49000000",
+        //                 "symbol" => "EUR",
+        //                 "order" => "5442731603",
+        //                 "buy" => "5442618127",
+        //                 "sell" => "5442731603",
+        //                 "pair" => null,
+        //                 "pos" => null,
+        //                 "office" => null,
+        //                 "cs" => "563.49",
+        //                 "ds" => 0,
+        //                 "price" => 924.0092,
+        //                 "symbol2" => "ETH",
+        //                 "fee_amount" => "0.22"
+        //             ),
+        //             {
+        //                 "id" => "5442731604",
+        //                 "type" => "sell",
+        //                 "time" => "2018-01-16T19:52:38.071Z",
+        //                 "user" => "up106404164",
+        //                 "c" => "order:5442731603:a:ETH",
+        //                 "d" => "user:up106404164:a:ETH",
+        //                 "a" => "0.50000000",
+        //                 "amount" => "-0.50000000",
+        //                 "balance" => "15.80995000",
+        //                 "symbol" => "ETH",
+        //                 "order" => "5442731603",
+        //                 "buy" => null,
+        //                 "sell" => null,
+        //                 "pair" => null,
+        //                 "pos" => null,
+        //                 "office" => null,
+        //                 "cs" => "0.50000000",
+        //                 "ds" => "15.80995000"
+        //             }
+        //         )
+        //     }
+        //
+        return $this->parse_order($data);
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'limit' => $limit,
             'pair' => $market['id'],
@@ -975,43 +1208,43 @@ class cex extends Exchange {
             // $market $order (buy):
             //    { "id" => "6281946200",
             //     "pos" => null,
-            //     "$time" => "2018-05-23T11:55:43.467Z",
-            //     "$type" => "buy",
-            //     "$amount" => "0.00000000",
+            //     "time" => "2018-05-23T11:55:43.467Z",
+            //     "type" => "buy",
+            //     "amount" => "0.00000000",
             //     "lastTx" => "6281946210",
-            //     "$status" => "d",
+            //     "status" => "d",
             //     "amount2" => "20.00",
             //     "orderId" => "6281946200",
             //     "remains" => "0.00000000",
             //     "symbol1" => "ETH",
             //     "symbol2" => "EUR",
-            //     "$tfa:EUR" => "0.05",
-            //     "$tta:EUR" => "19.94",
+            //     "tfa:EUR" => "0.05",
+            //     "tta:EUR" => "19.94",
             //     "a:ETH:cds" => "0.03764100",
             //     "a:EUR:cds" => "20.00",
             //     "f:EUR:cds" => "0.05",
-            //     "$lastTxTime" => "2018-05-23T11:55:43.467Z",
+            //     "lastTxTime" => "2018-05-23T11:55:43.467Z",
             //     "tradingFeeTaker" => "0.25",
             //     "tradingFeeUserVolumeAmount" => "55998097" }
             // --
             // $market $order (sell):
             //   { "id" => "6282200948",
             //     "pos" => null,
-            //     "$time" => "2018-05-23T12:42:58.315Z",
-            //     "$type" => "sell",
-            //     "$amount" => "-0.05000000",
+            //     "time" => "2018-05-23T12:42:58.315Z",
+            //     "type" => "sell",
+            //     "amount" => "-0.05000000",
             //     "lastTx" => "6282200958",
-            //     "$status" => "d",
+            //     "status" => "d",
             //     "orderId" => "6282200948",
             //     "remains" => "0.00000000",
             //     "symbol1" => "ETH",
             //     "symbol2" => "EUR",
-            //     "$tfa:EUR" => "0.07",
-            //     "$tta:EUR" => "26.49",
+            //     "tfa:EUR" => "0.07",
+            //     "tta:EUR" => "26.49",
             //     "a:ETH:cds" => "0.05000000",
             //     "a:EUR:cds" => "26.49",
             //     "f:EUR:cds" => "0.07",
-            //     "$lastTxTime" => "2018-05-23T12:42:58.315Z",
+            //     "lastTxTime" => "2018-05-23T12:42:58.315Z",
             //     "tradingFeeTaker" => "0.25",
             //     "tradingFeeUserVolumeAmount" => "56294576" }
             $order = $response[$i];
@@ -1022,12 +1255,12 @@ class cex extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $side = $this->safe_string($order, 'type');
-            $baseAmount = $this->safe_float($order, 'a:' . $baseId . ':cds');
-            $quoteAmount = $this->safe_float($order, 'a:' . $quoteId . ':cds');
-            $fee = $this->safe_float($order, 'f:' . $quoteId . ':cds');
-            $amount = $this->safe_float($order, 'amount');
-            $price = $this->safe_float($order, 'price');
-            $remaining = $this->safe_float($order, 'remains');
+            $baseAmount = $this->safe_number($order, 'a:' . $baseId . ':cds');
+            $quoteAmount = $this->safe_number($order, 'a:' . $quoteId . ':cds');
+            $fee = $this->safe_number($order, 'f:' . $quoteId . ':cds');
+            $amount = $this->safe_number($order, 'amount');
+            $price = $this->safe_number($order, 'price');
+            $remaining = $this->safe_number($order, 'remains');
             $filled = $amount - $remaining;
             $orderAmount = null;
             $cost = null;
@@ -1039,14 +1272,14 @@ class cex extends Exchange {
                 $cost = $quoteAmount;
                 $average = $orderAmount / $cost;
             } else {
-                $ta = $this->safe_float($order, 'ta:' . $quoteId, 0);
-                $tta = $this->safe_float($order, 'tta:' . $quoteId, 0);
-                $fa = $this->safe_float($order, 'fa:' . $quoteId, 0);
-                $tfa = $this->safe_float($order, 'tfa:' . $quoteId, 0);
+                $ta = $this->safe_number($order, 'ta:' . $quoteId, 0);
+                $tta = $this->safe_number($order, 'tta:' . $quoteId, 0);
+                $fa = $this->safe_number($order, 'fa:' . $quoteId, 0);
+                $tfa = $this->safe_number($order, 'tfa:' . $quoteId, 0);
                 if ($side === 'sell') {
-                    $cost = $this->sum ($this->sum ($ta, $tta), $this->sum ($fa, $tfa));
+                    $cost = $this->sum($this->sum($ta, $tta), $this->sum($fa, $tfa));
                 } else {
-                    $cost = $this->sum ($ta, $tta) - $this->sum ($fa, $tfa);
+                    $cost = $this->sum($ta, $tta) - $this->sum($fa, $tfa);
                 }
                 $type = 'limit';
                 $orderAmount = $amount;
@@ -1054,12 +1287,12 @@ class cex extends Exchange {
             }
             $time = $this->safe_string($order, 'time');
             $lastTxTime = $this->safe_string($order, 'lastTxTime');
-            $timestamp = $this->parse8601 ($time);
+            $timestamp = $this->parse8601($time);
             $results[] = array(
                 'id' => $this->safe_string($order, 'id'),
                 'timestamp' => $timestamp,
-                'datetime' => $this->iso8601 ($timestamp),
-                'lastUpdated' => $this->parse8601 ($lastTxTime),
+                'datetime' => $this->iso8601($timestamp),
+                'lastUpdated' => $this->parse8601($lastTxTime),
                 'status' => $status,
                 'symbol' => $symbol,
                 'side' => $side,
@@ -1080,19 +1313,19 @@ class cex extends Exchange {
         return $results;
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         return $this->safe_string($this->options['order']['status'], $status, $status);
     }
 
-    public function edit_order ($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         if ($amount === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder requires a $amount argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a $amount argument');
         }
         if ($price === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder requires a $price argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a $price argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         // see => https://cex.io/rest-api#/definitions/CancelReplaceOrderRequest
         $request = array(
             'pair' => $market['id'],
@@ -1105,13 +1338,13 @@ class cex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_deposit_address ($code, $params = array ()) {
+    public function fetch_deposit_address($code, $params = array ()) {
         if ($code === 'XRP' || $code === 'XLM') {
             // https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
-            throw new NotSupported($this->id . ' fetchDepositAddress does not support XRP and XLM addresses yet (awaiting docs from CEX.io)');
+            throw new NotSupported($this->id . ' fetchDepositAddress() does not support XRP and XLM addresses yet (awaiting docs from CEX.io)');
         }
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
         );
@@ -1122,27 +1355,28 @@ class cex extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => null,
+            'network' => null,
             'info' => $response,
         );
     }
 
-    public function nonce () {
-        return $this->milliseconds ();
+    public function nonce() {
+        return $this->milliseconds();
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $auth = $nonce . $this->uid . $this->apiKey;
-            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
-            $body = $this->json (array_merge(array(
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $body = $this->json(array_merge(array(
                 'key' => $this->apiKey,
                 'signature' => strtoupper($signature),
                 'nonce' => $nonce,
@@ -1154,15 +1388,15 @@ class cex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
             return $response; // public endpoints may return array()-arrays
         }
-        if ($response === null) {
-            throw new NullResponse($this->id . ' returned ' . $this->json ($response));
-        }
-        if ($response === true || $response === 'true') {
+        if ($body === 'true') {
             return;
+        }
+        if ($response === null) {
+            throw new NullResponse($this->id . ' returned ' . $this->json($response));
         }
         if (is_array($response) && array_key_exists('e', $response)) {
             if (is_array($response) && array_key_exists('ok', $response)) {

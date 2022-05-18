@@ -2,27 +2,24 @@
 
 // ----------------------------------------------------------------------------
 
-const log = require ('ololog')
-    , chai = require ('chai')
-    , expect = chai.expect
-    , assert = chai.assert
+const assert = require ('assert')
     , testLedgerItem = require ('./test.ledgerItem')
 
-require ('ansicolor').nice
-
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 
 module.exports = async (exchange, code) => {
 
-    if (exchange.has.fetchLedger) {
+    let method = 'fetchLedger'
 
-        let items = await exchange.fetchLedger (code)
+    if (exchange.has[method]) {
+
+        const items = await exchange[method] (code)
 
         assert (items instanceof Array)
 
-        log ('fetched', items.length.toString ().green, 'ledger items')
+        console.log ('Fetched', items.length, 'ledger items')
 
-        let now = Date.now ()
+        const now = Date.now ()
 
         for (let i = 0; i < items.length; i++) {
             testLedgerItem (exchange, items[i], code, now)
@@ -31,9 +28,11 @@ module.exports = async (exchange, code) => {
             }
         }
 
-        if (exchange.has.fetchLedgerItem) {
-            let { id } = items.pop ()
-            let item = await exchange.fetchLedgerItem (id)
+        method = 'fetchLedgerItem';
+
+        if (exchange.has[method]) {
+            const { id } = items.pop ()
+            let item = await exchange[method] (id)
             if (Array.isArray (item)) {
                 item = item[0]
             }
@@ -42,6 +41,6 @@ module.exports = async (exchange, code) => {
 
     } else {
 
-        log ('fetching ledger items not supported')
+        console.log (method + '() is not supported')
     }
 }

@@ -225,20 +225,30 @@
     }],
     "autoload": {
         "psr-4": {
-            "ccxt\\" : "php/"
+            "ccxt\\" : "php/",
+            "ccxt_async\\": "php/async/"
         },
         "files": [ "ccxt.php" ]
     },
     "require": {
-        "php": ">=5.4.0",
+        "php": ">=5.5",
         "ext-bcmath": "*",
         "ext-curl": "*",
         "ext-iconv": "*",
         "ext-pcre": "*",
         "ext-json": "*",
         "ext-openssl": "*",
+        "ext-gmp": "*",
         "symfony/polyfill-mbstring": "^1.7",
         "pear/console_table": "1.3.1"
+    },
+    "suggest": {
+        "recoil/recoil": "Required for asynchronous API calls to exchanges with PHP",
+        "recoil/react": "Required for asynchronous API calls to exchanges with PHP",
+        "react/http": "Required for asynchronous API calls to exchanges with PHP",
+        "clue/buzz-react": "Required for asynchronous API calls to exchanges with PHP",
+        "react/event-loop": "Required for asynchronous API calls to exchanges with PHP",
+        "clue/http-proxy-react": "Required for using a proxy when doing asynchronous API calls to exchanges with PHP"
     },
     "archive": {
         "exclude": [
