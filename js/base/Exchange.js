@@ -2333,17 +2333,19 @@ module.exports = class Exchange {
         }
     }
 
-    isPostOnly (type, timeInForce, exchangeSpecificOption, params = {}) {
+    isPostOnly (type, timeInForce = undefined, exchangeSpecificOption = undefined, params = {}) {
         /**
-         * @param {string} type: Order type
+         * @ignore
+         * @method
+         * @param {string} type Order type
          * @param {string} timeInForce
-         * @param {boolean} exchangeSpecificOption: True if the exchange specific post only setting is set
-         * @param {dict} params: Exchange specific params
-         * @returns {boolean}: true if a post only order, false otherwise
+         * @param {boolean} exchangeSpecificOption True if the exchange specific post only setting is set
+         * @param {dict} params Exchange specific params
+         * @returns {boolean} true if a post only order, false otherwise
          */
         let postOnly = this.safeValue2 (params, 'postOnly', 'post_only', false);
         params = this.omit (params, [ 'post_only', 'postOnly' ]);
-        const timeInForceUpper = timeInForce.toUpperCase ();
+        const timeInForceUpper = (timeInForce !== undefined) ? timeInForce.toUpperCase () : undefined;
         const typeLower = type.toLowerCase ();
         const ioc = timeInForceUpper === 'IOC';
         const fok = timeInForceUpper === 'FOK';
