@@ -3027,6 +3027,7 @@ class gateio(Exchange):
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
+            'reduceOnly': self.safe_value(order, 'is_reduce_only'),
             'side': side,
             'price': self.parse_number(price),
             'stopPrice': self.safe_number(trigger, 'price'),
@@ -3040,12 +3041,6 @@ class gateio(Exchange):
             'trades': None,
             'info': order,
         }, market)
-
-    async def create_reduce_only_order(self, symbol, type, side, amount, price=None, params={}):
-        request = {
-            'reduceOnly': True,
-        }
-        return await self.create_order(symbol, type, side, amount, price, self.extend(request, params))
 
     async def fetch_order(self, id, symbol=None, params={}):
         """

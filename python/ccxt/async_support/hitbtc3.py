@@ -1437,10 +1437,6 @@ class hitbtc3(Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        reduceOnly = self.safe_value_2(params, 'reduce_only', 'reduceOnly')
-        if reduceOnly is not None:
-            if (market['type'] != 'swap') and (market['type'] != 'margin'):
-                raise InvalidOrder(self.id + ' createOrder() does not support reduce_only for ' + market['type'] + ' orders, reduce_only orders are supported for swap and margin markets only')
         request = {
             'type': type,
             'side': side,
@@ -1458,6 +1454,12 @@ class hitbtc3(Exchange):
             # 'take_rate': 0.001,  # Optional
             # 'make_rate': 0.001,  # Optional
         }
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        if reduceOnly is not None:
+            if (market['type'] != 'swap') and (market['type'] != 'margin'):
+                raise InvalidOrder(self.id + ' createOrder() does not support reduce_only for ' + market['type'] + ' orders, reduce_only orders are supported for swap and margin markets only')
+        if reduceOnly is True:
+            request['reduce_only'] = reduceOnly
         timeInForce = self.safe_string_2(params, 'timeInForce', 'time_in_force')
         expireTime = self.safe_string(params, 'expire_time')
         stopPrice = self.safe_number_2(params, 'stopPrice', 'stop_price')
@@ -1481,12 +1483,6 @@ class hitbtc3(Exchange):
         })
         response = await getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
-
-    async def create_reduce_only_order(self, symbol, type, side, amount, price=None, params={}):
-        request = {
-            'reduce_only': True,
-        }
-        return await self.create_order(symbol, type, side, amount, price, self.extend(request, params))
 
     def parse_order_status(self, status):
         statuses = {
@@ -1602,6 +1598,7 @@ class hitbtc3(Exchange):
             'side': side,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
+            'reduceOnly': self.safe_value(order, 'reduce_only'),
             'filled': filled,
             'remaining': None,
             'cost': None,

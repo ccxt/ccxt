@@ -1465,6 +1465,7 @@ class coinex extends Exchange {
             'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,
+            'reduceOnly' => null,
             'side' => $side,
             'price' => $priceString,
             'stopPrice' => $this->safe_string($order, 'stop_price'),
@@ -1692,13 +1693,6 @@ class coinex extends Exchange {
         //
         $data = $this->safe_value($response, 'data');
         return $this->parse_order($data, $market);
-    }
-
-    public function create_reduce_only_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $request = array(
-            'reduceOnly' => true,
-        );
-        return $this->create_order($symbol, $type, $side, $amount, $price, array_merge($request, $params));
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {

@@ -1427,6 +1427,7 @@ class coinex(Exchange):
             'type': type,
             'timeInForce': None,
             'postOnly': None,
+            'reduceOnly': None,
             'side': side,
             'price': priceString,
             'stopPrice': self.safe_string(order, 'stop_price'),
@@ -1626,12 +1627,6 @@ class coinex(Exchange):
         #
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
-
-    def create_reduce_only_order(self, symbol, type, side, amount, price=None, params={}):
-        request = {
-            'reduceOnly': True,
-        }
-        return self.create_order(symbol, type, side, amount, price, self.extend(request, params))
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()

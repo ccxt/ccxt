@@ -1411,6 +1411,7 @@ class ftx(Exchange):
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
+            'reduceOnly': self.safe_value(order, 'reduceOnly'),
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1441,6 +1442,9 @@ class ftx(Exchange):
             # 'trailValue': -0.306525,  # required for trailingStop orders, negative for "sell"; positive for "buy"
             # 'orderPrice': 0.306525,  # optional, for stop and takeProfit orders only(market by default). If not specified, a market order will be submitted
         }
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        if reduceOnly is True:
+            request['reduceOnly'] = reduceOnly
         clientOrderId = self.safe_string_2(params, 'clientId', 'clientOrderId')
         if clientOrderId is not None:
             request['clientId'] = clientOrderId
@@ -1543,12 +1547,6 @@ class ftx(Exchange):
         #
         result = self.safe_value(response, 'result', [])
         return self.parse_order(result, market)
-
-    async def create_reduce_only_order(self, symbol, type, side, amount, price=None, params={}):
-        request = {
-            'reduceOnly': True,
-        }
-        return await self.create_order(symbol, type, side, amount, price, self.extend(request, params))
 
     async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

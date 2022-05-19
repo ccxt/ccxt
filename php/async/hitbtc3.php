@@ -1514,12 +1514,6 @@ class hitbtc3 extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
-        $reduceOnly = $this->safe_value_2($params, 'reduce_only', 'reduceOnly');
-        if ($reduceOnly !== null) {
-            if (($market['type'] !== 'swap') && ($market['type'] !== 'margin')) {
-                throw new InvalidOrder($this->id . ' createOrder() does not support reduce_only for ' . $market['type'] . ' orders, reduce_only orders are supported for swap and margin markets only');
-            }
-        }
         $request = array(
             'type' => $type,
             'side' => $side,
@@ -1537,6 +1531,15 @@ class hitbtc3 extends Exchange {
             // 'take_rate' => 0.001, // Optional
             // 'make_rate' => 0.001, // Optional
         );
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        if ($reduceOnly !== null) {
+            if (($market['type'] !== 'swap') && ($market['type'] !== 'margin')) {
+                throw new InvalidOrder($this->id . ' createOrder() does not support reduce_only for ' . $market['type'] . ' orders, reduce_only orders are supported for swap and margin markets only');
+            }
+        }
+        if ($reduceOnly === true) {
+            $request['reduce_only'] = $reduceOnly;
+        }
         $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force');
         $expireTime = $this->safe_string($params, 'expire_time');
         $stopPrice = $this->safe_number_2($params, 'stopPrice', 'stop_price');
@@ -1566,13 +1569,6 @@ class hitbtc3 extends Exchange {
         ));
         $response = yield $this->$method (array_merge($request, $query));
         return $this->parse_order($response, $market);
-    }
-
-    public function create_reduce_only_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $request = array(
-            'reduce_only' => true,
-        );
-        return yield $this->create_order($symbol, $type, $side, $amount, $price, array_merge($request, $params));
     }
 
     public function parse_order_status($status) {
@@ -1691,6 +1687,7 @@ class hitbtc3 extends Exchange {
             'side' => $side,
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
+            'reduceOnly' => $this->safe_value($order, 'reduce_only'),
             'filled' => $filled,
             'remaining' => null,
             'cost' => null,

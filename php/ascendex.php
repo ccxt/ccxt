@@ -1172,6 +1172,11 @@ class ascendex extends Exchange {
             );
         }
         $stopPrice = $this->safe_number($order, 'stopPrice');
+        $reduceOnly = null;
+        $execInst = $this->safe_string($order, 'execInst');
+        if ($execInst === 'reduceOnly') {
+            $reduceOnly = true;
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -1183,6 +1188,7 @@ class ascendex extends Exchange {
             'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,
+            'reduceOnly' => $reduceOnly,
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
@@ -1252,12 +1258,6 @@ class ascendex extends Exchange {
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_value($account, 'id');
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'id');
-        $reduceOnly = $this->safe_value($params, 'execInst');
-        if ($reduceOnly !== null) {
-            if (($marketType !== 'swap')) {
-                throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $marketType . ' orders, $reduceOnly orders are supported for perpetuals only');
-            }
-        }
         $request = array(
             'account-group' => $accountGroup,
             'account-category' => $accountCategory,
@@ -1274,6 +1274,15 @@ class ascendex extends Exchange {
             // 'posStopLossPrice' => position stop loss $price ( v2 swap orders only)
             // 'posTakeProfitPrice' => position take profit $price (v2 swap orders only)
         );
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        if ($reduceOnly !== null) {
+            if (($marketType !== 'swap')) {
+                throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $marketType . ' orders, $reduceOnly orders are supported for perpetuals only');
+            }
+        }
+        if ($reduceOnly === true) {
+            $request['execInst'] = 'reduceOnly';
+        }
         if ($clientOrderId !== null) {
             $request['id'] = $clientOrderId;
             $params = $this->omit($params, array( 'clientOrderId', 'id' ));
@@ -1376,13 +1385,6 @@ class ascendex extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $order = $this->safe_value_2($data, 'order', 'info', array());
         return $this->parse_order($order, $market);
-    }
-
-    public function create_reduce_only_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $request = array(
-            'execInst' => 'reduceOnly',
-        );
-        return $this->create_order($symbol, $type, $side, $amount, $price, array_merge($request, $params));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

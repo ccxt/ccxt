@@ -1780,6 +1780,10 @@ class phemex(Exchange):
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         stopPrice = self.safe_number(order, 'stopPx')
         postOnly = (timeInForce == 'PO')
+        reduceOnly = self.safe_value(order, 'reduceOnly')
+        execInst = self.safe_string(order, 'execInst')
+        if execInst == 'ReduceOnly':
+            reduceOnly = True
         return {
             'info': order,
             'id': id,
@@ -1791,6 +1795,7 @@ class phemex(Exchange):
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
+            'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1973,12 +1978,6 @@ class phemex(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
-
-    async def create_reduce_only_order(self, symbol, type, side, amount, price=None, params={}):
-        request = {
-            'reduceOnly': True,
-        }
-        return await self.create_order(symbol, type, side, amount, price, self.extend(request, params))
 
     async def edit_order(self, id, symbol, type=None, side=None, amount=None, price=None, params={}):
         if symbol is None:

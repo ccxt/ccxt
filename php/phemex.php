@@ -1834,6 +1834,11 @@ class phemex extends Exchange {
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         $stopPrice = $this->safe_number($order, 'stopPx');
         $postOnly = ($timeInForce === 'PO');
+        $reduceOnly = $this->safe_value($order, 'reduceOnly');
+        $execInst = $this->safe_string($order, 'execInst');
+        if ($execInst === 'ReduceOnly') {
+            $reduceOnly = true;
+        }
         return array(
             'info' => $order,
             'id' => $id,
@@ -1845,6 +1850,7 @@ class phemex extends Exchange {
             'type' => $type,
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
+            'reduceOnly' => $reduceOnly,
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
@@ -2044,13 +2050,6 @@ class phemex extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_order($data, $market);
-    }
-
-    public function create_reduce_only_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $request = array(
-            'reduceOnly' => true,
-        );
-        return $this->create_order($symbol, $type, $side, $amount, $price, array_merge($request, $params));
     }
 
     public function edit_order($id, $symbol, $type = null, $side = null, $amount = null, $price = null, $params = array ()) {

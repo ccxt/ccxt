@@ -1145,6 +1145,10 @@ class ascendex(Exchange):
                 'currency': feeCurrencyCode,
             }
         stopPrice = self.safe_number(order, 'stopPrice')
+        reduceOnly = None
+        execInst = self.safe_string(order, 'execInst')
+        if execInst == 'reduceOnly':
+            reduceOnly = True
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1156,6 +1160,7 @@ class ascendex(Exchange):
             'type': type,
             'timeInForce': None,
             'postOnly': None,
+            'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1222,10 +1227,6 @@ class ascendex(Exchange):
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_value(account, 'id')
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'id')
-        reduceOnly = self.safe_value(params, 'execInst')
-        if reduceOnly is not None:
-            if (marketType != 'swap'):
-                raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for perpetuals only')
         request = {
             'account-group': accountGroup,
             'account-category': accountCategory,
@@ -1242,6 +1243,12 @@ class ascendex(Exchange):
             # 'posStopLossPrice': position stop loss price( v2 swap orders only)
             # 'posTakeProfitPrice': position take profit price(v2 swap orders only)
         }
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        if reduceOnly is not None:
+            if (marketType != 'swap'):
+                raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for perpetuals only')
+        if reduceOnly is True:
+            request['execInst'] = 'reduceOnly'
         if clientOrderId is not None:
             request['id'] = clientOrderId
             params = self.omit(params, ['clientOrderId', 'id'])
@@ -1337,12 +1344,6 @@ class ascendex(Exchange):
         data = self.safe_value(response, 'data', {})
         order = self.safe_value_2(data, 'order', 'info', {})
         return self.parse_order(order, market)
-
-    def create_reduce_only_order(self, symbol, type, side, amount, price=None, params={}):
-        request = {
-            'execInst': 'reduceOnly',
-        }
-        return self.create_order(symbol, type, side, amount, price, self.extend(request, params))
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
