@@ -151,14 +151,106 @@ module.exports = class bybit extends ccxt.bybit {
         //        }
         //    }
         //
-        const topic = this.safeString (message, 'topic');
-        const data = this.safeValue (message, 'data');
-        const ticker = this.parseTicker (data);
-        const symbol = ticker['symbol'];
-        const market = this.market (symbol);
-        this.tickers[symbol] = ticker;
-        const messageHash = topic + ':' + market['id'];
-        client.resolve (ticker, messageHash);
+        // swap/futures use an incremental approach sending first the snapshot and then the updates
+        //
+        // snapshot message
+        //     {
+        //         "topic":"instrument_info.100ms.BTCUSDT",
+        //         "type":"snapshot",
+        //         "data":{
+        //            "id":1,
+        //            "symbol":"BTCUSDT",
+        //            "last_price_e4":"291050000",
+        //            "last_price":"29105.00",
+        //            "bid1_price_e4":"291045000",
+        //            "bid1_price":"29104.50",
+        //            "ask1_price_e4":"291050000",
+        //            "ask1_price":"29105.00",
+        //            "last_tick_direction":"ZeroPlusTick",
+        //            "prev_price_24h_e4":"297900000",
+        //            "prev_price_24h":"29790.00",
+        //            "price_24h_pcnt_e6":"-22994",
+        //            "high_price_24h_e4":"300200000",
+        //            "high_price_24h":"30020.00",
+        //            "low_price_24h_e4":"286330000",
+        //            "low_price_24h":"28633.00",
+        //            "prev_price_1h_e4":"291435000",
+        //            "prev_price_1h":"29143.50",
+        //            "price_1h_pcnt_e6":"-1321",
+        //            "mark_price_e4":"291148200",
+        //            "mark_price":"29114.82",
+        //            "index_price_e4":"291173600",
+        //            "index_price":"29117.36",
+        //            "open_interest_e8":"2725210700000",
+        //            "total_turnover_e8":"6184585271557950000",
+        //            "turnover_24h_e8":"373066109692150560",
+        //            "total_volume_e8":"3319897492699924",
+        //            "volume_24h_e8":"12774825300000",
+        //            "funding_rate_e6":"-97",
+        //            "predicted_funding_rate_e6":"100",
+        //            "cross_seq":"11834024892",
+        //            "created_at":"1970-01-01T00:00:00.000Z",
+        //            "updated_at":"2022-05-19T08:52:10.000Z",
+        //            "next_funding_time":"2022-05-19T16:00:00Z",
+        //            "count_down_hour":"8",
+        //            "funding_rate_interval":"8",
+        //            "settle_time_e9":"0",
+        //            "delisting_status":"0"
+        //         },
+        //         "cross_seq":"11834024953",
+        //         "timestamp_e6":"1652950330515050"
+        //     }
+        //
+        // update message
+        //    {
+        //        "topic":"instrument_info.100ms.BTCUSDT",
+        //        "type":"delta",
+        //        "data":{
+        //           "update":[
+        //              {
+        //                 "id":1,
+        //                 "symbol":"BTCUSDT",
+        //                 "open_interest_e8":"2721359000000",
+        //                 "cross_seq":"11834107074",
+        //                 "created_at":"1970-01-01T00:00:00.000Z",
+        //                 "updated_at":"2022-05-19T08:54:18.000Z"
+        //              }
+        //           ]
+        //        },
+        //        "cross_seq":"11834107125",
+        //        "timestamp_e6":"1652950458616087"
+        //    }
+        //
+        const topic = this.safeString (message, 'topic', '');
+        if (topic === 'realtimes') {
+            // spot markets
+            const data = this.safeValue (message, 'data');
+            const ticker = this.parseTicker (data);
+            const symbol = ticker['symbol'];
+            this.tickers[symbol] = ticker;
+            const messageHash = 'ticker:' + symbol;
+            client.resolve (ticker, messageHash);
+            return;
+        }
+        const type = this.safeString (message, 'type', '');
+        const data = this.safeString (message, 'data', {});
+        let symbol = undefined;
+        if (type === 'snapshot') {
+            const parsed = this.parseTicker (data);
+            symbol = parsed['symbol'];
+            this.tickers[symbol] = parsed;
+        }
+        if (type === 'delta') {
+            const updates = this.safeValue (data, 'update', []);
+            let ticker = this.safeValue (this.tickers, symbol, {});
+            for (let i = 0; i < updates.length; i++) {
+                const update = updates[i];
+                ticker = this.updateTicker (ticker, update);
+            }
+            this.tickers[symbol] = ticker;
+        }
+        const messageHash = 'ticker:' + symbol;
+        client.resolve (this.ticket[symbol], messageHash);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -664,12 +756,12 @@ module.exports = class bybit extends ccxt.bybit {
             return;
         }
         const topic = this.safeString (message, 'topic');
-        if (topic === 'pong') {
-            this.handlePong (client, message);
-            return;
-        }
         if (topic !== undefined && (topic.indexOf ('kline') >= 0 || topic.indexOf ('candle') >= 0)) {
             this.handleOHLCV (client, message);
+            return;
+        }
+        if (topic !== undefined && (topic.indexOf ('realtimes') >= 0 || topic.indexOf ('instrument_info') >= 0)) {
+            this.handleTicker (client, message);
             return;
         }
         const methods = {
