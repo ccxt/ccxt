@@ -353,7 +353,7 @@ class Exchange(BaseExchange):
             tickers = await self.fetch_tickers([symbol], params)
             ticker = self.safe_value(tickers, symbol)
             if ticker is None:
-                raise BadSymbol(self.id + ' fetch_ticker() could not find a ticker for ' + symbol)
+                raise NullResponse(self.id + ' fetch_ticker() could not find a ticker for ' + symbol)
             else:
                 return ticker
         else:
@@ -432,7 +432,7 @@ class Exchange(BaseExchange):
             rates = await self.fetchFundingRates([symbol], params)
             rate = self.safe_value(rates, symbol)
             if rate is None:
-                raise BadSymbol(self.id + ' fetchFundingRate() returned no data for ' + symbol)
+                raise NullResponse(self.id + ' fetchFundingRate() returned no data for ' + symbol)
             else:
                 return rate
         else:
