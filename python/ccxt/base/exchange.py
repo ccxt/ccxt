@@ -3049,7 +3049,7 @@ class Exchange(object):
         if self.has['fetchFundingRates']:
             market = self.market(symbol)
             if not market['contract']:
-                raise NullResponse(self.id + ' fetchFundingRate() supports contract markets only')
+                raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
             rates = self.fetchFundingRates([symbol], params)
             rate = self.safe_value(rates, symbol)
             if rate is None:
