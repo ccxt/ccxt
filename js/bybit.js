@@ -2474,14 +2474,16 @@ module.exports = class bybit extends Exchange {
         const raw_status = this.safeStringN (order, [ 'order_status', 'stop_order_status', 'status', 'orderStatus' ]);
         const status = this.parseOrderStatus (raw_status);
         const side = this.safeStringLower (order, 'side');
-        const feeCostString = this.safeString (order, 'cum_exec_fee');
         let fee = undefined;
-        if (feeCostString !== undefined) {
-            const feeCurrency = market['linear'] ? market['quote'] : market['base'];
-            fee = {
-                'cost': feeCostString,
-                'currency': feeCurrency,
-            };
+        if (market['contract']) {
+            const feeCostString = this.safeString (order, 'cum_exec_fee');
+            if (feeCostString !== undefined) {
+                const feeCurrency = market['linear'] ? market['quote'] : market['base'];
+                fee = {
+                    'cost': feeCostString,
+                    'currency': feeCurrency,
+                };
+            }
         }
         let clientOrderId = this.safeString2 (order, 'order_link_id', 'orderLinkId');
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
