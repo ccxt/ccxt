@@ -4117,7 +4117,7 @@ module.exports = class bybit extends Exchange {
         let market = undefined;
         market = this.market (symbol);
         if (market['spot'] || market['option']) {
-            throw new BadRequest (this.id + ' fetchLeverageTiers() symbol does not support market ' + symbol);
+            throw new BadRequest (this.id + ' fetchMarketLeverageTiers() symbol does not support market ' + symbol);
         }
         request['symbol'] = market['id'];
         const isUsdcSettled = market['settle'] === 'USDC';
