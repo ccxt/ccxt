@@ -3021,7 +3021,7 @@ module.exports = class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
+        const defaultType = this.safeString2 (this.options, 'cancelOrder', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         // https://github.com/ccxt/ccxt/issues/6507
         const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
@@ -4063,7 +4063,7 @@ module.exports = class binance extends Exchange {
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
         let method = undefined;
-        const defaultType = this.safeString2 (this.options, 'fetchFundingRates', 'defaultType', 'future');
+        const defaultType = this.safeString2 (this.options, 'fetchTradingFees', 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
         if ((type === 'spot') || (type === 'margin')) {
