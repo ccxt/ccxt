@@ -233,7 +233,7 @@ module.exports = class bybit extends ccxt.bybit {
             return;
         }
         const type = this.safeString (message, 'type', '');
-        const data = this.safeString (message, 'data', {});
+        const data = this.safeValue (message, 'data', {});
         let symbol = undefined;
         if (type === 'snapshot') {
             const parsed = this.parseTicker (data);
@@ -241,6 +241,11 @@ module.exports = class bybit extends ccxt.bybit {
             this.tickers[symbol] = parsed;
         }
         if (type === 'delta') {
+            const topicParts = topic.split ('.');
+            const topicLength = topicParts.length;
+            const marketId = this.safeString (topicParts, topicLength - 1);
+            const market = this.market (marketId);
+            symbol = market['symbol'];
             const updates = this.safeValue (data, 'update', []);
             let ticker = this.safeValue (this.tickers, symbol, {});
             for (let i = 0; i < updates.length; i++) {
@@ -250,7 +255,29 @@ module.exports = class bybit extends ccxt.bybit {
             this.tickers[symbol] = ticker;
         }
         const messageHash = 'ticker:' + symbol;
-        client.resolve (this.ticket[symbol], messageHash);
+        client.resolve (this.tickers[symbol], messageHash);
+    }
+
+    updateTicker (ticker, update) {
+        // First we update the raw ticker with the new values
+        // then we parse it again, although we could just
+        // update the changed values in the already parsed ticker
+        // doing that would lead to an inconsistent info object
+        // inside ticker
+        const rawTicker = ticker['info'];
+        const updateKeys = Object.keys (update);
+        const updateLength = updateKeys.length;
+        if (updateLength > 0) {
+            for (let i = 0; i < updateKeys.length; i++) {
+                const key = updateKeys[i];
+                if (key in rawTicker) {
+                    rawTicker[key] = update[key];
+                }
+            }
+            const parsed = this.parseTicker (rawTicker);
+            return parsed;
+        }
+        return ticker;
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
