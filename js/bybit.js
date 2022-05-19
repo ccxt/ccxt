@@ -2874,10 +2874,10 @@ module.exports = class bybit extends Exchange {
             'orderId': id,
         };
         if (amount !== undefined) {
-            request['orderQty'] = amount;
+            request['orderQty'] = this.amountToPrecision (symbol, amount);
         }
         if (price !== undefined) {
-            request['orderPrice'] = price;
+            request['orderPrice'] = this.priceToPrecision (symbol, price);
         }
         const method = market['option'] ? 'privatePostOptionUsdcOpenApiPrivateV1ReplaceOrder' : 'privatePostPerpetualUsdcOpenApiPrivateV1ReplaceOrder';
         const response = await this[method] (this.extend (request, params));
@@ -2923,10 +2923,10 @@ module.exports = class bybit extends Exchange {
         const idKey = isConditionalOrder ? 'stop_order_id' : 'order_id';
         request[idKey] = id;
         if (amount !== undefined) {
-            request['p_r_qty'] = amount;
+            request['p_r_qty'] = this.amountToPrecision (symbol, amount);
         }
         if (price !== undefined) {
-            request['p_r_price'] = price;
+            request['p_r_price'] = this.priceToPrecision (symbol, price);
         }
         let method = undefined;
         if (market['linear']) {
@@ -2979,9 +2979,7 @@ module.exports = class bybit extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        amount = (amount !== undefined) ? this.amountToPrecision (symbol, amount) : undefined;
-        price = (price !== undefined) ? this.priceToPrecision (symbol, price) : undefined;
-        const isUsdcSettled = market['settle'] === 'USDC';
+        const isUsdcSettled = (market['settle'] === 'USDC');
         if (market['spot']) {
             throw new NotSupported (this.id + ' editOrder() does not support spot markets');
         } else if (isUsdcSettled) {
