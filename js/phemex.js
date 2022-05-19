@@ -1830,6 +1830,11 @@ module.exports = class phemex extends Exchange {
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         const stopPrice = this.safeNumber (order, 'stopPx');
         const postOnly = (timeInForce === 'PO');
+        let reduceOnly = this.safeValue (order, 'reduceOnly');
+        const execInst = this.safeString (order, 'execInst');
+        if (execInst === 'ReduceOnly') {
+            reduceOnly = true;
+        }
         return {
             'info': order,
             'id': id,
@@ -1841,6 +1846,7 @@ module.exports = class phemex extends Exchange {
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
+            'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -2040,13 +2046,6 @@ module.exports = class phemex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
-    }
-
-    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        const request = {
-            'reduceOnly': true,
-        };
-        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
     async editOrder (id, symbol, type = undefined, side = undefined, amount = undefined, price = undefined, params = {}) {

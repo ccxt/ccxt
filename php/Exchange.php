@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.83.1';
+$version = '1.83.2';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.83.1';
+    const VERSION = '1.83.2';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -399,6 +399,7 @@ class Exchange {
         'fetchMarketLeverageTiers' => 'fetch_market_leverage_tiers',
         'isPostOnly' => 'is_post_only',
         'createPostOnlyOrder' => 'create_post_only_order',
+        'createReduceOnlyOrder' => 'create_reduce_only_order',
         'createStopOrder' => 'create_stop_order',
         'createStopLimitOrder' => 'create_stop_limit_order',
         'createStopMarketOrder' => 'create_stop_market_order',
@@ -1292,6 +1293,7 @@ class Exchange {
             'createMarketOrder' => true,
             'createOrder' => true,
             'createPostOnlyOrder' => null,
+            'createReduceOnlyOrder' => null,
             'createStopOrder' => null,
             'editOrder' => 'emulated',
             'fetchAccounts' => null,
@@ -3962,6 +3964,15 @@ class Exchange {
             throw new NotSupported($this->id . ' create_post_only_order() is not supported yet');
         }
         $array = array('postOnly' => true);
+        $query = $this->extend($params, $array);
+        return $this->create_order($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    public function create_reduce_only_order($symbol, $type, $side, $amount, $price, $params = array()) {
+        if (!$this->has['createReduceOnlyOrder']) {
+            throw new NotSupported($this->id . ' create_reduce_only_order() is not supported yet');
+        }
+        $array = array('reduceOnly' => true);
         $query = $this->extend($params, $array);
         return $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }

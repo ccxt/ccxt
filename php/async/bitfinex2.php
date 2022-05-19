@@ -699,9 +699,27 @@ class bitfinex2 extends bitfinex {
             'to' => $toId,
         );
         $response = yield $this->privatePostAuthWTransfer (array_merge($request, $params));
-        //  [1616451183763,"acc_tf",null,null,[1616451183763,"exchange","margin",null,"UST","UST",null,1],null,"SUCCESS","1.0 Tether USDt transfered from Exchange to Margin"]
-        $timestamp = $this->safe_integer($response, 0);
-        //  ["error",10001,"Momentary balance check. Please wait few seconds and try the transfer again."]
+        //
+        //     array(
+        //         1616451183763,
+        //         "acc_tf",
+        //         null,
+        //         null,
+        //         array(
+        //             1616451183763,
+        //             "exchange",
+        //             "margin",
+        //             null,
+        //             "UST",
+        //             "UST",
+        //             null,
+        //             1
+        //         ),
+        //         null,
+        //         "SUCCESS",
+        //         "1.0 Tether USDt transfered from Exchange to Margin"
+        //     )
+        //
         $error = $this->safe_string($response, 0);
         if ($error === 'error') {
             $message = $this->safe_string($response, 2, '');
@@ -709,22 +727,59 @@ class bitfinex2 extends bitfinex {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $message);
             throw new ExchangeError($this->id . ' ' . $message);
         }
-        $info = $this->safe_value($response, 4);
-        $fromResponse = $this->safe_string($info, 1);
-        $toResponse = $this->safe_string($info, 2);
-        $toCode = $this->safe_currency_code($this->safe_string($info, 5));
-        $success = $this->safe_string($response, 6);
-        $status = ($success === 'SUCCESS') ? 'ok' : null;
+        return $this->parse_transfer($response, $currency);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        // $transfer
+        //
+        //     array(
+        //         1616451183763,
+        //         "acc_tf",
+        //         null,
+        //         null,
+        //         array(
+        //             1616451183763,
+        //             "exchange",
+        //             "margin",
+        //             null,
+        //             "UST",
+        //             "UST",
+        //             null,
+        //             1
+        //         ),
+        //         null,
+        //         "SUCCESS",
+        //         "1.0 Tether USDt transfered from Exchange to Margin"
+        //     )
+        //
+        $timestamp = $this->safe_integer($transfer, 0);
+        $info = $this->safe_value($transfer, 4);
+        $fromAccount = $this->safe_string($info, 1);
+        $toAccount = $this->safe_string($info, 2);
+        $currencyId = $this->safe_string($info, 5);
+        $status = $this->safe_string($transfer, 6);
         return array(
-            'info' => $response,
+            'id' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'status' => $status,
-            'amount' => $requestedAmount,
-            'code' => $toCode,
-            'fromAccount' => $fromResponse,
-            'toAccount' => $toResponse,
+            'status' => $this->parse_transfer_status($status),
+            'amount' => $this->safe_number($transfer, 7),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'info' => $transfer,
         );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'SUCCESS' => 'ok',
+            'ERROR' => 'failed',
+            'FAILURE' => 'failed',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function convert_derivatives_id($currency, $type) {
@@ -1797,7 +1852,7 @@ class bitfinex2 extends bitfinex {
         //     array(
         //         1582271520931, // MTS Millisecond Time Stamp of the update
         //         "acc_wd-req", // TYPE Purpose of notification 'acc_wd-req' account withdrawal $request
-        //         null, // MESSAGE_ID unique ID of the message
+        //         null, // MESSAGE_ID unique ID of the $message
         //         null, // not documented
         //         array(
         //             0, // WITHDRAWAL_ID Unique Withdrawal ID
@@ -1815,6 +1870,23 @@ class bitfinex2 extends bitfinex {
         //         "Invalid bitcoin $address (abcdef)", // TEXT Text of the notification
         //     )
         //
+        // in case of failure:
+        //
+        //     array(
+        //         "error",
+        //         10001,
+        //         "Momentary balance check. Please wait few seconds and try the transfer again."
+        //     )
+        //
+        $statusMessage = $this->safe_string($response, 0);
+        if ($statusMessage === 'error') {
+            $feedback = $this->id . ' ' . $response;
+            $message = $this->safe_string($response, 2, '');
+            // same $message as in v1
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+            throw new ExchangeError($feedback); // unknown $message
+        }
         $text = $this->safe_string($response, 7);
         if ($text !== 'success') {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $text, $text);
@@ -1900,14 +1972,14 @@ class bitfinex2 extends bitfinex {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($statusCode, $statusText, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response !== null) {
             if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) != 0) {
                 $message = $this->safe_string_2($response, 'message', 'error');
-                $feedback = $this->id . ' ' . $responseBody;
+                $feedback = $this->id . ' ' . $body;
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
-                throw new ExchangeError($this->id . ' ' . $responseBody);
+                throw new ExchangeError($this->id . ' ' . $body);
             }
         } else if ($response === '') {
             throw new ExchangeError($this->id . ' returned empty response');

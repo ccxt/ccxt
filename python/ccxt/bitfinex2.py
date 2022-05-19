@@ -690,31 +690,84 @@ class bitfinex2(bitfinex):
             'to': toId,
         }
         response = self.privatePostAuthWTransfer(self.extend(request, params))
-        #  [1616451183763,"acc_tf",null,null,[1616451183763,"exchange","margin",null,"UST","UST",null,1],null,"SUCCESS","1.0 Tether USDt transfered from Exchange to Margin"]
-        timestamp = self.safe_integer(response, 0)
-        #  ["error",10001,"Momentary balance check. Please wait few seconds and try the transfer again."]
+        #
+        #     [
+        #         1616451183763,
+        #         "acc_tf",
+        #         null,
+        #         null,
+        #         [
+        #             1616451183763,
+        #             "exchange",
+        #             "margin",
+        #             null,
+        #             "UST",
+        #             "UST",
+        #             null,
+        #             1
+        #         ],
+        #         null,
+        #         "SUCCESS",
+        #         "1.0 Tether USDt transfered from Exchange to Margin"
+        #     ]
+        #
         error = self.safe_string(response, 0)
         if error == 'error':
             message = self.safe_string(response, 2, '')
             # same message as in v1
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + message)
             raise ExchangeError(self.id + ' ' + message)
-        info = self.safe_value(response, 4)
-        fromResponse = self.safe_string(info, 1)
-        toResponse = self.safe_string(info, 2)
-        toCode = self.safe_currency_code(self.safe_string(info, 5))
-        success = self.safe_string(response, 6)
-        status = 'ok' if (success == 'SUCCESS') else None
+        return self.parse_transfer(response, currency)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        # transfer
+        #
+        #     [
+        #         1616451183763,
+        #         "acc_tf",
+        #         null,
+        #         null,
+        #         [
+        #             1616451183763,
+        #             "exchange",
+        #             "margin",
+        #             null,
+        #             "UST",
+        #             "UST",
+        #             null,
+        #             1
+        #         ],
+        #         null,
+        #         "SUCCESS",
+        #         "1.0 Tether USDt transfered from Exchange to Margin"
+        #     ]
+        #
+        timestamp = self.safe_integer(transfer, 0)
+        info = self.safe_value(transfer, 4)
+        fromAccount = self.safe_string(info, 1)
+        toAccount = self.safe_string(info, 2)
+        currencyId = self.safe_string(info, 5)
+        status = self.safe_string(transfer, 6)
         return {
-            'info': response,
+            'id': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'status': status,
-            'amount': requestedAmount,
-            'code': toCode,
-            'fromAccount': fromResponse,
-            'toAccount': toResponse,
+            'status': self.parse_transfer_status(status),
+            'amount': self.safe_number(transfer, 7),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'info': transfer,
         }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'SUCCESS': 'ok',
+            'ERROR': 'failed',
+            'FAILURE': 'failed',
+        }
+        return self.safe_string(statuses, status, status)
 
     def convert_derivatives_id(self, currency, type):
         # there is a difference between self and the v1 api, namely trading wallet is called margin in v2
@@ -1723,6 +1776,22 @@ class bitfinex2(bitfinex):
         #         "Invalid bitcoin address(abcdef)",  # TEXT Text of the notification
         #     ]
         #
+        # in case of failure:
+        #
+        #     [
+        #         "error",
+        #         10001,
+        #         "Momentary balance check. Please wait few seconds and try the transfer again."
+        #     ]
+        #
+        statusMessage = self.safe_string(response, 0)
+        if statusMessage == 'error':
+            feedback = self.id + ' ' + response
+            message = self.safe_string(response, 2, '')
+            # same message as in v1
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+            raise ExchangeError(feedback)  # unknown message
         text = self.safe_string(response, 7)
         if text != 'success':
             self.throw_broadly_matched_exception(self.exceptions['broad'], text, text)
@@ -1799,14 +1868,14 @@ class bitfinex2(bitfinex):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody):
+    def handle_errors(self, statusCode, statusText, url, method, headers, body, response, requestHeaders, requestBody):
         if response is not None:
             if not isinstance(response, list):
                 message = self.safe_string_2(response, 'message', 'error')
-                feedback = self.id + ' ' + responseBody
+                feedback = self.id + ' ' + body
                 self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
-                raise ExchangeError(self.id + ' ' + responseBody)
+                raise ExchangeError(self.id + ' ' + body)
         elif response == '':
             raise ExchangeError(self.id + ' returned empty response')
         if statusCode == 500:

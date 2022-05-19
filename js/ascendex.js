@@ -1168,6 +1168,11 @@ module.exports = class ascendex extends Exchange {
             };
         }
         const stopPrice = this.safeNumber (order, 'stopPrice');
+        let reduceOnly = undefined;
+        const execInst = this.safeString (order, 'execInst');
+        if (execInst === 'reduceOnly') {
+            reduceOnly = true;
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1179,6 +1184,7 @@ module.exports = class ascendex extends Exchange {
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
+            'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1248,12 +1254,6 @@ module.exports = class ascendex extends Exchange {
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'id');
-        const reduceOnly = this.safeValue (params, 'execInst');
-        if (reduceOnly !== undefined) {
-            if ((marketType !== 'swap')) {
-                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for perpetuals only');
-            }
-        }
         const request = {
             'account-group': accountGroup,
             'account-category': accountCategory,
@@ -1270,6 +1270,15 @@ module.exports = class ascendex extends Exchange {
             // 'posStopLossPrice': position stop loss price ( v2 swap orders only)
             // 'posTakeProfitPrice': position take profit price (v2 swap orders only)
         };
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        if (reduceOnly !== undefined) {
+            if ((marketType !== 'swap')) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for perpetuals only');
+            }
+        }
+        if (reduceOnly === true) {
+            request['execInst'] = 'reduceOnly';
+        }
         if (clientOrderId !== undefined) {
             request['id'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId', 'id' ]);
@@ -1372,13 +1381,6 @@ module.exports = class ascendex extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const order = this.safeValue2 (data, 'order', 'info', {});
         return this.parseOrder (order, market);
-    }
-
-    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        const request = {
-            'execInst': 'reduceOnly',
-        };
-        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
