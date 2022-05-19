@@ -616,51 +616,92 @@ module.exports = class bybit extends ccxt.bybit {
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const messageHash = 'orderbook' + ':' + market['id'];
-        const orderbook = await this.watchPublic (messageHash, params);
+        symbol = market['symbol'];
+        let url = undefined;
+        [ url, params ] = this.getUrlByMarketType (symbol, false, params);
+        const messageHash = 'orderbook' + ':' + symbol;
+        let orderbook = undefined;
+        if (market['spot']) {
+            const channel = 'depth';
+            const reqParams = {
+                'symbol': market['id'],
+            };
+            orderbook = await this.watchSpotPublic (url, channel, messageHash, reqParams, params);
+        } else {
+            let channel = undefined;
+            if (market['option']) {
+                channel = 'orderBook' + '.' + market['baseId'];
+            } else {
+                channel = 'orderBook' + '.' + market['id'];
+            }
+            const reqParams = [ channel ];
+            orderbook = await this.watchSwapPublic (url, messageHash, reqParams, params);
+        }
         return orderbook.limit (limit);
     }
 
     handleOrderBook (client, message) {
         //
-        //     {
-        //         "topic":"orderbook",
-        //         "action":"partial",
-        //         "symbol":"ltc-usdt",
-        //         "data":{
-        //             "bids":[
-        //                 [104.29, 5.2264],
-        //                 [103.86,1.3629],
-        //                 [101.82,0.5942]
-        //             ],
-        //             "asks":[
-        //                 [104.81,9.5531],
-        //                 [105.54,0.6416],
-        //                 [106.18,1.4141],
-        //             ],
-        //             "timestamp":"2022-04-12T08:17:05.932Z"
-        //         },
-        //         "time":1649751425
+        // spot snapshot
+        // {
+        //     topic: 'depth',
+        //     params: { symbol: 'BTCUSDT', binary: 'false', symbolName: 'BTCUSDT' },
+        //     data: {
+        //       s: 'BTCUSDT',
+        //       t: 1652970523792,
+        //       v: '34407758_140450607_2',
+        //       b: [
+        //            [
+        //                "9780.79",
+        //                "0.01"
+        //            ],
+        //       ],
+        //       a: [
+        //            [
+        //               "9781.21",
+        //               "0.042842"
+        //            ]
+        //       ]
         //     }
+        //   }
         //
-        const marketId = this.safeString (message, 'symbol');
-        const channel = this.safeString (message, 'topic');
-        const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
-        const data = this.safeValue (message, 'data');
-        let timestamp = this.safeString (data, 'timestamp');
-        timestamp = this.parse8601 (timestamp);
-        const snapshot = this.parseOrderBook (data, symbol, timestamp);
-        let orderbook = undefined;
-        if (!(symbol in this.orderbooks)) {
-            orderbook = this.orderBook (snapshot);
-            this.orderbooks[symbol] = orderbook;
-        } else {
-            orderbook = this.orderbooks[symbol];
-            orderbook.reset (snapshot);
+        const data = this.safeValue (message, 'data', {});
+        if (!Array.isArray (data)) {
+            // spot branch, we get the snapshot in every message
+            const marketId = this.safeString (data, 's');
+            const market = this.market (marketId);
+            const symbol = market['symbol'];
+            const timestamp = this.safeInteger (data, 't');
+            const snapshot = this.parseOrderBook (data, symbol, timestamp, 'b', 'a');
+            let orderbook = undefined;
+            if (!(symbol in this.orderbooks)) {
+                orderbook = this.orderBook (snapshot);
+                this.orderbooks[symbol] = orderbook;
+            } else {
+                orderbook = this.orderbooks[symbol];
+                orderbook.reset (snapshot);
+            }
+            const messageHash = 'orderbook' + ':' + symbol;
+            client.resolve (orderbook, messageHash);
         }
-        const messageHash = channel + ':' + marketId;
-        client.resolve (orderbook, messageHash);
+        // const marketId = this.safeString (message, 'symbol');
+        // const channel = this.safeString (message, 'topic');
+        // const market = this.safeMarket (marketId);
+        // const symbol = market['symbol'];
+        // const data = this.safeValue (message, 'data');
+        // let timestamp = this.safeString (data, 'timestamp');
+        // timestamp = this.parse8601 (timestamp);
+        // const snapshot = this.parseOrderBook (data, symbol, timestamp);
+        // let orderbook = undefined;
+        // if (!(symbol in this.orderbooks)) {
+        //     orderbook = this.orderBook (snapshot);
+        //     this.orderbooks[symbol] = orderbook;
+        // } else {
+        //     orderbook = this.orderbooks[symbol];
+        //     orderbook.reset (snapshot);
+        // }
+        // const messageHash = channel + ':' + marketId;
+        // client.resolve (orderbook, messageHash);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -804,7 +845,7 @@ module.exports = class bybit extends ccxt.bybit {
         const amountString = this.safeString2 (trade, 'q', 'size');
         const priceString = this.safeString2 (trade, 'p', 'price');
         const costString = this.safeString (trade, 'exec_value');
-        const timestamp = this.safeNumberN (trade, ['trade_time_ms', 't', 'tradeTime']);
+        const timestamp = this.safeNumberN (trade, ['trade_time_ms', 't', 'tradeTime', 'tradeTimeMs']);
         const side = this.safeStringLower (trade, 'side');
         const isMaker = this.safeValue (trade, 'm');
         const takerOrMaker = isMaker ? 'maker' : 'taker';
@@ -1095,10 +1136,9 @@ module.exports = class bybit extends ccxt.bybit {
         const methods = {
             'realtimes': this.handleTicker,
             'bookTicker': this.handleTicker,
-            // 'trade': this.handleTrades,
-            'orderbook': this.handleOrderBook,
-            'order': this.handleOrder,
-            'wallet': this.handleBalance,
+            'depth': this.handleOrderBook,
+            // 'order': this.handleOrder,
+            // 'wallet': this.handleBalance,
         };
         const method = this.safeValue (methods, topic);
         if (method !== undefined) {
