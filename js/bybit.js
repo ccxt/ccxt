@@ -233,9 +233,9 @@ module.exports = class bybit extends ccxt.bybit {
         //    }
         //
         const data = this.safeValue (message, 'data', {});
+        const topic = this.safeString (message, 'topic');
         if (Array.isArray (data)) {
             // swap messages
-            const topic = this.safeString (message, 'topic');
             const topicParts = topic.split ('.');
             const topicLength = topicParts.length;
             const marketId = this.safeString (topicParts, topicLength - 1);
@@ -260,30 +260,69 @@ module.exports = class bybit extends ccxt.bybit {
                 const symbol = keys[i];
                 const timeframe = marketIds[symbol];
                 const interval = this.timeframes[timeframe];
-                const hash = 'kline' + ':' + interval + ':' + symbol;
+                const messageHash = 'kline' + ':' + interval + ':' + symbol;
                 const stored = this.safeValue (this.ohlcvs, symbol);
-                client.resolve (stored, hash);
+                client.resolve (stored, messageHash);
             }
+        } else {
+            // spot messages
+            const params = this.safeValue (message, 'params', {});
+            const data = this.safeValue (message, 'data');
+            const marketId = this.safeString (params, 'symbol');
+            const timeframe = this.safeString (params, 'klineType');
+            const market = this.market (marketId);
+            const parsed = this.parseOHLCV (data, market);
+            const symbol = market['symbol'];
+            let stored = this.safeValue (this.ohlcvs, symbol);
+            if (stored === undefined) {
+                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                stored = new ArrayCacheByTimestamp (limit);
+                this.ohlcvs[symbol] = stored;
+            }
+            stored.append (parsed);
+            const messageHash = 'kline' + ':' + timeframe + ':' + symbol;
+            client.resolve (stored, messageHash);
         }
-        // const marketId = this.safeString (message, 's');
-        // const symbol = this.safeSymbol (marketId);
-        // const channel = this.safeString (message, 'm');
-        // const data = this.safeValue (message, 'data', {});
-        // const interval = this.safeString (data, 'i');
-        // const messageHash = channel + ':' + interval + ':' + marketId;
-        // const timeframe = this.findTimeframe (interval);
-        // const market = this.market (symbol);
-        // const parsed = this.parseOHLCV (message, market);
-        // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        // let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
-        // if (stored === undefined) {
-        //     const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-        //     stored = new ArrayCacheByTimestamp (limit);
-        //     this.ohlcvs[symbol][timeframe] = stored;
-        // }
-        // stored.append (parsed);
-        // client.resolve (stored, messageHash);
-        // return message;
+    }
+
+    parseWsOHLCV (ohlcv, market = undefined) {
+        //
+        // swap
+        //   {
+        //      start: 1652893140,
+        //      end: 1652893200,
+        //      open: 67.9,
+        //      close: 67.84,
+        //      high: 67.91,
+        //      low: 67.84,
+        //      volume: 56,
+        //      turnover: 0.82528936,
+        //      timestamp: '1652893152874413',
+        //      confirm: false,
+        //      cross_seq: 63544166
+        //   }
+        //
+        // spot
+        //
+        //   {
+        //      t: 1652893440000,
+        //      s: 'LTCUSDT',
+        //      sn: 'LTCUSDT',
+        //      c: '67.92',
+        //      h: '68.05',
+        //      l: '67.92',
+        //      o: '68.05',
+        //      v: '9.71302'
+        //   }
+        //
+        return [
+            this.safeInteger2 (ohlcv, 'timestamp', 't'),
+            this.safeNumber2 (ohlcv, 'open', 'o'),
+            this.safeNumber2 (ohlcv, 'high', 'h'),
+            this.safeNumber2 (ohlcv, 'low', 'l'),
+            this.safeNumber2 (ohlcv, 'close', 'c'),
+            this.safeNumber2 (ohlcv, 'volume', 'v'),
+        ];
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
