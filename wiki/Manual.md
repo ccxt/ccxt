@@ -2327,6 +2327,8 @@ If `since` is not specified the `fetchOHLCV` method will return the time range a
 
 Trading strategies require fresh up-to-date information for technical analysis, indicators and signals. Building a speculative trading strategy based on the OHLCV candles received from the exchange may have critical drawbacks. Developers should account for the details explained in this section to build successful bots.
 
+First and foremost, when using CCXT you're talking to the exchanges directly. CCXT is not a server, nor a service, it's a software library. All data that you are getting with CCXT is received directly from the exchanges first-hand.
+
 The exchanges usually provide two categories of public market data:
 
 1. Fast primary first-order data that includes real time orderbooks and trades or fills
