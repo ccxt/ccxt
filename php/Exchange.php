@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.83.9';
+$version = '1.83.10';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.83.9';
+    const VERSION = '1.83.10';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -405,8 +405,8 @@ class Exchange {
         'createStopMarketOrder' => 'create_stop_market_order',
         'checkOrderArguments' => 'check_order_arguments',
         'parseBorrowInterests' => 'parse_borrow_interests',
-        'fetchFundingRate' => 'fetch_funding_rate',
         'parseFundingRateHistories' => 'parse_funding_rate_histories',
+        'fetchFundingRate' => 'fetch_funding_rate',
     );
 
     public static function split($string, $delimiters = array(' ')) {
