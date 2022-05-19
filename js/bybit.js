@@ -262,6 +262,7 @@ module.exports = class bybit extends Exchange {
                         // linear swap USDT
                         'public/linear/kline': 3,
                         'public/linear/recent-trading-records': 1,
+                        'public/linear/risk-limit': 1,
                         'public/linear/funding/prev-funding-rate': 1,
                         'public/linear/mark-price-kline': 1,
                         'public/linear/index-price-kline': 1,
@@ -4411,7 +4412,7 @@ module.exports = class bybit extends Exchange {
         if (isUsdcSettled) {
             method = 'publicGetPerpetualUsdcOpenapiPublicV1RiskLimitList';
         } else if (market['linear']) {
-            method = 'publicLinearGetRiskLimit';
+            method = 'publicGetPublicLinearRiskLimit';
         } else {
             method = 'publicGetV2PublicRiskLimitList';
         }
