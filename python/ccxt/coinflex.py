@@ -27,6 +27,7 @@ class coinflex(Exchange):
             'rateLimit': 120,  # 2500 requests per 5 minutes, 100 requests per minute
             'version': 'v3',
             'certified': False,
+            'pro': True,
             'userAgent': self.userAgents['chrome100'],
             'has': {
                 'CORS': None,
