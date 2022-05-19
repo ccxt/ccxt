@@ -759,11 +759,11 @@ module.exports = class bybit extends ccxt.bybit {
             const market = this.market (marketId);
             const symbol = market['symbol'];
             const messageHash = 'orderbook' + ':' + symbol;
+            const nonce = this.safeInteger (message, 'cross_seq');
             if (type === 'snapshot') {
                 const rawOrderBook = this.safeValue (data, 'order_book');
                 const timestamp = this.safeIntegerProduct (message, 'timestamp_e6', 0.001);
                 const snapshot = this.parseOrderBook (rawOrderBook, symbol, timestamp, 'Buy', 'Sell', 'price', 'size');
-                const nonce = this.safeInteger (message, 'cross_seq');
                 snapshot['nonce'] = nonce;
                 let orderbook = undefined;
                 if (!(symbol in this.orderbooks)) {
@@ -787,6 +787,7 @@ module.exports = class bybit extends ccxt.bybit {
                 deltas = this.arrayConcat (deltas, updated);
                 deltas = this.arrayConcat (deltas, inserted);
                 const orderbook = this.safeValue (this.orderbooks, symbol);
+                orderbook['nonce'] = nonce;
                 this.handleDeltas (orderbook, deltas);
             }
             client.resolve (this.orderbooks[symbol], messageHash);
