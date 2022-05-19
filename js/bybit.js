@@ -612,32 +612,6 @@ module.exports = class bybit extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
-                'marketTypes': {
-                    'BTC/USDT': 'linear',
-                    'ETH/USDT': 'linear',
-                    'BNB/USDT': 'linear',
-                    'ADA/USDT': 'linear',
-                    'DOGE/USDT': 'linear',
-                    'XRP/USDT': 'linear',
-                    'DOT/USDT': 'linear',
-                    'UNI/USDT': 'linear',
-                    'BCH/USDT': 'linear',
-                    'LTC/USDT': 'linear',
-                    'SOL/USDT': 'linear',
-                    'LINK/USDT': 'linear',
-                    'MATIC/USDT': 'linear',
-                    'ETC/USDT': 'linear',
-                    'FIL/USDT': 'linear',
-                    'EOS/USDT': 'linear',
-                    'AAVE/USDT': 'linear',
-                    'XTZ/USDT': 'linear',
-                    'SUSHI/USDT': 'linear',
-                    'XEM/USDT': 'linear',
-                    'BTC/USD': 'inverse',
-                    'ETH/USD': 'inverse',
-                    'EOS/USD': 'inverse',
-                    'XRP/USD': 'inverse',
-                },
                 'defaultType': 'linear',  // linear, inverse, futures
                 //
                 // ^
