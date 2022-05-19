@@ -1113,7 +1113,7 @@ module.exports = class xena extends Exchange {
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         await this.loadAccounts ();
