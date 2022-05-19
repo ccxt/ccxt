@@ -34,6 +34,7 @@ const {
 const { // eslint-disable-line object-curly-newline
     ExchangeError
     , BadSymbol
+    , NullResponse
     , InvalidAddress
     , InvalidOrder
     , NotSupported
@@ -921,7 +922,7 @@ module.exports = class Exchange {
             const tickers = await this.fetchTickers ([ symbol ], params);
             const ticker = this.safeValue (tickers, symbol);
             if (ticker === undefined) {
-                throw new InvalidAddress (this.id + ' fetchTickers() could not find a ticker for ' + symbol);
+                throw new NullResponse (this.id + ' fetchTickers() could not find a ticker for ' + symbol);
             } else {
                 return ticker;
             }
@@ -2427,7 +2428,7 @@ module.exports = class Exchange {
             const rates = await this.fetchFundingRates ([ symbol ], params);
             const rate = this.safeValue (rates, symbol);
             if (rate === undefined) {
-                throw new BadSymbol (this.id + ' fetchFundingRate () returned no data for ' + symbol);
+                throw new NullResponse (this.id + ' fetchFundingRate () returned no data for ' + symbol);
             } else {
                 return rate;
             }
