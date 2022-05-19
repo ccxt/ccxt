@@ -2628,6 +2628,7 @@ module.exports = class bybit extends Exchange {
             'type': type.toUpperCase (), // limit, market or limit_maker
             'timeInForce': 'GTC', // FOK, IOC
             'qty': amount,
+            // 'orderLinkId': 'string', // unique client order id, max 36 characters
         };
         if (type === 'limit' || type === 'limit_maker') {
             if (price === undefined) {
@@ -2678,9 +2679,22 @@ module.exports = class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
-            'orderType': this.capitalize (type), // limit
+            'orderType': this.capitalize (type), // limit or market
             'timeInForce': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
             'orderQty': amount,
+            // 'takeProfit': 123.45, // take profit price, only take effect upon opening the position
+            // 'stopLoss': 123.45, // stop loss price, only take effect upon opening the position
+            // 'reduceOnly': false, // reduce only, required for linear orders
+            // when creating a closing order, bybit recommends a True value for
+            //  closeOnTrigger to avoid failing due to insufficient available margin
+            // 'closeOnTrigger': false, required for linear orders
+            // 'orderLinkId': 'string', // unique client order id, max 36 characters
+            // 'triggerPrice': 123.45, // trigger price, required for conditional orders
+            // 'trigger_by': 'MarkPrice', // IndexPrice, MarkPrice
+            // 'tptriggerby': 'MarkPrice', // IndexPrice, MarkPrice
+            // 'slTriggerBy': 'MarkPrice', // IndexPrice, MarkPrice
+            // 'orderFilter': 'Order' or 'StopOrder'
+            // 'mmp': false // market maker protection
         };
         if (price !== undefined) {
             request['orderPrice'] = price;
@@ -2750,6 +2764,23 @@ module.exports = class bybit extends Exchange {
             'order_type': this.capitalize (type), // limit
             'time_in_force': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
             'qty': amount,
+            // 'take_profit': 123.45, // take profit price, only take effect upon opening the position
+            // 'stop_loss': 123.45, // stop loss price, only take effect upon opening the position
+            // 'reduce_only': false, // reduce only, required for linear orders
+            // when creating a closing order, bybit recommends a True value for
+            //  close_on_trigger to avoid failing due to insufficient available margin
+            // 'close_on_trigger': false, required for linear orders
+            // 'order_link_id': 'string', // unique client order id, max 36 characters
+            // 'tp_trigger_by': 'LastPrice', // IndexPrice, MarkPrice
+            // 'sl_trigger_by': 'LastPrice', // IndexPrice, MarkPrice
+            // conditional orders ---------------------------------------------
+            // base_price is used to compare with the value of stop_px, to decide
+            // whether your conditional order will be triggered by crossing trigger
+            // price from upper side or lower side, mainly used to identify the
+            // expected direction of the current conditional order
+            // 'base_price': 123.45, // required for conditional orders
+            // 'stop_px': 123.45, // trigger price, required for conditional orders
+            // 'trigger_by': 'LastPrice', // IndexPrice, MarkPrice
         };
         if (market['future']) {
             const positionIdx = this.safeInteger (params, 'position_idx', 0); // 0 One-Way Mode, 1 Buy-side, 2 Sell-side
@@ -2779,11 +2810,11 @@ module.exports = class bybit extends Exchange {
             request['trigger_by'] = triggerBy;
             params = this.omit (params, [ 'stop_px', 'stopPrice', 'base_price', 'triggerBy', 'trigger_by' ]);
         }
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'orderLinkId');
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'order_link_id');
         if (clientOrderId !== undefined) {
-            request['orderLinkId'] = clientOrderId;
+            request['order_link_id'] = clientOrderId;
         }
-        params = this.omit (params, [ 'clientOrderId', 'orderLinkId' ]);
+        params = this.omit (params, [ 'clientOrderId', 'order_link_id' ]);
         let method = undefined;
         if (market['future']) {
             method = isConditionalOrder ? 'privatePostFuturesPrivateStopOrderCreate' : 'privatePostFuturesPrivateOrderCreate';
