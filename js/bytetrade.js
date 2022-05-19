@@ -394,7 +394,7 @@ module.exports = class bytetrade extends Exchange {
 
     async fetchBalance (params = {}) {
         if (!('userid' in params) && (this.apiKey === undefined)) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires this.apiKey or userid argument');
+            throw new ArgumentsRequired (this.id + ' fetchBalance() requires this.apiKey or userid argument');
         }
         await this.loadMarkets ();
         const request = {
