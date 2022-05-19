@@ -1920,9 +1920,13 @@ class ftx extends Exchange {
         if ($marketId !== null) {
             $request['market'] = $marketId;
         }
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         $till = $this->safe_integer($params, 'till');
         if ($since !== null) {
             $request['start_time'] = intval($since / 1000);
+            $request['end_time'] = $this->seconds();
         }
         if ($till !== null) {
             $request['end_time'] = intval($till / 1000);

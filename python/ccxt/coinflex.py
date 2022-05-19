@@ -65,8 +65,6 @@ class coinflex(Exchange):
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
-                'fetchFundingFee': True,
-                'fetchFundingFees': False,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': 'emulated',
@@ -102,6 +100,8 @@ class coinflex(Exchange):
                 'fetchTradingFee': None,
                 'fetchTradingFees': None,
                 'fetchTradingLimits': None,
+                'fetchTransactionFee': True,
+                'fetchTransactionFees': False,
                 'fetchTransactions': None,
                 'fetchTransfers': True,
                 'fetchWithdrawal': True,
@@ -2138,17 +2138,17 @@ class coinflex(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_transaction(data, currency)
 
-    def fetch_funding_fee(self, code, params={}):
+    def fetch_transaction_fee(self, code, params={}):
         networkName = self.safe_string_upper(params, 'network')
         if networkName is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingFee() requires "network"  parameter')
+            raise ArgumentsRequired(self.id + ' fetchTransactionFee() requires "network"  parameter')
         address = self.safe_string(params, 'address')
         if address is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingFee() requires recipient "address"  param to calculate fee')
+            raise ArgumentsRequired(self.id + ' fetchTransactionFee() requires recipient "address"  param to calculate fee')
         amount = self.safe_number(params, 'quantity')
         params = self.omit(params, 'quantity')
         if address is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingFee() requires "quantity"  param to calculate fee')
+            raise ArgumentsRequired(self.id + ' fetchTransactionFee() requires "quantity"  param to calculate fee')
         self.load_markets()
         currency = self.currency(code)
         networks = self.safe_value(self.options, 'networks', {})
