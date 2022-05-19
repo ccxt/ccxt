@@ -1234,7 +1234,7 @@ module.exports = class whitebit extends Exchange {
         if (this.isFiat (code)) {
             const provider = this.safeValue (params, 'provider');
             if (provider === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a provider when the ticker is fiat');
+                throw new ArgumentsRequired (this.id + ' withdraw() requires a provider when the ticker is fiat');
             }
             request['provider'] = provider;
         }
