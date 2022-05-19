@@ -257,6 +257,7 @@ class Exchange(object):
         'createMarketOrder': True,
         'createOrder': True,
         'createPostOnlyOrder': None,
+        'createReduceOnlyOrder': None,
         'createStopOrder': None,
         'createStopLimitOrder': None,
         'createStopMarketOrder': None,
@@ -3014,6 +3015,12 @@ class Exchange(object):
         if not self.has['createPostOnlyOrder']:
             raise NotSupported(self.id + ' create_post_only_order() is not supported yet')
         query = self.extend(params, {'postOnly': True})
+        return self.create_order(symbol, type, side, amount, price, query)
+
+    def create_reduce_only_order(self, symbol, type, side, amount, price, params={}):
+        if not self.has['createReduceOnlyOrder']:
+            raise NotSupported(self.id + ' create_reduce_only_order() is not supported yet')
+        query = self.extend(params, {'reduceOnly': True})
         return self.create_order(symbol, type, side, amount, price, query)
 
     def create_stop_order(self, symbol, type, side, amount, price=None, stopPrice=None, params={}):

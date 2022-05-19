@@ -80,6 +80,7 @@ module.exports = class Exchange {
                 'createMarketOrder': true,
                 'createOrder': true,
                 'createPostOnlyOrder': undefined,
+                'createReduceOnlyOrder': undefined,
                 'createStopOrder': undefined,
                 'createStopLimitOrder': undefined,
                 'createStopMarketOrder': undefined,
@@ -2371,6 +2372,14 @@ module.exports = class Exchange {
             throw new NotSupported (this.id + 'createPostOnlyOrder() is not supported yet');
         }
         const query = this.extend (params, { 'postOnly': true });
+        return await this.createOrder (symbol, type, side, amount, price, query);
+    }
+
+    async createReduceOnlyOrder (symbol, type, side, amount, price, params = {}) {
+        if (!this.has['createReduceOnlyOrder']) {
+            throw new NotSupported (this.id + 'createReduceOnlyOrder() is not supported yet');
+        }
+        const query = this.extend (params, { 'reduceOnly': true });
         return await this.createOrder (symbol, type, side, amount, price, query);
     }
 

@@ -1446,6 +1446,7 @@ module.exports = class ftx extends Exchange {
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
+            'reduceOnly': this.safeValue (order, 'reduceOnly'),
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1477,6 +1478,10 @@ module.exports = class ftx extends Exchange {
             // 'trailValue': -0.306525, // required for trailingStop orders, negative for "sell"; positive for "buy"
             // 'orderPrice': 0.306525, // optional, for stop and takeProfit orders only (market by default). If not specified, a market order will be submitted
         };
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        if (reduceOnly === true) {
+            request['reduceOnly'] = reduceOnly;
+        }
         const clientOrderId = this.safeString2 (params, 'clientId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clientId'] = clientOrderId;
@@ -1592,13 +1597,6 @@ module.exports = class ftx extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         return this.parseOrder (result, market);
-    }
-
-    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        const request = {
-            'reduceOnly': true,
-        };
-        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
     async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
