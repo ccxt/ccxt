@@ -1966,11 +1966,10 @@ class bybit extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'Buy', $asksKey = 'Sell', $priceKey = 'price', $amountKey = 'size') {
+    public function parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1) {
         $market = $this->market($symbol);
         if ($market['spot']) {
-            $timestamp = $this->safe_integer($orderbook, 'time');
-            return parent::parse_order_book($orderbook, $symbol, $timestamp, 'bids', 'asks');
+            return parent::parse_order_book($orderbook, $symbol, $timestamp, $bidsKey, $asksKey, $priceKey, $amountKey);
         }
         $bids = array();
         $asks = array();
@@ -2070,7 +2069,14 @@ class bybit extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $timestamp = $this->safe_timestamp($response, 'time_now');
-        return $this->parse_order_book($result, $symbol, $timestamp, 'Buy', 'Sell', 'price', 'size');
+        if ($timestamp === null) {
+            $timestamp = $this->safe_integer($response, 'time');
+        }
+        $bidsKey = $market['spot'] ? 'bids' : 'Buy';
+        $asksKey = $market['spot'] ? 'asks' : 'Sell';
+        $priceKey = $market['spot'] ? 0 : 'price';
+        $sizeKey = $market['spot'] ? 1 : 'size';
+        return $this->parse_order_book($result, $symbol, $timestamp, $bidsKey, $asksKey, $priceKey, $sizeKey);
     }
 
     public function parse_balance($response) {
