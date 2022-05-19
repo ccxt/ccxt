@@ -678,7 +678,7 @@ class coinex(Exchange):
             limit = 20  # default
         request = {
             'market': self.market_id(symbol),
-            'merge': '0.0000000001',
+            'merge': '0',
             'limit': str(limit),
         }
         method = 'perpetualPublicGetMarketDepth' if market['swap'] else 'publicGetMarketDepth'
