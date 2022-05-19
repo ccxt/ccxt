@@ -1227,6 +1227,35 @@ module.exports = class bitfinex2 extends bitfinex {
         }, market);
     }
 
+    async createOrder2 (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfinex2#createOrder
+         * @description Create an order on the exchange
+         * @param {str} symbol Unified CCXT market symbol
+         * @param {str} type "limit" or "market"
+         * @param {str} side "buy" or "sell"
+         * @param {float} amount the amount of currency to trade
+         * @param {float} price price of order
+         * @param {dict} params  Extra parameters specific to the exchange API endpoint
+         * @param {float} params.stopPrice The price at which a trigger order is triggered at
+         * @param {str} params.timeInForce "GTC", "IOC", "FOK", or "PO"
+         * @param {bool} params.postOnly
+         * @param {bool} params.reduceOnly Ensures that the executed order does not flip the opened position.
+         * @param {int} params.flags additional order parameters: 4096 (Post Only), 1024 (Reduce Only), 16384 (OCO), 64 (Hidden), 512 (Close), 524288 (No Var Rates)
+         * @param {bool} params.margin set to true if the order is a margin order // TODO add (remove EXCHANGE prefix from order type)
+         * @param {int} params.lev leverage for a derivative order, supported by derivative symbol orders only. The value should be between 1 and 100 inclusive.
+         * @param {str} params.price_traling The trailing price for a trailing stop order
+         * @param {str} params.price_aux_limit TODO investigate ("Auxiliary Limit price (for STOP LIMIT)")
+         * @param {str} params.price_oco_stop TODO investigate ("OCO stop price")
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        const reduceOnly = this.safeValue (params, 'reduceOnly', false);
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
