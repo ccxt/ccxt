@@ -19,6 +19,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import NullResponse
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import RateLimitExceeded
 
@@ -1691,7 +1692,7 @@ class Exchange(object):
             tickers = self.fetch_tickers([symbol], params)
             ticker = self.safe_value(tickers, symbol)
             if ticker is None:
-                raise BadSymbol(self.id + ' fetchTickers() could not find a ticker for ' + symbol)
+                raise NullResponse(self.id + ' fetchTickers() could not find a ticker for ' + symbol)
             else:
                 return ticker
         else:
@@ -3065,3 +3066,17 @@ class Exchange(object):
         sorted = self.sort_by(rates, 'timestamp')
         symbol = None if (market is None) else market['symbol']
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def fetch_funding_rate(self, symbol, params={}):
+        if self.has['fetchFundingRates']:
+            market = self.market(symbol)
+            if not market['contract']:
+                raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
+            rates = self.fetchFundingRates([symbol], params)
+            rate = self.safe_value(rates, symbol)
+            if rate is None:
+                raise NullResponse(self.id + ' fetchFundingRate() returned no data for ' + symbol)
+            else:
+                return rate
+        else:
+            raise NotSupported(self.id + ' fetchFundingRate() is not supported yet')

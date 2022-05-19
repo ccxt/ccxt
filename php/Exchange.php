@@ -405,6 +405,7 @@ class Exchange {
         'createStopMarketOrder' => 'create_stop_market_order',
         'checkOrderArguments' => 'check_order_arguments',
         'parseBorrowInterests' => 'parse_borrow_interests',
+        'fetchFundingRate' => 'fetch_funding_rate',
         'parseFundingRateHistories' => 'parse_funding_rate_histories',
     );
 
@@ -2617,7 +2618,7 @@ class Exchange {
             $tickers = $this->fetch_tickers(array( $symbol ), $params);
             $ticker = $this->safe_value($tickers, $symbol);
             if ($ticker === null) {
-                throw new BadSymbol($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
+                throw new NullResponse($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
             } else {
                 return $ticker;
             }
@@ -2949,7 +2950,6 @@ class Exchange {
                 return $this->markets_by_id[$symbol];
             }
         }
-
         throw new BadSymbol($this->id . ' does not have market symbol ' . $symbol);
     }
 
@@ -4036,5 +4036,23 @@ class Exchange {
         $sorted = $this->sort_by($rates, 'timestamp');
         $symbol = ($market === null) ? null : $market['symbol'];
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        if ($this->has['fetchFundingRates']) {
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadSymbol($this->id . ' fetchFundingRate () supports contract markets only');
+            }
+            $rates = $this->fetchFundingRates (array( $symbol ), $params);
+            $rate = $this->safe_value($rates, $symbol);
+            if ($rate === null) {
+                throw new NullResponse($this->id . ' fetchFundingRate () returned no data for ' . $symbol);
+            } else {
+                return $rate;
+            }
+        } else {
+            throw new NotSupported($this->id . ' fetchFundingRate () is not supported yet');
+        }
     }
 }

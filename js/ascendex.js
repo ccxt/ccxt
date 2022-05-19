@@ -45,7 +45,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
