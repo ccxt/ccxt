@@ -722,21 +722,44 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     parseTransfer (transfer, currency = undefined) {
-        const timestamp = this.safeInteger (transfer, 0, this.milliseconds ());
+        //
+        // transfer
+        //
+        //     [
+        //         1616451183763,
+        //         "acc_tf",
+        //         null,
+        //         null,
+        //         [
+        //             1616451183763,
+        //             "exchange",
+        //             "margin",
+        //             null,
+        //             "UST",
+        //             "UST",
+        //             null,
+        //             1
+        //         ],
+        //         null,
+        //         "SUCCESS",
+        //         "1.0 Tether USDt transfered from Exchange to Margin"
+        //     ]
+        //
+        const timestamp = this.safeInteger (transfer, 0);
         const info = this.safeValue (transfer, 4);
-        const fromResponse = this.safeString (info, 1);
-        const toResponse = this.safeString (info, 2);
-        const toCode = this.safeCurrencyCode (this.safeString (info, 5), currency);
-        const statusRaw = this.safeString (transfer, 6);
+        const fromAccount = this.safeString (info, 1);
+        const toAccount = this.safeString (info, 2);
+        const currencyId = this.safeString (info, 5);
+        const status = this.safeString (transfer, 6);
         return {
             'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'status': this.parseTransferStatus (statusRaw),
+            'status': this.parseTransferStatus (status),
             'amount': this.safeNumber (transfer, 7),
-            'currency': toCode,
-            'fromAccount': fromResponse,
-            'toAccount': toResponse,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
             'info': transfer,
         };
     }
@@ -744,8 +767,8 @@ module.exports = class bitfinex2 extends bitfinex {
     parseTransferStatus (status) {
         const statuses = {
             'SUCCESS': 'ok',
-            'ERROR': 'fail',
-            'FAILURE': 'fail',
+            'ERROR': 'failed',
+            'FAILURE': 'failed',
         };
         return this.safeString (statuses, status, status);
     }
