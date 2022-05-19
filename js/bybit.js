@@ -168,7 +168,7 @@ module.exports = class bybit extends ccxt.bybit {
         const interval = this.timeframes[timeframe];
         let url = undefined;
         [ url, params ] = this.getUrlByMarketType (symbol, false, params);
-        const messageHash = 'kline' + ':' + interval + ':' + market['id'];
+        const messageHash = 'kline' + ':' + timeframe + ':' + symbol;
         let ohlcv = undefined;
         if (market['spot']) {
             const channel = 'kline';
@@ -178,7 +178,8 @@ module.exports = class bybit extends ccxt.bybit {
             };
             ohlcv = await this.watchSpotPublic (url, channel, messageHash, reqParams, params);
         } else {
-            const channel = 'klineV2.' + interval + '.' + market['id'];
+            const prefix = market['linear'] ? 'candle' : 'klineV2';
+            const channel = prefix + '.' + interval + '.' + market['id'];
             const reqParams = [ channel ];
             ohlcv = await this.watchSwapPublic (url, messageHash, reqParams, params);
         }
@@ -245,7 +246,7 @@ module.exports = class bybit extends ccxt.bybit {
                 const ohlcv = data[i];
                 const market = this.market (marketId);
                 const symbol = market['symbol'];
-                const parsed = this.parseOHLCV (ohlcv, market);
+                const parsed = this.parseWsOHLCV (ohlcv, market);
                 let stored = this.safeValue (this.ohlcvs, symbol);
                 if (stored === undefined) {
                     const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -258,9 +259,9 @@ module.exports = class bybit extends ccxt.bybit {
             const keys = Object.keys (marketIds);
             for (let i = 0; i < keys.length; i++) {
                 const symbol = keys[i];
-                const timeframe = marketIds[symbol];
-                const interval = this.timeframes[timeframe];
-                const messageHash = 'kline' + ':' + interval + ':' + symbol;
+                const interval = marketIds[symbol];
+                const timeframe = this.findTimeframe (interval);
+                const messageHash = 'kline' + ':' + timeframe + ':' + symbol;
                 const stored = this.safeValue (this.ohlcvs, symbol);
                 client.resolve (stored, messageHash);
             }
@@ -271,7 +272,7 @@ module.exports = class bybit extends ccxt.bybit {
             const marketId = this.safeString (params, 'symbol');
             const timeframe = this.safeString (params, 'klineType');
             const market = this.market (marketId);
-            const parsed = this.parseOHLCV (data, market);
+            const parsed = this.parseWsOHLCV (data, market);
             const symbol = market['symbol'];
             let stored = this.safeValue (this.ohlcvs, symbol);
             if (stored === undefined) {
@@ -667,8 +668,8 @@ module.exports = class bybit extends ccxt.bybit {
             this.handlePong (client, message);
             return;
         }
-        if (topic !== undefined && topic.indexOf ('kline') >= 0) {
-            // this.handleOHLCV (client, message);
+        if (topic !== undefined && (topic.indexOf ('kline') >= 0 || topic.indexOf ('candle') >= 0)) {
+            this.handleOHLCV (client, message);
             return;
         }
         const methods = {
