@@ -2614,7 +2614,7 @@ class Exchange {
             $tickers = $this->fetch_tickers(array( $symbol ), $params);
             $ticker = $this->safe_value($tickers, $symbol);
             if ($ticker === null) {
-                throw new BadSymbol($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
+                throw new NullResponse($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
             } else {
                 return $ticker;
             }
@@ -2946,7 +2946,6 @@ class Exchange {
                 return $this->markets_by_id[$symbol];
             }
         }
-
         throw new BadSymbol($this->id . ' does not have market symbol ' . $symbol);
     }
 
@@ -4016,7 +4015,7 @@ class Exchange {
             $rates = $this->fetchFundingRates (array( $symbol ), $params);
             $rate = $this->safe_value($rates, $symbol);
             if ($rate === null) {
-                throw new BadSymbol($this->id . ' fetchFundingRate () returned no data for ' . $symbol);
+                throw new NullResponse($this->id . ' fetchFundingRate () returned no data for ' . $symbol);
             } else {
                 return $rate;
             }
