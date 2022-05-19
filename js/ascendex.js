@@ -245,6 +245,7 @@ module.exports = class ascendex extends Exchange {
                 'defaultType': 'spot', // 'spot', 'margin', 'swap'
                 'accountsByType': {
                     'spot': 'cash',
+                    'swap': 'futures',
                     'future': 'futures',
                     'margin': 'margin',
                 },
