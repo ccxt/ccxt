@@ -344,7 +344,7 @@ class Exchange extends \ccxt\Exchange {
             $tickers = yield $this->fetch_tickers(array( $symbol ), $params);
             $ticker = $this->safe_value($tickers, $symbol);
             if ($ticker === null) {
-                throw new BadSymbol($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
+                throw new NullResponse($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
             } else {
                 return $ticker;
             }
@@ -432,7 +432,7 @@ class Exchange extends \ccxt\Exchange {
             $rates = yield $this->fetchFundingRates (array( $symbol ), $params);
             $rate = $this->safe_value($rates, $symbol);
             if ($rate === null) {
-                throw new BadSymbol($this->id . ' fetchFundingRate () returned no data for ' . $symbol);
+                throw new NullResponse($this->id . ' fetchFundingRate () returned no data for ' . $symbol);
             } else {
                 return $rate;
             }
