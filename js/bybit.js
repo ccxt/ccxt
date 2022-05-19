@@ -680,7 +680,7 @@ module.exports = class bybit extends ccxt.bybit {
         } else {
             let channel = undefined;
             if (market['option']) {
-                channel = 'recenttrades' + '.' + market['settle']; // check this
+                channel = 'recenttrades' + '.' + market['baseId'];
             } else {
                 channel = commonChannel + '.' + market['id'];
             }
@@ -734,6 +734,8 @@ module.exports = class bybit extends ccxt.bybit {
             // spot markets
             const params = this.safeValue (message, 'params', {});
             marketId = this.safeString (params, 'symbol');
+            // injecting marketId in trade
+            data['symbol'] = marketId;
             trades = [ data ];
         } else {
             // contract markets
@@ -749,12 +751,78 @@ module.exports = class bybit extends ccxt.bybit {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const parsedTrades = this.parseTrades (trades, market);
-        for (let j = 0; j < parsedTrades.length; j++) {
-            stored.append (parsedTrades[j]);
+        for (let j = 0; j < trades.length; j++) {
+            const parsed = this.parseWsTrade (trades[j], market);
+            stored.append (parsed);
         }
         const messageHash = 'trade' + ':' + symbol;
         client.resolve (stored, messageHash);
+    }
+
+    parseWsTrade (trade, market = undefined) {
+        //
+        // swap
+        //
+        //     {
+        //       symbol: 'BTCUSDT',
+        //       tick_direction: 'ZeroPlusTick',
+        //       price: '29678.00',
+        //       size: 0.025,
+        //       timestamp: '2022-05-19T13:36:01.000Z',
+        //       trade_time_ms: '1652967361915',
+        //       side: 'Buy',
+        //       trade_id: '78352b1f-17b7-522a-9eea-b06f0deaf23e'
+        //     }
+        //
+        // option
+        //
+        //     {
+        //         "symbol":"BTC-31DEC21-36000-P",
+        //         "tradeId":"787bf079-b6a5-5bc0-a76d-59dad9036e7b",
+        //         "price":"371",
+        //         "size":"0.01",
+        //         "tradeTime":"1636510323144",
+        //         "side":"Buy",
+        //         "crossSeq":"118388"
+        //     }
+        //
+        // spot
+        //
+        //    {
+        //      'symbol': 'BTCUSDT', // artificially added
+        //       v: '2290000000003002848', // trade id
+        //       t: 1652967602261,
+        //       p: '29698.82',
+        //       q: '0.189531',
+        //       m: true
+        //     }
+        //
+        const id = this.safeStringN (trade, ['trade_id', 'v', 'tradeId']);
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const amountString = this.safeString2 (trade, 'q', 'size');
+        const priceString = this.safeString2 (trade, 'p', 'price');
+        const costString = this.safeString (trade, 'exec_value');
+        const timestamp = this.safeNumberN (trade, ['trade_time_ms', 't', 'tradeTime']);
+        const side = this.safeStringLower (trade, 'side');
+        const isMaker = this.safeValue (trade, 'm');
+        const takerOrMaker = isMaker ? 'maker' : 'taker';
+        return this.safeTrade ({
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'order': undefined,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
+            'fee': undefined,
+        }, market);
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
