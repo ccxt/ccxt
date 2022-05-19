@@ -61,8 +61,6 @@ class coinflex extends Exchange {
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
-                'fetchFundingFee' => true,
-                'fetchFundingFees' => false,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => 'emulated',
                 'fetchFundingRateHistory' => 'emulated',
@@ -98,6 +96,8 @@ class coinflex extends Exchange {
                 'fetchTradingFee' => null,
                 'fetchTradingFees' => null,
                 'fetchTradingLimits' => null,
+                'fetchTransactionFee' => true,
+                'fetchTransactionFees' => false,
                 'fetchTransactions' => null,
                 'fetchTransfers' => true,
                 'fetchWithdrawal' => true,
@@ -2255,19 +2255,19 @@ class coinflex extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function fetch_funding_fee($code, $params = array ()) {
+    public function fetch_transaction_fee($code, $params = array ()) {
         $networkName = $this->safe_string_upper($params, 'network');
         if ($networkName === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingFee() requires "network"  parameter');
+            throw new ArgumentsRequired($this->id . ' fetchTransactionFee() requires "network"  parameter');
         }
         $address = $this->safe_string($params, 'address');
         if ($address === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingFee() requires recipient "address"  param to calculate fee');
+            throw new ArgumentsRequired($this->id . ' fetchTransactionFee() requires recipient "address"  param to calculate fee');
         }
         $amount = $this->safe_number($params, 'quantity');
         $params = $this->omit($params, 'quantity');
         if ($address === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingFee() requires "quantity"  param to calculate fee');
+            throw new ArgumentsRequired($this->id . ' fetchTransactionFee() requires "quantity"  param to calculate fee');
         }
         yield $this->load_markets();
         $currency = $this->currency($code);

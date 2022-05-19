@@ -1840,9 +1840,12 @@ class ftx(Exchange):
         request = {}
         if marketId is not None:
             request['market'] = marketId
+        if market is not None:
+            symbol = market['symbol']
         till = self.safe_integer(params, 'till')
         if since is not None:
             request['start_time'] = int(since / 1000)
+            request['end_time'] = self.seconds()
         if till is not None:
             request['end_time'] = int(till / 1000)
             params = self.omit(params, 'till')
