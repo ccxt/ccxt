@@ -5,6 +5,7 @@
 const ccxt = require ('ccxt');
 // BadSymbol, BadRequest
 const { AuthenticationError } = require ('ccxt/js/base/errors');
+const Precise = require ('ccxt/js/base/Precise');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -78,6 +79,9 @@ module.exports = class bybit extends ccxt.bybit {
                 },
             },
             'options': {
+                'watchTicker': {
+                    'name': 'realtimes', // or bookTicker
+                },
             },
             'streaming': {
                 'ping': this.ping,
@@ -120,7 +124,8 @@ module.exports = class bybit extends ccxt.bybit {
         let url = undefined;
         [ url, params ] = this.getUrlByMarketType (symbol, false, params);
         if (market['spot']) {
-            const channel = 'realtimes';
+            const options = this.safeValue (this.options, 'watchTicker', {});
+            const channel = this.safeString (options, 'name', 'realtimes');
             const reqParams = {
                 'symbol': market['id'],
             };
@@ -134,7 +139,20 @@ module.exports = class bybit extends ccxt.bybit {
 
     handleTicker (client, message) {
         //
-        //  spot
+        // {
+        //     topic: 'bookTicker',
+        //     params: { symbol: 'BTCUSDT', binary: 'false', symbolName: 'BTCUSDT' },
+        //     data: {
+        //       symbol: 'BTCUSDT',
+        //       bidPrice: '29150.8',
+        //       bidQty: '0.171947',
+        //       askPrice: '29156.72',
+        //       askQty: '0.017764',
+        //       time: 1652956849565
+        //     }
+        // }
+        //
+        //  spot realtimes
         //    {
         //        topic: 'realtimes',
         //        params: { symbol: 'BTCUSDT', binary: 'false', symbolName: 'BTCUSDT' },
@@ -222,10 +240,10 @@ module.exports = class bybit extends ccxt.bybit {
         //    }
         //
         const topic = this.safeString (message, 'topic', '');
-        if (topic === 'realtimes') {
+        if ((topic === 'realtimes') || (topic === 'bookTicker')) {
             // spot markets
             const data = this.safeValue (message, 'data');
-            const ticker = this.parseTicker (data);
+            const ticker = this.parseWsTicker (data);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
             const messageHash = 'ticker:' + symbol;
@@ -236,7 +254,7 @@ module.exports = class bybit extends ccxt.bybit {
         const data = this.safeValue (message, 'data', {});
         let symbol = undefined;
         if (type === 'snapshot') {
-            const parsed = this.parseTicker (data);
+            const parsed = this.parseWsTicker (data);
             symbol = parsed['symbol'];
             this.tickers[symbol] = parsed;
         }
@@ -274,10 +292,160 @@ module.exports = class bybit extends ccxt.bybit {
                     rawTicker[key] = update[key];
                 }
             }
-            const parsed = this.parseTicker (rawTicker);
+            const parsed = this.parseWsTicker (rawTicker);
             return parsed;
         }
         return ticker;
+    }
+
+    parseWsTicker (ticker, market = undefined) {
+        //
+        // spot
+        //   {
+        //          symbol: 'BTCUSDT',
+        //          bidPrice: '29150.8',
+        //          bidQty: '0.171947',
+        //          askPrice: '29156.72',
+        //          askQty: '0.017764',
+        //          time: 1652956849565
+        //   }
+        //
+        //   {
+        //          t: 1652883737410,
+        //          s: 'BTCUSDT',
+        //          o: '30422.68',
+        //          h: '30715',
+        //          l: '29288.44',
+        //          c: '29462.94',
+        //          v: '4350.340495',
+        //          qv: '130497543.0334267',
+        //          m: '-0.0315'
+        //    }
+        //
+        // swap
+        //
+        //   {
+        //            "id":1,
+        //            "symbol":"BTCUSDT",
+        //            "last_price_e4":"291050000",
+        //            "last_price":"29105.00",
+        //            "bid1_price_e4":"291045000",
+        //            "bid1_price":"29104.50",
+        //            "ask1_price_e4":"291050000",
+        //            "ask1_price":"29105.00",
+        //            "last_tick_direction":"ZeroPlusTick",
+        //            "prev_price_24h_e4":"297900000",
+        //            "prev_price_24h":"29790.00",
+        //            "price_24h_pcnt_e6":"-22994",
+        //            "high_price_24h_e4":"300200000",
+        //            "high_price_24h":"30020.00",
+        //            "low_price_24h_e4":"286330000",
+        //            "low_price_24h":"28633.00",
+        //            "prev_price_1h_e4":"291435000",
+        //            "prev_price_1h":"29143.50",
+        //            "price_1h_pcnt_e6":"-1321",
+        //            "mark_price_e4":"291148200",
+        //            "mark_price":"29114.82",
+        //            "index_price_e4":"291173600",
+        //            "index_price":"29117.36",
+        //            "open_interest_e8":"2725210700000",
+        //            "total_turnover_e8":"6184585271557950000",
+        //            "turnover_24h_e8":"373066109692150560",
+        //            "total_volume_e8":"3319897492699924",
+        //            "volume_24h_e8":"12774825300000",
+        //            "funding_rate_e6":"-97",
+        //            "predicted_funding_rate_e6":"100",
+        //            "cross_seq":"11834024892",
+        //            "created_at":"1970-01-01T00:00:00.000Z",
+        //            "updated_at":"2022-05-19T08:52:10.000Z",
+        //            "next_funding_time":"2022-05-19T16:00:00Z",
+        //            "count_down_hour":"8",
+        //            "funding_rate_interval":"8",
+        //            "settle_time_e9":"0",
+        //            "delisting_status":"0"
+        //         },
+        //         "cross_seq":"11834024953",
+        //         "timestamp_e6":"1652950330515050"
+        //     }
+        //
+        // option
+        //    {
+        //        "symbol":"BTC-19NOV21-58000-P",
+        //        "bidPrice":"421",
+        //        "askPrice":"465",
+        //        "bidIv":"0.7785",
+        //        "askIv":"0.8012",
+        //        "bidSize":"17",
+        //        "askSize":"18",
+        //        "markPrice":"442.51157238",
+        //        "markPriceIv":"0.7897",
+        //        "indexPrice":"67102.13",
+        //        "underlyingPrice":"67407.49",
+        //        "lastPrice":"0",
+        //        "delta":"-0.10385629",
+        //        "gamma":"0.00002132",
+        //        "theta":"-82.72572574",
+        //        "vega":"19.33584131",
+        //        "change24h":"0",
+        //        "volume24h":"0",
+        //        "turnover24h":"0",
+        //        "high24h":"0",
+        //        "low24h":"0",
+        //        "totalVolume":"0",
+        //        "totalTurnover":"0",
+        //        "openInterest":"0",
+        //        "predictedDeliveryPrice":"62330.90608575"
+        //    }
+        //
+        let timestamp = this.safeInteger2 (ticker, 'time', 't');
+        if (timestamp === undefined) {
+            timestamp = this.parse8601 (this.safeString (ticker, 'updated_at'));
+        }
+        const marketId = this.safeString2 (ticker, 'symbol', 's');
+        const symbol = this.safeSymbol (marketId, market);
+        const last = this.safeString2 (ticker, 'l', 'last_price');
+        const open = this.safeString2 (ticker, 'prev_price_24h', 'o');
+        let baseVolume = this.safeStringN (ticker, ['v', 'turnover24h']);
+        if (baseVolume === undefined) {
+            baseVolume = this.safeString (ticker, 'turnover_24h_e8');
+            baseVolume = Precise.stringDiv (baseVolume, '100000000');
+        }
+        let quoteVolume = this.safeString2 (ticker, 'qv', 'volume24h');
+        if (quoteVolume === undefined) {
+            quoteVolume = this.safeString (ticker, 'volume_24h_e8');
+        }
+        const bid = this.safeStringN (ticker, ['bidPrice', 'bid1_price']);
+        const ask = this.safeStringN (ticker, ['askPrice', 'ask1_price']);
+        const high = this.safeStringN (ticker, ['high_price_24h', 'high24h', 'h']);
+        const low = this.safeStringN (ticker, ['low_price_24h', 'low24h', 'l']);
+        let percentage = this.safeString (ticker, 'm');
+        if (percentage === undefined) {
+            percentage = this.safeString (ticker, 'price_24h_pcnt_e6');
+            percentage = Precise.stringDiv (percentage, '1000000');
+        }
+        const change = this.safeString (ticker, 'change24h');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': high,
+            'low': low,
+            'bid': bid,
+            'bidVolume': this.safeString2 (ticker, 'bidSize', 'bidQty'),
+            'ask': ask,
+            'askVolume': this.safeString2 (ticker, 'askSize', 'askQty'),
+            'vwap': undefined,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
+        }, market, false);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -499,8 +667,26 @@ module.exports = class bybit extends ccxt.bybit {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const messageHash = 'trade' + ':' + market['id'];
-        const trades = await this.watchPublic (messageHash, params);
+        let url = undefined;
+        const commonChannel = 'trade';
+        [ url, params ] = this.getUrlByMarketType (symbol, false, params);
+        const messageHash = commonChannel + ':' + symbol;
+        let trades = undefined;
+        if (market['spot']) {
+            const reqParams = {
+                'symbol': market['id'],
+            };
+            trades = await this.watchSpotPublic (url, commonChannel, messageHash, reqParams, params);
+        } else {
+            let channel = undefined;
+            if (market['option']) {
+                channel = 'recenttrades' + '.' + market['settle']; // check this
+            } else {
+                channel = commonChannel + '.' + market['id'];
+            }
+            const reqParams = [ channel ];
+            trades = await this.watchSwapPublic (url, messageHash, reqParams, params);
+        }
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -509,22 +695,52 @@ module.exports = class bybit extends ccxt.bybit {
 
     handleTrades (client, message) {
         //
-        //     {
-        //         topic: 'trade',
-        //         action: 'partial',
-        //         symbol: 'btc-usdt',
-        //         data: [
-        //             {
-        //                 size: 0.05145,
-        //                 price: 41977.9,
-        //                 side: 'buy',
-        //                 timestamp: '2022-04-11T09:40:10.881Z'
-        //             },
-        //         ]
-        //     }
+        // swap
+        //    {
+        //        topic: 'trade.BTCUSDT',
+        //        data: [
+        //          {
+        //            symbol: 'BTCUSDT',
+        //            tick_direction: 'ZeroPlusTick',
+        //            price: '29678.00',
+        //            size: 0.025,
+        //            timestamp: '2022-05-19T13:36:01.000Z',
+        //            trade_time_ms: '1652967361915',
+        //            side: 'Buy',
+        //            trade_id: '78352b1f-17b7-522a-9eea-b06f0deaf23e'
+        //          }
+        //        ]
+        //    }
         //
-        const channel = this.safeString (message, 'topic');
-        const marketId = this.safeString (message, 'symbol');
+        // spot
+        //
+        //    {
+        //        topic: 'trade',
+        //        params: { symbol: 'BTCUSDT', binary: 'false', symbolName: 'BTCUSDT' },
+        //        data: {
+        //          v: '2290000000003002848',
+        //          t: 1652967602261,
+        //          p: '29698.82',
+        //          q: '0.189531',
+        //          m: true
+        //        }
+        //    }
+        //
+        let marketId = undefined;
+        const data = this.safeValue (message, 'data', []);
+        const topic = this.safeString (message, 'topic');
+        let trades = undefined;
+        if (!Array.isArray (data)) {
+            // spot markets
+            const params = this.safeValue (message, 'params', {});
+            marketId = this.safeString (params, 'symbol');
+            trades = [ data ];
+        } else {
+            // contract markets
+            const parts = topic.split ('.');
+            marketId = this.safeString (parts, 1);
+            trades = data;
+        }
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         let stored = this.safeValue (this.trades, symbol);
@@ -533,14 +749,12 @@ module.exports = class bybit extends ccxt.bybit {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const data = this.safeValue (message, 'data', []);
-        const parsedTrades = this.parseTrades (data, market);
+        const parsedTrades = this.parseTrades (trades, market);
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append (parsedTrades[j]);
         }
-        const messageHash = channel + ':' + marketId;
+        const messageHash = 'trade' + ':' + symbol;
         client.resolve (stored, messageHash);
-        client.resolve (stored, channel);
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -773,6 +987,21 @@ module.exports = class bybit extends ccxt.bybit {
         //        msg: 'Success'
         //    }
         //
+        //    {
+        //        topic: 'trade.BTCUSDT',
+        //        data: [
+        //          {
+        //            symbol: 'BTCUSDT',
+        //            tick_direction: 'ZeroPlusTick',
+        //            price: '29678.00',
+        //            size: 0.025,
+        //            timestamp: '2022-05-19T13:36:01.000Z',
+        //            trade_time_ms: '1652967361915',
+        //            side: 'Buy',
+        //            trade_id: '78352b1f-17b7-522a-9eea-b06f0deaf23e'
+        //          }
+        //        ]
+        //    }
         //
         if (!this.handleErrorMessage (client, message)) {
             return;
@@ -782,18 +1011,23 @@ module.exports = class bybit extends ccxt.bybit {
             this.handleSubscriptionStatus (client, message);
             return;
         }
-        const topic = this.safeString (message, 'topic');
-        if (topic !== undefined && (topic.indexOf ('kline') >= 0 || topic.indexOf ('candle') >= 0)) {
+        const topic = this.safeString (message, 'topic', '');
+        if ((topic.indexOf ('kline') >= 0 || topic.indexOf ('candle') >= 0)) {
             this.handleOHLCV (client, message);
             return;
         }
-        if (topic !== undefined && (topic.indexOf ('realtimes') >= 0 || topic.indexOf ('instrument_info') >= 0)) {
+        if ((topic.indexOf ('realtimes') >= 0 || topic.indexOf ('instrument_info') >= 0)) {
             this.handleTicker (client, message);
+            return;
+        }
+        if (topic.indexOf ('trade') >= 0) {
+            this.handleTrades (client, message);
             return;
         }
         const methods = {
             'realtimes': this.handleTicker,
-            'trade': this.handleTrades,
+            'bookTicker': this.handleTicker,
+            // 'trade': this.handleTrades,
             'orderbook': this.handleOrderBook,
             'order': this.handleOrder,
             'wallet': this.handleBalance,
