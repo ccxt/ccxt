@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 // BadSymbol, BadRequest
-const { AuthenticationError } = require ('ccxt/js/base/errors');
+const { AuthenticationError, BadRequest } = require ('ccxt/js/base/errors');
 const Precise = require ('ccxt/js/base/Precise');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
@@ -630,9 +630,17 @@ module.exports = class bybit extends ccxt.bybit {
         } else {
             let channel = undefined;
             if (market['option']) {
-                channel = 'orderBook' + '.' + market['baseId'];
+                channel = 'delta.orderbook100' + '.' + market['marketId'];
             } else {
-                channel = 'orderBook' + '.' + market['id'];
+                if (limit !== undefined) {
+                    if (limit !== 25 && limit !== 200) {
+                        throw new BadRequest (this.id + ' watchOrderBook limit argument must be either 25 or 200');
+                    }
+                } else {
+                    limit = 25;
+                }
+                const prefix = (limit === 25) ? 'orderBookL2_25' : 'orderBook_200.100ms';
+                channel = prefix + '.' + market['id'];
             }
             const reqParams = [ channel ];
             orderbook = await this.watchSwapPublic (url, messageHash, reqParams, params);
@@ -665,8 +673,65 @@ module.exports = class bybit extends ccxt.bybit {
         //     }
         //   }
         //
+        // contract snapshot
+        //    {
+        //        topic: 'orderBookL2_25.BTCUSDT',
+        //        type: 'snapshot',
+        //        data: {
+        //          order_book: [
+        //              {
+        //                  "price":"29907.50",
+        //                  "symbol":"BTCUSDT",
+        //                  "id":"299075000",
+        //                  "side":"Buy",
+        //                  "size":0.763
+        //              }
+        //          ]
+        //        },
+        //        cross_seq: '11846360142',
+        //        timestamp_e6: '1652973544516741'
+        //    }
+        //
+        // contract delta
+        //
+        // {
+        //     topic: 'orderBookL2_25.BTCUSDT',
+        //     type: 'delta',
+        //     data: {
+        //         "delete": [
+        //             {
+        //                   "price": "3001.00",
+        //                   "symbol": "BTCUSDT",
+        //                   "id": 30010000,
+        //                   "side": "Sell"
+        //             }
+        //          ],
+        //          "update": [
+        //             {
+        //                   "price": "2999.00",
+        //                   "symbol": "BTCUSDT",
+        //                   "id": 29990000,
+        //                   "side": "Buy",
+        //                   "size": 8
+        //             }
+        //          ],
+        //          "insert": [
+        //             {
+        //                   "price": "2998.00",
+        //                   "symbol": "BTCUSDT",
+        //                   "id": 29980000,
+        //                   "side": "Buy",
+        //                   "size": 8
+        //             }
+        //            ],
+        //          },
+        //          cross_seq: '11848736847',
+        //          timestamp_e6: '1652976712534987'
+        //     }
+        //
+        const topic = this.safeString (message, 'topic', '');
         const data = this.safeValue (message, 'data', {});
-        if (!Array.isArray (data)) {
+        if (topic === 'depth') {
             // spot branch, we get the snapshot in every message
             const marketId = this.safeString (data, 's');
             const market = this.market (marketId);
@@ -683,25 +748,87 @@ module.exports = class bybit extends ccxt.bybit {
             }
             const messageHash = 'orderbook' + ':' + symbol;
             client.resolve (orderbook, messageHash);
+            return;
         }
-        // const marketId = this.safeString (message, 'symbol');
-        // const channel = this.safeString (message, 'topic');
-        // const market = this.safeMarket (marketId);
-        // const symbol = market['symbol'];
-        // const data = this.safeValue (message, 'data');
-        // let timestamp = this.safeString (data, 'timestamp');
-        // timestamp = this.parse8601 (timestamp);
-        // const snapshot = this.parseOrderBook (data, symbol, timestamp);
-        // let orderbook = undefined;
-        // if (!(symbol in this.orderbooks)) {
-        //     orderbook = this.orderBook (snapshot);
-        //     this.orderbooks[symbol] = orderbook;
-        // } else {
-        //     orderbook = this.orderbooks[symbol];
-        //     orderbook.reset (snapshot);
-        // }
-        // const messageHash = channel + ':' + marketId;
-        // client.resolve (orderbook, messageHash);
+        if (topic.indexOf ('orderBook') >= 0) {
+            // contract branch
+            const type = this.safeString (message, 'type');
+            const topicParts = topic.split ('.');
+            const topicLength = topicParts.length;
+            const marketId = this.safeString (topicParts, topicLength - 1);
+            const market = this.market (marketId);
+            const symbol = market['symbol'];
+            const messageHash = 'orderbook' + ':' + symbol;
+            if (type === 'snapshot') {
+                const rawOrderBook = this.safeValue (data, 'order_book');
+                const timestamp = this.safeIntegerProduct (message, 'timestamp_e6', 0.001);
+                const snapshot = this.parseOrderBook (rawOrderBook, symbol, timestamp, 'Buy', 'Sell', 'price', 'size');
+                const nonce = this.safeInteger (message, 'cross_seq');
+                snapshot['nonce'] = nonce;
+                let orderbook = undefined;
+                if (!(symbol in this.orderbooks)) {
+                    orderbook = this.orderBook (snapshot);
+                    this.orderbooks[symbol] = orderbook;
+                } else {
+                    orderbook = this.orderbooks[symbol];
+                    orderbook.reset (snapshot);
+                }
+            } else if (type === 'delta') {
+                const deleted = this.safeValue (data, 'delete', []);
+                const updated = this.safeValue (data, 'update', []);
+                const inserted = this.safeValue (data, 'insert', []);
+                const updatedDeleted = [];
+                for (let i = 0; i < deleted.length; i++) {
+                    const entry = deleted[i];
+                    entry['size'] = 0;
+                    updatedDeleted.push (entry);
+                }
+                let deltas = updatedDeleted;
+                deltas = this.arrayConcat (deltas, updated);
+                deltas = this.arrayConcat (deltas, inserted);
+                const orderbook = this.safeValue (this.orderbooks, symbol);
+                this.handleDeltas (orderbook, deltas);
+            }
+            client.resolve (this.orderbooks[symbol], messageHash);
+        }
+    }
+
+    handleDeltas (orderbook, deltas) {
+        //
+        //   [
+        //      {
+        //            "price": "2999.00",
+        //            "symbol": "BTCUSDT",
+        //            "id": 29990000,
+        //            "side": "Buy",
+        //            "size": 8
+        //      }
+        //   ]
+        //
+        for (let i = 0; i < deltas.length; i++) {
+            const delta = deltas[i];
+            const side = this.safeString (delta, 'side');
+            if (side === 'Buy') {
+                this.handleDelta (orderbook['bids'], deltas[i]);
+            } else {
+                this.handleDelta (orderbook['asks'], deltas[i]);
+            }
+        }
+    }
+
+    handleDelta (bookside, delta) {
+        //
+        //   {
+        //         "price": "2999.00",
+        //         "symbol": "BTCUSDT",
+        //         "id": 29990000,
+        //         "side": "Buy",
+        //         "size": 8
+        //   }
+        //
+        const price = this.safeNumber (delta, 'price');
+        const amount = this.safeNumber (delta, 'size');
+        bookside.store (price, amount);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -1131,6 +1258,10 @@ module.exports = class bybit extends ccxt.bybit {
         }
         if (topic.indexOf ('trade') >= 0) {
             this.handleTrades (client, message);
+            return;
+        }
+        if (topic.indexOf ('orderBook') >= 0) {
+            this.handleOrderBook (client, message);
             return;
         }
         const methods = {
