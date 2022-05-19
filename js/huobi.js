@@ -3899,7 +3899,7 @@ module.exports = class huobi extends Exchange {
             method = 'spotPrivatePostV1OrderOrdersBatchCancelOpenOrders';
         } else {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol for ' + marketType + ' orders');
+                throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol for ' + marketType + ' orders');
             }
             const market = this.market (symbol);
             request['contract_code'] = market['id'];
@@ -4579,7 +4579,7 @@ module.exports = class huobi extends Exchange {
         } else if (market['linear']) {
             method = 'contractPublicGetLinearSwapApiV1SwapFundingRate';
         } else {
-            throw new NotSupported (this.id + ' fetchFundingRateHistory() supports inverse and linear swaps only');
+            throw new NotSupported (this.id + ' fetchFundingRate() supports inverse and linear swaps only');
         }
         const request = {
             'contract_code': market['id'],
@@ -5638,7 +5638,7 @@ module.exports = class huobi extends Exchange {
         if (symbol !== undefined) {
             const market = this.market (symbol);
             if (!market['contract']) {
-                throw new BadRequest (this.id + ' fetchLeverageTiers() symbol supports contract markets only');
+                throw new BadRequest (this.id + ' fetchMarketLeverageTiers() symbol supports contract markets only');
             }
             request['contract_code'] = market['id'];
         }
