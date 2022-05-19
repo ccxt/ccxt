@@ -92,7 +92,7 @@ module.exports = class bitvavo extends Exchange {
                 '1d': '1d',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/169202626-bd130fc5-fcf9-41bb-8d97-6093225c73cd.jpg',
                 'api': {
                     'public': 'https://api.bitvavo.com',
                     'private': 'https://api.bitvavo.com',
