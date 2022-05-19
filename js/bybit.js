@@ -499,6 +499,7 @@ module.exports = class bybit extends Exchange {
             'exceptions': {
                 'exact': {
                     '-10009': BadRequest, // {"ret_code":-10009,"ret_msg":"Invalid period!","result":null,"token":null}
+                    '-2013': InvalidOrder, // {"ret_code":-2013,"ret_msg":"Order does not exist.","ext_code":null,"ext_info":null,"result":null}
                     '-2015': AuthenticationError, // Invalid API-key, IP, or permissions for action.
                     '-1021': BadRequest, // {"ret_code":-1021,"ret_msg":"Timestamp for this request is outside of the recvWindow.","ext_code":null,"ext_info":null,"result":null}
                     '-1004': BadRequest, // {"ret_code":-1004,"ret_msg":"Missing required parameter \u0027symbol\u0027","ext_code":null,"ext_info":null,"result":null}
@@ -2252,20 +2253,27 @@ module.exports = class bybit extends Exchange {
     parseOrderStatus (status) {
         const statuses = {
             // basic orders
-            'created': 'open',
-            'rejected': 'rejected', // order is triggered but failed upon being placed
-            'new': 'open',
-            'partiallyfilled': 'open',
-            'filled': 'closed',
-            'cancelled': 'canceled',
-            'pendingcancel': 'canceling', // the engine has received the cancellation but there is no guarantee that it will be successful
+            'Created': 'open',
+            'Rejected': 'rejected', // order is triggered but failed upon being placed
+            'New': 'open',
+            'Partiallyfilled': 'open',
+            'Filled': 'closed',
+            'Cancelled': 'canceled',
+            'Pendingcancel': 'canceling', // the engine has received the cancellation but there is no guarantee that it will be successful
+            'CREATED': 'open',
+            'REJECTED': 'rejected',
+            'NEW': 'open',
+            'PARTIALLYFILLED': 'open',
+            'FILLED': 'closed',
+            'CANCELED': 'canceled',
+            'PENDINGCANCEL': 'canceling',
             // conditional orders
-            'active': 'open', // order is triggered and placed successfully
-            'untriggered': 'open', // order waits to be triggered
-            'triggered': 'closed', // order is triggered
+            'Active': 'open', // order is triggered and placed successfully
+            'Untriggered': 'open', // order waits to be triggered
+            'Triggered': 'closed', // order is triggered
             // 'Cancelled': 'canceled', // order is cancelled
             // 'Rejected': 'rejected', // order is triggered but fail to be placed
-            'deactivated': 'canceled', // conditional order was cancelled before triggering
+            'Deactivated': 'canceled', // conditional order was cancelled before triggering
         };
         return this.safeString (statuses, status, status);
     }
@@ -2496,7 +2504,7 @@ module.exports = class bybit extends Exchange {
                 lastTradeTimestamp = this.safeNumber (order, 'updateTime');
             }
         }
-        const raw_status = this.safeStringLowerN (order, [ 'order_status', 'stop_order_status', 'status', 'orderStatus' ]);
+        const raw_status = this.safeStringN (order, [ 'order_status', 'stop_order_status', 'status', 'orderStatus' ]);
         const status = this.parseOrderStatus (raw_status);
         const side = this.safeStringLower (order, 'side');
         const feeCostString = this.safeString (order, 'cum_exec_fee');
