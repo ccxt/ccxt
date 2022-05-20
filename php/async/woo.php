@@ -54,6 +54,7 @@ class woo extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrder' => false,
                 'fetchOpenOrders' => false,
                 'fetchOrder' => true,

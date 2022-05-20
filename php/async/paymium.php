@@ -37,6 +37,7 @@ class paymium extends Exchange {
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchMarkOHLCV' => false,
+                'fetchOpenInterestHistory' => false,
                 'fetchOrderBook' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,

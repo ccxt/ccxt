@@ -64,6 +64,7 @@ class coinbase extends Exchange {
                 'fetchMySells' => true,
                 'fetchMyTrades' => null,
                 'fetchOHLCV' => false,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => null,
                 'fetchOrder' => null,
                 'fetchOrderBook' => false,

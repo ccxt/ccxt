@@ -99,6 +99,7 @@ class gateio extends Exchange {
                 'fetchMyTrades' => true,
                 'fetchNetworkDepositAddress' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,

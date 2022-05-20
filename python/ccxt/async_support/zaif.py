@@ -39,6 +39,7 @@ class zaif(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchPremiumIndexOHLCV': False,

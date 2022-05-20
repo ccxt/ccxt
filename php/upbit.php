@@ -47,6 +47,7 @@ class upbit extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => null,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,

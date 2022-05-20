@@ -36,6 +36,7 @@ class paymium(Exchange):
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchMarkOHLCV': False,
+                'fetchOpenInterestHistory': False,
                 'fetchOrderBook': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,

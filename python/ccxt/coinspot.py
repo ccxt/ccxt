@@ -43,6 +43,7 @@ class coinspot(Exchange):
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarkOHLCV': False,
+                'fetchOpenInterestHistory': False,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
                 'fetchPositions': False,

@@ -67,6 +67,7 @@ class coinbase(Exchange):
                 'fetchMySells': True,
                 'fetchMyTrades': None,
                 'fetchOHLCV': False,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': None,
                 'fetchOrder': None,
                 'fetchOrderBook': False,
