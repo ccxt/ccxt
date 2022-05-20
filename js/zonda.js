@@ -256,6 +256,13 @@ module.exports = class zonda extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchMarkets
+         * @description retrieves data on all markets for zonda
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.v1_01PublicGetTradingTicker (params);
         const fiatCurrencies = this.safeValue (this.options, 'fiatCurrencies', []);
         //

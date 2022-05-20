@@ -275,6 +275,13 @@ module.exports = class bittrex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name bittrex#fetchMarkets
+         * @description retrieves data on all markets for bittrex
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetMarkets (params);
         //
         //     [

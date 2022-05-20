@@ -255,6 +255,13 @@ module.exports = class woo extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name woo#fetchMarkets
+         * @description retrieves data on all markets for woo
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PublicGetInfo',

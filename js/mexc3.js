@@ -592,6 +592,13 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name mexc3#fetchMarkets
+         * @description retrieves data on all markets for mexc3
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const spotMarket = await this.fetchSpotMarkets (params);
         const swapMarket = await this.fetchSwapMarkets (params);
         return this.arrayConcat (spotMarket, swapMarket);

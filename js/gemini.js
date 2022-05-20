@@ -255,6 +255,13 @@ module.exports = class gemini extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name gemini#fetchMarkets
+         * @description retrieves data on all markets for gemini
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const method = this.safeValue (this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
         return await this[method] (params);
     }

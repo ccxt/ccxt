@@ -252,6 +252,13 @@ module.exports = class lbank2 extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name lbank2#fetchMarkets
+         * @description retrieves data on all markets for lbank2
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         // needs to return a list of unified market structures
         const response = await this.publicGetAccuracy ();
         const data = this.safeValue (response, 'data');

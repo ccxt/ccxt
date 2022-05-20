@@ -645,6 +645,13 @@ module.exports = class phemex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name phemex#fetchMarkets
+         * @description retrieves data on all markets for phemex
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const v2Products = await this.publicGetCfgV2Products (params);
         //
         //     {

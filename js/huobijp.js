@@ -403,6 +403,13 @@ module.exports = class huobijp extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name huobijp#fetchMarkets
+         * @description retrieves data on all markets for huobijp
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const method = this.options['fetchMarketsMethod'];
         const response = await this[method] (params);
         //

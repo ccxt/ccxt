@@ -368,6 +368,13 @@ module.exports = class stex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name stex#fetchMarkets
+         * @description retrieves data on all markets for stex
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const request = {
             'code': 'ALL',
         };

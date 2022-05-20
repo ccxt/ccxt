@@ -367,6 +367,13 @@ module.exports = class currencycom extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name currencycom#fetchMarkets
+         * @description retrieves data on all markets for currencycom
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetV2ExchangeInfo (params);
         //
         //     {

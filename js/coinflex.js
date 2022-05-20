@@ -304,6 +304,13 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchMarkets
+         * @description retrieves data on all markets for coinflex
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         // v3 markets has a few less fields available for market-objects, but still enough to precede.
         const response = await this.publicGetV3Markets (params);
         //

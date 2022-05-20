@@ -641,6 +641,13 @@ module.exports = class bitmart extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name bitmart#fetchMarkets
+         * @description retrieves data on all markets for bitmart
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const spot = await this.fetchSpotMarkets (params);
         const contract = await this.fetchContractMarkets (params);
         return this.arrayConcat (spot, contract);

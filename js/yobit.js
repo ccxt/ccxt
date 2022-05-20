@@ -315,6 +315,13 @@ module.exports = class yobit extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name yobit#fetchMarkets
+         * @description retrieves data on all markets for yobit
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetInfo (params);
         //
         //     {

@@ -294,6 +294,13 @@ module.exports = class digifinex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name digifinex#fetchMarkets
+         * @description retrieves data on all markets for digifinex
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const options = this.safeValue (this.options, 'fetchMarkets', {});
         const method = this.safeString (options, 'method', 'fetch_markets_v2');
         return await this[method] (params);

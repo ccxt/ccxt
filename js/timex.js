@@ -227,6 +227,13 @@ module.exports = class timex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name timex#fetchMarkets
+         * @description retrieves data on all markets for timex
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetMarkets (params);
         //
         //     [

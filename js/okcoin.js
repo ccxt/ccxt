@@ -793,6 +793,13 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchMarkets
+         * @description retrieves data on all markets for okcoin
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const types = this.safeValue (this.options, 'fetchMarkets');
         let result = [];
         for (let i = 0; i < types.length; i++) {
