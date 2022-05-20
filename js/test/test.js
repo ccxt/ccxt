@@ -300,13 +300,13 @@ async function testExchange (exchange) {
     await test ('fetchTransactionFees', exchange)
     await test ('fetchTradingFees', exchange)
     await test ('fetchStatus', exchange)
+    await test ('fetchOpenInterestHistory', exchange, symbol)
 
     await test ('fetchOrders', exchange, symbol)
     await test ('fetchOpenOrders', exchange, symbol)
     await test ('fetchClosedOrders', exchange, symbol)
     await test ('fetchMyTrades', exchange, symbol)
     await test ('fetchLeverageTiers', exchange, symbol)
-    await test ('fetchOpenInterestHistory', exchange, symbol)
 
     await test ('fetchPositions', exchange, symbol)
 
