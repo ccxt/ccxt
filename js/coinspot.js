@@ -40,6 +40,7 @@ module.exports = class coinspot extends Exchange {
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarkOHLCV': false,
+                'fetchOpenInterestHistory': false,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
                 'fetchPositions': false,
