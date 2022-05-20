@@ -239,7 +239,7 @@ module.exports = class okx extends Exchange {
                         'asset/broker/nd/subaccount-deposit-history': 4,
                         'broker/nd/rebate-daily': 1,
                         'broker/nd/subaccount/apikey': 10,
-                        'broker/nd/rebate-per-orders': 300,
+                        'broker/nd/rebate-per-orders': 36000,
                         // convert
                         'asset/convert/currencies': 5 / 3,
                         'asset/convert/currency-pair': 5 / 3,
