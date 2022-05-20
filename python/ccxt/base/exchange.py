@@ -3067,6 +3067,15 @@ class Exchange(object):
         symbol = None if (market is None) else market['symbol']
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
+    def parse_open_interests(self, response, market=None, since=None, limit=None):
+        interests = []
+        for i in range(len(response)):
+            entry = response[i]
+            interest = self.parseOpenInterest(entry, market)
+            interests.append(interest)
+        sorted = self.sortBy(interests, 'timestamp')
+        return self.filterBySymbolSinceLimit(sorted, market, since, limit)
+
     def fetch_funding_rate(self, symbol, params={}):
         if self.has['fetchFundingRates']:
             market = self.market(symbol)

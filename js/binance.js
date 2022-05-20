@@ -70,6 +70,7 @@ module.exports = class binance extends Exchange {
                 'fetchMySells': undefined,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': true,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -5692,6 +5693,83 @@ module.exports = class binance extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': info,
+        };
+    }
+
+    async fetchOpenInterestHistory (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchOpenInterestHistory
+         * @description Retrieves the open intestest history of a currency
+         * @param {str} symbol Unified CCXT market symbol
+         * @param {str} timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
+         * @param {int} since The time(ms) of the earliest record to retrieve as a unix timestamp
+         * @param {int} limit default 30, max 500
+         * @param {dict} params Exchange specific parameters
+         * @param {int} params.till The time(ms) of the latest record to retrieve as a unix timestamp
+         * @returns An array of open interest structures
+         */
+        if (timeframe === '1m') {
+            throw new BadRequest (this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'period': this.timeframes[timeframe],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const symbolKey = market['future'] ? 'symbol' : 'pair';
+        request[symbolKey] = market['id'];
+        if (market['delivery']) {
+            request['contractType'] = this.safeString (params, 'contractType', 'CURRENT_QUARTER');
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const till = this.safeInteger (params, 'till'); // unified in milliseconds
+        const endTime = this.safeString (params, 'endTime', till); // exchange-specific in milliseconds
+        params = this.omit (params, [ 'endTime', 'till' ]);
+        if (endTime) {
+            request['endTime'] = endTime;
+        } else if (since) {
+            if (limit === undefined) {
+                limit = 30; // Exchange default
+            }
+            const duration = this.parseTimeframe (timeframe);
+            request['endTime'] = this.sum (since, duration * limit * 1000);
+        }
+        let method = 'fapiDataGetOpenInterestHist';
+        if (market['delivery']) {
+            method = 'dapiDataGetOpenInterestHist';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //  [
+        //      {
+        //          "symbol":"BTCUSDT",
+        //          "sumOpenInterest":"75375.61700000",
+        //          "sumOpenInterestValue":"3248828883.71251440",
+        //          "timestamp":1642179900000
+        //      },
+        //      ...
+        //  ]
+        //
+        return this.parseOpenInterests (response, symbol, since, limit);
+    }
+
+    parseOpenInterest (interest, market = undefined) {
+        const timestamp = this.safeInteger (interest, 'timestamp');
+        const id = this.safeString (interest, 'symbol');
+        market = this.safeMarket (id, market);
+        return {
+            'symbol': this.safeSymbol (id),
+            'baseVolume': this.safeNumber (interest, 'sumOpenInterest'),
+            'quoteVolume': this.safeNumber (interest, 'sumOpenInterestValue'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
         };
     }
 };

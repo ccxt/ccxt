@@ -3965,7 +3965,7 @@ class Exchange {
         }
         $array = array('postOnly' => true);
         $query = $this->extend($params, $array);
-        return $this->create_order($symbol, $type, $side, $amount, $price, $params);
+        return $this->create_order($symbol, $type, $side, $amount, $price, $query);
     }
 
     public function create_reduce_only_order($symbol, $type, $side, $amount, $price, $params = array()) {
@@ -4036,6 +4036,17 @@ class Exchange {
         $sorted = $this->sort_by($rates, 'timestamp');
         $symbol = ($market === null) ? null : $market['symbol'];
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function parse_open_interests($response, $market = null, $since = null, $limit = null) {
+        $interests = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = &$response[$i];
+            $interest = $this->parseOpenInterest($entry, $market);
+            array_push($interests, $interest);
+        }
+        $sorted = $this->sortBy ($interests, 'timestamp');
+        return $this->filterBySymbolSinceLimit ($sorted, $market, $since, $limit);
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {

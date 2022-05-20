@@ -2335,6 +2335,18 @@ module.exports = class Exchange {
         }
     }
 
+    parseOpenInterests (response, market = undefined, since = undefined, limit = undefined) {
+        const interests = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const interest = this.parseOpenInterest (entry, market);
+            interests.push (interest);
+        }
+        const sorted = this.sortBy (interests, 'timestamp');
+        const symbol = this.safeString (market, 'symbol');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
     isPostOnly (type, timeInForce = undefined, exchangeSpecificOption = undefined, params = {}) {
         /**
          * @ignore
