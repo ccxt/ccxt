@@ -785,7 +785,7 @@ module.exports = class buda extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         if (this.isFiat (code)) {
-            throw new NotSupported (this.id + ' fetchDepositAddress() of fiat for ' + code + ' is not supported');
+            throw new NotSupported (this.id + ' createDepositAddress() of fiat for ' + code + ' is not supported');
         }
         const request = {
             'currency': currency['id'],
@@ -868,7 +868,7 @@ module.exports = class buda extends Exchange {
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
         }
         const currency = this.currency (code);
         const request = {

@@ -363,7 +363,7 @@ module.exports = class bitmart extends Exchange {
     }
 
     async fetchStatus (params = {}) {
-        const options = this.safeValue (this.options, 'fetchBalance', {});
+        const options = this.safeValue (this.options, 'fetchStatus', {});
         const defaultType = this.safeString (this.options, 'defaultType');
         let type = this.safeString (options, 'type', defaultType);
         type = this.safeString (params, 'type', type);

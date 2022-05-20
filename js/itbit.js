@@ -341,7 +341,7 @@ module.exports = class itbit extends Exchange {
         await this.loadMarkets ();
         const walletId = this.safeString (params, 'walletId');
         if (walletId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a walletId parameter');
+            throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a walletId parameter');
         }
         const request = {
             'walletId': walletId,

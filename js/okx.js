@@ -4327,7 +4327,7 @@ module.exports = class okx extends Exchange {
 
     async setMarginMode (marginMode, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS

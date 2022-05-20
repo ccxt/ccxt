@@ -1620,7 +1620,7 @@ module.exports = class ascendex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchCLosedOrders', market, params);
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
         const options = this.safeValue (this.options, 'fetchClosedOrders', {});
         const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountGroupGetOrderHist');
         const method = this.getSupportedMapping (type, {

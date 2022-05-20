@@ -2082,7 +2082,7 @@ module.exports = class deribit extends Exchange {
 
     async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' transfer() requires a currency code argument');
+            throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a currency code argument');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
