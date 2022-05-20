@@ -536,6 +536,10 @@ module.exports = class ascendex extends Exchange {
             let quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
             const status = this.safeString (market, 'status');
+            let active = false;
+            if ((status === 'Normal') || (status === 'InternalTrading')) {
+                active = true;
+            }
             const spot = settle === undefined;
             const swap = !spot;
             const linear = swap ? true : undefined;
@@ -576,7 +580,7 @@ module.exports = class ascendex extends Exchange {
                 'swap': swap,
                 'future': false,
                 'option': false,
-                'active': (status === 'Normal'),
+                'active': active,
                 'contract': swap,
                 'linear': linear,
                 'inverse': swap ? !linear : undefined,
