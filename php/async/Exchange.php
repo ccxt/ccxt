@@ -364,7 +364,7 @@ class Exchange extends \ccxt\Exchange {
         if ($this->has['fetchLeverageTiers']) {
             $market = yield $this->market($symbol);
             if (!$market['contract']) {
-                throw new BadRequest($this->id . ' fetchLeverageTiers() supports contract markets only');
+                throw new BadRequest($this->id . ' fetch_market_leverage_tiers() supports contract markets only');
             }
             $tiers = yield $this->fetch_leverage_tiers(array($symbol));
             return $this->safe_value($tiers, $symbol);
@@ -427,17 +427,17 @@ class Exchange extends \ccxt\Exchange {
         if ($this->has['fetchFundingRates']) {
             $market = $this->market($symbol);
             if (!$market['contract']) {
-                throw new BadSymbol($this->id . ' fetchFundingRate () supports contract markets only');
+                throw new BadSymbol($this->id . ' fetch_funding_rate() supports contract markets only');
             }
             $rates = yield $this->fetchFundingRates (array( $symbol ), $params);
             $rate = $this->safe_value($rates, $symbol);
             if ($rate === null) {
-                throw new NullResponse($this->id . ' fetchFundingRate () returned no data for ' . $symbol);
+                throw new NullResponse($this->id . ' fetch_funding_rate () returned no data for ' . $symbol);
             } else {
                 return $rate;
             }
         } else {
-            throw new NotSupported($this->id . ' fetchFundingRate () is not supported yet');
+            throw new NotSupported($this->id . ' fetch_funding_rate () is not supported yet');
         }
     }
 }
