@@ -2078,8 +2078,7 @@ module.exports = class bybit extends Exchange {
             let settle = this.safeString (this.options, 'defaultSettle');
             settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
             params = this.omit (params, [ 'settle', 'defaultSettle' ]);
-            let isUsdcSettled = settle === 'USDC';
-            isUsdcSettled = true;
+            const isUsdcSettled = settle === 'USDC';
             if (!isUsdcSettled) {
                 // linear/inverse future/swap
                 method = 'privateGetV2PrivateWalletBalance';
