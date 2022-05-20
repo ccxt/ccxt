@@ -1205,6 +1205,13 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name coinex#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the coinex api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         const accountType = this.safeString (params, 'type', 'main');
         params = this.omit (params, 'type');
         if (accountType === 'margin') {

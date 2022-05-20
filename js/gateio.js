@@ -1964,6 +1964,13 @@ module.exports = class gateio extends Exchange {
 
     async fetchBalance (params = {}) {
         /**
+         * @method
+         * @name gateio#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
+        /**
          * @param {dict} params exchange specific parameters
          * @param {str} params.type spot, margin, swap or future, if not provided this.options['defaultType'] is used
          * @param {str} params.settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future

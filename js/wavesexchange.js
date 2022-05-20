@@ -1632,6 +1632,13 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name wavesexchange#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         // makes a lot of different requests to get all the data
         // in particular:
         // fetchMarkets, getWavesAddress,
