@@ -687,6 +687,13 @@ class coinex(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_order_book(self, symbol, limit=20, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the coinex api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrderBook() requires a symbol argument')
         await self.load_markets()
