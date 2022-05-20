@@ -2617,6 +2617,9 @@ module.exports = class bybit extends Exchange {
                 request['orderFilter'] = 'Order';
             }
         }
+        const reduceOnly = this.safeValue2 (params, 'reduce_only', 'reduceOnly', false);
+        request['reduceOnly'] = reduceOnly;
+        params = this.omit (params, [ 'reduce_only', 'reduceOnly' ]);
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'orderLinkId');
         if (clientOrderId !== undefined) {
             request['orderLinkId'] = clientOrderId;
