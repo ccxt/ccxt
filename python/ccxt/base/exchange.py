@@ -2978,7 +2978,7 @@ class Exchange(object):
         if self.has['fetchLeverageTiers']:
             market = self.market(symbol)
             if (not market['contract']):
-                raise BadRequest(self.id + ' fetch_market_leverage_tiers() can not be emulated, because fetch_leverage_tiers() supports contract markets only')
+                raise BadRequest(self.id + ' fetch_market_leverage_tiers() supports contract markets only')
             tiers = self.fetch_leverage_tiers([symbol])
             return self.safe_value(tiers, symbol)
         else:
@@ -3071,12 +3071,12 @@ class Exchange(object):
         if self.has['fetchFundingRates']:
             market = self.market(symbol)
             if not market['contract']:
-                raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
+                raise BadSymbol(self.id + ' fetch_funding_rate() supports contract markets only')
             rates = self.fetchFundingRates([symbol], params)
             rate = self.safe_value(rates, symbol)
             if rate is None:
-                raise NullResponse(self.id + ' fetchFundingRate() returned no data for ' + symbol)
+                raise NullResponse(self.id + ' fetch_funding_rate() returned no data for ' + symbol)
             else:
                 return rate
         else:
-            raise NotSupported(self.id + ' fetchFundingRate() is not supported yet')
+            raise NotSupported(self.id + ' fetch_funding_rate() is not supported yet')
