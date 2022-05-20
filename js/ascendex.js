@@ -580,7 +580,7 @@ module.exports = class ascendex extends Exchange {
                 'swap': swap,
                 'future': false,
                 'option': false,
-                'active': (status === 'Normal'),
+                'active': active,
                 'contract': swap,
                 'linear': linear,
                 'inverse': swap ? !linear : undefined,
