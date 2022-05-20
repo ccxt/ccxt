@@ -1908,11 +1908,10 @@ class bybit(Exchange):
             trades = self.safe_value(trades, 'dataList', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='Buy', asksKey='Sell', priceKey='price', amountKey='size'):
+    def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1):
         market = self.market(symbol)
         if market['spot']:
-            timestamp = self.safe_integer(orderbook, 'time')
-            return super(bybit, self).parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks')
+            return super(bybit, self).parse_order_book(orderbook, symbol, timestamp, bidsKey, asksKey, priceKey, amountKey)
         bids = []
         asks = []
         for i in range(0, len(orderbook)):
@@ -2006,7 +2005,13 @@ class bybit(Exchange):
         #
         result = self.safe_value(response, 'result', [])
         timestamp = self.safe_timestamp(response, 'time_now')
-        return self.parse_order_book(result, symbol, timestamp, 'Buy', 'Sell', 'price', 'size')
+        if timestamp is None:
+            timestamp = self.safe_integer(response, 'time')
+        bidsKey = 'bids' if market['spot'] else 'Buy'
+        asksKey = 'asks' if market['spot'] else 'Sell'
+        priceKey = 0 if market['spot'] else 'price'
+        sizeKey = 1 if market['spot'] else 'size'
+        return self.parse_order_book(result, symbol, timestamp, bidsKey, asksKey, priceKey, sizeKey)
 
     def parse_balance(self, response):
         #

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.83.5'
+__version__ = '1.83.12'
 
 # -----------------------------------------------------------------------------
 
@@ -27,6 +27,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import NullResponse
 from ccxt.base.errors import BadRequest
 
 # -----------------------------------------------------------------------------
@@ -353,7 +354,7 @@ class Exchange(BaseExchange):
             tickers = await self.fetch_tickers([symbol], params)
             ticker = self.safe_value(tickers, symbol)
             if ticker is None:
-                raise BadSymbol(self.id + ' fetch_ticker() could not find a ticker for ' + symbol)
+                raise NullResponse(self.id + ' fetch_ticker() could not find a ticker for ' + symbol)
             else:
                 return ticker
         else:
@@ -423,3 +424,17 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + ' create_stop_market_order() is not supported yet')
         query = self.extend(params, {'stopPrice': stopPrice})
         return await self.create_order(symbol, 'market', side, amount, None, query)
+
+    async def fetch_funding_rate(self, symbol, params={}):
+        if self.has['fetchFundingRates']:
+            market = self.market(symbol)
+            if not market['contract']:
+                raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
+            rates = await self.fetchFundingRates([symbol], params)
+            rate = self.safe_value(rates, symbol)
+            if rate is None:
+                raise NullResponse(self.id + ' fetchFundingRate() returned no data for ' + symbol)
+            else:
+                return rate
+        else:
+            raise NotSupported(self.id + ' fetchFundingRate() is not supported yet')

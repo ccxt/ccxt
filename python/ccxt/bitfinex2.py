@@ -138,6 +138,7 @@ class bitfinex2(bitfinex):
                         'conf/pub:info:{object}': 2.66,
                         'conf/pub:info:{object}:{detail}': 2.66,
                         'conf/pub:info:pair': 2.66,
+                        'conf/pub:info:pair:futures': 2.66,
                         'conf/pub:info:tx:status': 2.66,  # [deposit, withdrawal] statuses 1 = active, 0 = maintenance
                         'conf/pub:fees': 2.66,
                         'platform/status': 8,  # 30 requests per minute = 0.5 requests per second =>( 1000ms / rateLimit ) / 0.5 = 8

@@ -34,6 +34,7 @@ const {
 const { // eslint-disable-line object-curly-newline
     ExchangeError
     , BadSymbol
+    , NullResponse
     , InvalidAddress
     , InvalidOrder
     , NotSupported
@@ -922,7 +923,7 @@ module.exports = class Exchange {
             const tickers = await this.fetchTickers ([ symbol ], params);
             const ticker = this.safeValue (tickers, symbol);
             if (ticker === undefined) {
-                throw new InvalidAddress (this.id + ' fetchTickers() could not find a ticker for ' + symbol);
+                throw new NullResponse (this.id + ' fetchTickers() could not find a ticker for ' + symbol);
             } else {
                 return ticker;
             }
@@ -2451,5 +2452,23 @@ module.exports = class Exchange {
         const sorted = this.sortBy (rates, 'timestamp');
         const symbol = (market === undefined) ? undefined : market['symbol'];
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        if (this.has['fetchFundingRates']) {
+            const market = await this.market (symbol);
+            if (!market['contract']) {
+                throw new BadSymbol (this.id + ' fetchFundingRate () supports contract markets only');
+            }
+            const rates = await this.fetchFundingRates ([ symbol ], params);
+            const rate = this.safeValue (rates, symbol);
+            if (rate === undefined) {
+                throw new NullResponse (this.id + ' fetchFundingRate () returned no data for ' + symbol);
+            } else {
+                return rate;
+            }
+        } else {
+            throw new NotSupported (this.id + ' fetchFundingRate () is not supported yet');
+        }
     }
 }

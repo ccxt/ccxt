@@ -28,11 +28,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.83.5';
+$version = '1.83.12';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.83.5';
+    const VERSION = '1.83.12';
 
     public static $loop;
     public static $kernel;
@@ -344,7 +344,7 @@ class Exchange extends \ccxt\Exchange {
             $tickers = yield $this->fetch_tickers(array( $symbol ), $params);
             $ticker = $this->safe_value($tickers, $symbol);
             if ($ticker === null) {
-                throw new BadSymbol($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
+                throw new NullResponse($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
             } else {
                 return $ticker;
             }
@@ -421,5 +421,23 @@ class Exchange extends \ccxt\Exchange {
         $array = array('stopPrice' => $stopPrice);
         $query = $this->extend($params, $array);
         return yield $this->create_order($symbol, 'market', $side, $amount, null, $query);
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        if ($this->has['fetchFundingRates']) {
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadSymbol($this->id . ' fetchFundingRate () supports contract markets only');
+            }
+            $rates = yield $this->fetchFundingRates (array( $symbol ), $params);
+            $rate = $this->safe_value($rates, $symbol);
+            if ($rate === null) {
+                throw new NullResponse($this->id . ' fetchFundingRate () returned no data for ' . $symbol);
+            } else {
+                return $rate;
+            }
+        } else {
+            throw new NotSupported($this->id . ' fetchFundingRate () is not supported yet');
+        }
     }
 }

@@ -1962,11 +1962,10 @@ module.exports = class bybit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'Buy', asksKey = 'Sell', priceKey = 'price', amountKey = 'size') {
+    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
         const market = this.market (symbol);
         if (market['spot']) {
-            const timestamp = this.safeInteger (orderbook, 'time');
-            return super.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks');
+            return super.parseOrderBook (orderbook, symbol, timestamp, bidsKey, asksKey, priceKey, amountKey);
         }
         const bids = [];
         const asks = [];
@@ -2065,8 +2064,15 @@ module.exports = class bybit extends Exchange {
         //    }
         //
         const result = this.safeValue (response, 'result', []);
-        const timestamp = this.safeTimestamp (response, 'time_now');
-        return this.parseOrderBook (result, symbol, timestamp, 'Buy', 'Sell', 'price', 'size');
+        let timestamp = this.safeTimestamp (response, 'time_now');
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger (response, 'time');
+        }
+        const bidsKey = market['spot'] ? 'bids' : 'Buy';
+        const asksKey = market['spot'] ? 'asks' : 'Sell';
+        const priceKey = market['spot'] ? 0 : 'price';
+        const sizeKey = market['spot'] ? 1 : 'size';
+        return this.parseOrderBook (result, symbol, timestamp, bidsKey, asksKey, priceKey, sizeKey);
     }
 
     parseBalance (response) {

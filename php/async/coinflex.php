@@ -23,6 +23,7 @@ class coinflex extends Exchange {
             'rateLimit' => 120, // 2500 requests per 5 minutes, 100 requests per minute
             'version' => 'v3',
             'certified' => false,
+            'pro' => true,
             'userAgent' => $this->userAgents['chrome100'],
             'has' => array(
                 'CORS' => null,

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.83.5';
+$version = '1.83.12';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.83.5';
+    const VERSION = '1.83.12';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -406,6 +406,7 @@ class Exchange {
         'checkOrderArguments' => 'check_order_arguments',
         'parseBorrowInterests' => 'parse_borrow_interests',
         'parseFundingRateHistories' => 'parse_funding_rate_histories',
+        'fetchFundingRate' => 'fetch_funding_rate',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -2617,7 +2618,7 @@ class Exchange {
             $tickers = $this->fetch_tickers(array( $symbol ), $params);
             $ticker = $this->safe_value($tickers, $symbol);
             if ($ticker === null) {
-                throw new BadSymbol($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
+                throw new NullResponse($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
             } else {
                 return $ticker;
             }
@@ -2949,7 +2950,6 @@ class Exchange {
                 return $this->markets_by_id[$symbol];
             }
         }
-
         throw new BadSymbol($this->id . ' does not have market symbol ' . $symbol);
     }
 
@@ -4047,5 +4047,23 @@ class Exchange {
         }
         $sorted = $this->sortBy ($interests, 'timestamp');
         return $this->filterBySymbolSinceLimit ($sorted, $market, $since, $limit);
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        if ($this->has['fetchFundingRates']) {
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadSymbol($this->id . ' fetchFundingRate () supports contract markets only');
+            }
+            $rates = $this->fetchFundingRates (array( $symbol ), $params);
+            $rate = $this->safe_value($rates, $symbol);
+            if ($rate === null) {
+                throw new NullResponse($this->id . ' fetchFundingRate () returned no data for ' . $symbol);
+            } else {
+                return $rate;
+            }
+        } else {
+            throw new NotSupported($this->id . ' fetchFundingRate () is not supported yet');
+        }
     }
 }
