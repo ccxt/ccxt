@@ -4493,14 +4493,16 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        //
-        // Gets a history of funding rates with their timestamps
-        //  (param) symbol: Future currency pair
-        //  (param) limit: not used by huobi
-        //  (param) since: not used by huobi
-        //  (param) params: Object containing more params for the request
-        //  return: [{symbol, fundingRate, timestamp, dateTime}]
-        //
+        /**
+         * @method
+         * @name huobi#fetchFundingRateHistory
+         * @description fetches historical funding rate prices
+         * @param {str|undefined} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int|undefined} since not used by huobi, but filtered internally by ccxt
+         * @param {int|undefined} limit not used by huobi, but filtered internally by ccxt
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }

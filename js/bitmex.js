@@ -2046,16 +2046,16 @@ module.exports = class bitmex extends Exchange {
          * @method
          * @name bitmex#fetchFundingRateHistory
          * @description Fetches the history of funding rates
-         * @param {str} symbol Unified market symbol, use currency code to get data for the nearest expiring contract in that series, can also send a timeframe, eg XBT:quarterly, Timeframes are nearest, daily, weekly, monthly, quarterly, biquarterly, and perpetual
-         * @param {int} since timestamp in ms for starting date filter
-         * @param {int} limit number of results to fetch
-         * @param {dict} params exchange specific params
-         * @param {int} params.till timestamp in ms for ending date filter
-         * @param {bool} params.reverse if true, will sort results newest first
-         * @param {int} params.start starting point for results
-         * @param {str} params.columns array of column names to fetch in info, if omitted, will return all columns
-         * @param {str} params.filter generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the [timestamp docs]{@link https://www.bitmex.com/app/restAPI#Timestamp-Filters} for more details
-         * @returns A list of [funding rate history structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-history-structure}
+         * @param {str|undefined} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
+         * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {dict} params extra parameters specific to the bitmex api endpoint
+         * @param {int|undefined} params.till timestamp in ms for ending date filter
+         * @param {bool|undefined} params.reverse if true, will sort results newest first
+         * @param {int|undefined} params.start starting point for results
+         * @param {str|undefined} params.columns array of column names to fetch in info, if omitted, will return all columns
+         * @param {str|undefined} params.filter generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the [timestamp docs]{@link https://www.bitmex.com/app/restAPI#Timestamp-Filters} for more details
+         * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
         await this.loadMarkets ();
         const request = {};

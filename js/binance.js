@@ -4302,15 +4302,17 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        //
-        // Gets a history of funding rates with their timestamps
-        //  (param) symbol: Future currency pair (e.g. "BTC/USDT")
-        //  (param) limit: maximum number of data points returned
-        //  (param) since: Unix timestamp in miliseconds for the time of the earliest requested funding rate
-        //  (param) params: Object containing more params for the request
-        //          - until: Unix timestamp in miliseconds for the time of the earliest requested funding rate
-        //  return: [{symbol, fundingRate, timestamp}]
-        //
+        /**
+         * @method
+         * @name binance#fetchFundingRateHistory
+         * @description fetches historical funding rate prices
+         * @param {str|undefined} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
+         * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @param {int|undefined} params.till timestamp in ms of the earliest funding rate
+         * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         let method = undefined;
