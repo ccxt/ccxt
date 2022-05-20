@@ -456,6 +456,12 @@ class bitvavo extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the bitvavo api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(

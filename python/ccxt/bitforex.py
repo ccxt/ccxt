@@ -350,6 +350,12 @@ class bitforex(Exchange):
         }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bitforex api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.markets[symbol]
         request = {

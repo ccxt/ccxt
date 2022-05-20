@@ -667,6 +667,12 @@ class hitbtc3(Exchange):
         return self.parse_balance(response)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         response = self.fetch_tickers([symbol], params)
         return self.safe_value(response, symbol)
 
