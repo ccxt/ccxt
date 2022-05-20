@@ -250,6 +250,7 @@ class ascendex extends Exchange {
                 'defaultType' => 'spot', // 'spot', 'margin', 'swap'
                 'accountsByType' => array(
                     'spot' => 'cash',
+                    'swap' => 'futures',
                     'future' => 'futures',
                     'margin' => 'margin',
                 ),
