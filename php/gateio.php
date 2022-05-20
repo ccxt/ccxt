@@ -2119,6 +2119,7 @@ class gateio extends Exchange {
         list($request, $params) = $this->prepare_request($market, null, $params);
         $request['interval'] = $this->timeframes[$timeframe];
         $method = 'publicSpotGetCandlesticks';
+        $maxLimit = 1000;
         if ($market['contract']) {
             $maxLimit = 1999;
             $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
@@ -2133,17 +2134,16 @@ class gateio extends Exchange {
                 $request['contract'] = $price . '_' . $market['id'];
                 $params = $this->omit($params, 'price');
             }
-        } else {
-            $maxLimit = 1000;
-            $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
-            $request['limit'] = $limit;
         }
+        $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
         if ($since !== null) {
             $duration = $this->parse_timeframe($timeframe);
             $request['from'] = intval($since / 1000);
             $toTimestamp = $this->sum($request['from'], $limit * $duration - 1);
             $currentTimestamp = $this->seconds();
             $request['to'] = min ($toTimestamp, $currentTimestamp);
+        } else {
+            $request['limit'] = $limit;
         }
         $response = $this->$method (array_merge($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
