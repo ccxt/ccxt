@@ -4991,7 +4991,7 @@ Returns
 ```JavaScript
 {
     info: { ... },
-    type: 'add', // 'add', 'remove', 'set'
+    type: 'add', // 'add', 'reduce', 'set'
     amount: 1, // ammount added or reduced
     total: 2,  // total margin or undefined if not specified by the exchange
     code: 'USDT',
