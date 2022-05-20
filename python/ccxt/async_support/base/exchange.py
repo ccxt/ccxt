@@ -393,7 +393,7 @@ class Exchange(BaseExchange):
         if self.has['fetchLeverageTiers']:
             market = await self.market(symbol)
             if (not market['contract']):
-                raise BadRequest(self.id + ' fetch_leverage_tiers() supports contract markets only')
+                raise BadRequest(self.id + ' fetch_market_leverage_tiers() can not be emulated, because fetch_leverage_tiers() supports contract markets only')
             tiers = await self.fetch_leverage_tiers([symbol])
             return self.safe_value(tiers, symbol)
         else:

@@ -3915,7 +3915,7 @@ class Exchange {
         if ($this->has['fetchLeverageTiers']) {
             $market = $this->market($symbol);
             if (!$market['contract']) {
-                throw new BadRequest($this->id . ' fetchLeverageTiers() supports contract markets only');
+                throw new BadRequest($this->id . ' fetchMarketLeverageTiers() can not be emulated, because fetchLeverageTiers() supports contract markets only');
             }
             $tiers = $this->fetch_leverage_tiers(array($symbol));
             return $this->safe_value($tiers, $symbol);

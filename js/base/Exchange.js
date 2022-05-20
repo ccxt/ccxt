@@ -2326,7 +2326,7 @@ module.exports = class Exchange {
         if (this.has['fetchLeverageTiers']) {
             const market = await this.market (symbol);
             if (!market['contract']) {
-                throw new BadSymbol (this.id + ' fetchLeverageTiers() supports contract markets only');
+                throw new BadSymbol (this.id + ' fetchMarketLeverageTiers() can not be emulated, because fetchLeverageTiers() supports contract markets only');
             }
             const tiers = await this.fetchLeverageTiers ([ symbol ]);
             return this.safeValue (tiers, symbol);
@@ -2446,7 +2446,7 @@ module.exports = class Exchange {
         if (this.has['fetchFundingRates']) {
             const market = await this.market (symbol);
             if (!market['contract']) {
-                throw new BadSymbol (this.id + ' fetchFundingRate () supports contract markets only');
+                throw new BadSymbol (this.id + ' fetchFundingRate() can not be emulated, because fetchFundingRates() supports contract markets only');
             }
             const rates = await this.fetchFundingRates ([ symbol ], params);
             const rate = this.safeValue (rates, symbol);
