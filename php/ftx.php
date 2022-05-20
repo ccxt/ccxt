@@ -2690,13 +2690,13 @@ class ftx extends Exchange {
 
     public function fetch_borrow_rate_history($code, $since = null, $limit = null, $params = array ()) {
         /**
-         * Gets the history of the borrow rate for a currency
-         * @param {str} $code Unified currency $code
-         * @param {int} $since Timestamp in ms of the earliest time to fetch the borrow rate
-         * @param {int} $limit Max number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} to return, max=5000
-         * @param {dict} $params Exchange specific parameters
+         * retrieves a history of a currencies borrow interest rate at specific time slots
+         * @param {str} $code unified currency $code
+         * @param array(int|null) $since timestamp for the earliest borrow rate
+         * @param array(int|null) $limit the maximum number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} to retrieve
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
          * @param {dict} $params->till Timestamp in ms of the latest time to fetch the borrow rate
-         * @return An array of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
+         * @return array(~@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure dict]) an array of [borrow rate structures~
          */
         $histories = $this->fetch_borrow_rate_histories(array( $code ), $since, $limit, $params);
         $borrowRateHistory = $this->safe_value($histories, $code);
