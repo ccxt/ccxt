@@ -4991,7 +4991,7 @@ Returns
 ```JavaScript
 {
     info: { ... },
-    type: 'add', // 'add', 'recieve', 'set'
+    type: 'add', // 'add', 'receive', 'set'
     amount: 1, // ammount added or reduced
     total: 2,  // total margin
     code: 'USDT',
