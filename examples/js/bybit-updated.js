@@ -28,7 +28,7 @@ async function example1() {
     console.log(canceledOrders);
 }
 
-
+// -----------------------------------------------------------------------------------------
 
 // Example 2 :: Swap : fetch balance, open a position and close it
 async function example2() {
@@ -57,6 +57,7 @@ async function example2() {
     console.log(closePositionOrder);
 }
 
+// -----------------------------------------------------------------------------------------
 
 // Example 3 :: USDC Swap : fetch balance, open a position and close it
 async function example3() {
@@ -89,13 +90,15 @@ async function example3() {
     const positions = await exchange.fetchPositions (symbols);
     console.log(positions)
  
-    // close position (assuming it was already opened) by issuing a order in the opposite direction
+    // close position (assuming it was already opened) by issuing an order in the opposite direction
     const params = {
         'reduce_only': true
     }
     const closePositionOrder = await exchange.createOrder (symbol, 'limit', 'sell', amount, price, params);
     console.log(closePositionOrder);
 }
+
+// -----------------------------------------------------------------------------------------
 
 // Example 4 :: Future : fetch balance, create stop-order and check fetch open stop-orders
 async function example4() {
@@ -127,10 +130,12 @@ async function example4() {
     const openOrders = await exchange.fetchOpenOrders (symbol, undefined, undefined, openOrderParams);
     console.log(openOrders)
 
-    // Cancell all open stop-orders
+    // Cancell open stop-order
     const cancelOrder = await exchange.cancelOrder(stopOrder['id'], symbol, openOrderParams);
     console.log(cancelOrder);
 }
+
+// -----------------------------------------------------------------------------------------
 
 async function main() {
     // await example1 ();
