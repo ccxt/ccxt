@@ -353,8 +353,8 @@ class Transpiler {
             [ /\s+\* @name .*/g, '' ], // docstring @name
             [ /(\s+) \* @returns ([^\{])/g, '$1:returns: $2' ], // docstring return
             [ /(\s+) \* @returns \{([\]\[a-zA-Z]*)\}/g, '$1:returns $2:' ], // docstring return
-            [ /(\s+ \* @param \{[a-z]+\} )([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+) (.*)/g, '$1$2[\'$3\'] $4' ], // docstring params.anything
-            [ /(\s+) \* @([a-z]+) \{([a-z]+)\} ([a-zA-Z0-9_\-\.\[\]\']+)/g, '$1:$2 $3 $4:' ], // docstring param
+            [ /(\s+ \* @param \{[\]\[\|a-z]+\} )([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+) (.*)/g, '$1$2[\'$3\'] $4' ], // docstring params.anything
+            [ /(\s+) \* @([a-z]+) \{([\]\[a-z\|]+)\} ([a-zA-Z0-9_\-\.\[\]\']+)/g, '$1:$2 $3 $4:' ], // docstring param
         ])
     }
 
@@ -396,7 +396,7 @@ class Transpiler {
             // That is done at the very last regex steps.
             // All of that is a workaround for PHP-arrays vs dictionaries vs url-imploded params in other langs.
             //
-            [ /\{([\]\[a-zA-Z0-9_-]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /\{([\]\[\|a-zA-Z0-9_-]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
             [ /\[([^\]\[]*)\]\{(@link .*)\}/g, '~$2 $1~' ], // docstring item with link
             [ /\s+\* @method/g, '' ], // docstring @method
             [ /(\s+)\* @description (.*)/g, '$1\* $2' ], // docstring description
@@ -542,7 +542,7 @@ class Transpiler {
             [ /process\.exit/g, 'exit'],
             [ /super\./g, 'parent::'],
             [ /\sdelete\s([^\n]+)\;/g, ' unset($1);' ],
-            [ /\~([\]\[@\.\s+\:\/#\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /\~([\]\[\|@\.\s+\:\/#\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
         ])
     }
 
