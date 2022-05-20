@@ -52,6 +52,7 @@ class exmo(Exchange):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': 'emulated',
                 'fetchOrderBook': True,

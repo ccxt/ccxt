@@ -4103,7 +4103,7 @@ class bybit(Exchange):
         market = None
         market = self.market(symbol)
         if market['spot'] or market['option']:
-            raise BadRequest(self.id + ' fetchLeverageTiers() symbol does not support market ' + symbol)
+            raise BadRequest(self.id + ' fetchMarketLeverageTiers() symbol does not support market ' + symbol)
         request['symbol'] = market['id']
         isUsdcSettled = market['settle'] == 'USDC'
         method = None

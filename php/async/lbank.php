@@ -45,6 +45,7 @@ class lbank extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => null, // status 0 API doesn't work
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,

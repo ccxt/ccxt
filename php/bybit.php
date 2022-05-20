@@ -4335,7 +4335,7 @@ class bybit extends Exchange {
         $market = null;
         $market = $this->market($symbol);
         if ($market['spot'] || $market['option']) {
-            throw new BadRequest($this->id . ' fetchLeverageTiers() $symbol does not support $market ' . $symbol);
+            throw new BadRequest($this->id . ' fetchMarketLeverageTiers() $symbol does not support $market ' . $symbol);
         }
         $request['symbol'] = $market['id'];
         $isUsdcSettled = $market['settle'] === 'USDC';

@@ -78,6 +78,7 @@ class binance extends Exchange {
                 'fetchMySells' => null,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => true,
                 'fetchOpenOrder' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -5689,6 +5690,81 @@ class binance extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $info,
+        );
+    }
+
+    public function fetch_open_interest_history($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * Retrieves the open intestest history of a currency
+         * @param {str} $symbol Unified CCXT $market $symbol
+         * @param {str} $timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
+         * @param {int} $since The time(ms) of the earliest record to retrieve as a unix timestamp
+         * @param {int} $limit default 30, max 500
+         * @param {dict} $params Exchange specific parameters
+         * @param {int} $params->till The time(ms) of the latest record to retrieve as a unix timestamp
+         * @return An array of open interest structures
+         */
+        if ($timeframe === '1m') {
+            throw new BadRequest($this->id . 'fetchOpenInterestHistory cannot use the 1m timeframe');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'period' => $this->timeframes[$timeframe],
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $symbolKey = $market['future'] ? 'symbol' : 'pair';
+        $request[$symbolKey] = $market['id'];
+        if ($market['delivery']) {
+            $request['contractType'] = $this->safe_string($params, 'contractType', 'CURRENT_QUARTER');
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $till = $this->safe_integer($params, 'till'); // unified in milliseconds
+        $endTime = $this->safe_string($params, 'endTime', $till); // exchange-specific in milliseconds
+        $params = $this->omit($params, array( 'endTime', 'till' ));
+        if ($endTime) {
+            $request['endTime'] = $endTime;
+        } else if ($since) {
+            if ($limit === null) {
+                $limit = 30; // Exchange default
+            }
+            $duration = $this->parse_timeframe($timeframe);
+            $request['endTime'] = $this->sum($since, $duration * $limit * 1000);
+        }
+        $method = 'fapiDataGetOpenInterestHist';
+        if ($market['delivery']) {
+            $method = 'dapiDataGetOpenInterestHist';
+        }
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        //  array(
+        //      array(
+        //          "symbol":"BTCUSDT",
+        //          "sumOpenInterest":"75375.61700000",
+        //          "sumOpenInterestValue":"3248828883.71251440",
+        //          "timestamp":1642179900000
+        //      ),
+        //      ...
+        //  )
+        //
+        return $this->parse_open_interests($response, $symbol, $since, $limit);
+    }
+
+    public function parse_open_interest($interest, $market = null) {
+        $timestamp = $this->safe_integer($interest, 'timestamp');
+        $id = $this->safe_string($interest, 'symbol');
+        $market = $this->safe_market($id, $market);
+        return array(
+            'symbol' => $this->safe_symbol($id),
+            'baseVolume' => $this->safe_number($interest, 'sumOpenInterest'),
+            'quoteVolume' => $this->safe_number($interest, 'sumOpenInterestValue'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $interest,
         );
     }
 }

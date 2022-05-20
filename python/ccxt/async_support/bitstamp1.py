@@ -43,6 +43,7 @@ class bitstamp1(Exchange):
                 'fetchLeverage': False,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOrder': None,
                 'fetchOrderBook': True,
                 'fetchPosition': False,

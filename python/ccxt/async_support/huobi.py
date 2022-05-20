@@ -5346,7 +5346,7 @@ class huobi(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             if not market['contract']:
-                raise BadRequest(self.id + ' fetchLeverageTiers() symbol supports contract markets only')
+                raise BadRequest(self.id + ' fetchMarketLeverageTiers() symbol supports contract markets only')
             request['contract_code'] = market['id']
         response = await self.contractPublicGetLinearSwapApiV1SwapAdjustfactor(self.extend(request, params))
         #

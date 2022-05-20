@@ -5670,7 +5670,7 @@ class huobi extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             if (!$market['contract']) {
-                throw new BadRequest($this->id . ' fetchLeverageTiers() $symbol supports contract markets only');
+                throw new BadRequest($this->id . ' fetchMarketLeverageTiers() $symbol supports contract markets only');
             }
             $request['contract_code'] = $market['id'];
         }
