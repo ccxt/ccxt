@@ -37,6 +37,6 @@ module.exports = (exchange, marginModification) => {
         assert (typeof marginModification["symbol"] === "string");
     }
     if (marginModification["status"] !== undefined) {
-        assert ([ "ok", "pending", "canceled", "failed" ].includes (marginModification["status"]));
+        assert (exchange.inArray (marginModification["status"], [ "ok", "pending", "canceled", "failed" ]);
     }
 };
