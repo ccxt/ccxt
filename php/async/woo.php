@@ -257,6 +257,11 @@ class woo extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves $data on all markets for woo
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market $data
+         */
         list($marketType, $query) = $this->handle_market_type_and_params('fetchMarkets', null, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'v1PublicGetInfo',

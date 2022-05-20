@@ -268,6 +268,11 @@ class gemini(Exchange):
         })
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for gemini
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         method = self.safe_value(self.options, 'fetchMarketsMethod', 'fetch_markets_from_api')
         return await getattr(self, method)(params)
 

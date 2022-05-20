@@ -126,6 +126,11 @@ class independentreserve extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for independentreserve
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing market data
+         */
         $baseCurrencies = $this->publicGetGetValidPrimaryCurrencyCodes ($params);
         $quoteCurrencies = $this->publicGetGetValidSecondaryCurrencyCodes ($params);
         $limits = $this->publicGetGetOrderMinimumVolumes ($params);

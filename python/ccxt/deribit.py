@@ -437,6 +437,11 @@ class deribit(Exchange):
         }
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for deribit
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         currenciesResponse = self.publicGetGetCurrencies(params)
         #
         #     {
@@ -2013,7 +2018,7 @@ class deribit(Exchange):
 
     def fetch_transfers(self, code=None, since=None, limit=None, params={}):
         if code is None:
-            raise ArgumentsRequired(self.id + ' transfer() requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchTransfers() requires a currency code argument')
         self.load_markets()
         currency = self.currency(code)
         request = {

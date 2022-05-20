@@ -258,6 +258,13 @@ module.exports = class bytetrade extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name bytetrade#fetchMarkets
+         * @description retrieves data on all markets for bytetrade
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const markets = await this.publicGetSymbols (params);
         //
         //     [
@@ -394,7 +401,7 @@ module.exports = class bytetrade extends Exchange {
 
     async fetchBalance (params = {}) {
         if (!('userid' in params) && (this.apiKey === undefined)) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires this.apiKey or userid argument');
+            throw new ArgumentsRequired (this.id + ' fetchBalance() requires this.apiKey or userid argument');
         }
         await this.loadMarkets ();
         const request = {
@@ -470,6 +477,14 @@ module.exports = class bytetrade extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name bytetrade#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the bytetrade api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {

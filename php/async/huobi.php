@@ -1054,6 +1054,11 @@ class huobi extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for huobi
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing market data
+         */
         $options = $this->safe_value($this->options, 'fetchMarkets', array());
         $types = $this->safe_value($options, 'types', array());
         $allMarkets = array();
@@ -3761,7 +3766,7 @@ class huobi extends Exchange {
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
         yield $this->load_markets();
         $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('cancelOrder', null, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelOrders', null, $params);
         $request = array(
             // spot -----------------------------------------------------------
             // 'order-ids' => $ids->jsoin (','), // max 50
@@ -3882,7 +3887,7 @@ class huobi extends Exchange {
     public function cancel_all_orders($symbol = null, $params = array ()) {
         yield $this->load_markets();
         $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('cancelOrder', null, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', null, $params);
         $request = array(
             // spot -----------------------------------------------------------
             // 'account-id' => account['id'],
@@ -3907,7 +3912,7 @@ class huobi extends Exchange {
             $method = 'spotPrivatePostV1OrderOrdersBatchCancelOpenOrders';
         } else {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol for ' . $marketType . ' orders');
+                throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol for ' . $marketType . ' orders');
             }
             $market = $this->market($symbol);
             $request['contract_code'] = $market['id'];
@@ -3926,7 +3931,7 @@ class huobi extends Exchange {
                 } else if ($marketType === 'swap') {
                     $method = 'contractPrivatePostSwapApiV1SwapCancelall';
                 } else {
-                    throw new NotSupported($this->id . ' cancelOrders() does not support ' . $marketType . ' markets');
+                    throw new NotSupported($this->id . ' cancelAllOrders() does not support ' . $marketType . ' markets');
                 }
             }
         }
@@ -4587,7 +4592,7 @@ class huobi extends Exchange {
         } else if ($market['linear']) {
             $method = 'contractPublicGetLinearSwapApiV1SwapFundingRate';
         } else {
-            throw new NotSupported($this->id . ' fetchFundingRateHistory() supports inverse and linear swaps only');
+            throw new NotSupported($this->id . ' fetchFundingRate() supports inverse and linear swaps only');
         }
         $request = array(
             'contract_code' => $market['id'],
@@ -4968,7 +4973,7 @@ class huobi extends Exchange {
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchPosition', $market, $params);
+        list($marketType, $query) = $this->handle_market_type_and_params('setLeverage', $market, $params);
         $method = null;
         if ($market['linear']) {
             $defaultMargin = $market['future'] ? 'cross' : 'isolated';

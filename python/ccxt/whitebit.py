@@ -237,6 +237,11 @@ class whitebit(Exchange):
         })
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for whitebit
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.v2PublicGetMarkets(params)
         #
         #    {
@@ -1173,7 +1178,7 @@ class whitebit(Exchange):
         if self.is_fiat(code):
             provider = self.safe_value(params, 'provider')
             if provider is None:
-                raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a provider when the ticker is fiat')
+                raise ArgumentsRequired(self.id + ' withdraw() requires a provider when the ticker is fiat')
             request['provider'] = provider
         response = self.v4PrivatePostMainAccountWithdraw(self.extend(request, params))
         #

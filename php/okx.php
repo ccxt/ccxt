@@ -813,6 +813,11 @@ class okx extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for okx
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing market data
+         */
         $types = $this->safe_value($this->options, 'fetchMarkets');
         $promises = array();
         $result = array();
@@ -4327,7 +4332,7 @@ class okx extends Exchange {
 
     public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
         }
         // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
@@ -4524,10 +4529,10 @@ class okx extends Exchange {
         /**
          * retrieves a history of a currencies borrow interest rate at specific time slots
          * @param {str} $code unified $currency $code
-         * @param array(int|null) $since timestamp for the earliest borrow rate
-         * @param array(int|null) $limit the maximum number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} to retrieve
+         * @param {int|null} $since timestamp for the earliest borrow rate
+         * @param {int|null} $limit the maximum number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} to retrieve
          * @param {dict} $params extra parameters specific to the exchange api endpoint
-         * @return array(~@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure dict]) an array of [borrow rate structures~
+         * @return {[dict]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
          */
         $this->load_markets();
         $currency = $this->currency($code);

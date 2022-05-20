@@ -231,6 +231,11 @@ class whitebit extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for whitebit
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = yield $this->v2PublicGetMarkets ($params);
         //
         //    {
@@ -1239,7 +1244,7 @@ class whitebit extends Exchange {
         if ($this->is_fiat($code)) {
             $provider = $this->safe_value($params, 'provider');
             if ($provider === null) {
-                throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires a $provider when the ticker is fiat');
+                throw new ArgumentsRequired($this->id . ' withdraw() requires a $provider when the ticker is fiat');
             }
             $request['provider'] = $provider;
         }

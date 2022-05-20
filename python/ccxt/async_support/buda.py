@@ -218,6 +218,11 @@ class buda(Exchange):
         return None
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for buda
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         marketsResponse = await self.publicGetMarkets(params)
         markets = self.safe_value(marketsResponse, 'markets')
         currenciesResponse = await self.publicGetCurrencies()
@@ -745,7 +750,7 @@ class buda(Exchange):
         await self.load_markets()
         currency = self.currency(code)
         if self.is_fiat(code):
-            raise NotSupported(self.id + ' fetchDepositAddress() of fiat for ' + code + ' is not supported')
+            raise NotSupported(self.id + ' createDepositAddress() of fiat for ' + code + ' is not supported')
         request = {
             'currency': currency['id'],
         }
@@ -822,7 +827,7 @@ class buda(Exchange):
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
         if code is None:
-            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
         currency = self.currency(code)
         request = {
             'currency': currency['id'],

@@ -1055,6 +1055,11 @@ class huobi(Exchange):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['cost'], self.precisionMode)
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for huobi
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         options = self.safe_value(self.options, 'fetchMarkets', {})
         types = self.safe_value(options, 'types', {})
         allMarkets = []
@@ -3564,7 +3569,7 @@ class huobi(Exchange):
     async def cancel_orders(self, ids, symbol=None, params={}):
         await self.load_markets()
         marketType = None
-        marketType, params = self.handle_market_type_and_params('cancelOrder', None, params)
+        marketType, params = self.handle_market_type_and_params('cancelOrders', None, params)
         request = {
             # spot -----------------------------------------------------------
             # 'order-ids': ids.jsoin(','),  # max 50
@@ -3675,7 +3680,7 @@ class huobi(Exchange):
     async def cancel_all_orders(self, symbol=None, params={}):
         await self.load_markets()
         marketType = None
-        marketType, params = self.handle_market_type_and_params('cancelOrder', None, params)
+        marketType, params = self.handle_market_type_and_params('cancelAllOrders', None, params)
         request = {
             # spot -----------------------------------------------------------
             # 'account-id': account['id'],
@@ -3699,7 +3704,7 @@ class huobi(Exchange):
             method = 'spotPrivatePostV1OrderOrdersBatchCancelOpenOrders'
         else:
             if symbol is None:
-                raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol for ' + marketType + ' orders')
+                raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol for ' + marketType + ' orders')
             market = self.market(symbol)
             request['contract_code'] = market['id']
             if market['linear']:
@@ -3716,7 +3721,7 @@ class huobi(Exchange):
                 elif marketType == 'swap':
                     method = 'contractPrivatePostSwapApiV1SwapCancelall'
                 else:
-                    raise NotSupported(self.id + ' cancelOrders() does not support ' + marketType + ' markets')
+                    raise NotSupported(self.id + ' cancelAllOrders() does not support ' + marketType + ' markets')
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -4320,7 +4325,7 @@ class huobi(Exchange):
         elif market['linear']:
             method = 'contractPublicGetLinearSwapApiV1SwapFundingRate'
         else:
-            raise NotSupported(self.id + ' fetchFundingRateHistory() supports inverse and linear swaps only')
+            raise NotSupported(self.id + ' fetchFundingRate() supports inverse and linear swaps only')
         request = {
             'contract_code': market['id'],
         }
@@ -4670,7 +4675,7 @@ class huobi(Exchange):
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        marketType, query = self.handle_market_type_and_params('fetchPosition', market, params)
+        marketType, query = self.handle_market_type_and_params('setLeverage', market, params)
         method = None
         if market['linear']:
             defaultMargin = 'cross' if market['future'] else 'isolated'

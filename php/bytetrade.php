@@ -262,6 +262,11 @@ class bytetrade extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for bytetrade
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $markets = $this->publicGetSymbols ($params);
         //
         //     array(
@@ -398,7 +403,7 @@ class bytetrade extends Exchange {
 
     public function fetch_balance($params = array ()) {
         if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires $this->apiKey or userid argument');
+            throw new ArgumentsRequired($this->id . ' fetchBalance() requires $this->apiKey or userid argument');
         }
         $this->load_markets();
         $request = array(

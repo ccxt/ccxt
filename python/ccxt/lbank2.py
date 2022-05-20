@@ -264,6 +264,11 @@ class lbank2(Exchange):
         })
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for lbank2
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         # needs to return a list of unified market structures
         response = self.publicGetAccuracy()
         data = self.safe_value(response, 'data')

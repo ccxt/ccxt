@@ -255,6 +255,13 @@ module.exports = class gemini extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name gemini#fetchMarkets
+         * @description retrieves data on all markets for gemini
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const method = this.safeValue (this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
         return await this[method] (params);
     }
@@ -496,6 +503,14 @@ module.exports = class gemini extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name gemini#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the gemini api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         const method = this.safeValue (this.options, 'fetchTickerMethod', 'fetchTickerV1');
         return await this[method] (symbol, params);
     }

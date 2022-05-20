@@ -280,6 +280,11 @@ class hitbtc(Exchange):
         return self.decimal_to_precision(fee, TRUNCATE, 8, DECIMAL_PLACES)
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for hitbtc
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.publicGetSymbol(params)
         #
         #     [

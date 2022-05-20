@@ -204,6 +204,11 @@ class xena extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for xena
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = yield $this->publicGetCommonInstruments ($params);
         //
         //     array(
@@ -1122,7 +1127,7 @@ class xena extends Exchange {
 
     public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a $symbol argument');
         }
         yield $this->load_markets();
         yield $this->load_accounts();

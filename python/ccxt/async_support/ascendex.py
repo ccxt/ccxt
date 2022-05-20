@@ -443,6 +443,11 @@ class ascendex(Exchange):
         return result
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for ascendex
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         products = await self.v1PublicGetProducts(params)
         #
         #     {
@@ -541,6 +546,9 @@ class ascendex(Exchange):
             quote = self.safe_currency_code(quoteId)
             settle = self.safe_currency_code(settleId)
             status = self.safe_string(market, 'status')
+            active = False
+            if (status == 'Normal') or (status == 'InternalTrading'):
+                active = True
             spot = settle is None
             swap = not spot
             linear = True if swap else None
@@ -580,7 +588,7 @@ class ascendex(Exchange):
                 'swap': swap,
                 'future': False,
                 'option': False,
-                'active': (status == 'Normal'),
+                'active': active,
                 'contract': swap,
                 'linear': linear,
                 'inverse': not linear if swap else None,
@@ -1571,7 +1579,7 @@ class ascendex(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        type, query = self.handle_market_type_and_params('fetchCLosedOrders', market, params)
+        type, query = self.handle_market_type_and_params('fetchClosedOrders', market, params)
         options = self.safe_value(self.options, 'fetchClosedOrders', {})
         defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountGroupGetOrderHist')
         method = self.get_supported_mapping(type, {

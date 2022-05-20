@@ -443,6 +443,11 @@ class ascendex extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for ascendex
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $products = yield $this->v1PublicGetProducts ($params);
         //
         //     {
@@ -541,6 +546,10 @@ class ascendex extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $settle = $this->safe_currency_code($settleId);
             $status = $this->safe_string($market, 'status');
+            $active = false;
+            if (($status === 'Normal') || ($status === 'InternalTrading')) {
+                $active = true;
+            }
             $spot = $settle === null;
             $swap = !$spot;
             $linear = $swap ? true : null;
@@ -581,7 +590,7 @@ class ascendex extends Exchange {
                 'swap' => $swap,
                 'future' => false,
                 'option' => false,
-                'active' => ($status === 'Normal'),
+                'active' => $active,
                 'contract' => $swap,
                 'linear' => $linear,
                 'inverse' => $swap ? !$linear : null,
@@ -1625,7 +1634,7 @@ class ascendex extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        list($type, $query) = $this->handle_market_type_and_params('fetchCLosedOrders', $market, $params);
+        list($type, $query) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
         $options = $this->safe_value($this->options, 'fetchClosedOrders', array());
         $defaultMethod = $this->safe_string($options, 'method', 'v1PrivateAccountGroupGetOrderHist');
         $method = $this->get_supported_mapping($type, array(

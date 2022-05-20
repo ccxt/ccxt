@@ -180,6 +180,11 @@ class bithumb(Exchange):
         return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bithumb
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         result = []
         quoteCurrencies = self.safe_value(self.options, 'quoteCurrencies', {})
         quotes = list(quoteCurrencies.keys())

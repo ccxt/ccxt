@@ -259,6 +259,11 @@ class bytetrade(Exchange):
         return result
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bytetrade
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         markets = self.publicGetSymbols(params)
         #
         #     [
@@ -386,7 +391,7 @@ class bytetrade(Exchange):
 
     def fetch_balance(self, params={}):
         if not ('userid' in params) and (self.apiKey is None):
-            raise ArgumentsRequired(self.id + ' fetchDeposits() requires self.apiKey or userid argument')
+            raise ArgumentsRequired(self.id + ' fetchBalance() requires self.apiKey or userid argument')
         self.load_markets()
         request = {
             'userid': self.apiKey,

@@ -263,6 +263,11 @@ class coinex extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for coinex
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing market data
+         */
         $result = array();
         list($type, $query) = $this->handle_market_type_and_params('fetchMarkets', null, $params);
         if ($type === 'spot' || $type === 'margin') {

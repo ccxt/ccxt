@@ -377,7 +377,7 @@ class bitmart(Exchange):
         return self.safe_integer(data, 'server_time')
 
     async def fetch_status(self, params={}):
-        options = self.safe_value(self.options, 'fetchBalance', {})
+        options = self.safe_value(self.options, 'fetchStatus', {})
         defaultType = self.safe_string(self.options, 'defaultType')
         type = self.safe_string(options, 'type', defaultType)
         type = self.safe_string(params, 'type', type)
@@ -645,6 +645,11 @@ class bitmart(Exchange):
         return result
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bitmart
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         spot = await self.fetch_spot_markets(params)
         contract = await self.fetch_contract_markets(params)
         return self.array_concat(spot, contract)

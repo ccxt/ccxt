@@ -1395,6 +1395,11 @@ class binance extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for binance
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $defaultType = $this->safe_string_2($this->options, 'fetchMarkets', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit($params, 'type');
@@ -3029,7 +3034,7 @@ class binance extends Exchange {
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
-        $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
+        $defaultType = $this->safe_string_2($this->options, 'cancelOrder', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         // https://github.com/ccxt/ccxt/issues/6507
         $origClientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
@@ -4071,7 +4076,7 @@ class binance extends Exchange {
     public function fetch_trading_fees($params = array ()) {
         yield $this->load_markets();
         $method = null;
-        $defaultType = $this->safe_string_2($this->options, 'fetchFundingRates', 'defaultType', 'future');
+        $defaultType = $this->safe_string_2($this->options, 'fetchTradingFees', 'defaultType', 'future');
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit($params, 'type');
         if (($type === 'spot') || ($type === 'margin')) {
@@ -5476,10 +5481,10 @@ class binance extends Exchange {
         /**
          * retrieves a history of a currencies borrow interest rate at specific time slots
          * @param {str} $code unified $currency $code
-         * @param array(int|null) $since timestamp for the earliest borrow rate
-         * @param array(int|null) $limit the maximum number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} to retrieve
+         * @param {int|null} $since timestamp for the earliest borrow rate
+         * @param {int|null} $limit the maximum number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} to retrieve
          * @param {dict} $params extra parameters specific to the exchange api endpoint
-         * @return array(~@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure dict]) an array of [borrow rate structures~
+         * @return {[dict]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
          */
         yield $this->load_markets();
         if ($limit === null) {

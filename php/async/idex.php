@@ -166,6 +166,11 @@ class idex extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for idex
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing market data
+         */
         $response = yield $this->publicGetMarkets ($params);
         //
         // array(

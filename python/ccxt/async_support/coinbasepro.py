@@ -293,6 +293,11 @@ class coinbasepro(Exchange):
         return result
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for coinbasepro
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.publicGetProducts(params)
         #
         #    [
@@ -1301,7 +1306,7 @@ class coinbasepro(Exchange):
         account = self.safe_value(self.options['coinbaseAccountsByCurrencyId'], currencyId)
         if account is None:
             # eslint-disable-next-line quotes
-            raise InvalidAddress(self.id + " fetchDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in self.options['coinbaseAccountsByCurrencyId']")
+            raise InvalidAddress(self.id + " createDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in self.options['coinbaseAccountsByCurrencyId']")
         request = {
             'id': account['id'],
         }

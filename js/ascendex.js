@@ -439,6 +439,13 @@ module.exports = class ascendex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name ascendex#fetchMarkets
+         * @description retrieves data on all markets for ascendex
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const products = await this.v1PublicGetProducts (params);
         //
         //     {
@@ -537,6 +544,10 @@ module.exports = class ascendex extends Exchange {
             let quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
             const status = this.safeString (market, 'status');
+            let active = false;
+            if ((status === 'Normal') || (status === 'InternalTrading')) {
+                active = true;
+            }
             const spot = settle === undefined;
             const swap = !spot;
             const linear = swap ? true : undefined;
@@ -577,7 +588,7 @@ module.exports = class ascendex extends Exchange {
                 'swap': swap,
                 'future': false,
                 'option': false,
-                'active': (status === 'Normal'),
+                'active': active,
                 'contract': swap,
                 'linear': linear,
                 'inverse': swap ? !linear : undefined,
@@ -846,6 +857,14 @@ module.exports = class ascendex extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name ascendex#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the ascendex api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1621,7 +1640,7 @@ module.exports = class ascendex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchCLosedOrders', market, params);
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
         const options = this.safeValue (this.options, 'fetchClosedOrders', {});
         const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountGroupGetOrderHist');
         const method = this.getSupportedMapping (type, {

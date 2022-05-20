@@ -289,6 +289,11 @@ class bittrex(Exchange):
         return self.decimal_to_precision(fee, TRUNCATE, self.markets[symbol]['precision']['price'], DECIMAL_PLACES)
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bittrex
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.publicGetMarkets(params)
         #
         #     [

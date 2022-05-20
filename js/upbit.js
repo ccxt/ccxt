@@ -388,6 +388,13 @@ module.exports = class upbit extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name upbit#fetchMarkets
+         * @description retrieves data on all markets for upbit
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetMarketAll (params);
         //
         //    [
@@ -678,6 +685,14 @@ module.exports = class upbit extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name upbit#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the upbit api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         const tickers = await this.fetchTickers ([ symbol ], params);
         return this.safeValue (tickers, symbol);
     }

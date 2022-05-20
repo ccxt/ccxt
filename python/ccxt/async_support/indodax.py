@@ -173,6 +173,11 @@ class indodax(Exchange):
         return self.safe_integer(response, 'server_time')
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for indodax
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.publicGetPairs(params)
         #
         #     [
@@ -538,7 +543,7 @@ class indodax(Exchange):
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         await self.load_markets()
         request = {}
         market = None

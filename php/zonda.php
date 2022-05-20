@@ -258,6 +258,11 @@ class zonda extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for zonda
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = $this->v1_01PublicGetTradingTicker ($params);
         $fiatCurrencies = $this->safe_value($this->options, 'fiatCurrencies', array());
         //

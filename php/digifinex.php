@@ -298,6 +298,11 @@ class digifinex extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for digifinex
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing market data
+         */
         $options = $this->safe_value($this->options, 'fetchMarkets', array());
         $method = $this->safe_string($options, 'method', 'fetch_markets_v2');
         return $this->$method ($params);

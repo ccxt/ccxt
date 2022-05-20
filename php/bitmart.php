@@ -367,7 +367,7 @@ class bitmart extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
-        $options = $this->safe_value($this->options, 'fetchBalance', array());
+        $options = $this->safe_value($this->options, 'fetchStatus', array());
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $type = $this->safe_string($options, 'type', $defaultType);
         $type = $this->safe_string($params, 'type', $type);
@@ -645,6 +645,11 @@ class bitmart extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for bitmart
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing market data
+         */
         $spot = $this->fetch_spot_markets($params);
         $contract = $this->fetch_contract_markets($params);
         return $this->array_concat($spot, $contract);

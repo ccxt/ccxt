@@ -329,7 +329,7 @@ class itbit(Exchange):
         self.load_markets()
         walletId = self.safe_string(params, 'walletId')
         if walletId is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a walletId parameter')
+            raise ArgumentsRequired(self.id + ' fetchTransactions() requires a walletId parameter')
         request = {
             'walletId': walletId,
         }

@@ -320,6 +320,13 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name bitpanda#fetchMarkets
+         * @description retrieves data on all markets for bitpanda
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetInstruments (params);
         //
         //     [
@@ -568,6 +575,14 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name bitpanda#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the bitpanda api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1531,7 +1546,7 @@ module.exports = class bitpanda extends Exchange {
         if (since !== undefined) {
             const to = this.safeString (params, 'to');
             if (to === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrders() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days');
+                throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days');
             }
             request['from'] = this.iso8601 (since);
         }

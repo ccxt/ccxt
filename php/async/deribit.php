@@ -430,6 +430,11 @@ class deribit extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for deribit
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $currenciesResponse = yield $this->publicGetGetCurrencies ($params);
         //
         //     {
@@ -2086,7 +2091,7 @@ class deribit extends Exchange {
 
     public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' transfer() requires a $currency $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $currency $code argument');
         }
         yield $this->load_markets();
         $currency = $this->currency($code);

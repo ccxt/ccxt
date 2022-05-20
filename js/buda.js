@@ -215,6 +215,13 @@ module.exports = class buda extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name buda#fetchMarkets
+         * @description retrieves data on all markets for buda
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const marketsResponse = await this.publicGetMarkets (params);
         const markets = this.safeValue (marketsResponse, 'markets');
         const currenciesResponse = await this.publicGetCurrencies ();
@@ -395,6 +402,14 @@ module.exports = class buda extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name buda#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the buda api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -785,7 +800,7 @@ module.exports = class buda extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         if (this.isFiat (code)) {
-            throw new NotSupported (this.id + ' fetchDepositAddress() of fiat for ' + code + ' is not supported');
+            throw new NotSupported (this.id + ' createDepositAddress() of fiat for ' + code + ' is not supported');
         }
         const request = {
             'currency': currency['id'],
@@ -868,7 +883,7 @@ module.exports = class buda extends Exchange {
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
         }
         const currency = this.currency (code);
         const request = {
