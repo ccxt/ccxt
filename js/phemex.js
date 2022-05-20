@@ -27,7 +27,7 @@ module.exports = class phemex extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'addMargin': true,
+                'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -72,8 +72,9 @@ module.exports = class phemex extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
-                'reduceMargin': true,
+                'reduceMargin': false,
                 'setLeverage': true,
+                'setMargin': true,
                 'setMarginMode': true,
                 'setPositionMode': false,
                 'transfer': true,
@@ -2962,7 +2963,7 @@ module.exports = class phemex extends Exchange {
         };
     }
 
-    async modifyMarginHelper (symbol, amount, addOrReduce, params = {}) {
+    async setMargin (symbol, amount, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -2977,9 +2978,8 @@ module.exports = class phemex extends Exchange {
         //         "data": "OK"
         //     }
         //
-        return this.extend (this.parseMarginModification (response, market), {
+        return this.extend (this.parseModifyMargin (response, market), {
             'amount': amount,
-            'type': addOrReduce,
         });
     }
 
@@ -2990,29 +2990,26 @@ module.exports = class phemex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseMarginModification (data, market = undefined) {
+    parseModifyMargin (data, market = undefined) {
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "data": "OK"
+        //     }
+        //
         market = this.safeMarket (undefined, market);
         const inverse = this.safeValue (market, 'inverse');
         const codeCurrency = inverse ? 'base' : 'quote';
         return {
             'info': data,
-            'type': undefined,
+            'type': 'set',
             'amount': undefined,
+            'total': undefined,
             'code': market[codeCurrency],
             'symbol': this.safeSymbol (undefined, market),
             'status': this.parseMarginStatus (this.safeString (data, 'code')),
         };
-    }
-
-    async addMargin (symbol, amount, params = {}) {
-        return await this.modifyMarginHelper (symbol, amount, 'add', params);
-    }
-
-    async reduceMargin (symbol, amount, params = {}) {
-        if (amount > 0) {
-            throw new BadRequest (this.id + ' reduceMargin() amount parameter must be a negative value');
-        }
-        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
     async setMarginMode (marginMode, symbol = undefined, params = {}) {

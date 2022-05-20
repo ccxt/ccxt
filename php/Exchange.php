@@ -1358,6 +1358,7 @@ class Exchange {
             'loadMarkets' => true,
             'reduceMargin' => null,
             'setLeverage' => null,
+            'setMargin' => null,
             'setMarginMode' => null,
             'setPositionMode' => null,
             'signIn' => null,

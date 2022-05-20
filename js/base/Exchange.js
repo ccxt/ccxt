@@ -146,6 +146,7 @@ module.exports = class Exchange {
                 'loadMarkets': true,
                 'reduceMargin': undefined,
                 'setLeverage': undefined,
+                'setMargin': undefined,
                 'setMarginMode': undefined,
                 'setPositionMode': undefined,
                 'signIn': undefined,

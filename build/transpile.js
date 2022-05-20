@@ -1636,6 +1636,11 @@ class Transpiler {
                 'pyFile': './python/ccxt/test/test_leverage_tier.py',
                 'phpFile': './php/test/test_leverage_tier.php',
             },
+            {
+                'jsFile': './js/test/Exchange/test.margin.js',
+                'pyFile': './python/ccxt/test/test_margin.py',
+                'phpFile': './php/test/test_margin.php',
+            },
         ]
         for (const test of tests) {
             this.transpileTest (test)

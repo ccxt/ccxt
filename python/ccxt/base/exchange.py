@@ -323,6 +323,7 @@ class Exchange(object):
         'loadMarkets': True,
         'reduceMargin': None,
         'setLeverage': None,
+        'setMargin': None,
         'setMarginMode': None,
         'setPositionMode': None,
         'signIn': None,
