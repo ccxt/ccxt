@@ -2475,7 +2475,8 @@ module.exports = class bybit extends Exchange {
         const status = this.parseOrderStatus (raw_status);
         const side = this.safeStringLower (order, 'side');
         let fee = undefined;
-        if (market['contract']) {
+        const isContract = this.safeValue (market, 'contract');
+        if (isContract) {
             const feeCostString = this.safeString (order, 'cum_exec_fee');
             if (feeCostString !== undefined) {
                 const feeCurrency = market['linear'] ? market['quote'] : market['base'];
