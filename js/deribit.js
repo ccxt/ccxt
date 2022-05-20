@@ -1963,7 +1963,7 @@ module.exports = class deribit extends Exchange {
             'leverage': this.safeNumber (position, 'leverage'),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': undefined,
-            'contractSize': this.parseNumber (size), // in USD for perpetuals on deribit
+            'contractSize': this.parseNumber (size),
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'estimated_liquidation_price'),
             'markPrice': markPrice,
