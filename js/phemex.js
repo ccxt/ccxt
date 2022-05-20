@@ -2990,7 +2990,7 @@ module.exports = class phemex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseModifyMargin (data, market = undefined) {
+    parseMarginModification (data, market = undefined) {
         //
         //     {
         //         "code": 0,
