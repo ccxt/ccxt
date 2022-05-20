@@ -1274,6 +1274,14 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType');
         const type = this.safeString (params, 'type', defaultType);
         return await this.fetchTickersByType (type, symbols, this.omit (params, 'type'));
