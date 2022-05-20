@@ -2712,7 +2712,7 @@ module.exports = class bybit extends Exchange {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires both the stop_px and base_price params for a conditional ' + type + ' order');
             }
             request['stop_px'] = parseFloat (this.priceToPrecision (symbol, stopPx));
-            request['base_price'] = parseFloat (this.priceToPrecision (symbol, basePrice, 'basePrice'));
+            request['base_price'] = parseFloat (this.priceToPrecision (symbol, basePrice));
             const triggerBy = this.safeString2 (params, 'trigger_by', 'triggerBy', 'LastPrice');
             request['trigger_by'] = triggerBy;
             params = this.omit (params, [ 'stop_px', 'stopPrice', 'base_price', 'triggerBy', 'trigger_by' ]);
@@ -2770,7 +2770,7 @@ module.exports = class bybit extends Exchange {
         //    }
         //
         const order = this.safeValue (response, 'result', {});
-        return this.parseOrder (order);
+        return this.parseOrder (order, market);
     }
 
     async editUsdcOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
