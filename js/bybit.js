@@ -936,12 +936,12 @@ module.exports = class bybit extends Exchange {
                         'max': this.safeNumber (leverage, 'maxLeverage', 1),
                     },
                     'amount': {
-                        'min': this.safeNumber (market, 'minOrderSize'),
-                        'max': this.safeNumber (market, 'maxOrderSize'),
+                        'min': this.safeNumber2 (market, 'minOrderSize', 'minTradingQty'),
+                        'max': this.safeNumber2 (market, 'maxOrderSize', 'maxTradingQty'),
                     },
                     'price': {
-                        'min': this.safeNumber (market, 'minOrderPrice'),
-                        'max': this.safeNumber (market, 'maxOrderPrice'),
+                        'min': this.safeNumber2 (market, 'minOrderPrice', 'minPrice'),
+                        'max': this.safeNumber2 (market, 'maxOrderPrice', 'maxPrice'),
                     },
                     'cost': {
                         'min': undefined,
