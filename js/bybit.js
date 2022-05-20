@@ -2575,7 +2575,7 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (type === 'market') {
-            throw NotSupported (this.id + 'createOrder does not allow market orders for ' + symbol + ' markets');
+            throw new NotSupported (this.id + 'createOrder does not allow market orders for ' + symbol + ' markets');
         }
         if (price === undefined && type === 'limit') {
             throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
