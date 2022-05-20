@@ -2978,7 +2978,7 @@ module.exports = class phemex extends Exchange {
         //         "data": "OK"
         //     }
         //
-        return this.extend (this.parseModifyMargin (response, market), {
+        return this.extend (this.parseMarginModification (response, market), {
             'amount': amount,
         });
     }
