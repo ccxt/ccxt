@@ -42,6 +42,7 @@ function example_1($exchange) {
 
 }
 
+// -----------------------------------------------------------------------------------------
 
 // Example 2 :: Swap : fetch balance, open a position and close it
 function example_2($exchange) {
@@ -75,6 +76,7 @@ function example_2($exchange) {
     print_r($close_position);
 }
 
+// -----------------------------------------------------------------------------------------
 
 // Example 3 :: USDC Swap : fetch balance, open a position and close it
 function example_3($exchange) {
@@ -119,6 +121,7 @@ function example_3($exchange) {
     print_r($close_position);
 }
 
+// -----------------------------------------------------------------------------------------
 
 // Example 3 :: Future : fetch balance, create stop-order and check fetch open stop-orders
 function example_4($exchange) {
@@ -155,6 +158,8 @@ function example_4($exchange) {
     $cancel_orders = $exchange->cancel_all_orders($symbol, $open_order_params);
     print_r($cancel_orders);
 }
+
+// -----------------------------------------------------------------------------------------
 
 function main($exchange) {
     example_1($exchange);

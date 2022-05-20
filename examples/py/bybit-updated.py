@@ -47,7 +47,7 @@ async def example_1():
     orders = await exchange.fetch_closed_orders(symbol)
     print(orders)
 
-
+# -------------------------------------------------------------------------------------------
 
 # Example 2 :: Swap : fetch balance, open a position and close it
 async def example_2():
@@ -80,6 +80,7 @@ async def example_2():
     close_position_order = await exchange.createOrder (symbol, type, side, amount, price, params)
     print(close_position_order)
 
+# -------------------------------------------------------------------------------------------
 
 # Example 3 :: USDC Swap : fetch balance, open a position and close it
 async def example_3():
@@ -122,6 +123,7 @@ async def example_3():
     close_position_order = await exchange.createOrder (symbol, type, side, amount, price, params)
     print(close_position_order)
 
+# -------------------------------------------------------------------------------------------
 
 # Example 4 :: Future : fetch balance, create stop-order and check fetch open stop-orders
 async def example_4():
@@ -157,6 +159,7 @@ async def example_4():
     cancelOrder = await exchange.cancel_all_orders(symbol, open_order_params)
     print(cancelOrder)
 
+# -------------------------------------------------------------------------------------------
 
 async def main():
     await example_1()
