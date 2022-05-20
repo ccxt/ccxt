@@ -3090,7 +3090,7 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['spot'] || (market['settle'] === 'USDC')) {
-            throw new NotSupported (this.id + ' fetchOrders() does not support market ' + market['symbol'] + ', consider using exchange.fetchOpenOrders () and exchange.fetchClosedOrders () instead.');
+            throw new NotSupported (this.id + ' fetchOrders() does not support ' + market['type'] + ' markets or ' + market['settle'] + ' markets, use exchange.fetchOpenOrders () and exchange.fetchClosedOrders () instead');
         }
         let method = undefined;
         const isStop = this.safeValue (params, 'stop', false);
