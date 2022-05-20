@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 // BadSymbol, BadRequest
-const { AuthenticationError, BadRequest } = require ('ccxt/js/base/errors');
+const { AuthenticationError, BadRequest, NotSupported } = require ('ccxt/js/base/errors');
 const Precise = require ('ccxt/js/base/Precise');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
@@ -1078,11 +1078,15 @@ module.exports = class bybit extends ccxt.bybit {
     }
 
     async watchBalance (params = {}) {
+        const method = 'watchBalance';
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
-        const messageHash = 'balance';
+        [ type, params ] = this.handleMarketTypeAndParams (method, undefined, params);
+        if (type !== 'spot' && type !== 'swap') {
+            throw new NotSupported (this.id + ' watchBalance does not support ' + type + ' type');
+        }
+        const messageHash = 'balance:' + type;
         let url = undefined;
-        [url, params] = this.getUrlByMarketType (undefined, true, 'watchBalance', params);
+        [url, params] = this.getUrlByMarketType (undefined, true, method, params);
         if (type === 'spot') {
             return await this.watchSpotPrivate (url, messageHash, params);
         } else {
@@ -1095,37 +1099,67 @@ module.exports = class bybit extends ccxt.bybit {
 
     handleBalance (client, message) {
         //
-        //     {
-        //         topic: 'wallet',
-        //         action: 'partial',
-        //         user_id: 155328,
-        //         data: {
-        //             eth_balance: 0,
-        //             eth_available: 0,
-        //             usdt_balance: 18.94344188,
-        //             usdt_available: 18.94344188,
-        //             ltc_balance: 0.00005,
-        //             ltc_available: 0.00005,
-        //         },
-        //         time: 1649687396
-        //     }
+        // usdt linear
         //
-        const messageHash = this.safeString (message, 'topic');
-        const data = this.safeValue (message, 'data');
-        const keys = Object.keys (data);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const parts = key.split ('_');
-            const currencyId = this.safeString (parts, 0);
-            const code = this.safeCurrencyCode (currencyId);
-            const account = (code in this.balance) ? this.balance[code] : this.account ();
-            const second = this.safeString (parts, 1);
-            const freeOrTotal = (second === 'available') ? 'free' : 'total';
-            account[freeOrTotal] = this.safeString (data, key);
-            this.balance[code] = account;
+        //  {
+        //      topic: 'wallet',
+        //      data: [ { wallet_balance: 10.052857, available_balance: 5.049857 } ]
+        //  }
+        //
+        // spot message
+        //
+        // [
+        //     {
+        //        "e":"outboundAccountInfo",
+        //        "E":"1653039590765",
+        //        "T":true,
+        //        "W":true,
+        //        "D":true,
+        //        "B":[
+        //           {
+        //              "a":"USDT",
+        //              "f":"14.6634752497",
+        //              "l":"10"
+        //           }
+        //        ]
+        //     }
+        // ]
+        //
+        const topic = this.safeString (message, 'topic');
+        let messageHash = 'balance';
+        if (topic === 'wallet') {
+            const data = this.safeValue (message, 'data', []);
+            // linear usdt branch
+            for (let i = 0; i < data.length; i++) {
+                const account = this.account ();
+                const balance = message[i];
+                const code = this.safeCurrencyCode ('USDT');
+                account['free'] = this.safeString (balance, 'available_balance');
+                account['total'] = this.safeString (balance, 'wallet_balance');
+                this.balance[code] = account;
+                this.balance = this.safeBalance (this.balance);
+            }
+            messageHash += ':' + 'swap';
+            client.resolve (this.balance, messageHash);
+            return;
         }
-        this.balance = this.safeBalance (this.balance);
-        client.resolve (this.balance, messageHash);
+        if (Array.isArray (message)) {
+            // spot balance
+            for (let i = 0; i < message.length; i++) {
+                const balances = this.safeValue (message[i], 'B', []);
+                for (let j = 0; j < balances.length; j++) {
+                    const balance = balances[j];
+                    const account = this.account ();
+                    const code = this.safeCurrencyCode (this.safeString (balance, 'a'));
+                    account['free'] = this.safeString (balance, 'f');
+                    account['used'] = this.safeString (balance, 'l');
+                    this.balance[code] = account;
+                    this.balance = this.safeBalance (this.balance);
+                }
+            }
+            messageHash += ':' + 'spot';
+            client.resolve (this.balance, messageHash);
+        }
     }
 
     async watchSwapPublic (url, messageHash, reqParams = {}, params = {}) {
@@ -1331,7 +1365,7 @@ module.exports = class bybit extends ccxt.bybit {
             'bookTicker': this.handleTicker,
             'depth': this.handleOrderBook,
             // 'order': this.handleOrder,
-            // 'wallet': this.handleBalance,
+            'wallet': this.handleBalance,
         };
         const method = this.safeValue (methods, topic);
         if (method !== undefined) {
@@ -1341,6 +1375,9 @@ module.exports = class bybit extends ccxt.bybit {
         const op = this.safeString (request, 'op');
         if (op === 'auth') {
             this.handleAuthenticate (client, message);
+        }
+        if (Array.isArray (message)) {
+            this.handleBalance (client, message);
         }
     }
 
