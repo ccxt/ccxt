@@ -249,11 +249,13 @@ module.exports = class currencycom extends Exchange {
                     'Combination of parameters invalid': BadRequest,
                     'Invalid limit price': BadRequest,
                     'Only leverage symbol allowed here:': BadSymbol, // when you fetchLeverage for non-leverage symbols, like 'BTC/USDT' instead of 'BTC/USDT_LEVERAGE': {"code":"-1128","msg":"Only leverage symbol allowed here: BTC/USDT"}
+                    'market data service is not available': ExchangeNotAvailable, // {"code":"-1021","msg":"market data service is not available"}
+                    'your time is ahead of server': InvalidNonce, // {"code":"-1021","msg":"your time is ahead of server"}
                 },
                 'exact': {
                     '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     '-1013': InvalidOrder, // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
-                    '-1021': InvalidNonce, // 'your time is ahead of server'
+                    // '-1021': InvalidNonce, // {"code":"-1021","msg":"your time is ahead of server"} // see above in the broad section
                     '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
                     '-1030': InvalidOrder, // {"code":"-1030","msg":"You mentioned an invalid value for the price parameter."}
                     '-1100': InvalidOrder, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
