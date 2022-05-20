@@ -4153,6 +4153,101 @@ The possible values in the ``status`` field are:
  * ``'error'`` means that either the exchange API is broken, or the implementation of the exchange in CCXT is broken
  * ``'maintenance'`` means regular maintenance, and the ``eta`` field should contain the datetime when the exchange is expected to be operational again
 
+Borrow Rates
+------------
+
+ *margin only*
+
+When short trading or trading with leverage on a spot market, currency must be borrowed. Interest is accrued for the borrowed currency.
+
+Data on the borrow rate for a currency can be retrieved using
+
+
+ * ``fetchBorrowRate ()`` for a single currencies borrow rate
+ * ``fetchBorrowRates ()`` for all currencies borrow rates
+ * ``fetchBorrowRatesPerSymbol ()`` for the borrow rates of currencies in individual markets
+
+.. code-block:: Javascript
+
+   fetchBorrowRate (code, params = {})
+
+Parameters
+
+
+ * **code** (String) Unified CCXT currency code, required (e.g. ``"USDT"``\ )
+ * **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. ``{"marginMode": "cross"}``\ )
+
+Returns
+
+
+ * A :ref:`transaction structure <transaction structure>`
+
+.. code-block:: Javascript
+
+   fetchBorrowRates (params = {})
+
+Parameters
+
+
+ * **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. ``{"marginMode": "cross"}``\ )
+
+Returns
+
+
+ * A dictionary of :ref:`borrow rate structures <borrow rate structure>` with unified currency codes as keys
+
+.. code-block:: Javascript
+
+   fetchBorrowRatesPerSymbol (params = {})
+
+Parameters
+
+
+ * **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. ``{"marginMode": "cross"}``\ )
+
+Returns
+
+
+ * A dictionary of :ref:`borrow rate structures <borrow rate structure>` with unified market symbols as keys
+
+Borrow Rate Structure
+^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: JavaScript
+
+   {
+     currency: 'USDT',  // Unified currency code
+     rate: 0.0006,  // A ratio of the rate that interest is accrued at
+     period: 86400000,  // The amount of time in milliseconds that is required to accrue the interest amount specified by rate
+     timestamp: 1646956800000,  // Timestamp for when the currency had this rate
+     datetime: '2022-03-11T00:00:00.000Z',  // Datetime for when the currency had this rate
+     info: [ ... ]
+   }
+
+Borrow Rate History
+-------------------
+
+ *margin only*
+
+The ``fetchBorrowRateHistory`` method retrieves a history of a currencies borrow interest rate at specific time slots
+
+.. code-block:: Javascript
+
+   fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {})
+
+Parameters
+
+
+ * **code** (String) *required* Unified CCXT currency code (e.g. ``"USDT"``\ )
+ * **since** (Integer) Timestamp for the earliest borrow rate (e.g. ``1645807945000``\ )
+ * **limit** (Integer) The maximum number of :ref:`borrow rate structures <borrow rate structure>` to retrieve (e.g. ``10``\ )
+ * **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. ``{"endTime": 1645807945000}``\ )
+
+Returns
+
+
+ * An array of :ref:`borrow rate structures <borrow rate structure>`
+
 Leverage Tiers
 --------------
 
@@ -4350,100 +4445,49 @@ Funding Rate History Structure
        datetime: "2022-01-23T16:00:00.000Z"
    }
 
-Borrow Rates
-------------
+Open Interest History
+---------------------
 
- *margin only*
+ *contract only*
 
-When short trading or trading with leverage on a spot market, currency must be borrowed. Interest is accrued for the borrowed currency.
-
-Data on the borrow rate for a currency can be retrieved using
-
-
- * ``fetchBorrowRate ()`` for a single currencies borrow rate
- * ``fetchBorrowRates ()`` for all currencies borrow rates
- * ``fetchBorrowRatesPerSymbol ()`` for the borrow rates of currencies in individual markets
-
-.. code-block:: Javascript
-
-   fetchBorrowRate (code, params = {})
-
-Parameters
-
-
- * **code** (String) Unified CCXT currency code, required (e.g. ``"USDT"``\ )
- * **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. ``{"marginMode": "cross"}``\ )
-
-Returns
-
-
- * A :ref:`transaction structure <transaction structure>`
-
-.. code-block:: Javascript
-
-   fetchBorrowRates (params = {})
-
-Parameters
-
-
- * **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. ``{"marginMode": "cross"}``\ )
-
-Returns
-
-
- * A dictionary of :ref:`borrow rate structures <borrow rate structure>` with unified currency codes as keys
-
-.. code-block:: Javascript
-
-   fetchBorrowRatesPerSymbol (params = {})
-
-Parameters
-
-
- * **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. ``{"marginMode": "cross"}``\ )
-
-Returns
-
-
- * A dictionary of :ref:`borrow rate structures <borrow rate structure>` with unified market symbols as keys
-
-Borrow Rate Structure
-^^^^^^^^^^^^^^^^^^^^^
+Use the ``fetchOpenInterestHistory`` method to get a history of open interest for a symbol from the exchange.
 
 .. code-block:: JavaScript
 
-   {
-     currency: 'USDT',  // Unified currency code
-     rate: 0.0006,  // A ratio of the rate that interest is accrued at
-     period: 86400000,  // The amount of time in milliseconds that is required to accrue the interest amount specified by rate
-     timestamp: 1646956800000,  // Timestamp for when the currency had this rate
-     datetime: '2022-03-11T00:00:00.000Z',  // Datetime for when the currency had this rate
-     info: [ ... ]
-   }
-
-Borrow Rate History
--------------------
-
- *margin only*
-
-The ``fetchBorrowRateHistory`` method retrieves a history of a currencies borrow interest rate at specific time slots
-
-.. code-block:: Javascript
-
-   fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {})
+   fetchOpenInterestHistory (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {})
 
 Parameters
 
 
- * **code** (String) *required* Unified CCXT currency code (e.g. ``"USDT"``\ )
- * **since** (Integer) Timestamp for the earliest borrow rate (e.g. ``1645807945000``\ )
- * **limit** (Integer) The maximum number of :ref:`borrow rate structures <borrow rate structure>` to retrieve (e.g. ``10``\ )
+ * **symbol** (String) Unified CCXT market symbol (e.g. ``"BTC/USDT:USDT"``\ )
+ * **timeframe** (String) Check exchange.timeframes for available values
+ * **since** (Integer) Timestamp for the earliest open interest record (e.g. ``1645807945000``\ )
+ * **limit** (Integer) The maximum number of :ref:`open interest structures <open interest structures>` to retrieve (e.g. ``10``\ )
  * **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. ``{"endTime": 1645807945000}``\ )
 
 Returns
 
 
- * An array of :ref:`borrow rate structures <borrow rate structure>`
+ * An array of :ref:`open interest structures <open interest structure>`
+
+Open Interest Structure
+^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: JavaScript
+
+   {
+       symbol: 'BTC/USDT',
+       baseVolume: 80872.801,
+       quoteVolume: 3508262107.38,
+       timestamp: 1649379000000,
+       datetime: '2022-04-08T00:50:00.000Z',
+       info: {
+           symbol: 'BTCUSDT',
+           sumOpenInterest: '80872.80100000',
+           sumOpenInterestValue: '3508262107.38000000',
+           timestamp: '1649379000000'
+       }
+   }
 
 Positions Risk
 --------------
@@ -6670,6 +6714,48 @@ Funding Fee Structure
        'info': { ... },
    }
 
+Borrow Interest
+---------------
+
+
+ * margin only
+
+To trade with leverage in spot or margin markets, currency must be borrowed as a loan. This borrowed currency must be payed back with interest. To obtain the amount of interest that has accrued you can use the ``fetchBorrowInterest`` method
+
+.. code-block:: JavaScript
+
+   fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {})
+
+Parameters
+
+
+ * **code** (String) The unified currency code for the currency of the interest (e.g. ``"USDT"``\ )
+ * **symbol** (String) The market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned (e.g. ``"BTC/USDT:USDT"``\ )
+ * **since** (Integer) Timestamp (ms) of the earliest time to receive interest records for (e.g. ``1646940314000``\ )
+ * **limit** (Integer) The number of :ref:`borrow interest structures <borrow interest structure>` to retrieve (e.g. ``5``\ )
+ * **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. ``{"endTime": 1645807945000}``\ )
+
+Returns
+
+
+ * An array of :ref:`borrow interest structures <borrow interest structure>`
+
+Borrow Interest Structure
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: JavaScript
+
+   {
+       account: 'BTC/USDT',                    // The market that the interest was accrued in
+       currency: 'USDT',                       // The currency of the interest
+       interest: 0.00004842,                   // The amount of interest that was charged
+       interestRate: 0.0002,                   // The borrow interest rate
+       amountBorrowed: 5.81,                   // The amount of currency that was borrowed
+       timestamp: 1648699200000,               // The timestamp that the interest was charged
+       datetime: '2022-03-31T04:00:00.000Z',   // The datetime that the interest was charged
+       info: { ... }                           // Unparsed exchange response
+   }
+
 Margin
 ------
 
@@ -6946,48 +7032,6 @@ Funding History Structure
        datetime: "2022-03-08T16:00:00.000Z",
        id: "1520286109858180",
        amount: -0.027722
-   }
-
-Borrow Interest
----------------
-
-
- * margin only
-
-To trade with leverage in spot or margin markets, currency must be borrowed as a loan. This borrowed currency must be payed back with interest. To obtain the amount of interest that has accrued you can use the ``fetchBorrowInterest`` method
-
-.. code-block:: JavaScript
-
-   fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {})
-
-Parameters
-
-
- * **code** (String) The unified currency code for the currency of the interest (e.g. ``"USDT"``\ )
- * **symbol** (String) The market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned (e.g. ``"BTC/USDT:USDT"``\ )
- * **since** (Integer) Timestamp (ms) of the earliest time to receive interest records for (e.g. ``1646940314000``\ )
- * **limit** (Integer) The number of :ref:`borrow interest structures <borrow interest structure>` to retrieve (e.g. ``5``\ )
- * **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. ``{"endTime": 1645807945000}``\ )
-
-Returns
-
-
- * An array of :ref:`borrow interest structures <borrow interest structure>`
-
-Borrow Interest Structure
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. code-block:: JavaScript
-
-   {
-       account: 'BTC/USDT',                    // The market that the interest was accrued in
-       currency: 'USDT',                       // The currency of the interest
-       interest: 0.00004842,                   // The amount of interest that was charged
-       interestRate: 0.0002,                   // The borrow interest rate
-       amountBorrowed: 5.81,                   // The amount of currency that was borrowed
-       timestamp: 1648699200000,               // The timestamp that the interest was charged
-       datetime: '2022-03-31T04:00:00.000Z',   // The datetime that the interest was charged
-       info: { ... }                           // Unparsed exchange response
    }
 
 Error Handling
