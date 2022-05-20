@@ -4526,10 +4526,10 @@ class okx extends Exchange {
         /**
          * retrieves a history of a currencies borrow interest rate at specific time slots
          * @param {str} $code unified $currency $code
-         * @param array(int|null) $since timestamp for the earliest borrow rate
-         * @param array(int|null) $limit the maximum number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} to retrieve
+         * @param {int|null} $since timestamp for the earliest borrow rate
+         * @param {int|null} $limit the maximum number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} to retrieve
          * @param {dict} $params extra parameters specific to the exchange api endpoint
-         * @return array(~@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure dict]) an array of [borrow rate structures~
+         * @return {[dict]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
          */
         yield $this->load_markets();
         $currency = $this->currency($code);
