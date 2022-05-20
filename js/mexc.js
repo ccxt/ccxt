@@ -3093,7 +3093,6 @@ module.exports = class mexc extends Exchange {
          * @param {dict} params extra parameters specific to the mexc api endpoint
          * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
-        //
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
