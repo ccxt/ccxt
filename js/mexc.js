@@ -3108,28 +3108,28 @@ module.exports = class mexc extends Exchange {
         }
         const response = await this.contractPublicGetFundingRateHistory (this.extend (request, params));
         //
-        // {
-        //     "success": true,
-        //     "code": 0,
-        //     "data": {
-        //         "pageSize": 2,
-        //         "totalCount": 21,
-        //         "totalPage": 11,
-        //         "currentPage": 1,
-        //         "resultList": [
-        //             {
-        //                 "symbol": "BTC_USDT",
-        //                 "fundingRate": 0.000266,
-        //                 "settleTime": 1609804800000
-        //             },
-        //             {
-        //                 "symbol": "BTC_USDT",
-        //                 "fundingRate": 0.00029,
-        //                 "settleTime": 1609776000000
-        //             }
-        //         ]
-        //     }
-        // }
+        //    {
+        //        "success": true,
+        //        "code": 0,
+        //        "data": {
+        //            "pageSize": 2,
+        //            "totalCount": 21,
+        //            "totalPage": 11,
+        //            "currentPage": 1,
+        //            "resultList": [
+        //                {
+        //                    "symbol": "BTC_USDT",
+        //                    "fundingRate": 0.000266,
+        //                    "settleTime": 1609804800000
+        //                },
+        //                {
+        //                    "symbol": "BTC_USDT",
+        //                    "fundingRate": 0.00029,
+        //                    "settleTime": 1609776000000
+        //                }
+        //            ]
+        //        }
+        //    }
         //
         const data = this.safeValue (response, 'data');
         const result = this.safeValue (data, 'resultList');
