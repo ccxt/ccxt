@@ -1625,7 +1625,7 @@ class ascendex extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        list($type, $query) = $this->handle_market_type_and_params('fetchCLosedOrders', $market, $params);
+        list($type, $query) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
         $options = $this->safe_value($this->options, 'fetchClosedOrders', array());
         $defaultMethod = $this->safe_string($options, 'method', 'v1PrivateAccountGroupGetOrderHist');
         $method = $this->get_supported_mapping($type, array(

@@ -1239,7 +1239,7 @@ class whitebit extends Exchange {
         if ($this->is_fiat($code)) {
             $provider = $this->safe_value($params, 'provider');
             if ($provider === null) {
-                throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires a $provider when the ticker is fiat');
+                throw new ArgumentsRequired($this->id . ' withdraw() requires a $provider when the ticker is fiat');
             }
             $request['provider'] = $provider;
         }

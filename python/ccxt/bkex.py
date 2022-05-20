@@ -758,7 +758,7 @@ class bkex(Exchange):
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         if code is None:
-            raise ArgumentsRequired(self.id + ' fetchDeposits() requires code argument')
+            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires code argument')
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -913,7 +913,7 @@ class bkex(Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -990,7 +990,7 @@ class bkex(Exchange):
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {

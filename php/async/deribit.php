@@ -2086,7 +2086,7 @@ class deribit extends Exchange {
 
     public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' transfer() requires a $currency $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $currency $code argument');
         }
         yield $this->load_markets();
         $currency = $this->currency($code);

@@ -1069,7 +1069,7 @@ class xena(Exchange):
 
     async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
         await self.load_markets()
         await self.load_accounts()
         accountId = await self.get_account_id(params)

@@ -1121,7 +1121,7 @@ class xena extends Exchange {
 
     public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $this->load_accounts();

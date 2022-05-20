@@ -1173,7 +1173,7 @@ class whitebit(Exchange):
         if self.is_fiat(code):
             provider = self.safe_value(params, 'provider')
             if provider is None:
-                raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a provider when the ticker is fiat')
+                raise ArgumentsRequired(self.id + ' withdraw() requires a provider when the ticker is fiat')
             request['provider'] = provider
         response = self.v4PrivatePostMainAccountWithdraw(self.extend(request, params))
         #

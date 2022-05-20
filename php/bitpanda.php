@@ -1533,7 +1533,7 @@ class bitpanda extends Exchange {
         if ($since !== null) {
             $to = $this->safe_string($params, 'to');
             if ($to === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrders() requires a "to" iso8601 string param with the $since argument is specified, max range is 100 days');
+                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a "to" iso8601 string param with the $since argument is specified, max range is 100 days');
             }
             $request['from'] = $this->iso8601($since);
         }

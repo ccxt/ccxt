@@ -386,7 +386,7 @@ class bytetrade(Exchange):
 
     def fetch_balance(self, params={}):
         if not ('userid' in params) and (self.apiKey is None):
-            raise ArgumentsRequired(self.id + ' fetchDeposits() requires self.apiKey or userid argument')
+            raise ArgumentsRequired(self.id + ' fetchBalance() requires self.apiKey or userid argument')
         self.load_markets()
         request = {
             'userid': self.apiKey,

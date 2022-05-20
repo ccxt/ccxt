@@ -345,7 +345,7 @@ class itbit extends Exchange {
         yield $this->load_markets();
         $walletId = $this->safe_string($params, 'walletId');
         if ($walletId === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $walletId parameter');
+            throw new ArgumentsRequired($this->id . ' fetchTransactions() requires a $walletId parameter');
         }
         $request = array(
             'walletId' => $walletId,

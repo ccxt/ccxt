@@ -1390,7 +1390,7 @@ class coinbasepro extends Exchange {
         $account = $this->safe_value($this->options['coinbaseAccountsByCurrencyId'], $currencyId);
         if ($account === null) {
             // eslint-disable-next-line quotes
-            throw new InvalidAddress($this->id . " fetchDepositAddress() could not find $currency $code " . $code . " with id = " . $currencyId . " in $this->options['coinbaseAccountsByCurrencyId']");
+            throw new InvalidAddress($this->id . " createDepositAddress() could not find $currency $code " . $code . " with id = " . $currencyId . " in $this->options['coinbaseAccountsByCurrencyId']");
         }
         $request = array(
             'id' => $account['id'],

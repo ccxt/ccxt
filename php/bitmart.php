@@ -367,7 +367,7 @@ class bitmart extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
-        $options = $this->safe_value($this->options, 'fetchBalance', array());
+        $options = $this->safe_value($this->options, 'fetchStatus', array());
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $type = $this->safe_string($options, 'type', $defaultType);
         $type = $this->safe_string($params, 'type', $type);

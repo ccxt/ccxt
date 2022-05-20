@@ -377,7 +377,7 @@ class bitmart(Exchange):
         return self.safe_integer(data, 'server_time')
 
     def fetch_status(self, params={}):
-        options = self.safe_value(self.options, 'fetchBalance', {})
+        options = self.safe_value(self.options, 'fetchStatus', {})
         defaultType = self.safe_string(self.options, 'defaultType')
         type = self.safe_string(options, 'type', defaultType)
         type = self.safe_string(params, 'type', type)

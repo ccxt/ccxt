@@ -797,7 +797,7 @@ class bkex extends Exchange {
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires $code argument');
         }
         yield $this->load_markets();
         $currency = $this->currency($code);
@@ -964,7 +964,7 @@ class bkex extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -1045,7 +1045,7 @@ class bkex extends Exchange {
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);

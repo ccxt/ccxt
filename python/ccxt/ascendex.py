@@ -1571,7 +1571,7 @@ class ascendex(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        type, query = self.handle_market_type_and_params('fetchCLosedOrders', market, params)
+        type, query = self.handle_market_type_and_params('fetchClosedOrders', market, params)
         options = self.safe_value(self.options, 'fetchClosedOrders', {})
         defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountGroupGetOrderHist')
         method = self.get_supported_mapping(type, {

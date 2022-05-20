@@ -2036,7 +2036,7 @@ class phemex(Exchange):
 
     def cancel_all_orders(self, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         self.load_markets()
         request = {
             # 'symbol': market['id'],

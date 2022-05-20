@@ -1069,7 +1069,7 @@ class xena(Exchange):
 
     def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
         self.load_markets()
         self.load_accounts()
         accountId = self.get_account_id(params)

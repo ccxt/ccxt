@@ -2013,7 +2013,7 @@ class deribit(Exchange):
 
     def fetch_transfers(self, code=None, since=None, limit=None, params={}):
         if code is None:
-            raise ArgumentsRequired(self.id + ' transfer() requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchTransfers() requires a currency code argument')
         self.load_markets()
         currency = self.currency(code)
         request = {

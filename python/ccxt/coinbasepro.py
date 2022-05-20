@@ -1301,7 +1301,7 @@ class coinbasepro(Exchange):
         account = self.safe_value(self.options['coinbaseAccountsByCurrencyId'], currencyId)
         if account is None:
             # eslint-disable-next-line quotes
-            raise InvalidAddress(self.id + " fetchDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in self.options['coinbaseAccountsByCurrencyId']")
+            raise InvalidAddress(self.id + " createDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in self.options['coinbaseAccountsByCurrencyId']")
         request = {
             'id': account['id'],
         }

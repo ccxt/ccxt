@@ -398,7 +398,7 @@ class bytetrade extends Exchange {
 
     public function fetch_balance($params = array ()) {
         if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires $this->apiKey or userid argument');
+            throw new ArgumentsRequired($this->id . ' fetchBalance() requires $this->apiKey or userid argument');
         }
         $this->load_markets();
         $request = array(

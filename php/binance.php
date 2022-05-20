@@ -3028,7 +3028,7 @@ class binance extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
+        $defaultType = $this->safe_string_2($this->options, 'cancelOrder', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         // https://github.com/ccxt/ccxt/issues/6507
         $origClientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
@@ -4070,7 +4070,7 @@ class binance extends Exchange {
     public function fetch_trading_fees($params = array ()) {
         $this->load_markets();
         $method = null;
-        $defaultType = $this->safe_string_2($this->options, 'fetchFundingRates', 'defaultType', 'future');
+        $defaultType = $this->safe_string_2($this->options, 'fetchTradingFees', 'defaultType', 'future');
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit($params, 'type');
         if (($type === 'spot') || ($type === 'margin')) {
