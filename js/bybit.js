@@ -927,7 +927,7 @@ module.exports = class bybit extends Exchange {
                 'strike': strike,
                 'optionType': optionType,
                 'precision': {
-                    'amount': this.safeNumber (market, 'minOrderSizeIncrement'),
+                    'amount': this.safeNumber2 (market, 'minOrderSizeIncrement', 'qtyStep'),
                     'price': this.safeNumber (market, 'tickSize'),
                 },
                 'limits': {
