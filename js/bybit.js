@@ -95,7 +95,7 @@ module.exports = class bybit extends ccxt.bybit {
         });
     }
 
-    getUrlByMarketType (symbol = undefined, isPrivate = false, params = {}) {
+    getUrlByMarketType (symbol = undefined, isPrivate = false, method = undefined, params = {}) {
         const accessibility = isPrivate ? 'private' : 'public';
         let isUsdcSettled = undefined;
         let isSpot = undefined;
@@ -110,7 +110,7 @@ module.exports = class bybit extends ccxt.bybit {
             type = market['type'];
             isLinear = market['linear'];
         } else {
-            [ type, params ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
+            [ type, params ] = this.handleMarketTypeAndParams (method, undefined, params);
             const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
             const subType = this.safeString (params, 'subType', defaultSubType);
             let defaultSettle = this.safeString (this.options, 'defaultSettle');
@@ -1078,8 +1078,19 @@ module.exports = class bybit extends ccxt.bybit {
     }
 
     async watchBalance (params = {}) {
-        const messageHash = 'wallet';
-        return await this.watchPrivate (messageHash, 'watchBalance', params);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const messageHash = 'balance';
+        let url = undefined;
+        [url, params] = this.getUrlByMarketType (undefined, true, 'watchBalance', params);
+        if (type === 'spot') {
+            return await this.watchSpotPrivate (url, messageHash, params);
+        } else {
+            const reqParams = [
+                'wallet',
+            ];
+            return await this.watchSwapPrivate (url, messageHash, reqParams, params);
+        }
     }
 
     handleBalance (client, message) {
@@ -1139,33 +1150,51 @@ module.exports = class bybit extends ccxt.bybit {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchPrivate (messageHash, method, params = {}) {
-        const options = this.safeValue (this.options, method, {});
-        let expires = this.safeString (options, 'api-expires');
-        if (expires === undefined) {
-            const timeout = parseInt (this.timeout / 1000);
-            expires = this.sum (this.seconds (), timeout);
-            expires = expires.toString ();
-            // we need to memoize these values to avoid generating a new url on each method execution
-            // that would trigger a new connection on each received message
-            this.options[method]['api-expires'] = expires;
-        }
+    async watchSpotPrivate (url, messageHash, params = {}) {
+        const channel = 'private';
+        // sending the authentication message automatically
+        // subscribes to all 3 private topics.
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws'];
-        const auth = 'CONNECT' + '/stream' + expires;
-        const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-        const authParams = {
-            'api-key': this.apiKey,
-            'api-signature': signature,
-            'api-expires': expires,
-        };
-        const signedUrl = url + '?' + this.urlencode (authParams);
+        let expires = this.milliseconds () + 10000;
+        expires = expires.toString ();
+        const path = 'GET/realtime';
+        const auth = path + expires;
+        const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'hex');
         const request = {
-            'op': 'subscribe',
-            'args': [ messageHash ],
+            'op': 'auth',
+            'args': [
+                this.apiKey, expires, signature,
+            ],
         };
-        const message = this.extend (request, params);
-        return await this.watch (signedUrl, messageHash, message, messageHash);
+        return await this.watch (url, messageHash, request, channel);
+    }
+
+    async watchSwapPrivate (url, messageHash, reqParams, params = {}) {
+        await this.authenticateSwap (url, params);
+        return await this.watchSwapPublic (url, messageHash, reqParams, params);
+    }
+
+    async authenticateSwap (url, params = {}) {
+        this.checkRequiredCredentials ();
+        const messageHash = 'login';
+        const client = this.client (url);
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
+            future = client.future ('authenticated');
+            let expires = this.milliseconds () + 10000;
+            expires = expires.toString ();
+            const path = 'GET/realtime';
+            const auth = path + expires;
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'hex');
+            const request = {
+                'op': 'auth',
+                'args': [
+                    this.apiKey, expires, signature,
+                ],
+            };
+            this.spawn (this.watch, url, messageHash, request, messageHash, future);
+        }
+        return await future;
     }
 
     handleErrorMessage (client, message) {
@@ -1258,6 +1287,19 @@ module.exports = class bybit extends ccxt.bybit {
         //          }
         //        ]
         //    }
+        //    {
+        //        success: true,
+        //        ret_msg: '',
+        //        conn_id: '55f508ad-d17b-48d8-8b19-669280a25a72',
+        //        request: {
+        //          op: 'auth',
+        //          args: [
+        //            'cH4MQfkrFNKYiLfpVB',
+        //            '1653038985746',
+        //            'eede78af3eb916ffc569a5c1466b83e36034324f480ca2684728d17fb606acae'
+        //          ]
+        //        }
+        //    }
         //
         if (!this.handleErrorMessage (client, message)) {
             return;
@@ -1295,6 +1337,11 @@ module.exports = class bybit extends ccxt.bybit {
         if (method !== undefined) {
             method.call (this, client, message);
         }
+        const request = this.safeValue (message, 'request', {});
+        const op = this.safeString (request, 'op');
+        if (op === 'auth') {
+            this.handleAuthenticate (client, message);
+        }
     }
 
     ping (client) {
@@ -1304,6 +1351,28 @@ module.exports = class bybit extends ccxt.bybit {
 
     handlePong (client, message) {
         client.lastPong = this.milliseconds ();
+        return message;
+    }
+
+    handleAuthenticate (client, message) {
+        //
+        //    {
+        //        success: true,
+        //        ret_msg: '',
+        //        conn_id: '55f508ad-d17b-48d8-8b19-669280a25a72',
+        //        request: {
+        //          op: 'auth',
+        //          args: [
+        //            'cH4MQfkrFNKYiLfpVB',
+        //            '1653038985746',
+        //            'eede78af3eb916ffc569a5c1466b83e36034324f480ca2684728d17fb606acae'
+        //          ]
+        //        }
+        //    }
+        //
+        // this will only be effective for swap markets,
+        // spot markets don't have this 'authenticated' future
+        client.resolve (message, 'authenticated');
         return message;
     }
 
