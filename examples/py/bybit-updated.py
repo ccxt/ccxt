@@ -34,11 +34,11 @@ async def example_1():
     side = 'buy'
     amount = 0.1
     price = 50
-    create_order = await exchange.create_order (symbol, type, side, amount, price)
+    create_order = await exchange.create_order(symbol, type, side, amount, price)
     print('Create order id:', create_order['id'])
 
     # cancel created order
-    canceled_order = await exchange.cancel_order (create_order['id'], symbol)
+    canceled_order = await exchange.cancel_order(create_order['id'], symbol)
     print(canceled_order)
 
     # Check canceled orders (bybit does not have a single endpoint to check orders
@@ -64,12 +64,12 @@ async def example_2():
     side = 'buy'
     amount = 0.1
     price = None
-    create_order = await exchange.create_order (symbol, type, side, amount, price)
+    create_order = await exchange.create_order(symbol, type, side, amount, price)
     print('Create order id:', create_order['id'])
 
     # check opened position
     symbols = [ symbol ]
-    positions = await exchange.fetch_positions (symbols)
+    positions = await exchange.fetch_positions(symbols)
     print(positions)
 
     # Close position by issuing a order in the opposite direction
@@ -77,7 +77,7 @@ async def example_2():
     params = {
         'reduce_only': True
     }
-    close_position_order = await exchange.createOrder (symbol, type, side, amount, price, params)
+    close_position_order = await exchange.createOrder(symbol, type, side, amount, price, params)
     print(close_position_order)
 
 # -------------------------------------------------------------------------------------------
@@ -120,7 +120,7 @@ async def example_3():
     params = {
         'reduce_only': True
     }
-    close_position_order = await exchange.createOrder (symbol, type, side, amount, price, params)
+    close_position_order = await exchange.createOrder(symbol, type, side, amount, price, params)
     print(close_position_order)
 
 # -------------------------------------------------------------------------------------------

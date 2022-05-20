@@ -1,22 +1,22 @@
 const ccxt = require ('../../ccxt');
 
-const exchange = new ccxt.huobi ({
+const exchange = new ccxt.bybit ({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET_KEY',
 })
 
 // Example 1: Spot : fetch balance, create order, cancel it and check canceled orders
-async function example1() {
+async function example1 () {
     await exchange.loadMarkets ();
     
     // fetch spot balance
     const balance = await exchange.fetchBalance ();
-    console.log(balance)
+    console.log (balance)
 
     // create order
     const symbol = 'LTC/USDT';
     const createOrder = await exchange.createOrder (symbol, 'limit', 'buy', 50, 0.1);
-    console.log('Created order Id:', createOrder['id'])
+    console.log ('Created order Id:', createOrder['id'])
 
     // cancel order
     const cancelOrder = await exchange.cancelOrder (createOrder['id'], symbol);
@@ -24,43 +24,43 @@ async function example1() {
     // Check canceled orders (bybit does not have a single endpoint to check orders
     // we have to choose whether to check open or closed orders and call fetchOpenOrders
     // or fetchClosedOrders respectively
-    const canceledOrders = await exchange.fetchClosedOrders(symbol);
-    console.log(canceledOrders);
+    const canceledOrders = await exchange.fetchClosedOrders (symbol);
+    console.log (canceledOrders);
 }
 
 // -----------------------------------------------------------------------------------------
 
 // Example 2 :: Swap : fetch balance, open a position and close it
-async function example2() {
+async function example2 () {
     exchange['options']['defaultType'] = 'swap'; // very important set swap as default type
     await exchange.loadMarkets ();
     
     // fetch swap balance
     const balance = await exchange.fetchBalance ();
-    console.log(balance)
+    console.log (balance)
 
     // create order and open position
     const symbol = 'LTC/USDT:USDT';
     const createOrder = await exchange.createOrder (symbol, 'market', 'buy', 0.1);
-    console.log('Created order Id:', createOrder['id'])
+    console.log ('Created order Id:', createOrder['id'])
 
     // check opened position
     const symbols = [ symbol ];
     const positions = await exchange.fetchPositions (symbols);
-    console.log(positions)
+    console.log (positions)
 
     // Close position by issuing a order in the opposite direction
     const params = {
         'reduce_only': true
     }
     const closePositionOrder = await exchange.createOrder (symbol, 'market', 'sell', 0.1, undefined, params);
-    console.log(closePositionOrder);
+    console.log (closePositionOrder);
 }
 
 // -----------------------------------------------------------------------------------------
 
 // Example 3 :: USDC Swap : fetch balance, open a position and close it
-async function example3() {
+async function example3 () {
     exchange['options']['defaultType'] = 'swap'; // very important set swap as default type
     await exchange.loadMarkets ();
     
@@ -74,7 +74,7 @@ async function example3() {
         'settle': 'USDC'
     }
     const balance = await exchange.fetchBalance (balanceParams);
-    console.log(balance)
+    console.log (balance)
 
     // create order and open position
     // taking into consideration that USDC markets do not support
@@ -83,31 +83,31 @@ async function example3() {
     const amount = 0.1;
     const price = 29940 // adjust this accordingly
     const createOrder = await exchange.createOrder (symbol, 'limit', 'buy', amount, price);
-    console.log('Created order Id:', createOrder['id'])
+    console.log ('Created order Id:', createOrder['id'])
 
     // check if the order was filled and the position opened
     const symbols = [ symbol ];
     const positions = await exchange.fetchPositions (symbols);
-    console.log(positions)
+    console.log (positions)
  
     // close position (assuming it was already opened) by issuing an order in the opposite direction
     const params = {
         'reduce_only': true
     }
     const closePositionOrder = await exchange.createOrder (symbol, 'limit', 'sell', amount, price, params);
-    console.log(closePositionOrder);
+    console.log (closePositionOrder);
 }
 
 // -----------------------------------------------------------------------------------------
 
 // Example 4 :: Future : fetch balance, create stop-order and check fetch open stop-orders
-async function example4() {
+async function example4 () {
     exchange['options']['defaultType'] = 'future'; // very important set future as default type
     await exchange.loadMarkets ();
     
     // fetch future balance
     const balance = await exchange.fetchBalance ();
-    console.log(balance)
+    console.log (balance)
 
     // create stop-order
     const symbol = 'ETH/USD:ETH-220930';
@@ -121,28 +121,28 @@ async function example4() {
         'basePrice': 1100  // mandatory for stop orders
     }
     const stopOrder = await exchange.createOrder (symbol, type, side, amount, price, stopOrderParams);
-    console.log('Created order Id:', stopOrder['id'])
+    console.log ('Created order Id:', stopOrder['id'])
 
     // check opened stop-order
     const openOrderParams = {
         'stop': true
     }
     const openOrders = await exchange.fetchOpenOrders (symbol, undefined, undefined, openOrderParams);
-    console.log(openOrders)
+    console.log (openOrders)
 
     // Cancell open stop-order
-    const cancelOrder = await exchange.cancelOrder(stopOrder['id'], symbol, openOrderParams);
-    console.log(cancelOrder);
+    const cancelOrder = await exchange.cancelOrder (stopOrder['id'], symbol, openOrderParams);
+    console.log (cancelOrder);
 }
 
 // -----------------------------------------------------------------------------------------
 
-async function main() {
-    // await example1 ();
-    // await example2 ();
-    // await example3 ();
+async function main () {
+    await example1 ();
+    await example2 ();
+    await example3 ();
     await example4 ();
 
 }
 
-main();
+main ();

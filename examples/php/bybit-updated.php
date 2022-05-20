@@ -15,10 +15,10 @@ $exchange = new \ccxt\bybit(array(
 
 // Example 1: Spot : fetch balance, create order, cancel it and check canceled orders
 function example_1($exchange) {
-    $markets = $exchange->load_markets ();
+    $markets = $exchange->load_markets();
 
     // fetch spot balance
-    $balance =  $exchange->fetch_balance ();
+    $balance = $exchange->fetch_balance();
     print_r($balance);
 
     // create limit order
@@ -27,7 +27,7 @@ function example_1($exchange) {
     $side = 'buy';
     $amount = 0.1;
     $price = 50;
-    $create_order = $exchange->create_order ($symbol, $type, $side, $amount, $price);
+    $create_order = $exchange->create_order($symbol, $type, $side, $amount, $price);
     print_r('Create order id:' . $create_order['id']);
 
     // cancel created order
@@ -47,10 +47,10 @@ function example_1($exchange) {
 // Example 2 :: Swap : fetch balance, open a position and close it
 function example_2($exchange) {
     $exchange->options['defaultType'] = 'swap'; // very important set swap as default type
-    $markets = $exchange->load_markets ();
+    $markets = $exchange->load_markets();
 
     // fetch swap balance
-    $balance =  $exchange->fetch_balance ();
+    $balance =  $exchange->fetch_balance();
     print_r($balance);
 
     // create market order and open position
@@ -59,7 +59,7 @@ function example_2($exchange) {
     $side = 'buy';
     $amount = 0.1;
     $price = null;
-    $create_order = $exchange->create_order ($symbol, $type, $side, $amount, $price);
+    $create_order = $exchange->create_order($symbol, $type, $side, $amount, $price);
     print_r('Create order id:' . $create_order['id']);
 
     // check opened position
@@ -72,7 +72,7 @@ function example_2($exchange) {
     $params = array (
         'reduce_only' => true
     );
-    $close_position = $exchange->create_order ($symbol, $type, $side, $amount, $price,  $params);
+    $close_position = $exchange->create_order($symbol, $type, $side, $amount, $price,  $params);
     print_r($close_position);
 }
 
@@ -81,7 +81,7 @@ function example_2($exchange) {
 // Example 3 :: USDC Swap : fetch balance, open a position and close it
 function example_3($exchange) {
     $exchange->options['defaultType'] = 'swap'; // very important set swap as default type
-    $markets = $exchange->load_markets ();
+    $markets = $exchange->load_markets();
 
     // fetch USDC swap balance
     // when no symbol is available we can show our intent
@@ -148,7 +148,7 @@ function example_4($exchange) {
     print_r('Create order id:' . $stop_order['id']);
 
     // check opened stop-order
-    $open_order_params = array (
+    $open_order_params = array(
         'stop' => true
     );
     $open_orders = $exchange->fetch_open_orders($symbol, null, null, $open_order_params);
