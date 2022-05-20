@@ -97,12 +97,29 @@ module.exports = class bybit extends ccxt.bybit {
 
     getUrlByMarketType (symbol = undefined, isPrivate = false, params = {}) {
         const accessibility = isPrivate ? 'private' : 'public';
+        let isUsdcSettled = undefined;
+        let isSpot = undefined;
+        let type = undefined;
+        let isLinear = undefined;
+        let market = undefined;
         let url = this.urls['api']['ws'];
-        const market = this.market (symbol);
-        const isUsdcSettled = market['settle'] === 'USDC';
-        const isSpot = market['spot'];
-        const type = market['type'];
-        const isLinear = market['linear'];
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            isUsdcSettled = market['settle'] === 'USDC';
+            isSpot = market['spot'];
+            type = market['type'];
+            isLinear = market['linear'];
+        } else {
+            [ type, params ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
+            const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
+            const subType = this.safeString (params, 'subType', defaultSubType);
+            let defaultSettle = this.safeString (this.options, 'defaultSettle');
+            defaultSettle = this.safeString2 (params, 'settle', 'defaultSettle', defaultSettle);
+            isUsdcSettled = (defaultSettle === 'USDC');
+            isSpot = (type === 'spot');
+            isLinear = (subType === 'linear');
+            params = this.omit (params, [ 'settle', 'defaultSettle', 'subType' ]);
+        }
         if (isSpot) {
             url = url['spot'][accessibility];
         } else if (isUsdcSettled) {
@@ -759,10 +776,10 @@ module.exports = class bybit extends ccxt.bybit {
             const market = this.market (marketId);
             const symbol = market['symbol'];
             const messageHash = 'orderbook' + ':' + symbol;
-            const nonce = this.safeInteger (message, 'cross_seq');
+            const nonce = this.safeInteger2 (message, 'cross_seq', 'crossSeq');
+            const timestamp = this.safeIntegerProduct2 (message, 'timestamp_e6', 'timestampE6', 0.001);
             if (type === 'snapshot') {
-                const rawOrderBook = this.safeValue (data, 'order_book');
-                const timestamp = this.safeIntegerProduct (message, 'timestamp_e6', 0.001);
+                const rawOrderBook = this.safeValue2 (data, 'order_book', 'orderBook');
                 const snapshot = this.parseOrderBook (rawOrderBook, symbol, timestamp, 'Buy', 'Sell', 'price', 'size');
                 snapshot['nonce'] = nonce;
                 let orderbook = undefined;
@@ -788,6 +805,8 @@ module.exports = class bybit extends ccxt.bybit {
                 deltas = this.arrayConcat (deltas, inserted);
                 const orderbook = this.safeValue (this.orderbooks, symbol);
                 orderbook['nonce'] = nonce;
+                orderbook['timestamp'] = timestamp;
+                orderbook['datetime'] = this.iso8601 (timestamp);
                 this.handleDeltas (orderbook, deltas);
             }
             client.resolve (this.orderbooks[symbol], messageHash);
