@@ -252,11 +252,13 @@ class currencycom extends Exchange {
                     'Combination of parameters invalid' => '\\ccxt\\BadRequest',
                     'Invalid limit price' => '\\ccxt\\BadRequest',
                     'Only leverage symbol allowed here:' => '\\ccxt\\BadSymbol', // when you fetchLeverage for non-leverage symbols, like 'BTC/USDT' instead of 'BTC/USDT_LEVERAGE' => array("code":"-1128","msg":"Only leverage symbol allowed here => BTC/USDT")
+                    'market data service is not available' => '\\ccxt\\ExchangeNotAvailable', // array("code":"-1021","msg":"market data service is not available")
+                    'your time is ahead of server' => '\\ccxt\\InvalidNonce', // array("code":"-1021","msg":"your time is ahead of server")
                 ),
                 'exact' => array(
                     '-1000' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1000,"msg":"An unknown error occured while processing the request.")
                     '-1013' => '\\ccxt\\InvalidOrder', // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
-                    '-1021' => '\\ccxt\\InvalidNonce', // 'your time is ahead of server'
+                    // '-1021' => '\\ccxt\\InvalidNonce', // array("code":"-1021","msg":"your time is ahead of server") // see above in the broad section
                     '-1022' => '\\ccxt\\AuthenticationError', // array("code":-1022,"msg":"Signature for this request is not valid.")
                     '-1030' => '\\ccxt\\InvalidOrder', // array("code":"-1030","msg":"You mentioned an invalid value for the price parameter.")
                     '-1100' => '\\ccxt\\InvalidOrder', // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
