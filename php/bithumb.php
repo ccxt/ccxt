@@ -163,7 +163,6 @@ class bithumb extends Exchange {
             ),
             'commonCurrencies' => array(
                 'FTC' => 'FTC2',
-                'MIR' => 'MIR COIN',
                 'SOC' => 'Soda Coin',
             ),
         ));
