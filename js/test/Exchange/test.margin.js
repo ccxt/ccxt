@@ -22,7 +22,7 @@ module.exports = (exchange, margin) => {
     }
     assert (typeof margin["info"] === "object");
     if (margin["type"] !== undefined) {
-        assert (type === "add" || type === "remove");
+        assert (type === "add" || type === "reduce");
     }
     if (margin["ampunt"] !== undefined) {
         assert (typeof margin["amount"] === "number");
