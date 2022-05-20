@@ -3096,7 +3096,7 @@ class bybit extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         if ($market['spot'] || ($market['settle'] === 'USDC')) {
-            throw new NotSupported($this->id . ' fetchOrders() does not support $market ' . $market['symbol']);
+            throw new NotSupported($this->id . ' fetchOrders() does not support ' . $market['type'] . ' markets or USDC markets, use exchange.fetch_open_orders() and exchange.fetchClosedOrders () instead');
         }
         $method = null;
         $isStop = $this->safe_value($params, 'stop', false);

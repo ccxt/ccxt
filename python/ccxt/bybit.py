@@ -2953,7 +2953,7 @@ class bybit(Exchange):
         self.load_markets()
         market = self.market(symbol)
         if market['spot'] or (market['settle'] == 'USDC'):
-            raise NotSupported(self.id + ' fetchOrders() does not support market ' + market['symbol'])
+            raise NotSupported(self.id + ' fetchOrders() does not support ' + market['type'] + ' markets or USDC markets, use exchange.fetch_open_orders() and exchange.fetchClosedOrders() instead')
         method = None
         isStop = self.safe_value(params, 'stop', False)
         orderType = self.safe_string_lower(params, 'orderType')
