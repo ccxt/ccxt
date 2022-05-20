@@ -238,6 +238,8 @@ module.exports = class okx extends Exchange {
                         'asset/broker/nd/subaccount-deposit-address': 4,
                         'asset/broker/nd/subaccount-deposit-history': 4,
                         'broker/nd/rebate-daily': 1,
+                        'broker/nd/subaccount/apikey': 10,
+                        'broker/nd/rebate-per-orders': 300,
                         // convert
                         'asset/convert/currencies': 5 / 3,
                         'asset/convert/currency-pair': 5 / 3,
@@ -283,6 +285,10 @@ module.exports = class okx extends Exchange {
                         'broker/nd/set-subaccount-level': 4,
                         'broker/nd/set-subaccount-fee-rate': 4,
                         'asset/broker/nd/subaccount-deposit-address': 4,
+                        'broker/nd/subaccount/apikey': 10,
+                        'broker/nd/subaccount/delete-apikey': 10,
+                        'broker/nd/subaccount/modify-apikey': 10,
+                        'broker/nd/rebate-per-orders': 36000,
                     },
                 },
             },
@@ -4515,6 +4521,16 @@ module.exports = class okx extends Exchange {
     }
 
     async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchBorrowRateHistory
+         * @description retrieves a history of a currencies borrow interest rate at specific time slots
+         * @param {str} code unified currency code
+         * @param {int|undefined} since timestamp for the earliest borrow rate
+         * @param {int|undefined} limit the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} to retrieve
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {

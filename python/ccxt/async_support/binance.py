@@ -5148,6 +5148,14 @@ class binance(Exchange):
         return self.parse_borrow_rate(rate)
 
     async def fetch_borrow_rate_history(self, code, since=None, limit=None, params={}):
+        """
+        retrieves a history of a currencies borrow interest rate at specific time slots
+        :param str code: unified currency code
+         * @param {int|None} since timestamp for the earliest borrow rate
+         * @param {int|None} limit the maximum number of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` to retrieve
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns: {`dict]} an array of [borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        """
         await self.load_markets()
         if limit is None:
             limit = 93

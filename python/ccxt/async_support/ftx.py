@@ -2549,13 +2549,13 @@ class ftx(Exchange):
 
     async def fetch_borrow_rate_history(self, code, since=None, limit=None, params={}):
         """
-        Gets the history of the borrow rate for a currency
-        :param str code: Unified currency code
-        :param int since: Timestamp in ms of the earliest time to fetch the borrow rate
-        :param int limit: Max number of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` to return, max=5000
-        :param dict params: Exchange specific parameters
+        retrieves a history of a currencies borrow interest rate at specific time slots
+        :param str code: unified currency code
+         * @param {int|None} since timestamp for the earliest borrow rate
+         * @param {int|None} limit the maximum number of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` to retrieve
+        :param dict params: extra parameters specific to the exchange api endpoint
         :param dict params['till']: Timestamp in ms of the latest time to fetch the borrow rate
-        :returns: An array of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        :returns: {`dict]} an array of [borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
         """
         histories = await self.fetch_borrow_rate_histories([code], since, limit, params)
         borrowRateHistory = self.safe_value(histories, code)

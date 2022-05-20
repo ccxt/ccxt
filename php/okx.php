@@ -243,6 +243,8 @@ class okx extends Exchange {
                         'asset/broker/nd/subaccount-deposit-address' => 4,
                         'asset/broker/nd/subaccount-deposit-history' => 4,
                         'broker/nd/rebate-daily' => 1,
+                        'broker/nd/subaccount/apikey' => 10,
+                        'broker/nd/rebate-per-orders' => 300,
                         // convert
                         'asset/convert/currencies' => 5 / 3,
                         'asset/convert/currency-pair' => 5 / 3,
@@ -288,6 +290,10 @@ class okx extends Exchange {
                         'broker/nd/set-subaccount-level' => 4,
                         'broker/nd/set-subaccount-fee-rate' => 4,
                         'asset/broker/nd/subaccount-deposit-address' => 4,
+                        'broker/nd/subaccount/apikey' => 10,
+                        'broker/nd/subaccount/delete-apikey' => 10,
+                        'broker/nd/subaccount/modify-apikey' => 10,
+                        'broker/nd/rebate-per-orders' => 36000,
                     ),
                 ),
             ),
@@ -4515,6 +4521,14 @@ class okx extends Exchange {
     }
 
     public function fetch_borrow_rate_history($code, $since = null, $limit = null, $params = array ()) {
+        /**
+         * retrieves a history of a currencies borrow interest rate at specific time slots
+         * @param {str} $code unified $currency $code
+         * @param array(int|null) $since timestamp for the earliest borrow rate
+         * @param array(int|null) $limit the maximum number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} to retrieve
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return array(~@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure dict]) an array of [borrow rate structures~
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(

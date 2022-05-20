@@ -2692,13 +2692,13 @@ module.exports = class ftx extends Exchange {
         /**
          * @method
          * @name ftx#fetchBorrowRateHistory
-         * @description Gets the history of the borrow rate for a currency
-         * @param {str} code Unified currency code
-         * @param {int} since Timestamp in ms of the earliest time to fetch the borrow rate
-         * @param {int} limit Max number of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} to return, max=5000
-         * @param {dict} params Exchange specific parameters
+         * @description retrieves a history of a currencies borrow interest rate at specific time slots
+         * @param {str} code unified currency code
+         * @param {int|undefined} since timestamp for the earliest borrow rate
+         * @param {int|undefined} limit the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} to retrieve
+         * @param {dict} params extra parameters specific to the exchange api endpoint
          * @param {dict} params.till Timestamp in ms of the latest time to fetch the borrow rate
-         * @returns An array of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         * @returns {[dict]} an array of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
          */
         const histories = await this.fetchBorrowRateHistories ([ code ], since, limit, params);
         const borrowRateHistory = this.safeValue (histories, code);
