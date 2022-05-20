@@ -109,138 +109,6 @@ module.exports = class bybit extends Exchange {
                 'referral': 'https://www.bybit.com/app/register?ref=X7Prm',
             },
             'api': {
-                // outdated endpoints -----------------------------------------
-                'spot': {
-                    'public': {
-                        'get': [
-                            'symbols',
-                        ],
-                    },
-                    'quote': {
-                        'get': [
-                            'depth',
-                            'depth/merged',
-                            'trades',
-                            'kline',
-                            'ticker/24hr',
-                            'ticker/price',
-                            'ticker/book_ticker',
-                        ],
-                    },
-                    'private': {
-                        'get': [
-                            'order',
-                            'open-orders',
-                            'history-orders',
-                            'myTrades',
-                            'account',
-                            'time',
-                        ],
-                        'post': [
-                            'order',
-                        ],
-                        'delete': [
-                            'order',
-                            'order/fast',
-                        ],
-                    },
-                    'order': {
-                        'delete': [
-                            'batch-cancel',
-                            'batch-fast-cancel',
-                            'batch-cancel-by-ids',
-                        ],
-                    },
-                },
-                'futures': {
-                    'private': {
-                        'get': [
-                            'order/list',
-                            'order',
-                            'stop-order/list',
-                            'stop-order',
-                            'position/list',
-                            'execution/list',
-                            'trade/closed-pnl/list',
-                        ],
-                        'post': [
-                            'order/create',
-                            'order/cancel',
-                            'order/cancelAll',
-                            'order/replace',
-                            'stop-order/create',
-                            'stop-order/cancel',
-                            'stop-order/cancelAll',
-                            'stop-order/replace',
-                            'position/change-position-margin',
-                            'position/trading-stop',
-                            'position/leverage/save',
-                            'position/switch-mode',
-                            'position/switch-isolated',
-                            'position/risk-limit',
-                        ],
-                    },
-                },
-                'v2': {
-                    'public': {
-                        'get': [
-                            'orderBook/L2',
-                            'kline/list',
-                            'tickers',
-                            'trading-records',
-                            'symbols',
-                            'liq-records',
-                            'mark-price-kline',
-                            'index-price-kline',
-                            'premium-index-kline',
-                            'open-interest',
-                            'big-deal',
-                            'account-ratio',
-                            'time',
-                            'announcement',
-                            'funding/prev-funding-rate',
-                            'risk-limit/list',
-                        ],
-                    },
-                    'private': {
-                        'get': [
-                            'order/list',
-                            'order',
-                            'stop-order/list',
-                            'stop-order',
-                            'position/list',
-                            'position/fee-rate',
-                            'execution/list',
-                            'trade/closed-pnl/list',
-                            'funding/prev-funding-rate',
-                            'funding/prev-funding',
-                            'funding/predicted-funding',
-                            'account/api-key',
-                            'account/lcp',
-                            'wallet/balance',
-                            'wallet/fund/records',
-                            'wallet/withdraw/list',
-                            'exchange-order/list',
-                        ],
-                        'post': [
-                            'order/create',
-                            'order/cancel',
-                            'order/cancelAll',
-                            'order/replace',
-                            'stop-order/create',
-                            'stop-order/cancel',
-                            'stop-order/cancelAll',
-                            'stop-order/replace',
-                            'position/change-position-margin',
-                            'position/trading-stop',
-                            'position/leverage/save',
-                            'position/switch-mode',
-                            'position/switch-isolated',
-                            'position/risk-limit',
-                        ],
-                    },
-                },
-                // new endpoints ------------------------------------------
                 'public': {
                     'get': {
                         // inverse swap
@@ -280,14 +148,14 @@ module.exports = class bybit extends Exchange {
                         // data
                         'v2/public/time': 1,
                         'v2/public/announcement': 1,
-                        // USDC endpoints are testnet only as of 2022 Jan 11 ----------
-                        // option USDC (testnet only)
+                        // USDC endpoints
+                        // option USDC
                         'option/usdc/openapi/public/v1/order-book': 1,
                         'option/usdc/openapi/public/v1/symbols': 1,
                         'option/usdc/openapi/public/v1/tick': 1,
                         'option/usdc/openapi/public/v1/delivery-price': 1,
                         'option/usdc/openapi/public/v1/query-trade-latest': 1,
-                        // perpetual swap USDC (testnet only)
+                        // perpetual swap USDC
                         'perpetual/usdc/openapi/public/v1/order-book': 1,
                         'perpetual/usdc/openapi/public/v1/symbols': 1,
                         'perpetual/usdc/openapi/public/v1/tick': 1,
@@ -301,20 +169,7 @@ module.exports = class bybit extends Exchange {
                         'perpetual/usdc/openapi/public/v1/prev-funding-rate': 1,
                         'perpetual/usdc/openapi/public/v1/risk-limit/list': 1,
                     },
-                    // outdated endpoints--------------------------------------
-                    'linear': {
-                        'get': [
-                            'kline',
-                            'recent-trading-records',
-                            'funding/prev-funding-rate',
-                            'mark-price-kline',
-                            'index-price-kline',
-                            'premium-index-kline',
-                            'risk-limit',
-                        ],
-                    },
                 },
-                // new endpoints ------------------------------------------
                 'private': {
                     'get': {
                         // inverse swap
@@ -421,8 +276,8 @@ module.exports = class bybit extends Exchange {
                         // account
                         'asset/v1/private/transfer': 150, // 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
                         'asset/v1/private/sub-member/transfer': 150,
-                        // USDC endpoints are testnet only as of 2022 Jan 11 ----------
-                        // option USDC (testnet only)
+                        // USDC endpoints
+                        // option USDC
                         'option/usdc/openapi/private/v1/place-order': 2.5,
                         'option/usdc/openapi/private/v1/batch-place-order': 2.5,
                         'option/usdc/openapi/private/v1/replace-order': 2.5,
@@ -442,7 +297,7 @@ module.exports = class bybit extends Exchange {
                         'option/usdc/openapi/private/v1/query-position-exp-date': 2.5,
                         'option/usdc/openapi/private/v1/mmp-modify': 2.5,
                         'option/usdc/openapi/private/v1/mmp-reset': 2.5,
-                        // perpetual swap USDC (testnet only)
+                        // perpetual swap USDC
                         'perpetual/usdc/openapi/private/v1/place-order': 2.5,
                         'perpetual/usdc/openapi/private/v1/replace-order': 2.5,
                         'perpetual/usdc/openapi/private/v1/cancel-order': 2.5,
@@ -459,38 +314,6 @@ module.exports = class bybit extends Exchange {
                         'spot/order/batch-cancel': 2.5,
                         'spot/order/batch-fast-cancel': 2.5,
                         'spot/order/batch-cancel-by-ids': 2.5,
-                    },
-                    // outdated endpoints -------------------------------------
-                    'linear': {
-                        'get': [
-                            'order/list',
-                            'order/search',
-                            'stop-order/list',
-                            'stop-order/search',
-                            'position/list',
-                            'trade/execution/list',
-                            'trade/closed-pnl/list',
-                            'funding/predicted-funding',
-                            'funding/prev-funding',
-                        ],
-                        'post': [
-                            'order/create',
-                            'order/cancel',
-                            'order/cancel-all',
-                            'order/replace',
-                            'stop-order/create',
-                            'stop-order/cancel',
-                            'stop-order/cancel-all',
-                            'stop-order/replace',
-                            'position/set-auto-add-margin',
-                            'position/switch-isolated',
-                            'position/switch-mode',
-                            'tpsl/switch-mode',
-                            'position/add-margin',
-                            'position/set-leverage',
-                            'position/trading-stop',
-                            'position/set-risk',
-                        ],
                     },
                 },
             },
