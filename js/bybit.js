@@ -612,19 +612,8 @@ module.exports = class bybit extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
-                'defaultType': 'linear',  // linear, inverse, futures
-                //
-                // ^
-                // |
-                // | this will be replaced with the following soon |
-                //                                                 |
-                //                                                 v
-                //
-                // 'defaultType': 'swap', // swap, spot, future, option
+                'defaultType': 'spot',  // 'swap', 'future', 'option'
                 'code': 'BTC',
-                'cancelAllOrders': {
-                    // 'method': 'v2PrivatePostOrderCancelAll', // v2PrivatePostStopOrderCancelAll
-                },
                 'recvWindow': 5 * 1000, // 5 sec default
                 'timeDifference': 0, // the difference between system clock and exchange server clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
