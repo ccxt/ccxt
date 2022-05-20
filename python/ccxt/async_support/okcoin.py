@@ -1280,6 +1280,12 @@ class okcoin(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         defaultType = self.safe_string_2(self.options, 'fetchTickers', 'defaultType')
         type = self.safe_string(params, 'type', defaultType)
         return await self.fetch_tickers_by_type(type, symbols, self.omit(params, 'type'))
