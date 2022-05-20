@@ -1843,7 +1843,7 @@ class kucoinfutures extends kucoin {
         yield $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['contract']) {
-            throw new BadRequest($this->id . ' fetchLeverageTiers() supports contract markets only');
+            throw new BadRequest($this->id . ' fetchMarketLeverageTiers() supports contract markets only');
         }
         $request = array(
             'symbol' => $market['id'],

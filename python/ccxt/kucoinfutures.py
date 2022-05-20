@@ -1766,7 +1766,7 @@ class kucoinfutures(kucoin):
         self.load_markets()
         market = self.market(symbol)
         if not market['contract']:
-            raise BadRequest(self.id + ' fetchLeverageTiers() supports contract markets only')
+            raise BadRequest(self.id + ' fetchMarketLeverageTiers() supports contract markets only')
         request = {
             'symbol': market['id'],
         }
