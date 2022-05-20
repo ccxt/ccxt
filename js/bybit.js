@@ -683,6 +683,13 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchMarkets
+         * @description retrieves data on all markets for bybit
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }

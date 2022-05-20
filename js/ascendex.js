@@ -438,6 +438,13 @@ module.exports = class ascendex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name ascendex#fetchMarkets
+         * @description retrieves data on all markets for ascendex
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const products = await this.v1PublicGetProducts (params);
         //
         //     {

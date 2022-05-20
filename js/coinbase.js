@@ -560,6 +560,13 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchMarkets
+         * @description retrieves data on all markets for coinbase
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.fetchCurrenciesFromCache (params);
         const currencies = this.safeValue (response, 'currencies', {});
         const exchangeRates = this.safeValue (response, 'exchangeRates', {});

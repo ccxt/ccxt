@@ -173,6 +173,13 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name blockchaincom#fetchMarkets
+         * @description retrieves data on all markets for blockchaincom
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         //
         //     "USDC-GBP": {
         //         "base_currency": "USDC",

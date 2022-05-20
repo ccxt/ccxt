@@ -289,6 +289,13 @@ module.exports = class cex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name cex#fetchMarkets
+         * @description retrieves data on all markets for cex
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const currenciesResponse = await this.fetchCurrenciesFromCache (params);
         const currenciesData = this.safeValue (currenciesResponse, 'data', {});
         const currencies = this.safeValue (currenciesData, 'symbols', []);

@@ -162,6 +162,13 @@ module.exports = class idex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name idex#fetchMarkets
+         * @description retrieves data on all markets for idex
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetMarkets (params);
         //
         // [

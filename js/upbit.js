@@ -388,6 +388,13 @@ module.exports = class upbit extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name upbit#fetchMarkets
+         * @description retrieves data on all markets for upbit
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetMarketAll (params);
         //
         //    [

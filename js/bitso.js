@@ -160,6 +160,13 @@ module.exports = class bitso extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name bitso#fetchMarkets
+         * @description retrieves data on all markets for bitso
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetAvailableBooks (params);
         //
         //     {

@@ -227,6 +227,13 @@ module.exports = class probit extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name probit#fetchMarkets
+         * @description retrieves data on all markets for probit
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetMarket (params);
         //
         //     {

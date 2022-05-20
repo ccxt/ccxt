@@ -215,6 +215,13 @@ module.exports = class buda extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name buda#fetchMarkets
+         * @description retrieves data on all markets for buda
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const marketsResponse = await this.publicGetMarkets (params);
         const markets = this.safeValue (marketsResponse, 'markets');
         const currenciesResponse = await this.publicGetCurrencies ();

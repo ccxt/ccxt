@@ -125,6 +125,13 @@ module.exports = class independentreserve extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name independentreserve#fetchMarkets
+         * @description retrieves data on all markets for independentreserve
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const baseCurrencies = await this.publicGetGetValidPrimaryCurrencyCodes (params);
         const quoteCurrencies = await this.publicGetGetValidSecondaryCurrencyCodes (params);
         const limits = await this.publicGetGetOrderMinimumVolumes (params);

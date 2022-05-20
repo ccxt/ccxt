@@ -177,6 +177,13 @@ module.exports = class tidebit extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name tidebit#fetchMarkets
+         * @description retrieves data on all markets for tidebit
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetMarkets (params);
         const result = [];
         for (let i = 0; i < response.length; i++) {

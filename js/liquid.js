@@ -301,6 +301,13 @@ module.exports = class liquid extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name liquid#fetchMarkets
+         * @description retrieves data on all markets for liquid
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const spot = await this.publicGetProducts (params);
         //
         //     [

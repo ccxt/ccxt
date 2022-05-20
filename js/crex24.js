@@ -233,6 +233,13 @@ module.exports = class crex24 extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchMarkets
+         * @description retrieves data on all markets for crex24
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetInstruments (params);
         //
         //         [ {

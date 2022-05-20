@@ -217,6 +217,13 @@ module.exports = class latoken extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name latoken#fetchMarkets
+         * @description retrieves data on all markets for latoken
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const currencies = await this.fetchCurrenciesFromCache (params);
         //
         //     [
