@@ -541,6 +541,9 @@ class ascendex(Exchange):
             quote = self.safe_currency_code(quoteId)
             settle = self.safe_currency_code(settleId)
             status = self.safe_string(market, 'status')
+            active = False
+            if (status == 'Normal') or (status == 'InternalTrading'):
+                active = True
             spot = settle is None
             swap = not spot
             linear = True if swap else None
@@ -580,7 +583,7 @@ class ascendex(Exchange):
                 'swap': swap,
                 'future': False,
                 'option': False,
-                'active': (status == 'Normal'),
+                'active': active,
                 'contract': swap,
                 'linear': linear,
                 'inverse': not linear if swap else None,

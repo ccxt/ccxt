@@ -540,6 +540,10 @@ class ascendex extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $settle = $this->safe_currency_code($settleId);
             $status = $this->safe_string($market, 'status');
+            $active = false;
+            if (($status === 'Normal') || ($status === 'InternalTrading')) {
+                $active = true;
+            }
             $spot = $settle === null;
             $swap = !$spot;
             $linear = $swap ? true : null;
@@ -580,7 +584,7 @@ class ascendex extends Exchange {
                 'swap' => $swap,
                 'future' => false,
                 'option' => false,
-                'active' => ($status === 'Normal'),
+                'active' => $active,
                 'contract' => $swap,
                 'linear' => $linear,
                 'inverse' => $swap ? !$linear : null,
