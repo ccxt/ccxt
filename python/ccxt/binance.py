@@ -92,6 +92,7 @@ class binance(Exchange):
                 'fetchMySells': None,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': True,
                 'fetchOpenOrder': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -5350,4 +5351,70 @@ class binance(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': info,
+        }
+
+    def fetch_open_interest_history(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+        """
+        Retrieves the open intestest history of a currency
+        :param str symbol: Unified CCXT market symbol
+        :param str timeframe: "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
+        :param int since: The time(ms) of the earliest record to retrieve as a unix timestamp
+        :param int limit: default 30, max 500
+        :param dict params: Exchange specific parameters
+        :param int params['till']: The time(ms) of the latest record to retrieve as a unix timestamp
+        :returns: An array of open interest structures
+        """
+        if timeframe == '1m':
+            raise BadRequest(self.id + 'fetchOpenInterestHistory cannot use the 1m timeframe')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'period': self.timeframes[timeframe],
+        }
+        if limit is not None:
+            request['limit'] = limit
+        symbolKey = 'symbol' if market['future'] else 'pair'
+        request[symbolKey] = market['id']
+        if market['delivery']:
+            request['contractType'] = self.safe_string(params, 'contractType', 'CURRENT_QUARTER')
+        if since is not None:
+            request['startTime'] = since
+        till = self.safe_integer(params, 'till')  # unified in milliseconds
+        endTime = self.safe_string(params, 'endTime', till)  # exchange-specific in milliseconds
+        params = self.omit(params, ['endTime', 'till'])
+        if endTime:
+            request['endTime'] = endTime
+        elif since:
+            if limit is None:
+                limit = 30  # Exchange default
+            duration = self.parse_timeframe(timeframe)
+            request['endTime'] = self.sum(since, duration * limit * 1000)
+        method = 'fapiDataGetOpenInterestHist'
+        if market['delivery']:
+            method = 'dapiDataGetOpenInterestHist'
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #  [
+        #      {
+        #          "symbol":"BTCUSDT",
+        #          "sumOpenInterest":"75375.61700000",
+        #          "sumOpenInterestValue":"3248828883.71251440",
+        #          "timestamp":1642179900000
+        #      },
+        #      ...
+        #  ]
+        #
+        return self.parse_open_interests(response, symbol, since, limit)
+
+    def parse_open_interest(self, interest, market=None):
+        timestamp = self.safe_integer(interest, 'timestamp')
+        id = self.safe_string(interest, 'symbol')
+        market = self.safe_market(id, market)
+        return {
+            'symbol': self.safe_symbol(id),
+            'baseVolume': self.safe_number(interest, 'sumOpenInterest'),
+            'quoteVolume': self.safe_number(interest, 'sumOpenInterestValue'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': interest,
         }
