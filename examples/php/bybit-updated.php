@@ -123,7 +123,7 @@ function example_3($exchange) {
 
 // -----------------------------------------------------------------------------------------
 
-// Example 3 :: Future : fetch balance, create stop-order and check fetch open stop-orders
+// Example 3 :: Future : fetch balance, create stop-order and check open stop-orders
 function example_4($exchange) {
     $exchange->options['defaultType'] = 'future'; // very important set future as default type
     $markets = $exchange->load_markets();

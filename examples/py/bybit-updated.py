@@ -125,7 +125,7 @@ async def example_3():
 
 # -------------------------------------------------------------------------------------------
 
-# Example 4 :: Future : fetch balance, create stop-order and check fetch open stop-orders
+# Example 4 :: Future : fetch balance, create stop-order and check open stop-orders
 async def example_4():
     exchange.options['defaultType'] = 'future'; # very important set future as default type
     markets = await exchange.load_markets()
