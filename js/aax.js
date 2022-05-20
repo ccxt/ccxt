@@ -42,7 +42,7 @@ module.exports = class aax extends Exchange {
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'editOrder': true,
-                'fetchAccounts': undefined,
+                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowRate': false,
@@ -314,6 +314,12 @@ module.exports = class aax extends Exchange {
                     'future': 'FUTP',
                     'otc': 'F2CP',
                     'saving': 'VLTP',
+                },
+                'accountsById': {
+                    'SPTP': 'spot',
+                    'FUTP': 'future',
+                    'F2CP': 'otc',
+                    'VLTP': 'saving',
                 },
                 'networks': {
                     'ETH': 'ERC20',
@@ -953,6 +959,53 @@ module.exports = class aax extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    async fetchAccounts (params = {}) {
+        const response = await this.privateGetAccountBalances (params);
+        //
+        //     {
+        //         "code":1,
+        //         "data":[
+        //             {
+        //                 "purseType":"FUTP",
+        //                 "currency":"BTC",
+        //                 "available":"0.41000000",
+        //                 "unavailable":"0.00000000"
+        //             },
+        //             {
+        //                 "purseType":"FUTP",
+        //                 "currency":"USDT",
+        //                 "available":"0.21000000",
+        //                 "unvaliable":"0.00000000"
+        //             }
+        //         ]
+        //         "message":"success",
+        //         "ts":1573530401020
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseAccounts (data);
+    }
+
+    parseAccount (account) {
+        //
+        //    {
+        //        "purseType":"FUTP",
+        //        "currency":"USDT",
+        //        "available":"0.21000000",
+        //        "unvaliable":"0.00000000"
+        //    }
+        //
+        const currencyId = this.safeString (account, 'currency');
+        const accountId = this.safeString (account, 'purseType');
+        const accountsById = this.safeValue (this.options, 'accountsById', {});
+        return {
+            'info': account,
+            'id': undefined,
+            'code': this.safeCurrencyCode (currencyId),
+            'type': this.safeString (accountsById, accountId, accountId),
+        };
     }
 
     async fetchBalance (params = {}) {
