@@ -220,6 +220,11 @@ class buda extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for buda
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $marketsResponse = yield $this->publicGetMarkets ($params);
         $markets = $this->safe_value($marketsResponse, 'markets');
         $currenciesResponse = yield $this->publicGetCurrencies ();

@@ -304,6 +304,11 @@ class digifinex(Exchange):
         return result
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for digifinex
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         options = self.safe_value(self.options, 'fetchMarkets', {})
         method = self.safe_string(options, 'method', 'fetch_markets_v2')
         return getattr(self, method)(params)

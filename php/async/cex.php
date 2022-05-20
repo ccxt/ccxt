@@ -295,6 +295,11 @@ class cex extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for cex
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $currenciesResponse = yield $this->fetch_currencies_from_cache($params);
         $currenciesData = $this->safe_value($currenciesResponse, 'data', array());
         $currencies = $this->safe_value($currenciesData, 'symbols', array());

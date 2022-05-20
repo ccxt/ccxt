@@ -246,6 +246,11 @@ class crex24(Exchange):
         return self.milliseconds()
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for crex24
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.publicGetInstruments(params)
         #
         #         [{

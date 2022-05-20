@@ -308,6 +308,11 @@ class coinflex extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves $data on all markets for coinflex
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market $data
+         */
         // v3 markets has a few less fields available for $market-objects, but still enough to precede.
         $response = $this->publicGetV3Markets ($params);
         //

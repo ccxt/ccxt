@@ -398,6 +398,11 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for bitfinex2
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         // todo drop v1 in favor of v2 configs  ( temp-reference for v2update => https://pastebin.com/raw/S8CmqSHQ )
         // pub:list:pair:exchange,pub:list:pair:margin,pub:list:pair:futures,pub:info:pair
         $v2response = $this->publicGetConfPubListPairFutures ($params);

@@ -130,6 +130,11 @@ class bitflyer(Exchange):
         return self.parse8601(year + '-' + month + '-' + day + 'T00:00:00Z')
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bitflyer
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         jp_markets = await self.publicGetGetmarkets(params)
         #
         #     [

@@ -254,6 +254,11 @@ class bitopro(Exchange):
         return result
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bitopro
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.publicGetProvisioningTradingPairs()
         markets = self.safe_value(response, 'data', [])
         #

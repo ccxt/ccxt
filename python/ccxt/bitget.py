@@ -780,6 +780,11 @@ class bitget(Exchange):
         return self.safe_integer(response, 'data')
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bitget
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         types = self.safe_value(self.options, 'fetchMarkets', ['spot', 'swap'])
         result = []
         for i in range(0, len(types)):

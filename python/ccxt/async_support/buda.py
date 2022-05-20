@@ -218,6 +218,11 @@ class buda(Exchange):
         return None
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for buda
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         marketsResponse = await self.publicGetMarkets(params)
         markets = self.safe_value(marketsResponse, 'markets')
         currenciesResponse = await self.publicGetCurrencies()

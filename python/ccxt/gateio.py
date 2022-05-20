@@ -640,6 +640,11 @@ class gateio(Exchange):
         })
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for gateio
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         result = []
         type, query = self.handle_market_type_and_params('fetchMarkets', None, params)
         if type == 'spot' or type == 'margin':

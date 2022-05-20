@@ -147,6 +147,11 @@ class oceanex(Exchange):
         })
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for oceanex
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         request = {'show_details': True}
         response = self.publicGetMarkets(self.extend(request, params))
         #

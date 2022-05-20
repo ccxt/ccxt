@@ -410,6 +410,11 @@ class huobijp(Exchange):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['cost'], self.precisionMode)
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for huobijp
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         method = self.options['fetchMarketsMethod']
         response = await getattr(self, method)(params)
         #

@@ -545,6 +545,11 @@ class coinbase(Exchange):
         }
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for coinbase
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.fetch_currencies_from_cache(params)
         currencies = self.safe_value(response, 'currencies', {})
         exchangeRates = self.safe_value(response, 'exchangeRates', {})

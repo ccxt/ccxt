@@ -173,6 +173,11 @@ class indodax(Exchange):
         return self.safe_integer(response, 'server_time')
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for indodax
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.publicGetPairs(params)
         #
         #     [

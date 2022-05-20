@@ -767,6 +767,11 @@ class bitget extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for bitget
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing market data
+         */
         $types = $this->safe_value($this->options, 'fetchMarkets', array( 'spot', 'swap' ));
         $result = array();
         for ($i = 0; $i < count($types); $i++) {

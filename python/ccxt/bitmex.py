@@ -213,6 +213,11 @@ class bitmex(Exchange):
         })
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bitmex
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.publicGetInstrumentActiveAndIndices(params)
         #
         #    {

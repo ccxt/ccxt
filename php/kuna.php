@@ -301,6 +301,11 @@ class kuna extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for kuna
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing market data
+         */
         $quotes = array( 'btc', 'rub', 'uah', 'usd', 'usdt', 'usdc' );
         $markets = array();
         $response = $this->publicGetTickers ($params);

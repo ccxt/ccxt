@@ -363,6 +363,11 @@ class ndax extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for ndax
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $request = array(
             'omsId' => $omsId,

@@ -812,6 +812,11 @@ class okcoin(Exchange):
         return self.parse8601(self.safe_string(response, 'iso'))
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for okcoin
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         types = self.safe_value(self.options, 'fetchMarkets')
         result = []
         for i in range(0, len(types)):

@@ -174,6 +174,11 @@ class bithumb extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves $data on all markets for bithumb
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market $data
+         */
         $result = array();
         $quoteCurrencies = $this->safe_value($this->options, 'quoteCurrencies', array());
         $quotes = is_array($quoteCurrencies) ? array_keys($quoteCurrencies) : array();

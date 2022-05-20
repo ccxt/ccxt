@@ -259,6 +259,11 @@ class gemini extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for gemini
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing market data
+         */
         $method = $this->safe_value($this->options, 'fetchMarketsMethod', 'fetch_markets_from_api');
         return yield $this->$method ($params);
     }

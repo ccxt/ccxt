@@ -586,6 +586,11 @@ class mexc3(Exchange):
         return self.safe_string(networksById, networkId, networkId)
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for mexc3
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         spotMarket = await self.fetch_spot_markets(params)
         swapMarket = await self.fetch_swap_markets(params)
         return self.array_concat(spotMarket, swapMarket)
