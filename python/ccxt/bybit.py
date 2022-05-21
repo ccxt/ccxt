@@ -2419,7 +2419,8 @@ class bybit(Exchange):
         else:
             # only linear swap markets allow using all purpose
             # fetchOrders endpoint filtering by id
-            return self.fetch_orders(symbol, None, None, params)
+            orders = self.fetch_orders(symbol, None, None, params)
+            return self.safe_value(orders, 0)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
