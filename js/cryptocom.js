@@ -512,6 +512,9 @@ module.exports = class cryptocom extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker (ticker, market);
         }
+        if (symbols === undefined) {
+            return result;
+        }
         const unifiedSymbols = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
