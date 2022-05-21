@@ -45,7 +45,7 @@ class aax extends Exchange {
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
                 'editOrder' => true,
-                'fetchAccounts' => null,
+                'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
                 'fetchBorrowRate' => false,
@@ -318,6 +318,12 @@ class aax extends Exchange {
                     'future' => 'FUTP',
                     'otc' => 'F2CP',
                     'saving' => 'VLTP',
+                ),
+                'accountsById' => array(
+                    'SPTP' => 'spot',
+                    'FUTP' => 'future',
+                    'F2CP' => 'otc',
+                    'VLTP' => 'saving',
                 ),
                 'networks' => array(
                     'ETH' => 'ERC20',
@@ -1087,6 +1093,53 @@ class aax extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+    }
+
+    public function fetch_accounts($params = array ()) {
+        $response = $this->privateGetAccountBalances ($params);
+        //
+        //     {
+        //         "code":1,
+        //         "data":array(
+        //             array(
+        //                 "purseType":"FUTP",
+        //                 "currency":"BTC",
+        //                 "available":"0.41000000",
+        //                 "unavailable":"0.00000000"
+        //             ),
+        //             {
+        //                 "purseType":"FUTP",
+        //                 "currency":"USDT",
+        //                 "available":"0.21000000",
+        //                 "unvaliable":"0.00000000"
+        //             }
+        //         )
+        //         "message":"success",
+        //         "ts":1573530401020
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_accounts($data);
+    }
+
+    public function parse_account($account) {
+        //
+        //    {
+        //        "purseType":"FUTP",
+        //        "currency":"USDT",
+        //        "available":"0.21000000",
+        //        "unvaliable":"0.00000000"
+        //    }
+        //
+        $currencyId = $this->safe_string($account, 'currency');
+        $accountId = $this->safe_string($account, 'purseType');
+        $accountsById = $this->safe_value($this->options, 'accountsById', array());
+        return array(
+            'info' => $account,
+            'id' => null,
+            'code' => $this->safe_currency_code($currencyId),
+            'type' => $this->safe_string($accountsById, $accountId, $accountId),
+        );
     }
 
     public function fetch_balance($params = array ()) {
