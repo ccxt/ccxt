@@ -50,6 +50,7 @@ class deribit(Exchange):
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'editOrder': True,
+                'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -434,6 +435,68 @@ class deribit(Exchange):
             'eta': None,
             'url': None,
             'info': response,
+        }
+
+    def fetch_accounts(self, params={}):
+        self.load_markets()
+        response = self.privateGetGetSubaccounts(params)
+        #
+        #     {
+        #         jsonrpc: '2.0',
+        #         result: [{
+        #                 username: 'someusername',
+        #                 type: 'main',
+        #                 system_name: 'someusername',
+        #                 security_keys_enabled: False,
+        #                 security_keys_assignments: [],
+        #                 receive_notifications: False,
+        #                 login_enabled: True,
+        #                 is_password: True,
+        #                 id: '238216',
+        #                 email: 'pablo@abcdef.com'
+        #             },
+        #             {
+        #                 username: 'someusername_1',
+        #                 type: 'subaccount',
+        #                 system_name: 'someusername_1',
+        #                 security_keys_enabled: False,
+        #                 security_keys_assignments: [],
+        #                 receive_notifications: False,
+        #                 login_enabled: False,
+        #                 is_password: False,
+        #                 id: '245499',
+        #                 email: 'pablo@abcdef.com'
+        #             }
+        #         ],
+        #         usIn: '1652736468292006',
+        #         usOut: '1652736468292377',
+        #         usDiff: '371',
+        #         testnet: False
+        #     }
+        #
+        result = self.safe_value(response, 'result', [])
+        return self.parse_accounts(result)
+
+    def parse_account(self, account, currency=None):
+        #
+        #      {
+        #          username: 'someusername_1',
+        #          type: 'subaccount',
+        #          system_name: 'someusername_1',
+        #          security_keys_enabled: False,
+        #          security_keys_assignments: [],
+        #          receive_notifications: False,
+        #          login_enabled: False,
+        #          is_password: False,
+        #          id: '245499',
+        #          email: 'pablo@abcdef.com'
+        #      }
+        #
+        return {
+            'info': account,
+            'id': self.safe_string(account, 'id'),
+            'type': self.safe_string(account, 'type'),
+            'code': self.safe_currency_code(None, currency),
         }
 
     def fetch_markets(self, params={}):

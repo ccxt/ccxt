@@ -404,20 +404,27 @@ class coinbasepro extends Exchange {
         //         ),
         //     )
         //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $account = $response[$i];
-            $accountId = $this->safe_string($account, 'id');
-            $currencyId = $this->safe_string($account, 'currency');
-            $code = $this->safe_currency_code($currencyId);
-            $result[] = array(
-                'id' => $accountId,
-                'type' => null,
-                'currency' => $code,
-                'info' => $account,
-            );
-        }
-        return $result;
+        return $this->parse_accounts($response, $params);
+    }
+
+    public function parse_account($account) {
+        //
+        //     {
+        //         id => '4aac9c60-cbda-4396-9da4-4aa71e95fba0',
+        //         currency => 'BTC',
+        //         balance => '0.0000000000000000',
+        //         available => '0',
+        //         hold => '0.0000000000000000',
+        //         profile_id => 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        //     }
+        //
+        $currencyId = $this->safe_string($account, 'currency');
+        return array(
+            'id' => $this->safe_string($account, 'id'),
+            'type' => null,
+            'code' => $this->safe_currency_code($currencyId),
+            'info' => $account,
+        );
     }
 
     public function parse_balance($response) {

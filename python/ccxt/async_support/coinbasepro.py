@@ -407,19 +407,26 @@ class coinbasepro(Exchange):
         #         },
         #     ]
         #
-        result = []
-        for i in range(0, len(response)):
-            account = response[i]
-            accountId = self.safe_string(account, 'id')
-            currencyId = self.safe_string(account, 'currency')
-            code = self.safe_currency_code(currencyId)
-            result.append({
-                'id': accountId,
-                'type': None,
-                'currency': code,
-                'info': account,
-            })
-        return result
+        return self.parse_accounts(response, params)
+
+    def parse_account(self, account):
+        #
+        #     {
+        #         id: '4aac9c60-cbda-4396-9da4-4aa71e95fba0',
+        #         currency: 'BTC',
+        #         balance: '0.0000000000000000',
+        #         available: '0',
+        #         hold: '0.0000000000000000',
+        #         profile_id: 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        #     }
+        #
+        currencyId = self.safe_string(account, 'currency')
+        return {
+            'id': self.safe_string(account, 'id'),
+            'type': None,
+            'code': self.safe_currency_code(currencyId),
+            'info': account,
+        }
 
     def parse_balance(self, response):
         result = {'info': response}

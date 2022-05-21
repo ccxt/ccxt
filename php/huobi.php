@@ -859,6 +859,18 @@ class huobi extends Exchange {
                     'funding' => 'pro',
                     'future' => 'futures',
                 ),
+                'accountsById' => array(
+                    'spot' => 'spot',
+                    'margin' => 'margin',
+                    'otc' => 'otc',
+                    'point' => 'point',
+                    'super-margin' => 'margin',
+                    'investment' => 'spot',
+                    'borrow' => 'borrow',
+                    'grid-trading' => 'spot',
+                    'deposit-earning' => 'funding',
+                    'otc-options' => 'otc',
+                ),
                 'typesByAccount' => array(
                     'pro' => 'spot',
                     'futures' => 'future',
@@ -2310,7 +2322,28 @@ class huobi extends Exchange {
         //         )
         //     }
         //
-        return $response['data'];
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_accounts($data);
+    }
+
+    public function parse_account($account) {
+        //
+        //     {
+        //         "id" => 5202591,
+        //         "type" => "point",   // spot, margin, otc, point, super-margin, investment, borrow, grid-trading, deposit-earning, otc-options
+        //         "subtype" => "",     // The corresponding trading symbol (currency pair) the isolated margin is based on, e.g. btcusdt
+        //         "state" => "working" // working, lock
+        //     }
+        //
+        $typeId = $this->safe_string($account, 'type');
+        $accountsById = $this->safe_value($this->options, 'accountsById', array());
+        $type = $this->safe_value($accountsById, $typeId, $typeId);
+        return array(
+            'info' => $account,
+            'id' => $this->safe_string($account, 'id'),
+            'type' => $type,
+            'code' => null,
+        );
     }
 
     public function fetch_account_id_by_type($type, $params = array ()) {
@@ -5197,7 +5230,11 @@ class huobi extends Exchange {
         $this->load_markets();
         $marginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'isolated');
         $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchPositions', null, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchPositions', null, $params);
+        if ($marketType === 'spot') {
+            $marketType = 'future';
+        }
         $method = null;
         if ($defaultSubType === 'linear') {
             $method = $this->get_supported_mapping($marginMode, array(
@@ -5287,7 +5324,7 @@ class huobi extends Exchange {
             //     }
             //
         }
-        $response = $this->$method ($query);
+        $response = $this->$method ($params);
         $data = $this->safe_value($response, 'data');
         $timestamp = $this->safe_integer($response, 'ts');
         $result = array();

@@ -871,6 +871,18 @@ class huobi(Exchange):
                     'funding': 'pro',
                     'future': 'futures',
                 },
+                'accountsById': {
+                    'spot': 'spot',
+                    'margin': 'margin',
+                    'otc': 'otc',
+                    'point': 'point',
+                    'super-margin': 'margin',
+                    'investment': 'spot',
+                    'borrow': 'borrow',
+                    'grid-trading': 'spot',
+                    'deposit-earning': 'funding',
+                    'otc-options': 'otc',
+                },
                 'typesByAccount': {
                     'pro': 'spot',
                     'futures': 'future',
@@ -2221,7 +2233,27 @@ class huobi(Exchange):
         #         ]
         #     }
         #
-        return response['data']
+        data = self.safe_value(response, 'data')
+        return self.parse_accounts(data)
+
+    def parse_account(self, account):
+        #
+        #     {
+        #         "id": 5202591,
+        #         "type": "point",   # spot, margin, otc, point, super-margin, investment, borrow, grid-trading, deposit-earning, otc-options
+        #         "subtype": "",     # The corresponding trading symbol(currency pair) the isolated margin is based on, e.g. btcusdt
+        #         "state": "working"  # working, lock
+        #     }
+        #
+        typeId = self.safe_string(account, 'type')
+        accountsById = self.safe_value(self.options, 'accountsById', {})
+        type = self.safe_value(accountsById, typeId, typeId)
+        return {
+            'info': account,
+            'id': self.safe_string(account, 'id'),
+            'type': type,
+            'code': None,
+        }
 
     def fetch_account_id_by_type(self, type, params={}):
         accounts = self.load_accounts()
@@ -4891,7 +4923,10 @@ class huobi(Exchange):
         self.load_markets()
         marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'isolated')
         defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
-        marketType, query = self.handle_market_type_and_params('fetchPositions', None, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchPositions', None, params)
+        if marketType == 'spot':
+            marketType = 'future'
         method = None
         if defaultSubType == 'linear':
             method = self.get_supported_mapping(marginMode, {
@@ -4980,7 +5015,7 @@ class huobi(Exchange):
             #       ts: '1641109636572'
             #     }
             #
-        response = getattr(self, method)(query)
+        response = getattr(self, method)(params)
         data = self.safe_value(response, 'data')
         timestamp = self.safe_integer(response, 'ts')
         result = []
