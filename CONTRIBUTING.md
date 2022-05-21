@@ -998,7 +998,7 @@ node run-tests --php bitfinex        # test Bitfinex with PHP
 node run-tests --python-async kraken # test Kraken with Python async test, requires 'npm run build'
 ```
 
-### Writing Tests
+#### Writing Tests
 
 Follow this steps to add a test:
 
