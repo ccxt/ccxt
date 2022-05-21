@@ -1939,14 +1939,13 @@ module.exports = class deribit extends Exchange {
         //
         const contract = this.safeString (position, 'instrument_name');
         market = this.safeMarket (contract, market);
-        const size = this.safeString (position, 'size');
         let side = this.safeString (position, 'direction');
         side = (side === 'buy') ? 'long' : 'short';
-        const maintenanceRate = this.safeString (position, 'maintenance_margin');
         const markPrice = this.safeString (position, 'mark_price');
-        const notionalString = Precise.stringMul (markPrice, size);
         const unrealisedPnl = this.safeString (position, 'floating_profit_loss');
         const initialMarginString = this.safeString (position, 'initial_margin');
+        const notionalString = this.safeString (position, 'size_currency');
+        const maintenanceMarginString = this.safeString (position, 'maintenance_margin');
         const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
         const currentTime = this.milliseconds ();
         return {
@@ -1955,18 +1954,18 @@ module.exports = class deribit extends Exchange {
             'timestamp': currentTime,
             'datetime': this.iso8601 (currentTime),
             'initialMargin': this.parseNumber (initialMarginString),
-            'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notionalString)),
-            'maintenanceMargin': this.parseNumber (Precise.stringMul (maintenanceRate, notionalString)),
-            'maintenanceMarginPercentage': this.parseNumber (maintenanceRate),
-            'entryPrice': this.safeString (position, 'average_price'),
+            'initialMarginPercentage': this.parseNumber (Precise.stringMul (Precise.stringDiv (initialMarginString, notionalString), '100')),
+            'maintenanceMargin': this.parseNumber (maintenanceMarginString),
+            'maintenanceMarginPercentage': this.parseNumber (Precise.stringMul (Precise.stringDiv (maintenanceMarginString, notionalString), '100')),
+            'entryPrice': this.safeNumber (position, 'average_price'),
             'notional': this.parseNumber (notionalString),
             'leverage': this.safeNumber (position, 'leverage'),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': undefined,
-            'contractSize': this.parseNumber (size),
+            'contractSize': this.safeNumber (market, 'contractSize'),
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'estimated_liquidation_price'),
-            'markPrice': markPrice,
+            'markPrice': this.parseNumber (markPrice),
             'collateral': undefined,
             'marginMode': undefined,
             'marginType': undefined, // deprecated
