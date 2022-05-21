@@ -28,7 +28,6 @@ module.exports = class btse extends Exchange {
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': false,
-                'fetchOpenInterestHistory': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
@@ -651,7 +650,48 @@ module.exports = class btse extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    parsePublicTrade(trade, market = undefined) {
+        /**
+         * parse Public Trade info
+         */
+
+        //  {
+        //     price: "29244.0",
+        //     size: "1.0E-5",
+        //     side: "SELL",
+        //     symbol: "BTC-USD",
+        //     serialId: "214310396",
+        //     timestamp: "1653139088000",
+        //   }
+        const id = this.safeString (trade, 'serialId');
+        const orderId = this.safeString (trade, 'serialId');
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        const datetime = this.iso8601 (timestamp);
+        const marketId = this.safeString (trade, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const side = this.safeStringLower (trade, 'side');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'size');
+        return this.safeTrade ({
+            'info': trade,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'symbol': symbol,
+            'order': orderId,
+            'type': undefined, // public trade not exists type field
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'takerOrMaker': undefined,
+            'cost': undefined
+        });
+    }
+
     parseTrade (trade, market = undefined) {
+        if (!trade.orderid) {
+            return this.parsePublicTrade(trade, market)
+        }
         //
         //     {
         //        "tradeId":"6f634cf5-428b-4e03-bfd6-4eafd1ffb462",
