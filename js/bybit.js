@@ -435,7 +435,7 @@ module.exports = class bybit extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
-                'defaultType': 'spot',  // 'swap', 'future', 'option'
+                'defaultType': 'swap',  // 'swap', 'future', 'option'
                 'code': 'BTC',
                 'recvWindow': 5 * 1000, // 5 sec default
                 'timeDifference': 0, // the difference between system clock and exchange server clock
