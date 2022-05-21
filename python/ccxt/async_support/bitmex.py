@@ -1799,8 +1799,144 @@ class bitmex(Exchange):
         #         }
         #     ]
         #
-        # todo unify parsePosition/parsePositions
-        return response
+        result = self.parse_positions(response)
+        return self.filter_by_array(result, 'symbol', symbols, False)
+
+    def parse_position(self, position, market=None):
+        #
+        #     {
+        #         "account": 9371654,
+        #         "symbol": "ETHUSDT",
+        #         "currency": "USDt",
+        #         "underlying": "ETH",
+        #         "quoteCurrency": "USDT",
+        #         "commission": 0.00075,
+        #         "initMarginReq": 0.3333333333333333,
+        #         "maintMarginReq": 0.01,
+        #         "riskLimit": 1000000000000,
+        #         "leverage": 3,
+        #         "crossMargin": False,
+        #         "deleveragePercentile": 1,
+        #         "rebalancedPnl": 0,
+        #         "prevRealisedPnl": 0,
+        #         "prevUnrealisedPnl": 0,
+        #         "prevClosePrice": 2053.738,
+        #         "openingTimestamp": "2022-05-21T04:00:00.000Z",
+        #         "openingQty": 0,
+        #         "openingCost": 0,
+        #         "openingComm": 0,
+        #         "openOrderBuyQty": 0,
+        #         "openOrderBuyCost": 0,
+        #         "openOrderBuyPremium": 0,
+        #         "openOrderSellQty": 0,
+        #         "openOrderSellCost": 0,
+        #         "openOrderSellPremium": 0,
+        #         "execBuyQty": 2000,
+        #         "execBuyCost": 39260000,
+        #         "execSellQty": 0,
+        #         "execSellCost": 0,
+        #         "execQty": 2000,
+        #         "execCost": 39260000,
+        #         "execComm": 26500,
+        #         "currentTimestamp": "2022-05-21T04:35:16.397Z",
+        #         "currentQty": 2000,
+        #         "currentCost": 39260000,
+        #         "currentComm": 26500,
+        #         "realisedCost": 0,
+        #         "unrealisedCost": 39260000,
+        #         "grossOpenCost": 0,
+        #         "grossOpenPremium": 0,
+        #         "grossExecCost": 39260000,
+        #         "isOpen": True,
+        #         "markPrice": 1964.195,
+        #         "markValue": 39283900,
+        #         "riskValue": 39283900,
+        #         "homeNotional": 0.02,
+        #         "foreignNotional": -39.2839,
+        #         "posState": "",
+        #         "posCost": 39260000,
+        #         "posCost2": 39260000,
+        #         "posCross": 0,
+        #         "posInit": 13086667,
+        #         "posComm": 39261,
+        #         "posLoss": 0,
+        #         "posMargin": 13125928,
+        #         "posMaint": 435787,
+        #         "posAllowance": 0,
+        #         "taxableMargin": 0,
+        #         "initMargin": 0,
+        #         "maintMargin": 13149828,
+        #         "sessionMargin": 0,
+        #         "targetExcessMargin": 0,
+        #         "varMargin": 0,
+        #         "realisedGrossPnl": 0,
+        #         "realisedTax": 0,
+        #         "realisedPnl": -26500,
+        #         "unrealisedGrossPnl": 23900,
+        #         "longBankrupt": 0,
+        #         "shortBankrupt": 0,
+        #         "taxBase": 0,
+        #         "indicativeTaxRate": null,
+        #         "indicativeTax": 0,
+        #         "unrealisedTax": 0,
+        #         "unrealisedPnl": 23900,
+        #         "unrealisedPnlPcnt": 0.0006,
+        #         "unrealisedRoePcnt": 0.0018,
+        #         "simpleQty": null,
+        #         "simpleCost": null,
+        #         "simpleValue": null,
+        #         "simplePnl": null,
+        #         "simplePnlPcnt": null,
+        #         "avgCostPrice": 1963,
+        #         "avgEntryPrice": 1963,
+        #         "breakEvenPrice": 1964.35,
+        #         "marginCallPrice": 1328.5,
+        #         "liquidationPrice": 1328.5,
+        #         "bankruptPrice": 1308.7,
+        #         "timestamp": "2022-05-21T04:35:16.397Z",
+        #         "lastPrice": 1964.195,
+        #         "lastValue": 39283900
+        #     }
+        #
+        market = self.safe_market(self.safe_string(position, 'symbol'), market)
+        symbol = market['symbol']
+        datetime = self.safe_string(position, 'timestamp')
+        crossMargin = self.safe_value(position, 'crossMargin')
+        marginMode = 'cross' if (crossMargin is True) else 'isolated'
+        notional = None
+        if market['quote'] == 'USDT':
+            notional = Precise.string_mul(self.safe_string(position, 'foreignNotional'), '-1')
+        return {
+            'info': position,
+            'id': self.safe_string(position, 'account'),
+            'symbol': symbol,
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+            'hedged': None,
+            'side': None,
+            'contracts': None,
+            'contractSize': None,
+            'entryPrice': self.safe_number(position, 'avgEntryPrice'),
+            'markPrice': self.safe_number(position, 'markPrice'),
+            'notional': notional,
+            'leverage': self.safe_number(position, 'leverage'),
+            'collateral': None,
+            'initialMargin': None,
+            'initialMarginPercentage': self.safe_number(position, 'initMarginReq'),
+            'maintenanceMargin': None,
+            'maintenanceMarginPercentage': None,
+            'unrealizedPnl': None,
+            'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
+            'marginMode': marginMode,
+            'marginRatio': None,
+            'percentage': self.safe_number(position, 'unrealisedPnlPcnt'),
+        }
+
+    def parse_positions(self, positions):
+        result = []
+        for i in range(0, len(positions)):
+            result.append(self.parse_position(positions[i]))
+        return result
 
     def is_fiat(self, currency):
         if currency == 'EUR':

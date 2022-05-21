@@ -1878,8 +1878,148 @@ class bitmex extends Exchange {
         //         }
         //     )
         //
-        // todo unify parsePosition/parsePositions
-        return $response;
+        $result = $this->parse_positions($response);
+        return $this->filter_by_array($result, 'symbol', $symbols, false);
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        //     {
+        //         "account" => 9371654,
+        //         "symbol" => "ETHUSDT",
+        //         "currency" => "USDt",
+        //         "underlying" => "ETH",
+        //         "quoteCurrency" => "USDT",
+        //         "commission" => 0.00075,
+        //         "initMarginReq" => 0.3333333333333333,
+        //         "maintMarginReq" => 0.01,
+        //         "riskLimit" => 1000000000000,
+        //         "leverage" => 3,
+        //         "crossMargin" => false,
+        //         "deleveragePercentile" => 1,
+        //         "rebalancedPnl" => 0,
+        //         "prevRealisedPnl" => 0,
+        //         "prevUnrealisedPnl" => 0,
+        //         "prevClosePrice" => 2053.738,
+        //         "openingTimestamp" => "2022-05-21T04:00:00.000Z",
+        //         "openingQty" => 0,
+        //         "openingCost" => 0,
+        //         "openingComm" => 0,
+        //         "openOrderBuyQty" => 0,
+        //         "openOrderBuyCost" => 0,
+        //         "openOrderBuyPremium" => 0,
+        //         "openOrderSellQty" => 0,
+        //         "openOrderSellCost" => 0,
+        //         "openOrderSellPremium" => 0,
+        //         "execBuyQty" => 2000,
+        //         "execBuyCost" => 39260000,
+        //         "execSellQty" => 0,
+        //         "execSellCost" => 0,
+        //         "execQty" => 2000,
+        //         "execCost" => 39260000,
+        //         "execComm" => 26500,
+        //         "currentTimestamp" => "2022-05-21T04:35:16.397Z",
+        //         "currentQty" => 2000,
+        //         "currentCost" => 39260000,
+        //         "currentComm" => 26500,
+        //         "realisedCost" => 0,
+        //         "unrealisedCost" => 39260000,
+        //         "grossOpenCost" => 0,
+        //         "grossOpenPremium" => 0,
+        //         "grossExecCost" => 39260000,
+        //         "isOpen" => true,
+        //         "markPrice" => 1964.195,
+        //         "markValue" => 39283900,
+        //         "riskValue" => 39283900,
+        //         "homeNotional" => 0.02,
+        //         "foreignNotional" => -39.2839,
+        //         "posState" => "",
+        //         "posCost" => 39260000,
+        //         "posCost2" => 39260000,
+        //         "posCross" => 0,
+        //         "posInit" => 13086667,
+        //         "posComm" => 39261,
+        //         "posLoss" => 0,
+        //         "posMargin" => 13125928,
+        //         "posMaint" => 435787,
+        //         "posAllowance" => 0,
+        //         "taxableMargin" => 0,
+        //         "initMargin" => 0,
+        //         "maintMargin" => 13149828,
+        //         "sessionMargin" => 0,
+        //         "targetExcessMargin" => 0,
+        //         "varMargin" => 0,
+        //         "realisedGrossPnl" => 0,
+        //         "realisedTax" => 0,
+        //         "realisedPnl" => -26500,
+        //         "unrealisedGrossPnl" => 23900,
+        //         "longBankrupt" => 0,
+        //         "shortBankrupt" => 0,
+        //         "taxBase" => 0,
+        //         "indicativeTaxRate" => null,
+        //         "indicativeTax" => 0,
+        //         "unrealisedTax" => 0,
+        //         "unrealisedPnl" => 23900,
+        //         "unrealisedPnlPcnt" => 0.0006,
+        //         "unrealisedRoePcnt" => 0.0018,
+        //         "simpleQty" => null,
+        //         "simpleCost" => null,
+        //         "simpleValue" => null,
+        //         "simplePnl" => null,
+        //         "simplePnlPcnt" => null,
+        //         "avgCostPrice" => 1963,
+        //         "avgEntryPrice" => 1963,
+        //         "breakEvenPrice" => 1964.35,
+        //         "marginCallPrice" => 1328.5,
+        //         "liquidationPrice" => 1328.5,
+        //         "bankruptPrice" => 1308.7,
+        //         "timestamp" => "2022-05-21T04:35:16.397Z",
+        //         "lastPrice" => 1964.195,
+        //         "lastValue" => 39283900
+        //     }
+        //
+        $market = $this->safe_market($this->safe_string($position, 'symbol'), $market);
+        $symbol = $market['symbol'];
+        $datetime = $this->safe_string($position, 'timestamp');
+        $crossMargin = $this->safe_value($position, 'crossMargin');
+        $marginMode = ($crossMargin === true) ? 'cross' : 'isolated';
+        $notional = null;
+        if ($market['quote'] === 'USDT') {
+            $notional = Precise::string_mul($this->safe_string($position, 'foreignNotional'), '-1');
+        }
+        return array(
+            'info' => $position,
+            'id' => $this->safe_string($position, 'account'),
+            'symbol' => $symbol,
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
+            'hedged' => null,
+            'side' => null,
+            'contracts' => null,
+            'contractSize' => null,
+            'entryPrice' => $this->safe_number($position, 'avgEntryPrice'),
+            'markPrice' => $this->safe_number($position, 'markPrice'),
+            'notional' => $notional,
+            'leverage' => $this->safe_number($position, 'leverage'),
+            'collateral' => null,
+            'initialMargin' => null,
+            'initialMarginPercentage' => $this->safe_number($position, 'initMarginReq'),
+            'maintenanceMargin' => null,
+            'maintenanceMarginPercentage' => null,
+            'unrealizedPnl' => null,
+            'liquidationPrice' => $this->safe_number($position, 'liquidationPrice'),
+            'marginMode' => $marginMode,
+            'marginRatio' => null,
+            'percentage' => $this->safe_number($position, 'unrealisedPnlPcnt'),
+        );
+    }
+
+    public function parse_positions($positions) {
+        $result = array();
+        for ($i = 0; $i < count($positions); $i++) {
+            $result[] = $this->parse_position($positions[$i]);
+        }
+        return $result;
     }
 
     public function is_fiat($currency) {
