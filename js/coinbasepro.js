@@ -402,20 +402,27 @@ module.exports = class coinbasepro extends Exchange {
         //         },
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const account = response[i];
-            const accountId = this.safeString (account, 'id');
-            const currencyId = this.safeString (account, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            result.push ({
-                'id': accountId,
-                'type': undefined,
-                'currency': code,
-                'info': account,
-            });
-        }
-        return result;
+        return this.parseAccounts (response, params);
+    }
+
+    parseAccount (account) {
+        //
+        //     {
+        //         id: '4aac9c60-cbda-4396-9da4-4aa71e95fba0',
+        //         currency: 'BTC',
+        //         balance: '0.0000000000000000',
+        //         available: '0',
+        //         hold: '0.0000000000000000',
+        //         profile_id: 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        //     }
+        //
+        const currencyId = this.safeString (account, 'currency');
+        return {
+            'id': this.safeString (account, 'id'),
+            'type': undefined,
+            'code': this.safeCurrencyCode (currencyId),
+            'info': account,
+        };
     }
 
     parseBalance (response) {

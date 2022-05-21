@@ -249,20 +249,49 @@ module.exports = class coinbase extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = [];
-        for (let i = 0; i < data.length; i++) {
-            const account = data[i];
-            const currency = this.safeValue (account, 'currency', {});
-            const currencyId = this.safeString (currency, 'code');
-            const code = this.safeCurrencyCode (currencyId);
-            result.push ({
-                'id': this.safeString (account, 'id'),
-                'type': this.safeString (account, 'type'),
-                'code': code,
-                'info': account,
-            });
-        }
-        return result;
+        this.parseAccounts (data, params);
+    }
+
+    parseAccount (account) {
+        //
+        //     {
+        //         "id": "XLM",
+        //         "name": "XLM Wallet",
+        //         "primary": false,
+        //         "type": "wallet",
+        //         "currency": {
+        //             "code": "XLM",
+        //             "name": "Stellar Lumens",
+        //             "color": "#000000",
+        //             "sort_index": 127,
+        //             "exponent": 7,
+        //             "type": "crypto",
+        //             "address_regex": "^G[A-Z2-7]{55}$",
+        //             "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
+        //             "destination_tag_name": "XLM Memo ID",
+        //             "destination_tag_regex": "^[ -~]{1,28}$"
+        //         },
+        //         "balance": {
+        //             "amount": "0.0000000",
+        //             "currency": "XLM"
+        //         },
+        //         "created_at": null,
+        //         "updated_at": null,
+        //         "resource": "account",
+        //         "resource_path": "/v2/accounts/XLM",
+        //         "allow_deposits": true,
+        //         "allow_withdrawals": true
+        //     }
+        //
+        const currency = this.safeValue (account, 'currency', {});
+        const currencyId = this.safeString (currency, 'code');
+        const code = this.safeCurrencyCode (currencyId);
+        return {
+            'id': this.safeString (account, 'id'),
+            'type': this.safeString (account, 'type'),
+            'code': code,
+            'info': account,
+        };
     }
 
     async createDepositAddress (code, params = {}) {

@@ -69,6 +69,8 @@ class Transpiler {
             [ /\.implodeParams\s/g, '.implode_params'],
             [ /\.extractParams\s/g, '.extract_params'],
             [ /\.safeBalance\s/g, '.safe_balance'],
+            [ /\.parseAccounts\s/g, '.parse_accounts' ],
+            [ /\.parseAccount\s/g, '.parse_account' ],
             [ /\.parseBalance\s/g, '.parse_balance'],
             [ /\.parseOHLCVs\s/g, '.parse_ohlcvs'],
             [ /\.parseOHLCV\s/g, '.parse_ohlcv'],
@@ -1635,6 +1637,11 @@ class Transpiler {
                 'jsFile': './js/test/Exchange/test.leverageTier.js',
                 'pyFile': './python/ccxt/test/test_leverage_tier.py',
                 'phpFile': './php/test/test_leverage_tier.php',
+            },
+            {
+                'jsFile': './js/test/Exchange/test.account.js',
+                'pyFile': './python/ccxt/test/test_account.py',
+                'phpFile': './php/test/test_account.php',
             },
             {
                 'jsFile': './js/test/Exchange/test.marginModification.js',

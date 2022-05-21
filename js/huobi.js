@@ -852,6 +852,18 @@ module.exports = class huobi extends Exchange {
                     'funding': 'pro',
                     'future': 'futures',
                 },
+                'accountsById': {
+                    'spot': 'spot',
+                    'margin': 'margin',
+                    'otc': 'otc',
+                    'point': 'point',
+                    'super-margin': 'margin',
+                    'investment': 'spot',
+                    'borrow': 'borrow',
+                    'grid-trading': 'spot',
+                    'deposit-earning': 'funding',
+                    'otc-options': 'otc',
+                },
                 'typesByAccount': {
                     'pro': 'spot',
                     'futures': 'future',
@@ -2316,7 +2328,28 @@ module.exports = class huobi extends Exchange {
         //         ]
         //     }
         //
-        return response['data'];
+        const data = this.safeValue (response, 'data');
+        return this.parseAccounts (data);
+    }
+
+    parseAccount (account) {
+        //
+        //     {
+        //         "id": 5202591,
+        //         "type": "point",   // spot, margin, otc, point, super-margin, investment, borrow, grid-trading, deposit-earning, otc-options
+        //         "subtype": "",     // The corresponding trading symbol (currency pair) the isolated margin is based on, e.g. btcusdt
+        //         "state": "working" // working, lock
+        //     }
+        //
+        const typeId = this.safeString (account, 'type');
+        const accountsById = this.safeValue (this.options, 'accountsById', {});
+        const type = this.safeValue (accountsById, typeId, typeId);
+        return {
+            'info': account,
+            'id': this.safeString (account, 'id'),
+            'type': type,
+            'code': undefined,
+        };
     }
 
     async fetchAccountIdByType (type, params = {}) {
@@ -5207,7 +5240,11 @@ module.exports = class huobi extends Exchange {
         await this.loadMarkets ();
         const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'isolated');
         const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
+        if (marketType === 'spot') {
+            marketType = 'future';
+        }
         let method = undefined;
         if (defaultSubType === 'linear') {
             method = this.getSupportedMapping (marginMode, {
@@ -5297,7 +5334,7 @@ module.exports = class huobi extends Exchange {
             //     }
             //
         }
-        const response = await this[method] (query);
+        const response = await this[method] (params);
         const data = this.safeValue (response, 'data');
         const timestamp = this.safeInteger (response, 'ts');
         const result = [];
