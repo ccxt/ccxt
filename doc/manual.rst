@@ -2845,12 +2845,12 @@ When exchange markets are loaded, you can then access market information any tim
    // JavaScript
    (async () => {
        let kraken = new ccxt.kraken ({ verbose: true }) // log HTTP requests
-       await kraken.load_markets () // request markets
+       await kraken.loadMarkets () // request markets
        console.log (kraken.id, kraken.markets)    // output a full list of all loaded markets
        console.log (Object.keys (kraken.markets)) // output a short list of market symbols
        console.log (kraken.markets['BTC/USD'])    // output single market details
-       await kraken.load_markets () // return a locally cached version, no reload
-       let reloadedMarkets = await kraken.load_markets (true) // force HTTP reload = true
+       await kraken.loadMarkets () // return a locally cached version, no reload
+       let reloadedMarkets = await kraken.loadMarkets (true) // force HTTP reload = true
        console.log (reloadedMarkets['ETH/BTC'])
    }) ()
 
