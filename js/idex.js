@@ -236,7 +236,7 @@ module.exports = class idex extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': (status === 'active'),
+                'active': (status !== 'inactive'),
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
