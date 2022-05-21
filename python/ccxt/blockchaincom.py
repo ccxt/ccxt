@@ -828,6 +828,11 @@ class blockchaincom(Exchange):
         return self.parse_transaction(deposit)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the blockchaincom api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         accountName = self.safe_string(params, 'account', 'primary')
         params = self.omit(params, 'account')

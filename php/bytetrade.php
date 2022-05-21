@@ -403,6 +403,11 @@ class bytetrade extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the bytetrade api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
             throw new ArgumentsRequired($this->id . ' fetchBalance() requires $this->apiKey or userid argument');
         }

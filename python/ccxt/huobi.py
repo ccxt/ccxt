@@ -2352,6 +2352,11 @@ class huobi(Exchange):
         return result
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         type = None
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)

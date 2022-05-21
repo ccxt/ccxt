@@ -152,6 +152,11 @@ class coinspot(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the coinspot api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         method = self.safe_string(self.options, 'fetchBalance', 'private_post_my_balances')
         response = await getattr(self, method)(params)

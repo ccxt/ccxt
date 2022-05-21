@@ -695,6 +695,11 @@ class idex(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the idex api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.check_required_credentials()
         await self.load_markets()
         nonce1 = self.uuidv1()

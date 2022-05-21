@@ -702,6 +702,11 @@ class ascendex extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * $query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the ascendex api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $this->load_accounts();
         list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);

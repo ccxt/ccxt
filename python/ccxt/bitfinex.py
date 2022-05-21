@@ -598,6 +598,11 @@ class bitfinex(Exchange):
         return self.decimal_to_precision(price, TRUNCATE, 8, DECIMAL_PLACES)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         requestedType = self.safe_string(params, 'type', 'exchange')

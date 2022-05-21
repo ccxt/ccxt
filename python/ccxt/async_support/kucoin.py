@@ -2058,6 +2058,11 @@ class kucoin(Exchange):
         return self.parse_transactions(responseData, currency, since, limit, {'type': 'withdrawal'})
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the kucoin api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
         requestedType = self.safe_string(params, 'type', defaultType)

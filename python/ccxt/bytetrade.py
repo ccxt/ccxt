@@ -391,6 +391,11 @@ class bytetrade(Exchange):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the bytetrade api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         if not ('userid' in params) and (self.apiKey is None):
             raise ArgumentsRequired(self.id + ' fetchBalance() requires self.apiKey or userid argument')
         self.load_markets()

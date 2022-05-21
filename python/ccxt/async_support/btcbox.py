@@ -135,6 +135,11 @@ class btcbox(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the btcbox api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.privatePostBalance(params)
         return self.parse_balance(response)

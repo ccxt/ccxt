@@ -644,6 +644,11 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * $query for $balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the bitfinex2 api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#$balance-structure $balance structure~
+         */
         // this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         yield $this->load_markets();

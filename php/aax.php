@@ -986,6 +986,11 @@ class aax extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for $balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the aax api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#$balance-structure $balance structure~
+         */
         $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);

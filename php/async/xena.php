@@ -678,6 +678,11 @@ class xena extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the xena api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         yield $this->load_markets();
         yield $this->load_accounts();
         $accountId = yield $this->get_account_id($params);
