@@ -2509,7 +2509,8 @@ class bybit extends Exchange {
         } else {
             // only linear swap markets allow using all purpose
             // fetchOrders endpoint filtering by $id
-            return $this->fetch_orders($symbol, null, null, $params);
+            $orders = $this->fetch_orders($symbol, null, null, $params);
+            return $this->safe_value($orders, 0);
         }
     }
 
