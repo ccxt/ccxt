@@ -998,7 +998,8 @@ node run-tests --php bitfinex        # test Bitfinex with PHP
 node run-tests --python-async kraken # test Kraken with Python async test, requires 'npm run build'
 ```
 
-### Write your own tests for an exchange
+### Writing your own tests for an exchange
+
 Follow this steps to add a test:
 - Create a file in [js/tests/Exchange](js/test/Exchange/) following syntax that can be transpiled.
 - Add file location to [transpile.js](build/transpile.js#L1600)
