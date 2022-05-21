@@ -219,9 +219,9 @@ class blockchaincom extends Exchange {
             $active = null;
             $marketState = $this->safe_string($market, 'status');
             if ($marketState === 'open') {
-                $active = 'true';
+                $active = true;
             } else {
-                $active = 'false';
+                $active = false;
             }
             // price precision
             $minPriceIncrementString = $this->safe_string($market, 'min_price_increment');
