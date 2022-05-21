@@ -28,6 +28,7 @@ module.exports = class btse extends Exchange {
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': false,
+                'fetchOpenInterestHistory': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
