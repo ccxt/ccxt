@@ -401,6 +401,13 @@ module.exports = class bytetrade extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name bytetrade#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the bytetrade api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         if (!('userid' in params) && (this.apiKey === undefined)) {
             throw new ArgumentsRequired (this.id + ' fetchBalance() requires this.apiKey or userid argument');
         }

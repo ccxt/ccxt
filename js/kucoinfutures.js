@@ -1470,6 +1470,13 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         // only fetches one balance at a time
         let defaultCode = this.safeString (this.options, 'code');

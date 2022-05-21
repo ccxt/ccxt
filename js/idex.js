@@ -722,6 +722,13 @@ module.exports = class idex extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name idex#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the idex api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const nonce1 = this.uuidv1 ();
