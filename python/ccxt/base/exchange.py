@@ -2102,9 +2102,7 @@ class Exchange(object):
 
     def parse_accounts(self, accounts, params={}):
         array = self.to_array(accounts)
-        array = [self.extend(self.parse_account(account), params) for account in array]
-        array = self.sort_by_2(array, 'id', 'code')
-        return array
+        return [self.extend(self.parse_account(account), params) for account in array]
 
     def parse_tickers(self, tickers, symbols=None, params={}):
         result = []
