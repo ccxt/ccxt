@@ -1853,7 +1853,7 @@ module.exports = class bitmex extends Exchange {
         const marginMode = (crossMargin === true) ? 'cross' : 'isolated';
         let notional = undefined;
         if (market['quote'] === 'USDT') {
-            notional = this.safeNumber (position, 'foreignNotional');
+            notional = Precise.stringMul (this.safeString (position, 'foreignNotional'), '-1');
         }
         return {
             'info': position,
