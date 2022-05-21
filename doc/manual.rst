@@ -2566,7 +2566,7 @@ In order to load markets manually beforehand call the ``loadMarkets ()`` / ``loa
    // JavaScript
    (async () => {
        let kraken = new ccxt.kraken ()
-       let markets = await kraken.load_markets ()
+       let markets = await kraken.loadMarkets ()
        console.log (kraken.id, markets)
    }) ()
 
