@@ -217,9 +217,9 @@ module.exports = class blockchaincom extends Exchange {
             let active = undefined;
             const marketState = this.safeString (market, 'status');
             if (marketState === 'open') {
-                active = 'true';
+                active = true;
             } else {
-                active = 'false';
+                active = false;
             }
             // price precision
             const minPriceIncrementString = this.safeString (market, 'min_price_increment');
