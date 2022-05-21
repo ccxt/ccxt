@@ -222,6 +222,10 @@ module.exports = class bybit extends Exchange {
                         'spot/v1/open-orders': 2.5,
                         'spot/v1/history-orders': 2.5,
                         'spot/v1/myTrades': 2.5,
+                        'spot/v1/cross-margin/order': 10,
+                        'spot/v1/cross-margin/accounts/balance': 10,
+                        'spot/v1/cross-margin/loan-info': 10,
+                        'spot/v1/cross-margin/repay/history': 10,
                         // account
                         'asset/v1/private/transfer/list': 50, // 60 per minute = 1 per second => cost = 50 / 1 = 50
                         'asset/v1/private/sub-member/transfer/list': 50,
@@ -284,6 +288,8 @@ module.exports = class bybit extends Exchange {
                         'futures/private/position/risk-limit': 2.5,
                         // spot
                         'spot/v1/order': 2.5,
+                        'spot/v1/cross-margin/loan': 10,
+                        'spot/v1/cross-margin/repay': 10,
                         // account
                         'asset/v1/private/transfer': 150, // 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
                         'asset/v1/private/sub-member/transfer': 150,
