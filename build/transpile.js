@@ -69,6 +69,8 @@ class Transpiler {
             [ /\.implodeParams\s/g, '.implode_params'],
             [ /\.extractParams\s/g, '.extract_params'],
             [ /\.safeBalance\s/g, '.safe_balance'],
+            [ /\.parseAccounts\s/g, '.parse_accounts' ],
+            [ /\.parseAccount\s/g, '.parse_account' ],
             [ /\.parseBalance\s/g, '.parse_balance'],
             [ /\.parseOHLCVs\s/g, '.parse_ohlcvs'],
             [ /\.parseOHLCV\s/g, '.parse_ohlcv'],
