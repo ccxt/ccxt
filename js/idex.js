@@ -196,7 +196,8 @@ module.exports = class idex extends Exchange {
         //     "takerFeeRate": "0.002",
         //     "makerTradeMinimum": "0.15000000",
         //     "takerTradeMinimum": "0.05000000",
-        //     "withdrawalMinimum": "0.04000000"
+        //     "withdrawalMinimum": "0.04000000",
+        //     "tickSize":"0.00001000"
         // }
         //
         const maker = this.safeNumber (response2, 'makerFeeRate');
@@ -213,9 +214,8 @@ module.exports = class idex extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const basePrecisionString = this.safeString (entry, 'baseAssetPrecision');
-            const quotePrecisionString = this.safeString (entry, 'quoteAssetPrecision');
             const basePrecision = this.parsePrecision (basePrecisionString);
-            const quotePrecision = this.parsePrecision (quotePrecisionString);
+            const tickerSize = this.safeNumber (entry, 'tickSize');
             const status = this.safeString (entry, 'status');
             let minCost = undefined;
             if (quote === 'ETH') {
@@ -249,7 +249,7 @@ module.exports = class idex extends Exchange {
                 'optionType': undefined,
                 'precision': {
                     'amount': parseInt (basePrecisionString),
-                    'price': parseInt (quotePrecisionString),
+                    'price': tickerSize,
                 },
                 'limits': {
                     'leverage': {
@@ -261,7 +261,7 @@ module.exports = class idex extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.parseNumber (quotePrecision),
+                        'min': tickerSize,
                         'max': undefined,
                     },
                     'cost': {
