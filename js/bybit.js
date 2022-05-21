@@ -227,10 +227,10 @@ module.exports = class bybit extends Exchange {
                         'asset/v1/private/sub-member/transfer/list': 50,
                         'asset/v1/private/sub-member/member-ids': 50,
                         'asset/v1/private/deposit/record/query': 50,
-                        'asset/v1/private/withdraw/record/query': 50,
-                        'asset/v1/private/coin-info/query': 50,
+                        'asset/v1/private/withdraw/record/query': 25,
+                        'asset/v1/private/coin-info/query': 25,
                         'asset/v1/private/asset-info/query': 50,
-                        'asset/v1/private/deposit/address': 25,
+                        'asset/v1/private/deposit/address': 100,
                     },
                     'post': {
                         // inverse swap
