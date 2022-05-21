@@ -2350,7 +2350,6 @@ class Exchange {
         foreach ($array as $account) {
             $result[] = array_replace_recursive($this->parse_account($account), $params);
         }
-        $result = $this->sort_by_2($result, 'id', 'code');
         return $result;
     }
 
