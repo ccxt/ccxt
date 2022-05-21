@@ -2519,7 +2519,7 @@ module.exports = class bybit extends Exchange {
         } else {
             // only linear swap markets allow using all purpose
             // fetchOrders endpoint filtering by id
-            return this.fetchOrders (symbol, undefined, undefined, params);
+            return await this.fetchOrders (symbol, undefined, undefined, params);
         }
     }
 
