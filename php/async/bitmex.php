@@ -2051,16 +2051,16 @@ class bitmex extends Exchange {
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * Fetches the history of funding rates
-         * @param {str} $symbol Unified $market $symbol, use currency $code to get data for the nearest expiring contract in that series, can also send a timeframe, eg XBT:quarterly, Timeframes are nearest, daily, weekly, monthly, quarterly, biquarterly, and perpetual
-         * @param {int} $since timestamp in ms for starting date filter
-         * @param {int} $limit number of results to fetch
-         * @param {dict} $params exchange specific $params
-         * @param {int} $params->till timestamp in ms for ending date filter
-         * @param {bool} $params->reverse if true, will sort results newest first
-         * @param {int} $params->start starting point for results
-         * @param {str} $params->columns array of column names to fetch in info, if omitted, will return all columns
-         * @param {str} $params->filter generic table filter, send json key/value pairs, such as array("key" => "value"), you can key on individual fields, and do more advanced querying on timestamps, see the {@link https://www.bitmex.com/app/restAPI#Timestamp-Filters timestamp docs} for more details
-         * @return A list of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-history-structure funding rate history structures}
+         * @param {str|null} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int|null} $since timestamp in ms of the earliest funding rate to fetch
+         * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+         * @param {dict} $params extra parameters specific to the bitmex api endpoint
+         * @param {int|null} $params->till timestamp in ms for ending date filter
+         * @param {bool|null} $params->reverse if true, will sort results newest first
+         * @param {int|null} $params->start starting point for results
+         * @param {str|null} $params->columns array of column names to fetch in info, if omitted, will return all columns
+         * @param {str|null} $params->filter generic table filter, send json key/value pairs, such as array("key" => "value"), you can key on individual fields, and do more advanced querying on timestamps, see the {@link https://www.bitmex.com/app/restAPI#Timestamp-Filters timestamp docs} for more details
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
          */
         yield $this->load_markets();
         $request = array();

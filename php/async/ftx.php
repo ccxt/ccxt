@@ -1229,15 +1229,15 @@ class ftx extends Exchange {
     }
 
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
-        //
-        // Gets a history of funding $rates with their timestamps
-        //  (param) $symbol => Future currency pair (e.g. "BTC-PERP")
-        //  (param) $limit => Not used by ftx
-        //  (param) $since => Unix $timestamp in miliseconds for the time of the earliest requested funding rate
-        //  (param) $params => Object containing more $params for the $request
-        //             - until => Unix $timestamp in miliseconds for the time of the earliest requested funding rate
-        //  return => [array($symbol, fundingRate, $timestamp)]
-        //
+        /**
+         * fetches historical funding rate prices
+         * @param {str|null} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int|null} $since $timestamp in ms of the earliest funding rate to fetch
+         * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+         * @param {dict} $params extra parameters specific to the ftx api endpoint
+         * @param {int|null} $params->till extra parameters specific to the ftx api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+         */
         yield $this->load_markets();
         $request = array();
         if ($symbol !== null) {

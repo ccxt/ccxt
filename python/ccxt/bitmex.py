@@ -1962,16 +1962,16 @@ class bitmex(Exchange):
     def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         """
         Fetches the history of funding rates
-        :param str symbol: Unified market symbol, use currency code to get data for the nearest expiring contract in that series, can also send a timeframe, eg XBT:quarterly, Timeframes are nearest, daily, weekly, monthly, quarterly, biquarterly, and perpetual
-        :param int since: timestamp in ms for starting date filter
-        :param int limit: number of results to fetch
-        :param dict params: exchange specific params
-        :param int params['till']: timestamp in ms for ending date filter
-        :param bool params['reverse']: if True, will sort results newest first
-        :param int params['start']: starting point for results
-        :param str params['columns']: array of column names to fetch in info, if omitted, will return all columns
-        :param str params['filter']: generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the `timestamp docs <https://www.bitmex.com/app/restAPI#Timestamp-Filters>` for more details
-        :returns: A list of `funding rate history structures <https://docs.ccxt.com/en/latest/manual.html#funding-rate-history-structure>`
+        :param str|None symbol: unified symbol of the market to fetch the funding rate history for
+        :param int|None since: timestamp in ms of the earliest funding rate to fetch
+        :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :param int|None params['till']: timestamp in ms for ending date filter
+        :param bool|None params['reverse']: if True, will sort results newest first
+        :param int|None params['start']: starting point for results
+        :param str|None params['columns']: array of column names to fetch in info, if omitted, will return all columns
+        :param str|None params['filter']: generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the `timestamp docs <https://www.bitmex.com/app/restAPI#Timestamp-Filters>` for more details
+        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
         self.load_markets()
         request = {}

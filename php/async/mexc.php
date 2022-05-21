@@ -3090,14 +3090,14 @@ class mexc extends Exchange {
     }
 
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
-        //
-        // Gets a history of funding $rates with their timestamps
-        //  (param) $symbol => Future currency pair
-        //  (param) $limit => mexc $limit is page_size default 20, maximum is 100
-        //  (param) $since => not used by mexc
-        //  (param) $params => Object containing more $params for the $request
-        //  return => [array($symbol, fundingRate, $timestamp, dateTime)]
-        //
+        /**
+         * fetches historical funding rate prices
+         * @param {str|null} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int|null} $since not used by mexc, but filtered internally by ccxt
+         * @param {int|null} $limit mexc $limit is page_size default 20, maximum is 100
+         * @param {dict} $params extra parameters specific to the mexc api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
@@ -3113,28 +3113,28 @@ class mexc extends Exchange {
         }
         $response = yield $this->contractPublicGetFundingRateHistory (array_merge($request, $params));
         //
-        // {
-        //     "success" => true,
-        //     "code" => 0,
-        //     "data" => {
-        //         "pageSize" => 2,
-        //         "totalCount" => 21,
-        //         "totalPage" => 11,
-        //         "currentPage" => 1,
-        //         "resultList" => array(
-        //             array(
-        //                 "symbol" => "BTC_USDT",
-        //                 "fundingRate" => 0.000266,
-        //                 "settleTime" => 1609804800000
-        //             ),
-        //             {
-        //                 "symbol" => "BTC_USDT",
-        //                 "fundingRate" => 0.00029,
-        //                 "settleTime" => 1609776000000
-        //             }
-        //         )
-        //     }
-        // }
+        //    {
+        //        "success" => true,
+        //        "code" => 0,
+        //        "data" => {
+        //            "pageSize" => 2,
+        //            "totalCount" => 21,
+        //            "totalPage" => 11,
+        //            "currentPage" => 1,
+        //            "resultList" => array(
+        //                array(
+        //                    "symbol" => "BTC_USDT",
+        //                    "fundingRate" => 0.000266,
+        //                    "settleTime" => 1609804800000
+        //                ),
+        //                {
+        //                    "symbol" => "BTC_USDT",
+        //                    "fundingRate" => 0.00029,
+        //                    "settleTime" => 1609776000000
+        //                }
+        //            )
+        //        }
+        //    }
         //
         $data = $this->safe_value($response, 'data');
         $result = $this->safe_value($data, 'resultList');

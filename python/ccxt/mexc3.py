@@ -2652,14 +2652,14 @@ class mexc3(Exchange):
         return self.parse_funding_rate(result, market)
 
     def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
-        #
-        # Gets a history of funding rates with their timestamps
-        #  (param) symbol: Future currency pair
-        #  (param) limit: mexc limit is page_size default 20, maximum is 100
-        #  (param) since: not used by mexc
-        #  (param) params: Object containing more params for the request
-        #  return: [{symbol, fundingRate, timestamp, dateTime}]
-        #
+        """
+        fetches historical funding rate prices
+        :param str|None symbol: unified symbol of the market to fetch the funding rate history for
+        :param int|None since: not used by mexc, but filtered internally by ccxt
+        :param int|None limit: mexc limit is page_size default 20, maximum is 100
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         self.load_markets()
@@ -2673,28 +2673,28 @@ class mexc3(Exchange):
             request['page_size'] = limit
         response = self.contractPublicGetFundingRateHistory(self.extend(request, params))
         #
-        # {
-        #     "success": True,
-        #     "code": 0,
-        #     "data": {
-        #         "pageSize": 2,
-        #         "totalCount": 21,
-        #         "totalPage": 11,
-        #         "currentPage": 1,
-        #         "resultList": [
-        #             {
-        #                 "symbol": "BTC_USDT",
-        #                 "fundingRate": 0.000266,
-        #                 "settleTime": 1609804800000
-        #             },
-        #             {
-        #                 "symbol": "BTC_USDT",
-        #                 "fundingRate": 0.00029,
-        #                 "settleTime": 1609776000000
-        #             }
-        #         ]
-        #     }
-        # }
+        #    {
+        #        "success": True,
+        #        "code": 0,
+        #        "data": {
+        #            "pageSize": 2,
+        #            "totalCount": 21,
+        #            "totalPage": 11,
+        #            "currentPage": 1,
+        #            "resultList": [
+        #                {
+        #                    "symbol": "BTC_USDT",
+        #                    "fundingRate": 0.000266,
+        #                    "settleTime": 1609804800000
+        #                },
+        #                {
+        #                    "symbol": "BTC_USDT",
+        #                    "fundingRate": 0.00029,
+        #                    "settleTime": 1609776000000
+        #                }
+        #            ]
+        #        }
+        #    }
         #
         data = self.safe_value(response, 'data')
         result = self.safe_value(data, 'resultList')

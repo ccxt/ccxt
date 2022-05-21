@@ -980,6 +980,14 @@ class coinflex(Exchange):
         return self.parse_funding_rates(resultedArray, market)
 
     def fetch_funding_rate_history(self, symbol, since=None, limit=None, params={}):
+        """
+        fetches historical funding rate prices
+        :param str|None symbol: unified symbol of the market to fetch the funding rate history for
+        :param int|None since: timestamp in ms of the earliest funding rate to fetch
+        :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        """
         # TODO: self can be moved as emulated into base
         if self.has['fetchFundingRatesHistory']:
             response = self.fetch_funding_rates_history([symbol], since, limit, params)

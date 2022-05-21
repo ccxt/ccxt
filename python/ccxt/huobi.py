@@ -4238,14 +4238,14 @@ class huobi(Exchange):
         return rates
 
     def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
-        #
-        # Gets a history of funding rates with their timestamps
-        #  (param) symbol: Future currency pair
-        #  (param) limit: not used by huobi
-        #  (param) since: not used by huobi
-        #  (param) params: Object containing more params for the request
-        #  return: [{symbol, fundingRate, timestamp, dateTime}]
-        #
+        """
+        fetches historical funding rate prices
+        :param str|None symbol: unified symbol of the market to fetch the funding rate history for
+        :param int|None since: not used by huobi, but filtered internally by ccxt
+        :param int|None limit: not used by huobi, but filtered internally by ccxt
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         self.load_markets()

@@ -1203,15 +1203,15 @@ class ftx(Exchange):
         return tradingFees
 
     def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
-        #
-        # Gets a history of funding rates with their timestamps
-        #  (param) symbol: Future currency pair(e.g. "BTC-PERP")
-        #  (param) limit: Not used by ftx
-        #  (param) since: Unix timestamp in miliseconds for the time of the earliest requested funding rate
-        #  (param) params: Object containing more params for the request
-        #             - until: Unix timestamp in miliseconds for the time of the earliest requested funding rate
-        #  return: [{symbol, fundingRate, timestamp}]
-        #
+        """
+        fetches historical funding rate prices
+        :param str|None symbol: unified symbol of the market to fetch the funding rate history for
+        :param int|None since: timestamp in ms of the earliest funding rate to fetch
+        :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :param int|None params['till']: extra parameters specific to the ftx api endpoint
+        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        """
         self.load_markets()
         request = {}
         if symbol is not None:

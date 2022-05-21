@@ -1015,6 +1015,14 @@ class coinflex extends Exchange {
     }
 
     public function fetch_funding_rate_history($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical funding rate prices
+         * @param {str|null} $symbol unified $symbol of the market to fetch the funding rate history for
+         * @param {int|null} $since timestamp in ms of the earliest funding rate to fetch
+         * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+         */
         // TODO => this can be moved as emulated into base
         if ($this->has['fetchFundingRatesHistory']) {
             $response = yield $this->fetch_funding_rates_history(array( $symbol ), $since, $limit, $params);
