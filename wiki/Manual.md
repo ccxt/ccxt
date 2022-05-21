@@ -3138,8 +3138,8 @@ The `fetchAccounts()` method will return a structure like shown below:
     ...
 ]
 ```
-Types of account is one of the [unified account types](####Account-Balance) or `subaccount`
 
+Types of account is one of the [unified account types](####Account-Balance) or `subaccount`
 
 ## Account Balance
 
