@@ -972,6 +972,14 @@ module.exports = class bitmex extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the bitmex api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const response = await this.publicGetInstrumentActiveAndIndices (params);
         //
@@ -1085,7 +1093,24 @@ module.exports = class bitmex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTickers (response, symbols);
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const ticker = this.parseTicker (response[i]);
+            const symbol = this.safeString (ticker, 'symbol');
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
+        }
+        const uniformSymbols = [];
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market (symbol);
+                uniformSymbols.push (market['symbol']);
+            }
+            return this.filterByArray (result, 'symbol', uniformSymbols);
+        }
+        return result;
     }
 
     parseTicker (ticker, market = undefined) {
