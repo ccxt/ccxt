@@ -4992,7 +4992,7 @@ Returns
 {
     info: { ... },
     type: 'add', // 'add', 'reduce', 'set'
-    amount: 1, // ammount added or reduced
+    amount: 1, // amount added, reduced, or set
     total: 2,  // total margin or undefined if not specified by the exchange
     code: 'USDT',
     symbol: 'XRP/USDT:USDT',
