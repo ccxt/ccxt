@@ -1410,7 +1410,8 @@ module.exports = class Exchange {
     }
 
     parseAccounts (accounts, params = {}) {
-        return Object.values (accounts || []).map ((account) => this.extend (this.parseAccount (account, undefined), params))
+        const array = Object.values (accounts || [])
+        return return array.map ((account) => this.extend (this.parseAccount (account, undefined), params))
     }
 
     parseTickers (tickers, symbols = undefined, params = {}) {
