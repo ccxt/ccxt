@@ -39,6 +39,7 @@ module.exports = class btse extends Exchange {
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': false,
                 'fetchOrderBook': true,
@@ -46,7 +47,7 @@ module.exports = class btse extends Exchange {
                 'fetchPositions': false,
                 'fetchStatus': false,
                 'fetchTicker': true,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
@@ -549,6 +550,72 @@ module.exports = class btse extends Exchange {
         //
         const ticker = this.safeValue (response, 0, {});
         return this.parseTicker (ticker, market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        // if (symbols !== undefined) {
+        //     const requestSymbols = [];
+        //     for (let i = 0; i < symbols.length; i++) {
+        //         const symbol = this.safeValue (symbols, i, '');
+        //         requestSymbols.push ((this.market (symbol))['id']);
+        //     }
+        //     request['symbols']
+        // }
+        const spotResponse = await this.spotPublicGetMarketSummary (params);
+        const futureResponse = await this.futurePublicGetMarketSummary (params);
+        //
+        //   [{
+        //      "symbol":"1INCH-AED",
+        //      "last":0.0,
+        //      "lowestAsk":0.0,
+        //      "highestBid":0.0,
+        //      "percentageChange":0.887761573,
+        //      "volume":6679180.080848128,
+        //      "high24Hr":6.038055,
+        //      "low24Hr":5.417631,
+        //      "base":"1INCH",
+        //      "quote":"AED",
+        //      "active":true,
+        //      "size":1150813.46023945,
+        //      "minValidPrice":0.001,
+        //      "minPriceIncrement":0.001,
+        //      "minOrderSize":0.1,
+        //      "maxOrderSize":300000.0,
+        //      "minSizeIncrement":0.1,
+        //      "openInterest":0.0,
+        //      "openInterestUSD":0.0,
+        //      "contractStart":0,
+        //      "contractEnd":0,
+        //      "timeBasedContract":false,
+        //      "openTime":0,
+        //      "closeTime":0,
+        //      "startMatching":0,
+        //      "inactiveTime":0,
+        //      "fundingRate":0.0,
+        //      "contractSize":0.0,
+        //      "maxPosition":0,
+        //      "minRiskLimit":0,
+        //      "maxRiskLimit":0,
+        //      "availableSettlement":null,
+        //      "futures":false
+        //   }]
+        //
+        const allResponse = this.arrayConcat (spotResponse, futureResponse);
+        const tickers = {};
+        for (let i = 0; i < allResponse.length; i++) {
+            const response = this.safeValue (allResponse, i, {});
+            const market = this.market (this.safeValue (response, 'symbol', ''));
+            const symbol = this.safeSymbol (market['id'], market);
+            if (symbols !== undefined) {
+                if (symbols.indexOf (symbol) === -1) {
+                    continue;
+                }
+            }
+            const ticker = this.parseTicker (response, market);
+            tickers[symbol] = ticker;
+        }
+        return tickers;
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -1197,7 +1264,7 @@ module.exports = class btse extends Exchange {
             'info': response,
             'maker': this.safeNumber (data, 'makerFee'),
             'taker': this.safeNumber (data, 'takerFee'),
-            'symbol': this.safeValue (data, 'symbol', ''),
+            'symbol': this.safeSymbol (this.safeValue (data, 'symbol', ''), market),
         };
     }
 
@@ -1213,22 +1280,15 @@ module.exports = class btse extends Exchange {
         //  ]
         const spotFees = await this.spotPrivateGetUserFees (params);
         const futureFees = await this.futurePrivateGetUserFees (params);
+        const fees = this.arrayConcat (spotFees, futureFees);
         const result = {};
-        for (let i = 0; i < spotFees.length; i++) {
-            const response = this.safeValue (spotFees, i, {});
-            const symbol = this.safeValue (response, 'symbol', '');
+        for (let i = 0; i < fees.length; i++) {
+            const response = this.safeValue (fees, i, {});
+            let symbol = this.safeValue (response, 'symbol', '');
+            const market = this.market (symbol);
+            symbol = this.safeSymbol (market['id'], market);
             result[symbol] = {
-                'info': spotFees[i],
-                'maker': this.safeNumber (response, 'makerFee'),
-                'taker': this.safeNumber (response, 'takerFee'),
-                'symbol': symbol,
-            };
-        }
-        for (let i = 0; i < futureFees.length; i++) {
-            const response = this.safeValue (spotFees, i, {});
-            const symbol = this.safeValue (response, 'symbol', '');
-            result[symbol] = {
-                'info': spotFees[i],
+                'info': fees[i],
                 'maker': this.safeNumber (response, 'makerFee'),
                 'taker': this.safeNumber (response, 'takerFee'),
                 'symbol': symbol,
