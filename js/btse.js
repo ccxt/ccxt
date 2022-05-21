@@ -872,6 +872,10 @@ module.exports = class btse extends Exchange {
         //         ],
         //     ]
         //
+        // transfer to milliseconds
+        response.forEach ((r) => {
+            r[0] = r[0] * 1000;
+        });
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
