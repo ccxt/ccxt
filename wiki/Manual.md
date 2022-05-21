@@ -4540,7 +4540,7 @@ Parameters
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 - **params.symbol** (String) Market symbol when transfering to or from a margin account (e.g. `'BTC/USDT'`)
 
-#### Account Types
+### Account Types
 
 `fromAccount` and `toAccount` can accept the exchange account id or one of the following unified values:
 
