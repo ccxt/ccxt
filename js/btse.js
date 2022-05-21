@@ -49,7 +49,7 @@ module.exports = class btse extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
-                'fetchTradingFees': false,
+                'fetchTradingFees': true,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': false,
@@ -1137,7 +1137,44 @@ module.exports = class btse extends Exchange {
             'info': response,
             'maker': this.safeNumber (data, 'makerFee'),
             'taker': this.safeNumber (data, 'takerFee'),
+            'symbol': this.safeValue (data, 'symbol', ''),
         };
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        // [
+        //     {
+        //        "symbol":"BTCPFC",
+        //        "makerFee":"-1.0E-4",
+        //        "takerFee":"5.0E-4"
+        //     },
+        //     ...
+        //  ]
+        const spotFees = await this.spotPrivateGetUserFees (params);
+        const futureFees = await this.futurePrivateGetUserFees (params);
+        const result = {};
+        for (let i = 0; i < spotFees.length; i++) {
+            const response = this.safeValue (spotFees, i, {});
+            const symbol = this.safeValue (response, 'symbol', '');
+            result[symbol] = {
+                'info': spotFees[i],
+                'maker': this.safeNumber (response, 'makerFee'),
+                'taker': this.safeNumber (response, 'takerFee'),
+                'symbol': symbol,
+            };
+        }
+        for (let i = 0; i < futureFees.length; i++) {
+            const response = this.safeValue (spotFees, i, {});
+            const symbol = this.safeValue (response, 'symbol', '');
+            result[symbol] = {
+                'info': spotFees[i],
+                'maker': this.safeNumber (response, 'makerFee'),
+                'taker': this.safeNumber (response, 'takerFee'),
+                'symbol': symbol,
+            };
+        }
+        return result;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
