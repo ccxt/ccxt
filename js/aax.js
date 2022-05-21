@@ -27,11 +27,11 @@ module.exports = class aax extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': false,
+                'margin': true,
                 'swap': true,
                 'future': false,
                 'option': false,
-                'addMargin': undefined,
+                'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
@@ -103,8 +103,9 @@ module.exports = class aax extends Exchange {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
-                'reduceMargin': undefined,
+                'reduceMargin': false,
                 'setLeverage': true,
+                'setMargin': true,
                 'setMarginMode': false,
                 'setPositionMode': undefined,
                 'signIn': undefined,
@@ -679,6 +680,101 @@ module.exports = class aax extends Exchange {
             'quoteVolume': quoteVolume,
             'info': ticker,
         }, market, false);
+    }
+
+    async setMargin (symbol, amount, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'margin': amount,
+        };
+        const response = await this.privatePostFuturesPositionMargin (this.extend (request, params));
+        //
+        //     {
+        //         code: '1',
+        //         data: {
+        //             autoMarginCall: false,
+        //             avgEntryPrice: '0.52331',
+        //             bankruptPrice: '0.3185780400',
+        //             base: 'ADA',
+        //             code: 'FP',
+        //             commission: '0.00031399',
+        //             currentQty: '1',
+        //             funding: '0',
+        //             fundingStatus: null,
+        //             id: '447888550222172160',
+        //             leverage: '5.25',
+        //             liquidationPrice: '0.324007',
+        //             marketPrice: '0',
+        //             openTime: '2022-05-20T14:30:42.759Z',
+        //             posLeverage: '2.56',
+        //             posMargin: '0.20473196',
+        //             quote: 'USDT',
+        //             realisedPnl: '0',
+        //             riskLimit: '10000000',
+        //             riskyPrice: '0.403728',
+        //             settleType: 'VANILLA',
+        //             stopLossPrice: '0',
+        //             stopLossSource: '0',
+        //             symbol: 'ADAUSDTFP',
+        //             takeProfitPrice: '0',
+        //             takeProfitSource: '0',
+        //             unrealisedPnl: '-0.00151000',
+        //             userID: '3311296'
+        //         },
+        //         message: 'success',
+        //         ts: '1653057280756'
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseModifyMargin (data, market);
+    }
+
+    parseModifyMargin (data, market = undefined) {
+        //
+        //     {
+        //         autoMarginCall: false,
+        //         avgEntryPrice: '0.52331',
+        //         bankruptPrice: '0.3185780400',
+        //         base: 'ADA',
+        //         code: 'FP',
+        //         commission: '0.00031399',
+        //         currentQty: '1',
+        //         funding: '0',
+        //         fundingStatus: null,
+        //         id: '447888550222172160',
+        //         leverage: '5.25',
+        //         liquidationPrice: '0.324007',
+        //         marketPrice: '0',
+        //         openTime: '2022-05-20T14:30:42.759Z',
+        //         posLeverage: '2.56',
+        //         posMargin: '0.20473196',
+        //         quote: 'USDT',
+        //         realisedPnl: '0',
+        //         riskLimit: '10000000',
+        //         riskyPrice: '0.403728',
+        //         settleType: 'VANILLA',
+        //         stopLossPrice: '0',
+        //         stopLossSource: '0',
+        //         symbol: 'ADAUSDTFP',
+        //         takeProfitPrice: '0',
+        //         takeProfitSource: '0',
+        //         unrealisedPnl: '-0.00151000',
+        //         userID: '3315296'
+        //     }
+        //
+        const marketId = this.safeString (data, 'symbol');
+        const quote = this.safeString (data, 'quote');
+        return {
+            'info': data,
+            'type': 'set',
+            'amount': undefined,
+            'total': this.safeNumber (data, 'posMargin'),
+            'code': this.safeCurrencyCode (quote),
+            'symbol': this.safeSymbol (marketId, market),
+            'status': undefined,
+        };
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

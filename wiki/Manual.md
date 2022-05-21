@@ -4964,7 +4964,7 @@ Returns
 
 *margin and contract only*
 
-To increase or reduce your margin balance (collateral) in an open leveraged position, use `addMargin`  and `reduceMargin` respectively. This is kind of like adjusting the amount of leverage you're using with a position that's already open.
+To increase, reduce or set your margin balance (collateral) in an open leveraged position, use `addMargin`, `reduceMargin` and `setMargin` respectively. This is kind of like adjusting the amount of leverage you're using with a position that's already open.
 
 Some scenarios to use these methods include
 - if the trade is going against you, you can add margin to, reducing the risk of liquidation
@@ -4973,6 +4973,7 @@ Some scenarios to use these methods include
 ```Javascript
 addMargin (symbol, amount, params = {})
 reduceMargin (symbol, amount, params = {})
+setMargin (symbol, amount, params = {})
 ```
 
 Parameters
@@ -4990,8 +4991,9 @@ Returns
 ```JavaScript
 {
     info: { ... },
-    type: 'add',
-    amount: 1,
+    type: 'add', // 'add', 'reduce', 'set'
+    amount: 1, // amount added, reduced, or set
+    total: 2,  // total margin or undefined if not specified by the exchange
     code: 'USDT',
     symbol: 'XRP/USDT:USDT',
     status: 'ok'
