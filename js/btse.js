@@ -650,11 +650,10 @@ module.exports = class btse extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parsePublicTrade(trade, market = undefined) {
+    parsePublicTrade (trade, market = undefined) {
         /**
          * parse Public Trade info
          */
-
         //  {
         //     price: "29244.0",
         //     size: "1.0E-5",
@@ -684,13 +683,13 @@ module.exports = class btse extends Exchange {
             'price': price,
             'amount': amount,
             'takerOrMaker': undefined,
-            'cost': undefined
+            'cost': undefined,
         });
     }
 
     parseTrade (trade, market = undefined) {
         if (!trade.orderid) {
-            return this.parsePublicTrade(trade, market)
+            return this.parsePublicTrade (trade, market);
         }
         //
         //     {
