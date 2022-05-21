@@ -39,11 +39,11 @@ class aax(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': False,
+                'margin': True,
                 'swap': True,
                 'future': False,
                 'option': False,
-                'addMargin': None,
+                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': False,
@@ -115,8 +115,9 @@ class aax(Exchange):
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': False,
-                'reduceMargin': None,
+                'reduceMargin': False,
                 'setLeverage': True,
+                'setMargin': True,
                 'setMarginMode': False,
                 'setPositionMode': None,
                 'signIn': None,
@@ -678,6 +679,99 @@ class aax(Exchange):
             'quoteVolume': quoteVolume,
             'info': ticker,
         }, market, False)
+
+    def set_margin(self, symbol, amount, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'margin': amount,
+        }
+        response = self.privatePostFuturesPositionMargin(self.extend(request, params))
+        #
+        #     {
+        #         code: '1',
+        #         data: {
+        #             autoMarginCall: False,
+        #             avgEntryPrice: '0.52331',
+        #             bankruptPrice: '0.3185780400',
+        #             base: 'ADA',
+        #             code: 'FP',
+        #             commission: '0.00031399',
+        #             currentQty: '1',
+        #             funding: '0',
+        #             fundingStatus: null,
+        #             id: '447888550222172160',
+        #             leverage: '5.25',
+        #             liquidationPrice: '0.324007',
+        #             marketPrice: '0',
+        #             openTime: '2022-05-20T14:30:42.759Z',
+        #             posLeverage: '2.56',
+        #             posMargin: '0.20473196',
+        #             quote: 'USDT',
+        #             realisedPnl: '0',
+        #             riskLimit: '10000000',
+        #             riskyPrice: '0.403728',
+        #             settleType: 'VANILLA',
+        #             stopLossPrice: '0',
+        #             stopLossSource: '0',
+        #             symbol: 'ADAUSDTFP',
+        #             takeProfitPrice: '0',
+        #             takeProfitSource: '0',
+        #             unrealisedPnl: '-0.00151000',
+        #             userID: '3311296'
+        #         },
+        #         message: 'success',
+        #         ts: '1653057280756'
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_modify_margin(data, market)
+
+    def parse_modify_margin(self, data, market=None):
+        #
+        #     {
+        #         autoMarginCall: False,
+        #         avgEntryPrice: '0.52331',
+        #         bankruptPrice: '0.3185780400',
+        #         base: 'ADA',
+        #         code: 'FP',
+        #         commission: '0.00031399',
+        #         currentQty: '1',
+        #         funding: '0',
+        #         fundingStatus: null,
+        #         id: '447888550222172160',
+        #         leverage: '5.25',
+        #         liquidationPrice: '0.324007',
+        #         marketPrice: '0',
+        #         openTime: '2022-05-20T14:30:42.759Z',
+        #         posLeverage: '2.56',
+        #         posMargin: '0.20473196',
+        #         quote: 'USDT',
+        #         realisedPnl: '0',
+        #         riskLimit: '10000000',
+        #         riskyPrice: '0.403728',
+        #         settleType: 'VANILLA',
+        #         stopLossPrice: '0',
+        #         stopLossSource: '0',
+        #         symbol: 'ADAUSDTFP',
+        #         takeProfitPrice: '0',
+        #         takeProfitSource: '0',
+        #         unrealisedPnl: '-0.00151000',
+        #         userID: '3315296'
+        #     }
+        #
+        marketId = self.safe_string(data, 'symbol')
+        quote = self.safe_string(data, 'quote')
+        return {
+            'info': data,
+            'type': 'set',
+            'amount': None,
+            'total': self.safe_number(data, 'posMargin'),
+            'code': self.safe_currency_code(quote),
+            'symbol': self.safe_symbol(marketId, market),
+            'status': None,
+        }
 
     def fetch_tickers(self, symbols=None, params={}):
         """

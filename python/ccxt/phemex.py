@@ -41,7 +41,7 @@ class phemex(Exchange):
                 'swap': True,
                 'future': False,
                 'option': False,
-                'addMargin': True,
+                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
@@ -86,8 +86,9 @@ class phemex(Exchange):
                 'fetchTradingFees': False,
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
-                'reduceMargin': True,
+                'reduceMargin': False,
                 'setLeverage': True,
+                'setMargin': True,
                 'setMarginMode': True,
                 'setPositionMode': False,
                 'transfer': True,
@@ -2847,7 +2848,7 @@ class phemex(Exchange):
             'previousFundingDatetime': None,
         }
 
-    def modify_margin_helper(self, symbol, amount, addOrReduce, params={}):
+    def set_margin(self, symbol, amount, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2864,7 +2865,6 @@ class phemex(Exchange):
         #
         return self.extend(self.parse_margin_modification(response, market), {
             'amount': amount,
-            'type': addOrReduce,
         })
 
     def parse_margin_status(self, status):
@@ -2874,25 +2874,25 @@ class phemex(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_margin_modification(self, data, market=None):
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "data": "OK"
+        #     }
+        #
         market = self.safe_market(None, market)
         inverse = self.safe_value(market, 'inverse')
         codeCurrency = 'base' if inverse else 'quote'
         return {
             'info': data,
-            'type': None,
+            'type': 'set',
             'amount': None,
+            'total': None,
             'code': market[codeCurrency],
             'symbol': self.safe_symbol(None, market),
             'status': self.parse_margin_status(self.safe_string(data, 'code')),
         }
-
-    def add_margin(self, symbol, amount, params={}):
-        return self.modify_margin_helper(symbol, amount, 'add', params)
-
-    def reduce_margin(self, symbol, amount, params={}):
-        if amount > 0:
-            raise BadRequest(self.id + ' reduceMargin() amount parameter must be a negative value')
-        return self.modify_margin_helper(symbol, amount, 'reduce', params)
 
     def set_margin_mode(self, marginMode, symbol=None, params={}):
         if symbol is None:

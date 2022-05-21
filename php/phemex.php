@@ -31,7 +31,7 @@ class phemex extends Exchange {
                 'swap' => true,
                 'future' => false,
                 'option' => false,
-                'addMargin' => true,
+                'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
@@ -76,8 +76,9 @@ class phemex extends Exchange {
                 'fetchTradingFees' => false,
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
-                'reduceMargin' => true,
+                'reduceMargin' => false,
                 'setLeverage' => true,
+                'setMargin' => true,
                 'setMarginMode' => true,
                 'setPositionMode' => false,
                 'transfer' => true,
@@ -2982,7 +2983,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function modify_margin_helper($symbol, $amount, $addOrReduce, $params = array ()) {
+    public function set_margin($symbol, $amount, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -2999,7 +3000,6 @@ class phemex extends Exchange {
         //
         return array_merge($this->parse_margin_modification($response, $market), array(
             'amount' => $amount,
-            'type' => $addOrReduce,
         ));
     }
 
@@ -3011,28 +3011,25 @@ class phemex extends Exchange {
     }
 
     public function parse_margin_modification($data, $market = null) {
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "",
+        //         "data" => "OK"
+        //     }
+        //
         $market = $this->safe_market(null, $market);
         $inverse = $this->safe_value($market, 'inverse');
         $codeCurrency = $inverse ? 'base' : 'quote';
         return array(
             'info' => $data,
-            'type' => null,
+            'type' => 'set',
             'amount' => null,
+            'total' => null,
             'code' => $market[$codeCurrency],
             'symbol' => $this->safe_symbol(null, $market),
             'status' => $this->parse_margin_status($this->safe_string($data, 'code')),
         );
-    }
-
-    public function add_margin($symbol, $amount, $params = array ()) {
-        return $this->modify_margin_helper($symbol, $amount, 'add', $params);
-    }
-
-    public function reduce_margin($symbol, $amount, $params = array ()) {
-        if ($amount > 0) {
-            throw new BadRequest($this->id . ' reduceMargin() $amount parameter must be a negative value');
-        }
-        return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
 
     public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {

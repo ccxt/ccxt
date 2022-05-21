@@ -30,11 +30,11 @@ class aax extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => false,
+                'margin' => true,
                 'swap' => true,
                 'future' => false,
                 'option' => false,
-                'addMargin' => null,
+                'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
@@ -106,8 +106,9 @@ class aax extends Exchange {
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => false,
-                'reduceMargin' => null,
+                'reduceMargin' => false,
                 'setLeverage' => true,
+                'setMargin' => true,
                 'setMarginMode' => false,
                 'setPositionMode' => null,
                 'signIn' => null,
@@ -680,6 +681,101 @@ class aax extends Exchange {
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         ), $market, false);
+    }
+
+    public function set_margin($symbol, $amount, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'margin' => $amount,
+        );
+        $response = $this->privatePostFuturesPositionMargin (array_merge($request, $params));
+        //
+        //     {
+        //         code => '1',
+        //         $data => array(
+        //             autoMarginCall => false,
+        //             avgEntryPrice => '0.52331',
+        //             bankruptPrice => '0.3185780400',
+        //             base => 'ADA',
+        //             code => 'FP',
+        //             commission => '0.00031399',
+        //             currentQty => '1',
+        //             funding => '0',
+        //             fundingStatus => null,
+        //             id => '447888550222172160',
+        //             leverage => '5.25',
+        //             liquidationPrice => '0.324007',
+        //             marketPrice => '0',
+        //             openTime => '2022-05-20T14:30:42.759Z',
+        //             posLeverage => '2.56',
+        //             posMargin => '0.20473196',
+        //             quote => 'USDT',
+        //             realisedPnl => '0',
+        //             riskLimit => '10000000',
+        //             riskyPrice => '0.403728',
+        //             settleType => 'VANILLA',
+        //             stopLossPrice => '0',
+        //             stopLossSource => '0',
+        //             $symbol => 'ADAUSDTFP',
+        //             takeProfitPrice => '0',
+        //             takeProfitSource => '0',
+        //             unrealisedPnl => '-0.00151000',
+        //             userID => '3311296'
+        //         ),
+        //         message => 'success',
+        //         ts => '1653057280756'
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_modify_margin($data, $market);
+    }
+
+    public function parse_modify_margin($data, $market = null) {
+        //
+        //     {
+        //         autoMarginCall => false,
+        //         avgEntryPrice => '0.52331',
+        //         bankruptPrice => '0.3185780400',
+        //         base => 'ADA',
+        //         code => 'FP',
+        //         commission => '0.00031399',
+        //         currentQty => '1',
+        //         funding => '0',
+        //         fundingStatus => null,
+        //         id => '447888550222172160',
+        //         leverage => '5.25',
+        //         liquidationPrice => '0.324007',
+        //         marketPrice => '0',
+        //         openTime => '2022-05-20T14:30:42.759Z',
+        //         posLeverage => '2.56',
+        //         posMargin => '0.20473196',
+        //         $quote => 'USDT',
+        //         realisedPnl => '0',
+        //         riskLimit => '10000000',
+        //         riskyPrice => '0.403728',
+        //         settleType => 'VANILLA',
+        //         stopLossPrice => '0',
+        //         stopLossSource => '0',
+        //         symbol => 'ADAUSDTFP',
+        //         takeProfitPrice => '0',
+        //         takeProfitSource => '0',
+        //         unrealisedPnl => '-0.00151000',
+        //         userID => '3315296'
+        //     }
+        //
+        $marketId = $this->safe_string($data, 'symbol');
+        $quote = $this->safe_string($data, 'quote');
+        return array(
+            'info' => $data,
+            'type' => 'set',
+            'amount' => null,
+            'total' => $this->safe_number($data, 'posMargin'),
+            'code' => $this->safe_currency_code($quote),
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'status' => null,
+        );
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
