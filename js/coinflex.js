@@ -1016,6 +1016,16 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchFundingRateHistory (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchFundingRateHistory
+         * @description fetches historical funding rate prices
+         * @param {str|undefined} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
+         * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         */
         // TODO: this can be moved as emulated into base
         if (this.has['fetchFundingRatesHistory']) {
             const response = await this.fetchFundingRatesHistory ([ symbol ], since, limit, params);
