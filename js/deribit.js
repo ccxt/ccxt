@@ -1941,12 +1941,11 @@ module.exports = class deribit extends Exchange {
         market = this.safeMarket (contract, market);
         let side = this.safeString (position, 'direction');
         side = (side === 'buy') ? 'long' : 'short';
-        const markPrice = this.safeString (position, 'mark_price');
-        const unrealisedPnl = this.safeString (position, 'floating_profit_loss');
+        const unrealizedPnl = this.safeString (position, 'floating_profit_loss');
         const initialMarginString = this.safeString (position, 'initial_margin');
         const notionalString = this.safeString (position, 'size_currency');
         const maintenanceMarginString = this.safeString (position, 'maintenance_margin');
-        const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
+        const percentage = Precise.stringMul (Precise.stringDiv (unrealizedPnl, initialMarginString), '100');
         const currentTime = this.milliseconds ();
         return {
             'info': position,
@@ -1959,13 +1958,13 @@ module.exports = class deribit extends Exchange {
             'maintenanceMarginPercentage': this.parseNumber (Precise.stringMul (Precise.stringDiv (maintenanceMarginString, notionalString), '100')),
             'entryPrice': this.safeNumber (position, 'average_price'),
             'notional': this.parseNumber (notionalString),
-            'leverage': this.safeNumber (position, 'leverage'),
-            'unrealizedPnl': this.parseNumber (unrealisedPnl),
+            'leverage': this.safeInteger (position, 'leverage'),
+            'unrealizedPnl': this.parseNumber (unrealizedPnl),
             'contracts': undefined,
             'contractSize': this.safeNumber (market, 'contractSize'),
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'estimated_liquidation_price'),
-            'markPrice': this.parseNumber (markPrice),
+            'markPrice': this.safeNumber (position, 'mark_price'),
             'collateral': undefined,
             'marginMode': undefined,
             'marginType': undefined, // deprecated
