@@ -512,6 +512,8 @@ class cryptocom(Exchange):
             market = self.safe_market(marketId, None, '_')
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
+        if symbols is None:
+            return result
         unifiedSymbols = []
         for i in range(0, len(symbols)):
             market = self.market(symbols[i])

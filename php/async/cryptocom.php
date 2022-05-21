@@ -514,6 +514,9 @@ class cryptocom extends Exchange {
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
+        if ($symbols === null) {
+            return $result;
+        }
         $unifiedSymbols = array();
         for ($i = 0; $i < count($symbols); $i++) {
             $market = $this->market($symbols[$i]);
