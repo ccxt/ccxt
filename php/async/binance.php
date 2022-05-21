@@ -78,6 +78,7 @@ class binance extends Exchange {
                 'fetchMySells' => null,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => true,
                 'fetchOpenOrder' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -1395,6 +1396,11 @@ class binance extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for binance
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $defaultType = $this->safe_string_2($this->options, 'fetchMarkets', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit($params, 'type');
@@ -1763,6 +1769,11 @@ class binance extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * $query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         yield $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
@@ -1969,6 +1980,13 @@ class binance extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -2112,6 +2130,12 @@ class binance extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -2149,6 +2173,12 @@ class binance extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
         yield $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchTickers', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
@@ -2212,6 +2242,15 @@ class binance extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         // binance docs say that the default $limit 500, max 1500 for futures, max 1000 for spot markets
@@ -2439,6 +2478,14 @@ class binance extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -3029,7 +3076,7 @@ class binance extends Exchange {
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
-        $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
+        $defaultType = $this->safe_string_2($this->options, 'cancelOrder', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         // https://github.com/ccxt/ccxt/issues/6507
         $origClientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
@@ -4071,7 +4118,7 @@ class binance extends Exchange {
     public function fetch_trading_fees($params = array ()) {
         yield $this->load_markets();
         $method = null;
-        $defaultType = $this->safe_string_2($this->options, 'fetchFundingRates', 'defaultType', 'future');
+        $defaultType = $this->safe_string_2($this->options, 'fetchTradingFees', 'defaultType', 'future');
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit($params, 'type');
         if (($type === 'spot') || ($type === 'margin')) {
@@ -4277,15 +4324,15 @@ class binance extends Exchange {
     }
 
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
-        //
-        // Gets a history of funding $rates with their timestamps
-        //  (param) $symbol => Future currency pair (e.g. "BTC/USDT")
-        //  (param) $limit => maximum number of data points returned
-        //  (param) $since => Unix $timestamp in miliseconds for the time of the earliest requested funding rate
-        //  (param) $params => Object containing more $params for the $request
-        //          - until => Unix $timestamp in miliseconds for the time of the earliest requested funding rate
-        //  return => [array($symbol, fundingRate, $timestamp)]
-        //
+        /**
+         * fetches historical funding rate prices
+         * @param {str|null} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int|null} $since $timestamp in ms of the earliest funding rate to fetch
+         * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @param {int|null} $params->till $timestamp in ms of the earliest funding rate
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+         */
         yield $this->load_markets();
         $request = array();
         $method = null;
@@ -5473,6 +5520,14 @@ class binance extends Exchange {
     }
 
     public function fetch_borrow_rate_history($code, $since = null, $limit = null, $params = array ()) {
+        /**
+         * retrieves a history of a currencies borrow interest rate at specific time slots
+         * @param {str} $code unified $currency $code
+         * @param {int|null} $since timestamp for the earliest borrow rate
+         * @param {int|null} $limit the maximum number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} to retrieve
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
+         */
         yield $this->load_markets();
         if ($limit === null) {
             $limit = 93;
@@ -5657,6 +5712,81 @@ class binance extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $info,
+        );
+    }
+
+    public function fetch_open_interest_history($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * Retrieves the open intestest history of a currency
+         * @param {str} $symbol Unified CCXT $market $symbol
+         * @param {str} $timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
+         * @param {int} $since The time(ms) of the earliest record to retrieve as a unix timestamp
+         * @param {int} $limit default 30, max 500
+         * @param {dict} $params Exchange specific parameters
+         * @param {int} $params->till The time(ms) of the latest record to retrieve as a unix timestamp
+         * @return An array of open interest structures
+         */
+        if ($timeframe === '1m') {
+            throw new BadRequest($this->id . 'fetchOpenInterestHistory cannot use the 1m timeframe');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'period' => $this->timeframes[$timeframe],
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $symbolKey = $market['future'] ? 'symbol' : 'pair';
+        $request[$symbolKey] = $market['id'];
+        if ($market['delivery']) {
+            $request['contractType'] = $this->safe_string($params, 'contractType', 'CURRENT_QUARTER');
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $till = $this->safe_integer($params, 'till'); // unified in milliseconds
+        $endTime = $this->safe_string($params, 'endTime', $till); // exchange-specific in milliseconds
+        $params = $this->omit($params, array( 'endTime', 'till' ));
+        if ($endTime) {
+            $request['endTime'] = $endTime;
+        } else if ($since) {
+            if ($limit === null) {
+                $limit = 30; // Exchange default
+            }
+            $duration = $this->parse_timeframe($timeframe);
+            $request['endTime'] = $this->sum($since, $duration * $limit * 1000);
+        }
+        $method = 'fapiDataGetOpenInterestHist';
+        if ($market['delivery']) {
+            $method = 'dapiDataGetOpenInterestHist';
+        }
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        //  array(
+        //      array(
+        //          "symbol":"BTCUSDT",
+        //          "sumOpenInterest":"75375.61700000",
+        //          "sumOpenInterestValue":"3248828883.71251440",
+        //          "timestamp":1642179900000
+        //      ),
+        //      ...
+        //  )
+        //
+        return $this->parse_open_interests($response, $symbol, $since, $limit);
+    }
+
+    public function parse_open_interest($interest, $market = null) {
+        $timestamp = $this->safe_integer($interest, 'timestamp');
+        $id = $this->safe_string($interest, 'symbol');
+        $market = $this->safe_market($id, $market);
+        return array(
+            'symbol' => $this->safe_symbol($id),
+            'baseVolume' => $this->safe_number($interest, 'sumOpenInterest'),
+            'quoteVolume' => $this->safe_number($interest, 'sumOpenInterestValue'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $interest,
         );
     }
 }

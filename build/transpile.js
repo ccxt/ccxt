@@ -347,13 +347,14 @@ class Transpiler {
             [ /(?<!#.+)null/, 'None' ],
             [ /\/\*\*/, '\"\"\"' ], // Doc strings
             [ / \*\//, '\"\"\"' ], // Doc strings
-            [ /\[(.*)\]\{@link (.*)\}/g, '`$1 <$2>`' ], // docstring item with link
+            [ /\[([^\[\]]*)\]\{@link (.*)\}/g, '`$1 <$2>`' ], // docstring item with link
             [ /\s+\* @method/g, '' ], // docstring @method
             [ /(\s+) \* @description (.*)/g, '$1$2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
-            [ /(\s+) \* @returns/g, '$1:returns:' ], // docstring return
-            [ /(\s+ \* @param \{[a-z]+\} )([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+) (.*)/g, '$1$2[\'$3\'] $4' ], // docstring params.anything
-            [ /(\s+) \* @([a-z]+) \{([a-z]+)\} ([a-zA-Z0-9_\-\.\[\]\']+)/g, '$1:$2 $3 $4:' ], // docstring param
+            [ /(\s+) \* @returns ([^\{])/g, '$1:returns: $2' ], // docstring return
+            [ /(\s+) \* @returns \{([\]\[a-zA-Z]*)\}/g, '$1:returns $2:' ], // docstring return
+            [ /(\s+ \* @param \{[\]\[\|a-zA-Z]+\} )([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+) (.*)/g, '$1$2[\'$3\'] $4' ], // docstring params.anything
+            [ /(\s+) \* @([a-z]+) \{([\]\[a-zA-Z\|]+)\} ([a-zA-Z0-9_\-\.\[\]\']+)/g, '$1:$2 $3 $4:' ], // docstring param
         ])
     }
 
@@ -395,8 +396,8 @@ class Transpiler {
             // That is done at the very last regex steps.
             // All of that is a workaround for PHP-arrays vs dictionaries vs url-imploded params in other langs.
             //
-            [ /\{([a-zA-Z0-9_-]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
-            [ /\[(.*)\]\{(@link .*)\}/g, '~$2 $1~' ], // docstring item with link
+            [ /\{([\]\[\|a-zA-Z0-9_-]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /\[([^\]\[]*)\]\{(@link .*)\}/g, '~$2 $1~' ], // docstring item with link
             [ /\s+\* @method/g, '' ], // docstring @method
             [ /(\s+)\* @description (.*)/g, '$1\* $2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
@@ -541,7 +542,7 @@ class Transpiler {
             [ /process\.exit/g, 'exit'],
             [ /super\./g, 'parent::'],
             [ /\sdelete\s([^\n]+)\;/g, ' unset($1);' ],
-            [ /\~([@\.\s+\:\/#\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /\~([\]\[\|@\.\s+\:\/#\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
         ])
     }
 
@@ -1634,6 +1635,11 @@ class Transpiler {
                 'jsFile': './js/test/Exchange/test.leverageTier.js',
                 'pyFile': './python/ccxt/test/test_leverage_tier.py',
                 'phpFile': './php/test/test_leverage_tier.php',
+            },
+            {
+                'jsFile': './js/test/Exchange/test.marginModification.js',
+                'pyFile': './python/ccxt/test/test_margin_modification.py',
+                'phpFile': './php/test/test_margin_modification.php',
             },
         ]
         for (const test of tests) {

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.83.12';
+$version = '1.83.39';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.83.12';
+    const VERSION = '1.83.39';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -397,6 +397,7 @@ class Exchange {
         'loadTimeDifference' => 'load_time_difference',
         'parseLeverageTiers' => 'parse_leverage_tiers',
         'fetchMarketLeverageTiers' => 'fetch_market_leverage_tiers',
+        'parseOpenInterests' => 'parse_open_interests',
         'isPostOnly' => 'is_post_only',
         'createPostOnlyOrder' => 'create_post_only_order',
         'createReduceOnlyOrder' => 'create_reduce_only_order',
@@ -1357,6 +1358,7 @@ class Exchange {
             'loadMarkets' => true,
             'reduceMargin' => null,
             'setLeverage' => null,
+            'setMargin' => null,
             'setMarginMode' => null,
             'setPositionMode' => null,
             'signIn' => null,
@@ -3915,7 +3917,7 @@ class Exchange {
         if ($this->has['fetchLeverageTiers']) {
             $market = $this->market($symbol);
             if (!$market['contract']) {
-                throw new BadRequest($this->id . ' fetchLeverageTiers() supports contract markets only');
+                throw new BadRequest($this->id . ' fetch_market_leverage_tiers() supports contract markets only');
             }
             $tiers = $this->fetch_leverage_tiers(array($symbol));
             return $this->safe_value($tiers, $symbol);
@@ -3965,7 +3967,7 @@ class Exchange {
         }
         $array = array('postOnly' => true);
         $query = $this->extend($params, $array);
-        return $this->create_order($symbol, $type, $side, $amount, $price, $params);
+        return $this->create_order($symbol, $type, $side, $amount, $price, $query);
     }
 
     public function create_reduce_only_order($symbol, $type, $side, $amount, $price, $params = array()) {
@@ -4038,21 +4040,32 @@ class Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
+    public function parse_open_interests($response, $market = null, $since = null, $limit = null) {
+        $interests = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = &$response[$i];
+            $interest = $this->parseOpenInterest($entry, $market);
+            array_push($interests, $interest);
+        }
+        $sorted = $this->sortBy ($interests, 'timestamp');
+        return $this->filterBySymbolSinceLimit ($sorted, $market, $since, $limit);
+    }
+
     public function fetch_funding_rate($symbol, $params = array ()) {
         if ($this->has['fetchFundingRates']) {
             $market = $this->market($symbol);
             if (!$market['contract']) {
-                throw new BadSymbol($this->id . ' fetchFundingRate () supports contract markets only');
+                throw new BadSymbol($this->id . ' fetch_funding_rate () supports contract markets only');
             }
-            $rates = $this->fetchFundingRates (array( $symbol ), $params);
+            $rates = $this->fetch_funding_rates (array( $symbol ), $params);
             $rate = $this->safe_value($rates, $symbol);
             if ($rate === null) {
-                throw new NullResponse($this->id . ' fetchFundingRate () returned no data for ' . $symbol);
+                throw new NullResponse($this->id . ' fetch_funding_rate () returned no data for ' . $symbol);
             } else {
                 return $rate;
             }
         } else {
-            throw new NotSupported($this->id . ' fetchFundingRate () is not supported yet');
+            throw new NotSupported($this->id . ' fetch_funding_rate () is not supported yet');
         }
     }
 }

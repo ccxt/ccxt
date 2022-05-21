@@ -279,7 +279,6 @@ module.exports = class btse extends Exchange {
             const minPriceIncrement = this.safeNumber (market, 'minPriceIncrement');
             const minValidPrice = this.safeNumber (market, 'minValidPrice');
             const active = this.safeString (market, 'active');
-
             const amountPrecision = this.precisionFromString(this.safeString (market, 'minOrderSize'));
             const pricePrecision = this.precisionFromString(this.safeString (market, 'minValidPrice'));
             const precision = {

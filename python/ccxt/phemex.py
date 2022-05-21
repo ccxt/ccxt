@@ -41,7 +41,7 @@ class phemex(Exchange):
                 'swap': True,
                 'future': False,
                 'option': False,
-                'addMargin': True,
+                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
@@ -86,8 +86,9 @@ class phemex(Exchange):
                 'fetchTradingFees': False,
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
-                'reduceMargin': True,
+                'reduceMargin': False,
                 'setLeverage': True,
+                'setMargin': True,
                 'setMarginMode': True,
                 'setPositionMode': False,
                 'transfer': True,
@@ -652,6 +653,11 @@ class phemex(Exchange):
         }
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for phemex
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         v2Products = self.publicGetCfgV2Products(params)
         #
         #     {
@@ -879,6 +885,13 @@ class phemex(Exchange):
         return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the phemex api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -988,6 +1001,15 @@ class phemex(Exchange):
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the phemex api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         request = {
             # 'symbol': market['id'],
             'resolution': self.timeframes[timeframe],
@@ -1104,6 +1126,12 @@ class phemex(Exchange):
         }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the phemex api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1160,6 +1188,14 @@ class phemex(Exchange):
         return self.parse_ticker(result, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the phemex api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1463,6 +1499,11 @@ class phemex(Exchange):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the phemex api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         defaultType = self.safe_string_2(self.options, 'defaultType', 'fetchBalance', 'spot')
         type = self.safe_string(params, 'type', defaultType)
@@ -2036,7 +2077,7 @@ class phemex(Exchange):
 
     def cancel_all_orders(self, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         self.load_markets()
         request = {
             # 'symbol': market['id'],
@@ -2807,7 +2848,7 @@ class phemex(Exchange):
             'previousFundingDatetime': None,
         }
 
-    def modify_margin_helper(self, symbol, amount, addOrReduce, params={}):
+    def set_margin(self, symbol, amount, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2824,7 +2865,6 @@ class phemex(Exchange):
         #
         return self.extend(self.parse_margin_modification(response, market), {
             'amount': amount,
-            'type': addOrReduce,
         })
 
     def parse_margin_status(self, status):
@@ -2834,25 +2874,25 @@ class phemex(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_margin_modification(self, data, market=None):
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "data": "OK"
+        #     }
+        #
         market = self.safe_market(None, market)
         inverse = self.safe_value(market, 'inverse')
         codeCurrency = 'base' if inverse else 'quote'
         return {
             'info': data,
-            'type': None,
+            'type': 'set',
             'amount': None,
+            'total': None,
             'code': market[codeCurrency],
             'symbol': self.safe_symbol(None, market),
             'status': self.parse_margin_status(self.safe_string(data, 'code')),
         }
-
-    def add_margin(self, symbol, amount, params={}):
-        return self.modify_margin_helper(symbol, amount, 'add', params)
-
-    def reduce_margin(self, symbol, amount, params={}):
-        if amount > 0:
-            raise BadRequest(self.id + ' reduceMargin() amount parameter must be a negative value')
-        return self.modify_margin_helper(symbol, amount, 'reduce', params)
 
     def set_margin_mode(self, marginMode, symbol=None, params={}):
         if symbol is None:

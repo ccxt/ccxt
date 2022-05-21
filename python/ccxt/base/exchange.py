@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.83.12'
+__version__ = '1.83.39'
 
 # -----------------------------------------------------------------------------
 
@@ -323,6 +323,7 @@ class Exchange(object):
         'loadMarkets': True,
         'reduceMargin': None,
         'setLeverage': None,
+        'setMargin': None,
         'setMarginMode': None,
         'setPositionMode': None,
         'signIn': None,
@@ -2978,7 +2979,7 @@ class Exchange(object):
         if self.has['fetchLeverageTiers']:
             market = self.market(symbol)
             if (not market['contract']):
-                raise BadRequest(self.id + ' fetch_leverage_tiers() supports contract markets only')
+                raise BadRequest(self.id + ' fetch_market_leverage_tiers() supports contract markets only')
             tiers = self.fetch_leverage_tiers([symbol])
             return self.safe_value(tiers, symbol)
         else:
@@ -3067,16 +3068,25 @@ class Exchange(object):
         symbol = None if (market is None) else market['symbol']
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
+    def parse_open_interests(self, response, market=None, since=None, limit=None):
+        interests = []
+        for i in range(len(response)):
+            entry = response[i]
+            interest = self.parseOpenInterest(entry, market)
+            interests.append(interest)
+        sorted = self.sortBy(interests, 'timestamp')
+        return self.filterBySymbolSinceLimit(sorted, market, since, limit)
+
     def fetch_funding_rate(self, symbol, params={}):
         if self.has['fetchFundingRates']:
             market = self.market(symbol)
             if not market['contract']:
-                raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
+                raise BadSymbol(self.id + ' fetch_funding_rate() supports contract markets only')
             rates = self.fetchFundingRates([symbol], params)
             rate = self.safe_value(rates, symbol)
             if rate is None:
-                raise NullResponse(self.id + ' fetchFundingRate() returned no data for ' + symbol)
+                raise NullResponse(self.id + ' fetch_funding_rate() returned no data for ' + symbol)
             else:
                 return rate
         else:
-            raise NotSupported(self.id + ' fetchFundingRate() is not supported yet')
+            raise NotSupported(self.id + ' fetch_funding_rate() is not supported yet')

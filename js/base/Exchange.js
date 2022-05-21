@@ -146,6 +146,7 @@ module.exports = class Exchange {
                 'loadMarkets': true,
                 'reduceMargin': undefined,
                 'setLeverage': undefined,
+                'setMargin': undefined,
                 'setMarginMode': undefined,
                 'setPositionMode': undefined,
                 'signIn': undefined,
@@ -2326,13 +2327,25 @@ module.exports = class Exchange {
         if (this.has['fetchLeverageTiers']) {
             const market = await this.market (symbol);
             if (!market['contract']) {
-                throw new BadSymbol (this.id + ' fetchLeverageTiers() supports contract markets only');
+                throw new BadSymbol (this.id + ' fetchMarketLeverageTiers() supports contract markets only');
             }
             const tiers = await this.fetchLeverageTiers ([ symbol ]);
             return this.safeValue (tiers, symbol);
         } else {
             throw new NotSupported (this.id + ' fetchMarketLeverageTiers() is not supported yet');
         }
+    }
+
+    parseOpenInterests (response, market = undefined, since = undefined, limit = undefined) {
+        const interests = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const interest = this.parseOpenInterest (entry, market);
+            interests.push (interest);
+        }
+        const sorted = this.sortBy (interests, 'timestamp');
+        const symbol = this.safeString (market, 'symbol');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     isPostOnly (type, timeInForce = undefined, exchangeSpecificOption = undefined, params = {}) {
@@ -2446,7 +2459,7 @@ module.exports = class Exchange {
         if (this.has['fetchFundingRates']) {
             const market = await this.market (symbol);
             if (!market['contract']) {
-                throw new BadSymbol (this.id + ' fetchFundingRate () supports contract markets only');
+                throw new BadSymbol (this.id + ' fetchFundingRate() supports contract markets only');
             }
             const rates = await this.fetchFundingRates ([ symbol ], params);
             const rate = this.safeValue (rates, symbol);

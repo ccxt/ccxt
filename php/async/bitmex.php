@@ -209,6 +209,11 @@ class bitmex extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for bitmex
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = yield $this->publicGetInstrumentActiveAndIndices ($params);
         //
         //    {
@@ -490,6 +495,11 @@ class bitmex extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the bitmex api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         yield $this->load_markets();
         $request = array(
             'currency' => 'all',
@@ -546,6 +556,13 @@ class bitmex extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the $market to fetch the $order book for
+         * @param {int|null} $limit the maximum $amount of $order book entries to return
+         * @param {dict} $params extra parameters specific to the bitmex api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$order-book-structure $order book structures} indexed by $market symbols
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -967,6 +984,12 @@ class bitmex extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {dict} $params extra parameters specific to the bitmex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $tickers = yield $this->fetch_tickers([ $market['symbol'] ], $params);
@@ -978,8 +1001,125 @@ class bitmex extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the bitmex api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         yield $this->load_markets();
         $response = yield $this->publicGetInstrumentActiveAndIndices ($params);
+        //
+        //     array(
+        //         {
+        //             "symbol":".EVOL7D",
+        //             "rootSymbol":"EVOL",
+        //             "state":"Unlisted",
+        //             "typ":"MRIXXX",
+        //             "listing":null,
+        //             "front":null,
+        //             "expiry":null,
+        //             "settle":null,
+        //             "listedSettle":null,
+        //             "relistInterval":null,
+        //             "inverseLeg":"",
+        //             "sellLeg":"",
+        //             "buyLeg":"",
+        //             "optionStrikePcnt":null,
+        //             "optionStrikeRound":null,
+        //             "optionStrikePrice":null,
+        //             "optionMultiplier":null,
+        //             "positionCurrency":"",
+        //             "underlying":"ETH",
+        //             "quoteCurrency":"XXX",
+        //             "underlyingSymbol":".EVOL7D",
+        //             "reference":"BMI",
+        //             "referenceSymbol":".BETHXBT",
+        //             "calcInterval":"2000-01-08T00:00:00.000Z",
+        //             "publishInterval":"2000-01-01T00:05:00.000Z",
+        //             "publishTime":null,
+        //             "maxOrderQty":null,
+        //             "maxPrice":null,
+        //             "lotSize":null,
+        //             "tickSize":0.01,
+        //             "multiplier":null,
+        //             "settlCurrency":"",
+        //             "underlyingToPositionMultiplier":null,
+        //             "underlyingToSettleMultiplier":null,
+        //             "quoteToSettleMultiplier":null,
+        //             "isQuanto":false,
+        //             "isInverse":false,
+        //             "initMargin":null,
+        //             "maintMargin":null,
+        //             "riskLimit":null,
+        //             "riskStep":null,
+        //             "limit":null,
+        //             "capped":false,
+        //             "taxed":false,
+        //             "deleverage":false,
+        //             "makerFee":null,
+        //             "takerFee":null,
+        //             "settlementFee":null,
+        //             "insuranceFee":null,
+        //             "fundingBaseSymbol":"",
+        //             "fundingQuoteSymbol":"",
+        //             "fundingPremiumSymbol":"",
+        //             "fundingTimestamp":null,
+        //             "fundingInterval":null,
+        //             "fundingRate":null,
+        //             "indicativeFundingRate":null,
+        //             "rebalanceTimestamp":null,
+        //             "rebalanceInterval":null,
+        //             "openingTimestamp":null,
+        //             "closingTimestamp":null,
+        //             "sessionInterval":null,
+        //             "prevClosePrice":null,
+        //             "limitDownPrice":null,
+        //             "limitUpPrice":null,
+        //             "bankruptLimitDownPrice":null,
+        //             "bankruptLimitUpPrice":null,
+        //             "prevTotalVolume":null,
+        //             "totalVolume":null,
+        //             "volume":null,
+        //             "volume24h":null,
+        //             "prevTotalTurnover":null,
+        //             "totalTurnover":null,
+        //             "turnover":null,
+        //             "turnover24h":null,
+        //             "homeNotional24h":null,
+        //             "foreignNotional24h":null,
+        //             "prevPrice24h":5.27,
+        //             "vwap":null,
+        //             "highPrice":null,
+        //             "lowPrice":null,
+        //             "lastPrice":4.72,
+        //             "lastPriceProtected":null,
+        //             "lastTickDirection":"ZeroMinusTick",
+        //             "lastChangePcnt":-0.1044,
+        //             "bidPrice":null,
+        //             "midPrice":null,
+        //             "askPrice":null,
+        //             "impactBidPrice":null,
+        //             "impactMidPrice":null,
+        //             "impactAskPrice":null,
+        //             "hasLiquidity":false,
+        //             "openInterest":null,
+        //             "openValue":0,
+        //             "fairMethod":"",
+        //             "fairBasisRate":null,
+        //             "fairBasis":null,
+        //             "fairPrice":null,
+        //             "markMethod":"LastPrice",
+        //             "markPrice":4.72,
+        //             "indicativeTaxRate":null,
+        //             "indicativeSettlePrice":null,
+        //             "optionUnderlyingPrice":null,
+        //             "settledPriceAdjustmentRate":null,
+        //             "settledPrice":null,
+        //             "timestamp":"2022-05-21T04:30:00.000Z"
+        //         }
+        //     )
+        //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $ticker = $this->parse_ticker($response[$i]);
@@ -995,8 +1135,9 @@ class bitmex extends Exchange {
                 $market = $this->market($symbol);
                 $uniformSymbols[] = $market['symbol'];
             }
+            return $this->filter_by_array($result, 'symbol', $uniformSymbols);
         }
-        return $this->filter_by_array($result, 'symbol', $uniformSymbols);
+        return $result;
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -1164,6 +1305,15 @@ class bitmex extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since $timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the bitmex api endpoint
+         * @return {[[int]]} A list of candles ordered as $timestamp, open, high, low, close, volume
+         */
         yield $this->load_markets();
         // send JSON key/value pairs, such as array("key" => "value")
         // $filter by individual fields and do advanced queries on timestamps
@@ -1443,6 +1593,14 @@ class bitmex extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the bitmex api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -2018,16 +2176,16 @@ class bitmex extends Exchange {
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * Fetches the history of funding rates
-         * @param {str} $symbol Unified $market $symbol, use currency $code to get data for the nearest expiring contract in that series, can also send a timeframe, eg XBT:quarterly, Timeframes are nearest, daily, weekly, monthly, quarterly, biquarterly, and perpetual
-         * @param {int} $since timestamp in ms for starting date filter
-         * @param {int} $limit number of results to fetch
-         * @param {dict} $params exchange specific $params
-         * @param {int} $params->till timestamp in ms for ending date filter
-         * @param {bool} $params->reverse if true, will sort results newest first
-         * @param {int} $params->start starting point for results
-         * @param {str} $params->columns array of column names to fetch in info, if omitted, will return all columns
-         * @param {str} $params->filter generic table filter, send json key/value pairs, such as array("key" => "value"), you can key on individual fields, and do more advanced querying on timestamps, see the {@link https://www.bitmex.com/app/restAPI#Timestamp-Filters timestamp docs} for more details
-         * @return A list of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-history-structure funding rate history structures}
+         * @param {str|null} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int|null} $since timestamp in ms of the earliest funding rate to fetch
+         * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+         * @param {dict} $params extra parameters specific to the bitmex api endpoint
+         * @param {int|null} $params->till timestamp in ms for ending date filter
+         * @param {bool|null} $params->reverse if true, will sort results newest first
+         * @param {int|null} $params->start starting point for results
+         * @param {str|null} $params->columns array of column names to fetch in info, if omitted, will return all columns
+         * @param {str|null} $params->filter generic table filter, send json key/value pairs, such as array("key" => "value"), you can key on individual fields, and do more advanced querying on timestamps, see the {@link https://www.bitmex.com/app/restAPI#Timestamp-Filters timestamp docs} for more details
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
          */
         yield $this->load_markets();
         $request = array();
