@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.83.32';
+$version = '1.83.41';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.83.32';
+    const VERSION = '1.83.41';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -342,6 +342,7 @@ class Exchange {
         'filterByCurrencySinceLimit' => 'filter_by_currency_since_limit',
         'filterByArray' => 'filter_by_array',
         'safeTicker' => 'safe_ticker',
+        'parseAccounts' => 'parse_accounts',
         'parseTickers' => 'parse_tickers',
         'parseDepositAddresses' => 'parse_deposit_addresses',
         'parseTrades' => 'parse_trades',
@@ -1358,6 +1359,7 @@ class Exchange {
             'loadMarkets' => true,
             'reduceMargin' => null,
             'setLeverage' => null,
+            'setMargin' => null,
             'setMarginMode' => null,
             'setPositionMode' => null,
             'signIn' => null,
@@ -2340,6 +2342,15 @@ class Exchange {
                 'quoteVolume' => $this->parse_number($quoteVolume),
             ));
         }
+    }
+
+    public function parse_accounts($accounts, $params = array()) {
+        $array = is_array($accounts) ? array_values($accounts) : array();
+        $result = array();
+        foreach ($array as $account) {
+            $result[] = array_replace_recursive($this->parse_account($account), $params);
+        }
+        return $result;
     }
 
     public function parse_tickers($tickers, $symbols = null, $params = array()) {

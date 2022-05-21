@@ -999,6 +999,14 @@ class mexc(Exchange):
         return orderbook
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1172,6 +1180,15 @@ class mexc(Exchange):
         return result
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         options = self.safe_value(self.options, 'timeframes', {})
@@ -1276,6 +1293,11 @@ class mexc(Exchange):
         return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
         method = self.get_supported_mapping(marketType, {
@@ -2907,14 +2929,14 @@ class mexc(Exchange):
         return self.parse_funding_rate(result, market)
 
     async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
-        #
-        # Gets a history of funding rates with their timestamps
-        #  (param) symbol: Future currency pair
-        #  (param) limit: mexc limit is page_size default 20, maximum is 100
-        #  (param) since: not used by mexc
-        #  (param) params: Object containing more params for the request
-        #  return: [{symbol, fundingRate, timestamp, dateTime}]
-        #
+        """
+        fetches historical funding rate prices
+        :param str|None symbol: unified symbol of the market to fetch the funding rate history for
+        :param int|None since: not used by mexc, but filtered internally by ccxt
+        :param int|None limit: mexc limit is page_size default 20, maximum is 100
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         await self.load_markets()
@@ -2928,28 +2950,28 @@ class mexc(Exchange):
             request['page_size'] = limit
         response = await self.contractPublicGetFundingRateHistory(self.extend(request, params))
         #
-        # {
-        #     "success": True,
-        #     "code": 0,
-        #     "data": {
-        #         "pageSize": 2,
-        #         "totalCount": 21,
-        #         "totalPage": 11,
-        #         "currentPage": 1,
-        #         "resultList": [
-        #             {
-        #                 "symbol": "BTC_USDT",
-        #                 "fundingRate": 0.000266,
-        #                 "settleTime": 1609804800000
-        #             },
-        #             {
-        #                 "symbol": "BTC_USDT",
-        #                 "fundingRate": 0.00029,
-        #                 "settleTime": 1609776000000
-        #             }
-        #         ]
-        #     }
-        # }
+        #    {
+        #        "success": True,
+        #        "code": 0,
+        #        "data": {
+        #            "pageSize": 2,
+        #            "totalCount": 21,
+        #            "totalPage": 11,
+        #            "currentPage": 1,
+        #            "resultList": [
+        #                {
+        #                    "symbol": "BTC_USDT",
+        #                    "fundingRate": 0.000266,
+        #                    "settleTime": 1609804800000
+        #                },
+        #                {
+        #                    "symbol": "BTC_USDT",
+        #                    "fundingRate": 0.00029,
+        #                    "settleTime": 1609776000000
+        #                }
+        #            ]
+        #        }
+        #    }
         #
         data = self.safe_value(response, 'data')
         result = self.safe_value(data, 'resultList')

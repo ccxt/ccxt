@@ -32,7 +32,7 @@ class phemex extends Exchange {
                 'swap' => true,
                 'future' => false,
                 'option' => false,
-                'addMargin' => true,
+                'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
@@ -77,8 +77,9 @@ class phemex extends Exchange {
                 'fetchTradingFees' => false,
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
-                'reduceMargin' => true,
+                'reduceMargin' => false,
                 'setLeverage' => true,
+                'setMargin' => true,
                 'setMarginMode' => true,
                 'setPositionMode' => false,
                 'transfer' => true,
@@ -1026,6 +1027,15 @@ class phemex extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the phemex api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         $request = array(
             // 'symbol' => $market['id'],
             'resolution' => $this->timeframes[$timeframe],
@@ -1210,6 +1220,14 @@ class phemex extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of $trades to fetch
+         * @param {dict} $params extra parameters specific to the phemex api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1524,6 +1542,11 @@ class phemex extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the phemex api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         yield $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'defaultType', 'fetchBalance', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
@@ -2961,7 +2984,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function modify_margin_helper($symbol, $amount, $addOrReduce, $params = array ()) {
+    public function set_margin($symbol, $amount, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -2978,7 +3001,6 @@ class phemex extends Exchange {
         //
         return array_merge($this->parse_margin_modification($response, $market), array(
             'amount' => $amount,
-            'type' => $addOrReduce,
         ));
     }
 
@@ -2990,28 +3012,25 @@ class phemex extends Exchange {
     }
 
     public function parse_margin_modification($data, $market = null) {
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "",
+        //         "data" => "OK"
+        //     }
+        //
         $market = $this->safe_market(null, $market);
         $inverse = $this->safe_value($market, 'inverse');
         $codeCurrency = $inverse ? 'base' : 'quote';
         return array(
             'info' => $data,
-            'type' => null,
+            'type' => 'set',
             'amount' => null,
+            'total' => null,
             'code' => $market[$codeCurrency],
             'symbol' => $this->safe_symbol(null, $market),
             'status' => $this->parse_margin_status($this->safe_string($data, 'code')),
         );
-    }
-
-    public function add_margin($symbol, $amount, $params = array ()) {
-        return yield $this->modify_margin_helper($symbol, $amount, 'add', $params);
-    }
-
-    public function reduce_margin($symbol, $amount, $params = array ()) {
-        if ($amount > 0) {
-            throw new BadRequest($this->id . ' reduceMargin() $amount parameter must be a negative value');
-        }
-        return yield $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
 
     public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {

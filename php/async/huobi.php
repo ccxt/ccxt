@@ -860,6 +860,18 @@ class huobi extends Exchange {
                     'funding' => 'pro',
                     'future' => 'futures',
                 ),
+                'accountsById' => array(
+                    'spot' => 'spot',
+                    'margin' => 'margin',
+                    'otc' => 'otc',
+                    'point' => 'point',
+                    'super-margin' => 'margin',
+                    'investment' => 'spot',
+                    'borrow' => 'borrow',
+                    'grid-trading' => 'spot',
+                    'deposit-earning' => 'funding',
+                    'otc-options' => 'otc',
+                ),
                 'typesByAccount' => array(
                     'pro' => 'spot',
                     'futures' => 'future',
@@ -2070,6 +2082,14 @@ class huobi extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = 1000, $params = array ()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int|null} $since timestamp in ms of the earliest $trade to fetch
+         * @param {int|null} $limit the maximum amount of $trades to fetch
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades $trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -2159,6 +2179,15 @@ class huobi extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -2295,7 +2324,28 @@ class huobi extends Exchange {
         //         )
         //     }
         //
-        return $response['data'];
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_accounts($data);
+    }
+
+    public function parse_account($account) {
+        //
+        //     {
+        //         "id" => 5202591,
+        //         "type" => "point",   // spot, margin, otc, point, super-margin, investment, borrow, grid-trading, deposit-earning, otc-options
+        //         "subtype" => "",     // The corresponding trading symbol (currency pair) the isolated margin is based on, e.g. btcusdt
+        //         "state" => "working" // working, lock
+        //     }
+        //
+        $typeId = $this->safe_string($account, 'type');
+        $accountsById = $this->safe_value($this->options, 'accountsById', array());
+        $type = $this->safe_value($accountsById, $typeId, $typeId);
+        return array(
+            'info' => $account,
+            'id' => $this->safe_string($account, 'id'),
+            'type' => $type,
+            'code' => null,
+        );
     }
 
     public function fetch_account_id_by_type($type, $params = array ()) {
@@ -2445,6 +2495,11 @@ class huobi extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for $balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#$balance-structure $balance structure~
+         */
         yield $this->load_markets();
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
@@ -4493,14 +4548,14 @@ class huobi extends Exchange {
     }
 
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
-        //
-        // Gets a history of funding $rates with their timestamps
-        //  (param) $symbol => Future currency pair
-        //  (param) $limit => not used by huobi
-        //  (param) $since => not used by huobi
-        //  (param) $params => Object containing more $params for the $request
-        //  return => [array($symbol, fundingRate, $timestamp, dateTime)]
-        //
+        /**
+         * fetches historical funding rate prices
+         * @param {str|null} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int|null} $since not used by huobi, but filtered internally by ccxt
+         * @param {int|null} $limit not used by huobi, but filtered internally by ccxt
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
@@ -5177,7 +5232,11 @@ class huobi extends Exchange {
         yield $this->load_markets();
         $marginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'isolated');
         $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchPositions', null, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchPositions', null, $params);
+        if ($marketType === 'spot') {
+            $marketType = 'future';
+        }
         $method = null;
         if ($defaultSubType === 'linear') {
             $method = $this->get_supported_mapping($marginMode, array(
@@ -5267,7 +5326,7 @@ class huobi extends Exchange {
             //     }
             //
         }
-        $response = yield $this->$method ($query);
+        $response = yield $this->$method ($params);
         $data = $this->safe_value($response, 'data');
         $timestamp = $this->safe_integer($response, 'ts');
         $result = array();

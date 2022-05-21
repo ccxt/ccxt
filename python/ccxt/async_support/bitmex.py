@@ -493,6 +493,11 @@ class bitmex(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         request = {
             'currency': 'all',
@@ -964,6 +969,117 @@ class bitmex(Exchange):
         """
         await self.load_markets()
         response = await self.publicGetInstrumentActiveAndIndices(params)
+        #
+        #     [
+        #         {
+        #             "symbol":".EVOL7D",
+        #             "rootSymbol":"EVOL",
+        #             "state":"Unlisted",
+        #             "typ":"MRIXXX",
+        #             "listing":null,
+        #             "front":null,
+        #             "expiry":null,
+        #             "settle":null,
+        #             "listedSettle":null,
+        #             "relistInterval":null,
+        #             "inverseLeg":"",
+        #             "sellLeg":"",
+        #             "buyLeg":"",
+        #             "optionStrikePcnt":null,
+        #             "optionStrikeRound":null,
+        #             "optionStrikePrice":null,
+        #             "optionMultiplier":null,
+        #             "positionCurrency":"",
+        #             "underlying":"ETH",
+        #             "quoteCurrency":"XXX",
+        #             "underlyingSymbol":".EVOL7D",
+        #             "reference":"BMI",
+        #             "referenceSymbol":".BETHXBT",
+        #             "calcInterval":"2000-01-08T00:00:00.000Z",
+        #             "publishInterval":"2000-01-01T00:05:00.000Z",
+        #             "publishTime":null,
+        #             "maxOrderQty":null,
+        #             "maxPrice":null,
+        #             "lotSize":null,
+        #             "tickSize":0.01,
+        #             "multiplier":null,
+        #             "settlCurrency":"",
+        #             "underlyingToPositionMultiplier":null,
+        #             "underlyingToSettleMultiplier":null,
+        #             "quoteToSettleMultiplier":null,
+        #             "isQuanto":false,
+        #             "isInverse":false,
+        #             "initMargin":null,
+        #             "maintMargin":null,
+        #             "riskLimit":null,
+        #             "riskStep":null,
+        #             "limit":null,
+        #             "capped":false,
+        #             "taxed":false,
+        #             "deleverage":false,
+        #             "makerFee":null,
+        #             "takerFee":null,
+        #             "settlementFee":null,
+        #             "insuranceFee":null,
+        #             "fundingBaseSymbol":"",
+        #             "fundingQuoteSymbol":"",
+        #             "fundingPremiumSymbol":"",
+        #             "fundingTimestamp":null,
+        #             "fundingInterval":null,
+        #             "fundingRate":null,
+        #             "indicativeFundingRate":null,
+        #             "rebalanceTimestamp":null,
+        #             "rebalanceInterval":null,
+        #             "openingTimestamp":null,
+        #             "closingTimestamp":null,
+        #             "sessionInterval":null,
+        #             "prevClosePrice":null,
+        #             "limitDownPrice":null,
+        #             "limitUpPrice":null,
+        #             "bankruptLimitDownPrice":null,
+        #             "bankruptLimitUpPrice":null,
+        #             "prevTotalVolume":null,
+        #             "totalVolume":null,
+        #             "volume":null,
+        #             "volume24h":null,
+        #             "prevTotalTurnover":null,
+        #             "totalTurnover":null,
+        #             "turnover":null,
+        #             "turnover24h":null,
+        #             "homeNotional24h":null,
+        #             "foreignNotional24h":null,
+        #             "prevPrice24h":5.27,
+        #             "vwap":null,
+        #             "highPrice":null,
+        #             "lowPrice":null,
+        #             "lastPrice":4.72,
+        #             "lastPriceProtected":null,
+        #             "lastTickDirection":"ZeroMinusTick",
+        #             "lastChangePcnt":-0.1044,
+        #             "bidPrice":null,
+        #             "midPrice":null,
+        #             "askPrice":null,
+        #             "impactBidPrice":null,
+        #             "impactMidPrice":null,
+        #             "impactAskPrice":null,
+        #             "hasLiquidity":false,
+        #             "openInterest":null,
+        #             "openValue":0,
+        #             "fairMethod":"",
+        #             "fairBasisRate":null,
+        #             "fairBasis":null,
+        #             "fairPrice":null,
+        #             "markMethod":"LastPrice",
+        #             "markPrice":4.72,
+        #             "indicativeTaxRate":null,
+        #             "indicativeSettlePrice":null,
+        #             "optionUnderlyingPrice":null,
+        #             "settledPriceAdjustmentRate":null,
+        #             "settledPrice":null,
+        #             "timestamp":"2022-05-21T04:30:00.000Z"
+        #         }
+        #     ]
+        #
         result = {}
         for i in range(0, len(response)):
             ticker = self.parse_ticker(response[i])
@@ -976,7 +1092,8 @@ class bitmex(Exchange):
                 symbol = symbols[i]
                 market = self.market(symbol)
                 uniformSymbols.append(market['symbol'])
-        return self.filter_by_array(result, 'symbol', uniformSymbols)
+            return self.filter_by_array(result, 'symbol', uniformSymbols)
+        return result
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -1141,6 +1258,15 @@ class bitmex(Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         # send JSON key/value pairs, such as {"key": "value"}
         # filter by individual fields and do advanced queries on timestamps
@@ -1408,6 +1534,14 @@ class bitmex(Exchange):
         }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1953,16 +2087,16 @@ class bitmex(Exchange):
     async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         """
         Fetches the history of funding rates
-        :param str symbol: Unified market symbol, use currency code to get data for the nearest expiring contract in that series, can also send a timeframe, eg XBT:quarterly, Timeframes are nearest, daily, weekly, monthly, quarterly, biquarterly, and perpetual
-        :param int since: timestamp in ms for starting date filter
-        :param int limit: number of results to fetch
-        :param dict params: exchange specific params
-        :param int params['till']: timestamp in ms for ending date filter
-        :param bool params['reverse']: if True, will sort results newest first
-        :param int params['start']: starting point for results
-        :param str params['columns']: array of column names to fetch in info, if omitted, will return all columns
-        :param str params['filter']: generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the `timestamp docs <https://www.bitmex.com/app/restAPI#Timestamp-Filters>` for more details
-        :returns: A list of `funding rate history structures <https://docs.ccxt.com/en/latest/manual.html#funding-rate-history-structure>`
+        :param str|None symbol: unified symbol of the market to fetch the funding rate history for
+        :param int|None since: timestamp in ms of the earliest funding rate to fetch
+        :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :param int|None params['till']: timestamp in ms for ending date filter
+        :param bool|None params['reverse']: if True, will sort results newest first
+        :param int|None params['start']: starting point for results
+        :param str|None params['columns']: array of column names to fetch in info, if omitted, will return all columns
+        :param str|None params['filter']: generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the `timestamp docs <https://www.bitmex.com/app/restAPI#Timestamp-Filters>` for more details
+        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
         await self.load_markets()
         request = {}

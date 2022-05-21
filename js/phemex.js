@@ -27,7 +27,7 @@ module.exports = class phemex extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'addMargin': true,
+                'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -72,8 +72,9 @@ module.exports = class phemex extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
-                'reduceMargin': true,
+                'reduceMargin': false,
                 'setLeverage': true,
+                'setMargin': true,
                 'setMarginMode': true,
                 'setPositionMode': false,
                 'transfer': true,
@@ -1025,6 +1026,17 @@ module.exports = class phemex extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name phemex#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the phemex api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         const request = {
             // 'symbol': market['id'],
             'resolution': this.timeframes[timeframe],
@@ -1211,6 +1223,16 @@ module.exports = class phemex extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name phemex#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the phemex api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1525,6 +1547,13 @@ module.exports = class phemex extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name phemex#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the phemex api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'defaultType', 'fetchBalance', 'spot');
         const type = this.safeString (params, 'type', defaultType);
@@ -2962,7 +2991,7 @@ module.exports = class phemex extends Exchange {
         };
     }
 
-    async modifyMarginHelper (symbol, amount, addOrReduce, params = {}) {
+    async setMargin (symbol, amount, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -2979,7 +3008,6 @@ module.exports = class phemex extends Exchange {
         //
         return this.extend (this.parseMarginModification (response, market), {
             'amount': amount,
-            'type': addOrReduce,
         });
     }
 
@@ -2991,28 +3019,25 @@ module.exports = class phemex extends Exchange {
     }
 
     parseMarginModification (data, market = undefined) {
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "data": "OK"
+        //     }
+        //
         market = this.safeMarket (undefined, market);
         const inverse = this.safeValue (market, 'inverse');
         const codeCurrency = inverse ? 'base' : 'quote';
         return {
             'info': data,
-            'type': undefined,
+            'type': 'set',
             'amount': undefined,
+            'total': undefined,
             'code': market[codeCurrency],
             'symbol': this.safeSymbol (undefined, market),
             'status': this.parseMarginStatus (this.safeString (data, 'code')),
         };
-    }
-
-    async addMargin (symbol, amount, params = {}) {
-        return await this.modifyMarginHelper (symbol, amount, 'add', params);
-    }
-
-    async reduceMargin (symbol, amount, params = {}) {
-        if (amount > 0) {
-            throw new BadRequest (this.id + ' reduceMargin() amount parameter must be a negative value');
-        }
-        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
     async setMarginMode (marginMode, symbol = undefined, params = {}) {

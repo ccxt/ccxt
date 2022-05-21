@@ -407,19 +407,26 @@ class coinbasepro(Exchange):
         #         },
         #     ]
         #
-        result = []
-        for i in range(0, len(response)):
-            account = response[i]
-            accountId = self.safe_string(account, 'id')
-            currencyId = self.safe_string(account, 'currency')
-            code = self.safe_currency_code(currencyId)
-            result.append({
-                'id': accountId,
-                'type': None,
-                'currency': code,
-                'info': account,
-            })
-        return result
+        return self.parse_accounts(response, params)
+
+    def parse_account(self, account):
+        #
+        #     {
+        #         id: '4aac9c60-cbda-4396-9da4-4aa71e95fba0',
+        #         currency: 'BTC',
+        #         balance: '0.0000000000000000',
+        #         available: '0',
+        #         hold: '0.0000000000000000',
+        #         profile_id: 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        #     }
+        #
+        currencyId = self.safe_string(account, 'currency')
+        return {
+            'id': self.safe_string(account, 'id'),
+            'type': None,
+            'code': self.safe_currency_code(currencyId),
+            'info': account,
+        }
 
     def parse_balance(self, response):
         result = {'info': response}
@@ -435,6 +442,11 @@ class coinbasepro(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.privateGetAccounts(params)
         return self.parse_balance(response)
@@ -719,6 +731,14 @@ class coinbasepro(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -775,6 +795,15 @@ class coinbasepro(Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         granularity = self.timeframes[timeframe]

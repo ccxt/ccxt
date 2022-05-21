@@ -39,6 +39,7 @@ class deribit extends Exchange {
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
                 'editOrder' => true,
+                'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
@@ -429,6 +430,70 @@ class deribit extends Exchange {
         );
     }
 
+    public function fetch_accounts($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privateGetGetSubaccounts ($params);
+        //
+        //     {
+        //         jsonrpc => '2.0',
+        //         $result => [array(
+        //                 username => 'someusername',
+        //                 type => 'main',
+        //                 system_name => 'someusername',
+        //                 security_keys_enabled => false,
+        //                 security_keys_assignments => array(),
+        //                 receive_notifications => false,
+        //                 login_enabled => true,
+        //                 is_password => true,
+        //                 id => '238216',
+        //                 email => 'pablo@abcdef.com'
+        //             ),
+        //             {
+        //                 username => 'someusername_1',
+        //                 type => 'subaccount',
+        //                 system_name => 'someusername_1',
+        //                 security_keys_enabled => false,
+        //                 security_keys_assignments => array(),
+        //                 receive_notifications => false,
+        //                 login_enabled => false,
+        //                 is_password => false,
+        //                 id => '245499',
+        //                 email => 'pablo@abcdef.com'
+        //             }
+        //         ],
+        //         usIn => '1652736468292006',
+        //         usOut => '1652736468292377',
+        //         usDiff => '371',
+        //         testnet => false
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_accounts($result);
+    }
+
+    public function parse_account($account, $currency = null) {
+        //
+        //      {
+        //          username => 'someusername_1',
+        //          type => 'subaccount',
+        //          system_name => 'someusername_1',
+        //          security_keys_enabled => false,
+        //          security_keys_assignments => array(),
+        //          receive_notifications => false,
+        //          login_enabled => false,
+        //          is_password => false,
+        //          id => '245499',
+        //          email => 'pablo@abcdef.com'
+        //      }
+        //
+        return array(
+            'info' => $account,
+            'id' => $this->safe_string($account, 'id'),
+            'type' => $this->safe_string($account, 'type'),
+            'code' => $this->safe_currency_code(null, $currency),
+        );
+    }
+
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all markets for deribit
@@ -646,6 +711,11 @@ class deribit extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the deribit api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         yield $this->load_markets();
         $code = $this->code_from_options('fetchBalance', $params);
         $currency = $this->currency($code);
@@ -940,6 +1010,15 @@ class deribit extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the deribit api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1072,6 +1151,14 @@ class deribit extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of $trades to fetch
+         * @param {dict} $params extra parameters specific to the deribit api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(

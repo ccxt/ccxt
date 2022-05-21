@@ -4833,23 +4833,25 @@ The ``fetchAccounts()`` method will return a structure like shown below:
        {
            id: "s32kj302lasli3930",
            type: "main",
-           currency: "USDT",
+           code: "USDT",
            info: { ... }
        },
        {
            id: "20f0sdlri34lf90",
            type: "margin",
-           currency: "USDT",
+           code: "USDT",
            info: { ... }
        },
        {
            id: "4oidfk40dadeg4328",
-           type: "trade",
-           currency: "BTC",
+           type: "spot",
+           code: "BTC",
            info: { ... }
        },
        ...
    ]
+
+Types of account is one of the :ref:`unified account types <###Account-Balance>` or ``subaccount``
 
 Account Balance
 ---------------
@@ -6372,7 +6374,8 @@ Parameters
  * **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. ``{"endTime": 1645807945000}``\ )
  * **params.symbol** (String) Market symbol when transfering to or from a margin account (e.g. ``'BTC/USDT'``\ )
 
- **Account Types**
+Account Types
+^^^^^^^^^^^^^
 
 ``fromAccount`` and ``toAccount`` can accept the exchange account id or one of the following unified values:
 
@@ -6761,7 +6764,7 @@ Margin
 
  *margin and contract only*
 
-To increase or reduce your margin balance (collateral) in an open leveraged position, use ``addMargin``  and ``reduceMargin`` respectively. This is kind of like adjusting the amount of leverage you're using with a position that's already open.
+To increase, reduce or set your margin balance (collateral) in an open leveraged position, use ``addMargin``\ , ``reduceMargin`` and ``setMargin`` respectively. This is kind of like adjusting the amount of leverage you're using with a position that's already open.
 
 Some scenarios to use these methods include
 
@@ -6773,6 +6776,7 @@ Some scenarios to use these methods include
 
    addMargin (symbol, amount, params = {})
    reduceMargin (symbol, amount, params = {})
+   setMargin (symbol, amount, params = {})
 
 Parameters
 
@@ -6793,8 +6797,9 @@ Margin Structure
 
    {
        info: { ... },
-       type: 'add',
-       amount: 1,
+       type: 'add', // 'add', 'reduce', 'set'
+       amount: 1, // amount added, reduced, or set
+       total: 2,  // total margin or undefined if not specified by the exchange
        code: 'USDT',
        symbol: 'XRP/USDT:USDT',
        status: 'ok'

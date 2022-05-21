@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.83.32'
+__version__ = '1.83.41'
 
 # -----------------------------------------------------------------------------
 
@@ -323,6 +323,7 @@ class Exchange(object):
         'loadMarkets': True,
         'reduceMargin': None,
         'setLeverage': None,
+        'setMargin': None,
         'setMarginMode': None,
         'setPositionMode': None,
         'signIn': None,
@@ -2098,6 +2099,10 @@ class Exchange(object):
                 'baseVolume': self.parse_number(baseVolume),
                 'quoteVolume': self.parse_number(quoteVolume),
             })
+
+    def parse_accounts(self, accounts, params={}):
+        array = self.to_array(accounts)
+        return [self.extend(self.parse_account(account), params) for account in array]
 
     def parse_tickers(self, tickers, symbols=None, params={}):
         result = []

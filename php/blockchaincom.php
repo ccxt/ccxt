@@ -882,6 +882,11 @@ class blockchaincom extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the blockchaincom api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $accountName = $this->safe_string($params, 'account', 'primary');
         $params = $this->omit($params, 'account');
