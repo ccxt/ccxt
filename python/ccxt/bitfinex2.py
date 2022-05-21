@@ -138,6 +138,7 @@ class bitfinex2(bitfinex):
                         'conf/pub:info:{object}': 2.66,
                         'conf/pub:info:{object}:{detail}': 2.66,
                         'conf/pub:info:pair': 2.66,
+                        'conf/pub:info:pair:futures': 2.66,
                         'conf/pub:info:tx:status': 2.66,  # [deposit, withdrawal] statuses 1 = active, 0 = maintenance
                         'conf/pub:fees': 2.66,
                         'platform/status': 8,  # 30 requests per minute = 0.5 requests per second =>( 1000ms / rateLimit ) / 0.5 = 8
@@ -402,6 +403,11 @@ class bitfinex2(bitfinex):
         }
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bitfinex2
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         # todo drop v1 in favor of v2 configs  ( temp-reference for v2update: https://pastebin.com/raw/S8CmqSHQ )
         # pub:list:pair:exchange,pub:list:pair:margin,pub:list:pair:futures,pub:info:pair
         v2response = self.publicGetConfPubListPairFutures(params)
@@ -635,6 +641,11 @@ class bitfinex2(bitfinex):
         return result
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         # self api call does not return the 'used' amount - use the v1 version instead(which also returns zero balances)
         # there is a difference between self and the v1 api, namely trading wallet is called margin in v2
         self.load_markets()
@@ -690,31 +701,84 @@ class bitfinex2(bitfinex):
             'to': toId,
         }
         response = self.privatePostAuthWTransfer(self.extend(request, params))
-        #  [1616451183763,"acc_tf",null,null,[1616451183763,"exchange","margin",null,"UST","UST",null,1],null,"SUCCESS","1.0 Tether USDt transfered from Exchange to Margin"]
-        timestamp = self.safe_integer(response, 0)
-        #  ["error",10001,"Momentary balance check. Please wait few seconds and try the transfer again."]
+        #
+        #     [
+        #         1616451183763,
+        #         "acc_tf",
+        #         null,
+        #         null,
+        #         [
+        #             1616451183763,
+        #             "exchange",
+        #             "margin",
+        #             null,
+        #             "UST",
+        #             "UST",
+        #             null,
+        #             1
+        #         ],
+        #         null,
+        #         "SUCCESS",
+        #         "1.0 Tether USDt transfered from Exchange to Margin"
+        #     ]
+        #
         error = self.safe_string(response, 0)
         if error == 'error':
             message = self.safe_string(response, 2, '')
             # same message as in v1
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + message)
             raise ExchangeError(self.id + ' ' + message)
-        info = self.safe_value(response, 4)
-        fromResponse = self.safe_string(info, 1)
-        toResponse = self.safe_string(info, 2)
-        toCode = self.safe_currency_code(self.safe_string(info, 5))
-        success = self.safe_string(response, 6)
-        status = 'ok' if (success == 'SUCCESS') else None
+        return self.parse_transfer(response, currency)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        # transfer
+        #
+        #     [
+        #         1616451183763,
+        #         "acc_tf",
+        #         null,
+        #         null,
+        #         [
+        #             1616451183763,
+        #             "exchange",
+        #             "margin",
+        #             null,
+        #             "UST",
+        #             "UST",
+        #             null,
+        #             1
+        #         ],
+        #         null,
+        #         "SUCCESS",
+        #         "1.0 Tether USDt transfered from Exchange to Margin"
+        #     ]
+        #
+        timestamp = self.safe_integer(transfer, 0)
+        info = self.safe_value(transfer, 4)
+        fromAccount = self.safe_string(info, 1)
+        toAccount = self.safe_string(info, 2)
+        currencyId = self.safe_string(info, 5)
+        status = self.safe_string(transfer, 6)
         return {
-            'info': response,
+            'id': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'status': status,
-            'amount': requestedAmount,
-            'code': toCode,
-            'fromAccount': fromResponse,
-            'toAccount': toResponse,
+            'status': self.parse_transfer_status(status),
+            'amount': self.safe_number(transfer, 7),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'info': transfer,
         }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'SUCCESS': 'ok',
+            'ERROR': 'failed',
+            'FAILURE': 'failed',
+        }
+        return self.safe_string(statuses, status, status)
 
     def convert_derivatives_id(self, currency, type):
         # there is a difference between self and the v1 api, namely trading wallet is called margin in v2
@@ -742,6 +806,13 @@ class bitfinex2(bitfinex):
         raise NotSupported(self.id + ' fetchOrder() is not supported yet')
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         precision = self.safe_value(self.options, 'precision', 'R0')
         request = {
@@ -842,6 +913,12 @@ class bitfinex2(bitfinex):
         }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         request = {}
         if symbols is not None:
@@ -900,6 +977,12 @@ class bitfinex2(bitfinex):
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1013,6 +1096,14 @@ class bitfinex2(bitfinex):
         }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bitfinex2 api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         sort = '-1'
@@ -1040,6 +1131,15 @@ class bitfinex2(bitfinex):
         return self.parse_trades(trades, market, None, limit)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=100, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the bitfinex2 api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         self.load_markets()
         market = self.market(symbol)
         if limit is None:
@@ -1723,6 +1823,22 @@ class bitfinex2(bitfinex):
         #         "Invalid bitcoin address(abcdef)",  # TEXT Text of the notification
         #     ]
         #
+        # in case of failure:
+        #
+        #     [
+        #         "error",
+        #         10001,
+        #         "Momentary balance check. Please wait few seconds and try the transfer again."
+        #     ]
+        #
+        statusMessage = self.safe_string(response, 0)
+        if statusMessage == 'error':
+            feedback = self.id + ' ' + response
+            message = self.safe_string(response, 2, '')
+            # same message as in v1
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+            raise ExchangeError(feedback)  # unknown message
         text = self.safe_string(response, 7)
         if text != 'success':
             self.throw_broadly_matched_exception(self.exceptions['broad'], text, text)
@@ -1799,14 +1915,14 @@ class bitfinex2(bitfinex):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody):
+    def handle_errors(self, statusCode, statusText, url, method, headers, body, response, requestHeaders, requestBody):
         if response is not None:
             if not isinstance(response, list):
                 message = self.safe_string_2(response, 'message', 'error')
-                feedback = self.id + ' ' + responseBody
+                feedback = self.id + ' ' + body
                 self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
-                raise ExchangeError(self.id + ' ' + responseBody)
+                raise ExchangeError(self.id + ' ' + body)
         elif response == '':
             raise ExchangeError(self.id + ' returned empty response')
         if statusCode == 500:

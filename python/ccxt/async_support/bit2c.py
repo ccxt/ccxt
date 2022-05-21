@@ -9,6 +9,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.precise import Precise
 
@@ -38,6 +39,7 @@ class bit2c(Exchange):
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
+                'fetchDepositAddress': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -47,6 +49,7 @@ class bit2c(Exchange):
                 'fetchLeverageTiers': False,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
@@ -87,7 +90,7 @@ class bit2c(Exchange):
                 'private': {
                     'post': [
                         'Merchant/CreateCheckout',
-                        'Order/AddCoinFundsRequest',
+                        'Funds/AddCoinFundsRequest',
                         'Order/AddFund',
                         'Order/AddOrder',
                         'Order/AddOrderMarketPriceBuy',
@@ -160,6 +163,11 @@ class bit2c(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the bit2c api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.privateGetAccountBalanceV2(params)
         #
@@ -207,6 +215,13 @@ class bit2c(Exchange):
         return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bit2c api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         request = {
             'pair': self.market_id(symbol),
@@ -244,6 +259,12 @@ class bit2c(Exchange):
         }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bit2c api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -253,6 +274,14 @@ class bit2c(Exchange):
         return self.parse_ticker(response, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bit2c api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         method = self.options['fetchTradesMethod']  # public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
@@ -532,6 +561,44 @@ class bit2c(Exchange):
             'cost': None,
             'fee': fee,
         }, market)
+
+    def is_fiat(self, code):
+        return code == 'NIS'
+
+    async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        if self.is_fiat(code):
+            raise NotSupported(self.id + ' fetchDepositAddress() does not support fiat currencies')
+        request = {
+            'Coin': currency['id'],
+        }
+        response = await self.privatePostFundsAddCoinFundsRequest(self.extend(request, params))
+        #
+        #     {
+        #         'address': '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
+        #         'hasTx': False
+        #     }
+        #
+        return self.parse_deposit_address(response, currency)
+
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        #     {
+        #         'address': '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
+        #         'hasTx': False
+        #     }
+        #
+        address = self.safe_string(depositAddress, 'address')
+        self.check_address(address)
+        code = self.safe_currency_code(None, currency)
+        return {
+            'currency': code,
+            'network': None,
+            'address': address,
+            'tag': None,
+            'info': depositAddress,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)

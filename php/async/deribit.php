@@ -27,11 +27,12 @@ class deribit extends Exchange {
                 'CORS' => true,
                 'spot' => false,
                 'margin' => false,
-                'swap' => null,
-                'future' => null,
-                'option' => null,
+                'swap' => true,
+                'future' => true,
+                'option' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => false,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'createStopLimitOrder' => true,
@@ -45,6 +46,7 @@ class deribit extends Exchange {
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchHistoricalVolatility' => true,
@@ -70,7 +72,11 @@ class deribit extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => null,
+                'fetchTransfer' => false,
+                'fetchTransfers' => true,
+                'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -368,6 +374,9 @@ class deribit extends Exchange {
                 'fetchPositions' => array(
                     'code' => 'BTC',
                 ),
+                'transfer' => array(
+                    'method' => 'privateGetSubmitTransferToSubaccount', // or 'privateGetSubmitTransferToUser'
+                ),
             ),
         ));
     }
@@ -421,6 +430,11 @@ class deribit extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for deribit
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $currenciesResponse = yield $this->publicGetGetCurrencies ($params);
         //
         //     {
@@ -632,6 +646,11 @@ class deribit extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the deribit api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         yield $this->load_markets();
         $code = $this->code_from_options('fetchBalance', $params);
         $currency = $this->currency($code);
@@ -827,6 +846,12 @@ class deribit extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the deribit api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -866,6 +891,12 @@ class deribit extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the deribit api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         yield $this->load_markets();
         $code = $this->code_from_options('fetchTickers', $params);
         $currency = $this->currency($code);
@@ -914,6 +945,15 @@ class deribit extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the deribit api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1046,6 +1086,14 @@ class deribit extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of $trades to fetch
+         * @param {dict} $params extra parameters specific to the deribit api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1201,6 +1249,13 @@ class deribit extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the deribit api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -2073,6 +2128,135 @@ class deribit extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
+        if ($code === null) {
+            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $currency $code argument');
+        }
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        if ($limit !== null) {
+            $request['count'] = $limit;
+        }
+        $response = yield $this->privateGetGetTransfers (array_merge($request, $params));
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "id" => 7606,
+        //         "result" => {
+        //             "count" => 2,
+        //             "data" => array(
+        //                 array(
+        //                     "amount" => 0.2,
+        //                     "created_timestamp" => 1550579457727,
+        //                     "currency" => "BTC",
+        //                     "direction" => "payment",
+        //                     "id" => 2,
+        //                     "other_side" => "2MzyQc5Tkik61kJbEpJV5D5H9VfWHZK9Sgy",
+        //                     "state" => "prepared",
+        //                     "type" => "user",
+        //                     "updated_timestamp" => 1550579457727
+        //                 ),
+        //                 {
+        //                     "amount" => 0.3,
+        //                     "created_timestamp" => 1550579255800,
+        //                     "currency" => "BTC",
+        //                     "direction" => "payment",
+        //                     "id" => 1,
+        //                     "other_side" => "new_user_1_1",
+        //                     "state" => "confirmed",
+        //                     "type" => "subaccount",
+        //                     "updated_timestamp" => 1550579255800
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        $transfers = $this->safe_value($result, 'data', array());
+        return $this->parse_transfers($transfers, $currency, $since, $limit, $params);
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'amount' => $amount,
+            'currency' => $currency['id'],
+            'destination' => $toAccount,
+        );
+        $method = $this->safe_string($params, 'method');
+        $params = $this->omit($params, 'method');
+        if ($method === null) {
+            $transferOptions = $this->safe_value($this->options, 'transfer', array());
+            $method = $this->safe_string($transferOptions, 'method', 'privateGetSubmitTransferToSubaccount');
+        }
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "id" => 9421,
+        //         "result" => {
+        //             "updated_timestamp" => 1550232862350,
+        //             "type" => "user",
+        //             "state" => "prepared",
+        //             "other_side" => "0x4aa0753d798d668056920094d65321a8e8913e26",
+        //             "id" => 3,
+        //             "direction" => "payment",
+        //             "currency" => "ETH",
+        //             "created_timestamp" => 1550232862350,
+        //             "amount" => 13.456
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_transfer($result, $currency);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         "updated_timestamp" => 1550232862350,
+        //         "type" => "user",
+        //         "state" => "prepared",
+        //         "other_side" => "0x4aa0753d798d668056920094d65321a8e8913e26",
+        //         "id" => 3,
+        //         "direction" => "payment",
+        //         "currency" => "ETH",
+        //         "created_timestamp" => 1550232862350,
+        //         "amount" => 13.456
+        //     }
+        //
+        $timestamp = $this->safe_timestamp($transfer, 'created_timestamp');
+        $status = $this->safe_string($transfer, 'state');
+        $account = $this->safe_string($transfer, 'other_side');
+        $direction = $this->safe_string($transfer, 'direction');
+        $currencyId = $this->safe_string($transfer, 'currency');
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'id'),
+            'status' => $this->parse_transfer_status($status),
+            'amount' => $this->safe_number($transfer, 'amount'),
+            'code' => $this->safe_currency_code($currencyId, $currency),
+            'fromAccount' => $direction !== 'payment' ? $account : null,
+            'toAccount' => $direction === 'payment' ? $account : null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'prepared' => 'pending',
+            'confirmed' => 'ok',
+            'cancelled' => 'cancelled',
+            'waiting_for_admin' => 'pending',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {

@@ -34,6 +34,7 @@ const {
 const { // eslint-disable-line object-curly-newline
     ExchangeError
     , BadSymbol
+    , NullResponse
     , InvalidAddress
     , InvalidOrder
     , NotSupported
@@ -80,6 +81,7 @@ module.exports = class Exchange {
                 'createMarketOrder': true,
                 'createOrder': true,
                 'createPostOnlyOrder': undefined,
+                'createReduceOnlyOrder': undefined,
                 'createStopOrder': undefined,
                 'createStopLimitOrder': undefined,
                 'createStopMarketOrder': undefined,
@@ -144,6 +146,7 @@ module.exports = class Exchange {
                 'loadMarkets': true,
                 'reduceMargin': undefined,
                 'setLeverage': undefined,
+                'setMargin': undefined,
                 'setMarginMode': undefined,
                 'setPositionMode': undefined,
                 'signIn': undefined,
@@ -921,7 +924,7 @@ module.exports = class Exchange {
             const tickers = await this.fetchTickers ([ symbol ], params);
             const ticker = this.safeValue (tickers, symbol);
             if (ticker === undefined) {
-                throw new InvalidAddress (this.id + ' fetchTickers() could not find a ticker for ' + symbol);
+                throw new NullResponse (this.id + ' fetchTickers() could not find a ticker for ' + symbol);
             } else {
                 return ticker;
             }
@@ -1721,8 +1724,19 @@ module.exports = class Exchange {
         return decimalToPrecision (fee, ROUND, market.precision.price, this.precisionMode, this.paddingMode)
     }
 
-    currencyToPrecision (code, fee) {
-        return decimalToPrecision (fee, ROUND, this.currencies[code]['precision'], this.precisionMode, this.paddingMode);
+    currencyToPrecision (code, fee, networkCode = undefined) {
+        const currency = this.currencies[code];
+        let precision = this.safeValue (currency, 'precision');
+        if (networkCode !== undefined) {
+            const networks = this.safeValue (currency, 'networks', {});
+            const networkItem = this.safeValue (networks, networkCode, {});
+            precision = this.safeValue (networkItem, 'precision', precision);
+        }
+        if (precision === undefined) {
+            return fee;
+        } else {
+            return decimalToPrecision (fee, ROUND, precision, this.precisionMode, this.paddingMode);
+        }
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
@@ -2295,7 +2309,8 @@ module.exports = class Exchange {
         return this.options['timeDifference'];
     }
 
-    parseLeverageTiers (response, symbols, marketIdKey) {
+    parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
+        // * marketIdKey should only be undefined when response is a dictionary
         const tiers = {};
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
@@ -2318,27 +2333,40 @@ module.exports = class Exchange {
         if (this.has['fetchLeverageTiers']) {
             const market = await this.market (symbol);
             if (!market['contract']) {
-                throw new BadSymbol (this.id + ' fetchLeverageTiers() supports contract markets only');
+                throw new BadSymbol (this.id + ' fetchMarketLeverageTiers() supports contract markets only');
             }
             const tiers = await this.fetchLeverageTiers ([ symbol ]);
             return this.safeValue (tiers, symbol);
         } else {
             throw new NotSupported (this.id + ' fetchMarketLeverageTiers() is not supported yet');
         }
-
     }
 
-    isPostOnly (type, timeInForce, exchangeSpecificOption, params = {}) {
+    parseOpenInterests (response, market = undefined, since = undefined, limit = undefined) {
+        const interests = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const interest = this.parseOpenInterest (entry, market);
+            interests.push (interest);
+        }
+        const sorted = this.sortBy (interests, 'timestamp');
+        const symbol = this.safeString (market, 'symbol');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    isPostOnly (type, timeInForce = undefined, exchangeSpecificOption = undefined, params = {}) {
         /**
-         * @param {string} type: Order type
+         * @ignore
+         * @method
+         * @param {string} type Order type
          * @param {string} timeInForce
-         * @param {boolean} exchangeSpecificOption: True if the exchange specific post only setting is set
-         * @param {dict} params: Exchange specific params
-         * @returns {boolean}: true if a post only order, false otherwise
+         * @param {boolean} exchangeSpecificOption True if the exchange specific post only setting is set
+         * @param {dict} params Exchange specific params
+         * @returns {boolean} true if a post only order, false otherwise
          */
         let postOnly = this.safeValue2 (params, 'postOnly', 'post_only', false);
         params = this.omit (params, [ 'post_only', 'postOnly' ]);
-        const timeInForceUpper = timeInForce.toUpperCase ();
+        const timeInForceUpper = (timeInForce !== undefined) ? timeInForce.toUpperCase () : undefined;
         const typeLower = type.toLowerCase ();
         const ioc = timeInForceUpper === 'IOC';
         const fok = timeInForceUpper === 'FOK';
@@ -2364,6 +2392,14 @@ module.exports = class Exchange {
             throw new NotSupported (this.id + 'createPostOnlyOrder() is not supported yet');
         }
         const query = this.extend (params, { 'postOnly': true });
+        return await this.createOrder (symbol, type, side, amount, price, query);
+    }
+
+    async createReduceOnlyOrder (symbol, type, side, amount, price, params = {}) {
+        if (!this.has['createReduceOnlyOrder']) {
+            throw new NotSupported (this.id + 'createReduceOnlyOrder() is not supported yet');
+        }
+        const query = this.extend (params, { 'reduceOnly': true });
         return await this.createOrder (symbol, type, side, amount, price, query);
     }
 
@@ -2394,6 +2430,17 @@ module.exports = class Exchange {
         return this.createOrder(symbol, 'market', side, amount, undefined, query);
     }
 
+    checkOrderArguments (market, type, side, amount, price, params) {
+        if (price === undefined) {
+            if (type === 'limit') {
+                  throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a limit order');
+             }
+        }
+        if (amount <= 0) {
+            throw new ArgumentsRequired (this.id + ' createOrder() amount should be above 0');
+        }
+    }
+
     parseBorrowInterests (response, market = undefined) {
         const interest = [];
         for (let i = 0; i < response.length; i++) {
@@ -2401,5 +2448,34 @@ module.exports = class Exchange {
             interest.push (this.parseBorrowInterest (row, market));
         }
         return interest;
+    }
+
+    parseFundingRateHistories (response, market = undefined, since = undefined, limit = undefined) {
+        const rates = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            rates.push (this.parseFundingRateHistory (entry, market));
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        const symbol = (market === undefined) ? undefined : market['symbol'];
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        if (this.has['fetchFundingRates']) {
+            const market = await this.market (symbol);
+            if (!market['contract']) {
+                throw new BadSymbol (this.id + ' fetchFundingRate() supports contract markets only');
+            }
+            const rates = await this.fetchFundingRates ([ symbol ], params);
+            const rate = this.safeValue (rates, symbol);
+            if (rate === undefined) {
+                throw new NullResponse (this.id + ' fetchFundingRate () returned no data for ' + symbol);
+            } else {
+                return rate;
+            }
+        } else {
+            throw new NotSupported (this.id + ' fetchFundingRate () is not supported yet');
+        }
     }
 }

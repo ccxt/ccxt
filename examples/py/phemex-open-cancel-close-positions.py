@@ -13,7 +13,6 @@ import ccxt  # noqa: E402
 print('CCXT Version:', ccxt.__version__)
 
 exchange = ccxt.phemex({
-    'enableRateLimit': True,  # https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
     'apiKey': 'YOUR_API_KEY',  # testnet keys if using the testnet sandbox
     'secret': 'YOUR_SECRET',  # testnet keys if using the testnet sandbox
     'options': {
@@ -33,12 +32,12 @@ order = exchange.create_order(symbol, 'limit', 'buy', amount, '20000')
 response = exchange.cancel_order(order['id'], symbol)
 pprint(response)
 
-# Opening and Canceling a pending contract (stop-market) order 
+# Opening and Canceling a pending contract (stop-market) order
 stopMarketOrder = exchange.create_order(symbol, 'Stop', 'buy', amount, None, {'stopPx': 70000}) # default triggerType is ByMarkPrice
 stopMarketResponse = exchange.cancel_order(stopMarketOrder['id'], symbol)
 pprint(stopMarketResponse)
 
-# Opening and Canceling a pending contract (stop-limit) order 
+# Opening and Canceling a pending contract (stop-limit) order
 stopLimitOrder = exchange.create_order(symbol, 'StopLimit', 'buy', amount, 20000, {'stopPx': 70000, "triggerType": "ByLastPrice"})
 stopLimitResponse = exchange.cancel_order(stopLimitOrder['id'], symbol)
 pprint(stopLimitResponse)

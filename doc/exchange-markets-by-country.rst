@@ -493,7 +493,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - stex
      - `STEX <https://app.stex.com?ref=36416021>`__
      - .. image:: https://img.shields.io/badge/3-lightgray
-          :target: https://help.stex.com/en/collections/1593608-api-v3-documentation
+          :target: https://apidocs.stex.com/
           :alt: API Version 3
      
    * - Estonia
@@ -860,7 +860,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 3
      
    * - Netherlands
-     - .. image:: https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg
+     - .. image:: https://user-images.githubusercontent.com/1294454/169202626-bd130fc5-fcf9-41bb-8d97-6093225c73cd.jpg
           :target: https://bitvavo.com/?a=24F34952F7
           :alt: bitvavo
      
@@ -979,6 +979,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://www.bitmex.com/app/apiOverview
           :alt: API Version 1
+     
+   * - Seychelles
+     - .. image:: https://user-images.githubusercontent.com/1294454/168937923-80d6af4a-43b5-4ed9-9d53-31065656be4f.jpg
+          :target: https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P
+          :alt: coinflex
+     
+     - coinflex
+     - `CoinFLEX <https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P>`__
+     - .. image:: https://img.shields.io/badge/3-lightgray
+          :target: https://docs.coinflex.com/
+          :alt: API Version 3
      
    * - Seychelles
      - .. image:: https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg

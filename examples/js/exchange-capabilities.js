@@ -8,6 +8,9 @@ const csv = process.argv.includes ('--csv')
     , log = require ('ololog').noLocate
     , ansi = require ('ansicolor').nice
     , sortCertified = process.argv.includes ('--sort-certified') || process.argv.includes ('--certified')
+    , exchangesArgument = process.argv.find (arg => arg.startsWith ('--exchanges='))
+    , exchangesArgumentParts = exchangesArgument ? exchangesArgument.split ('=') : []
+    , selectedExchanges = (exchangesArgumentParts.length > 1) ? exchangesArgumentParts[1].split (',') : []
 
 console.log (ccxt.iso8601 (ccxt.milliseconds ()))
 console.log ('CCXT v' + ccxt.version)
@@ -46,6 +49,9 @@ async function main () {
     }, {})
     const unified = Object.entries (reduced).filter (([ _, count ]) => count > 1)
     const methods = unified.map (([ method, _ ]) => method).sort ()
+    if (selectedExchanges.length > 0) {
+        exchanges = exchanges.filter ((exchange) => selectedExchanges.includes(exchange.id))
+    }
     const table = asTable (exchanges.map (exchange => {
         let result = {};
         const basics = [

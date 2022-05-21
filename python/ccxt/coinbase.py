@@ -67,6 +67,7 @@ class coinbase(Exchange):
                 'fetchMySells': True,
                 'fetchMyTrades': None,
                 'fetchOHLCV': False,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': None,
                 'fetchOrder': None,
                 'fetchOrderBook': False,
@@ -545,6 +546,11 @@ class coinbase(Exchange):
         }
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for coinbase
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.fetch_currencies_from_cache(params)
         currencies = self.safe_value(response, 'currencies', {})
         exchangeRates = self.safe_value(response, 'exchangeRates', {})
@@ -696,6 +702,12 @@ class coinbase(Exchange):
         return result
 
     def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         request = {
             # 'currency': 'USD',
@@ -728,6 +740,12 @@ class coinbase(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = self.extend({
@@ -798,6 +816,11 @@ class coinbase(Exchange):
         }, market, False)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         request = {
             'limit': 100,

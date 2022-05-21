@@ -349,6 +349,11 @@ class hitbtc3 extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for hitbtc3
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = $this->publicGetPublicSymbol ($params);
         //
         //     {
@@ -643,6 +648,11 @@ class hitbtc3 extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the hitbtc3 api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $type = $this->safe_string_lower($params, 'type', 'spot');
         $params = $this->omit($params, array( 'type' ));
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
@@ -673,11 +683,23 @@ class hitbtc3 extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the hitbtc3 api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         $response = $this->fetch_tickers(array( $symbol ), $params);
         return $this->safe_value($response, $symbol);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the hitbtc3 api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
         $this->load_markets();
         $request = array();
         if ($symbols !== null) {
@@ -758,6 +780,14 @@ class hitbtc3 extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of $trades to fetch
+         * @param {dict} $params extra parameters specific to the hitbtc3 api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         */
         $this->load_markets();
         $market = null;
         $request = array();
@@ -1086,6 +1116,13 @@ class hitbtc3 extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the hitbtc3 api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         */
         $result = $this->fetch_order_books(array( $symbol ), $limit, $params);
         return $result[$symbol];
     }
@@ -1157,6 +1194,15 @@ class hitbtc3 extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the hitbtc3 api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1513,12 +1559,6 @@ class hitbtc3 extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        $reduceOnly = $this->safe_value_2($params, 'reduce_only', 'reduceOnly');
-        if ($reduceOnly !== null) {
-            if (($market['type'] !== 'swap') && ($market['type'] !== 'margin')) {
-                throw new InvalidOrder($this->id . ' createOrder() does not support reduce_only for ' . $market['type'] . ' orders, reduce_only orders are supported for swap and margin markets only');
-            }
-        }
         $request = array(
             'type' => $type,
             'side' => $side,
@@ -1536,6 +1576,15 @@ class hitbtc3 extends Exchange {
             // 'take_rate' => 0.001, // Optional
             // 'make_rate' => 0.001, // Optional
         );
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        if ($reduceOnly !== null) {
+            if (($market['type'] !== 'swap') && ($market['type'] !== 'margin')) {
+                throw new InvalidOrder($this->id . ' createOrder() does not support reduce_only for ' . $market['type'] . ' orders, reduce_only orders are supported for swap and margin markets only');
+            }
+        }
+        if ($reduceOnly === true) {
+            $request['reduce_only'] = $reduceOnly;
+        }
         $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force');
         $expireTime = $this->safe_string($params, 'expire_time');
         $stopPrice = $this->safe_number_2($params, 'stopPrice', 'stop_price');
@@ -1565,13 +1614,6 @@ class hitbtc3 extends Exchange {
         ));
         $response = $this->$method (array_merge($request, $query));
         return $this->parse_order($response, $market);
-    }
-
-    public function create_reduce_only_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $request = array(
-            'reduce_only' => true,
-        );
-        return $this->create_order($symbol, $type, $side, $amount, $price, array_merge($request, $params));
     }
 
     public function parse_order_status($status) {
@@ -1690,6 +1732,7 @@ class hitbtc3 extends Exchange {
             'side' => $side,
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
+            'reduceOnly' => $this->safe_value($order, 'reduce_only'),
             'filled' => $filled,
             'remaining' => null,
             'cost' => null,
@@ -1816,6 +1859,14 @@ class hitbtc3 extends Exchange {
     }
 
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical funding rate prices
+         * @param {str|null} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int|null} $since timestamp in ms of the earliest funding rate to fetch
+         * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+         * @param {dict} $params extra parameters specific to the hitbtc3 api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+         */
         $this->load_markets();
         $market = null;
         $request = array(
@@ -2170,13 +2221,13 @@ class hitbtc3 extends Exchange {
         //         "positions" => null
         //     }
         //
-        return array_merge($this->parse_modify_margin($response, $market), array(
+        return array_merge($this->parse_margin_modification($response, $market), array(
             'amount' => $this->safe_number($amount),
             'type' => $type,
         ));
     }
 
-    public function parse_modify_margin($data, $market = null) {
+    public function parse_margin_modification($data, $market = null) {
         $currencies = $this->safe_value($data, 'currencies', array());
         $currencyInfo = $this->safe_value($currencies, 0);
         return array(

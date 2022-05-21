@@ -62,6 +62,7 @@ class wavesexchange(Exchange):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -473,6 +474,11 @@ class wavesexchange(Exchange):
             return quotes
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for wavesexchange
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.marketGetTickers()
         #
         #   [
@@ -564,6 +570,13 @@ class wavesexchange(Exchange):
         return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         market = self.market(symbol)
         request = self.extend({
@@ -761,6 +774,12 @@ class wavesexchange(Exchange):
         }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -795,6 +814,15 @@ class wavesexchange(Exchange):
         return self.parse_ticker(ticker, market)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1050,7 +1078,7 @@ class wavesexchange(Exchange):
     def amount_to_precision(self, symbol, amount):
         return int(float(self.to_precision(amount, self.markets[symbol]['precision']['amount'])))
 
-    def currency_to_precision(self, code, amount):
+    def currency_to_precision(self, code, amount, networkCode=None):
         return int(float(self.to_precision(amount, self.currencies[code]['precision'])))
 
     def from_precision(self, amount, scale):
@@ -1518,6 +1546,11 @@ class wavesexchange(Exchange):
             return cachedAddreess
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         # makes a lot of different requests to get all the data
         # in particular:
         # fetchMarkets, getWavesAddress,
@@ -1730,6 +1763,14 @@ class wavesexchange(Exchange):
         return self.parse_trades(data, market, since, limit)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {

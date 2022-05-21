@@ -179,6 +179,8 @@ module.exports = class bitget extends Exchange {
                             'order/history': 2,
                             'order/detail': 2,
                             'order/fills': 2,
+                            'plan/currentPlan': 2,
+                            'plan/historyPlan': 2,
                             'position/singlePosition': 2,
                             'position/allPosition': 2,
                             'trace/currentTrack': 2,
@@ -205,8 +207,6 @@ module.exports = class bitget extends Exchange {
                             'plan/placeTPSL': 2,
                             'plan/modifyTPSLPlan': 2,
                             'plan/cancelPlan': 2,
-                            'plan/currentPlan': 2,
-                            'plan/historyPlan': 2,
                             'trace/closeTrackOrder': 2,
                             'trace/setUpCopySymbols': 2,
                         },
@@ -763,6 +763,13 @@ module.exports = class bitget extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchMarkets
+         * @description retrieves data on all markets for bitget
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const types = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'swap' ]);
         let result = [];
         for (let i = 0; i < types.length; i++) {
@@ -1083,6 +1090,15 @@ module.exports = class bitget extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the bitget api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
@@ -1182,6 +1198,14 @@ module.exports = class bitget extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the bitget api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1217,6 +1241,14 @@ module.exports = class bitget extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the bitget api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'publicSpotGetMarketTickers',
@@ -1321,6 +1353,16 @@ module.exports = class bitget extends Exchange {
     }
 
     async fetchTrades (symbol, limit = undefined, since = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the bitget api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1472,6 +1514,17 @@ module.exports = class bitget extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the bitget api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1512,6 +1565,13 @@ module.exports = class bitget extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the bitget api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const method = this.getSupportedMapping (marketType, {
@@ -1628,11 +1688,30 @@ module.exports = class bitget extends Exchange {
         //       uTime: '1645925450746'
         //     }
         //
+        // stop
+        //
+        //     {
+        //         "orderId": "910246821491617792",
+        //         "symbol": "BTCUSDT_UMCBL",
+        //         "marginCoin": "USDT",
+        //         "size": "16",
+        //         "executePrice": "20000",
+        //         "triggerPrice": "24000",
+        //         "status": "not_trigger",
+        //         "orderType": "limit",
+        //         "planType": "normal_plan",
+        //         "side": "open_long",
+        //         "triggerType": "market_price",
+        //         "presetTakeProfitPrice": "0",
+        //         "presetTakeLossPrice": "0",
+        //         "cTime": "1652745674488"
+        //     }
+        //
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const id = this.safeString (order, 'orderId');
-        const price = this.safeString (order, 'price');
+        const price = this.safeString2 (order, 'price', 'executePrice');
         const amount = this.safeString2 (order, 'quantity', 'size');
         const filled = this.safeString2 (order, 'fillQuantity', 'filledQty');
         const cost = this.safeString2 (order, 'fillTotalAmount', 'filledAmount');
@@ -1663,7 +1742,7 @@ module.exports = class bitget extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'stopPrice': this.safeNumber (order, 'triggerPrice'),
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -1751,7 +1830,7 @@ module.exports = class bitget extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        const method = this.getSupportedMapping (marketType, {
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'privateSpotPostTradeCancelOrder',
             'swap': 'privateMixPostOrderCancelOrder',
         });
@@ -1759,6 +1838,16 @@ module.exports = class bitget extends Exchange {
             'symbol': market['id'],
             'orderId': id,
         };
+        const stop = this.safeValue (params, 'stop');
+        if (stop) {
+            const planType = this.safeString (params, 'planType');
+            if (planType === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan or loss_plan');
+            }
+            request['planType'] = planType;
+            method = 'privateMixPostPlanCancelPlan';
+            params = this.omit (params, [ 'stop', 'planType' ]);
+        }
         if (marketType === 'swap') {
             request['marginCoin'] = market['settleId'];
         }
@@ -1913,10 +2002,15 @@ module.exports = class bitget extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const method = this.getSupportedMapping (marketType, {
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'privateSpotPostTradeOpenOrders',
             'swap': 'privateMixGetOrderCurrent',
         });
+        const stop = this.safeValue (params, 'stop');
+        if (stop) {
+            method = 'privateMixGetPlanCurrentPlan';
+            params = this.omit (params, 'stop');
+        }
         const response = await this[method] (this.extend (request, query));
         //
         //  spot
@@ -1969,6 +2063,32 @@ module.exports = class bitget extends Exchange {
         //           uTime: '1645922194995'
         //         }
         //       ]
+        //     }
+        //
+        // stop
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1652745815697,
+        //         "data": [
+        //             {
+        //                 "orderId": "910246821491617792",
+        //                 "symbol": "BTCUSDT_UMCBL",
+        //                 "marginCoin": "USDT",
+        //                 "size": "16",
+        //                 "executePrice": "20000",
+        //                 "triggerPrice": "24000",
+        //                 "status": "not_trigger",
+        //                 "orderType": "limit",
+        //                 "planType": "normal_plan",
+        //                 "side": "open_long",
+        //                 "triggerType": "market_price",
+        //                 "presetTakeProfitPrice": "0",
+        //                 "presetTakeLossPrice": "0",
+        //                 "cTime": "1652745674488"
+        //             }
+        //         ]
         //     }
         //
         const data = this.safeValue (response, 'data', []);
@@ -2387,6 +2507,16 @@ module.exports = class bitget extends Exchange {
     }
 
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchFundingRateHistory
+         * @description fetches historical funding rate prices
+         * @param {str|undefined} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
+         * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {dict} params extra parameters specific to the bitget api endpoint
+         * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -2513,13 +2643,13 @@ module.exports = class bitget extends Exchange {
         //         }
         //     }
         //
-        return this.extend (this.parseModifyMargin (response, market), {
+        return this.extend (this.parseMarginModification (response, market), {
             'amount': this.parseNumber (amount),
             'type': type,
         });
     }
 
-    parseModifyMargin (data, market = undefined) {
+    parseMarginModification (data, market = undefined) {
         const errorCode = this.safeString (data, 'code');
         const status = (errorCode === '00000') ? 'ok' : 'failed';
         const code = (market['linear']) ? market['quote'] : market['base'];

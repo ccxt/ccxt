@@ -61,7 +61,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [Exchange Structure](#exchange-structure)
 - [Rate Limit](#rate-limit)
 
-The CCXT library currently supports the following 116 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 117 cryptocurrency exchange markets and trading APIs:
 
 | logo                                                                                                                                                                                              | id                 | name                                                                                     | ver                                                                                                                                                | certified                                                                                                                   | pro                                                                          |
 |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
@@ -93,7 +93,7 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
 | [![bitstamp](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)](https://www.bitstamp.net)                                                      | bitstamp           | [Bitstamp](https://www.bitstamp.net)                                                     | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://www.bitstamp.net/api)                                                         |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bitstamp1](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)](https://www.bitstamp.net)                                                     | bitstamp1          | [Bitstamp](https://www.bitstamp.net)                                                     | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.bitstamp.net/api)                                                         |                                                                                                                             |                                                                              |
 | [![bittrex](https://user-images.githubusercontent.com/51840849/87153921-edf53180-c2c0-11ea-96b9-f2a9a95a455b.jpg)](https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B)                 | bittrex            | [Bittrex](https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B)                 | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://bittrex.github.io/api/v3)                                                     |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![bitvavo](https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg)](https://bitvavo.com/?a=24F34952F7)                                              | bitvavo            | [Bitvavo](https://bitvavo.com/?a=24F34952F7)                                             | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.bitvavo.com/)                                                            | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![bitvavo](https://user-images.githubusercontent.com/1294454/169202626-bd130fc5-fcf9-41bb-8d97-6093225c73cd.jpg)](https://bitvavo.com/?a=24F34952F7)                                             | bitvavo            | [Bitvavo](https://bitvavo.com/?a=24F34952F7)                                             | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.bitvavo.com/)                                                            | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bkex](https://user-images.githubusercontent.com/1294454/158043180-bb079a65-69e8-45a2-b393-f094d334e610.jpg)](https://www.bkex.com/)                                                            | bkex               | [BKEX](https://www.bkex.com/)                                                            | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://bkexapi.github.io/docs/api_en.htm)                                            |                                                                                                                             |                                                                              |
 | [![bl3p](https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg)](https://bl3p.eu)                                                                   | bl3p               | [BL3P](https://bl3p.eu)                                                                  | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/BitonicNL/bl3p-api/tree/master/docs)                               |                                                                                                                             |                                                                              |
 | [![blockchaincom](https://user-images.githubusercontent.com/1294454/147515585-1296e91b-7398-45e5-9d32-f6121538533f.jpeg)](https://blockchain.com)                                                 | blockchaincom      | [Blockchain.com](https://blockchain.com)                                                 | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api.blockchain.com/v3)                                                        |                                                                                                                             |                                                                              |
@@ -114,6 +114,7 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
 | [![coincheck](https://user-images.githubusercontent.com/51840849/87182088-1d6d6380-c2ec-11ea-9c64-8ab9f9b289f5.jpg)](https://coincheck.com)                                                       | coincheck          | [coincheck](https://coincheck.com)                                                       | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://coincheck.com/documents/exchange/api)                                         |                                                                                                                             |                                                                              |
 | [![coinex](https://user-images.githubusercontent.com/51840849/87182089-1e05fa00-c2ec-11ea-8da9-cc73b45abbbc.jpg)](https://www.coinex.com/register?refer_code=yw5fz)                               | coinex             | [CoinEx](https://www.coinex.com/register?refer_code=yw5fz)                               | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/coinexcom/coinex_exchange_api/wiki)                                |                                                                                                                             |                                                                              |
 | [![coinfalcon](https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg)](https://coinfalcon.com/?ref=CFJSVGTUPASB)                                    | coinfalcon         | [CoinFalcon](https://coinfalcon.com/?ref=CFJSVGTUPASB)                                   | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.coinfalcon.com)                                                          |                                                                                                                             |                                                                              |
+| [![coinflex](https://user-images.githubusercontent.com/1294454/168937923-80d6af4a-43b5-4ed9-9d53-31065656be4f.jpg)](https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P)           | coinflex           | [CoinFLEX](https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P)           | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://docs.coinflex.com/)                                                           |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![coinmate](https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg)](https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0)     | coinmate           | [CoinMate](https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0)     | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://coinmate.docs.apiary.io)                                                      |                                                                                                                             |                                                                              |
 | [![coinone](https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg)](https://coinone.co.kr)                                                          | coinone            | [CoinOne](https://coinone.co.kr)                                                         | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://doc.coinone.co.kr)                                                            |                                                                                                                             |                                                                              |
 | [![coinspot](https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg)](https://www.coinspot.com.au/register?code=PJURCU)                              | coinspot           | [CoinSpot](https://www.coinspot.com.au/register?code=PJURCU)                             | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://www.coinspot.com.au/api)                                                      |                                                                                                                             |                                                                              |
@@ -164,7 +165,7 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
 | [![probit](https://user-images.githubusercontent.com/51840849/79268032-c4379480-7ea2-11ea-80b3-dd96bb29fd0d.jpg)](https://www.probit.com/r/34608773)                                              | probit             | [ProBit](https://www.probit.com/r/34608773)                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs-en.probit.com)                                                           |                                                                                                                             |                                                                              |
 | [![qtrade](https://user-images.githubusercontent.com/51840849/80491487-74a99c00-896b-11ea-821e-d307e832f13e.jpg)](https://qtrade.io/?ref=BKOQWVFGRH2C)                                            | qtrade             | [qTrade](https://qtrade.io/?ref=BKOQWVFGRH2C)                                            | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://qtrade-exchange.github.io/qtrade-docs)                                        |                                                                                                                             |                                                                              |
 | [![ripio](https://user-images.githubusercontent.com/1294454/94507548-a83d6a80-0218-11eb-9998-28b9cec54165.jpg)](https://exchange.ripio.com)                                                       | ripio              | [Ripio](https://exchange.ripio.com)                                                      | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://exchange.ripio.com/en/api/)                                                   |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![stex](https://user-images.githubusercontent.com/1294454/69680782-03fd0b80-10bd-11ea-909e-7f603500e9cc.jpg)](https://app.stex.com?ref=36416021)                                                 | stex               | [STEX](https://app.stex.com?ref=36416021)                                                | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://help.stex.com/en/collections/1593608-api-v3-documentation)                    |                                                                                                                             |                                                                              |
+| [![stex](https://user-images.githubusercontent.com/1294454/69680782-03fd0b80-10bd-11ea-909e-7f603500e9cc.jpg)](https://app.stex.com?ref=36416021)                                                 | stex               | [STEX](https://app.stex.com?ref=36416021)                                                | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://apidocs.stex.com/)                                                            |                                                                                                                             |                                                                              |
 | [![therock](https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg)](https://therocktrading.com)                                                     | therock            | [TheRockTrading](https://therocktrading.com)                                             | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api.therocktrading.com/doc/v1/index.html)                                     |                                                                                                                             |                                                                              |
 | [![tidebit](https://user-images.githubusercontent.com/51840849/87460811-1e690280-c616-11ea-8652-69f187305add.jpg)](http://bit.ly/2IX0LrM)                                                         | tidebit            | [TideBit](http://bit.ly/2IX0LrM)                                                         | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://www.tidebit.com/documents/api/guide)                                          |                                                                                                                             |                                                                              |
 | [![tidex](https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg)](https://tidex.com/exchange/?ref=57f5638d9cd7)                                     | tidex              | [Tidex](https://tidex.com/exchange/?ref=57f5638d9cd7)                                    | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://tidex.com/exchange/public-api)                                                |                                                                                                                             |                                                                              |
@@ -1873,12 +1874,13 @@ if ($exchange->has['fetchMyTrades']) {
 - [Public Trades](#public-trades)
 - [Exchange Time](#exchange-time)
 - [Exchange Status](#exchange-status)
+- [Borrow Rates](#borrow-rates)
+- [Borrow Rate History](#borrow-rate-history)
 - [Leverage Tiers](#leverage-tiers)
 - [Funding Rate](#funding-rate)
 - [Funding Rate History](#funding-rate-history)
 - [Positions Risk](#positions-risk)
-- [Borrow Rates](#borrow-rates)
-- [Borrow Rate History](#borrow-rate-history)
+- [Open Interest History](#open-interest-history)
 
 ## Order Book
 
@@ -2322,6 +2324,34 @@ The `since` argument is an integer UTC timestamp **in milliseconds** (everywhere
 
 If `since` is not specified the `fetchOHLCV` method will return the time range as is the default from the exchange itself.  This is not a bug. Some exchanges will return candles from the beginning of time, others will return most recent candles only, the exchanges' default behaviour is expected. Thus, without specifying `since` the range of returned candles will be exchange-specific. One should pass  the `since` argument to ensure getting precisely the history range needed.
 
+### Notes On Latency
+
+Trading strategies require fresh up-to-date information for technical analysis, indicators and signals. Building a speculative trading strategy based on the OHLCV candles received from the exchange may have critical drawbacks. Developers should account for the details explained in this section to build successful bots.
+
+First and foremost, when using CCXT you're talking to the exchanges directly. CCXT is not a server, nor a service, it's a software library. All data that you are getting with CCXT is received directly from the exchanges first-hand.
+
+The exchanges usually provide two categories of public market data:
+
+1. Fast primary first-order data that includes real time orderbooks and trades or fills
+2. Slow second-order data that includes secondary tickers and kline OHLCV candles, that are calculated from the first-order data
+
+The primary first-order data is updated by the exchanges APIs in pseudo real time, or as close to real time as possible, as fast as possible. The second-order data requires time for the exchange to calculate it. For example, a ticker is nothing more than a rolling 24-hour statistical cut of orderbooks and trades. OHLCV candles and volumes are also calculated from first-order trades and represent fixed statistical cuts of specific periods. The volume traded within an hour is just a sum of traded volumes of the corresponding trades that happened within that hour.
+
+Obviously, it takes some time for the exchange to collect the first-order data and calculate the secondary statistical data from it. That literally means that **tickers and OHLCVs are always slower than orderbooks and trades**. In other words, there is always some latency in the exchange API between the moment when a trade happens and the moment when a corresponding OHLCV candle is updated or published by the exchange API.
+
+The latency (or how much time is needed by the exchange API for calculating the secondary data) depends on how fast the exchange engine is, so it is exchange-specific. Top exchange engines will usually return and update fresh last-minute OHLCV candles and tickers at a very fast rate. Some exchanges might do it in regular intervals like once a second or once in a few seconds. Slow exchange engines might take minutes to update the secondary statistical information, their APIs might return the current most recent OHLCV candle a few minutes late.
+
+If your strategy depends on the fresh last-minute most recent data you don't want to build it based on tickers or OHLCVs received from the exchange. Tickers and exchanges' OHLCVs are only suitable for display purposes, or for simple trading strategies for hour-timeframes or day-timeframes that are less susceptible to latency.
+
+Thankfully, the developers of time-critical trading strategies don't have to rely on secondary data from the exchanges and can calculate the OHLCVs and tickers in the userland. That may be faster and more efficient than waiting for the exchanges to update the info on their end. One can aggregate the public trade history by polling it frequently and calculate candles by walking over the list of trades. CCXT offers a `buildOHLCVC/build_ohlcvc` base method for that:
+
+- JavaScript: https://github.com/ccxt/ccxt/blob/master/js/base/functions/misc.js#L43
+- Python: https://github.com/ccxt/ccxt/blob/master/python/ccxt/base/exchange.py#L1933
+- PHP: https://github.com/ccxt/ccxt/blob/master/php/Exchange.php#L631
+
+Due to the differences in their internal implementations the exchanges may be faster to update their primary and secondary market data over WebSockets (see https://ccxt.pro). The latency remains exchange-specific, cause the exchange engine still needs time to calculate the secondary data, regardless of whether you're polling it over the RESTful API with CCXT or getting updates via WebSockets with CCXT Pro. WebSockets can improve the networking latency, so a fast exchange will work even better, but adding the support for WS subscriptions will not make a slow exchange engine work much faster.
+
+If you want to stay on top of the second-order data latency, then you will have to calculate it on your side and beat the exchange engine in speed of doing so. Depending on the needs of your application, it may be tricky, since you will need to handle redundancy, "data holes" in the history, exchange downtimes, and other aspects of data aggregation which is a whole universe in itself that is impossible to fully cover in this Manual.
 
 ### OHLCV Structure
 
@@ -2518,6 +2548,91 @@ The possible values in the `status` field are:
 - `'error'` means that either the exchange API is broken, or the implementation of the exchange in CCXT is broken
 - `'maintenance'` means regular maintenance, and the `eta` field should contain the datetime when the exchange is expected to be operational again
 
+## Borrow Rates
+
+*margin only*
+
+When short trading or trading with leverage on a spot market, currency must be borrowed. Interest is accrued for the borrowed currency.
+
+Data on the borrow rate for a currency can be retrieved using
+
+- `fetchBorrowRate ()` for a single currencies borrow rate
+- `fetchBorrowRates ()` for all currencies borrow rates
+- `fetchBorrowRatesPerSymbol ()` for the borrow rates of currencies in individual markets
+
+```Javascript
+fetchBorrowRate (code, params = {})
+```
+
+Parameters
+
+- **code** (String) Unified CCXT currency code, required (e.g. `"USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+
+Returns
+
+- A [transaction structure](#transaction-structure)
+
+```Javascript
+fetchBorrowRates (params = {})
+```
+
+Parameters
+
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+
+Returns
+
+- A dictionary of [borrow rate structures](#borrow-rate-structure) with unified currency codes as keys
+
+```Javascript
+fetchBorrowRatesPerSymbol (params = {})
+```
+
+Parameters
+
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+
+Returns
+
+- A dictionary of [borrow rate structures](#borrow-rate-structure) with unified market symbols as keys
+
+
+### Borrow Rate Structure
+
+```JavaScript
+{
+  currency: 'USDT',  // Unified currency code
+  rate: 0.0006,  // A ratio of the rate that interest is accrued at
+  period: 86400000,  // The amount of time in milliseconds that is required to accrue the interest amount specified by rate
+  timestamp: 1646956800000,  // Timestamp for when the currency had this rate
+  datetime: '2022-03-11T00:00:00.000Z',  // Datetime for when the currency had this rate
+  info: [ ... ]
+}
+```
+
+## Borrow Rate History
+
+*margin only*
+
+The `fetchBorrowRateHistory` method retrieves a history of a currencies borrow interest rate at specific time slots
+
+```Javascript
+fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **code** (String) *required* Unified CCXT currency code (e.g. `"USDT"`)
+- **since** (Integer) Timestamp for the earliest borrow rate (e.g. `1645807945000`)
+- **limit** (Integer) The maximum number of [borrow rate structures](#borrow-rate-structure) to retrieve (e.g. `10`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [borrow rate structures](#borrow-rate-structure)
+
+
 ## Leverage Tiers
 
 *contract only*
@@ -2696,89 +2811,45 @@ Returns
 }
 ```
 
-## Borrow Rates
+## Open Interest History
 
-*margin only*
+*contract only*
 
-When short trading or trading with leverage on a spot market, currency must be borrowed. Interest is accrued for the borrowed currency.
-
-Data on the borrow rate for a currency can be retrieved using
-
-- `fetchBorrowRate ()` for a single currencies borrow rate
-- `fetchBorrowRates ()` for all currencies borrow rates
-- `fetchBorrowRatesPerSymbol ()` for the borrow rates of currencies in individual markets
-
-```Javascript
-fetchBorrowRate (code, params = {})
-```
-
-Parameters
-
-- **code** (String) Unified CCXT currency code, required (e.g. `"USDT"`)
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
-
-Returns
-
-- A [transaction structure](#transaction-structure)
-
-```Javascript
-fetchBorrowRates (params = {})
-```
-
-Parameters
-
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
-
-Returns
-
-- A dictionary of [borrow rate structures](#borrow-rate-structure) with unified currency codes as keys
-
-```Javascript
-fetchBorrowRatesPerSymbol (params = {})
-```
-
-Parameters
-
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
-
-Returns
-
-- A dictionary of [borrow rate structures](#borrow-rate-structure) with unified market symbols as keys
-
-
-### Borrow Rate Structure
+Use the `fetchOpenInterestHistory` method to get a history of open interest for a symbol from the exchange.
 
 ```JavaScript
-{
-  currency: 'USDT',  // Unified currency code
-  rate: 0.0006,  // A ratio of the rate that interest is accrued at
-  period: 86400000,  // The amount of time in milliseconds that is required to accrue the interest amount specified by rate
-  timestamp: 1646956800000,  // Timestamp for when the currency had this rate
-  datetime: '2022-03-11T00:00:00.000Z',  // Datetime for when the currency had this rate
-  info: [ ... ]
-}
-```
-
-## Borrow Rate History
-
-*margin only*
-
-The `fetchBorrowRateHistory` method retrieves a history of a currencies borrow interest rate at specific time slots
-
-```Javascript
-fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {})
+fetchOpenInterestHistory (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {})
 ```
 
 Parameters
 
-- **code** (String) *required* Unified CCXT currency code (e.g. `"USDT"`)
-- **since** (Integer) Timestamp for the earliest borrow rate (e.g. `1645807945000`)
-- **limit** (Integer) The maximum number of [borrow rate structures](#borrow-rate-structure) to retrieve (e.g. `10`)
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **timeframe** (String) Check exchange.timeframes for available values
+- **since** (Integer) Timestamp for the earliest open interest record (e.g. `1645807945000`)
+- **limit** (Integer) The maximum number of [open interest structures](#open-interest-structures) to retrieve (e.g. `10`)
 - **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 Returns
 
-- An array of [borrow rate structures](#borrow-rate-structure)
+- An array of [open interest structures](#open-interest-structure)
+
+### Open Interest Structure
+
+```JavaScript
+{
+    symbol: 'BTC/USDT',
+    baseVolume: 80872.801,
+    quoteVolume: 3508262107.38,
+    timestamp: 1649379000000,
+    datetime: '2022-04-08T00:50:00.000Z',
+    info: {
+        symbol: 'BTCUSDT',
+        sumOpenInterest: '80872.80100000',
+        sumOpenInterestValue: '3508262107.38000000',
+        timestamp: '1649379000000'
+    }
+}
+```
 
 ## Positions Risk
 
@@ -4854,11 +4925,48 @@ Returns
 }
 ```
 
+## Borrow Interest
+
+* margin only
+
+To trade with leverage in spot or margin markets, currency must be borrowed as a loan. This borrowed currency must be payed back with interest. To obtain the amount of interest that has accrued you can use the `fetchBorrowInterest` method
+
+```JavaScript
+fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **code** (String) The unified currency code for the currency of the interest (e.g. `"USDT"`)
+- **symbol** (String) The market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned (e.g. `"BTC/USDT:USDT"`)
+- **since** (Integer) Timestamp (ms) of the earliest time to receive interest records for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [borrow interest structures](#borrow-interest-structure) to retrieve (e.g. `5`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [borrow interest structures](#borrow-interest-structure)
+
+### Borrow Interest Structure
+
+```JavaScript
+{
+    account: 'BTC/USDT',                    // The market that the interest was accrued in
+    currency: 'USDT',                       // The currency of the interest
+    interest: 0.00004842,                   // The amount of interest that was charged
+    interestRate: 0.0002,                   // The borrow interest rate
+    amountBorrowed: 5.81,                   // The amount of currency that was borrowed
+    timestamp: 1648699200000,               // The timestamp that the interest was charged
+    datetime: '2022-03-31T04:00:00.000Z',   // The datetime that the interest was charged
+    info: { ... }                           // Unparsed exchange response
+}
+```
+
 ## Margin
 
 *margin and contract only*
 
-To increase or reduce your margin balance (collateral) in an open leveraged position, use `addMargin`  and `reduceMargin` respectively. This is kind of like adjusting the amount of leverage you're using with a position that's already open.
+To increase, reduce or set your margin balance (collateral) in an open leveraged position, use `addMargin`, `reduceMargin` and `setMargin` respectively. This is kind of like adjusting the amount of leverage you're using with a position that's already open.
 
 Some scenarios to use these methods include
 - if the trade is going against you, you can add margin to, reducing the risk of liquidation
@@ -4867,6 +4975,7 @@ Some scenarios to use these methods include
 ```Javascript
 addMargin (symbol, amount, params = {})
 reduceMargin (symbol, amount, params = {})
+setMargin (symbol, amount, params = {})
 ```
 
 Parameters
@@ -4884,8 +4993,9 @@ Returns
 ```JavaScript
 {
     info: { ... },
-    type: 'add',
-    amount: 1,
+    type: 'add', // 'add', 'reduce', 'set'
+    amount: 1, // amount added, reduced, or set
+    total: 2,  // total margin or undefined if not specified by the exchange
     code: 'USDT',
     symbol: 'XRP/USDT:USDT',
     status: 'ok'
@@ -5101,42 +5211,6 @@ Returns
 }
 ```
 
-## Borrow Interest
-
-* margin only
-
-To trade with leverage in spot or margin markets, currency must be borrowed as a loan. This borrowed currency must be payed back with interest. To obtain the amount of interest that has accrued you can use the `fetchBorrowInterest` method
-
-```JavaScript
-fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {})
-```
-
-Parameters
-
-- **code** (String) The unified currency code for the currency of the interest (e.g. `"USDT"`)
-- **symbol** (String) The market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned (e.g. `"BTC/USDT:USDT"`)
-- **since** (Integer) Timestamp (ms) of the earliest time to receive interest records for (e.g. `1646940314000`)
-- **limit** (Integer) The number of [borrow interest structures](#borrow-interest-structure) to retrieve (e.g. `5`)
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
-
-Returns
-
-- An array of [borrow interest structures](#borrow-interest-structure)
-
-### Borrow Interest Structure
-
-```JavaScript
-{
-    account: 'BTC/USDT',                    // The market that the interest was accrued in
-    currency: 'USDT',                       // The currency of the interest
-    interest: 0.00004842,                   // The amount of interest that was charged
-    interestRate: 0.0002,                   // The borrow interest rate
-    amountBorrowed: 5.81,                   // The amount of currency that was borrowed
-    timestamp: 1648699200000,               // The timestamp that the interest was charged
-    datetime: '2022-03-31T04:00:00.000Z',   // The datetime that the interest was charged
-    info: { ... }                           // Unparsed exchange response
-}
-```
 
 # Error Handling
 

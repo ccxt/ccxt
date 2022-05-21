@@ -198,6 +198,8 @@ class bitget(Exchange):
                             'order/history': 2,
                             'order/detail': 2,
                             'order/fills': 2,
+                            'plan/currentPlan': 2,
+                            'plan/historyPlan': 2,
                             'position/singlePosition': 2,
                             'position/allPosition': 2,
                             'trace/currentTrack': 2,
@@ -224,8 +226,6 @@ class bitget(Exchange):
                             'plan/placeTPSL': 2,
                             'plan/modifyTPSLPlan': 2,
                             'plan/cancelPlan': 2,
-                            'plan/currentPlan': 2,
-                            'plan/historyPlan': 2,
                             'trace/closeTrackOrder': 2,
                             'trace/setUpCopySymbols': 2,
                         },
@@ -780,6 +780,11 @@ class bitget(Exchange):
         return self.safe_integer(response, 'data')
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bitget
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         types = self.safe_value(self.options, 'fetchMarkets', ['spot', 'swap'])
         result = []
         for i in range(0, len(types)):
@@ -1086,6 +1091,13 @@ class bitget(Exchange):
         return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('fetchOrderBook', market, params)
@@ -1182,6 +1194,12 @@ class bitget(Exchange):
         }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1216,6 +1234,12 @@ class bitget(Exchange):
         return self.parse_ticker(data, market)
 
     def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         marketType, query = self.handle_market_type_and_params('fetchTickers', None, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'publicSpotGetMarketTickers',
@@ -1316,6 +1340,14 @@ class bitget(Exchange):
         }, market)
 
     def fetch_trades(self, symbol, limit=None, since=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1460,6 +1492,15 @@ class bitget(Exchange):
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1494,6 +1535,11 @@ class bitget(Exchange):
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
         method = self.get_supported_mapping(marketType, {
@@ -1605,11 +1651,30 @@ class bitget(Exchange):
         #       uTime: '1645925450746'
         #     }
         #
+        # stop
+        #
+        #     {
+        #         "orderId": "910246821491617792",
+        #         "symbol": "BTCUSDT_UMCBL",
+        #         "marginCoin": "USDT",
+        #         "size": "16",
+        #         "executePrice": "20000",
+        #         "triggerPrice": "24000",
+        #         "status": "not_trigger",
+        #         "orderType": "limit",
+        #         "planType": "normal_plan",
+        #         "side": "open_long",
+        #         "triggerType": "market_price",
+        #         "presetTakeProfitPrice": "0",
+        #         "presetTakeLossPrice": "0",
+        #         "cTime": "1652745674488"
+        #     }
+        #
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId)
         symbol = market['symbol']
         id = self.safe_string(order, 'orderId')
-        price = self.safe_string(order, 'price')
+        price = self.safe_string_2(order, 'price', 'executePrice')
         amount = self.safe_string_2(order, 'quantity', 'size')
         filled = self.safe_string_2(order, 'fillQuantity', 'filledQty')
         cost = self.safe_string_2(order, 'fillTotalAmount', 'filledAmount')
@@ -1639,7 +1704,7 @@ class bitget(Exchange):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
+            'stopPrice': self.safe_number(order, 'triggerPrice'),
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -1724,6 +1789,14 @@ class bitget(Exchange):
             'symbol': market['id'],
             'orderId': id,
         }
+        stop = self.safe_value(params, 'stop')
+        if stop:
+            planType = self.safe_string(params, 'planType')
+            if planType is None:
+                raise ArgumentsRequired(self.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan or loss_plan')
+            request['planType'] = planType
+            method = 'privateMixPostPlanCancelPlan'
+            params = self.omit(params, ['stop', 'planType'])
         if marketType == 'swap':
             request['marginCoin'] = market['settleId']
         response = getattr(self, method)(self.extend(request, query))
@@ -1873,6 +1946,10 @@ class bitget(Exchange):
             'spot': 'privateSpotPostTradeOpenOrders',
             'swap': 'privateMixGetOrderCurrent',
         })
+        stop = self.safe_value(params, 'stop')
+        if stop:
+            method = 'privateMixGetPlanCurrentPlan'
+            params = self.omit(params, 'stop')
         response = getattr(self, method)(self.extend(request, query))
         #
         #  spot
@@ -1925,6 +2002,32 @@ class bitget(Exchange):
         #           uTime: '1645922194995'
         #         }
         #       ]
+        #     }
+        #
+        # stop
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1652745815697,
+        #         "data": [
+        #             {
+        #                 "orderId": "910246821491617792",
+        #                 "symbol": "BTCUSDT_UMCBL",
+        #                 "marginCoin": "USDT",
+        #                 "size": "16",
+        #                 "executePrice": "20000",
+        #                 "triggerPrice": "24000",
+        #                 "status": "not_trigger",
+        #                 "orderType": "limit",
+        #                 "planType": "normal_plan",
+        #                 "side": "open_long",
+        #                 "triggerType": "market_price",
+        #                 "presetTakeProfitPrice": "0",
+        #                 "presetTakeLossPrice": "0",
+        #                 "cTime": "1652745674488"
+        #             }
+        #         ]
         #     }
         #
         data = self.safe_value(response, 'data', [])
@@ -2319,6 +2422,14 @@ class bitget(Exchange):
         }
 
     def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches historical funding rate prices
+        :param str|None symbol: unified symbol of the market to fetch the funding rate history for
+        :param int|None since: timestamp in ms of the earliest funding rate to fetch
+        :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         self.load_markets()
@@ -2438,12 +2549,12 @@ class bitget(Exchange):
         #         }
         #     }
         #
-        return self.extend(self.parse_modify_margin(response, market), {
+        return self.extend(self.parse_margin_modification(response, market), {
             'amount': self.parse_number(amount),
             'type': type,
         })
 
-    def parse_modify_margin(self, data, market=None):
+    def parse_margin_modification(self, data, market=None):
         errorCode = self.safe_string(data, 'code')
         status = 'ok' if (errorCode == '00000') else 'failed'
         code = market['quote'] if (market['linear']) else market['base']

@@ -44,6 +44,8 @@ class bitmex(Exchange):
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRateHistory': True,
                 'fetchIndexOHLCV': False,
                 'fetchLedger': True,
                 'fetchLeverageTiers': False,
@@ -211,6 +213,11 @@ class bitmex(Exchange):
         })
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bitmex
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.publicGetInstrumentActiveAndIndices(params)
         #
         #    {
@@ -486,6 +493,11 @@ class bitmex(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         request = {
             'currency': 'all',
@@ -541,6 +553,13 @@ class bitmex(Exchange):
         return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -927,6 +946,12 @@ class bitmex(Exchange):
         }
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         tickers = await self.fetch_tickers([market['symbol']], params)
@@ -936,8 +961,125 @@ class bitmex(Exchange):
         return ticker
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         response = await self.publicGetInstrumentActiveAndIndices(params)
+        #
+        #     [
+        #         {
+        #             "symbol":".EVOL7D",
+        #             "rootSymbol":"EVOL",
+        #             "state":"Unlisted",
+        #             "typ":"MRIXXX",
+        #             "listing":null,
+        #             "front":null,
+        #             "expiry":null,
+        #             "settle":null,
+        #             "listedSettle":null,
+        #             "relistInterval":null,
+        #             "inverseLeg":"",
+        #             "sellLeg":"",
+        #             "buyLeg":"",
+        #             "optionStrikePcnt":null,
+        #             "optionStrikeRound":null,
+        #             "optionStrikePrice":null,
+        #             "optionMultiplier":null,
+        #             "positionCurrency":"",
+        #             "underlying":"ETH",
+        #             "quoteCurrency":"XXX",
+        #             "underlyingSymbol":".EVOL7D",
+        #             "reference":"BMI",
+        #             "referenceSymbol":".BETHXBT",
+        #             "calcInterval":"2000-01-08T00:00:00.000Z",
+        #             "publishInterval":"2000-01-01T00:05:00.000Z",
+        #             "publishTime":null,
+        #             "maxOrderQty":null,
+        #             "maxPrice":null,
+        #             "lotSize":null,
+        #             "tickSize":0.01,
+        #             "multiplier":null,
+        #             "settlCurrency":"",
+        #             "underlyingToPositionMultiplier":null,
+        #             "underlyingToSettleMultiplier":null,
+        #             "quoteToSettleMultiplier":null,
+        #             "isQuanto":false,
+        #             "isInverse":false,
+        #             "initMargin":null,
+        #             "maintMargin":null,
+        #             "riskLimit":null,
+        #             "riskStep":null,
+        #             "limit":null,
+        #             "capped":false,
+        #             "taxed":false,
+        #             "deleverage":false,
+        #             "makerFee":null,
+        #             "takerFee":null,
+        #             "settlementFee":null,
+        #             "insuranceFee":null,
+        #             "fundingBaseSymbol":"",
+        #             "fundingQuoteSymbol":"",
+        #             "fundingPremiumSymbol":"",
+        #             "fundingTimestamp":null,
+        #             "fundingInterval":null,
+        #             "fundingRate":null,
+        #             "indicativeFundingRate":null,
+        #             "rebalanceTimestamp":null,
+        #             "rebalanceInterval":null,
+        #             "openingTimestamp":null,
+        #             "closingTimestamp":null,
+        #             "sessionInterval":null,
+        #             "prevClosePrice":null,
+        #             "limitDownPrice":null,
+        #             "limitUpPrice":null,
+        #             "bankruptLimitDownPrice":null,
+        #             "bankruptLimitUpPrice":null,
+        #             "prevTotalVolume":null,
+        #             "totalVolume":null,
+        #             "volume":null,
+        #             "volume24h":null,
+        #             "prevTotalTurnover":null,
+        #             "totalTurnover":null,
+        #             "turnover":null,
+        #             "turnover24h":null,
+        #             "homeNotional24h":null,
+        #             "foreignNotional24h":null,
+        #             "prevPrice24h":5.27,
+        #             "vwap":null,
+        #             "highPrice":null,
+        #             "lowPrice":null,
+        #             "lastPrice":4.72,
+        #             "lastPriceProtected":null,
+        #             "lastTickDirection":"ZeroMinusTick",
+        #             "lastChangePcnt":-0.1044,
+        #             "bidPrice":null,
+        #             "midPrice":null,
+        #             "askPrice":null,
+        #             "impactBidPrice":null,
+        #             "impactMidPrice":null,
+        #             "impactAskPrice":null,
+        #             "hasLiquidity":false,
+        #             "openInterest":null,
+        #             "openValue":0,
+        #             "fairMethod":"",
+        #             "fairBasisRate":null,
+        #             "fairBasis":null,
+        #             "fairPrice":null,
+        #             "markMethod":"LastPrice",
+        #             "markPrice":4.72,
+        #             "indicativeTaxRate":null,
+        #             "indicativeSettlePrice":null,
+        #             "optionUnderlyingPrice":null,
+        #             "settledPriceAdjustmentRate":null,
+        #             "settledPrice":null,
+        #             "timestamp":"2022-05-21T04:30:00.000Z"
+        #         }
+        #     ]
+        #
         result = {}
         for i in range(0, len(response)):
             ticker = self.parse_ticker(response[i])
@@ -950,7 +1092,8 @@ class bitmex(Exchange):
                 symbol = symbols[i]
                 market = self.market(symbol)
                 uniformSymbols.append(market['symbol'])
-        return self.filter_by_array(result, 'symbol', uniformSymbols)
+            return self.filter_by_array(result, 'symbol', uniformSymbols)
+        return result
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -1115,6 +1258,15 @@ class bitmex(Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         # send JSON key/value pairs, such as {"key": "value"}
         # filter by individual fields and do advanced queries on timestamps
@@ -1382,6 +1534,14 @@ class bitmex(Exchange):
         }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1666,6 +1826,336 @@ class bitmex(Exchange):
         }
         response = await self.privatePostUserRequestWithdrawal(self.extend(request, params))
         return self.parse_transaction(response, currency)
+
+    async def fetch_funding_rates(self, symbols=None, params={}):
+        await self.load_markets()
+        response = await self.publicGetInstrumentActiveAndIndices(params)
+        #
+        #    [
+        #        {
+        #            "symbol": "LTCUSDT",
+        #            "rootSymbol": "LTC",
+        #            "state": "Open",
+        #            "typ": "FFWCSX",
+        #            "listing": "2021-11-10T04:00:00.000Z",
+        #            "front": "2021-11-10T04:00:00.000Z",
+        #            "expiry": null,
+        #            "settle": null,
+        #            "listedSettle": null,
+        #            "relistInterval": null,
+        #            "inverseLeg": "",
+        #            "sellLeg": "",
+        #            "buyLeg": "",
+        #            "optionStrikePcnt": null,
+        #            "optionStrikeRound": null,
+        #            "optionStrikePrice": null,
+        #            "optionMultiplier": null,
+        #            "positionCurrency": "LTC",
+        #            "underlying": "LTC",
+        #            "quoteCurrency": "USDT",
+        #            "underlyingSymbol": "LTCT=",
+        #            "reference": "BMEX",
+        #            "referenceSymbol": ".BLTCT",
+        #            "calcInterval": null,
+        #            "publishInterval": null,
+        #            "publishTime": null,
+        #            "maxOrderQty": 1000000000,
+        #            "maxPrice": 1000000,
+        #            "lotSize": 1000,
+        #            "tickSize": 0.01,
+        #            "multiplier": 100,
+        #            "settlCurrency": "USDt",
+        #            "underlyingToPositionMultiplier": 10000,
+        #            "underlyingToSettleMultiplier": null,
+        #            "quoteToSettleMultiplier": 1000000,
+        #            "isQuanto": False,
+        #            "isInverse": False,
+        #            "initMargin": 0.03,
+        #            "maintMargin": 0.015,
+        #            "riskLimit": 1000000000000,
+        #            "riskStep": 1000000000000,
+        #            "limit": null,
+        #            "capped": False,
+        #            "taxed": True,
+        #            "deleverage": True,
+        #            "makerFee": -0.0001,
+        #            "takerFee": 0.0005,
+        #            "settlementFee": 0,
+        #            "insuranceFee": 0,
+        #            "fundingBaseSymbol": ".LTCBON8H",
+        #            "fundingQuoteSymbol": ".USDTBON8H",
+        #            "fundingPremiumSymbol": ".LTCUSDTPI8H",
+        #            "fundingTimestamp": "2022-01-14T20:00:00.000Z",
+        #            "fundingInterval": "2000-01-01T08:00:00.000Z",
+        #            "fundingRate": 0.0001,
+        #            "indicativeFundingRate": 0.0001,
+        #            "rebalanceTimestamp": null,
+        #            "rebalanceInterval": null,
+        #            "openingTimestamp": "2022-01-14T17:00:00.000Z",
+        #            "closingTimestamp": "2022-01-14T18:00:00.000Z",
+        #            "sessionInterval": "2000-01-01T01:00:00.000Z",
+        #            "prevClosePrice": 138.511,
+        #            "limitDownPrice": null,
+        #            "limitUpPrice": null,
+        #            "bankruptLimitDownPrice": null,
+        #            "bankruptLimitUpPrice": null,
+        #            "prevTotalVolume": 12699024000,
+        #            "totalVolume": 12702160000,
+        #            "volume": 3136000,
+        #            "volume24h": 114251000,
+        #            "prevTotalTurnover": 232418052349000,
+        #            "totalTurnover": 232463353260000,
+        #            "turnover": 45300911000,
+        #            "turnover24h": 1604331340000,
+        #            "homeNotional24h": 11425.1,
+        #            "foreignNotional24h": 1604331.3400000003,
+        #            "prevPrice24h": 135.48,
+        #            "vwap": 140.42165,
+        #            "highPrice": 146.42,
+        #            "lowPrice": 135.08,
+        #            "lastPrice": 144.36,
+        #            "lastPriceProtected": 144.36,
+        #            "lastTickDirection": "MinusTick",
+        #            "lastChangePcnt": 0.0655,
+        #            "bidPrice": 143.75,
+        #            "midPrice": 143.855,
+        #            "askPrice": 143.96,
+        #            "impactBidPrice": 143.75,
+        #            "impactMidPrice": 143.855,
+        #            "impactAskPrice": 143.96,
+        #            "hasLiquidity": True,
+        #            "openInterest": 38103000,
+        #            "openValue": 547963053300,
+        #            "fairMethod": "FundingRate",
+        #            "fairBasisRate": 0.1095,
+        #            "fairBasis": 0.004,
+        #            "fairPrice": 143.811,
+        #            "markMethod": "FairPrice",
+        #            "markPrice": 143.811,
+        #            "indicativeTaxRate": null,
+        #            "indicativeSettlePrice": 143.807,
+        #            "optionUnderlyingPrice": null,
+        #            "settledPriceAdjustmentRate": null,
+        #            "settledPrice": null,
+        #            "timestamp": "2022-01-14T17:49:55.000Z"
+        #        }
+        #    ]
+        #
+        filteredResponse = []
+        for i in range(0, len(response)):
+            item = response[i]
+            marketId = self.safe_string(item, 'symbol')
+            market = self.safe_market(marketId)
+            swap = self.safe_value(market, 'swap', False)
+            if swap:
+                filteredResponse.append(item)
+        return self.parse_funding_rates(filteredResponse, symbols)
+
+    def parse_funding_rate(self, premiumIndex, market=None):
+        #
+        #    {
+        #        "symbol": "LTCUSDT",
+        #        "rootSymbol": "LTC",
+        #        "state": "Open",
+        #        "typ": "FFWCSX",
+        #        "listing": "2021-11-10T04:00:00.000Z",
+        #        "front": "2021-11-10T04:00:00.000Z",
+        #        "expiry": null,
+        #        "settle": null,
+        #        "listedSettle": null,
+        #        "relistInterval": null,
+        #        "inverseLeg": "",
+        #        "sellLeg": "",
+        #        "buyLeg": "",
+        #        "optionStrikePcnt": null,
+        #        "optionStrikeRound": null,
+        #        "optionStrikePrice": null,
+        #        "optionMultiplier": null,
+        #        "positionCurrency": "LTC",
+        #        "underlying": "LTC",
+        #        "quoteCurrency": "USDT",
+        #        "underlyingSymbol": "LTCT=",
+        #        "reference": "BMEX",
+        #        "referenceSymbol": ".BLTCT",
+        #        "calcInterval": null,
+        #        "publishInterval": null,
+        #        "publishTime": null,
+        #        "maxOrderQty": 1000000000,
+        #        "maxPrice": 1000000,
+        #        "lotSize": 1000,
+        #        "tickSize": 0.01,
+        #        "multiplier": 100,
+        #        "settlCurrency": "USDt",
+        #        "underlyingToPositionMultiplier": 10000,
+        #        "underlyingToSettleMultiplier": null,
+        #        "quoteToSettleMultiplier": 1000000,
+        #        "isQuanto": False,
+        #        "isInverse": False,
+        #        "initMargin": 0.03,
+        #        "maintMargin": 0.015,
+        #        "riskLimit": 1000000000000,
+        #        "riskStep": 1000000000000,
+        #        "limit": null,
+        #        "capped": False,
+        #        "taxed": True,
+        #        "deleverage": True,
+        #        "makerFee": -0.0001,
+        #        "takerFee": 0.0005,
+        #        "settlementFee": 0,
+        #        "insuranceFee": 0,
+        #        "fundingBaseSymbol": ".LTCBON8H",
+        #        "fundingQuoteSymbol": ".USDTBON8H",
+        #        "fundingPremiumSymbol": ".LTCUSDTPI8H",
+        #        "fundingTimestamp": "2022-01-14T20:00:00.000Z",
+        #        "fundingInterval": "2000-01-01T08:00:00.000Z",
+        #        "fundingRate": 0.0001,
+        #        "indicativeFundingRate": 0.0001,
+        #        "rebalanceTimestamp": null,
+        #        "rebalanceInterval": null,
+        #        "openingTimestamp": "2022-01-14T17:00:00.000Z",
+        #        "closingTimestamp": "2022-01-14T18:00:00.000Z",
+        #        "sessionInterval": "2000-01-01T01:00:00.000Z",
+        #        "prevClosePrice": 138.511,
+        #        "limitDownPrice": null,
+        #        "limitUpPrice": null,
+        #        "bankruptLimitDownPrice": null,
+        #        "bankruptLimitUpPrice": null,
+        #        "prevTotalVolume": 12699024000,
+        #        "totalVolume": 12702160000,
+        #        "volume": 3136000,
+        #        "volume24h": 114251000,
+        #        "prevTotalTurnover": 232418052349000,
+        #        "totalTurnover": 232463353260000,
+        #        "turnover": 45300911000,
+        #        "turnover24h": 1604331340000,
+        #        "homeNotional24h": 11425.1,
+        #        "foreignNotional24h": 1604331.3400000003,
+        #        "prevPrice24h": 135.48,
+        #        "vwap": 140.42165,
+        #        "highPrice": 146.42,
+        #        "lowPrice": 135.08,
+        #        "lastPrice": 144.36,
+        #        "lastPriceProtected": 144.36,
+        #        "lastTickDirection": "MinusTick",
+        #        "lastChangePcnt": 0.0655,
+        #        "bidPrice": 143.75,
+        #        "midPrice": 143.855,
+        #        "askPrice": 143.96,
+        #        "impactBidPrice": 143.75,
+        #        "impactMidPrice": 143.855,
+        #        "impactAskPrice": 143.96,
+        #        "hasLiquidity": True,
+        #        "openInterest": 38103000,
+        #        "openValue": 547963053300,
+        #        "fairMethod": "FundingRate",
+        #        "fairBasisRate": 0.1095,
+        #        "fairBasis": 0.004,
+        #        "fairPrice": 143.811,
+        #        "markMethod": "FairPrice",
+        #        "markPrice": 143.811,
+        #        "indicativeTaxRate": null,
+        #        "indicativeSettlePrice": 143.807,
+        #        "optionUnderlyingPrice": null,
+        #        "settledPriceAdjustmentRate": null,
+        #        "settledPrice": null,
+        #        "timestamp": "2022-01-14T17:49:55.000Z"
+        #    }
+        #
+        datetime = self.safe_string(premiumIndex, 'timestamp')
+        marketId = self.safe_string(premiumIndex, 'symbol')
+        fundingDatetime = self.safe_string(premiumIndex, 'fundingTimestamp')
+        return {
+            'info': premiumIndex,
+            'symbol': self.safe_symbol(marketId, market),
+            'markPrice': self.safe_number(premiumIndex, 'markPrice'),
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': self.safe_number(premiumIndex, 'indicativeSettlePrice'),
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+            'fundingRate': self.safe_number(premiumIndex, 'fundingRate'),
+            'fundingTimestamp': self.iso8601(fundingDatetime),
+            'fundingDatetime': fundingDatetime,
+            'nextFundingRate': self.safe_number(premiumIndex, 'indicativeFundingRate'),
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+        }
+
+    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+        """
+        Fetches the history of funding rates
+        :param str|None symbol: unified symbol of the market to fetch the funding rate history for
+        :param int|None since: timestamp in ms of the earliest funding rate to fetch
+        :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :param int|None params['till']: timestamp in ms for ending date filter
+        :param bool|None params['reverse']: if True, will sort results newest first
+        :param int|None params['start']: starting point for results
+        :param str|None params['columns']: array of column names to fetch in info, if omitted, will return all columns
+        :param str|None params['filter']: generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the `timestamp docs <https://www.bitmex.com/app/restAPI#Timestamp-Filters>` for more details
+        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        """
+        await self.load_markets()
+        request = {}
+        market = None
+        if symbol in self.currencies:
+            code = self.currency(symbol)
+            request['symbol'] = code['id']
+        elif symbol is not None:
+            splitSymbol = symbol.split(':')
+            splitSymbolLength = len(splitSymbol)
+            timeframes = ['nearest', 'daily', 'weekly', 'monthly', 'quarterly', 'biquarterly', 'perpetual']
+            if (splitSymbolLength > 1) and self.in_array(splitSymbol[1], timeframes):
+                code = self.currency(splitSymbol[0])
+                symbol = code['id'] + ':' + splitSymbol[1]
+                request['symbol'] = symbol
+            else:
+                market = self.market(symbol)
+                request['symbol'] = market['id']
+        if since is not None:
+            request['startTime'] = self.iso8601(since)
+        if limit is not None:
+            request['count'] = limit
+        till = self.safe_integer(params, 'till')
+        params = self.omit(params, ['till'])
+        if till is not None:
+            request['endTime'] = self.iso8601(till)
+        response = await self.publicGetFunding(self.extend(request, params))
+        #
+        #    [
+        #        {
+        #            "timestamp": "2016-05-07T12:00:00.000Z",
+        #            "symbol": "ETHXBT",
+        #            "fundingInterval": "2000-01-02T00:00:00.000Z",
+        #            "fundingRate": 0.0010890000000000001,
+        #            "fundingRateDaily": 0.0010890000000000001
+        #        }
+        #    ]
+        #
+        return self.parse_funding_rate_histories(response, market, since, limit)
+
+    def parse_funding_rate_history(self, info, market=None):
+        #
+        #    {
+        #        "timestamp": "2016-05-07T12:00:00.000Z",
+        #        "symbol": "ETHXBT",
+        #        "fundingInterval": "2000-01-02T00:00:00.000Z",
+        #        "fundingRate": 0.0010890000000000001,
+        #        "fundingRateDaily": 0.0010890000000000001
+        #    }
+        #
+        marketId = self.safe_string(info, 'symbol')
+        datetime = self.safe_string(info, 'timestamp')
+        return {
+            'info': info,
+            'symbol': self.safe_symbol(marketId, market),
+            'fundingRate': self.safe_number(info, 'fundingRate'),
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+        }
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

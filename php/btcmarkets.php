@@ -48,6 +48,7 @@ class btcmarkets extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -65,6 +66,7 @@ class btcmarkets extends Exchange {
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'withdraw' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/89731817-b3fb8480-da52-11ea-817f-783b08aaf32b.jpg',
@@ -193,9 +195,12 @@ class btcmarkets extends Exchange {
     }
 
     public function parse_transaction_status($status) {
-        // todo => find more $statuses
         $statuses = array(
+            'Accepted' => 'pending',
+            'Pending Authorization' => 'pending',
             'Complete' => 'ok',
+            'Cancelled' => 'cancelled',
+            'Failed' => 'failed',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -310,6 +315,11 @@ class btcmarkets extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for btcmarkets
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = $this->publicGetMarkets ($params);
         //
         //     array(
@@ -421,6 +431,11 @@ class btcmarkets extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the btcmarkets api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $response = $this->privateGetAccountsMeBalances ($params);
         return $this->parse_balance($response);
@@ -448,6 +463,15 @@ class btcmarkets extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the btcmarkets api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -477,6 +501,13 @@ class btcmarkets extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the btcmarkets api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -557,6 +588,12 @@ class btcmarkets extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the btcmarkets api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -659,6 +696,14 @@ class btcmarkets extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the btcmarkets api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -960,6 +1005,41 @@ class btcmarkets extends Exchange {
         //     )
         //
         return $this->parse_trades($response, $market, $since, $limit);
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency_id' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+        );
+        if ($code !== 'AUD') {
+            $this->check_address($address);
+            $request['toAddress'] = $address;
+        }
+        if ($tag !== null) {
+            $request['toAddress'] = $address . '?dt=' . $tag;
+        }
+        $response = $this->privatePostWithdrawals (array_merge($request, $params));
+        //
+        //      {
+        //          "id" => "4126657",
+        //          "assetName" => "XRP",
+        //          "amount" => "25",
+        //          "type" => "Withdraw",
+        //          "creationTime" => "2019-09-04T00:04:10.973000Z",
+        //          "status" => "Pending Authorization",
+        //          "description" => "XRP withdraw from [me@test.com] to Address => abc $amount => 25 fee => 0",
+        //          "fee" => "0",
+        //          "lastUpdate" => "2019-09-04T00:04:11.018000Z",
+        //          "paymentDetail" => {
+        //              "address" => "abc"
+        //          }
+        //      }
+        //
+        return $this->parse_transaction($response, $currency);
     }
 
     public function nonce() {

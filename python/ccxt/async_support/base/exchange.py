@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.82.58'
+__version__ = '1.83.39'
 
 # -----------------------------------------------------------------------------
 
@@ -27,6 +27,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import NullResponse
 from ccxt.base.errors import BadRequest
 
 # -----------------------------------------------------------------------------
@@ -353,7 +354,7 @@ class Exchange(BaseExchange):
             tickers = await self.fetch_tickers([symbol], params)
             ticker = self.safe_value(tickers, symbol)
             if ticker is None:
-                raise BadSymbol(self.id + ' fetch_ticker() could not find a ticker for ' + symbol)
+                raise NullResponse(self.id + ' fetch_ticker() could not find a ticker for ' + symbol)
             else:
                 return ticker
         else:
@@ -392,7 +393,7 @@ class Exchange(BaseExchange):
         if self.has['fetchLeverageTiers']:
             market = await self.market(symbol)
             if (not market['contract']):
-                raise BadRequest(self.id + ' fetch_leverage_tiers() supports contract markets only')
+                raise BadRequest(self.id + ' fetch_market_leverage_tiers() supports contract markets only')
             tiers = await self.fetch_leverage_tiers([symbol])
             return self.safe_value(tiers, symbol)
         else:
@@ -423,3 +424,17 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + ' create_stop_market_order() is not supported yet')
         query = self.extend(params, {'stopPrice': stopPrice})
         return await self.create_order(symbol, 'market', side, amount, None, query)
+
+    async def fetch_funding_rate(self, symbol, params={}):
+        if self.has['fetchFundingRates']:
+            market = self.market(symbol)
+            if not market['contract']:
+                raise BadSymbol(self.id + ' fetch_funding_rate() supports contract markets only')
+            rates = await self.fetchFundingRates([symbol], params)
+            rate = self.safe_value(rates, symbol)
+            if rate is None:
+                raise NullResponse(self.id + ' fetch_funding_rate() returned no data for ' + symbol)
+            else:
+                return rate
+        else:
+            raise NotSupported(self.id + ' fetch_funding_rate() is not supported yet')

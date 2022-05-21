@@ -65,6 +65,7 @@ class coinbase extends Exchange {
                 'fetchMySells' => true,
                 'fetchMyTrades' => null,
                 'fetchOHLCV' => false,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => null,
                 'fetchOrder' => null,
                 'fetchOrderBook' => false,
@@ -563,6 +564,11 @@ class coinbase extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves $data on all markets for coinbase
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing market $data
+         */
         $response = yield $this->fetch_currencies_from_cache($params);
         $currencies = $this->safe_value($response, 'currencies', array());
         $exchangeRates = $this->safe_value($response, 'exchangeRates', array());
@@ -722,6 +728,12 @@ class coinbase extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the coinbase api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
         yield $this->load_markets();
         $request = array(
             // 'currency' => 'USD',
@@ -756,6 +768,12 @@ class coinbase extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the coinbase api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array_merge(array(
@@ -829,6 +847,11 @@ class coinbase extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for $balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the coinbase api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#$balance-structure $balance structure~
+         */
         yield $this->load_markets();
         $request = array(
             'limit' => 100,

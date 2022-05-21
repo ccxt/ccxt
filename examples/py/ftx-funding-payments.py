@@ -19,7 +19,6 @@ def table(values):
 
 
 exchange = ccxt.ftx({
-    'enableRateLimit': True,
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET',
 })

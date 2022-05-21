@@ -27,15 +27,15 @@ module.exports = class aax extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': false,
+                'margin': true,
                 'swap': true,
                 'future': false,
                 'option': false,
-                'addMargin': undefined,
+                'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': undefined,
-                'createDepositAddress': undefined,
+                'cancelOrders': false,
+                'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
@@ -54,9 +54,9 @@ module.exports = class aax extends Exchange {
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchDeposit': undefined,
+                'fetchDeposit': false,
                 'fetchDepositAddress': true,
-                'fetchDepositAddresses': undefined,
+                'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': undefined,
                 'fetchDeposits': true,
                 'fetchFundingHistory': true,
@@ -80,7 +80,7 @@ module.exports = class aax extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrderBooks': undefined,
+                'fetchOrderBooks': false,
                 'fetchOrders': true,
                 'fetchOrderTrades': undefined,
                 'fetchPosition': true,
@@ -102,9 +102,10 @@ module.exports = class aax extends Exchange {
                 'fetchTransfers': true,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
-                'fetchWithdrawalWhitelist': undefined,
-                'reduceMargin': undefined,
+                'fetchWithdrawalWhitelist': false,
+                'reduceMargin': false,
                 'setLeverage': true,
+                'setMargin': true,
                 'setMarginMode': false,
                 'setPositionMode': undefined,
                 'signIn': undefined,
@@ -393,6 +394,13 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name aax#fetchMarkets
+         * @description retrieves data on all markets for aax
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetInstruments (params);
         //
         //     {
@@ -674,7 +682,110 @@ module.exports = class aax extends Exchange {
         }, market, false);
     }
 
+    async setMargin (symbol, amount, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'margin': amount,
+        };
+        const response = await this.privatePostFuturesPositionMargin (this.extend (request, params));
+        //
+        //     {
+        //         code: '1',
+        //         data: {
+        //             autoMarginCall: false,
+        //             avgEntryPrice: '0.52331',
+        //             bankruptPrice: '0.3185780400',
+        //             base: 'ADA',
+        //             code: 'FP',
+        //             commission: '0.00031399',
+        //             currentQty: '1',
+        //             funding: '0',
+        //             fundingStatus: null,
+        //             id: '447888550222172160',
+        //             leverage: '5.25',
+        //             liquidationPrice: '0.324007',
+        //             marketPrice: '0',
+        //             openTime: '2022-05-20T14:30:42.759Z',
+        //             posLeverage: '2.56',
+        //             posMargin: '0.20473196',
+        //             quote: 'USDT',
+        //             realisedPnl: '0',
+        //             riskLimit: '10000000',
+        //             riskyPrice: '0.403728',
+        //             settleType: 'VANILLA',
+        //             stopLossPrice: '0',
+        //             stopLossSource: '0',
+        //             symbol: 'ADAUSDTFP',
+        //             takeProfitPrice: '0',
+        //             takeProfitSource: '0',
+        //             unrealisedPnl: '-0.00151000',
+        //             userID: '3311296'
+        //         },
+        //         message: 'success',
+        //         ts: '1653057280756'
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseModifyMargin (data, market);
+    }
+
+    parseModifyMargin (data, market = undefined) {
+        //
+        //     {
+        //         autoMarginCall: false,
+        //         avgEntryPrice: '0.52331',
+        //         bankruptPrice: '0.3185780400',
+        //         base: 'ADA',
+        //         code: 'FP',
+        //         commission: '0.00031399',
+        //         currentQty: '1',
+        //         funding: '0',
+        //         fundingStatus: null,
+        //         id: '447888550222172160',
+        //         leverage: '5.25',
+        //         liquidationPrice: '0.324007',
+        //         marketPrice: '0',
+        //         openTime: '2022-05-20T14:30:42.759Z',
+        //         posLeverage: '2.56',
+        //         posMargin: '0.20473196',
+        //         quote: 'USDT',
+        //         realisedPnl: '0',
+        //         riskLimit: '10000000',
+        //         riskyPrice: '0.403728',
+        //         settleType: 'VANILLA',
+        //         stopLossPrice: '0',
+        //         stopLossSource: '0',
+        //         symbol: 'ADAUSDTFP',
+        //         takeProfitPrice: '0',
+        //         takeProfitSource: '0',
+        //         unrealisedPnl: '-0.00151000',
+        //         userID: '3315296'
+        //     }
+        //
+        const marketId = this.safeString (data, 'symbol');
+        const quote = this.safeString (data, 'quote');
+        return {
+            'info': data,
+            'type': 'set',
+            'amount': undefined,
+            'total': this.safeNumber (data, 'posMargin'),
+            'code': this.safeCurrencyCode (quote),
+            'symbol': this.safeSymbol (marketId, market),
+            'status': undefined,
+        };
+    }
+
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const response = await this.publicGetMarketTickers (params);
         //
@@ -706,6 +817,15 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (limit === undefined) {
@@ -876,6 +996,16 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         limit = (limit === undefined) ? 2000 : limit;
@@ -921,6 +1051,17 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -956,6 +1097,13 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name aax#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
@@ -2216,6 +2364,16 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchFundingRateHistory
+         * @description fetches historical funding rate prices
+         * @param {str|undefined} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
+         * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }

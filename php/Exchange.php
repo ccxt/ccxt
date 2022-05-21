@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.82.58';
+$version = '1.83.39';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.82.58';
+    const VERSION = '1.83.39';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -112,6 +112,7 @@ class Exchange {
         'coincheck',
         'coinex',
         'coinfalcon',
+        'coinflex',
         'coinmate',
         'coinone',
         'coinspot',
@@ -397,12 +398,17 @@ class Exchange {
         'loadTimeDifference' => 'load_time_difference',
         'parseLeverageTiers' => 'parse_leverage_tiers',
         'fetchMarketLeverageTiers' => 'fetch_market_leverage_tiers',
+        'parseOpenInterests' => 'parse_open_interests',
         'isPostOnly' => 'is_post_only',
         'createPostOnlyOrder' => 'create_post_only_order',
+        'createReduceOnlyOrder' => 'create_reduce_only_order',
         'createStopOrder' => 'create_stop_order',
         'createStopLimitOrder' => 'create_stop_limit_order',
         'createStopMarketOrder' => 'create_stop_market_order',
+        'checkOrderArguments' => 'check_order_arguments',
         'parseBorrowInterests' => 'parse_borrow_interests',
+        'parseFundingRateHistories' => 'parse_funding_rate_histories',
+        'fetchFundingRate' => 'fetch_funding_rate',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -1290,6 +1296,7 @@ class Exchange {
             'createMarketOrder' => true,
             'createOrder' => true,
             'createPostOnlyOrder' => null,
+            'createReduceOnlyOrder' => null,
             'createStopOrder' => null,
             'editOrder' => 'emulated',
             'fetchAccounts' => null,
@@ -1352,6 +1359,7 @@ class Exchange {
             'loadMarkets' => true,
             'reduceMargin' => null,
             'setLeverage' => null,
+            'setMargin' => null,
             'setMarginMode' => null,
             'setPositionMode' => null,
             'signIn' => null,
@@ -2623,7 +2631,7 @@ class Exchange {
             $tickers = $this->fetch_tickers(array( $symbol ), $params);
             $ticker = $this->safe_value($tickers, $symbol);
             if ($ticker === null) {
-                throw new BadSymbol($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
+                throw new NullResponse($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
             } else {
                 return $ticker;
             }
@@ -2915,8 +2923,19 @@ class Exchange {
         return self::decimal_to_precision($fee, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
-    public function currency_to_precision($code, $fee) {
-        return self::decimal_to_precision($fee, ROUND, $this->currencies[$code]['precision'], $this->precisionMode, $this->paddingMode);
+    public function currency_to_precision($code, $fee, $networkCode = null) {
+        $currency = $this->currencies[$code];
+        $precision = $this->safe_value($currency, 'precision');
+        if ($networkCode !== null) {
+            $networks = $this->safe_value($currency, 'networks', []);
+            $networkItem = $this->safe_value($networks, 'networkCode', []);
+            $precision = $this->safe_value($networkItem, 'precision', $precision);
+        }
+        if ($precision === null) {
+            return $fee;
+        } else {
+            return self::decimal_to_precision($fee, ROUND, $precision, $this->precisionMode, $this->paddingMode);
+        }
     }
 
     public function currency($code) {
@@ -2944,7 +2963,6 @@ class Exchange {
                 return $this->markets_by_id[$symbol];
             }
         }
-
         throw new BadSymbol($this->id . ' does not have market symbol ' . $symbol);
     }
 
@@ -3910,7 +3928,7 @@ class Exchange {
         if ($this->has['fetchLeverageTiers']) {
             $market = $this->market($symbol);
             if (!$market['contract']) {
-                throw new BadRequest($this->id . ' fetchLeverageTiers() supports contract markets only');
+                throw new BadRequest($this->id . ' fetch_market_leverage_tiers() supports contract markets only');
             }
             $tiers = $this->fetch_leverage_tiers(array($symbol));
             return $this->safe_value($tiers, $symbol);
@@ -3923,26 +3941,34 @@ class Exchange {
         sleep($milliseconds / 1000);
     }
 
-    public function is_post_only($type, $time_in_force, $exchange_specific_option, $params = array()){
+    public function is_post_only($type, $time_in_force = null, $exchange_specific_option = null, $params = array ()) {
+        /**
+         * @param {string} $type Order type
+         * @param {string} $time_in_force
+         * @param {boolean} $exchange_specific_option True if the exchange specific post only setting is set
+         * @param {dict} $params Exchange specific $params
+         * @return {boolean} true if a post only order, false otherwise
+         */
         $post_only = $this->safe_value_2($params, 'postOnly', 'post_only', false);
-        $params = $this->omit($params, array('post_only', 'postOnly'));
-        $time_in_force_upper = strtoupper($time_in_force);
+        $params = $this->omit($params, array( 'post_only', 'postOnly' ));
+        $time_in_force_upper = ($time_in_force !== null) ? strtoupper($time_in_force) : null;
         $type_lower = strtolower($type);
         $ioc = $time_in_force_upper === 'IOC';
+        $fok = $time_in_force_upper === 'FOK';
         $time_in_force_post_only = $time_in_force_upper === 'PO';
         $is_market = $type_lower === 'market';
-        $post_only = $post_only || $type_lower === 'postonly' || $time_in_force_post_only || $exchange_specific_option;
+        $post_only = $post_only || ($type_lower === 'postonly') || $time_in_force_post_only || $exchange_specific_option;
         if ($post_only) {
-            if ($ioc) {
-                throw new InvalidOrder($this->id . ' postOnly orders cannot have timeInForce equal to ' . $time_in_force);
+            if ($ioc || $fok) {
+                throw new InvalidOrder($this->id . ' postOnly orders cannot have $timeInForce equal to ' . $time_in_force);
             } else if ($is_market) {
-                throw new InvalidOrder($this->id . ' postOnly orders cannot have type ' . $type);
+                throw new InvalidOrder($this->id . ' postOnly orders cannot have $type ' . $type);
             } else {
                 $time_in_force = $time_in_force_post_only ? null : $time_in_force;
-                return array('limit', true, $time_in_force, $params);
+                return array( 'limit', true, $time_in_force, $params );
             }
         } else {
-            return array($type, false, $time_in_force, $params);
+            return array( $type, false, $time_in_force, $params );
         }
     }
 
@@ -3952,16 +3978,16 @@ class Exchange {
         }
         $array = array('postOnly' => true);
         $query = $this->extend($params, $array);
-        return $this->create_order($symbol, $type, $side, $amount, $price, $params);
+        return $this->create_order($symbol, $type, $side, $amount, $price, $query);
     }
 
-    public function parse_borrow_interests($response, $market = null) {
-        $interest = array();
-        for ($i = 0; $i < count($response); $i++){
-            $row = $response[$i];
-            array_push($interest, $this->parseBorrowInterest($row, $market));
+    public function create_reduce_only_order($symbol, $type, $side, $amount, $price, $params = array()) {
+        if (!$this->has['createReduceOnlyOrder']) {
+            throw new NotSupported($this->id . ' create_reduce_only_order() is not supported yet');
         }
-        return $interest;
+        $array = array('reduceOnly' => true);
+        $query = $this->extend($params, $array);
+        return $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
 
     public function create_stop_order($symbol, $type, $side, $amount, $price = null, $stopPrice = null, $params = array()) {
@@ -3992,5 +4018,65 @@ class Exchange {
         $array = array('stopPrice' => $stopPrice);
         $query = $this->extend($params, $array);
         return $this->create_order($symbol, 'market', $side, $amount, null, $query);
+    }
+    
+    public function check_order_arguments ($market, $type, $side, $amount, $price, $params) {
+        if ($price === null) {
+            if ($type === 'limit') {
+                  throw new ArgumentsRequired ($this->id + ' create_order() requires a price argument for a limit order');
+             }
+        }
+        if ($amount <= 0) {
+            throw new ArgumentsRequired ($this->id + ' create_order() amount should be above 0');
+        }
+    }
+
+    public function parse_borrow_interests($response, $market = null) {
+        $interest = array();
+        for ($i = 0; $i < count($response); $i++){
+            $row = $response[$i];
+            array_push($interest, $this->parseBorrowInterest($row, $market));
+        }
+        return $interest;
+    }
+
+    public function parse_funding_rate_histories($response, $market = null, $since = null, $limit = null) {
+        $rates = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $rates[] = $this->parse_funding_rate_history($entry, $market);
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        $symbol = ($market === null) ? null : $market['symbol'];
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function parse_open_interests($response, $market = null, $since = null, $limit = null) {
+        $interests = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = &$response[$i];
+            $interest = $this->parseOpenInterest($entry, $market);
+            array_push($interests, $interest);
+        }
+        $sorted = $this->sortBy ($interests, 'timestamp');
+        return $this->filterBySymbolSinceLimit ($sorted, $market, $since, $limit);
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        if ($this->has['fetchFundingRates']) {
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadSymbol($this->id . ' fetch_funding_rate () supports contract markets only');
+            }
+            $rates = $this->fetch_funding_rates (array( $symbol ), $params);
+            $rate = $this->safe_value($rates, $symbol);
+            if ($rate === null) {
+                throw new NullResponse($this->id . ' fetch_funding_rate () returned no data for ' . $symbol);
+            } else {
+                return $rate;
+            }
+        } else {
+            throw new NotSupported($this->id . ' fetch_funding_rate () is not supported yet');
+        }
     }
 }

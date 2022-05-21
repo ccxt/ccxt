@@ -33,6 +33,8 @@ module.exports = class bitmex extends Exchange {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
                 'fetchLeverageTiers': false,
@@ -201,6 +203,13 @@ module.exports = class bitmex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchMarkets
+         * @description retrieves data on all markets for bitmex
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetInstrumentActiveAndIndices (params);
         //
         //    {
@@ -482,6 +491,13 @@ module.exports = class bitmex extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the bitmex api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'currency': 'all',
@@ -538,6 +554,15 @@ module.exports = class bitmex extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the bitmex api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -959,6 +984,14 @@ module.exports = class bitmex extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the bitmex api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const tickers = await this.fetchTickers ([ market['symbol'] ], params);
@@ -970,8 +1003,127 @@ module.exports = class bitmex extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the bitmex api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const response = await this.publicGetInstrumentActiveAndIndices (params);
+        //
+        //     [
+        //         {
+        //             "symbol":".EVOL7D",
+        //             "rootSymbol":"EVOL",
+        //             "state":"Unlisted",
+        //             "typ":"MRIXXX",
+        //             "listing":null,
+        //             "front":null,
+        //             "expiry":null,
+        //             "settle":null,
+        //             "listedSettle":null,
+        //             "relistInterval":null,
+        //             "inverseLeg":"",
+        //             "sellLeg":"",
+        //             "buyLeg":"",
+        //             "optionStrikePcnt":null,
+        //             "optionStrikeRound":null,
+        //             "optionStrikePrice":null,
+        //             "optionMultiplier":null,
+        //             "positionCurrency":"",
+        //             "underlying":"ETH",
+        //             "quoteCurrency":"XXX",
+        //             "underlyingSymbol":".EVOL7D",
+        //             "reference":"BMI",
+        //             "referenceSymbol":".BETHXBT",
+        //             "calcInterval":"2000-01-08T00:00:00.000Z",
+        //             "publishInterval":"2000-01-01T00:05:00.000Z",
+        //             "publishTime":null,
+        //             "maxOrderQty":null,
+        //             "maxPrice":null,
+        //             "lotSize":null,
+        //             "tickSize":0.01,
+        //             "multiplier":null,
+        //             "settlCurrency":"",
+        //             "underlyingToPositionMultiplier":null,
+        //             "underlyingToSettleMultiplier":null,
+        //             "quoteToSettleMultiplier":null,
+        //             "isQuanto":false,
+        //             "isInverse":false,
+        //             "initMargin":null,
+        //             "maintMargin":null,
+        //             "riskLimit":null,
+        //             "riskStep":null,
+        //             "limit":null,
+        //             "capped":false,
+        //             "taxed":false,
+        //             "deleverage":false,
+        //             "makerFee":null,
+        //             "takerFee":null,
+        //             "settlementFee":null,
+        //             "insuranceFee":null,
+        //             "fundingBaseSymbol":"",
+        //             "fundingQuoteSymbol":"",
+        //             "fundingPremiumSymbol":"",
+        //             "fundingTimestamp":null,
+        //             "fundingInterval":null,
+        //             "fundingRate":null,
+        //             "indicativeFundingRate":null,
+        //             "rebalanceTimestamp":null,
+        //             "rebalanceInterval":null,
+        //             "openingTimestamp":null,
+        //             "closingTimestamp":null,
+        //             "sessionInterval":null,
+        //             "prevClosePrice":null,
+        //             "limitDownPrice":null,
+        //             "limitUpPrice":null,
+        //             "bankruptLimitDownPrice":null,
+        //             "bankruptLimitUpPrice":null,
+        //             "prevTotalVolume":null,
+        //             "totalVolume":null,
+        //             "volume":null,
+        //             "volume24h":null,
+        //             "prevTotalTurnover":null,
+        //             "totalTurnover":null,
+        //             "turnover":null,
+        //             "turnover24h":null,
+        //             "homeNotional24h":null,
+        //             "foreignNotional24h":null,
+        //             "prevPrice24h":5.27,
+        //             "vwap":null,
+        //             "highPrice":null,
+        //             "lowPrice":null,
+        //             "lastPrice":4.72,
+        //             "lastPriceProtected":null,
+        //             "lastTickDirection":"ZeroMinusTick",
+        //             "lastChangePcnt":-0.1044,
+        //             "bidPrice":null,
+        //             "midPrice":null,
+        //             "askPrice":null,
+        //             "impactBidPrice":null,
+        //             "impactMidPrice":null,
+        //             "impactAskPrice":null,
+        //             "hasLiquidity":false,
+        //             "openInterest":null,
+        //             "openValue":0,
+        //             "fairMethod":"",
+        //             "fairBasisRate":null,
+        //             "fairBasis":null,
+        //             "fairPrice":null,
+        //             "markMethod":"LastPrice",
+        //             "markPrice":4.72,
+        //             "indicativeTaxRate":null,
+        //             "indicativeSettlePrice":null,
+        //             "optionUnderlyingPrice":null,
+        //             "settledPriceAdjustmentRate":null,
+        //             "settledPrice":null,
+        //             "timestamp":"2022-05-21T04:30:00.000Z"
+        //         }
+        //     ]
+        //
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const ticker = this.parseTicker (response[i]);
@@ -987,8 +1139,9 @@ module.exports = class bitmex extends Exchange {
                 const market = this.market (symbol);
                 uniformSymbols.push (market['symbol']);
             }
+            return this.filterByArray (result, 'symbol', uniformSymbols);
         }
-        return this.filterByArray (result, 'symbol', uniformSymbols);
+        return result;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -1156,6 +1309,17 @@ module.exports = class bitmex extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the bitmex api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         // send JSON key/value pairs, such as {"key": "value"}
         // filter by individual fields and do advanced queries on timestamps
@@ -1435,6 +1599,16 @@ module.exports = class bitmex extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the bitmex api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1744,6 +1918,349 @@ module.exports = class bitmex extends Exchange {
         };
         const response = await this.privatePostUserRequestWithdrawal (this.extend (request, params));
         return this.parseTransaction (response, currency);
+    }
+
+    async fetchFundingRates (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetInstrumentActiveAndIndices (params);
+        //
+        //    [
+        //        {
+        //            "symbol": "LTCUSDT",
+        //            "rootSymbol": "LTC",
+        //            "state": "Open",
+        //            "typ": "FFWCSX",
+        //            "listing": "2021-11-10T04:00:00.000Z",
+        //            "front": "2021-11-10T04:00:00.000Z",
+        //            "expiry": null,
+        //            "settle": null,
+        //            "listedSettle": null,
+        //            "relistInterval": null,
+        //            "inverseLeg": "",
+        //            "sellLeg": "",
+        //            "buyLeg": "",
+        //            "optionStrikePcnt": null,
+        //            "optionStrikeRound": null,
+        //            "optionStrikePrice": null,
+        //            "optionMultiplier": null,
+        //            "positionCurrency": "LTC",
+        //            "underlying": "LTC",
+        //            "quoteCurrency": "USDT",
+        //            "underlyingSymbol": "LTCT=",
+        //            "reference": "BMEX",
+        //            "referenceSymbol": ".BLTCT",
+        //            "calcInterval": null,
+        //            "publishInterval": null,
+        //            "publishTime": null,
+        //            "maxOrderQty": 1000000000,
+        //            "maxPrice": 1000000,
+        //            "lotSize": 1000,
+        //            "tickSize": 0.01,
+        //            "multiplier": 100,
+        //            "settlCurrency": "USDt",
+        //            "underlyingToPositionMultiplier": 10000,
+        //            "underlyingToSettleMultiplier": null,
+        //            "quoteToSettleMultiplier": 1000000,
+        //            "isQuanto": false,
+        //            "isInverse": false,
+        //            "initMargin": 0.03,
+        //            "maintMargin": 0.015,
+        //            "riskLimit": 1000000000000,
+        //            "riskStep": 1000000000000,
+        //            "limit": null,
+        //            "capped": false,
+        //            "taxed": true,
+        //            "deleverage": true,
+        //            "makerFee": -0.0001,
+        //            "takerFee": 0.0005,
+        //            "settlementFee": 0,
+        //            "insuranceFee": 0,
+        //            "fundingBaseSymbol": ".LTCBON8H",
+        //            "fundingQuoteSymbol": ".USDTBON8H",
+        //            "fundingPremiumSymbol": ".LTCUSDTPI8H",
+        //            "fundingTimestamp": "2022-01-14T20:00:00.000Z",
+        //            "fundingInterval": "2000-01-01T08:00:00.000Z",
+        //            "fundingRate": 0.0001,
+        //            "indicativeFundingRate": 0.0001,
+        //            "rebalanceTimestamp": null,
+        //            "rebalanceInterval": null,
+        //            "openingTimestamp": "2022-01-14T17:00:00.000Z",
+        //            "closingTimestamp": "2022-01-14T18:00:00.000Z",
+        //            "sessionInterval": "2000-01-01T01:00:00.000Z",
+        //            "prevClosePrice": 138.511,
+        //            "limitDownPrice": null,
+        //            "limitUpPrice": null,
+        //            "bankruptLimitDownPrice": null,
+        //            "bankruptLimitUpPrice": null,
+        //            "prevTotalVolume": 12699024000,
+        //            "totalVolume": 12702160000,
+        //            "volume": 3136000,
+        //            "volume24h": 114251000,
+        //            "prevTotalTurnover": 232418052349000,
+        //            "totalTurnover": 232463353260000,
+        //            "turnover": 45300911000,
+        //            "turnover24h": 1604331340000,
+        //            "homeNotional24h": 11425.1,
+        //            "foreignNotional24h": 1604331.3400000003,
+        //            "prevPrice24h": 135.48,
+        //            "vwap": 140.42165,
+        //            "highPrice": 146.42,
+        //            "lowPrice": 135.08,
+        //            "lastPrice": 144.36,
+        //            "lastPriceProtected": 144.36,
+        //            "lastTickDirection": "MinusTick",
+        //            "lastChangePcnt": 0.0655,
+        //            "bidPrice": 143.75,
+        //            "midPrice": 143.855,
+        //            "askPrice": 143.96,
+        //            "impactBidPrice": 143.75,
+        //            "impactMidPrice": 143.855,
+        //            "impactAskPrice": 143.96,
+        //            "hasLiquidity": true,
+        //            "openInterest": 38103000,
+        //            "openValue": 547963053300,
+        //            "fairMethod": "FundingRate",
+        //            "fairBasisRate": 0.1095,
+        //            "fairBasis": 0.004,
+        //            "fairPrice": 143.811,
+        //            "markMethod": "FairPrice",
+        //            "markPrice": 143.811,
+        //            "indicativeTaxRate": null,
+        //            "indicativeSettlePrice": 143.807,
+        //            "optionUnderlyingPrice": null,
+        //            "settledPriceAdjustmentRate": null,
+        //            "settledPrice": null,
+        //            "timestamp": "2022-01-14T17:49:55.000Z"
+        //        }
+        //    ]
+        //
+        const filteredResponse = [];
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const marketId = this.safeString (item, 'symbol');
+            const market = this.safeMarket (marketId);
+            const swap = this.safeValue (market, 'swap', false);
+            if (swap) {
+                filteredResponse.push (item);
+            }
+        }
+        return this.parseFundingRates (filteredResponse, symbols);
+    }
+
+    parseFundingRate (premiumIndex, market = undefined) {
+        //
+        //    {
+        //        "symbol": "LTCUSDT",
+        //        "rootSymbol": "LTC",
+        //        "state": "Open",
+        //        "typ": "FFWCSX",
+        //        "listing": "2021-11-10T04:00:00.000Z",
+        //        "front": "2021-11-10T04:00:00.000Z",
+        //        "expiry": null,
+        //        "settle": null,
+        //        "listedSettle": null,
+        //        "relistInterval": null,
+        //        "inverseLeg": "",
+        //        "sellLeg": "",
+        //        "buyLeg": "",
+        //        "optionStrikePcnt": null,
+        //        "optionStrikeRound": null,
+        //        "optionStrikePrice": null,
+        //        "optionMultiplier": null,
+        //        "positionCurrency": "LTC",
+        //        "underlying": "LTC",
+        //        "quoteCurrency": "USDT",
+        //        "underlyingSymbol": "LTCT=",
+        //        "reference": "BMEX",
+        //        "referenceSymbol": ".BLTCT",
+        //        "calcInterval": null,
+        //        "publishInterval": null,
+        //        "publishTime": null,
+        //        "maxOrderQty": 1000000000,
+        //        "maxPrice": 1000000,
+        //        "lotSize": 1000,
+        //        "tickSize": 0.01,
+        //        "multiplier": 100,
+        //        "settlCurrency": "USDt",
+        //        "underlyingToPositionMultiplier": 10000,
+        //        "underlyingToSettleMultiplier": null,
+        //        "quoteToSettleMultiplier": 1000000,
+        //        "isQuanto": false,
+        //        "isInverse": false,
+        //        "initMargin": 0.03,
+        //        "maintMargin": 0.015,
+        //        "riskLimit": 1000000000000,
+        //        "riskStep": 1000000000000,
+        //        "limit": null,
+        //        "capped": false,
+        //        "taxed": true,
+        //        "deleverage": true,
+        //        "makerFee": -0.0001,
+        //        "takerFee": 0.0005,
+        //        "settlementFee": 0,
+        //        "insuranceFee": 0,
+        //        "fundingBaseSymbol": ".LTCBON8H",
+        //        "fundingQuoteSymbol": ".USDTBON8H",
+        //        "fundingPremiumSymbol": ".LTCUSDTPI8H",
+        //        "fundingTimestamp": "2022-01-14T20:00:00.000Z",
+        //        "fundingInterval": "2000-01-01T08:00:00.000Z",
+        //        "fundingRate": 0.0001,
+        //        "indicativeFundingRate": 0.0001,
+        //        "rebalanceTimestamp": null,
+        //        "rebalanceInterval": null,
+        //        "openingTimestamp": "2022-01-14T17:00:00.000Z",
+        //        "closingTimestamp": "2022-01-14T18:00:00.000Z",
+        //        "sessionInterval": "2000-01-01T01:00:00.000Z",
+        //        "prevClosePrice": 138.511,
+        //        "limitDownPrice": null,
+        //        "limitUpPrice": null,
+        //        "bankruptLimitDownPrice": null,
+        //        "bankruptLimitUpPrice": null,
+        //        "prevTotalVolume": 12699024000,
+        //        "totalVolume": 12702160000,
+        //        "volume": 3136000,
+        //        "volume24h": 114251000,
+        //        "prevTotalTurnover": 232418052349000,
+        //        "totalTurnover": 232463353260000,
+        //        "turnover": 45300911000,
+        //        "turnover24h": 1604331340000,
+        //        "homeNotional24h": 11425.1,
+        //        "foreignNotional24h": 1604331.3400000003,
+        //        "prevPrice24h": 135.48,
+        //        "vwap": 140.42165,
+        //        "highPrice": 146.42,
+        //        "lowPrice": 135.08,
+        //        "lastPrice": 144.36,
+        //        "lastPriceProtected": 144.36,
+        //        "lastTickDirection": "MinusTick",
+        //        "lastChangePcnt": 0.0655,
+        //        "bidPrice": 143.75,
+        //        "midPrice": 143.855,
+        //        "askPrice": 143.96,
+        //        "impactBidPrice": 143.75,
+        //        "impactMidPrice": 143.855,
+        //        "impactAskPrice": 143.96,
+        //        "hasLiquidity": true,
+        //        "openInterest": 38103000,
+        //        "openValue": 547963053300,
+        //        "fairMethod": "FundingRate",
+        //        "fairBasisRate": 0.1095,
+        //        "fairBasis": 0.004,
+        //        "fairPrice": 143.811,
+        //        "markMethod": "FairPrice",
+        //        "markPrice": 143.811,
+        //        "indicativeTaxRate": null,
+        //        "indicativeSettlePrice": 143.807,
+        //        "optionUnderlyingPrice": null,
+        //        "settledPriceAdjustmentRate": null,
+        //        "settledPrice": null,
+        //        "timestamp": "2022-01-14T17:49:55.000Z"
+        //    }
+        //
+        const datetime = this.safeString (premiumIndex, 'timestamp');
+        const marketId = this.safeString (premiumIndex, 'symbol');
+        const fundingDatetime = this.safeString (premiumIndex, 'fundingTimestamp');
+        return {
+            'info': premiumIndex,
+            'symbol': this.safeSymbol (marketId, market),
+            'markPrice': this.safeNumber (premiumIndex, 'markPrice'),
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': this.safeNumber (premiumIndex, 'indicativeSettlePrice'),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+            'fundingRate': this.safeNumber (premiumIndex, 'fundingRate'),
+            'fundingTimestamp': this.iso8601 (fundingDatetime),
+            'fundingDatetime': fundingDatetime,
+            'nextFundingRate': this.safeNumber (premiumIndex, 'indicativeFundingRate'),
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
+    }
+
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchFundingRateHistory
+         * @description Fetches the history of funding rates
+         * @param {str|undefined} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
+         * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {dict} params extra parameters specific to the bitmex api endpoint
+         * @param {int|undefined} params.till timestamp in ms for ending date filter
+         * @param {bool|undefined} params.reverse if true, will sort results newest first
+         * @param {int|undefined} params.start starting point for results
+         * @param {str|undefined} params.columns array of column names to fetch in info, if omitted, will return all columns
+         * @param {str|undefined} params.filter generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the [timestamp docs]{@link https://www.bitmex.com/app/restAPI#Timestamp-Filters} for more details
+         * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol in this.currencies) {
+            const code = this.currency (symbol);
+            request['symbol'] = code['id'];
+        } else if (symbol !== undefined) {
+            const splitSymbol = symbol.split (':');
+            const splitSymbolLength = splitSymbol.length;
+            const timeframes = [ 'nearest', 'daily', 'weekly', 'monthly', 'quarterly', 'biquarterly', 'perpetual' ];
+            if ((splitSymbolLength > 1) && this.inArray (splitSymbol[1], timeframes)) {
+                const code = this.currency (splitSymbol[0]);
+                symbol = code['id'] + ':' + splitSymbol[1];
+                request['symbol'] = symbol;
+            } else {
+                market = this.market (symbol);
+                request['symbol'] = market['id'];
+            }
+        }
+        if (since !== undefined) {
+            request['startTime'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const till = this.safeInteger (params, 'till');
+        params = this.omit (params, [ 'till' ]);
+        if (till !== undefined) {
+            request['endTime'] = this.iso8601 (till);
+        }
+        const response = await this.publicGetFunding (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "timestamp": "2016-05-07T12:00:00.000Z",
+        //            "symbol": "ETHXBT",
+        //            "fundingInterval": "2000-01-02T00:00:00.000Z",
+        //            "fundingRate": 0.0010890000000000001,
+        //            "fundingRateDaily": 0.0010890000000000001
+        //        }
+        //    ]
+        //
+        return this.parseFundingRateHistories (response, market, since, limit);
+    }
+
+    parseFundingRateHistory (info, market = undefined) {
+        //
+        //    {
+        //        "timestamp": "2016-05-07T12:00:00.000Z",
+        //        "symbol": "ETHXBT",
+        //        "fundingInterval": "2000-01-02T00:00:00.000Z",
+        //        "fundingRate": 0.0010890000000000001,
+        //        "fundingRateDaily": 0.0010890000000000001
+        //    }
+        //
+        const marketId = this.safeString (info, 'symbol');
+        const datetime = this.safeString (info, 'timestamp');
+        return {
+            'info': info,
+            'symbol': this.safeSymbol (marketId, market),
+            'fundingRate': this.safeNumber (info, 'fundingRate'),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+        };
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

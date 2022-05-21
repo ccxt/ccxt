@@ -2,7 +2,7 @@
 Supported Exchanges
 ===================
 
-The CCXT library currently supports the following 116 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 117 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -403,7 +403,7 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg
+   * - .. image:: https://user-images.githubusercontent.com/1294454/169202626-bd130fc5-fcf9-41bb-8d97-6093225c73cd.jpg
           :target: https://bitvavo.com/?a=24F34952F7
           :alt: bitvavo
      
@@ -667,6 +667,21 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
      
      - 
      - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/168937923-80d6af4a-43b5-4ed9-9d53-31065656be4f.jpg
+          :target: https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P
+          :alt: coinflex
+     
+     - coinflex
+     - `CoinFLEX <https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P>`__
+     - .. image:: https://img.shields.io/badge/3-lightgray
+          :target: https://docs.coinflex.com/
+          :alt: API Version 3
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg
           :target: https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0
           :alt: coinmate
@@ -1358,7 +1373,7 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
      - stex
      - `STEX <https://app.stex.com?ref=36416021>`__
      - .. image:: https://img.shields.io/badge/3-lightgray
-          :target: https://help.stex.com/en/collections/1593608-api-v3-documentation
+          :target: https://apidocs.stex.com/
           :alt: API Version 3
      
      - 

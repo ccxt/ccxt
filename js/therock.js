@@ -38,6 +38,7 @@ module.exports = class therock extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -53,6 +54,7 @@ module.exports = class therock extends Exchange {
                 'fetchTransfers': false,
                 'fetchWithdrawals': true,
                 'transfer': false,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
@@ -139,10 +141,22 @@ module.exports = class therock extends Exchange {
                     ' is invalid': InvalidAddress,
                 },
             },
+            'options': {
+                'withdraw': {
+                    'fillResponseFromRequest': true,
+                },
+            },
         });
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name therock#fetchMarkets
+         * @description retrieves data on all markets for therock
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetFunds (params);
         //
         //    {
@@ -254,12 +268,28 @@ module.exports = class therock extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name therock#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the therock api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privateGetBalances (params);
         return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name therock#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the therock api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const request = {
             'id': this.marketId (symbol),
@@ -313,6 +343,14 @@ module.exports = class therock extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name therock#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the therock api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const response = await this.publicGetFundsTickers (params);
         const tickers = this.indexBy (response['tickers'], 'fund_id');
@@ -329,6 +367,14 @@ module.exports = class therock extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name therock#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the therock api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -782,7 +828,10 @@ module.exports = class therock extends Exchange {
         //         }
         //     }
         //
-        const id = this.safeString (transaction, 'id');
+        // privatePostAtmsWithdraw
+        //    { "transaction_id": 65088485 }
+        //
+        const id = this.safeString2 (transaction, 'id', 'transaction_id');
         const type = this.parseTransactionType (this.safeString (transaction, 'type'));
         const detail = this.safeValue (transaction, 'transfer_detail', {});
         const method = this.safeString (detail, 'method');
@@ -923,6 +972,47 @@ module.exports = class therock extends Exchange {
         const transactionTypes = [ 'withdraw', 'atm_payment' ];
         const depositsAndWithdrawals = this.filterByArray (transactions, 'type', transactionTypes, false);
         return this.parseTransactions (depositsAndWithdrawals, currency, since, limit);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        amount = this.currencyToPrecision (code, amount);
+        const request = {
+            'currency': currency['id'],
+            'destination_address': address,
+            'amount': parseFloat (amount),
+        };
+        if (tag !== undefined) {
+            request['destination_tag'] = tag;
+        }
+        // requires write permission on the wallet
+        const response = await this.privatePostAtmsWithdraw (this.extend (request, params));
+        //
+        //    { "transaction_id": 65088485 }
+        //
+        const transaction = this.parseTransaction (response, currency);
+        const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
+        const fillResponseFromRequest = this.safeValue (withdrawOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            if (transaction['addressTo'] === address) {
+                transaction['addressTo'] = address;
+            }
+            if (transaction['address'] === undefined) {
+                transaction['address'] = address;
+            }
+            if (transaction['tagTo'] === undefined) {
+                transaction['tagTo'] = tag;
+            }
+            if (transaction['tag'] === undefined) {
+                transaction['tag'] = tag;
+            }
+            if (transaction['amount'] === undefined) {
+                transaction['amount'] = amount;
+            }
+        }
+        return transaction;
     }
 
     parseOrderStatus (status) {
@@ -1211,6 +1301,16 @@ module.exports = class therock extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name therock#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the therock api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {

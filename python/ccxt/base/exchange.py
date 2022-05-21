@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.82.58'
+__version__ = '1.83.39'
 
 # -----------------------------------------------------------------------------
 
@@ -19,6 +19,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import NullResponse
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import RateLimitExceeded
 
@@ -257,6 +258,7 @@ class Exchange(object):
         'createMarketOrder': True,
         'createOrder': True,
         'createPostOnlyOrder': None,
+        'createReduceOnlyOrder': None,
         'createStopOrder': None,
         'createStopLimitOrder': None,
         'createStopMarketOrder': None,
@@ -321,6 +323,7 @@ class Exchange(object):
         'loadMarkets': True,
         'reduceMargin': None,
         'setLeverage': None,
+        'setMargin': None,
         'setMarginMode': None,
         'setPositionMode': None,
         'signIn': None,
@@ -1527,8 +1530,17 @@ class Exchange(object):
         market = self.market(symbol)
         return self.decimal_to_precision(fee, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
 
-    def currency_to_precision(self, code, fee):
-        return self.decimal_to_precision(fee, ROUND, self.currencies[code]['precision'], self.precisionMode, self.paddingMode)
+    def currency_to_precision(self, code, fee, networkCode=None):
+        currency = self.currencies[code]
+        precision = self.safe_value(currency, 'precision')
+        if networkCode is not None:
+            networks = self.safe_value(currency, 'networks', {})
+            networkItem = self.safe_value(networks, networkCode, {})
+            precision = self.safe_value(networkItem, 'precision', precision)
+        if precision is None:
+            return fee
+        else:
+            return self.decimal_to_precision(fee, ROUND, precision, self.precisionMode, self.paddingMode)
 
     def set_markets(self, markets, currencies=None):
         values = list(markets.values()) if type(markets) is dict else markets
@@ -1681,7 +1693,7 @@ class Exchange(object):
             tickers = self.fetch_tickers([symbol], params)
             ticker = self.safe_value(tickers, symbol)
             if ticker is None:
-                raise BadSymbol(self.id + ' fetchTickers() could not find a ticker for ' + symbol)
+                raise NullResponse(self.id + ' fetchTickers() could not find a ticker for ' + symbol)
             else:
                 return ticker
         else:
@@ -2973,25 +2985,33 @@ class Exchange(object):
         if self.has['fetchLeverageTiers']:
             market = self.market(symbol)
             if (not market['contract']):
-                raise BadRequest(self.id + ' fetch_leverage_tiers() supports contract markets only')
+                raise BadRequest(self.id + ' fetch_market_leverage_tiers() supports contract markets only')
             tiers = self.fetch_leverage_tiers([symbol])
             return self.safe_value(tiers, symbol)
         else:
             raise NotSupported(self.id + 'fetch_market_leverage_tiers() is not supported yet')
 
-    def is_post_only(self, type, time_in_force, exchange_specific_option, params={}):
+    def is_post_only(self, type, time_in_force=None, exchange_specific_option=None, params={}):
+        """
+        :param string type: Order type
+        :param string time_in_force:
+        :param boolean exchange_specific_option: True if the exchange specific post only setting is set
+        :param dict params: Exchange specific params
+        :returns: {boolean} True if a post only order, False otherwise
+        """
         post_only = self.safe_value_2(params, 'postOnly', 'post_only', False)
         params = self.omit(params, ['post_only', 'postOnly'])
-        time_in_force_upper = time_in_force.upper()
+        time_in_force_upper = time_in_force.upper() if (time_in_force is not None) else None
         type_lower = type.lower()
         ioc = time_in_force_upper == 'IOC'
+        fok = time_in_force_upper == 'FOK'
         time_in_force_post_only = time_in_force_upper == 'PO'
         is_market = type_lower == 'market'
-        post_only = post_only or type_lower == 'postonly' or time_in_force_post_only or exchange_specific_option
-        if (post_only):
-            if (ioc):
+        post_only = post_only or (type_lower == 'postonly') or time_in_force_post_only or exchange_specific_option
+        if post_only:
+            if ioc or fok:
                 raise InvalidOrder(self.id + ' postOnly orders cannot have timeInForce equal to ' + time_in_force)
-            elif (is_market):
+            elif is_market:
                 raise InvalidOrder(self.id + ' postOnly orders cannot have type ' + type)
             else:
                 time_in_force = None if time_in_force_post_only else time_in_force
@@ -3003,6 +3023,12 @@ class Exchange(object):
         if not self.has['createPostOnlyOrder']:
             raise NotSupported(self.id + ' create_post_only_order() is not supported yet')
         query = self.extend(params, {'postOnly': True})
+        return self.create_order(symbol, type, side, amount, price, query)
+
+    def create_reduce_only_order(self, symbol, type, side, amount, price, params={}):
+        if not self.has['createReduceOnlyOrder']:
+            raise NotSupported(self.id + ' create_reduce_only_order() is not supported yet')
+        query = self.extend(params, {'reduceOnly': True})
         return self.create_order(symbol, type, side, amount, price, query)
 
     def create_stop_order(self, symbol, type, side, amount, price=None, stopPrice=None, params={}):
@@ -3025,9 +3051,48 @@ class Exchange(object):
         query = self.extend(params, {'stopPrice': stopPrice})
         return self.create_order(symbol, 'market', side, amount, None, query)
 
+    def check_order_arguments(self, market, type, side, amount, price, params):
+        if price is None:
+            if type == 'limit':
+                raise ArgumentsRequired(self.id + ' create_order() requires a price argument for a limit order')
+        if amount <= 0:
+            raise ArgumentsRequired(self.id + ' create_order() amount should be above 0')
+
     def parse_borrow_interests(self, response, market=None):
         interest = []
         for i in range(len(response)):
             row = response[i]
             interest.append(self.parse_borrow_interest(row, market))
         return interest
+
+    def parse_funding_rate_histories(self, response, market=None, since=None, limit=None):
+        rates = []
+        for i in range(0, len(response)):
+            entry = response[i]
+            rates.append(self.parse_funding_rate_history(entry, market))
+        sorted = self.sort_by(rates, 'timestamp')
+        symbol = None if (market is None) else market['symbol']
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def parse_open_interests(self, response, market=None, since=None, limit=None):
+        interests = []
+        for i in range(len(response)):
+            entry = response[i]
+            interest = self.parseOpenInterest(entry, market)
+            interests.append(interest)
+        sorted = self.sortBy(interests, 'timestamp')
+        return self.filterBySymbolSinceLimit(sorted, market, since, limit)
+
+    def fetch_funding_rate(self, symbol, params={}):
+        if self.has['fetchFundingRates']:
+            market = self.market(symbol)
+            if not market['contract']:
+                raise BadSymbol(self.id + ' fetch_funding_rate() supports contract markets only')
+            rates = self.fetchFundingRates([symbol], params)
+            rate = self.safe_value(rates, symbol)
+            if rate is None:
+                raise NullResponse(self.id + ' fetch_funding_rate() returned no data for ' + symbol)
+            else:
+                return rate
+        else:
+            raise NotSupported(self.id + ' fetch_funding_rate() is not supported yet')

@@ -92,6 +92,7 @@ class binance(Exchange):
                 'fetchMySells': None,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': True,
                 'fetchOpenOrder': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -1236,7 +1237,7 @@ class binance(Exchange):
     def cost_to_precision(self, symbol, cost):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['quote'], self.precisionMode, self.paddingMode)
 
-    def currency_to_precision(self, code, fee):
+    def currency_to_precision(self, code, fee, networkCode=None):
         # info is available in currencies only if the user has configured his api keys
         if self.safe_value(self.currencies[code], 'precision') is not None:
             return self.decimal_to_precision(fee, TRUNCATE, self.currencies[code]['precision'], self.precisionMode, self.paddingMode)
@@ -1395,6 +1396,11 @@ class binance(Exchange):
         return result
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for binance
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         defaultType = self.safe_string_2(self.options, 'fetchMarkets', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
@@ -1742,6 +1748,11 @@ class binance(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
@@ -1946,6 +1957,13 @@ class binance(Exchange):
         return self.parse_balance(response, type)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2083,6 +2101,12 @@ class binance(Exchange):
         }
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2115,6 +2139,12 @@ class binance(Exchange):
         return self.parse_tickers(response, symbols)
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchTickers', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
@@ -2175,6 +2205,15 @@ class binance(Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         # binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
@@ -2385,6 +2424,14 @@ class binance(Exchange):
         }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2619,6 +2666,7 @@ class binance(Exchange):
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
+            'reduceOnly': self.safe_value(order, 'reduceOnly'),
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -2631,12 +2679,6 @@ class binance(Exchange):
             'fee': None,
             'trades': fills,
         }, market)
-
-    async def create_reduce_only_order(self, symbol, type, side, amount, price=None, params={}):
-        request = {
-            'reduceOnly': True,
-        }
-        return await self.create_order(symbol, type, side, amount, price, self.extend(request, params))
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -2728,11 +2770,11 @@ class binance(Exchange):
             if market['spot']:
                 quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', False)
                 if quoteOrderQty:
-                    quoteOrderQty = self.safe_number(params, 'quoteOrderQty')
+                    quoteOrderQty = self.safe_value_2(params, 'quoteOrderQty', 'cost')
                     precision = market['precision']['price']
                     if quoteOrderQty is not None:
                         request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQty, TRUNCATE, precision, self.precisionMode)
-                        params = self.omit(params, 'quoteOrderQty')
+                        params = self.omit(params, ['quoteOrderQty', 'cost'])
                     elif price is not None:
                         request['quoteOrderQty'] = self.decimal_to_precision(amount * price, TRUNCATE, precision, self.precisionMode)
                     else:
@@ -2924,7 +2966,7 @@ class binance(Exchange):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
+        defaultType = self.safe_string_2(self.options, 'cancelOrder', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         # https://github.com/ccxt/ccxt/issues/6507
         origClientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
@@ -3889,7 +3931,7 @@ class binance(Exchange):
     async def fetch_trading_fees(self, params={}):
         await self.load_markets()
         method = None
-        defaultType = self.safe_string_2(self.options, 'fetchFundingRates', 'defaultType', 'future')
+        defaultType = self.safe_string_2(self.options, 'fetchTradingFees', 'defaultType', 'future')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
         if (type == 'spot') or (type == 'margin'):
@@ -4084,15 +4126,15 @@ class binance(Exchange):
         return self.parse_funding_rate(response, market)
 
     async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
-        #
-        # Gets a history of funding rates with their timestamps
-        #  (param) symbol: Future currency pair(e.g. "BTC/USDT")
-        #  (param) limit: maximum number of data points returned
-        #  (param) since: Unix timestamp in miliseconds for the time of the earliest requested funding rate
-        #  (param) params: Object containing more params for the request
-        #          - until: Unix timestamp in miliseconds for the time of the earliest requested funding rate
-        #  return: [{symbol, fundingRate, timestamp}]
-        #
+        """
+        fetches historical funding rate prices
+        :param str|None symbol: unified symbol of the market to fetch the funding rate history for
+        :param int|None since: timestamp in ms of the earliest funding rate to fetch
+        :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
+        :param dict params: extra parameters specific to the binance api endpoint
+        :param int|None params['till']: timestamp in ms of the earliest funding rate
+        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        """
         await self.load_markets()
         request = {}
         method = None
@@ -5106,11 +5148,11 @@ class binance(Exchange):
         #         "type": 1
         #     }
         #
-        return self.extend(self.parse_modify_margin(response, market), {
+        return self.extend(self.parse_margin_modification(response, market), {
             'code': code,
         })
 
-    def parse_modify_margin(self, data, market=None):
+    def parse_margin_modification(self, data, market=None):
         rawType = self.safe_integer(data, 'type')
         resultType = 'add' if (rawType == 1) else 'reduce'
         resultAmount = self.safe_number(data, 'amount')
@@ -5153,6 +5195,14 @@ class binance(Exchange):
         return self.parse_borrow_rate(rate)
 
     async def fetch_borrow_rate_history(self, code, since=None, limit=None, params={}):
+        """
+        retrieves a history of a currencies borrow interest rate at specific time slots
+        :param str code: unified currency code
+        :param int|None since: timestamp for the earliest borrow rate
+        :param int|None limit: the maximum number of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` to retrieve
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        """
         await self.load_markets()
         if limit is None:
             limit = 93
@@ -5323,4 +5373,70 @@ class binance(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': info,
+        }
+
+    async def fetch_open_interest_history(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+        """
+        Retrieves the open intestest history of a currency
+        :param str symbol: Unified CCXT market symbol
+        :param str timeframe: "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
+        :param int since: The time(ms) of the earliest record to retrieve as a unix timestamp
+        :param int limit: default 30, max 500
+        :param dict params: Exchange specific parameters
+        :param int params['till']: The time(ms) of the latest record to retrieve as a unix timestamp
+        :returns: An array of open interest structures
+        """
+        if timeframe == '1m':
+            raise BadRequest(self.id + 'fetchOpenInterestHistory cannot use the 1m timeframe')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'period': self.timeframes[timeframe],
+        }
+        if limit is not None:
+            request['limit'] = limit
+        symbolKey = 'symbol' if market['future'] else 'pair'
+        request[symbolKey] = market['id']
+        if market['delivery']:
+            request['contractType'] = self.safe_string(params, 'contractType', 'CURRENT_QUARTER')
+        if since is not None:
+            request['startTime'] = since
+        till = self.safe_integer(params, 'till')  # unified in milliseconds
+        endTime = self.safe_string(params, 'endTime', till)  # exchange-specific in milliseconds
+        params = self.omit(params, ['endTime', 'till'])
+        if endTime:
+            request['endTime'] = endTime
+        elif since:
+            if limit is None:
+                limit = 30  # Exchange default
+            duration = self.parse_timeframe(timeframe)
+            request['endTime'] = self.sum(since, duration * limit * 1000)
+        method = 'fapiDataGetOpenInterestHist'
+        if market['delivery']:
+            method = 'dapiDataGetOpenInterestHist'
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #  [
+        #      {
+        #          "symbol":"BTCUSDT",
+        #          "sumOpenInterest":"75375.61700000",
+        #          "sumOpenInterestValue":"3248828883.71251440",
+        #          "timestamp":1642179900000
+        #      },
+        #      ...
+        #  ]
+        #
+        return self.parse_open_interests(response, symbol, since, limit)
+
+    def parse_open_interest(self, interest, market=None):
+        timestamp = self.safe_integer(interest, 'timestamp')
+        id = self.safe_string(interest, 'symbol')
+        market = self.safe_market(id, market)
+        return {
+            'symbol': self.safe_symbol(id),
+            'baseVolume': self.safe_number(interest, 'sumOpenInterest'),
+            'quoteVolume': self.safe_number(interest, 'sumOpenInterestValue'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': interest,
         }

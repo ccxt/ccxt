@@ -92,6 +92,12 @@ class Transpiler {
             [ /\.parseOrderStatus\s/g, '.parse_order_status'],
             [ /\.parseOrder\s/g, '.parse_order'],
             [ /\.parseJson\s/g, '.parse_json'],
+            [ /\.parseAccountPosition\s/g, '.parse_account_position' ],
+            [ /\.parsePositionRisk\s/g, '.parse_position_risk' ],
+            [ /\.parseIncome\s/g, '.parse_income' ],
+            [ /\.parseIncomes\s/g, '.parse_incomes' ],
+            [ /\.parseFundingRate\s/g, '.parse_funding_rate' ],
+            [ /\.parseMarginModification\s/g, '.parse_margin_modification' ],
             [ /\.filterByArray\s/g, '.filter_by_array'],
             [ /\.filterBySymbolSinceLimit\s/g, '.filter_by_symbol_since_limit'],
             [ /\.filterBySinceLimit\s/g, '.filter_by_since_limit'],
@@ -167,11 +173,6 @@ class Transpiler {
             [ /\.safeTicker\s/g, '.safe_ticker'],
             [ /\.roundTimeframe\s/g, '.round_timeframe'],
             [ /\.calculateRateLimiterCost\s/g, '.calculate_rate_limiter_cost' ],
-            [ /\.parseAccountPosition\s/g, '.parse_account_position' ],
-            [ /\.parsePositionRisk\s/g, '.parse_position_risk' ],
-            [ /\.parseIncome\s/g, '.parse_income' ],
-            [ /\.parseIncomes\s/g, '.parse_incomes' ],
-            [ /\.parseFundingRate\s/g, '.parse_funding_rate' ],
             [ /\.findBroadlyMatchedKey\s/g, '.find_broadly_matched_key' ],
             [ /\.throwBroadlyMatchedException\s/g, '.throw_broadly_matched_exception' ],
             [ /\.throwExactlyMatchedException\s/g, '.throw_exactly_matched_exception' ],
@@ -186,6 +187,7 @@ class Transpiler {
             [ /\.getSupportedMapping\s/g, '.get_supported_mapping'],
             [ /\.fetchBorrowRate\s/g, '.fetch_borrow_rate'],
             [ /\.handleMarketTypeAndParams\s/g, '.handle_market_type_and_params'],
+            [ /\.checkOrderArguments\s/g, '.check_order_arguments'],
             [ /\.isPostOnly\s/g, '.is_post_only'],
         ]
     }
@@ -345,13 +347,14 @@ class Transpiler {
             [ /(?<!#.+)null/, 'None' ],
             [ /\/\*\*/, '\"\"\"' ], // Doc strings
             [ / \*\//, '\"\"\"' ], // Doc strings
-            [ /\[(.*)\]\{@link (.*)\}/g, '`$1 <$2>`' ], // docstring item with link
+            [ /\[([^\[\]]*)\]\{@link (.*)\}/g, '`$1 <$2>`' ], // docstring item with link
             [ /\s+\* @method/g, '' ], // docstring @method
             [ /(\s+) \* @description (.*)/g, '$1$2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
-            [ /(\s+) \* @returns/g, '$1:returns:' ], // docstring return
-            [ /(\s+ \* @param \{[a-z]+\} )([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+) (.*)/g, '$1$2[\'$3\'] $4' ], // docstring params.anything
-            [ /(\s+) \* @([a-z]+) \{([a-z]+)\} ([a-zA-Z0-9_\-\.\[\]\']+)/g, '$1:$2 $3 $4:' ], // docstring param
+            [ /(\s+) \* @returns ([^\{])/g, '$1:returns: $2' ], // docstring return
+            [ /(\s+) \* @returns \{([\]\[a-zA-Z]*)\}/g, '$1:returns $2:' ], // docstring return
+            [ /(\s+ \* @param \{[\]\[\|a-zA-Z]+\} )([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+) (.*)/g, '$1$2[\'$3\'] $4' ], // docstring params.anything
+            [ /(\s+) \* @([a-z]+) \{([\]\[a-zA-Z\|]+)\} ([a-zA-Z0-9_\-\.\[\]\']+)/g, '$1:$2 $3 $4:' ], // docstring param
         ])
     }
 
@@ -393,8 +396,8 @@ class Transpiler {
             // That is done at the very last regex steps.
             // All of that is a workaround for PHP-arrays vs dictionaries vs url-imploded params in other langs.
             //
-            [ /\{([a-zA-Z0-9_-]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
-            [ /\[(.*)\]\{(@link .*)\}/g, '~$2 $1~' ], // docstring item with link
+            [ /\{([\]\[\|a-zA-Z0-9_-]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /\[([^\]\[]*)\]\{(@link .*)\}/g, '~$2 $1~' ], // docstring item with link
             [ /\s+\* @method/g, '' ], // docstring @method
             [ /(\s+)\* @description (.*)/g, '$1\* $2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
@@ -539,7 +542,7 @@ class Transpiler {
             [ /process\.exit/g, 'exit'],
             [ /super\./g, 'parent::'],
             [ /\sdelete\s([^\n]+)\;/g, ' unset($1);' ],
-            [ /\~([@\.\s+\:\/#\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /\~([\]\[\|@\.\s+\:\/#\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
         ])
     }
 
@@ -1637,6 +1640,11 @@ class Transpiler {
                 'jsFile': './js/test/Exchange/test.account.js',
                 'pyFile': './python/ccxt/test/test_account.py',
                 'phpFile': './php/test/test_account.php',
+            },
+            {
+                'jsFile': './js/test/Exchange/test.marginModification.js',
+                'pyFile': './python/ccxt/test/test_margin_modification.py',
+                'phpFile': './php/test/test_margin_modification.php',
             },
         ]
         for (const test of tests) {

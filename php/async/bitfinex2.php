@@ -128,6 +128,7 @@ class bitfinex2 extends bitfinex {
                         'conf/pub:info:{object}' => 2.66,
                         'conf/pub:info:{object}:{detail}' => 2.66,
                         'conf/pub:info:pair' => 2.66,
+                        'conf/pub:info:pair:futures' => 2.66,
                         'conf/pub:info:tx:status' => 2.66, // array( deposit, withdrawal ) statuses 1 = active, 0 = maintenance
                         'conf/pub:fees' => 2.66,
                         'platform/status' => 8, // 30 requests per minute = 0.5 requests per second => ( 1000ms / rateLimit ) / 0.5 = 8
@@ -398,6 +399,11 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for bitfinex2
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         // todo drop v1 in favor of v2 configs  ( temp-reference for v2update => https://pastebin.com/raw/S8CmqSHQ )
         // pub:list:pair:exchange,pub:list:pair:margin,pub:list:pair:futures,pub:info:pair
         $v2response = yield $this->publicGetConfPubListPairFutures ($params);
@@ -638,6 +644,11 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * $query for $balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the bitfinex2 api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#$balance-structure $balance structure~
+         */
         // this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         yield $this->load_markets();
@@ -699,9 +710,27 @@ class bitfinex2 extends bitfinex {
             'to' => $toId,
         );
         $response = yield $this->privatePostAuthWTransfer (array_merge($request, $params));
-        //  [1616451183763,"acc_tf",null,null,[1616451183763,"exchange","margin",null,"UST","UST",null,1],null,"SUCCESS","1.0 Tether USDt transfered from Exchange to Margin"]
-        $timestamp = $this->safe_integer($response, 0);
-        //  ["error",10001,"Momentary balance check. Please wait few seconds and try the transfer again."]
+        //
+        //     array(
+        //         1616451183763,
+        //         "acc_tf",
+        //         null,
+        //         null,
+        //         array(
+        //             1616451183763,
+        //             "exchange",
+        //             "margin",
+        //             null,
+        //             "UST",
+        //             "UST",
+        //             null,
+        //             1
+        //         ),
+        //         null,
+        //         "SUCCESS",
+        //         "1.0 Tether USDt transfered from Exchange to Margin"
+        //     )
+        //
         $error = $this->safe_string($response, 0);
         if ($error === 'error') {
             $message = $this->safe_string($response, 2, '');
@@ -709,22 +738,59 @@ class bitfinex2 extends bitfinex {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $message);
             throw new ExchangeError($this->id . ' ' . $message);
         }
-        $info = $this->safe_value($response, 4);
-        $fromResponse = $this->safe_string($info, 1);
-        $toResponse = $this->safe_string($info, 2);
-        $toCode = $this->safe_currency_code($this->safe_string($info, 5));
-        $success = $this->safe_string($response, 6);
-        $status = ($success === 'SUCCESS') ? 'ok' : null;
+        return $this->parse_transfer($response, $currency);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        // $transfer
+        //
+        //     array(
+        //         1616451183763,
+        //         "acc_tf",
+        //         null,
+        //         null,
+        //         array(
+        //             1616451183763,
+        //             "exchange",
+        //             "margin",
+        //             null,
+        //             "UST",
+        //             "UST",
+        //             null,
+        //             1
+        //         ),
+        //         null,
+        //         "SUCCESS",
+        //         "1.0 Tether USDt transfered from Exchange to Margin"
+        //     )
+        //
+        $timestamp = $this->safe_integer($transfer, 0);
+        $info = $this->safe_value($transfer, 4);
+        $fromAccount = $this->safe_string($info, 1);
+        $toAccount = $this->safe_string($info, 2);
+        $currencyId = $this->safe_string($info, 5);
+        $status = $this->safe_string($transfer, 6);
         return array(
-            'info' => $response,
+            'id' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'status' => $status,
-            'amount' => $requestedAmount,
-            'code' => $toCode,
-            'fromAccount' => $fromResponse,
-            'toAccount' => $toResponse,
+            'status' => $this->parse_transfer_status($status),
+            'amount' => $this->safe_number($transfer, 7),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'info' => $transfer,
         );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'SUCCESS' => 'ok',
+            'ERROR' => 'failed',
+            'FAILURE' => 'failed',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function convert_derivatives_id($currency, $type) {
@@ -757,6 +823,13 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the market to fetch the $order book for
+         * @param {int|null} $limit the maximum $amount of $order book entries to return
+         * @param {dict} $params extra parameters specific to the bitfinex2 api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$order-book-structure $order book structures} indexed by market symbols
+         */
         yield $this->load_markets();
         $precision = $this->safe_value($this->options, 'precision', 'R0');
         $request = array(
@@ -861,6 +934,12 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the bitfinex2 api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         yield $this->load_markets();
         $request = array();
         if ($symbols !== null) {
@@ -923,6 +1002,12 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {dict} $params extra parameters specific to the bitfinex2 api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1046,6 +1131,14 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of $trades to fetch
+         * @param {dict} $params extra parameters specific to the bitfinex2 api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $sort = '-1';
@@ -1076,6 +1169,15 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = 100, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the bitfinex2 api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         if ($limit === null) {
@@ -1797,7 +1899,7 @@ class bitfinex2 extends bitfinex {
         //     array(
         //         1582271520931, // MTS Millisecond Time Stamp of the update
         //         "acc_wd-req", // TYPE Purpose of notification 'acc_wd-req' account withdrawal $request
-        //         null, // MESSAGE_ID unique ID of the message
+        //         null, // MESSAGE_ID unique ID of the $message
         //         null, // not documented
         //         array(
         //             0, // WITHDRAWAL_ID Unique Withdrawal ID
@@ -1815,6 +1917,23 @@ class bitfinex2 extends bitfinex {
         //         "Invalid bitcoin $address (abcdef)", // TEXT Text of the notification
         //     )
         //
+        // in case of failure:
+        //
+        //     array(
+        //         "error",
+        //         10001,
+        //         "Momentary balance check. Please wait few seconds and try the transfer again."
+        //     )
+        //
+        $statusMessage = $this->safe_string($response, 0);
+        if ($statusMessage === 'error') {
+            $feedback = $this->id . ' ' . $response;
+            $message = $this->safe_string($response, 2, '');
+            // same $message as in v1
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+            throw new ExchangeError($feedback); // unknown $message
+        }
         $text = $this->safe_string($response, 7);
         if ($text !== 'success') {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $text, $text);
@@ -1900,14 +2019,14 @@ class bitfinex2 extends bitfinex {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($statusCode, $statusText, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response !== null) {
             if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) != 0) {
                 $message = $this->safe_string_2($response, 'message', 'error');
-                $feedback = $this->id . ' ' . $responseBody;
+                $feedback = $this->id . ' ' . $body;
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
-                throw new ExchangeError($this->id . ' ' . $responseBody);
+                throw new ExchangeError($this->id . ' ' . $body);
             }
         } else if ($response === '') {
             throw new ExchangeError($this->id . ' returned empty response');

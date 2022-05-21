@@ -38,6 +38,8 @@ class indodax extends Exchange {
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchDeposit' => false,
+                'fetchDeposits' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -48,6 +50,7 @@ class indodax extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => null,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -62,10 +65,16 @@ class indodax extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransactions' => true,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
+                'fetchWithdrawal' => false,
+                'fetchWithdrawals' => false,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'version' => '2.0', // as of 9 April 2018
@@ -95,7 +104,7 @@ class indodax extends Exchange {
                 'private' => array(
                     'post' => array(
                         'getInfo' => 4,
-                        'transHistory' => 4, // TODO add fetchDeposits, fetchWithdrawals, fetchTransactionsbyType
+                        'transHistory' => 4,
                         'trade' => 1,
                         'tradeHistory' => 4, // TODO add fetchMyTrades
                         'openOrders' => 4,
@@ -163,6 +172,11 @@ class indodax extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for indodax
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = yield $this->publicGetPairs ($params);
         //
         //     array(
@@ -276,6 +290,11 @@ class indodax extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the indodax api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         yield $this->load_markets();
         $response = yield $this->privatePostGetInfo ($params);
         //
@@ -312,6 +331,13 @@ class indodax extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the indodax api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         */
         yield $this->load_markets();
         $request = array(
             'pair' => $this->market_id($symbol),
@@ -363,6 +389,12 @@ class indodax extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {dict} $params extra parameters specific to the indodax api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -407,6 +439,14 @@ class indodax extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the indodax api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -552,7 +592,7 @@ class indodax extends Exchange {
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
         }
         yield $this->load_markets();
         $request = array();
@@ -613,6 +653,97 @@ class indodax extends Exchange {
         return yield $this->privatePostCancelOrder (array_merge($request, $params));
     }
 
+    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array();
+        if ($since !== null) {
+            $startTime = $this->iso8601(mb_substr($since), 0, 10 - 0);
+            $request['start'] = $startTime;
+            $request['end'] = $this->iso8601($this->milliseconds(mb_substr()), 0, 10 - 0);
+        }
+        $response = yield $this->privatePostTransHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "success" => 1,
+        //         "return" => {
+        //             "withdraw" => array(
+        //                 "idr" => array(
+        //                     array(
+        //                         "status" => "success",
+        //                         "type" => "coupon",
+        //                         "rp" => "115205",
+        //                         "fee" => "500",
+        //                         "amount" => "114705",
+        //                         "submit_time" => "1539844166",
+        //                         "success_time" => "1539844189",
+        //                         "withdraw_id" => "1783717",
+        //                         "tx" => "BTC-IDR-RDTVVO2P-ETD0EVAW-VTNZGMIR-HTNTUAPI-84ULM9OI",
+        //                         "sender" => "boris",
+        //                         "used_by" => "viginia88"
+        //                     ),
+        //                     ...
+        //                 ),
+        //                 "btc" => array(),
+        //                 "abyss" => array(),
+        //                 ...
+        //             ),
+        //             "deposit" => {
+        //                 "idr" => array(
+        //                     array(
+        //                         "status" => "success",
+        //                         "type" => "duitku",
+        //                         "rp" => "393000",
+        //                         "fee" => "5895",
+        //                         "amount" => "387105",
+        //                         "submit_time" => "1576555012",
+        //                         "success_time" => "1576555012",
+        //                         "deposit_id" => "3395438",
+        //                         "tx" => "Duitku OVO Settlement"
+        //                     ),
+        //                     ...
+        //                 ),
+        //                 "btc" => array(
+        //                     array(
+        //                         "status" => "success",
+        //                         "btc" => "0.00118769",
+        //                         "amount" => "0.00118769",
+        //                         "success_time" => "1539529208",
+        //                         "deposit_id" => "3602369",
+        //                         "tx" => "c816aeb35a5b42f389970325a32aff69bb6b2126784dcda8f23b9dd9570d6573"
+        //                     ),
+        //                     ...
+        //                 ),
+        //                 "abyss" => array(),
+        //                 ...
+        //             }
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'return', array());
+        $withdraw = $this->safe_value($data, 'withdraw', array());
+        $deposit = $this->safe_value($data, 'deposit', array());
+        $transactions = array();
+        $currency = null;
+        if ($code === null) {
+            $keys = is_array($withdraw) ? array_keys($withdraw) : array();
+            for ($i = 0; $i < count($keys); $i++) {
+                $key = $keys[$i];
+                $transactions = $this->array_concat($transactions, $withdraw[$key]);
+            }
+            $keys = is_array($deposit) ? array_keys($deposit) : array();
+            for ($i = 0; $i < count($keys); $i++) {
+                $key = $keys[$i];
+                $transactions = $this->array_concat($transactions, $deposit[$key]);
+            }
+        } else {
+            $currency = $this->currency($code);
+            $withdraws = $this->safe_value($withdraw, $currency['id'], array());
+            $deposits = $this->safe_value($deposit, $currency['id'], array());
+            $transactions = $this->array_concat($withdraws, $deposits);
+        }
+        return $this->parse_transactions($transactions, $currency, $since, $limit);
+    }
+
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
@@ -671,28 +802,69 @@ class indodax extends Exchange {
         //         "withdraw_memo" => "123123"
         //     }
         //
-        $currency = $this->safe_currency(null, $currency);
+        // transHistory
+        //
+        //     {
+        //         "status" => "success",
+        //         "type" => "coupon",
+        //         "rp" => "115205",
+        //         "fee" => "500",
+        //         "amount" => "114705",
+        //         "submit_time" => "1539844166",
+        //         "success_time" => "1539844189",
+        //         "withdraw_id" => "1783717",
+        //         "tx" => "BTC-IDR-RDTVVO2P-ETD0EVAW-VTNZGMIR-HTNTUAPI-84ULM9OI",
+        //         "sender" => "boris",
+        //         "used_by" => "viginia88"
+        //     }
+        //
+        //     array(
+        //         "status" => "success",
+        //         "btc" => "0.00118769",
+        //         "amount" => "0.00118769",
+        //         "success_time" => "1539529208",
+        //         "deposit_id" => "3602369",
+        //         "tx" => "c816aeb35a5b42f389970325a32aff69bb6b2126784dcda8f23b9dd9570d6573"
+        //     ),
+        $status = $this->safe_string($transaction, 'status');
+        $timestamp = $this->safe_timestamp_2($transaction, 'success_time', 'submit_time');
+        $depositId = $this->safe_string($transaction, 'deposit_id');
+        $feeCost = $this->safe_number($transaction, 'fee');
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array(
+                'currency' => $this->safe_currency_code(null, $currency),
+                'cost' => $this->safe_number('fee'),
+            );
+        }
         return array(
-            'id' => $this->safe_string($transaction, 'withdraw_id'),
-            'txid' => $this->safe_string($transaction, 'txid'),
-            'timestamp' => null,
-            'datetime' => null,
+            'id' => $this->safe_string_2($transaction, 'withdraw_id', 'deposit_id'),
+            'txid' => $this->safe_string_2($transaction, 'txid', 'tx'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'network' => null,
             'addressFrom' => null,
-            'address' => null,
+            'address' => $this->safe_string($transaction, 'withdraw_address'),
             'addressTo' => null,
-            'amount' => null,
-            'type' => null,
-            'currency' => $currency['code'],
-            'status' => null,
+            'amount' => $this->safe_number_n($transaction, array( 'amount', 'withdraw_amount', 'deposit_amount' )),
+            'type' => ($depositId === null) ? 'withdraw' : 'deposit',
+            'currency' => $this->safe_currency_code(null, $currency),
+            'status' => $this->parse_transaction_status($status),
             'updated' => null,
             'tagFrom' => null,
             'tag' => null,
             'tagTo' => null,
-            'comment' => null,
-            'fee' => null,
+            'comment' => $this->safe_string($transaction, 'withdraw_memo'),
+            'fee' => $fee,
             'info' => $transaction,
         );
+    }
+
+    public function parse_transaction_status($status) {
+        $statuses = array(
+            'success' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
