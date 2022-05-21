@@ -974,23 +974,118 @@ module.exports = class bitmex extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetInstrumentActiveAndIndices (params);
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const ticker = this.parseTicker (response[i]);
-            const symbol = this.safeString (ticker, 'symbol');
-            if (symbol !== undefined) {
-                result[symbol] = ticker;
-            }
-        }
-        const uniformSymbols = [];
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                const market = this.market (symbol);
-                uniformSymbols.push (market['symbol']);
-            }
-        }
-        return this.filterByArray (result, 'symbol', uniformSymbols);
+        //
+        //     [
+        //         {
+        //             "symbol":".EVOL7D",
+        //             "rootSymbol":"EVOL",
+        //             "state":"Unlisted",
+        //             "typ":"MRIXXX",
+        //             "listing":null,
+        //             "front":null,
+        //             "expiry":null,
+        //             "settle":null,
+        //             "listedSettle":null,
+        //             "relistInterval":null,
+        //             "inverseLeg":"",
+        //             "sellLeg":"",
+        //             "buyLeg":"",
+        //             "optionStrikePcnt":null,
+        //             "optionStrikeRound":null,
+        //             "optionStrikePrice":null,
+        //             "optionMultiplier":null,
+        //             "positionCurrency":"",
+        //             "underlying":"ETH",
+        //             "quoteCurrency":"XXX",
+        //             "underlyingSymbol":".EVOL7D",
+        //             "reference":"BMI",
+        //             "referenceSymbol":".BETHXBT",
+        //             "calcInterval":"2000-01-08T00:00:00.000Z",
+        //             "publishInterval":"2000-01-01T00:05:00.000Z",
+        //             "publishTime":null,
+        //             "maxOrderQty":null,
+        //             "maxPrice":null,
+        //             "lotSize":null,
+        //             "tickSize":0.01,
+        //             "multiplier":null,
+        //             "settlCurrency":"",
+        //             "underlyingToPositionMultiplier":null,
+        //             "underlyingToSettleMultiplier":null,
+        //             "quoteToSettleMultiplier":null,
+        //             "isQuanto":false,
+        //             "isInverse":false,
+        //             "initMargin":null,
+        //             "maintMargin":null,
+        //             "riskLimit":null,
+        //             "riskStep":null,
+        //             "limit":null,
+        //             "capped":false,
+        //             "taxed":false,
+        //             "deleverage":false,
+        //             "makerFee":null,
+        //             "takerFee":null,
+        //             "settlementFee":null,
+        //             "insuranceFee":null,
+        //             "fundingBaseSymbol":"",
+        //             "fundingQuoteSymbol":"",
+        //             "fundingPremiumSymbol":"",
+        //             "fundingTimestamp":null,
+        //             "fundingInterval":null,
+        //             "fundingRate":null,
+        //             "indicativeFundingRate":null,
+        //             "rebalanceTimestamp":null,
+        //             "rebalanceInterval":null,
+        //             "openingTimestamp":null,
+        //             "closingTimestamp":null,
+        //             "sessionInterval":null,
+        //             "prevClosePrice":null,
+        //             "limitDownPrice":null,
+        //             "limitUpPrice":null,
+        //             "bankruptLimitDownPrice":null,
+        //             "bankruptLimitUpPrice":null,
+        //             "prevTotalVolume":null,
+        //             "totalVolume":null,
+        //             "volume":null,
+        //             "volume24h":null,
+        //             "prevTotalTurnover":null,
+        //             "totalTurnover":null,
+        //             "turnover":null,
+        //             "turnover24h":null,
+        //             "homeNotional24h":null,
+        //             "foreignNotional24h":null,
+        //             "prevPrice24h":5.27,
+        //             "vwap":null,
+        //             "highPrice":null,
+        //             "lowPrice":null,
+        //             "lastPrice":4.72,
+        //             "lastPriceProtected":null,
+        //             "lastTickDirection":"ZeroMinusTick",
+        //             "lastChangePcnt":-0.1044,
+        //             "bidPrice":null,
+        //             "midPrice":null,
+        //             "askPrice":null,
+        //             "impactBidPrice":null,
+        //             "impactMidPrice":null,
+        //             "impactAskPrice":null,
+        //             "hasLiquidity":false,
+        //             "openInterest":null,
+        //             "openValue":0,
+        //             "fairMethod":"",
+        //             "fairBasisRate":null,
+        //             "fairBasis":null,
+        //             "fairPrice":null,
+        //             "markMethod":"LastPrice",
+        //             "markPrice":4.72,
+        //             "indicativeTaxRate":null,
+        //             "indicativeSettlePrice":null,
+        //             "optionUnderlyingPrice":null,
+        //             "settledPriceAdjustmentRate":null,
+        //             "settledPrice":null,
+        //             "timestamp":"2022-05-21T04:30:00.000Z"
+        //         }
+        //     ]
+        //
+        return this.parseTickers (response, symbols);
     }
 
     parseTicker (ticker, market = undefined) {
