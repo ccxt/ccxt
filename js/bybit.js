@@ -3594,7 +3594,10 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const address = this.safeString (depositAddress, 'address_deposit');
-        const tag = this.safeString (depositAddress, 'tag_deposit');
+        let tag = this.safeString (depositAddress, 'tag_deposit');
+        if (tag === '') {
+            tag = undefined;
+        }
         const code = this.safeString (currency, 'code');
         const chain = this.safeString (depositAddress, 'chain');
         this.checkAddress (address);
