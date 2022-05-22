@@ -450,7 +450,7 @@ module.exports = class lbank2 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetSupplementIncrDepth (this.extend (request, params));
+        const response = await this.publicGetIncrDepth (this.extend (request, params));
         const orderbook = response['data'];
         const timestamp = this.milliseconds ();
         return this.parseOrderBook (orderbook, symbol, timestamp);
