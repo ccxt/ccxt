@@ -12,6 +12,7 @@ from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
@@ -52,6 +53,9 @@ class bybit(Exchange):
                 'fetchBorrowRate': False,
                 'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
+                'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
@@ -79,6 +83,7 @@ class bybit(Exchange):
                 'fetchWithdrawals': True,
                 'setLeverage': True,
                 'setMarginMode': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -181,6 +186,8 @@ class bybit(Exchange):
                         'perpetual/usdc/openapi/public/v1/account-ratio': 1,
                         'perpetual/usdc/openapi/public/v1/prev-funding-rate': 1,
                         'perpetual/usdc/openapi/public/v1/risk-limit/list': 1,
+                        # account
+                        'asset/v1/public/deposit/allowed-deposit-list': 1,
                     },
                 },
                 'private': {
@@ -229,10 +236,19 @@ class bybit(Exchange):
                         'spot/v1/open-orders': 2.5,
                         'spot/v1/history-orders': 2.5,
                         'spot/v1/myTrades': 2.5,
+                        'spot/v1/cross-margin/order': 10,
+                        'spot/v1/cross-margin/accounts/balance': 10,
+                        'spot/v1/cross-margin/loan-info': 10,
+                        'spot/v1/cross-margin/repay/history': 10,
                         # account
                         'asset/v1/private/transfer/list': 50,  # 60 per minute = 1 per second => cost = 50 / 1 = 50
                         'asset/v1/private/sub-member/transfer/list': 50,
                         'asset/v1/private/sub-member/member-ids': 50,
+                        'asset/v1/private/deposit/record/query': 50,
+                        'asset/v1/private/withdraw/record/query': 25,
+                        'asset/v1/private/coin-info/query': 25,
+                        'asset/v1/private/asset-info/query': 50,
+                        'asset/v1/private/deposit/address': 100,
                     },
                     'post': {
                         # inverse swap
@@ -286,9 +302,13 @@ class bybit(Exchange):
                         'futures/private/position/risk-limit': 2.5,
                         # spot
                         'spot/v1/order': 2.5,
+                        'spot/v1/cross-margin/loan': 10,
+                        'spot/v1/cross-margin/repay': 10,
                         # account
                         'asset/v1/private/transfer': 150,  # 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
                         'asset/v1/private/sub-member/transfer': 150,
+                        'asset/v1/private/withdraw': 50,
+                        'asset/v1/private/withdraw/cancel': 50,
                         # USDC endpoints
                         # option USDC
                         'option/usdc/openapi/private/v1/place-order': 2.5,
@@ -319,6 +339,7 @@ class bybit(Exchange):
                         'option/usdc/openapi/private/v1/session-settlement': 2.5,
                         'perpetual/usdc/openapi/public/v1/risk-limit/list': 2.5,
                         'perpetual/usdc/openapi/private/v1/position/set-risk-limit': 2.5,
+                        # 'perpetual/usdc/openapi/private/v1/predicted-funding': 2.5,
                     },
                     'delete': {
                         # spot
@@ -3386,6 +3407,92 @@ class bybit(Exchange):
             result = self.safe_value_2(result, 'trade_list', 'data', [])
         return self.parse_trades(result, market, since, limit)
 
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        #     {
+        #         chain_type: 'Arbitrum One',
+        #         address_deposit: '0x83a127952d266A6eA306c40Ac62A4a70668FE3BE',
+        #         tag_deposit: '',
+        #         chain: 'ARBI'
+        #     }
+        #
+        address = self.safe_string(depositAddress, 'address_deposit')
+        tag = self.safe_string(depositAddress, 'tag_deposit')
+        if tag == '':
+            tag = None
+        code = self.safe_string(currency, 'code')
+        chain = self.safe_string(depositAddress, 'chain')
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'network': chain,
+            'info': depositAddress,
+        }
+
+    def fetch_deposit_addresses_by_network(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+        }
+        response = self.privateGetAssetV1PrivateDepositAddress(self.extend(request, params))
+        #
+        #     {
+        #         ret_code: '0',
+        #         ret_msg: 'OK',
+        #         ext_code: '',
+        #         result: {
+        #             coin: 'ETH',
+        #             chains: [
+        #                 {
+        #                     chain_type: 'Arbitrum One',
+        #                     address_deposit: 'bybitisthebest',
+        #                     tag_deposit: '',
+        #                     chain: 'ARBI'
+        #                 }
+        #             ]
+        #         },
+        #         ext_info: null,
+        #         time_now: '1653141635426'
+        #     }
+        #
+        result = self.safe_value(response, 'result', [])
+        chains = self.safe_value(result, 'chains', [])
+        coin = self.safe_string(result, 'coin')
+        currency = self.currency(coin)
+        parsed = self.parse_deposit_addresses(chains, [code], False, {
+            'currency': currency['id'],
+        })
+        return self.index_by(parsed, 'network')
+
+    def fetch_deposit_address(self, code, params={}):
+        rawNetwork = self.safe_string_upper(params, 'network')
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string(networks, rawNetwork, rawNetwork)
+        params = self.omit(params, 'network')
+        response = self.fetch_deposit_addresses_by_network(code, params)
+        result = None
+        if network is None:
+            result = self.safe_value(response, code)
+            if result is None:
+                alias = self.safe_string(networks, code, code)
+                result = self.safe_value(response, alias)
+                if result is None:
+                    defaultNetwork = self.safe_string(self.options, 'defaultNetwork', 'ERC20')
+                    result = self.safe_value(response, defaultNetwork)
+                    if result is None:
+                        values = list(response.values())
+                        result = self.safe_value(values, 0)
+                        if result is None:
+                            raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find deposit address for ' + code)
+            return result
+        result = self.safe_value(response, network)
+        if result is None:
+            raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code)
+        return result
+
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {
@@ -3686,6 +3793,40 @@ class bybit(Exchange):
             'ExchangeOrderDeposit': 'transaction',
         }
         return self.safe_string(types, type, type)
+
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        self.load_markets()
+        self.check_address(address)
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+            'amount': self.number_to_string(amount),
+            'address': address,
+        }
+        if tag is not None:
+            request['tag'] = tag
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_upper(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['chain'] = network
+            params = self.omit(params, 'network')
+        response = self.privatePostAssetV1PrivateWithdraw(self.extend(request, params))
+        #
+        #     {
+        #         "ret_code":0,
+        #         "ret_msg":"OK"
+        #         "ext_code":"",
+        #         "result":{
+        #             "id":"bybitistheone"
+        #         },
+        #         "ext_info":null,
+        #         "time_now":1653149296617
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        return self.parse_transaction(result, currency)
 
     def fetch_positions(self, symbols=None, params={}):
         self.load_markets()
