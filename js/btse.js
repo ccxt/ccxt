@@ -873,10 +873,13 @@ module.exports = class btse extends Exchange {
         //     ]
         //
         // transfer to milliseconds
-        response.forEach ((r) => {
-            r[0] = r[0] * 1000;
-        });
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const resp = [];
+        for (let i = 0; i < response.length; i++) {
+            const oldResp = response[i];
+            oldResp[0] = oldResp[0] * 1000;
+            resp.push (oldResp);
+        }
+        return this.parseOHLCVs (resp, market, timeframe, since, limit);
     }
 
     async fetchTime (params = {}) {
@@ -1448,7 +1451,8 @@ module.exports = class btse extends Exchange {
                 request['triggerPrice'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
             }
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        const query = this.handleMarketTypeAndParams ('createOrder', market, params)[1];
+        const marketType = market['type'];
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostOrder',
             'future': 'futurePrivatePostOrder',
@@ -1457,26 +1461,27 @@ module.exports = class btse extends Exchange {
         const response = await this[method] (this.extend (request, query));
         // [
         //     {
-        //        "status":"2",
-        //        "symbol":"BTCPFC",
-        //        "orderType":"76",
-        //        "price":"1500.0",
-        //        "side":"BUY",
-        //        "size":"1",
-        //        "orderID":"5771e5f4-196a-4c9d-975a-3617a07ac4d7",
-        //        "timestamp":"1643710575930",
-        //        "triggerPrice":"0.0",
-        //        "trigger":false,
-        //        "deviation":"100.0",
-        //        "stealth":"100.0",
-        //        "message":"",
-        //        "avgFillPrice":"0.0",
-        //        "fillSize":"0.0",
-        //        "clOrderID":"",
-        //        "originalSize":"1.0",
-        //        "postOnly":false,
-        //        "remainingSize":"1.0",
-        //        "time_in_force":"GTC"
+        //          averageFillPrice:'0.0'
+        //          clOrderID:'test_order_id....'
+        //          deviation:'1.0'
+        //          fillSize:'0.0'
+        //          message:''
+        //          orderID:'d2e08dc3-f057-4f3f-b57e-b716476e3553'
+        //          orderType:'76'
+        //          originalSize:'1.0'
+        //          postOnly:false
+        //          price:'7010.0'
+        //          remainingSize:'1.0'
+        //          side:'BUY'
+        //          size:'1.0'
+        //          status:'2'
+        //          stealth:'1.0'
+        //          stopPrice:null
+        //          symbol:'BTC-USD'
+        //          time_in_force:'GTC'
+        //          timestamp:'1653180908693'
+        //          trigger:false
+        //          triggerPrice:'0.0'
         //     }
         // ]
         return this.parseOrders (response, market);
