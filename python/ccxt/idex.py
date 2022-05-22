@@ -14,6 +14,9 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO
 from ccxt.base.precise import Precise
@@ -173,6 +176,17 @@ class idex(Exchange):
             'commonCurrencies': {},
         })
 
+    def price_to_precision(self, symbol, price):
+        market = self.market(symbol)
+        info = self.safe_value(market, 'info', {})
+        quoteAssetPrecision = self.safe_integer(info, 'quoteAssetPrecision')
+        price = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode)
+        # https://docs.bitfinex.com/docs/introduction#price-precision
+        # The precision level of all trading prices is based on significant figures.
+        # All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals(e.g. 1.2345, 123.45, 1234.5, 0.00012345).
+        # Prices submit with a precision larger than 5 will be cut by the API.
+        return self.decimal_to_precision(price, TRUNCATE, quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO)
+
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for idex
@@ -226,7 +240,7 @@ class idex(Exchange):
             quotePrecisionString = self.safe_string(entry, 'quoteAssetPrecision')
             basePrecision = self.parse_number(self.parse_precision(basePrecisionString))
             quotePrecision = self.parse_number(self.parse_precision(quotePrecisionString))
-            # quotePrecision = self.safe_number(entry, 'tickSize', quotePrecision)
+            quotePrecision = self.safe_number(entry, 'tickSize', quotePrecision)
             status = self.safe_string(entry, 'status')
             minCost = None
             if quote == 'ETH':
