@@ -4018,7 +4018,7 @@ class Exchange {
         $query = $this->extend($params, $array);
         return $this->create_order($symbol, 'market', $side, $amount, null, $query);
     }
-    
+
     public function check_order_arguments ($market, $type, $side, $amount, $price, $params) {
         if ($price === null) {
             if ($type === 'limit') {
@@ -4077,5 +4077,19 @@ class Exchange {
         } else {
             throw new NotSupported($this->id . ' fetch_funding_rate () is not supported yet');
         }
+    }
+
+    public function retry($attempts, $method) {
+        $args = func_get_args();
+        $attempts = $args[0];
+        $method = $args[1];
+        for ($i = 0; $i < $attempts; $i++) {
+            try {
+                return call_user_func_array(array($this, $method), array_slice($args, 2));
+            } catch (Exception $e) {
+                // retry
+            }
+        }
+        throw new ExchangeError($this->id . ' ' . $method . ' () failed after ' . strval($attempts) . ' attempts');
     }
 }
