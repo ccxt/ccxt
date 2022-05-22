@@ -226,7 +226,7 @@ class idex(Exchange):
             quotePrecisionString = self.safe_string(entry, 'quoteAssetPrecision')
             basePrecision = self.parse_number(self.parse_precision(basePrecisionString))
             quotePrecision = self.parse_number(self.parse_precision(quotePrecisionString))
-            quotePrecision = self.safe_number(entry, 'tickSize', quotePrecision)
+            # quotePrecision = self.safe_number(entry, 'tickSize', quotePrecision)
             status = self.safe_string(entry, 'status')
             minCost = None
             if quote == 'ETH':
