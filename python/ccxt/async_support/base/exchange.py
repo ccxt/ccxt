@@ -438,12 +438,3 @@ class Exchange(BaseExchange):
                 return rate
         else:
             raise NotSupported(self.id + ' fetch_funding_rate() is not supported yet')
-
-    async def retry(self, attempts, method, *args):
-        for i in range(0, attempts):
-            try:
-                return await getattr(self, method)(*args)
-            except Exception as e:
-                # retry
-                pass
-        raise ExchangeError(self.id + ' ' + method + ' () failed after ' + str(attempts) + ' attempts')

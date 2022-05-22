@@ -2477,16 +2477,4 @@ module.exports = class Exchange {
             throw new NotSupported (this.id + ' fetchFundingRate () is not supported yet');
         }
     }
-
-    async retry (attempts, method, ... args) {
-        for (let i = 0; i < attempts; i++) {
-            try {
-                return await exchange[method] (... args)
-            } catch (e) {
-                // retry
-                continue
-            }
-        }
-        throw new ExchangeError (this.id + ' ' + method + ' () failed after ' + attempts.toString () + ' attempts')
-    }
 }

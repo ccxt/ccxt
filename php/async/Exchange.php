@@ -440,18 +440,4 @@ class Exchange extends \ccxt\Exchange {
             throw new NotSupported($this->id . ' fetch_funding_rate () is not supported yet');
         }
     }
-
-    public function retry($attempts, $method) {
-        $args = func_get_args();
-        $attempts = $args[0];
-        $method = $args[1];
-        for ($i = 0; $i < $attempts; $i++) {
-            try {
-                return yield call_user_func_array(array($this, $method), array_slice($args, 2));
-            } catch (Exception $e) {
-                // retry
-            }
-        }
-        throw new ExchangeError($this->id . ' ' . $method . ' () failed after ' . strval($attempts) . ' attempts');
-    }
 }
