@@ -311,6 +311,14 @@ module.exports = class bitfinex2 extends bitfinex {
                     'market': 'EXCHANGE MARKET',
                     'limit': 'EXCHANGE LIMIT',
                 },
+                'inverseOrderTypes': {
+                    'EXCHANGE LIMIT': 'limit',
+                    'EXCHANGE MARKET': 'market',
+                    'EXCHANGE STOP': 'market',
+                    'EXCHANGE STOP LIMIT': 'limit',
+                    'EXCHANGE IOC': 'limit',
+                    'EXCHANGE FOK': 'limit',
+                },
                 'fiat': {
                     'USD': 'USD',
                     'EUR': 'EUR',
@@ -1154,6 +1162,7 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     parseOrderStatus (status) {
+        // TODO update for IOC, FOK, STOP orders
         if (status === undefined) {
             return status;
         }
@@ -1173,6 +1182,7 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     parseOrder (order, market = undefined) {
+        // TODO add examples
         const id = this.safeString (order, 0);
         let symbol = undefined;
         const marketId = this.safeString (order, 3);
@@ -1193,13 +1203,20 @@ module.exports = class bitfinex2 extends bitfinex {
         const side = Precise.stringLt (signedAmount, '0') ? 'sell' : 'buy';
         const orderType = this.safeString (order, 8);
         const type = this.safeString (this.safeValue (this.options, 'exchangeTypes'), orderType);
+        let price = this.safeString (order, 16);
+        let stopPrice = undefined;
+        if ((orderType === 'EXCHANGE STOP') || (orderType === 'EXCHANGE STOP LIMIT')) {
+            stopPrice = this.safeString (order, 16);
+            if (orderType === 'EXCHANGE STOP LIMIT') {
+                price = this.safeString (order, 19);
+            }
+        }
         let status = undefined;
         const statusString = this.safeString (order, 13);
         if (statusString !== undefined) {
             const parts = statusString.split (' @ ');
             status = this.parseOrderStatus (this.safeString (parts, 0));
         }
-        const price = this.safeString (order, 16);
         const average = this.safeString (order, 17);
         const clientOrderId = this.safeString (order, 2);
         return this.safeOrder ({
@@ -1215,7 +1232,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': undefined,
             'average': average,
@@ -1243,17 +1260,96 @@ module.exports = class bitfinex2 extends bitfinex {
          * @param {bool} params.postOnly
          * @param {bool} params.reduceOnly Ensures that the executed order does not flip the opened position.
          * @param {int} params.flags additional order parameters: 4096 (Post Only), 1024 (Reduce Only), 16384 (OCO), 64 (Hidden), 512 (Close), 524288 (No Var Rates)
-         * @param {bool} params.margin set to true if the order is a margin order // TODO add (remove EXCHANGE prefix from order type)
          * @param {int} params.lev leverage for a derivative order, supported by derivative symbol orders only. The value should be between 1 and 100 inclusive.
          * @param {str} params.price_traling The trailing price for a trailing stop order
-         * @param {str} params.price_aux_limit TODO investigate ("Auxiliary Limit price (for STOP LIMIT)")
-         * @param {str} params.price_oco_stop TODO investigate ("OCO stop price")
+         * @param {str} params.price_aux_limit Order price for stop limit orders
+         * @param {str} params.price_oco_stop OCO stop price
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        // order types "limit" and "market" immediatley parsed "EXCHANGE LIMIT" and "EXCHANGE MARKET"
+        // note: same order types exist for margin orders without the EXCHANGE prefix
+        const orderTypes = this.safeValue (this.options, 'orderTypes', {});
+        const orderType = this.safeStringUpper (orderTypes, type, type);
+        const stopPrice = this.safeString (params, 'stopPrice');
         const timeInForce = this.safeString (params, 'timeInForce');
-        const postOnly = this.safeValue (params, 'postOnly', false);
+        const postOnlyParam = this.safeValue (params, 'postOnly', false);
         const reduceOnly = this.safeValue (params, 'reduceOnly', false);
+        const clientOrderId = this.safeValue2 (params, 'cid', 'clientOrderId');
+        params = this.omit (params, [ 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'price_aux_limit' ]);
+        amount = (side === 'buy') ? amount : -amount;
+        const request = {
+            // 'gid': 0123456789, // int32,  optional group id for the order
+            // 'cid': 0123456789, // int32 client order id
+            'type': orderType,
+            'symbol': market['id'],
+            // 'price': this.numberToString (price),
+            'amount': this.amountToPrecision (symbol, amount),
+            // 'flags': 0, // int32, https://docs.bitfinex.com/v2/docs/flag-values
+            // 'lev': 10, // leverage for a derivative orders, the value should be between 1 and 100 inclusive, optional, 10 by default
+            // 'price_trailing': this.numberToString (priceTrailing),
+            // 'price_aux_limit': this.numberToString (stopPrice),
+            // 'price_oco_stop': this.numberToString (ocoStopPrice),
+            // 'tif': '2020-01-01 10:45:23', // datetime for automatic order cancellation
+            // 'meta': {
+            //     'aff_code': 'AFF_CODE_HERE'
+            // },
+        };
+        const stopLimit = ((orderType === 'EXCHANGE STOP LIMIT') || ((orderType === 'EXCHANGE LIMIT') && (stopPrice !== undefined)));
+        const stopMarket = ((orderType === 'EXCHANGE STOP') || ((orderType === 'EXCHANGE MARKET') && (stopPrice !== undefined)));
+        const ioc = ((orderType === 'EXCHANGE IOC') || (timeInForce === 'IOC'));
+        const fok = ((orderType === 'EXCHANGE FOK') || (timeInForce === 'FOK'));
+        const postOnly = (postOnlyParam || (timeInForce === 'PO'));
+        if ((ioc || fok) && (price === undefined)) {
+            throw new InvalidOrder (this.id + ' createOrder() requires a price argument with IOC and FOK orders');
+        }
+        if ((ioc || fok) && (orderType === 'EXCHANGE MARKET')) {
+            throw new InvalidOrder (this.id + ' createOrder() does not allow market IOC and FOK orders');
+        }
+        if ((orderType !== 'MARKET') && (orderType !== 'EXCHANGE MARKET') && (orderType !== 'EXCHANGE STOP')) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (stopLimit || stopMarket) {
+            // request['price'] is taken as stopPrice for stop orders
+            request['price'] = this.priceToPrecision (symbol, stopPrice);
+            if (stopMarket) {
+                request['type'] = 'EXCHANGE STOP';
+            } else if (stopLimit) {
+                request['type'] = 'EXCHANGE STOP LIMIT';
+                request['price_aux_limit'] = this.priceToPrecision (symbol, price);
+            }
+        }
+        if (ioc) {
+            request['type'] = 'EXCHANGE IOC';
+        } else if (fok) {
+            request['type'] = 'EXCHANGE FOK';
+        }
+        // flag values may be summed to combine flags
+        let flags = 0;
+        if (postOnly) {
+            flags = flags + 4096;
+        }
+        if (reduceOnly) {
+            flags = flags + 1024;
+        }
+        if (flags !== 0) {
+            request['flags'] = flags;
+        }
+        if (clientOrderId !== undefined) {
+            request['cid'] = clientOrderId;
+            params = this.omit (params, [ 'cid', 'clientOrderId' ]);
+        }
+        const response = await this.privatePostAuthWOrderSubmit (this.extend (request, params));
+        //
+        const status = this.safeString (response, 6);
+        if (status !== 'SUCCESS') {
+            const errorCode = response[5];
+            const errorText = response[7];
+            throw new ExchangeError (this.id + ' ' + response[6] + ': ' + errorText + ' (#' + errorCode + ')');
+        }
+        const orders = this.safeValue (response, 4, []);
+        const order = this.safeValue (orders, 0);
+        return this.parseOrder (order, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
