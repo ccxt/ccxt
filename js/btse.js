@@ -44,7 +44,7 @@ module.exports = class btse extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchPositions': false,
-                'fetchStatus': false,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -894,6 +894,10 @@ module.exports = class btse extends Exchange {
         //     "iso": "2021-06-29T18:14:30.886Z",
         //     "epoch": 1624990470
         // }
+        if (response['epoch']) {
+            // transfer to milliseconds
+            response['epoch'] = this.safeInteger (response, 'epoch') * 1000;
+        }
         return this.safeInteger (response, 'epoch');
     }
 
