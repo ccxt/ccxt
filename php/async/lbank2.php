@@ -1024,8 +1024,8 @@ class lbank2 extends Exchange {
         $timeInForce = null;
         $postOnly = false;
         $type = 'limit';
-        $side = $this->safe_string($order, 'type'); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
-        $parts = explode('_', $side);
+        $rawType = $this->safe_string($order, 'type'); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
+        $parts = explode('_', $rawType);
         $side = $this->safe_string($parts, 0);
         $typePart = $this->safe_string($parts, 1); // $market, maker, ioc, fok or null (limit)
         if ($typePart === 'market') {
@@ -1043,7 +1043,10 @@ class lbank2 extends Exchange {
         }
         $price = $this->safe_string($order, 'price');
         $costString = $this->safe_string($order, 'cummulativeQuoteQty');
-        $amountString = $this->safe_string_2($order, 'origQty', 'amount');
+        $amountString = null;
+        if ($rawType !== 'buy_market') {
+            $amountString = $this->safe_string_2($order, 'origQty', 'amount');
+        }
         $filledString = $this->safe_string_2($order, 'executedQty', 'deal_amount');
         return $this->safe_order(array(
             'id' => $id,

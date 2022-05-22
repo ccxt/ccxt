@@ -983,8 +983,8 @@ class lbank2(Exchange):
         timeInForce = None
         postOnly = False
         type = 'limit'
-        side = self.safe_string(order, 'type')  # buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
-        parts = side.split('_')
+        rawType = self.safe_string(order, 'type')  # buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
+        parts = rawType.split('_')
         side = self.safe_string(parts, 0)
         typePart = self.safe_string(parts, 1)  # market, maker, ioc, fok or None(limit)
         if typePart == 'market':
@@ -998,7 +998,9 @@ class lbank2(Exchange):
             timeInForce = 'FOK'
         price = self.safe_string(order, 'price')
         costString = self.safe_string(order, 'cummulativeQuoteQty')
-        amountString = self.safe_string_2(order, 'origQty', 'amount')
+        amountString = None
+        if rawType != 'buy_market':
+            amountString = self.safe_string_2(order, 'origQty', 'amount')
         filledString = self.safe_string_2(order, 'executedQty', 'deal_amount')
         return self.safe_order({
             'id': id,
