@@ -448,7 +448,7 @@ class lbank2 extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = yield $this->publicGetSupplementIncrDepth (array_merge($request, $params));
+        $response = yield $this->publicGetIncrDepth (array_merge($request, $params));
         $orderbook = $response['data'];
         $timestamp = $this->milliseconds();
         return $this->parse_order_book($orderbook, $symbol, $timestamp);

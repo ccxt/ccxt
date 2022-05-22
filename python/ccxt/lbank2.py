@@ -449,7 +449,7 @@ class lbank2(Exchange):
         }
         if limit is not None:
             request['limit'] = limit
-        response = self.publicGetSupplementIncrDepth(self.extend(request, params))
+        response = self.publicGetIncrDepth(self.extend(request, params))
         orderbook = response['data']
         timestamp = self.milliseconds()
         return self.parse_order_book(orderbook, symbol, timestamp)
