@@ -164,14 +164,15 @@ module.exports = class idex extends Exchange {
     }
 
     priceToPrecision (symbol, price) {
+        //
+        // we override priceToPrecision to fix the following issue
+        // https://github.com/ccxt/ccxt/issues/13367
+        // {"code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\": all quantities and prices must be below 100 billion, above 0, need to be provided as strings, and always require 4 decimals ending with 4 zeroes"}
+        //
         const market = this.market (symbol);
         const info = this.safeValue (market, 'info', {});
         const quoteAssetPrecision = this.safeInteger (info, 'quoteAssetPrecision');
         price = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode);
-        // https://docs.bitfinex.com/docs/introduction#price-precision
-        // The precision level of all trading prices is based on significant figures.
-        // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
-        // Prices submit with a precision larger than 5 will be cut by the API.
         return this.decimalToPrecision (price, TRUNCATE, quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO);
     }
 
@@ -251,7 +252,7 @@ module.exports = class idex extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': (status === 'active'),
+                'active': (status !== 'inactive'),
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
