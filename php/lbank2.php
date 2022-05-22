@@ -7,6 +7,7 @@ namespace ccxt;
 
 use Exception; // a common import
 use \ccxt\ArgumentsRequired;
+use \ccxt\InvalidOrder;
 
 class lbank2 extends Exchange {
 
@@ -178,6 +179,7 @@ class lbank2 extends Exchange {
             ),
             'options' => array(
                 'cacheSecretAsPem' => true,
+                'createMarketBuyOrderRequiresPrice' => true,
                 'fetchTrades' => array(
                     'method' => 'publicGetTrades', // or 'publicGetTradesSupplement'
                 ),
@@ -864,51 +866,46 @@ class lbank2 extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $clientOrderId = $this->safe_string_2($params, 'custom_id', 'clientOrderId');
-        $postOnly = $this->safe_string($params, 'postOnly', false);
+        $postOnly = $this->safe_value($params, 'postOnly', false);
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $params = $this->omit($params, array( 'custom_id', 'clientOrderId', 'timeInForce', 'postOnly' ));
-        if ($type === 'limit') {
-            $type = $side;
-            if ($side === 'sell') {
-                if ($timeInForce === 'FOK') {
-                    $type = 'sell_fok';
-                }
-                if ($timeInForce === 'IOC') {
-                    $type = 'sell_ioc';
-                }
-                if ($postOnly || ($timeInForce === 'PO')) {
-                    $type = 'sell_maker';
-                }
-            }
-            if ($side === 'buy') {
-                if ($timeInForce === 'FOK') {
-                    $type = 'buy_fok';
-                }
-                if ($timeInForce === 'IOC') {
-                    $type = 'buy_ioc';
-                }
-                if ($postOnly || ($timeInForce === 'PO')) {
-                    $type = 'buy_maker';
-                }
-            }
-        }
-        if ($type === 'market') {
-            if ($side === 'sell') {
-                $type = 'sell_market';
-            }
-            if ($side === 'buy') {
-                $type = 'buy_market';
-            }
-        }
         $request = array(
             'symbol' => $market['id'],
-            'amount' => $this->amount_to_precision($symbol, $amount),
-            'type' => $type,
         );
-        if ($price !== null) {
+        $ioc = ($timeInForce === 'IOC');
+        $fok = ($timeInForce === 'FOK');
+        $maker = ($postOnly || ($timeInForce === 'PO'));
+        if (($type === 'market') && ($ioc || $fok || $maker)) {
+            throw new InvalidOrder($this->id . ' createOrder () does not allow $market FOK, IOC, or $postOnly orders. Only limit IOC, FOK, and $postOnly orders are allowed');
+        }
+        if ($type === 'limit') {
+            $request['type'] = $side;
             $request['price'] = $this->price_to_precision($symbol, $price);
-        } else {
-            $request['price'] = 1; // required unused number > 0 even for $market orders
+            $request['amount'] = $this->amount_to_precision($symbol, $amount);
+            if ($ioc) {
+                $request['type'] = $side . '_' . 'ioc';
+            } else if ($fok) {
+                $request['type'] = $side . '_' . 'fok';
+            } else if ($maker) {
+                $request['type'] = $side . '_' . 'maker';
+            }
+        } else if ($type === 'market') {
+            if ($side === 'sell') {
+                $request['type'] = $side . '_' . 'market';
+                $request['amount'] = $this->amount_to_precision($symbol, $amount);
+            } else if ($side === 'buy') {
+                $request['type'] = $side . '_' . 'market';
+                if ($this->options['createMarketBuyOrderRequiresPrice']) {
+                    if ($price === null) {
+                        throw new InvalidOrder($this->id . " createOrder () requires the $price argument with $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply the $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)");
+                    } else {
+                        $cost = floatval($amount) * floatval($price);
+                        $request['price'] = $this->price_to_precision($symbol, $cost);
+                    }
+                } else {
+                    $request['price'] = $amount;
+                }
+            }
         }
         if ($clientOrderId !== null) {
             $request['custom_id'] = $clientOrderId;
