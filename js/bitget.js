@@ -1254,6 +1254,7 @@ module.exports = class bitget extends Exchange {
          * @param {dict} params extra parameters specific to the bitget api endpoint
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
+        await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'publicSpotGetMarketTickers',
