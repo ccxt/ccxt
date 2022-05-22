@@ -2595,10 +2595,10 @@ module.exports = class bybit extends Exchange {
             request['orderLinkId'] = clientOrderId;
         }
         params = this.omit (params, [ 'clientOrderId', 'orderLinkId' ]);
-        // const brokerId = this.safeString (this.options, 'brokerId');
-        // if (brokerId !== undefined) {
-        //     request['agentSource'] = brokerId;
-        // }
+        const brokerId = this.safeString (this.options, 'brokerId');
+        if (brokerId !== undefined) {
+            request['agentSource'] = brokerId;
+        }
         const response = await this.privatePostSpotV1Order (this.extend (request, params));
         //    {
         //        "ret_code":0,
@@ -4417,17 +4417,17 @@ module.exports = class bybit extends Exchange {
                     if (isSpot) {
                         body = this.urlencode (extendedQuery);
                         headers = {
-                            'Content-Type': 'application/x-www-form-urlencoded'
+                            'Content-Type': 'application/x-www-form-urlencoded',
                         };
                     } else {
                         body = this.json (extendedQuery);
                         headers = {
                             'Content-Type': 'application/json',
                         };
-                        // const brokerId = this.safeString (this.options, 'brokerId');
-                        // if (brokerId !== undefined) {
-                        //     headers['Referer'] = brokerId;
-                        // }
+                        const brokerId = this.safeString (this.options, 'brokerId');
+                        if (brokerId !== undefined) {
+                            headers['Referer'] = brokerId;
+                        }
                     }
                 } else {
                     url += '?' + this.urlencode (sortedQuery) + '&sign=' + signature;
