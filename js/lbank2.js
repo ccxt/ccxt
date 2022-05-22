@@ -1032,9 +1032,9 @@ module.exports = class lbank2 extends Exchange {
         let timeInForce = undefined;
         let postOnly = false;
         let type = 'limit';
-        let side = this.safeString (order, 'type'); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
-        const parts = side.split ('_');
-        side = this.safeString (parts, 0);
+        const rawType = this.safeString (order, 'type'); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
+        const parts = rawType.split ('_');
+        const side = this.safeString (parts, 0);
         const typePart = this.safeString (parts, 1); // market, maker, ioc, fok or undefined (limit)
         if (typePart === 'market') {
             type = 'market';
@@ -1051,7 +1051,10 @@ module.exports = class lbank2 extends Exchange {
         }
         const price = this.safeString (order, 'price');
         const costString = this.safeString (order, 'cummulativeQuoteQty');
-        const amountString = this.safeString2 (order, 'origQty', 'amount');
+        let amountString = undefined;
+        if (rawType !== 'buy_market') {
+            amountString = this.safeString2 (order, 'origQty', 'amount');
+        }
         const filledString = this.safeString2 (order, 'executedQty', 'deal_amount');
         return this.safeOrder ({
             'id': id,
