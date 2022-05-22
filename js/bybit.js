@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, InvalidAddress } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -39,6 +39,9 @@ module.exports = class bybit extends Exchange {
                 'fetchBorrowRate': false,
                 'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
@@ -66,6 +69,7 @@ module.exports = class bybit extends Exchange {
                 'fetchWithdrawals': true,
                 'setLeverage': true,
                 'setMarginMode': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -168,6 +172,8 @@ module.exports = class bybit extends Exchange {
                         'perpetual/usdc/openapi/public/v1/account-ratio': 1,
                         'perpetual/usdc/openapi/public/v1/prev-funding-rate': 1,
                         'perpetual/usdc/openapi/public/v1/risk-limit/list': 1,
+                        // account
+                        'asset/v1/public/deposit/allowed-deposit-list': 1,
                     },
                 },
                 'private': {
@@ -216,10 +222,19 @@ module.exports = class bybit extends Exchange {
                         'spot/v1/open-orders': 2.5,
                         'spot/v1/history-orders': 2.5,
                         'spot/v1/myTrades': 2.5,
+                        'spot/v1/cross-margin/order': 10,
+                        'spot/v1/cross-margin/accounts/balance': 10,
+                        'spot/v1/cross-margin/loan-info': 10,
+                        'spot/v1/cross-margin/repay/history': 10,
                         // account
                         'asset/v1/private/transfer/list': 50, // 60 per minute = 1 per second => cost = 50 / 1 = 50
                         'asset/v1/private/sub-member/transfer/list': 50,
                         'asset/v1/private/sub-member/member-ids': 50,
+                        'asset/v1/private/deposit/record/query': 50,
+                        'asset/v1/private/withdraw/record/query': 25,
+                        'asset/v1/private/coin-info/query': 25,
+                        'asset/v1/private/asset-info/query': 50,
+                        'asset/v1/private/deposit/address': 100,
                     },
                     'post': {
                         // inverse swap
@@ -273,9 +288,13 @@ module.exports = class bybit extends Exchange {
                         'futures/private/position/risk-limit': 2.5,
                         // spot
                         'spot/v1/order': 2.5,
+                        'spot/v1/cross-margin/loan': 10,
+                        'spot/v1/cross-margin/repay': 10,
                         // account
                         'asset/v1/private/transfer': 150, // 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
                         'asset/v1/private/sub-member/transfer': 150,
+                        'asset/v1/private/withdraw': 50,
+                        'asset/v1/private/withdraw/cancel': 50,
                         // USDC endpoints
                         // option USDC
                         'option/usdc/openapi/private/v1/place-order': 2.5,
@@ -306,6 +325,7 @@ module.exports = class bybit extends Exchange {
                         'option/usdc/openapi/private/v1/session-settlement': 2.5,
                         'perpetual/usdc/openapi/public/v1/risk-limit/list': 2.5,
                         'perpetual/usdc/openapi/private/v1/position/set-risk-limit': 2.5,
+                        // 'perpetual/usdc/openapi/private/v1/predicted-funding': 2.5,
                     },
                     'delete': {
                         // spot
@@ -3565,6 +3585,102 @@ module.exports = class bybit extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         chain_type: 'Arbitrum One',
+        //         address_deposit: '0x83a127952d266A6eA306c40Ac62A4a70668FE3BE',
+        //         tag_deposit: '',
+        //         chain: 'ARBI'
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'address_deposit');
+        let tag = this.safeString (depositAddress, 'tag_deposit');
+        if (tag === '') {
+            tag = undefined;
+        }
+        const code = this.safeString (currency, 'code');
+        const chain = this.safeString (depositAddress, 'chain');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'network': chain,
+            'info': depositAddress,
+        };
+    }
+
+    async fetchDepositAddressesByNetwork (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+        };
+        const response = await this.privateGetAssetV1PrivateDepositAddress (this.extend (request, params));
+        //
+        //     {
+        //         ret_code: '0',
+        //         ret_msg: 'OK',
+        //         ext_code: '',
+        //         result: {
+        //             coin: 'ETH',
+        //             chains: [
+        //                 {
+        //                     chain_type: 'Arbitrum One',
+        //                     address_deposit: 'bybitisthebest',
+        //                     tag_deposit: '',
+        //                     chain: 'ARBI'
+        //                 }
+        //             ]
+        //         },
+        //         ext_info: null,
+        //         time_now: '1653141635426'
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        const chains = this.safeValue (result, 'chains', []);
+        const coin = this.safeString (result, 'coin');
+        currency = this.currency (coin);
+        const parsed = this.parseDepositAddresses (chains, [ code ], false, {
+            'currency': currency['id'],
+        });
+        return this.indexBy (parsed, 'network');
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        const rawNetwork = this.safeStringUpper (params, 'network');
+        const networks = this.safeValue (this.options, 'networks', {});
+        const network = this.safeString (networks, rawNetwork, rawNetwork);
+        params = this.omit (params, 'network');
+        const response = await this.fetchDepositAddressesByNetwork (code, params);
+        let result = undefined;
+        if (network === undefined) {
+            result = this.safeValue (response, code);
+            if (result === undefined) {
+                const alias = this.safeString (networks, code, code);
+                result = this.safeValue (response, alias);
+                if (result === undefined) {
+                    const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
+                    result = this.safeValue (response, defaultNetwork);
+                    if (result === undefined) {
+                        const values = Object.values (response);
+                        result = this.safeValue (values, 0);
+                        if (result === undefined) {
+                            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code);
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+        result = this.safeValue (response, network);
+        if (result === undefined) {
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
+        }
+        return result;
+    }
+
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -3882,6 +3998,43 @@ module.exports = class bybit extends Exchange {
             'ExchangeOrderDeposit': 'transaction',
         };
         return this.safeString (types, type, type);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        await this.loadMarkets ();
+        this.checkAddress (address);
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+            'amount': this.numberToString (amount),
+            'address': address,
+        };
+        if (tag !== undefined) {
+            request['tag'] = tag;
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeStringUpper (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['chain'] = network;
+            params = this.omit (params, 'network');
+        }
+        const response = await this.privatePostAssetV1PrivateWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         "ret_code":0,
+        //         "ret_msg":"OK"
+        //         "ext_code":"",
+        //         "result":{
+        //             "id":"bybitistheone"
+        //         },
+        //         "ext_info":null,
+        //         "time_now":1653149296617
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseTransaction (result, currency);
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
