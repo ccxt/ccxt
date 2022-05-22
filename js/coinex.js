@@ -52,6 +52,7 @@ module.exports = class coinex extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
@@ -691,6 +692,18 @@ module.exports = class coinex extends Exchange {
             result[symbol] = ticker;
         }
         return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.perpetualPublicGetTime (params);
+        //
+        // {
+        //     code: '0',
+        //     data: '1653261274414',
+        //     message: 'OK'
+        // }
+        //
+        return this.safeNumber (response, 'data');
     }
 
     async fetchOrderBook (symbol, limit = 20, params = {}) {
