@@ -948,7 +948,7 @@ module.exports = class bybit extends Exchange {
                 'strike': strike,
                 'optionType': optionType,
                 'precision': {
-                    'amount': this.safeNumber (market, 'minOrderSizeIncrement'),
+                    'amount': this.safeNumber2 (market, 'minOrderSizeIncrement', 'qtyStep'),
                     'price': this.safeNumber (market, 'tickSize'),
                 },
                 'limits': {
@@ -957,12 +957,12 @@ module.exports = class bybit extends Exchange {
                         'max': this.safeNumber (leverage, 'maxLeverage', 1),
                     },
                     'amount': {
-                        'min': this.safeNumber (market, 'minOrderSize'),
-                        'max': this.safeNumber (market, 'maxOrderSize'),
+                        'min': this.safeNumber2 (market, 'minOrderSize', 'minTradingQty'),
+                        'max': this.safeNumber2 (market, 'maxOrderSize', 'maxTradingQty'),
                     },
                     'price': {
-                        'min': this.safeNumber (market, 'minOrderPrice'),
-                        'max': this.safeNumber (market, 'maxOrderPrice'),
+                        'min': this.safeNumber2 (market, 'minOrderPrice', 'minPrice'),
+                        'max': this.safeNumber2 (market, 'maxOrderPrice', 'maxPrice'),
                     },
                     'cost': {
                         'min': undefined,
@@ -2629,7 +2629,7 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (type === 'market') {
-            throw NotSupported (this.id + 'createOrder does not allow market orders for ' + symbol + ' markets');
+            throw new NotSupported (this.id + 'createOrder does not allow market orders for ' + symbol + ' markets');
         }
         if (price === undefined && type === 'limit') {
             throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
@@ -2671,6 +2671,9 @@ module.exports = class bybit extends Exchange {
                 request['orderFilter'] = 'Order';
             }
         }
+        const reduceOnly = this.safeValue2 (params, 'reduce_only', 'reduceOnly', false);
+        request['reduceOnly'] = reduceOnly;
+        params = this.omit (params, [ 'reduce_only', 'reduceOnly' ]);
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'orderLinkId');
         if (clientOrderId !== undefined) {
             request['orderLinkId'] = clientOrderId;
@@ -2763,7 +2766,7 @@ module.exports = class bybit extends Exchange {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires both the stop_px and base_price params for a conditional ' + type + ' order');
             }
             request['stop_px'] = parseFloat (this.priceToPrecision (symbol, stopPx));
-            request['base_price'] = parseFloat (this.priceToPrecision (symbol, basePrice, 'basePrice'));
+            request['base_price'] = parseFloat (this.priceToPrecision (symbol, basePrice));
             const triggerBy = this.safeString2 (params, 'trigger_by', 'triggerBy', 'LastPrice');
             request['trigger_by'] = triggerBy;
             params = this.omit (params, [ 'stop_px', 'stopPrice', 'base_price', 'triggerBy', 'trigger_by' ]);
@@ -2821,7 +2824,7 @@ module.exports = class bybit extends Exchange {
         //    }
         //
         const order = this.safeValue (response, 'result', {});
-        return this.parseOrder (order);
+        return this.parseOrder (order, market);
     }
 
     async editUsdcOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
