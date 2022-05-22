@@ -1411,6 +1411,9 @@ module.exports = class btse extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (market['spot'] === true) {
+            throw new BadRequest (symbol + ' spot market is not support leverage setting.');
+        }
         const request = {
             'leverage': leverage,
             'symbol': market['id'],
