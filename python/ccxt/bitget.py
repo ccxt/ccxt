@@ -1244,6 +1244,7 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
+        self.load_markets()
         marketType, query = self.handle_market_type_and_params('fetchTickers', None, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'publicSpotGetMarketTickers',

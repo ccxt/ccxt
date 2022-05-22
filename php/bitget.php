@@ -1249,6 +1249,7 @@ class bitget extends Exchange {
          * @param {dict} $params extra parameters specific to the bitget api endpoint
          * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
+        $this->load_markets();
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'publicSpotGetMarketTickers',
