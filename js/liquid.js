@@ -1067,11 +1067,11 @@ module.exports = class liquid extends Exchange {
         const marketId = this.safeString (order, 'product_id');
         market = this.safeValue (this.markets_by_id, marketId);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const amount = this.safeNumber (order, 'quantity');
-        const filled = this.safeNumber (order, 'filled_quantity');
-        const price = this.safeNumber (order, 'price');
+        const amount = this.safeString (order, 'quantity');
+        const filled = this.safeString (order, 'filled_quantity');
+        const price = this.safeString (order, 'price');
         const type = this.safeString (order, 'order_type');
-        const average = this.safeNumber (order, 'average_price');
+        const average = this.safeString (order, 'average_price');
         const trades = this.safeValue (order, 'executions', []);
         const side = this.safeString (order, 'side');
         const clientOrderId = this.safeString (order, 'client_order_id');
@@ -1097,7 +1097,7 @@ module.exports = class liquid extends Exchange {
             'trades': trades,
             'fee': {
                 'currency': market['quote'],
-                'cost': this.safeNumber (order, 'order_fee'),
+                'cost': this.safeString (order, 'order_fee'),
             },
             'info': order,
         });
