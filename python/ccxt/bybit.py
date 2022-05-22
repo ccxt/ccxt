@@ -475,6 +475,7 @@ class bybit(Exchange):
                 'timeDifference': 0,  # the difference between system clock and exchange server clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'defaultSettle': 'USDT',  # USDC for USDC settled markets
+                'brokerId': 'CCXT',
             },
             'fees': {
                 'trading': {
@@ -2485,6 +2486,9 @@ class bybit(Exchange):
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
         params = self.omit(params, ['clientOrderId', 'orderLinkId'])
+        brokerId = self.safe_string(self.options, 'brokerId')
+        if brokerId is not None:
+            request['agentSource'] = brokerId
         response = self.privatePostSpotV1Order(self.extend(request, params))
         #    {
         #        "ret_code":0,
@@ -4135,29 +4139,30 @@ class bybit(Exchange):
         return getattr(self, method)(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = None
-        if isinstance(api, list):
-            type = self.safe_string(api, 0)
-            section = self.safe_string(api, 1)
-            if type == 'spot':
-                if section == 'public':
-                    section = 'v1'
+        url = self.implode_hostname(self.urls['api'][api]) + '/' + path
+        if api == 'public':
+            if params:
+                url += '?' + self.rawencode(params)
+        elif api == 'private':
+            self.check_required_credentials()
+            isOpenapi = url.find('openapi') >= 0
+            timestamp = str(self.milliseconds())
+            if isOpenapi:
+                if params:
+                    body = self.json(params)
                 else:
-                    section += '/v1'
-            url = self.implode_hostname(self.urls['api'][type])
-            request = '/' + type + '/' + section + '/' + path
-            if (type == 'spot') or (type == 'quote'):
-                if params:
-                    request += '?' + self.rawencode(params)
-            elif section == 'public':
-                if params:
-                    request += '?' + self.rawencode(params)
-            elif type == 'public':
-                if params:
-                    request += '?' + self.rawencode(params)
+                    # self fix for PHP is required otherwise it generates
+                    # '[]' on empty arrays even when forced to use objects
+                    body = '{}'
+                payload = timestamp + self.apiKey + body
+                signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'hex')
+                headers = {
+                    'Content-Type': 'application/json',
+                    'X-BAPI-API-KEY': self.apiKey,
+                    'X-BAPI-TIMESTAMP': timestamp,
+                    'X-BAPI-SIGN': signature,
+                }
             else:
-                self.check_required_credentials()
-                timestamp = self.nonce()
                 query = self.extend(params, {
                     'api_key': self.apiKey,
                     'recv_window': self.options['recvWindow'],
@@ -4167,63 +4172,25 @@ class bybit(Exchange):
                 auth = self.rawencode(sortedQuery)
                 signature = self.hmac(self.encode(auth), self.encode(self.secret))
                 if method == 'POST':
-                    body = self.json(self.extend(query, {
+                    isSpot = url.find('spot') >= 0
+                    extendedQuery = self.extend(query, {
                         'sign': signature,
-                    }))
-                    headers = {
-                        'Content-Type': 'application/json',
-                    }
-                else:
-                    request += '?' + self.urlencode(sortedQuery) + '&sign=' + signature
-            url += request
-        else:
-            url = self.implode_hostname(self.urls['api'][api]) + '/' + path
-            if api == 'public':
-                if params:
-                    url += '?' + self.rawencode(params)
-            elif api == 'private':
-                self.check_required_credentials()
-                isOpenapi = url.find('openapi') >= 0
-                timestamp = str(self.milliseconds())
-                if isOpenapi:
-                    if params:
-                        body = self.json(params)
-                    else:
-                        # self fix for PHP is required otherwise it generates
-                        # '[]' on empty arrays even when forced to use objects
-                        body = '{}'
-                    payload = timestamp + self.apiKey + body
-                    signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'hex')
-                    headers = {
-                        'Content-Type': 'application/json',
-                        'X-BAPI-API-KEY': self.apiKey,
-                        'X-BAPI-TIMESTAMP': timestamp,
-                        'X-BAPI-SIGN': signature,
-                    }
-                else:
-                    query = self.extend(params, {
-                        'api_key': self.apiKey,
-                        'recv_window': self.options['recvWindow'],
-                        'timestamp': timestamp,
                     })
-                    sortedQuery = self.keysort(query)
-                    auth = self.rawencode(sortedQuery)
-                    signature = self.hmac(self.encode(auth), self.encode(self.secret))
-                    if method == 'POST':
-                        isSpot = url.find('spot') >= 0
-                        extendedQuery = self.extend(query, {
-                            'sign': signature,
-                        })
-                        if not isSpot:
-                            body = self.json(extendedQuery)
-                            headers = {
-                                'Content-Type': 'application/json',
-                            }
-                        else:
-                            body = self.urlencode(extendedQuery)
-                            headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+                    if isSpot:
+                        body = self.urlencode(extendedQuery)
+                        headers = {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        }
                     else:
-                        url += '?' + self.urlencode(sortedQuery) + '&sign=' + signature
+                        body = self.json(extendedQuery)
+                        headers = {
+                            'Content-Type': 'application/json',
+                        }
+                        brokerId = self.safe_string(self.options, 'brokerId')
+                        if brokerId is not None:
+                            headers['Referer'] = brokerId
+                else:
+                    url += '?' + self.urlencode(sortedQuery) + '&sign=' + signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):

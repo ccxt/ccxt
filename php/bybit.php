@@ -466,6 +466,7 @@ class bybit extends Exchange {
                 'timeDifference' => 0, // the difference between system clock and exchange server clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'defaultSettle' => 'USDT', // USDC for USDC settled markets
+                'brokerId' => 'CCXT',
             ),
             'fees' => array(
                 'trading' => array(
@@ -2585,6 +2586,10 @@ class bybit extends Exchange {
             $request['orderLinkId'] = $clientOrderId;
         }
         $params = $this->omit($params, array( 'clientOrderId', 'orderLinkId' ));
+        $brokerId = $this->safe_string($this->options, 'brokerId');
+        if ($brokerId !== null) {
+            $request['agentSource'] = $brokerId;
+        }
         $response = $this->privatePostSpotV1Order (array_merge($request, $params));
         //    {
         //        "ret_code":0,
@@ -4361,34 +4366,32 @@ class bybit extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = null;
-        if (gettype($api) === 'array' && count(array_filter(array_keys($api), 'is_string')) == 0) {
-            $type = $this->safe_string($api, 0);
-            $section = $this->safe_string($api, 1);
-            if ($type === 'spot') {
-                if ($section === 'public') {
-                    $section = 'v1';
-                } else {
-                    $section .= '/v1';
-                }
+        $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
+        if ($api === 'public') {
+            if ($params) {
+                $url .= '?' . $this->rawencode($params);
             }
-            $url = $this->implode_hostname($this->urls['api'][$type]);
-            $request = '/' . $type . '/' . $section . '/' . $path;
-            if (($type === 'spot') || ($type === 'quote')) {
+        } else if ($api === 'private') {
+            $this->check_required_credentials();
+            $isOpenapi = mb_strpos($url, 'openapi') !== false;
+            $timestamp = (string) $this->milliseconds();
+            if ($isOpenapi) {
                 if ($params) {
-                    $request .= '?' . $this->rawencode($params);
+                    $body = $this->json($params);
+                } else {
+                    // this fix for PHP is required otherwise it generates
+                    // '[]' on empty arrays even when forced to use objects
+                    $body = '{}';
                 }
-            } else if ($section === 'public') {
-                if ($params) {
-                    $request .= '?' . $this->rawencode($params);
-                }
-            } else if ($type === 'public') {
-                if ($params) {
-                    $request .= '?' . $this->rawencode($params);
-                }
+                $payload = $timestamp . $this->apiKey . $body;
+                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'hex');
+                $headers = array(
+                    'Content-Type' => 'application/json',
+                    'X-BAPI-API-KEY' => $this->apiKey,
+                    'X-BAPI-TIMESTAMP' => $timestamp,
+                    'X-BAPI-SIGN' => $signature,
+                );
             } else {
-                $this->check_required_credentials();
-                $timestamp = $this->nonce();
                 $query = array_merge($params, array(
                     'api_key' => $this->apiKey,
                     'recv_window' => $this->options['recvWindow'],
@@ -4398,69 +4401,27 @@ class bybit extends Exchange {
                 $auth = $this->rawencode($sortedQuery);
                 $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
                 if ($method === 'POST') {
-                    $body = $this->json(array_merge($query, array(
+                    $isSpot = mb_strpos($url, 'spot') !== false;
+                    $extendedQuery = array_merge($query, array(
                         'sign' => $signature,
-                    )));
-                    $headers = array(
-                        'Content-Type' => 'application/json',
-                    );
-                } else {
-                    $request .= '?' . $this->urlencode($sortedQuery) . '&sign=' . $signature;
-                }
-            }
-            $url .= $request;
-        } else {
-            $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
-            if ($api === 'public') {
-                if ($params) {
-                    $url .= '?' . $this->rawencode($params);
-                }
-            } else if ($api === 'private') {
-                $this->check_required_credentials();
-                $isOpenapi = mb_strpos($url, 'openapi') !== false;
-                $timestamp = (string) $this->milliseconds();
-                if ($isOpenapi) {
-                    if ($params) {
-                        $body = $this->json($params);
-                    } else {
-                        // this fix for PHP is required otherwise it generates
-                        // '[]' on empty arrays even when forced to use objects
-                        $body = '{}';
-                    }
-                    $payload = $timestamp . $this->apiKey . $body;
-                    $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'hex');
-                    $headers = array(
-                        'Content-Type' => 'application/json',
-                        'X-BAPI-API-KEY' => $this->apiKey,
-                        'X-BAPI-TIMESTAMP' => $timestamp,
-                        'X-BAPI-SIGN' => $signature,
-                    );
-                } else {
-                    $query = array_merge($params, array(
-                        'api_key' => $this->apiKey,
-                        'recv_window' => $this->options['recvWindow'],
-                        'timestamp' => $timestamp,
                     ));
-                    $sortedQuery = $this->keysort($query);
-                    $auth = $this->rawencode($sortedQuery);
-                    $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
-                    if ($method === 'POST') {
-                        $isSpot = mb_strpos($url, 'spot') !== false;
-                        $extendedQuery = array_merge($query, array(
-                            'sign' => $signature,
-                        ));
-                        if (!$isSpot) {
-                            $body = $this->json($extendedQuery);
-                            $headers = array(
-                                'Content-Type' => 'application/json',
-                            );
-                        } else {
-                            $body = $this->urlencode($extendedQuery);
-                            $headers = array( 'Content-Type' => 'application/x-www-form-urlencoded' );
-                        }
+                    if ($isSpot) {
+                        $body = $this->urlencode($extendedQuery);
+                        $headers = array(
+                            'Content-Type' => 'application/x-www-form-urlencoded',
+                        );
                     } else {
-                        $url .= '?' . $this->urlencode($sortedQuery) . '&sign=' . $signature;
+                        $body = $this->json($extendedQuery);
+                        $headers = array(
+                            'Content-Type' => 'application/json',
+                        );
+                        $brokerId = $this->safe_string($this->options, 'brokerId');
+                        if ($brokerId !== null) {
+                            $headers['Referer'] = $brokerId;
+                        }
                     }
+                } else {
+                    $url .= '?' . $this->urlencode($sortedQuery) . '&sign=' . $signature;
                 }
             }
         }
