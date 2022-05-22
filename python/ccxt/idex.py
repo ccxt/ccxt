@@ -14,6 +14,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO
 from ccxt.base.precise import Precise
 
@@ -167,6 +168,7 @@ class idex(Exchange):
                 'apiKey': True,
                 'secret': True,
             },
+            'precisionMode': TICK_SIZE,
             'paddingMode': PAD_WITH_ZERO,
             'commonCurrencies': {},
         })
@@ -203,7 +205,8 @@ class idex(Exchange):
         #     "takerFeeRate": "0.002",
         #     "makerTradeMinimum": "0.15000000",
         #     "takerTradeMinimum": "0.05000000",
-        #     "withdrawalMinimum": "0.04000000"
+        #     "withdrawalMinimum": "0.04000000",
+        #     "tickSize":"0.00001000"
         # }
         #
         maker = self.safe_number(response2, 'makerFeeRate')
@@ -221,8 +224,9 @@ class idex(Exchange):
             quote = self.safe_currency_code(quoteId)
             basePrecisionString = self.safe_string(entry, 'baseAssetPrecision')
             quotePrecisionString = self.safe_string(entry, 'quoteAssetPrecision')
-            basePrecision = self.parse_precision(basePrecisionString)
-            quotePrecision = self.parse_precision(quotePrecisionString)
+            basePrecision = self.parse_number(self.parse_precision(basePrecisionString))
+            quotePrecision = self.parse_number(self.parse_precision(quotePrecisionString))
+            quotePrecision = self.safe_number(entry, 'tickSize', quotePrecision)
             status = self.safe_string(entry, 'status')
             minCost = None
             if quote == 'ETH':
@@ -254,8 +258,8 @@ class idex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': int(basePrecisionString),
-                    'price': int(quotePrecisionString),
+                    'amount': basePrecision,
+                    'price': quotePrecision,
                 },
                 'limits': {
                     'leverage': {
@@ -263,11 +267,11 @@ class idex(Exchange):
                         'max': None,
                     },
                     'amount': {
-                        'min': self.parse_number(basePrecision),
+                        'min': basePrecision,
                         'max': None,
                     },
                     'price': {
-                        'min': self.parse_number(quotePrecision),
+                        'min': quotePrecision,
                         'max': None,
                     },
                     'cost': {

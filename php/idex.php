@@ -160,6 +160,7 @@ class idex extends Exchange {
                 'apiKey' => true,
                 'secret' => true,
             ),
+            'precisionMode' => TICK_SIZE,
             'paddingMode' => PAD_WITH_ZERO,
             'commonCurrencies' => array(),
         ));
@@ -197,7 +198,8 @@ class idex extends Exchange {
         //     "takerFeeRate" => "0.002",
         //     "makerTradeMinimum" => "0.15000000",
         //     "takerTradeMinimum" => "0.05000000",
-        //     "withdrawalMinimum" => "0.04000000"
+        //     "withdrawalMinimum" => "0.04000000",
+        //     "tickSize":"0.00001000"
         // }
         //
         $maker = $this->safe_number($response2, 'makerFeeRate');
@@ -215,8 +217,9 @@ class idex extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $basePrecisionString = $this->safe_string($entry, 'baseAssetPrecision');
             $quotePrecisionString = $this->safe_string($entry, 'quoteAssetPrecision');
-            $basePrecision = $this->parse_precision($basePrecisionString);
-            $quotePrecision = $this->parse_precision($quotePrecisionString);
+            $basePrecision = $this->parse_number($this->parse_precision($basePrecisionString));
+            $quotePrecision = $this->parse_number($this->parse_precision($quotePrecisionString));
+            $quotePrecision = $this->safe_number($entry, 'tickSize', $quotePrecision);
             $status = $this->safe_string($entry, 'status');
             $minCost = null;
             if ($quote === 'ETH') {
@@ -249,8 +252,8 @@ class idex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => intval($basePrecisionString),
-                    'price' => intval($quotePrecisionString),
+                    'amount' => $basePrecision,
+                    'price' => $quotePrecision,
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -258,11 +261,11 @@ class idex extends Exchange {
                         'max' => null,
                     ),
                     'amount' => array(
-                        'min' => $this->parse_number($basePrecision),
+                        'min' => $basePrecision,
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => $this->parse_number($quotePrecision),
+                        'min' => $quotePrecision,
                         'max' => null,
                     ),
                     'cost' => array(
