@@ -6,6 +6,8 @@ include $root . '/ccxt.php';
 
 date_default_timezone_set('UTC');
 
+echo 'CCXT v' . \ccxt\Exchange::VERSION . "\n";
+
 $exchange = new \ccxt\bybit(array(
     'apiKey' => 'YOUR_API_KEY',
     'secret' => 'YOUR_SECRET_KEY',
@@ -15,6 +17,7 @@ $exchange = new \ccxt\bybit(array(
 
 // Example 1: Spot : fetch balance, create order, cancel it and check canceled orders
 function example_1($exchange) {
+    $exchange->options['defaultType'] = 'spot'; // very important set spot as default type
     $markets = $exchange->load_markets();
 
     // fetch spot balance
@@ -85,7 +88,7 @@ function example_3($exchange) {
 
     // fetch USDC swap balance
     // when no symbol is available we can show our intent
-    // of using USDC endpoints by either using defaultSettle in options or 
+    // of using USDC endpoints by either using defaultSettle in options or
     // settle in params
     // Using Options: exchange->$options['defaultSettle'] = 'USDC';
     // Using params:
@@ -138,7 +141,7 @@ function example_4($exchange) {
     $type = 'limit';
     $side = 'buy';
     $amount = 10;  // in USD for inverse futures
-    $price = 1200; 
+    $price = 1200;
     $stop_order_params = array(
         'position_idx' => 0, // 0 One-Way Mode, 1 Buy-side, 2 Sell-side, default = 0
         'stopPrice' => 1000, // mandatory for stop orders

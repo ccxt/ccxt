@@ -1,4 +1,8 @@
+'use strict';
+
 const ccxt = require ('../../ccxt');
+
+console.log ('CCXT Version:', ccxt.version)
 
 const exchange = new ccxt.bybit ({
     'apiKey': 'YOUR_API_KEY',
@@ -7,8 +11,9 @@ const exchange = new ccxt.bybit ({
 
 // Example 1: Spot : fetch balance, create order, cancel it and check canceled orders
 async function example1 () {
+    exchange['options']['defaultType'] = 'spot'; // very important set spot as default type
     await exchange.loadMarkets ();
-    
+
     // fetch spot balance
     const balance = await exchange.fetchBalance ();
     console.log (balance)
@@ -16,7 +21,7 @@ async function example1 () {
     // create order
     const symbol = 'LTC/USDT';
     const createOrder = await exchange.createOrder (symbol, 'limit', 'buy', 50, 0.1);
-    console.log ('Created order Id:', createOrder['id'])
+    console.log ('Created order id:', createOrder['id'])
 
     // cancel order
     const cancelOrder = await exchange.cancelOrder (createOrder['id'], symbol);
@@ -34,7 +39,7 @@ async function example1 () {
 async function example2 () {
     exchange['options']['defaultType'] = 'swap'; // very important set swap as default type
     await exchange.loadMarkets ();
-    
+
     // fetch swap balance
     const balance = await exchange.fetchBalance ();
     console.log (balance)
@@ -42,7 +47,7 @@ async function example2 () {
     // create order and open position
     const symbol = 'LTC/USDT:USDT';
     const createOrder = await exchange.createOrder (symbol, 'market', 'buy', 0.1);
-    console.log ('Created order Id:', createOrder['id'])
+    console.log ('Created order id:', createOrder['id'])
 
     // check opened position
     const symbols = [ symbol ];
@@ -63,10 +68,10 @@ async function example2 () {
 async function example3 () {
     exchange['options']['defaultType'] = 'swap'; // very important set swap as default type
     await exchange.loadMarkets ();
-    
+
     // fetch USDC swap balance
     // when no symbol is available we can show our intent
-    // of using USDC endpoints by either using defaultSettle in options or 
+    // of using USDC endpoints by either using defaultSettle in options or
     // settle in params
     // Using Options: exchange['options']['defaultSettle'] = 'USDC';
     // Using params:
@@ -83,13 +88,13 @@ async function example3 () {
     const amount = 0.1;
     const price = 29940 // adjust this accordingly
     const createOrder = await exchange.createOrder (symbol, 'limit', 'buy', amount, price);
-    console.log ('Created order Id:', createOrder['id'])
+    console.log ('Created order id:', createOrder['id'])
 
     // check if the order was filled and the position opened
     const symbols = [ symbol ];
     const positions = await exchange.fetchPositions (symbols);
     console.log (positions)
- 
+
     // close position (assuming it was already opened) by issuing an order in the opposite direction
     const params = {
         'reduce_only': true
@@ -104,7 +109,7 @@ async function example3 () {
 async function example4 () {
     exchange['options']['defaultType'] = 'future'; // very important set future as default type
     await exchange.loadMarkets ();
-    
+
     // fetch future balance
     const balance = await exchange.fetchBalance ();
     console.log (balance)
@@ -121,7 +126,7 @@ async function example4 () {
         'basePrice': 1100  // mandatory for stop orders
     }
     const stopOrder = await exchange.createOrder (symbol, type, side, amount, price, stopOrderParams);
-    console.log ('Created order Id:', stopOrder['id'])
+    console.log ('Created order id:', stopOrder['id'])
 
     // check opened stop-order
     const openOrderParams = {

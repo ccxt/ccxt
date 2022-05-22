@@ -22,6 +22,7 @@ exchange = ccxt.bybit({
 
 # Example 1: Spot : fetch balance, create order, cancel it and check canceled orders
 async def example_1():
+    exchange.options['defaultType'] = 'spot'; # very important set spot as default type
     markets = await exchange.load_markets()
 
     # fetch spot balance
@@ -89,7 +90,7 @@ async def example_3():
 
     # fetch USDC swap balance
     # when no symbol is available we can show our intent
-    # of using USDC endpoints by either using defaultSettle in options or 
+    # of using USDC endpoints by either using defaultSettle in options or
     # settle in params
     # Using Options: exchange.options['defaultSettle'] = 'USDC';
     # Using params:
