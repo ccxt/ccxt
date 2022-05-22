@@ -175,6 +175,7 @@ module.exports = class lbank2 extends Exchange {
             },
             'options': {
                 'cacheSecretAsPem': true,
+                'createMarketBuyOrderRequiresPrice': true,
                 'fetchTrades': {
                     'method': 'publicGetTrades', // or 'publicGetTradesSupplement'
                 },
@@ -873,51 +874,46 @@ module.exports = class lbank2 extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const clientOrderId = this.safeString2 (params, 'custom_id', 'clientOrderId');
-        const postOnly = this.safeString (params, 'postOnly', false);
+        const postOnly = this.safeValue (params, 'postOnly', false);
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         params = this.omit (params, [ 'custom_id', 'clientOrderId', 'timeInForce', 'postOnly' ]);
-        if (type === 'limit') {
-            type = side;
-            if (side === 'sell') {
-                if (timeInForce === 'FOK') {
-                    type = 'sell_fok';
-                }
-                if (timeInForce === 'IOC') {
-                    type = 'sell_ioc';
-                }
-                if (postOnly || (timeInForce === 'PO')) {
-                    type = 'sell_maker';
-                }
-            }
-            if (side === 'buy') {
-                if (timeInForce === 'FOK') {
-                    type = 'buy_fok';
-                }
-                if (timeInForce === 'IOC') {
-                    type = 'buy_ioc';
-                }
-                if (postOnly || (timeInForce === 'PO')) {
-                    type = 'buy_maker';
-                }
-            }
-        }
-        if (type === 'market') {
-            if (side === 'sell') {
-                type = 'sell_market';
-            }
-            if (side === 'buy') {
-                type = 'buy_market';
-            }
-        }
         const request = {
             'symbol': market['id'],
-            'amount': this.amountToPrecision (symbol, amount),
-            'type': type,
         };
-        if (price !== undefined) {
+        const ioc = (timeInForce === 'IOC');
+        const fok = (timeInForce === 'FOK');
+        const maker = (postOnly || (timeInForce === 'PO'));
+        if ((type === 'market') && (ioc || fok || maker)) {
+            throw new InvalidOrder (this.id + ' createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed');
+        }
+        if (type === 'limit') {
+            request['type'] = side;
             request['price'] = this.priceToPrecision (symbol, price);
-        } else {
-            request['price'] = 1; // required unused number > 0 even for market orders
+            request['amount'] = this.amountToPrecision (symbol, amount);
+            if (ioc) {
+                request['type'] = side + '_' + 'ioc';
+            } else if (fok) {
+                request['type'] = side + '_' + 'fok';
+            } else if (maker) {
+                request['type'] = side + '_' + 'maker';
+            }
+        } else if (type === 'market') {
+            if (side === 'sell') {
+                request['type'] = side + '_' + 'market';
+                request['amount'] = this.amountToPrecision (symbol, amount);
+            } else if (side === 'buy') {
+                request['type'] = side + '_' + 'market';
+                if (this.options['createMarketBuyOrderRequiresPrice']) {
+                    if (price === undefined) {
+                        throw new InvalidOrder (this.id + " createOrder () requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply the price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                    } else {
+                        const cost = parseFloat (amount) * parseFloat (price);
+                        request['price'] = this.priceToPrecision (symbol, cost);
+                    }
+                } else {
+                    request['price'] = amount;
+                }
+            }
         }
         if (clientOrderId !== undefined) {
             request['custom_id'] = clientOrderId;
