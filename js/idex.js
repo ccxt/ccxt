@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { PAD_WITH_ZERO } = require ('./base/functions/number');
+const { TICK_SIZE, PAD_WITH_ZERO } = require ('./base/functions/number');
 const { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
@@ -157,6 +157,7 @@ module.exports = class idex extends Exchange {
                 'apiKey': true,
                 'secret': true,
             },
+            'precisionMode': TICK_SIZE,
             'paddingMode': PAD_WITH_ZERO,
             'commonCurrencies': {},
         });
@@ -214,8 +215,10 @@ module.exports = class idex extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const basePrecisionString = this.safeString (entry, 'baseAssetPrecision');
-            const basePrecision = this.parsePrecision (basePrecisionString);
-            const tickerSize = this.safeNumber (entry, 'tickSize');
+            const quotePrecisionString = this.safeString (entry, 'quoteAssetPrecision');
+            const basePrecision = this.parseNumber (this.parsePrecision (basePrecisionString));
+            let quotePrecision = this.parseNumber (this.parsePrecision (quotePrecisionString));
+            quotePrecision = this.safeNumber (entry, 'tickSize', quotePrecision);
             const status = this.safeString (entry, 'status');
             let minCost = undefined;
             if (quote === 'ETH') {
@@ -236,7 +239,7 @@ module.exports = class idex extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': (status !== 'inactive'),
+                'active': (status === 'active'),
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -248,8 +251,8 @@ module.exports = class idex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': parseInt (basePrecisionString),
-                    'price': tickerSize,
+                    'amount': basePrecision,
+                    'price': quotePrecision,
                 },
                 'limits': {
                     'leverage': {
@@ -257,11 +260,11 @@ module.exports = class idex extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.parseNumber (basePrecision),
+                        'min': basePrecision,
                         'max': undefined,
                     },
                     'price': {
-                        'min': tickerSize,
+                        'min': quotePrecision,
                         'max': undefined,
                     },
                     'cost': {
