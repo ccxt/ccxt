@@ -166,6 +166,18 @@ class idex extends Exchange {
         ));
     }
 
+    public function price_to_precision($symbol, $price) {
+        $market = $this->market($symbol);
+        $info = $this->safe_value($market, 'info', array());
+        $quoteAssetPrecision = $this->safe_integer($info, 'quoteAssetPrecision');
+        $price = $this->decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode);
+        // https://docs.bitfinex.com/docs/introduction#$price-precision
+        // The precision level of all trading prices is based on significant figures.
+        // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
+        // Prices submit with a precision larger than 5 will be cut by the API.
+        return $this->decimal_to_precision($price, TRUNCATE, $quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO);
+    }
+
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all markets for idex
@@ -219,7 +231,7 @@ class idex extends Exchange {
             $quotePrecisionString = $this->safe_string($entry, 'quoteAssetPrecision');
             $basePrecision = $this->parse_number($this->parse_precision($basePrecisionString));
             $quotePrecision = $this->parse_number($this->parse_precision($quotePrecisionString));
-            // $quotePrecision = $this->safe_number($entry, 'tickSize', $quotePrecision);
+            $quotePrecision = $this->safe_number($entry, 'tickSize', $quotePrecision);
             $status = $this->safe_string($entry, 'status');
             $minCost = null;
             if ($quote === 'ETH') {
