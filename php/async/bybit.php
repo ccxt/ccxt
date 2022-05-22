@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
+use \ccxt\InvalidAddress;
 use \ccxt\InvalidOrder;
 use \ccxt\NotSupported;
 use \ccxt\Precise;
@@ -44,6 +45,9 @@ class bybit extends Exchange {
                 'fetchBorrowRate' => false,
                 'fetchBorrowRates' => false,
                 'fetchClosedOrders' => true,
+                'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
@@ -71,6 +75,7 @@ class bybit extends Exchange {
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1',
@@ -173,6 +178,8 @@ class bybit extends Exchange {
                         'perpetual/usdc/openapi/public/v1/account-ratio' => 1,
                         'perpetual/usdc/openapi/public/v1/prev-funding-rate' => 1,
                         'perpetual/usdc/openapi/public/v1/risk-limit/list' => 1,
+                        // account
+                        'asset/v1/public/deposit/allowed-deposit-list' => 1,
                     ),
                 ),
                 'private' => array(
@@ -221,10 +228,19 @@ class bybit extends Exchange {
                         'spot/v1/open-orders' => 2.5,
                         'spot/v1/history-orders' => 2.5,
                         'spot/v1/myTrades' => 2.5,
+                        'spot/v1/cross-margin/order' => 10,
+                        'spot/v1/cross-margin/accounts/balance' => 10,
+                        'spot/v1/cross-margin/loan-info' => 10,
+                        'spot/v1/cross-margin/repay/history' => 10,
                         // account
                         'asset/v1/private/transfer/list' => 50, // 60 per minute = 1 per second => cost = 50 / 1 = 50
                         'asset/v1/private/sub-member/transfer/list' => 50,
                         'asset/v1/private/sub-member/member-ids' => 50,
+                        'asset/v1/private/deposit/record/query' => 50,
+                        'asset/v1/private/withdraw/record/query' => 25,
+                        'asset/v1/private/coin-info/query' => 25,
+                        'asset/v1/private/asset-info/query' => 50,
+                        'asset/v1/private/deposit/address' => 100,
                     ),
                     'post' => array(
                         // inverse swap
@@ -278,9 +294,13 @@ class bybit extends Exchange {
                         'futures/private/position/risk-limit' => 2.5,
                         // spot
                         'spot/v1/order' => 2.5,
+                        'spot/v1/cross-margin/loan' => 10,
+                        'spot/v1/cross-margin/repay' => 10,
                         // account
                         'asset/v1/private/transfer' => 150, // 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
                         'asset/v1/private/sub-member/transfer' => 150,
+                        'asset/v1/private/withdraw' => 50,
+                        'asset/v1/private/withdraw/cancel' => 50,
                         // USDC endpoints
                         // option USDC
                         'option/usdc/openapi/private/v1/place-order' => 2.5,
@@ -311,6 +331,7 @@ class bybit extends Exchange {
                         'option/usdc/openapi/private/v1/session-settlement' => 2.5,
                         'perpetual/usdc/openapi/public/v1/risk-limit/list' => 2.5,
                         'perpetual/usdc/openapi/private/v1/position/set-risk-limit' => 2.5,
+                        // 'perpetual/usdc/openapi/private/v1/predicted-funding' => 2.5,
                     ),
                     'delete' => array(
                         // spot
@@ -3556,6 +3577,102 @@ class bybit extends Exchange {
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        //
+        //     {
+        //         chain_type => 'Arbitrum One',
+        //         address_deposit => '0x83a127952d266A6eA306c40Ac62A4a70668FE3BE',
+        //         tag_deposit => '',
+        //         $chain => 'ARBI'
+        //     }
+        //
+        $address = $this->safe_string($depositAddress, 'address_deposit');
+        $tag = $this->safe_string($depositAddress, 'tag_deposit');
+        if ($tag === '') {
+            $tag = null;
+        }
+        $code = $this->safe_string($currency, 'code');
+        $chain = $this->safe_string($depositAddress, 'chain');
+        $this->check_address($address);
+        return array(
+            'currency' => $code,
+            'address' => $address,
+            'tag' => $tag,
+            'network' => $chain,
+            'info' => $depositAddress,
+        );
+    }
+
+    public function fetch_deposit_addresses_by_network($code, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'coin' => $currency['id'],
+        );
+        $response = yield $this->privateGetAssetV1PrivateDepositAddress (array_merge($request, $params));
+        //
+        //     {
+        //         ret_code => '0',
+        //         ret_msg => 'OK',
+        //         ext_code => '',
+        //         $result => {
+        //             $coin => 'ETH',
+        //             $chains => array(
+        //                 array(
+        //                     chain_type => 'Arbitrum One',
+        //                     address_deposit => 'bybitisthebest',
+        //                     tag_deposit => '',
+        //                     chain => 'ARBI'
+        //                 }
+        //             )
+        //         ),
+        //         ext_info => null,
+        //         time_now => '1653141635426'
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        $chains = $this->safe_value($result, 'chains', array());
+        $coin = $this->safe_string($result, 'coin');
+        $currency = $this->currency($coin);
+        $parsed = $this->parse_deposit_addresses($chains, array( $code ), false, array(
+            'currency' => $currency['id'],
+        ));
+        return $this->index_by($parsed, 'network');
+    }
+
+    public function fetch_deposit_address($code, $params = array ()) {
+        $rawNetwork = $this->safe_string_upper($params, 'network');
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string($networks, $rawNetwork, $rawNetwork);
+        $params = $this->omit($params, 'network');
+        $response = yield $this->fetch_deposit_addresses_by_network($code, $params);
+        $result = null;
+        if ($network === null) {
+            $result = $this->safe_value($response, $code);
+            if ($result === null) {
+                $alias = $this->safe_string($networks, $code, $code);
+                $result = $this->safe_value($response, $alias);
+                if ($result === null) {
+                    $defaultNetwork = $this->safe_string($this->options, 'defaultNetwork', 'ERC20');
+                    $result = $this->safe_value($response, $defaultNetwork);
+                    if ($result === null) {
+                        $values = is_array($response) ? array_values($response) : array();
+                        $result = $this->safe_value($values, 0);
+                        if ($result === null) {
+                            throw new InvalidAddress($this->id . ' fetchDepositAddress() cannot find deposit address for ' . $code);
+                        }
+                    }
+                }
+            }
+            return $result;
+        }
+        $result = $this->safe_value($response, $network);
+        if ($result === null) {
+            throw new InvalidAddress($this->id . ' fetchDepositAddress() cannot find ' . $network . ' deposit address for ' . $code);
+        }
+        return $result;
+    }
+
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $request = array(
@@ -3873,6 +3990,43 @@ class bybit extends Exchange {
             'ExchangeOrderDeposit' => 'transaction',
         );
         return $this->safe_string($types, $type, $type);
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        yield $this->load_markets();
+        $this->check_address($address);
+        $currency = $this->currency($code);
+        $request = array(
+            'coin' => $currency['id'],
+            'amount' => $this->number_to_string($amount),
+            'address' => $address,
+        );
+        if ($tag !== null) {
+            $request['tag'] = $tag;
+        }
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_upper($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['chain'] = $network;
+            $params = $this->omit($params, 'network');
+        }
+        $response = yield $this->privatePostAssetV1PrivateWithdraw (array_merge($request, $params));
+        //
+        //     {
+        //         "ret_code":0,
+        //         "ret_msg":"OK"
+        //         "ext_code":"",
+        //         "result":array(
+        //             "id":"bybitistheone"
+        //         ),
+        //         "ext_info":null,
+        //         "time_now":1653149296617
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_transaction($result, $currency);
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
