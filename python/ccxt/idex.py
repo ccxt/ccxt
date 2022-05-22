@@ -177,14 +177,15 @@ class idex(Exchange):
         })
 
     def price_to_precision(self, symbol, price):
+        #
+        # we override priceToPrecision to fix the following issue
+        # https://github.com/ccxt/ccxt/issues/13367
+        # {"code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\": all quantities and prices must be below 100 billion, above 0, need to be provided as strings, and always require 4 decimals ending with 4 zeroes"}
+        #
         market = self.market(symbol)
         info = self.safe_value(market, 'info', {})
         quoteAssetPrecision = self.safe_integer(info, 'quoteAssetPrecision')
         price = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode)
-        # https://docs.bitfinex.com/docs/introduction#price-precision
-        # The precision level of all trading prices is based on significant figures.
-        # All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals(e.g. 1.2345, 123.45, 1234.5, 0.00012345).
-        # Prices submit with a precision larger than 5 will be cut by the API.
         return self.decimal_to_precision(price, TRUNCATE, quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO)
 
     def fetch_markets(self, params={}):
@@ -260,7 +261,7 @@ class idex(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': (status == 'active'),
+                'active': (status != 'inactive'),
                 'contract': False,
                 'linear': None,
                 'inverse': None,
