@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { TICK_SIZE, PAD_WITH_ZERO } = require ('./base/functions/number');
+const { TICK_SIZE, PAD_WITH_ZERO, ROUND, TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 const { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
@@ -163,6 +163,18 @@ module.exports = class idex extends Exchange {
         });
     }
 
+    priceToPrecision (symbol, price) {
+        const market = this.market (symbol);
+        const info = this.safeValue (market, 'info', {});
+        const quoteAssetPrecision = this.safeInteger (info, 'quoteAssetPrecision');
+        price = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode);
+        // https://docs.bitfinex.com/docs/introduction#price-precision
+        // The precision level of all trading prices is based on significant figures.
+        // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
+        // Prices submit with a precision larger than 5 will be cut by the API.
+        return this.decimalToPrecision (price, TRUNCATE, quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO);
+    }
+
     async fetchMarkets (params = {}) {
         /**
          * @method
@@ -217,8 +229,8 @@ module.exports = class idex extends Exchange {
             const basePrecisionString = this.safeString (entry, 'baseAssetPrecision');
             const quotePrecisionString = this.safeString (entry, 'quoteAssetPrecision');
             const basePrecision = this.parseNumber (this.parsePrecision (basePrecisionString));
-            const quotePrecision = this.parseNumber (this.parsePrecision (quotePrecisionString));
-            // quotePrecision = this.safeNumber (entry, 'tickSize', quotePrecision);
+            let quotePrecision = this.parseNumber (this.parsePrecision (quotePrecisionString));
+            quotePrecision = this.safeNumber (entry, 'tickSize', quotePrecision);
             const status = this.safeString (entry, 'status');
             let minCost = undefined;
             if (quote === 'ETH') {
