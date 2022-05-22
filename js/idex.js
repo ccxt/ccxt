@@ -217,8 +217,8 @@ module.exports = class idex extends Exchange {
             const basePrecisionString = this.safeString (entry, 'baseAssetPrecision');
             const quotePrecisionString = this.safeString (entry, 'quoteAssetPrecision');
             const basePrecision = this.parseNumber (this.parsePrecision (basePrecisionString));
-            let quotePrecision = this.parseNumber (this.parsePrecision (quotePrecisionString));
-            quotePrecision = this.safeNumber (entry, 'tickSize', quotePrecision);
+            const quotePrecision = this.parseNumber (this.parsePrecision (quotePrecisionString));
+            // quotePrecision = this.safeNumber (entry, 'tickSize', quotePrecision);
             const status = this.safeString (entry, 'status');
             let minCost = undefined;
             if (quote === 'ETH') {
