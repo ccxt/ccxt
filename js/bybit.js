@@ -461,6 +461,7 @@ module.exports = class bybit extends Exchange {
                 'timeDifference': 0, // the difference between system clock and exchange server clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'defaultSettle': 'USDT', // USDC for USDC settled markets
+                'brokerId': 'CCXT',
             },
             'fees': {
                 'trading': {
@@ -2594,6 +2595,10 @@ module.exports = class bybit extends Exchange {
             request['orderLinkId'] = clientOrderId;
         }
         params = this.omit (params, [ 'clientOrderId', 'orderLinkId' ]);
+        // const brokerId = this.safeString (this.options, 'brokerId');
+        // if (brokerId !== undefined) {
+        //     request['agentSource'] = brokerId;
+        // }
         const response = await this.privatePostSpotV1Order (this.extend (request, params));
         //    {
         //        "ret_code":0,
@@ -4370,34 +4375,32 @@ module.exports = class bybit extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = undefined;
-        if (Array.isArray (api)) {
-            const type = this.safeString (api, 0);
-            let section = this.safeString (api, 1);
-            if (type === 'spot') {
-                if (section === 'public') {
-                    section = 'v1';
-                } else {
-                    section += '/v1';
-                }
+        let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
+        if (api === 'public') {
+            if (Object.keys (params).length) {
+                url += '?' + this.rawencode (params);
             }
-            url = this.implodeHostname (this.urls['api'][type]);
-            let request = '/' + type + '/' + section + '/' + path;
-            if ((type === 'spot') || (type === 'quote')) {
+        } else if (api === 'private') {
+            this.checkRequiredCredentials ();
+            const isOpenapi = url.indexOf ('openapi') >= 0;
+            const timestamp = this.milliseconds ().toString ();
+            if (isOpenapi) {
                 if (Object.keys (params).length) {
-                    request += '?' + this.rawencode (params);
+                    body = this.json (params);
+                } else {
+                    // this fix for PHP is required otherwise it generates
+                    // '[]' on empty arrays even when forced to use objects
+                    body = '{}';
                 }
-            } else if (section === 'public') {
-                if (Object.keys (params).length) {
-                    request += '?' + this.rawencode (params);
-                }
-            } else if (type === 'public') {
-                if (Object.keys (params).length) {
-                    request += '?' + this.rawencode (params);
-                }
+                const payload = timestamp + this.apiKey + body;
+                const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'hex');
+                headers = {
+                    'Content-Type': 'application/json',
+                    'X-BAPI-API-KEY': this.apiKey,
+                    'X-BAPI-TIMESTAMP': timestamp,
+                    'X-BAPI-SIGN': signature,
+                };
             } else {
-                this.checkRequiredCredentials ();
-                const timestamp = this.nonce ();
                 const query = this.extend (params, {
                     'api_key': this.apiKey,
                     'recv_window': this.options['recvWindow'],
@@ -4407,69 +4410,27 @@ module.exports = class bybit extends Exchange {
                 const auth = this.rawencode (sortedQuery);
                 const signature = this.hmac (this.encode (auth), this.encode (this.secret));
                 if (method === 'POST') {
-                    body = this.json (this.extend (query, {
+                    const isSpot = url.indexOf ('spot') >= 0;
+                    const extendedQuery = this.extend (query, {
                         'sign': signature,
-                    }));
-                    headers = {
-                        'Content-Type': 'application/json',
-                    };
-                } else {
-                    request += '?' + this.urlencode (sortedQuery) + '&sign=' + signature;
-                }
-            }
-            url += request;
-        } else {
-            url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
-            if (api === 'public') {
-                if (Object.keys (params).length) {
-                    url += '?' + this.rawencode (params);
-                }
-            } else if (api === 'private') {
-                this.checkRequiredCredentials ();
-                const isOpenapi = url.indexOf ('openapi') >= 0;
-                const timestamp = this.milliseconds ().toString ();
-                if (isOpenapi) {
-                    if (Object.keys (params).length) {
-                        body = this.json (params);
-                    } else {
-                        // this fix for PHP is required otherwise it generates
-                        // '[]' on empty arrays even when forced to use objects
-                        body = '{}';
-                    }
-                    const payload = timestamp + this.apiKey + body;
-                    const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'hex');
-                    headers = {
-                        'Content-Type': 'application/json',
-                        'X-BAPI-API-KEY': this.apiKey,
-                        'X-BAPI-TIMESTAMP': timestamp,
-                        'X-BAPI-SIGN': signature,
-                    };
-                } else {
-                    const query = this.extend (params, {
-                        'api_key': this.apiKey,
-                        'recv_window': this.options['recvWindow'],
-                        'timestamp': timestamp,
                     });
-                    const sortedQuery = this.keysort (query);
-                    const auth = this.rawencode (sortedQuery);
-                    const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-                    if (method === 'POST') {
-                        const isSpot = url.indexOf ('spot') >= 0;
-                        const extendedQuery = this.extend (query, {
-                            'sign': signature,
-                        });
-                        if (!isSpot) {
-                            body = this.json (extendedQuery);
-                            headers = {
-                                'Content-Type': 'application/json',
-                            };
-                        } else {
-                            body = this.urlencode (extendedQuery);
-                            headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
-                        }
+                    if (isSpot) {
+                        body = this.urlencode (extendedQuery);
+                        headers = {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        };
                     } else {
-                        url += '?' + this.urlencode (sortedQuery) + '&sign=' + signature;
+                        body = this.json (extendedQuery);
+                        headers = {
+                            'Content-Type': 'application/json',
+                        };
+                        // const brokerId = this.safeString (this.options, 'brokerId');
+                        // if (brokerId !== undefined) {
+                        //     headers['Referer'] = brokerId;
+                        // }
                     }
+                } else {
+                    url += '?' + this.urlencode (sortedQuery) + '&sign=' + signature;
                 }
             }
         }
