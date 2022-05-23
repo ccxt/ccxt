@@ -510,25 +510,38 @@ module.exports = class bybit extends Exchange {
         //         "ret_msg":"OK",
         //         "ext_code":"",
         //         "result":{
-        //             "rows":[{
-        //                 "name":"SIDUS",
-        //                 "coin":"SIDUS",
-        //                 "remain_amount":"4000000",
-        //                 "chains":[{
-        //                     "chain_type":"ERC20",
-        //                     "confirmation":"12",
-        //                     "withdraw_fee":"300",
-        //                     "deposit_min":"0",
-        //                     "withdraw_min":"600",
-        //                     "chain":"ETH"
-        //                 }]
-        //             }]
+        //             "rows":[
+        //                 {
+        //                     "name":"BUSD",
+        //                     "coin":"BUSD",
+        //                     "remain_amount":"7500000",
+        //                     "chains":[
+        //                         {"chain_type":"BSC (BEP20)","confirmation":"20","withdraw_fee":"0.8","deposit_min":"0","withdraw_min":"1.6","chain":"BSC"},
+        //                         {"chain_type":"ERC20","confirmation":"12","withdraw_fee":"30","deposit_min":"0","withdraw_min":"30","chain":"ETH"},
+        //                     ],
+        //                 },
+        //                 {
+        //                     "name":"USDT",
+        //                     "coin":"USDT",
+        //                     "remain_amount":"15000000",
+        //                     "chains":[
+        //                         {"chain_type":"ERC20","confirmation":"12","withdraw_fee":"10","deposit_min":"0","withdraw_min":"20","chain":"ETH"},
+        //                         {"chain_type":"TRC20","confirmation":"100","withdraw_fee":"1","deposit_min":"0","withdraw_min":"10","chain":"TRX"},
+        //                         {"chain_type":"Arbitrum One","confirmation":"12","withdraw_fee":"10","deposit_min":"0","withdraw_min":"20","chain":"ARBI"},
+        //                         {"chain_type":"SOL","confirmation":"300","withdraw_fee":"1","deposit_min":"0","withdraw_min":"10","chain":"SOL"},
+        //                         {"chain_type":"BSC (BEP20)","confirmation":"20","withdraw_fee":"2","deposit_min":"0","withdraw_min":"10","chain":"BSC"},
+        //                         {"chain_type":"Zksync","confirmation":"1","withdraw_fee":"3","deposit_min":"0","withdraw_min":"3","chain":"ZKSYNC"},
+        //                         {"chain_type":"MATIC","confirmation":"128","withdraw_fee":"0.3","deposit_min":"0","withdraw_min":"0.3","chain":"MATIC"},
+        //                         {"chain_type":"OMNI","confirmation":"1","withdraw_fee":"","deposit_min":"0","withdraw_min":"","chain":"OMNI"},
+        //                     ],
+        //                 },
+        //             ],
         //         },
         //         "ext_info":null,
-        //         "time_now":1653241248505,
-        //         "rate_limit_status":118,
-        //         "rate_limit_reset_ms":1653241248505,
-        //         "rate_limit":2
+        //         "time_now":1653312027278,
+        //         "rate_limit_status":119,
+        //         "rate_limit_reset_ms":1653312027278,
+        //         "rate_limit":1,
         //     }
         //
         const data = this.safeValue (response, 'result', []);
