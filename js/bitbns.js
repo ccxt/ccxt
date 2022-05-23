@@ -434,7 +434,6 @@ module.exports = class bitbns extends Exchange {
                 let currencyId = this.safeString (parts, 1);
                 // note that "Money" stands for INR - the only fiat in bitbns
                 if (currencyId === 'Money') {
-                    // bitbns treats INR differently
                     currencyId = 'INR';
                 }
                 const code = this.safeCurrencyCode (currencyId);
