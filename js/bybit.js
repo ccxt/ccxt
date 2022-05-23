@@ -524,7 +524,7 @@ module.exports = class bybit extends Exchange {
         //                     "name":"USDT",
         //                     "coin":"USDT",
         //                     "remain_amount":"15000000",
-        //                     "chains":[                    
+        //                     "chains":[
         //                         {"chain_type":"ERC20","confirmation":"12","withdraw_fee":"10","deposit_min":"0","withdraw_min":"20","chain":"ETH"},
         //                         {"chain_type":"TRC20","confirmation":"100","withdraw_fee":"1","deposit_min":"0","withdraw_min":"10","chain":"TRX"},
         //                         {"chain_type":"Arbitrum One","confirmation":"12","withdraw_fee":"10","deposit_min":"0","withdraw_min":"20","chain":"ARBI"},
