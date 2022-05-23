@@ -39,6 +39,7 @@ module.exports = class bybit extends Exchange {
                 'fetchBorrowRate': false,
                 'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
@@ -496,6 +497,99 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         return this.safeTimestamp (response, 'time_now');
+    }
+
+    async fetchCurrencies (params = {}) {
+        if (!this.checkRequiredCredentials (false)) {
+            return undefined;
+        }
+        const response = await this.privateGetAssetV1PrivateCoinInfoQuery (params);
+        //
+        //     {
+        //         "ret_code":0,
+        //         "ret_msg":"OK",
+        //         "ext_code":"",
+        //         "result":{
+        //             "rows":[{
+        //                 "name":"SIDUS",
+        //                 "coin":"SIDUS",
+        //                 "remain_amount":"4000000",
+        //                 "chains":[{
+        //                     "chain_type":"ERC20",
+        //                     "confirmation":"12",
+        //                     "withdraw_fee":"300",
+        //                     "deposit_min":"0",
+        //                     "withdraw_min":"600",
+        //                     "chain":"ETH"
+        //                 }]
+        //             }]
+        //         },
+        //         "ext_info":null,
+        //         "time_now":1653241248505,
+        //         "rate_limit_status":118,
+        //         "rate_limit_reset_ms":1653241248505,
+        //         "rate_limit":2
+        //     }
+        //
+        const data = this.safeValue (response, 'result', []);
+        const rows = this.safeValue (data, 'rows', []);
+        const result = {};
+        const dataByCurrencyId = this.groupBy (rows, 'coin');
+        const currencyIds = Object.keys (dataByCurrencyId);
+        const precision = this.parseNumber ('0.00000001');
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const currency = this.safeCurrency (currencyId);
+            const code = currency['code'];
+            let coin = dataByCurrencyId[currencyId];
+            coin = this.safeValue (coin, 0);
+            const chains = this.safeValue (coin, 'chains');
+            const networks = {};
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const networkId = this.safeString (chain, 'chain');
+                const network = this.safeString (chain, 'chain_type');
+                networks[networkId] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': this.safeNumber (chain, 'withdraw_fee'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'withdraw_min'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (chain, 'deposit_min'),
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            result[code] = {
+                'info': coin,
+                'code': code,
+                'id': currencyId,
+                'name': undefined,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'networks': networks,
+            };
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}) {
