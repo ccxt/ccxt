@@ -100,6 +100,7 @@ class gateio extends Exchange {
                 'fetchMyTrades' => true,
                 'fetchNetworkDepositAddress' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -632,6 +633,11 @@ class gateio extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for gateio
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing market data
+         */
         $result = array();
         list($type, $query) = $this->handle_market_type_and_params('fetchMarkets', null, $params);
         if ($type === 'spot' || $type === 'margin') {
@@ -1723,6 +1729,13 @@ class gateio extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         //
@@ -1822,6 +1835,12 @@ class gateio extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         list($request, $query) = $this->prepare_request($market, null, $params);
@@ -1908,6 +1927,12 @@ class gateio extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
         yield $this->load_markets();
         list($type, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
         list($request, $requestParams) = $this->prepare_request(null, $type, $query);
@@ -2113,6 +2138,15 @@ class gateio extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $price = $this->safe_string($params, 'price');
@@ -2120,6 +2154,7 @@ class gateio extends Exchange {
         list($request, $params) = $this->prepare_request($market, null, $params);
         $request['interval'] = $this->timeframes[$timeframe];
         $method = 'publicSpotGetCandlesticks';
+        $maxLimit = 1000;
         if ($market['contract']) {
             $maxLimit = 1999;
             $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
@@ -2134,17 +2169,16 @@ class gateio extends Exchange {
                 $request['contract'] = $price . '_' . $market['id'];
                 $params = $this->omit($params, 'price');
             }
-        } else {
-            $maxLimit = 1000;
-            $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
-            $request['limit'] = $limit;
         }
+        $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
         if ($since !== null) {
             $duration = $this->parse_timeframe($timeframe);
             $request['from'] = intval($since / 1000);
             $toTimestamp = $this->sum($request['from'], $limit * $duration - 1);
             $currentTimestamp = $this->seconds();
             $request['to'] = min ($toTimestamp, $currentTimestamp);
+        } else {
+            $request['limit'] = $limit;
         }
         $response = yield $this->$method (array_merge($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
@@ -2158,6 +2192,14 @@ class gateio extends Exchange {
     }
 
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical funding rate prices
+         * @param {str|null} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int|null} $since $timestamp in ms of the earliest funding rate to fetch
+         * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
@@ -2247,6 +2289,14 @@ class gateio extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         //
@@ -3814,7 +3864,7 @@ class gateio extends Exchange {
     public function fetch_positions($symbols = null, $params = array ()) {
         /**
          * Fetch trades positions
-         * @param array([str]) $symbols Not used by Gateio, but parsed internally by CCXT
+         * @param {[str]} $symbols Not used by Gateio, but parsed internally by CCXT
          * @param {dict} $params exchange specific parameters
          * @param {str} $params->settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
          * @param {str} $params->type swap or future, if not provided $this->options['defaultType'] is used

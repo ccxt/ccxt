@@ -767,6 +767,11 @@ class bitget extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for bitget
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing market data
+         */
         $types = $this->safe_value($this->options, 'fetchMarkets', array( 'spot', 'swap' ));
         $result = array();
         for ($i = 0; $i < count($types); $i++) {
@@ -1087,6 +1092,13 @@ class bitget extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         list($marketType, $query) = $this->handle_market_type_and_params('fetchOrderBook', $market, $params);
@@ -1121,35 +1133,40 @@ class bitget extends Exchange {
     public function parse_ticker($ticker, $market = null) {
         //
         // spot
+        //
         //     {
-        //       $symbol => 'BTCUSDT',
-        //       high24h => '40252.43',
-        //       low24h => '38548.54',
-        //       $close => '39102.16',
-        //       quoteVol => '67295596.1458',
-        //       baseVol => '1723.4152',
-        //       usdtVol => '67295596.14578',
-        //       ts => '1645856170030',
-        //       buyOne => '39096.16',
-        //       sellOne => '39103.99'
+        //         $symbol => 'BTCUSDT',
+        //         high24h => '40252.43',
+        //         low24h => '38548.54',
+        //         $close => '39102.16',
+        //         quoteVol => '67295596.1458',
+        //         baseVol => '1723.4152',
+        //         usdtVol => '67295596.14578',
+        //         ts => '1645856170030',
+        //         buyOne => '39096.16',
+        //         sellOne => '39103.99'
         //     }
         //
         // swap
+        //
         //     {
-        //       $symbol => 'BTCUSDT_UMCBL',
-        //       last => '39086',
-        //       bestAsk => '39087',
-        //       bestBid => '39086',
-        //       high24h => '40312',
-        //       low24h => '38524.5',
-        //       $timestamp => '1645856591864',
-        //       priceChangePercent => '-0.00861',
-        //       $baseVolume => '142251.757',
-        //       $quoteVolume => '5552388715.9215',
-        //       usdtVolume => '5552388715.9215'
+        //         $symbol => 'BTCUSDT_UMCBL',
+        //         last => '39086',
+        //         bestAsk => '39087',
+        //         bestBid => '39086',
+        //         high24h => '40312',
+        //         low24h => '38524.5',
+        //         $timestamp => '1645856591864',
+        //         priceChangePercent => '-0.00861',
+        //         $baseVolume => '142251.757',
+        //         $quoteVolume => '5552388715.9215',
+        //         usdtVolume => '5552388715.9215'
         //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
+        if (!(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+            $marketId .= '_SPBL';
+        }
         $symbol = $this->safe_symbol($marketId, $market);
         $high = $this->safe_string($ticker, 'high24h');
         $low = $this->safe_string($ticker, 'low24h');
@@ -1186,6 +1203,12 @@ class bitget extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1199,21 +1222,21 @@ class bitget extends Exchange {
         $response = yield $this->$method (array_merge($request, $query));
         //
         //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => '1645856138576',
-        //       $data => {
-        //         $symbol => 'BTCUSDT',
-        //         high24h => '40252.43',
-        //         low24h => '38548.54',
-        //         close => '39104.65',
-        //         quoteVol => '67221762.2184',
-        //         baseVol => '1721.527',
-        //         usdtVol => '67221762.218361',
-        //         ts => '1645856138031',
-        //         buyOne => '39102.55',
-        //         sellOne => '39110.56'
-        //       }
+        //         code => '00000',
+        //         msg => 'success',
+        //         requestTime => '1645856138576',
+        //         $data => {
+        //             $symbol => 'BTCUSDT',
+        //             high24h => '40252.43',
+        //             low24h => '38548.54',
+        //             close => '39104.65',
+        //             quoteVol => '67221762.2184',
+        //             baseVol => '1721.527',
+        //             usdtVol => '67221762.218361',
+        //             ts => '1645856138031',
+        //             buyOne => '39102.55',
+        //             sellOne => '39110.56'
+        //         }
         //     }
         //
         $data = $this->safe_value($response, 'data');
@@ -1221,6 +1244,13 @@ class bitget extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
+        yield $this->load_markets();
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'publicSpotGetMarketTickers',
@@ -1232,6 +1262,52 @@ class bitget extends Exchange {
             $request['productType'] = ($defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
         }
         $response = yield $this->$method (array_merge($request, $query));
+        //
+        // spot
+        //
+        //     {
+        //         "code":"00000",
+        //         "msg":"success",
+        //         "requestTime":1653237548496,
+        //         "data":array(
+        //             array(
+        //                 "symbol":"LINKUSDT",
+        //                 "high24h":"7.2634",
+        //                 "low24h":"7.1697",
+        //                 "close":"7.2444",
+        //                 "quoteVol":"330424.2366",
+        //                 "baseVol":"46401.3116",
+        //                 "usdtVol":"330424.2365573",
+        //                 "ts":"1653237548026",
+        //                 "buyOne":"7.2382",
+        //                 "sellOne":"7.2513"
+        //             ),
+        //         )
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code":"00000",
+        //         "msg":"success",
+        //         "requestTime":1653237819762,
+        //         "data":array(
+        //             array(
+        //                 "symbol":"BTCUSDT_UMCBL",
+        //                 "last":"29891.5",
+        //                 "bestAsk":"29891.5",
+        //                 "bestBid":"29889.5",
+        //                 "high24h":"29941.5",
+        //                 "low24h":"29737.5",
+        //                 "timestamp":"1653237819761",
+        //                 "priceChangePercent":"0.00163",
+        //                 "baseVolume":"127937.56",
+        //                 "quoteVolume":"3806276573.6285",
+        //                 "usdtVolume":"3806276573.6285"
+        //             ),
+        //         )
+        //     }
+        //
         $data = $this->safe_value($response, 'data');
         return $this->parse_tickers($data, $symbols);
     }
@@ -1239,52 +1315,55 @@ class bitget extends Exchange {
     public function parse_trade($trade, $market = null) {
         //
         // spot
+        //
         //     {
-        //       $symbol => 'BTCUSDT_SPBL',
-        //       tradeId => '881371996363608065',
-        //       $side => 'sell',
-        //       fillPrice => '39123.05',
-        //       fillQuantity => '0.0363',
-        //       fillTime => '1645861379709'
+        //         $symbol => 'BTCUSDT_SPBL',
+        //         tradeId => '881371996363608065',
+        //         $side => 'sell',
+        //         fillPrice => '39123.05',
+        //         fillQuantity => '0.0363',
+        //         fillTime => '1645861379709'
         //     }
         //
         // swap
+        //
         //     {
-        //       tradeId => '881373204067311617',
-        //       $price => '39119.0',
-        //       size => '0.001',
-        //       $side => 'buy',
-        //       $timestamp => '1645861667648',
-        //       $symbol => 'BTCUSDT_UMCBL'
+        //         tradeId => '881373204067311617',
+        //         $price => '39119.0',
+        //         size => '0.001',
+        //         $side => 'buy',
+        //         $timestamp => '1645861667648',
+        //         $symbol => 'BTCUSDT_UMCBL'
         //     }
         //
         // private
+        //
         //     {
-        //       accountId => '6394957606',
-        //       $symbol => 'LTCUSDT_SPBL',
-        //       orderId => '864752115272552448',
-        //       fillId => '864752115685969921',
-        //       orderType => 'limit',
-        //       $side => 'buy',
-        //       fillPrice => '127.92000000',
-        //       fillQuantity => '0.10000000',
-        //       fillTotalAmount => '12.79200000',
-        //       feeCcy => 'LTC',
-        //       fees => '0.00000000',
-        //       cTime => '1641898891373'
+        //         accountId => '6394957606',
+        //         $symbol => 'LTCUSDT_SPBL',
+        //         orderId => '864752115272552448',
+        //         fillId => '864752115685969921',
+        //         orderType => 'limit',
+        //         $side => 'buy',
+        //         fillPrice => '127.92000000',
+        //         fillQuantity => '0.10000000',
+        //         fillTotalAmount => '12.79200000',
+        //         feeCcy => 'LTC',
+        //         fees => '0.00000000',
+        //         cTime => '1641898891373'
         //     }
         //
         //     {
-        //       tradeId => '881640729552281602',
-        //       $symbol => 'BTCUSDT_UMCBL',
-        //       orderId => '881640729145409536',
-        //       $price => '38429.50',
-        //       sizeQty => '0.001',
-        //       $fee => '0',
-        //       $side => 'open_long',
-        //       fillAmount => '38.4295',
-        //       profit => '0',
-        //       cTime => '1645925450694'
+        //         tradeId => '881640729552281602',
+        //         $symbol => 'BTCUSDT_UMCBL',
+        //         orderId => '881640729145409536',
+        //         $price => '38429.50',
+        //         sizeQty => '0.001',
+        //         $fee => '0',
+        //         $side => 'open_long',
+        //         fillAmount => '38.4295',
+        //         profit => '0',
+        //         cTime => '1645925450694'
         //     }
         //
         $marketId = $this->safe_string($trade, 'symbol');
@@ -1325,6 +1404,14 @@ class bitget extends Exchange {
     }
 
     public function fetch_trades($symbol, $limit = null, $since = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1476,6 +1563,15 @@ class bitget extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1516,6 +1612,11 @@ class bitget extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * $query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         yield $this->load_markets();
         list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $method = $this->get_supported_mapping($marketType, array(
@@ -2451,6 +2552,14 @@ class bitget extends Exchange {
     }
 
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical funding rate prices
+         * @param {str|null} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int|null} $since $timestamp in ms of the earliest funding rate to fetch
+         * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+         * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }

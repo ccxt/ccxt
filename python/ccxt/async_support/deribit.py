@@ -50,6 +50,7 @@ class deribit(Exchange):
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'editOrder': True,
+                'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -436,7 +437,74 @@ class deribit(Exchange):
             'info': response,
         }
 
+    async def fetch_accounts(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetGetSubaccounts(params)
+        #
+        #     {
+        #         jsonrpc: '2.0',
+        #         result: [{
+        #                 username: 'someusername',
+        #                 type: 'main',
+        #                 system_name: 'someusername',
+        #                 security_keys_enabled: False,
+        #                 security_keys_assignments: [],
+        #                 receive_notifications: False,
+        #                 login_enabled: True,
+        #                 is_password: True,
+        #                 id: '238216',
+        #                 email: 'pablo@abcdef.com'
+        #             },
+        #             {
+        #                 username: 'someusername_1',
+        #                 type: 'subaccount',
+        #                 system_name: 'someusername_1',
+        #                 security_keys_enabled: False,
+        #                 security_keys_assignments: [],
+        #                 receive_notifications: False,
+        #                 login_enabled: False,
+        #                 is_password: False,
+        #                 id: '245499',
+        #                 email: 'pablo@abcdef.com'
+        #             }
+        #         ],
+        #         usIn: '1652736468292006',
+        #         usOut: '1652736468292377',
+        #         usDiff: '371',
+        #         testnet: False
+        #     }
+        #
+        result = self.safe_value(response, 'result', [])
+        return self.parse_accounts(result)
+
+    def parse_account(self, account, currency=None):
+        #
+        #      {
+        #          username: 'someusername_1',
+        #          type: 'subaccount',
+        #          system_name: 'someusername_1',
+        #          security_keys_enabled: False,
+        #          security_keys_assignments: [],
+        #          receive_notifications: False,
+        #          login_enabled: False,
+        #          is_password: False,
+        #          id: '245499',
+        #          email: 'pablo@abcdef.com'
+        #      }
+        #
+        return {
+            'info': account,
+            'id': self.safe_string(account, 'id'),
+            'type': self.safe_string(account, 'type'),
+            'code': self.safe_currency_code(None, currency),
+        }
+
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for deribit
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         currenciesResponse = await self.publicGetGetCurrencies(params)
         #
         #     {
@@ -642,6 +710,11 @@ class deribit(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the deribit api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         code = self.code_from_options('fetchBalance', params)
         currency = self.currency(code)
@@ -833,6 +906,12 @@ class deribit(Exchange):
         }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the deribit api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -871,6 +950,12 @@ class deribit(Exchange):
         return self.parse_ticker(result, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the deribit api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         code = self.code_from_options('fetchTickers', params)
         currency = self.currency(code)
@@ -917,6 +1002,15 @@ class deribit(Exchange):
         return self.filter_by_array(tickers, 'symbol', symbols)
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the deribit api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1042,6 +1136,14 @@ class deribit(Exchange):
         }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the deribit api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1189,6 +1291,13 @@ class deribit(Exchange):
         return parsedFees
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the deribit api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2013,7 +2122,7 @@ class deribit(Exchange):
 
     async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
         if code is None:
-            raise ArgumentsRequired(self.id + ' transfer() requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchTransfers() requires a currency code argument')
         await self.load_markets()
         currency = self.currency(code)
         request = {

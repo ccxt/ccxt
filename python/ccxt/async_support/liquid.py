@@ -309,6 +309,11 @@ class liquid(Exchange):
         return result
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for liquid
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         spot = await self.publicGetProducts(params)
         #
         #     [
@@ -522,6 +527,11 @@ class liquid(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.privateGetAccounts(params)
         #
@@ -561,6 +571,13 @@ class liquid(Exchange):
         return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         request = {
             'id': self.market_id(symbol),
@@ -608,6 +625,12 @@ class liquid(Exchange):
         }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         response = await self.publicGetProducts(params)
         result = {}
@@ -618,6 +641,12 @@ class liquid(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -664,6 +693,14 @@ class liquid(Exchange):
         }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -985,47 +1022,20 @@ class liquid(Exchange):
         marketId = self.safe_string(order, 'product_id')
         market = self.safe_value(self.markets_by_id, marketId)
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        amount = self.safe_number(order, 'quantity')
-        filled = self.safe_number(order, 'filled_quantity')
-        price = self.safe_number(order, 'price')
+        amount = self.safe_string(order, 'quantity')
+        filled = self.safe_string(order, 'filled_quantity')
+        price = self.safe_string(order, 'price')
         type = self.safe_string(order, 'order_type')
-        tradeCost = 0
-        tradeFilled = 0
-        average = self.safe_number(order, 'average_price')
-        trades = self.parse_trades(self.safe_value(order, 'executions', []), market, None, None, {
-            'order': orderId,
-            'type': type,
-        })
-        numTrades = len(trades)
-        for i in range(0, numTrades):
-            # php copies values upon assignment, but not references them
-            # todo rewrite self(shortly)
-            trade = trades[i]
-            trade['order'] = orderId
-            trade['type'] = type
-            tradeFilled = self.sum(tradeFilled, trade['amount'])
-            tradeCost = self.sum(tradeCost, trade['cost'])
-        cost = None
-        lastTradeTimestamp = None
-        if numTrades > 0:
-            lastTradeTimestamp = trades[numTrades - 1]['timestamp']
-            if not average and (tradeFilled > 0):
-                average = tradeCost / tradeFilled
-            if cost is None:
-                cost = tradeCost
-            if filled is None:
-                filled = tradeFilled
-        remaining = None
-        if amount is not None and filled is not None:
-            remaining = amount - filled
+        average = self.safe_string(order, 'average_price')
+        trades = self.safe_value(order, 'executions', [])
         side = self.safe_string(order, 'side')
         clientOrderId = self.safe_string(order, 'client_order_id')
-        return {
+        return self.safe_order({
             'id': orderId,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': None,
             'type': type,
             'timeInForce': None,
             'postOnly': None,
@@ -1036,16 +1046,16 @@ class liquid(Exchange):
             'stopPrice': None,
             'amount': amount,
             'filled': filled,
-            'cost': cost,
-            'remaining': remaining,
+            'cost': None,
+            'remaining': None,
             'average': average,
             'trades': trades,
             'fee': {
                 'currency': market['quote'],
-                'cost': self.safe_number(order, 'order_fee'),
+                'cost': self.safe_string(order, 'order_fee'),
             },
             'info': order,
-        }
+        })
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -1053,6 +1063,54 @@ class liquid(Exchange):
             'id': id,
         }
         response = await self.privateGetOrdersId(self.extend(request, params))
+        #
+        #     {
+        #         "id": 6929766032,
+        #         "order_type": "limit",
+        #         "quantity": "0.003",
+        #         "disc_quantity": "0.0",
+        #         "iceberg_total_quantity": "0.0",
+        #         "side": "buy",
+        #         "filled_quantity": "0.0",
+        #         "price": 1800.0,
+        #         "created_at": 1653139172,
+        #         "updated_at": 1653139172,
+        #         "status": "live",
+        #         "leverage_level": 1,
+        #         "source_exchange": "QUOINE",
+        #         "product_id": 625,
+        #         "margin_type": null,
+        #         "take_profit": null,
+        #         "stop_loss": null,
+        #         "trading_type": "spot",
+        #         "product_code": "CASH",
+        #         "funding_currency": "USDT",
+        #         "crypto_account_id": null,
+        #         "currency_pair_code": "ETHUSDT",
+        #         "average_price": 0.0,
+        #         "target": "spot",
+        #         "order_fee": "0.0",
+        #         "source_action": "manual",
+        #         "unwound_trade_id": null,
+        #         "trade_id": null,
+        #         "client_order_id": "2865675_1653139172173",
+        #         "settings": null,
+        #         "trailing_stop_type": null,
+        #         "trailing_stop_value": null,
+        #         "executions": [ # array will be empty for unfilled order
+        #           {
+        #             "id": 485442157,
+        #             "quantity": "0.002",
+        #             "price": "1973.32",
+        #             "taker_side": "buy",
+        #             "created_at": 1653139978,
+        #             "timestamp": "1653139978.434518",
+        #             "my_side": "buy"
+        #          }
+        #         ],
+        #         "stop_triggered_time": null
+        #     }
+        #
         return self.parse_order(response)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -1074,27 +1132,52 @@ class liquid(Exchange):
         #
         #     {
         #         "models": [
-        #             {
-        #                 "id": 2157474,
-        #                 "order_type": "limit",
-        #                 "quantity": "0.01",
-        #                 "disc_quantity": "0.0",
-        #                 "iceberg_total_quantity": "0.0",
-        #                 "side": "sell",
-        #                 "filled_quantity": "0.0",
-        #                 "price": "500.0",
-        #                 "created_at": 1462123639,
-        #                 "updated_at": 1462123639,
-        #                 "status": "live",
-        #                 "leverage_level": 1,
-        #                 "source_exchange": "QUOINE",
-        #                 "product_id": 1,
-        #                 "product_code": "CASH",
-        #                 "funding_currency": "USD",
-        #                 "currency_pair_code": "BTCUSD",
-        #                 "order_fee": "0.0",
-        #                 "executions": [],  # optional
-        #             }
+        #           {
+        #             "id": 6929766034,
+        #             "order_type": "limit",
+        #             "quantity": "0.003",
+        #             "disc_quantity": "0.0",
+        #             "iceberg_total_quantity": "0.0",
+        #             "side": "buy",
+        #             "filled_quantity": "0.0",
+        #             "price": 1800.0,
+        #             "created_at": 1653139172,
+        #             "updated_at": 1653139172,
+        #             "status": "live",
+        #             "leverage_level": 1,
+        #             "source_exchange": 0,
+        #             "product_id": 625,
+        #             "margin_type": null,
+        #             "take_profit": null,
+        #             "stop_loss": null,
+        #             "trading_type": "spot",
+        #             "product_code": "CASH",
+        #             "funding_currency": "USDT",
+        #             "crypto_account_id": null,
+        #             "currency_pair_code": "ETHUSDT",
+        #             "average_price": 0.0,
+        #             "target": "spot",
+        #             "order_fee": "0.0",
+        #             "source_action": "manual",
+        #             "unwound_trade_id": null,
+        #             "trade_id": null,
+        #             "client_order_id": "2865672_1653139172173",
+        #             "settings": null,
+        #             "trailing_stop_type": null,
+        #             "trailing_stop_value": null,
+        #             "stop_triggered_time": null
+        #             "executions": [ # array will be empty for unfilled order
+        #               {
+        #                 "id": 485442157,
+        #                 "quantity": "0.002",
+        #                 "price": "1973.32",
+        #                 "taker_side": "buy",
+        #                 "created_at": 1653139978,
+        #                 "timestamp": "1653139978.434518",
+        #                 "my_side": "buy"
+        #              }
+        #             ],
+        #           }
         #         ],
         #         "current_page": 1,
         #         "total_pages": 1

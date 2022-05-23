@@ -34,6 +34,7 @@ const {
 const { // eslint-disable-line object-curly-newline
     ExchangeError
     , BadSymbol
+    , NullResponse
     , InvalidAddress
     , InvalidOrder
     , NotSupported
@@ -145,6 +146,7 @@ module.exports = class Exchange {
                 'loadMarkets': true,
                 'reduceMargin': undefined,
                 'setLeverage': undefined,
+                'setMargin': undefined,
                 'setMarginMode': undefined,
                 'setPositionMode': undefined,
                 'signIn': undefined,
@@ -922,7 +924,7 @@ module.exports = class Exchange {
             const tickers = await this.fetchTickers ([ symbol ], params);
             const ticker = this.safeValue (tickers, symbol);
             if (ticker === undefined) {
-                throw new InvalidAddress (this.id + ' fetchTickers() could not find a ticker for ' + symbol);
+                throw new NullResponse (this.id + ' fetchTickers() could not find a ticker for ' + symbol);
             } else {
                 return ticker;
             }
@@ -1071,6 +1073,10 @@ module.exports = class Exchange {
 
     marketIds (symbols) {
         return symbols.map ((symbol) => this.marketId (symbol))
+    }
+
+    marketSymbols (symbols) {
+        return (symbols === undefined) ? symbols : symbols.map ((symbol) => this.symbol (symbol))
     }
 
     symbol (symbol) {
@@ -1405,6 +1411,11 @@ module.exports = class Exchange {
                 'quoteVolume': this.parseNumber (quoteVolume),
             });
         }
+    }
+
+    parseAccounts (accounts, params = {}) {
+        const array = Object.values (accounts || [])
+        return array.map ((account) => this.extend (this.parseAccount (account, undefined), params))
     }
 
     parseTickers (tickers, symbols = undefined, params = {}) {
@@ -2325,13 +2336,25 @@ module.exports = class Exchange {
         if (this.has['fetchLeverageTiers']) {
             const market = await this.market (symbol);
             if (!market['contract']) {
-                throw new BadSymbol (this.id + ' fetchLeverageTiers() supports contract markets only');
+                throw new BadSymbol (this.id + ' fetchMarketLeverageTiers() supports contract markets only');
             }
             const tiers = await this.fetchLeverageTiers ([ symbol ]);
             return this.safeValue (tiers, symbol);
         } else {
             throw new NotSupported (this.id + ' fetchMarketLeverageTiers() is not supported yet');
         }
+    }
+
+    parseOpenInterests (response, market = undefined, since = undefined, limit = undefined) {
+        const interests = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const interest = this.parseOpenInterest (entry, market);
+            interests.push (interest);
+        }
+        const sorted = this.sortBy (interests, 'timestamp');
+        const symbol = this.safeString (market, 'symbol');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     isPostOnly (type, timeInForce = undefined, exchangeSpecificOption = undefined, params = {}) {
@@ -2439,5 +2462,23 @@ module.exports = class Exchange {
         const sorted = this.sortBy (rates, 'timestamp');
         const symbol = (market === undefined) ? undefined : market['symbol'];
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        if (this.has['fetchFundingRates']) {
+            const market = await this.market (symbol);
+            if (!market['contract']) {
+                throw new BadSymbol (this.id + ' fetchFundingRate() supports contract markets only');
+            }
+            const rates = await this.fetchFundingRates ([ symbol ], params);
+            const rate = this.safeValue (rates, symbol);
+            if (rate === undefined) {
+                throw new NullResponse (this.id + ' fetchFundingRate () returned no data for ' + symbol);
+            } else {
+                return rate;
+            }
+        } else {
+            throw new NotSupported (this.id + ' fetchFundingRate () is not supported yet');
+        }
     }
 }

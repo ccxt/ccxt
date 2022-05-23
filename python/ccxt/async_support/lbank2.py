@@ -188,6 +188,7 @@ class lbank2(Exchange):
             },
             'options': {
                 'cacheSecretAsPem': True,
+                'createMarketBuyOrderRequiresPrice': True,
                 'fetchTrades': {
                     'method': 'publicGetTrades',  # or 'publicGetTradesSupplement'
                 },
@@ -264,6 +265,11 @@ class lbank2(Exchange):
         })
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for lbank2
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         # needs to return a list of unified market structures
         response = await self.publicGetAccuracy()
         data = self.safe_value(response, 'data')
@@ -391,6 +397,12 @@ class lbank2(Exchange):
         }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -423,6 +435,13 @@ class lbank2(Exchange):
         return self.parse_ticker(first, market)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -430,7 +449,7 @@ class lbank2(Exchange):
         }
         if limit is not None:
             request['limit'] = limit
-        response = await self.publicGetSupplementIncrDepth(self.extend(request, params))
+        response = await self.publicGetIncrDepth(self.extend(request, params))
         orderbook = response['data']
         timestamp = self.milliseconds()
         return self.parse_order_book(orderbook, symbol, timestamp)
@@ -529,6 +548,14 @@ class lbank2(Exchange):
         }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -585,6 +612,15 @@ class lbank2(Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         # endpoint doesnt work
         await self.load_markets()
         market = self.market(symbol)
@@ -748,6 +784,11 @@ class lbank2(Exchange):
             return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         method = self.safe_string(params, 'method')
         if method is None:
@@ -794,39 +835,41 @@ class lbank2(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         clientOrderId = self.safe_string_2(params, 'custom_id', 'clientOrderId')
-        postOnly = self.safe_string(params, 'postOnly', False)
+        postOnly = self.safe_value(params, 'postOnly', False)
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         params = self.omit(params, ['custom_id', 'clientOrderId', 'timeInForce', 'postOnly'])
-        if type == 'limit':
-            type = side
-            if side == 'sell':
-                if timeInForce == 'FOK':
-                    type = 'sell_fok'
-                if timeInForce == 'IOC':
-                    type = 'sell_ioc'
-                if postOnly or (timeInForce == 'PO'):
-                    type = 'sell_maker'
-            if side == 'buy':
-                if timeInForce == 'FOK':
-                    type = 'buy_fok'
-                if timeInForce == 'IOC':
-                    type = 'buy_ioc'
-                if postOnly or (timeInForce == 'PO'):
-                    type = 'buy_maker'
-        if type == 'market':
-            if side == 'sell':
-                type = 'sell_market'
-            if side == 'buy':
-                type = 'buy_market'
         request = {
             'symbol': market['id'],
-            'amount': self.amount_to_precision(symbol, amount),
-            'type': type,
         }
-        if price is not None:
+        ioc = (timeInForce == 'IOC')
+        fok = (timeInForce == 'FOK')
+        maker = (postOnly or (timeInForce == 'PO'))
+        if (type == 'market') and (ioc or fok or maker):
+            raise InvalidOrder(self.id + ' createOrder() does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed')
+        if type == 'limit':
+            request['type'] = side
             request['price'] = self.price_to_precision(symbol, price)
-        else:
-            request['price'] = 1  # required unused number > 0 even for market orders
+            request['amount'] = self.amount_to_precision(symbol, amount)
+            if ioc:
+                request['type'] = side + '_' + 'ioc'
+            elif fok:
+                request['type'] = side + '_' + 'fok'
+            elif maker:
+                request['type'] = side + '_' + 'maker'
+        elif type == 'market':
+            if side == 'sell':
+                request['type'] = side + '_' + 'market'
+                request['amount'] = self.amount_to_precision(symbol, amount)
+            elif side == 'buy':
+                request['type'] = side + '_' + 'market'
+                if self.options['createMarketBuyOrderRequiresPrice']:
+                    if price is None:
+                        raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply the price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
+                    else:
+                        cost = float(amount) * float(price)
+                        request['price'] = self.price_to_precision(symbol, cost)
+                else:
+                    request['price'] = amount
         if clientOrderId is not None:
             request['custom_id'] = clientOrderId
         method = None
@@ -940,8 +983,8 @@ class lbank2(Exchange):
         timeInForce = None
         postOnly = False
         type = 'limit'
-        side = self.safe_string(order, 'type')  # buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
-        parts = side.split('_')
+        rawType = self.safe_string(order, 'type')  # buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
+        parts = rawType.split('_')
         side = self.safe_string(parts, 0)
         typePart = self.safe_string(parts, 1)  # market, maker, ioc, fok or None(limit)
         if typePart == 'market':
@@ -955,7 +998,9 @@ class lbank2(Exchange):
             timeInForce = 'FOK'
         price = self.safe_string(order, 'price')
         costString = self.safe_string(order, 'cummulativeQuoteQty')
-        amountString = self.safe_string_2(order, 'origQty', 'amount')
+        amountString = None
+        if rawType != 'buy_market':
+            amountString = self.safe_string_2(order, 'origQty', 'amount')
         filledString = self.safe_string_2(order, 'executedQty', 'deal_amount')
         return self.safe_order({
             'id': id,

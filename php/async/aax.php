@@ -31,22 +31,22 @@ class aax extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => false,
+                'margin' => true,
                 'swap' => true,
                 'future' => false,
                 'option' => false,
-                'addMargin' => null,
+                'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'cancelOrders' => null,
-                'createDepositAddress' => null,
+                'cancelOrders' => false,
+                'createDepositAddress' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
                 'editOrder' => true,
-                'fetchAccounts' => null,
+                'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
                 'fetchBorrowRate' => false,
@@ -58,9 +58,9 @@ class aax extends Exchange {
                 'fetchClosedOrder' => null,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
-                'fetchDeposit' => null,
+                'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
-                'fetchDepositAddresses' => null,
+                'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => null,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => true,
@@ -84,7 +84,7 @@ class aax extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrderBooks' => null,
+                'fetchOrderBooks' => false,
                 'fetchOrders' => true,
                 'fetchOrderTrades' => null,
                 'fetchPosition' => true,
@@ -106,9 +106,10 @@ class aax extends Exchange {
                 'fetchTransfers' => true,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
-                'fetchWithdrawalWhitelist' => null,
-                'reduceMargin' => null,
+                'fetchWithdrawalWhitelist' => false,
+                'reduceMargin' => false,
                 'setLeverage' => true,
+                'setMargin' => true,
                 'setMarginMode' => false,
                 'setPositionMode' => null,
                 'signIn' => null,
@@ -319,6 +320,12 @@ class aax extends Exchange {
                     'otc' => 'F2CP',
                     'saving' => 'VLTP',
                 ),
+                'accountsById' => array(
+                    'SPTP' => 'spot',
+                    'FUTP' => 'future',
+                    'F2CP' => 'otc',
+                    'VLTP' => 'saving',
+                ),
                 'networks' => array(
                     'ETH' => 'ERC20',
                     'TRX' => 'TRC20',
@@ -397,6 +404,11 @@ class aax extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves $data on all markets for aax
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market $data
+         */
         $response = yield $this->publicGetInstruments ($params);
         //
         //     {
@@ -678,7 +690,108 @@ class aax extends Exchange {
         ), $market, false);
     }
 
+    public function set_margin($symbol, $amount, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'margin' => $amount,
+        );
+        $response = yield $this->privatePostFuturesPositionMargin (array_merge($request, $params));
+        //
+        //     {
+        //         code => '1',
+        //         $data => array(
+        //             autoMarginCall => false,
+        //             avgEntryPrice => '0.52331',
+        //             bankruptPrice => '0.3185780400',
+        //             base => 'ADA',
+        //             code => 'FP',
+        //             commission => '0.00031399',
+        //             currentQty => '1',
+        //             funding => '0',
+        //             fundingStatus => null,
+        //             id => '447888550222172160',
+        //             leverage => '5.25',
+        //             liquidationPrice => '0.324007',
+        //             marketPrice => '0',
+        //             openTime => '2022-05-20T14:30:42.759Z',
+        //             posLeverage => '2.56',
+        //             posMargin => '0.20473196',
+        //             quote => 'USDT',
+        //             realisedPnl => '0',
+        //             riskLimit => '10000000',
+        //             riskyPrice => '0.403728',
+        //             settleType => 'VANILLA',
+        //             stopLossPrice => '0',
+        //             stopLossSource => '0',
+        //             $symbol => 'ADAUSDTFP',
+        //             takeProfitPrice => '0',
+        //             takeProfitSource => '0',
+        //             unrealisedPnl => '-0.00151000',
+        //             userID => '3311296'
+        //         ),
+        //         message => 'success',
+        //         ts => '1653057280756'
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_modify_margin($data, $market);
+    }
+
+    public function parse_modify_margin($data, $market = null) {
+        //
+        //     {
+        //         autoMarginCall => false,
+        //         avgEntryPrice => '0.52331',
+        //         bankruptPrice => '0.3185780400',
+        //         base => 'ADA',
+        //         code => 'FP',
+        //         commission => '0.00031399',
+        //         currentQty => '1',
+        //         funding => '0',
+        //         fundingStatus => null,
+        //         id => '447888550222172160',
+        //         leverage => '5.25',
+        //         liquidationPrice => '0.324007',
+        //         marketPrice => '0',
+        //         openTime => '2022-05-20T14:30:42.759Z',
+        //         posLeverage => '2.56',
+        //         posMargin => '0.20473196',
+        //         $quote => 'USDT',
+        //         realisedPnl => '0',
+        //         riskLimit => '10000000',
+        //         riskyPrice => '0.403728',
+        //         settleType => 'VANILLA',
+        //         stopLossPrice => '0',
+        //         stopLossSource => '0',
+        //         symbol => 'ADAUSDTFP',
+        //         takeProfitPrice => '0',
+        //         takeProfitSource => '0',
+        //         unrealisedPnl => '-0.00151000',
+        //         userID => '3315296'
+        //     }
+        //
+        $marketId = $this->safe_string($data, 'symbol');
+        $quote = $this->safe_string($data, 'quote');
+        return array(
+            'info' => $data,
+            'type' => 'set',
+            'amount' => null,
+            'total' => $this->safe_number($data, 'posMargin'),
+            'code' => $this->safe_currency_code($quote),
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'status' => null,
+        );
+    }
+
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the aax api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         yield $this->load_markets();
         $response = yield $this->publicGetMarketTickers ($params);
         //
@@ -710,6 +823,13 @@ class aax extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the aax api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         if ($limit === null) {
@@ -880,6 +1000,14 @@ class aax extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of $trades to fetch
+         * @param {dict} $params extra parameters specific to the aax api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $limit = ($limit === null) ? 2000 : $limit;
@@ -925,6 +1053,15 @@ class aax extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the aax api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -959,7 +1096,59 @@ class aax extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
+    public function fetch_accounts($params = array ()) {
+        $response = yield $this->privateGetAccountBalances ($params);
+        //
+        //     {
+        //         "code":1,
+        //         "data":array(
+        //             array(
+        //                 "purseType":"FUTP",
+        //                 "currency":"BTC",
+        //                 "available":"0.41000000",
+        //                 "unavailable":"0.00000000"
+        //             ),
+        //             {
+        //                 "purseType":"FUTP",
+        //                 "currency":"USDT",
+        //                 "available":"0.21000000",
+        //                 "unvaliable":"0.00000000"
+        //             }
+        //         )
+        //         "message":"success",
+        //         "ts":1573530401020
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_accounts($data);
+    }
+
+    public function parse_account($account) {
+        //
+        //    {
+        //        "purseType":"FUTP",
+        //        "currency":"USDT",
+        //        "available":"0.21000000",
+        //        "unvaliable":"0.00000000"
+        //    }
+        //
+        $currencyId = $this->safe_string($account, 'currency');
+        $accountId = $this->safe_string($account, 'purseType');
+        $accountsById = $this->safe_value($this->options, 'accountsById', array());
+        return array(
+            'info' => $account,
+            'id' => null,
+            'code' => $this->safe_currency_code($currencyId),
+            'type' => $this->safe_string($accountsById, $accountId, $accountId),
+        );
+    }
+
     public function fetch_balance($params = array ()) {
+        /**
+         * query for $balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the aax api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#$balance-structure $balance structure~
+         */
         yield $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
@@ -2220,6 +2409,14 @@ class aax extends Exchange {
     }
 
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical funding rate prices
+         * @param {str|null} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int|null} $since timestamp in ms of the earliest funding rate to fetch
+         * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+         * @param {dict} $params extra parameters specific to the aax api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }

@@ -35,6 +35,7 @@ module.exports = class deribit extends Exchange {
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'editOrder': true,
+                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -425,7 +426,78 @@ module.exports = class deribit extends Exchange {
         };
     }
 
+    async fetchAccounts (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetGetSubaccounts (params);
+        //
+        //     {
+        //         jsonrpc: '2.0',
+        //         result: [{
+        //                 username: 'someusername',
+        //                 type: 'main',
+        //                 system_name: 'someusername',
+        //                 security_keys_enabled: false,
+        //                 security_keys_assignments: [],
+        //                 receive_notifications: false,
+        //                 login_enabled: true,
+        //                 is_password: true,
+        //                 id: '238216',
+        //                 email: 'pablo@abcdef.com'
+        //             },
+        //             {
+        //                 username: 'someusername_1',
+        //                 type: 'subaccount',
+        //                 system_name: 'someusername_1',
+        //                 security_keys_enabled: false,
+        //                 security_keys_assignments: [],
+        //                 receive_notifications: false,
+        //                 login_enabled: false,
+        //                 is_password: false,
+        //                 id: '245499',
+        //                 email: 'pablo@abcdef.com'
+        //             }
+        //         ],
+        //         usIn: '1652736468292006',
+        //         usOut: '1652736468292377',
+        //         usDiff: '371',
+        //         testnet: false
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        return this.parseAccounts (result);
+    }
+
+    parseAccount (account, currency = undefined) {
+        //
+        //      {
+        //          username: 'someusername_1',
+        //          type: 'subaccount',
+        //          system_name: 'someusername_1',
+        //          security_keys_enabled: false,
+        //          security_keys_assignments: [],
+        //          receive_notifications: false,
+        //          login_enabled: false,
+        //          is_password: false,
+        //          id: '245499',
+        //          email: 'pablo@abcdef.com'
+        //      }
+        //
+        return {
+            'info': account,
+            'id': this.safeString (account, 'id'),
+            'type': this.safeString (account, 'type'),
+            'code': this.safeCurrencyCode (undefined, currency),
+        };
+    }
+
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name deribit#fetchMarkets
+         * @description retrieves data on all markets for deribit
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const currenciesResponse = await this.publicGetGetCurrencies (params);
         //
         //     {
@@ -637,6 +709,13 @@ module.exports = class deribit extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name deribit#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the deribit api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const code = this.codeFromOptions ('fetchBalance', params);
         const currency = this.currency (code);
@@ -832,6 +911,14 @@ module.exports = class deribit extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name deribit#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the deribit api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -871,6 +958,14 @@ module.exports = class deribit extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name deribit#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the deribit api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const code = this.codeFromOptions ('fetchTickers', params);
         const currency = this.currency (code);
@@ -919,6 +1014,17 @@ module.exports = class deribit extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name deribit#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the deribit api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1051,6 +1157,16 @@ module.exports = class deribit extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name deribit#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the deribit api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1206,6 +1322,15 @@ module.exports = class deribit extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name deribit#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the deribit api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -2082,7 +2207,7 @@ module.exports = class deribit extends Exchange {
 
     async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' transfer() requires a currency code argument');
+            throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a currency code argument');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);

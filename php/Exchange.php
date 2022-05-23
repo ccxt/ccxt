@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.83.8';
+$version = '1.83.69';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.83.8';
+    const VERSION = '1.83.69';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -316,6 +316,7 @@ class Exchange {
         'commonCurrencyCode' => 'common_currency_code',
         'marketId' => 'market_id',
         'marketIds' => 'market_ids',
+        'marketSymbols' => 'market_symbols',
         'implodeHostname' => 'implode_hostname',
         'resolvePath' => 'resolve_path',
         'parseBidAsk' => 'parse_bid_ask',
@@ -342,6 +343,7 @@ class Exchange {
         'filterByCurrencySinceLimit' => 'filter_by_currency_since_limit',
         'filterByArray' => 'filter_by_array',
         'safeTicker' => 'safe_ticker',
+        'parseAccounts' => 'parse_accounts',
         'parseTickers' => 'parse_tickers',
         'parseDepositAddresses' => 'parse_deposit_addresses',
         'parseTrades' => 'parse_trades',
@@ -397,6 +399,7 @@ class Exchange {
         'loadTimeDifference' => 'load_time_difference',
         'parseLeverageTiers' => 'parse_leverage_tiers',
         'fetchMarketLeverageTiers' => 'fetch_market_leverage_tiers',
+        'parseOpenInterests' => 'parse_open_interests',
         'isPostOnly' => 'is_post_only',
         'createPostOnlyOrder' => 'create_post_only_order',
         'createReduceOnlyOrder' => 'create_reduce_only_order',
@@ -406,6 +409,7 @@ class Exchange {
         'checkOrderArguments' => 'check_order_arguments',
         'parseBorrowInterests' => 'parse_borrow_interests',
         'parseFundingRateHistories' => 'parse_funding_rate_histories',
+        'fetchFundingRate' => 'fetch_funding_rate',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -1356,6 +1360,7 @@ class Exchange {
             'loadMarkets' => true,
             'reduceMargin' => null,
             'setLeverage' => null,
+            'setMargin' => null,
             'setMarginMode' => null,
             'setPositionMode' => null,
             'signIn' => null,
@@ -2340,6 +2345,15 @@ class Exchange {
         }
     }
 
+    public function parse_accounts($accounts, $params = array()) {
+        $array = is_array($accounts) ? array_values($accounts) : array();
+        $result = array();
+        foreach ($array as $account) {
+            $result[] = array_replace_recursive($this->parse_account($account), $params);
+        }
+        return $result;
+    }
+
     public function parse_tickers($tickers, $symbols = null, $params = array()) {
         $result = array();
         $values = is_array($tickers) ? array_values($tickers) : array();
@@ -2617,7 +2631,7 @@ class Exchange {
             $tickers = $this->fetch_tickers(array( $symbol ), $params);
             $ticker = $this->safe_value($tickers, $symbol);
             if ($ticker === null) {
-                throw new BadSymbol($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
+                throw new NullResponse($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
             } else {
                 return $ticker;
             }
@@ -2949,7 +2963,6 @@ class Exchange {
                 return $this->markets_by_id[$symbol];
             }
         }
-
         throw new BadSymbol($this->id . ' does not have market symbol ' . $symbol);
     }
 
@@ -2957,8 +2970,16 @@ class Exchange {
         return array_map(array($this, 'market_id'), $symbols);
     }
 
+    public function market_symbols($symbols) {
+        return is_array($symbols) ? array_map(array($this, 'symbol'), $symbols) : $symbols;
+    }
+
     public function market_id($symbol) {
         return (is_array($market = $this->market($symbol))) ? $market['id'] : $symbol;
+    }
+
+    public function symbol($symbol) {
+        return (is_array($market = $this->market($symbol))) ? $market['symbol'] : $symbol;
     }
 
     public function __call($function, $params) {
@@ -3915,7 +3936,7 @@ class Exchange {
         if ($this->has['fetchLeverageTiers']) {
             $market = $this->market($symbol);
             if (!$market['contract']) {
-                throw new BadRequest($this->id . ' fetchLeverageTiers() supports contract markets only');
+                throw new BadRequest($this->id . ' fetch_market_leverage_tiers() supports contract markets only');
             }
             $tiers = $this->fetch_leverage_tiers(array($symbol));
             return $this->safe_value($tiers, $symbol);
@@ -3965,7 +3986,7 @@ class Exchange {
         }
         $array = array('postOnly' => true);
         $query = $this->extend($params, $array);
-        return $this->create_order($symbol, $type, $side, $amount, $price, $params);
+        return $this->create_order($symbol, $type, $side, $amount, $price, $query);
     }
 
     public function create_reduce_only_order($symbol, $type, $side, $amount, $price, $params = array()) {
@@ -4006,7 +4027,7 @@ class Exchange {
         $query = $this->extend($params, $array);
         return $this->create_order($symbol, 'market', $side, $amount, null, $query);
     }
-    
+
     public function check_order_arguments ($market, $type, $side, $amount, $price, $params) {
         if ($price === null) {
             if ($type === 'limit') {
@@ -4036,5 +4057,34 @@ class Exchange {
         $sorted = $this->sort_by($rates, 'timestamp');
         $symbol = ($market === null) ? null : $market['symbol'];
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function parse_open_interests($response, $market = null, $since = null, $limit = null) {
+        $interests = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = &$response[$i];
+            $interest = $this->parseOpenInterest($entry, $market);
+            array_push($interests, $interest);
+        }
+        $sorted = $this->sortBy ($interests, 'timestamp');
+        return $this->filterBySymbolSinceLimit ($sorted, $market, $since, $limit);
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        if ($this->has['fetchFundingRates']) {
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadSymbol($this->id . ' fetch_funding_rate () supports contract markets only');
+            }
+            $rates = $this->fetch_funding_rates (array( $symbol ), $params);
+            $rate = $this->safe_value($rates, $symbol);
+            if ($rate === null) {
+                throw new NullResponse($this->id . ' fetch_funding_rate () returned no data for ' . $symbol);
+            } else {
+                return $rate;
+            }
+        } else {
+            throw new NotSupported($this->id . ' fetch_funding_rate () is not supported yet');
+        }
     }
 }

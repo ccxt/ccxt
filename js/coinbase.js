@@ -62,6 +62,7 @@ module.exports = class coinbase extends Exchange {
                 'fetchMySells': true,
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': false,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': undefined,
                 'fetchOrder': undefined,
                 'fetchOrderBook': false,
@@ -248,20 +249,49 @@ module.exports = class coinbase extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = [];
-        for (let i = 0; i < data.length; i++) {
-            const account = data[i];
-            const currency = this.safeValue (account, 'currency', {});
-            const currencyId = this.safeString (currency, 'code');
-            const code = this.safeCurrencyCode (currencyId);
-            result.push ({
-                'id': this.safeString (account, 'id'),
-                'type': this.safeString (account, 'type'),
-                'code': code,
-                'info': account,
-            });
-        }
-        return result;
+        this.parseAccounts (data, params);
+    }
+
+    parseAccount (account) {
+        //
+        //     {
+        //         "id": "XLM",
+        //         "name": "XLM Wallet",
+        //         "primary": false,
+        //         "type": "wallet",
+        //         "currency": {
+        //             "code": "XLM",
+        //             "name": "Stellar Lumens",
+        //             "color": "#000000",
+        //             "sort_index": 127,
+        //             "exponent": 7,
+        //             "type": "crypto",
+        //             "address_regex": "^G[A-Z2-7]{55}$",
+        //             "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
+        //             "destination_tag_name": "XLM Memo ID",
+        //             "destination_tag_regex": "^[ -~]{1,28}$"
+        //         },
+        //         "balance": {
+        //             "amount": "0.0000000",
+        //             "currency": "XLM"
+        //         },
+        //         "created_at": null,
+        //         "updated_at": null,
+        //         "resource": "account",
+        //         "resource_path": "/v2/accounts/XLM",
+        //         "allow_deposits": true,
+        //         "allow_withdrawals": true
+        //     }
+        //
+        const currency = this.safeValue (account, 'currency', {});
+        const currencyId = this.safeString (currency, 'code');
+        const code = this.safeCurrencyCode (currencyId);
+        return {
+            'id': this.safeString (account, 'id'),
+            'type': this.safeString (account, 'type'),
+            'code': code,
+            'info': account,
+        };
     }
 
     async createDepositAddress (code, params = {}) {
@@ -560,6 +590,13 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchMarkets
+         * @description retrieves data on all markets for coinbase
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.fetchCurrenciesFromCache (params);
         const currencies = this.safeValue (response, 'currencies', {});
         const exchangeRates = this.safeValue (response, 'exchangeRates', {});
@@ -719,6 +756,14 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the coinbase api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const request = {
             // 'currency': 'USD',
@@ -753,6 +798,14 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the coinbase api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = this.extend ({
@@ -826,6 +879,13 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the coinbase api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'limit': 100,

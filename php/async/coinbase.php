@@ -65,6 +65,7 @@ class coinbase extends Exchange {
                 'fetchMySells' => true,
                 'fetchMyTrades' => null,
                 'fetchOHLCV' => false,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => null,
                 'fetchOrder' => null,
                 'fetchOrderBook' => false,
@@ -251,20 +252,49 @@ class coinbase extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $result = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $account = $data[$i];
-            $currency = $this->safe_value($account, 'currency', array());
-            $currencyId = $this->safe_string($currency, 'code');
-            $code = $this->safe_currency_code($currencyId);
-            $result[] = array(
-                'id' => $this->safe_string($account, 'id'),
-                'type' => $this->safe_string($account, 'type'),
-                'code' => $code,
-                'info' => $account,
-            );
-        }
-        return $result;
+        $this->parse_accounts($data, $params);
+    }
+
+    public function parse_account($account) {
+        //
+        //     {
+        //         "id" => "XLM",
+        //         "name" => "XLM Wallet",
+        //         "primary" => false,
+        //         "type" => "wallet",
+        //         "currency" => array(
+        //             "code" => "XLM",
+        //             "name" => "Stellar Lumens",
+        //             "color" => "#000000",
+        //             "sort_index" => 127,
+        //             "exponent" => 7,
+        //             "type" => "crypto",
+        //             "address_regex" => "^G[A-Z2-7]{55}$",
+        //             "asset_id" => "13b83335-5ede-595b-821e-5bcdfa80560f",
+        //             "destination_tag_name" => "XLM Memo ID",
+        //             "destination_tag_regex" => "^[ -~]array(1,28)$"
+        //         ),
+        //         "balance" => array(
+        //             "amount" => "0.0000000",
+        //             "currency" => "XLM"
+        //         ),
+        //         "created_at" => null,
+        //         "updated_at" => null,
+        //         "resource" => "account",
+        //         "resource_path" => "/v2/accounts/XLM",
+        //         "allow_deposits" => true,
+        //         "allow_withdrawals" => true
+        //     }
+        //
+        $currency = $this->safe_value($account, 'currency', array());
+        $currencyId = $this->safe_string($currency, 'code');
+        $code = $this->safe_currency_code($currencyId);
+        return array(
+            'id' => $this->safe_string($account, 'id'),
+            'type' => $this->safe_string($account, 'type'),
+            'code' => $code,
+            'info' => $account,
+        );
     }
 
     public function create_deposit_address($code, $params = array ()) {
@@ -563,6 +593,11 @@ class coinbase extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves $data on all markets for coinbase
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing market $data
+         */
         $response = yield $this->fetch_currencies_from_cache($params);
         $currencies = $this->safe_value($response, 'currencies', array());
         $exchangeRates = $this->safe_value($response, 'exchangeRates', array());
@@ -722,6 +757,12 @@ class coinbase extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the coinbase api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
         yield $this->load_markets();
         $request = array(
             // 'currency' => 'USD',
@@ -756,6 +797,12 @@ class coinbase extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the coinbase api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array_merge(array(
@@ -829,6 +876,11 @@ class coinbase extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for $balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the coinbase api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#$balance-structure $balance structure~
+         */
         yield $this->load_markets();
         $request = array(
             'limit' => 100,

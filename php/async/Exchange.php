@@ -28,11 +28,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.83.8';
+$version = '1.83.69';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.83.8';
+    const VERSION = '1.83.69';
 
     public static $loop;
     public static $kernel;
@@ -344,7 +344,7 @@ class Exchange extends \ccxt\Exchange {
             $tickers = yield $this->fetch_tickers(array( $symbol ), $params);
             $ticker = $this->safe_value($tickers, $symbol);
             if ($ticker === null) {
-                throw new BadSymbol($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
+                throw new NullResponse($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
             } else {
                 return $ticker;
             }
@@ -364,7 +364,7 @@ class Exchange extends \ccxt\Exchange {
         if ($this->has['fetchLeverageTiers']) {
             $market = yield $this->market($symbol);
             if (!$market['contract']) {
-                throw new BadRequest($this->id . ' fetchLeverageTiers() supports contract markets only');
+                throw new BadRequest($this->id . ' fetch_market_leverage_tiers() supports contract markets only');
             }
             $tiers = yield $this->fetch_leverage_tiers(array($symbol));
             return $this->safe_value($tiers, $symbol);
@@ -421,5 +421,23 @@ class Exchange extends \ccxt\Exchange {
         $array = array('stopPrice' => $stopPrice);
         $query = $this->extend($params, $array);
         return yield $this->create_order($symbol, 'market', $side, $amount, null, $query);
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        if ($this->has['fetchFundingRates']) {
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadSymbol($this->id . ' fetch_funding_rate() supports contract markets only');
+            }
+            $rates = yield $this->fetchFundingRates (array( $symbol ), $params);
+            $rate = $this->safe_value($rates, $symbol);
+            if ($rate === null) {
+                throw new NullResponse($this->id . ' fetch_funding_rate () returned no data for ' . $symbol);
+            } else {
+                return $rate;
+            }
+        } else {
+            throw new NotSupported($this->id . ' fetch_funding_rate () is not supported yet');
+        }
     }
 }

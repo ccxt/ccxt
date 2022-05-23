@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.83.8'
+__version__ = '1.83.69'
 
 # -----------------------------------------------------------------------------
 
@@ -19,6 +19,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import NullResponse
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import RateLimitExceeded
 
@@ -322,6 +323,7 @@ class Exchange(object):
         'loadMarkets': True,
         'reduceMargin': None,
         'setLeverage': None,
+        'setMargin': None,
         'setMarginMode': None,
         'setPositionMode': None,
         'signIn': None,
@@ -1691,7 +1693,7 @@ class Exchange(object):
             tickers = self.fetch_tickers([symbol], params)
             ticker = self.safe_value(tickers, symbol)
             if ticker is None:
-                raise BadSymbol(self.id + ' fetchTickers() could not find a ticker for ' + symbol)
+                raise NullResponse(self.id + ' fetchTickers() could not find a ticker for ' + symbol)
             else:
                 return ticker
         else:
@@ -2098,6 +2100,10 @@ class Exchange(object):
                 'quoteVolume': self.parse_number(quoteVolume),
             })
 
+    def parse_accounts(self, accounts, params={}):
+        array = self.to_array(accounts)
+        return [self.extend(self.parse_account(account), params) for account in array]
+
     def parse_tickers(self, tickers, symbols=None, params={}):
         result = []
         values = self.to_array(tickers)
@@ -2335,9 +2341,16 @@ class Exchange(object):
     def market_ids(self, symbols):
         return [self.market_id(symbol) for symbol in symbols]
 
+    def market_symbols(self, symbols):
+        return [self.symbol(symbol) for symbol in symbols] if symbols else symbols
+
     def market_id(self, symbol):
         market = self.market(symbol)
         return market['id'] if type(market) is dict else symbol
+
+    def symbol(self, symbol):
+        market = self.market(symbol)
+        return market['symbol'] if type(market) is dict else symbol
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
@@ -2977,7 +2990,7 @@ class Exchange(object):
         if self.has['fetchLeverageTiers']:
             market = self.market(symbol)
             if (not market['contract']):
-                raise BadRequest(self.id + ' fetch_leverage_tiers() supports contract markets only')
+                raise BadRequest(self.id + ' fetch_market_leverage_tiers() supports contract markets only')
             tiers = self.fetch_leverage_tiers([symbol])
             return self.safe_value(tiers, symbol)
         else:
@@ -3065,3 +3078,26 @@ class Exchange(object):
         sorted = self.sort_by(rates, 'timestamp')
         symbol = None if (market is None) else market['symbol']
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def parse_open_interests(self, response, market=None, since=None, limit=None):
+        interests = []
+        for i in range(len(response)):
+            entry = response[i]
+            interest = self.parseOpenInterest(entry, market)
+            interests.append(interest)
+        sorted = self.sortBy(interests, 'timestamp')
+        return self.filterBySymbolSinceLimit(sorted, market, since, limit)
+
+    def fetch_funding_rate(self, symbol, params={}):
+        if self.has['fetchFundingRates']:
+            market = self.market(symbol)
+            if not market['contract']:
+                raise BadSymbol(self.id + ' fetch_funding_rate() supports contract markets only')
+            rates = self.fetchFundingRates([symbol], params)
+            rate = self.safe_value(rates, symbol)
+            if rate is None:
+                raise NullResponse(self.id + ' fetch_funding_rate() returned no data for ' + symbol)
+            else:
+                return rate
+        else:
+            raise NotSupported(self.id + ' fetch_funding_rate() is not supported yet')

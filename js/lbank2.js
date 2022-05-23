@@ -175,6 +175,7 @@ module.exports = class lbank2 extends Exchange {
             },
             'options': {
                 'cacheSecretAsPem': true,
+                'createMarketBuyOrderRequiresPrice': true,
                 'fetchTrades': {
                     'method': 'publicGetTrades', // or 'publicGetTradesSupplement'
                 },
@@ -252,6 +253,13 @@ module.exports = class lbank2 extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name lbank2#fetchMarkets
+         * @description retrieves data on all markets for lbank2
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         // needs to return a list of unified market structures
         const response = await this.publicGetAccuracy ();
         const data = this.safeValue (response, 'data');
@@ -384,6 +392,14 @@ module.exports = class lbank2 extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name lbank2#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the lbank2 api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -417,6 +433,15 @@ module.exports = class lbank2 extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name lbank2#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the lbank2 api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -425,7 +450,7 @@ module.exports = class lbank2 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetSupplementIncrDepth (this.extend (request, params));
+        const response = await this.publicGetIncrDepth (this.extend (request, params));
         const orderbook = response['data'];
         const timestamp = this.milliseconds ();
         return this.parseOrderBook (orderbook, symbol, timestamp);
@@ -535,6 +560,16 @@ module.exports = class lbank2 extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name lbank2#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the lbank2 api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -596,6 +631,17 @@ module.exports = class lbank2 extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name lbank2#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the lbank2 api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         // endpoint doesnt work
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -769,6 +815,13 @@ module.exports = class lbank2 extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name lbank2#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the lbank2 api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         let method = this.safeString (params, 'method');
         if (method === undefined) {
@@ -821,51 +874,46 @@ module.exports = class lbank2 extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const clientOrderId = this.safeString2 (params, 'custom_id', 'clientOrderId');
-        const postOnly = this.safeString (params, 'postOnly', false);
+        const postOnly = this.safeValue (params, 'postOnly', false);
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         params = this.omit (params, [ 'custom_id', 'clientOrderId', 'timeInForce', 'postOnly' ]);
-        if (type === 'limit') {
-            type = side;
-            if (side === 'sell') {
-                if (timeInForce === 'FOK') {
-                    type = 'sell_fok';
-                }
-                if (timeInForce === 'IOC') {
-                    type = 'sell_ioc';
-                }
-                if (postOnly || (timeInForce === 'PO')) {
-                    type = 'sell_maker';
-                }
-            }
-            if (side === 'buy') {
-                if (timeInForce === 'FOK') {
-                    type = 'buy_fok';
-                }
-                if (timeInForce === 'IOC') {
-                    type = 'buy_ioc';
-                }
-                if (postOnly || (timeInForce === 'PO')) {
-                    type = 'buy_maker';
-                }
-            }
-        }
-        if (type === 'market') {
-            if (side === 'sell') {
-                type = 'sell_market';
-            }
-            if (side === 'buy') {
-                type = 'buy_market';
-            }
-        }
         const request = {
             'symbol': market['id'],
-            'amount': this.amountToPrecision (symbol, amount),
-            'type': type,
         };
-        if (price !== undefined) {
+        const ioc = (timeInForce === 'IOC');
+        const fok = (timeInForce === 'FOK');
+        const maker = (postOnly || (timeInForce === 'PO'));
+        if ((type === 'market') && (ioc || fok || maker)) {
+            throw new InvalidOrder (this.id + ' createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed');
+        }
+        if (type === 'limit') {
+            request['type'] = side;
             request['price'] = this.priceToPrecision (symbol, price);
-        } else {
-            request['price'] = 1; // required unused number > 0 even for market orders
+            request['amount'] = this.amountToPrecision (symbol, amount);
+            if (ioc) {
+                request['type'] = side + '_' + 'ioc';
+            } else if (fok) {
+                request['type'] = side + '_' + 'fok';
+            } else if (maker) {
+                request['type'] = side + '_' + 'maker';
+            }
+        } else if (type === 'market') {
+            if (side === 'sell') {
+                request['type'] = side + '_' + 'market';
+                request['amount'] = this.amountToPrecision (symbol, amount);
+            } else if (side === 'buy') {
+                request['type'] = side + '_' + 'market';
+                if (this.options['createMarketBuyOrderRequiresPrice']) {
+                    if (price === undefined) {
+                        throw new InvalidOrder (this.id + " createOrder () requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply the price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                    } else {
+                        const cost = parseFloat (amount) * parseFloat (price);
+                        request['price'] = this.priceToPrecision (symbol, cost);
+                    }
+                } else {
+                    request['price'] = amount;
+                }
+            }
         }
         if (clientOrderId !== undefined) {
             request['custom_id'] = clientOrderId;
@@ -984,9 +1032,9 @@ module.exports = class lbank2 extends Exchange {
         let timeInForce = undefined;
         let postOnly = false;
         let type = 'limit';
-        let side = this.safeString (order, 'type'); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
-        const parts = side.split ('_');
-        side = this.safeString (parts, 0);
+        const rawType = this.safeString (order, 'type'); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
+        const parts = rawType.split ('_');
+        const side = this.safeString (parts, 0);
         const typePart = this.safeString (parts, 1); // market, maker, ioc, fok or undefined (limit)
         if (typePart === 'market') {
             type = 'market';
@@ -1003,7 +1051,10 @@ module.exports = class lbank2 extends Exchange {
         }
         const price = this.safeString (order, 'price');
         const costString = this.safeString (order, 'cummulativeQuoteQty');
-        const amountString = this.safeString2 (order, 'origQty', 'amount');
+        let amountString = undefined;
+        if (rawType !== 'buy_market') {
+            amountString = this.safeString2 (order, 'origQty', 'amount');
+        }
         const filledString = this.safeString2 (order, 'executedQty', 'deal_amount');
         return this.safeOrder ({
             'id': id,
