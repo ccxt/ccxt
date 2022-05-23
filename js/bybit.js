@@ -547,11 +547,10 @@ module.exports = class bybit extends Exchange {
             const networks = {};
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
-                const networkId = this.safeString (chain, 'chain');
-                const network = this.safeString (chain, 'chain_type');
-                networks[networkId] = {
+                const network = this.safeString (chain, 'chain');
+                networks[network] = {
                     'info': chain,
-                    'id': networkId,
+                    'id': network,
                     'network': network,
                     'active': undefined,
                     'deposit': undefined,
