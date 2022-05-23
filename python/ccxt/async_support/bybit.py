@@ -942,7 +942,7 @@ class bybit(Exchange):
                 'strike': strike,
                 'optionType': optionType,
                 'precision': {
-                    'amount': self.safe_number(market, 'minOrderSizeIncrement'),
+                    'amount': self.safe_number_2(market, 'minOrderSizeIncrement', 'qtyStep'),
                     'price': self.safe_number(market, 'tickSize'),
                 },
                 'limits': {
@@ -951,12 +951,12 @@ class bybit(Exchange):
                         'max': self.safe_number(leverage, 'maxLeverage', 1),
                     },
                     'amount': {
-                        'min': self.safe_number(market, 'minOrderSize'),
-                        'max': self.safe_number(market, 'maxOrderSize'),
+                        'min': self.safe_number_2(market, 'minOrderSize', 'minTradingQty'),
+                        'max': self.safe_number_2(market, 'maxOrderSize', 'maxTradingQty'),
                     },
                     'price': {
-                        'min': self.safe_number(market, 'minOrderPrice'),
-                        'max': self.safe_number(market, 'maxOrderPrice'),
+                        'min': self.safe_number_2(market, 'minOrderPrice', 'minPrice'),
+                        'max': self.safe_number_2(market, 'maxOrderPrice', 'maxPrice'),
                     },
                     'cost': {
                         'min': None,
@@ -2554,6 +2554,9 @@ class bybit(Exchange):
                 request['triggerPrice'] = self.price_to_precision(symbol, stopPx)
             else:
                 request['orderFilter'] = 'Order'
+        reduceOnly = self.safe_value_2(params, 'reduce_only', 'reduceOnly', False)
+        request['reduceOnly'] = reduceOnly
+        params = self.omit(params, ['reduce_only', 'reduceOnly'])
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'orderLinkId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
@@ -2639,7 +2642,7 @@ class bybit(Exchange):
             if basePrice is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires both the stop_px and base_price params for a conditional ' + type + ' order')
             request['stop_px'] = float(self.price_to_precision(symbol, stopPx))
-            request['base_price'] = float(self.price_to_precision(symbol, basePrice, 'basePrice'))
+            request['base_price'] = float(self.price_to_precision(symbol, basePrice))
             triggerBy = self.safe_string_2(params, 'trigger_by', 'triggerBy', 'LastPrice')
             request['trigger_by'] = triggerBy
             params = self.omit(params, ['stop_px', 'stopPrice', 'base_price', 'triggerBy', 'trigger_by'])
@@ -2694,7 +2697,7 @@ class bybit(Exchange):
         #    }
         #
         order = self.safe_value(response, 'result', {})
-        return self.parse_order(order)
+        return self.parse_order(order, market)
 
     async def edit_usdc_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         await self.load_markets()

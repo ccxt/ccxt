@@ -952,7 +952,7 @@ class bybit extends Exchange {
                 'strike' => $strike,
                 'optionType' => $optionType,
                 'precision' => array(
-                    'amount' => $this->safe_number($market, 'minOrderSizeIncrement'),
+                    'amount' => $this->safe_number_2($market, 'minOrderSizeIncrement', 'qtyStep'),
                     'price' => $this->safe_number($market, 'tickSize'),
                 ),
                 'limits' => array(
@@ -961,12 +961,12 @@ class bybit extends Exchange {
                         'max' => $this->safe_number($leverage, 'maxLeverage', 1),
                     ),
                     'amount' => array(
-                        'min' => $this->safe_number($market, 'minOrderSize'),
-                        'max' => $this->safe_number($market, 'maxOrderSize'),
+                        'min' => $this->safe_number_2($market, 'minOrderSize', 'minTradingQty'),
+                        'max' => $this->safe_number_2($market, 'maxOrderSize', 'maxTradingQty'),
                     ),
                     'price' => array(
-                        'min' => $this->safe_number($market, 'minOrderPrice'),
-                        'max' => $this->safe_number($market, 'maxOrderPrice'),
+                        'min' => $this->safe_number_2($market, 'minOrderPrice', 'minPrice'),
+                        'max' => $this->safe_number_2($market, 'maxOrderPrice', 'maxPrice'),
                     ),
                     'cost' => array(
                         'min' => null,
@@ -2621,7 +2621,7 @@ class bybit extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         if ($type === 'market') {
-            throw NotSupported ($this->id . 'createOrder does not allow $market orders for ' . $symbol . ' markets');
+            throw new NotSupported($this->id . 'createOrder does not allow $market orders for ' . $symbol . ' markets');
         }
         if ($price === null && $type === 'limit') {
             throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for limit orders');
@@ -2663,6 +2663,9 @@ class bybit extends Exchange {
                 $request['orderFilter'] = 'Order';
             }
         }
+        $reduceOnly = $this->safe_value_2($params, 'reduce_only', 'reduceOnly', false);
+        $request['reduceOnly'] = $reduceOnly;
+        $params = $this->omit($params, array( 'reduce_only', 'reduceOnly' ));
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'orderLinkId');
         if ($clientOrderId !== null) {
             $request['orderLinkId'] = $clientOrderId;
@@ -2755,7 +2758,7 @@ class bybit extends Exchange {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires both the stop_px and base_price $params for a conditional ' . $type . ' order');
             }
             $request['stop_px'] = floatval($this->price_to_precision($symbol, $stopPx));
-            $request['base_price'] = floatval($this->price_to_precision($symbol, $basePrice, 'basePrice'));
+            $request['base_price'] = floatval($this->price_to_precision($symbol, $basePrice));
             $triggerBy = $this->safe_string_2($params, 'trigger_by', 'triggerBy', 'LastPrice');
             $request['trigger_by'] = $triggerBy;
             $params = $this->omit($params, array( 'stop_px', 'stopPrice', 'base_price', 'triggerBy', 'trigger_by' ));
@@ -2813,7 +2816,7 @@ class bybit extends Exchange {
         //    }
         //
         $order = $this->safe_value($response, 'result', array());
-        return $this->parse_order($order);
+        return $this->parse_order($order, $market);
     }
 
     public function edit_usdc_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
