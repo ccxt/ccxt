@@ -26,10 +26,13 @@ module.exports = class coinex extends Exchange {
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
@@ -55,7 +58,11 @@ module.exports = class coinex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
+                'fetchTransactionFee:': false,
+                'fetchTransactoinFees': false,
+                'fetchTransfer': false,
                 'fetchTransfers': true,
+                'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'setLeverage': true,
@@ -2252,6 +2259,74 @@ module.exports = class coinex extends Exchange {
         return await this.fetchOrdersByStatus ('finished', symbol, since, limit, params);
     }
 
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin_type': currency['id'],
+        };
+        if ('network' in params) {
+            const network = this.safeString (params, 'network');
+            params = this.omit (params, 'network');
+            request['smart_contract_name'] = network;
+        }
+        const response = await this.privatePutBalanceDepositAddressCoinType (this.extend (request, params));
+        //
+        //     {
+        //         code: 0,
+        //         data: {
+        //             coin_address: 'TV639dSpb9iGRtoFYkCp4AoaaDYKrK1pw5',
+        //             is_bitcoin_cash: false
+        //         },
+        //         message: 'Success'
+        //     }
+        const data = this.safeValue (response, 'data', {});
+        return this.parseDepositAddress (data, currency);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin_type': currency['id'],
+        };
+        if ('network' in params) {
+            const network = this.safeString (params, 'network');
+            params = this.omit (params, 'network');
+            request['smart_contract_name'] = network;
+        }
+        const response = await this.privateGetBalanceDepositAddressCoinType (this.extend (request, params));
+        //
+        //      {
+        //          code: 0,
+        //          data: {
+        //            coin_address: '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
+        //            is_bitcoin_cash: false
+        //          },
+        //          message: 'Success'
+        //      }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseDepositAddress (data, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         coin_address: '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
+        //         is_bitcoin_cash: false
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'coin_address');
+        return {
+            'info': depositAddress,
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'address': address,
+            'tag': undefined,
+            'network': undefined,
+        };
+    }
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
@@ -3479,7 +3554,7 @@ module.exports = class coinex extends Exchange {
                 'Authorization': signature.toLowerCase (),
                 'AccessId': this.apiKey,
             };
-            if ((method === 'GET')) {
+            if ((method === 'GET') || (method === 'PUT')) {
                 url += '?' + urlencoded;
             } else {
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -3501,7 +3576,7 @@ module.exports = class coinex extends Exchange {
                 'Authorization': signature.toUpperCase (),
                 'Content-Type': 'application/json',
             };
-            if ((method === 'GET') || (method === 'DELETE')) {
+            if ((method === 'GET') || (method === 'DELETE') || (method === 'PUT')) {
                 url += '?' + urlencoded;
             } else {
                 body = this.json (query);
