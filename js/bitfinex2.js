@@ -1415,10 +1415,10 @@ module.exports = class bitfinex2 extends bitfinex {
         // flag values may be summed to combine flags
         let flags = 0;
         if (postOnly) {
-            flags = flags + 4096;
+            flags = this.sum (flags, 4096);
         }
         if (reduceOnly) {
-            flags = flags + 1024;
+            flags = this.sum (flags, 1024);
         }
         if (flags !== 0) {
             request['flags'] = flags;
