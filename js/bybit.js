@@ -1127,26 +1127,127 @@ module.exports = class bybit extends ccxt.bybit {
         //         ]
         //     }
         //
-        const channel = this.safeString (message, 'topic');
-        const marketId = this.safeString (message, 'symbol');
-        const data = this.safeValue (message, 'data', {});
-        // usually the first message is an empty array
-        const dataLength = data.length;
-        if (dataLength === 0) {
-            return 0;
+        let data = [];
+        let isSpot = false;
+        if (Array.isArray (message)) {
+            data = message;
+            isSpot = true;
+        } else {
+            data = this.safeValue (message, 'data', []);
         }
-        const parsed = this.parseOrder (data);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const orders = this.orders;
-        orders.append (parsed);
-        client.resolve (orders);
+        const marketSymbols = {};
+        for (let i = 0; i < data.length; i++) {
+            const rawOrder = data[i];
+            let parsed = undefined;
+            if (isSpot) {
+                // spot orders have a different format
+                // from the REST API
+                parsed = this.parseWsOrder (rawOrder);
+            } else {
+                parsed = this.parseOrder (rawOrder);
+            }
+            const symbol = parsed['symbol'];
+            marketSymbols[symbol] = true;
+            orders.append (parsed);
+        }
+        const channel = 'order';
         // non-symbol specific
         client.resolve (orders, channel);
-        const messageHash = channel + ':' + marketId;
-        client.resolve (orders, messageHash);
+        const symbols = Object.keys (marketSymbols);
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const messageHash = channel + ':' + symbol;
+            client.resolve (orders, messageHash);
+        }
+    }
+
+    parseWsOrder (order, market = undefined) {
+        //
+        //    {
+        //        e: 'executionReport',
+        //        E: '1653297251061', // timestamp
+        //        s: 'LTCUSDT', // symbol
+        //        c: '1653297250740', // user id
+        //        S: 'SELL', // side
+        //        o: 'MARKET_OF_BASE', // order type
+        //        f: 'GTC', // time in force
+        //        q: '0.16233', // quantity
+        //        p: '0', // price
+        //        X: 'NEW', // status
+        //        i: '1162336018974750208', // order id
+        //        M: '0',
+        //        l: '0', // last filled
+        //        z: '0', // total filled
+        //        L: '0', // last traded price
+        //        n: '0', // trading fee
+        //        N: '', // fee asset
+        //        u: true,
+        //        w: true,
+        //        m: false, // is limit_maker
+        //        O: '1653297251042', // order creation
+        //        Z: '0', // total filled
+        //        A: '0', // account id
+        //        C: false, // is close
+        //        v: '0', // leverage
+        //        d: 'NO_LIQ'
+        //    }
+        //
+        const id = this.safeString (order, 'i');
+        const marketId = this.safeString (order, 's');
+        const symbol = this.safeSymbol (marketId, market);
+        const timestamp = this.safeInteger (order, 'O');
+        let price = this.safeString (order, 'p');
+        if (price === '0') {
+            price = undefined; // market orders
+        }
+        const amount = this.safeString (order, 'q');
+        const filled = this.safeString (order, 'z');
+        const status = this.parseOrderStatus (this.safeString (order, 'X'));
+        const side = this.safeStringLower (order, 'S');
+        const lastTradeTimestamp = this.safeString (order, 'E');
+        const timeInForce = this.safeString (order, 'f');
+        let type = this.safeStringLower (order, 'o');
+        if (type.indexOf ('market') >= 0) {
+            type = 'market';
+        }
+        let fee = undefined;
+        const feeCost = this.safeString (order, 'n');
+        if (feeCost !== undefined && feeCost !== '0') {
+            const feeCurrencyId = this.safeString (order, 'N');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
+        return this.safeOrder ({
+            'info': order,
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': undefined,
+            'amount': amount,
+            'cost': undefined,
+            'average': undefined,
+            'filled': filled,
+            'remaining': undefined,
+            'status': status,
+            'fee': fee,
+            'trades': undefined,
+        }, market);
     }
 
     async watchBalance (params = {}) {
