@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.83.66';
+$version = '1.83.67';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.83.66';
+    const VERSION = '1.83.67';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -316,6 +316,7 @@ class Exchange {
         'commonCurrencyCode' => 'common_currency_code',
         'marketId' => 'market_id',
         'marketIds' => 'market_ids',
+        'marketSymbols' => 'market_symbols',
         'implodeHostname' => 'implode_hostname',
         'resolvePath' => 'resolve_path',
         'parseBidAsk' => 'parse_bid_ask',
