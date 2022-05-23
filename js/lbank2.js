@@ -445,7 +445,7 @@ module.exports = class lbank2 extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (limit === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrderBook () requires a limit argument');
+            limit = 60;
         }
         const request = {
             'symbol': market['id'],
