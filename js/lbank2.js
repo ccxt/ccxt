@@ -444,13 +444,14 @@ module.exports = class lbank2 extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (limit === undefined) {
+            limit = 60;
+        }
         const request = {
             'symbol': market['id'],
+            'size': limit,
         };
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.publicGetIncrDepth (this.extend (request, params));
+        const response = await this.publicGetDepth (this.extend (request, params));
         const orderbook = response['data'];
         const timestamp = this.milliseconds ();
         return this.parseOrderBook (orderbook, symbol, timestamp);
