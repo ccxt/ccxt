@@ -431,14 +431,16 @@ module.exports = class bitbns extends Exchange {
             const parts = key.split ('availableorder');
             const numParts = parts.length;
             if (numParts > 1) {
-                const currencyId = this.safeString (parts, 1);
-                if (currencyId !== 'Money') {
-                    const code = this.safeCurrencyCode (currencyId);
-                    const account = this.account ();
-                    account['free'] = this.safeString (data, key);
-                    account['used'] = this.safeString (data, 'inorder' + currencyId);
-                    result[code] = account;
+                let currencyId = this.safeString (parts, 1);
+                if (currencyId === 'Money') {
+                    // bitbns treats INR differently
+                    currencyId = 'INR';
                 }
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (data, key);
+                account['used'] = this.safeString (data, 'inorder' + currencyId);
+                result[code] = account;
             }
         }
         return this.safeBalance (result);
@@ -457,7 +459,7 @@ module.exports = class bitbns extends Exchange {
         //
         //     {
         //         "data":{
-        //             "availableorderMoney":0,
+        //             "availableorderMoney":12.34,
         //             "availableorderBTC":0,
         //             "availableorderXRP":0,
         //             "inorderMoney":0,
@@ -470,6 +472,7 @@ module.exports = class bitbns extends Exchange {
         //         "code":200
         //     }
         //
+        // Note: "Money" stands for INR - the only fiat in bitbns.
         return this.parseBalance (response);
     }
 
