@@ -16,6 +16,7 @@ module.exports = class bitopro extends Exchange {
             'countries': [ 'TW' ], // Taiwan
             'version': 'v3',
             'rateLimit': 100,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
