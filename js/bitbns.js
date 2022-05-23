@@ -432,6 +432,7 @@ module.exports = class bitbns extends Exchange {
             const numParts = parts.length;
             if (numParts > 1) {
                 let currencyId = this.safeString (parts, 1);
+                // note that "Money" stands for INR - the only fiat in bitbns
                 if (currencyId === 'Money') {
                     // bitbns treats INR differently
                     currencyId = 'INR';
@@ -459,10 +460,10 @@ module.exports = class bitbns extends Exchange {
         //
         //     {
         //         "data":{
-        //             "availableorderMoney":12.34,
+        //             "availableorderMoney":12.34, // INR
         //             "availableorderBTC":0,
         //             "availableorderXRP":0,
-        //             "inorderMoney":0,
+        //             "inorderMoney":0, // INR
         //             "inorderBTC":0,
         //             "inorderXRP":0,
         //             "inorderNEO":0,
@@ -472,7 +473,7 @@ module.exports = class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        // Note: "Money" stands for INR - the only fiat in bitbns.
+        // note that "Money" stands for INR - the only fiat in bitbns
         return this.parseBalance (response);
     }
 
