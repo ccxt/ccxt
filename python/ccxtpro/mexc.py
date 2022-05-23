@@ -996,10 +996,11 @@ class mexc(Exchange, ccxt.mexc):
         channel = self.safe_string(message, 'channel')
         try:
             feedback = self.id + ' ' + self.json(message)
-            if channel.find('error') != -1:
-                data = self.safe_string(message, 'data')
-                self.throw_exactly_matched_exception(self.exceptions['ws']['exact'], data, feedback)
-                self.throw_broadly_matched_exception(self.exceptions['ws']['broad'], message, feedback)
+            if channel.find('error') >= 0:
+                data = self.safe_value(message, 'data')
+                if isinstance(data, str):
+                    self.throw_exactly_matched_exception(self.exceptions['ws']['exact'], data, feedback)
+                    self.throw_broadly_matched_exception(self.exceptions['ws']['broad'], data, feedback)
             if channel == 'sub.personal':
                 msg = self.safe_string(message, 'msg')
                 self.throw_exactly_matched_exception(self.exceptions['ws']['exact'], msg, feedback)

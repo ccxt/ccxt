@@ -1057,10 +1057,12 @@ class mexc extends \ccxt\async\mexc {
         $channel = $this->safe_string($message, 'channel');
         try {
             $feedback = $this->id . ' ' . $this->json($message);
-            if (mb_strpos($channel, 'error') !== -1) {
-                $data = $this->safe_string($message, 'data');
-                $this->throw_exactly_matched_exception($this->exceptions['ws']['exact'], $data, $feedback);
-                $this->throw_broadly_matched_exception($this->exceptions['ws']['broad'], $message, $feedback);
+            if (mb_strpos($channel, 'error') !== false) {
+                $data = $this->safe_value($message, 'data');
+                if (gettype($data) === 'string') {
+                    $this->throw_exactly_matched_exception($this->exceptions['ws']['exact'], $data, $feedback);
+                    $this->throw_broadly_matched_exception($this->exceptions['ws']['broad'], $data, $feedback);
+                }
             }
             if ($channel === 'sub.personal') {
                 $msg = $this->safe_string($message, 'msg');
