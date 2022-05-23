@@ -953,11 +953,11 @@ The CCXT library currently supports the following 117 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg
-          :target: https://www.bybit.com/app/register?ref=X7Prm
+          :target: https://partner.bybit.com/b/ccxt
           :alt: bybit
      
      - bybit
-     - `Bybit <https://www.bybit.com/app/register?ref=X7Prm>`__
+     - `Bybit <https://partner.bybit.com/b/ccxt>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://bybit-exchange.github.io/docs/inverse/
           :alt: API Version 2
@@ -2053,14 +2053,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.83.65/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.83.65/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.83.66/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.83.66/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.83.65/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.83.66/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

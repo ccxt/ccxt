@@ -124,7 +124,7 @@ class bybit(Exchange):
                     'https://github.com/bybit-exchange',
                 ],
                 'fees': 'https://help.bybit.com/hc/en-us/articles/360039261154',
-                'referral': 'https://www.bybit.com/app/register?ref=X7Prm',
+                'referral': 'https://partner.bybit.com/b/ccxt',
             },
             'api': {
                 'public': {
