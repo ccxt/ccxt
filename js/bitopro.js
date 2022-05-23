@@ -17,7 +17,7 @@ module.exports = class bitopro extends ccxt.bitopro {
                 'watchMyTrades': false,
                 'watchOHLCV': false,
                 'watchOrderBook': true,
-                'watchOrders': true,
+                'watchOrders': false,
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
