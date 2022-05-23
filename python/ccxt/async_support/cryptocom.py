@@ -483,6 +483,7 @@ class cryptocom(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         marketType, query = self.handle_market_type_and_params('fetchTickers', None, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPublicGetPublicGetTicker',
@@ -490,36 +491,24 @@ class cryptocom(Exchange):
             'swap': 'derivativesPublicGetPublicGetTickers',
         })
         response = await getattr(self, method)(query)
-        # {
-        #     "code":0,
-        #     "method":"public/get-ticker",
-        #     "result":{
-        #       "data": [
-        #         {"i":"CRO_BTC","b":0.00000890,"k":0.00001179,"a":0.00001042,"t":1591770793901,"v":14905879.59,"h":0.00,"l":0.00,"c":0.00},
-        #         {"i":"EOS_USDT","b":2.7676,"k":2.7776,"a":2.7693,"t":1591770798500,"v":774.51,"h":0.05,"l":0.05,"c":0.00},
-        #         {"i":"BCH_USDT","b":247.49,"k":251.73,"a":251.67,"t":1591770797601,"v":1.01693,"h":0.01292,"l":0.01231,"c":-0.00047},
-        #         {"i":"ETH_USDT","b":239.92,"k":242.59,"a":240.30,"t":1591770798701,"v":0.97575,"h":0.01236,"l":0.01199,"c":-0.00018},
-        #         {"i":"ETH_CRO","b":2693.11,"k":2699.84,"a":2699.55,"t":1591770795053,"v":95.680,"h":8.218,"l":7.853,"c":-0.050}
-        #       ]
+        #
+        #     {
+        #         "code":0,
+        #         "method":"public/get-ticker",
+        #         "result":{
+        #         "data": [
+        #             {"i":"CRO_BTC","b":0.00000890,"k":0.00001179,"a":0.00001042,"t":1591770793901,"v":14905879.59,"h":0.00,"l":0.00,"c":0.00},
+        #             {"i":"EOS_USDT","b":2.7676,"k":2.7776,"a":2.7693,"t":1591770798500,"v":774.51,"h":0.05,"l":0.05,"c":0.00},
+        #             {"i":"BCH_USDT","b":247.49,"k":251.73,"a":251.67,"t":1591770797601,"v":1.01693,"h":0.01292,"l":0.01231,"c":-0.00047},
+        #             {"i":"ETH_USDT","b":239.92,"k":242.59,"a":240.30,"t":1591770798701,"v":0.97575,"h":0.01236,"l":0.01199,"c":-0.00018},
+        #             {"i":"ETH_CRO","b":2693.11,"k":2699.84,"a":2699.55,"t":1591770795053,"v":95.680,"h":8.218,"l":7.853,"c":-0.050}
+        #         ]
+        #         }
         #     }
-        # }
-        resultResponse = self.safe_value(response, 'result', {})
-        tickers = self.safe_value(resultResponse, 'data', [])
-        result = {}
-        for i in range(0, len(tickers)):
-            ticker = tickers[i]
-            marketId = self.safe_string(ticker, 'i')
-            market = self.safe_market(marketId, None, '_')
-            symbol = market['symbol']
-            result[symbol] = self.parse_ticker(ticker, market)
-        if symbols is None:
-            return result
-        unifiedSymbols = []
-        for i in range(0, len(symbols)):
-            market = self.market(symbols[i])
-            if market is not None:
-                unifiedSymbols.append(market['symbol'])
-        return self.filter_by_array(result, 'symbol', unifiedSymbols)
+        #
+        result = self.safe_value(response, 'result', {})
+        data = self.safe_value(result, 'data', [])
+        return self.filter_by_array(data, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
         """
