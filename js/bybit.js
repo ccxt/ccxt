@@ -1149,7 +1149,7 @@ module.exports = class bybit extends ccxt.bybit {
                 // from the REST API
                 parsed = this.parseWsOrder (rawOrder);
             } else {
-                parsed = this.parseOrder (rawOrder);
+                parsed = this.parseOrder (this.prepareSwapOrder (rawOrder));
             }
             const symbol = parsed['symbol'];
             marketSymbols[symbol] = true;
@@ -1164,6 +1164,14 @@ module.exports = class bybit extends ccxt.bybit {
             const messageHash = channel + ':' + symbol;
             client.resolve (orders, messageHash);
         }
+    }
+
+    prepareSwapOrder (order) {
+        // small adjustments to make it compatibke
+        // with the REST parser
+        order['created_at'] = this.safeString (order, 'create_time');
+        order['updated_at'] = this.safeString (order, 'update_time');
+        return order;
     }
 
     parseWsOrder (order, market = undefined) {
