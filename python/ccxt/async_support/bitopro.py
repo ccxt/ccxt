@@ -24,6 +24,7 @@ class bitopro(Exchange):
             'countries': ['TW'],  # Taiwan
             'version': 'v3',
             'rateLimit': 100,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,

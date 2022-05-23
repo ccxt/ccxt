@@ -373,7 +373,10 @@ The CCXT library currently supports the following 117 cryptocurrency exchange ma
           :alt: API Version 3
      
      - 
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/51840849/87591171-9a377d80-c6f0-11ea-94ac-97a126eac3bc.jpg
           :target: https://www.bitpanda.com/en/pro
           :alt: bitpanda

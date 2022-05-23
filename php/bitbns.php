@@ -428,13 +428,15 @@ class bitbns extends Exchange {
             $numParts = is_array($parts) ? count($parts) : 0;
             if ($numParts > 1) {
                 $currencyId = $this->safe_string($parts, 1);
-                if ($currencyId !== 'Money') {
-                    $code = $this->safe_currency_code($currencyId);
-                    $account = $this->account();
-                    $account['free'] = $this->safe_string($data, $key);
-                    $account['used'] = $this->safe_string($data, 'inorder' . $currencyId);
-                    $result[$code] = $account;
+                // note that "Money" stands for INR - the only fiat in bitbns
+                if ($currencyId === 'Money') {
+                    $currencyId = 'INR';
                 }
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['free'] = $this->safe_string($data, $key);
+                $account['used'] = $this->safe_string($data, 'inorder' . $currencyId);
+                $result[$code] = $account;
             }
         }
         return $this->safe_balance($result);
@@ -451,10 +453,10 @@ class bitbns extends Exchange {
         //
         //     {
         //         "data":array(
-        //             "availableorderMoney":0,
+        //             "availableorderMoney":12.34, // INR
         //             "availableorderBTC":0,
         //             "availableorderXRP":0,
-        //             "inorderMoney":0,
+        //             "inorderMoney":0, // INR
         //             "inorderBTC":0,
         //             "inorderXRP":0,
         //             "inorderNEO":0,
@@ -464,6 +466,7 @@ class bitbns extends Exchange {
         //         "code":200
         //     }
         //
+        // note that "Money" stands for INR - the only fiat in bitbns
         return $this->parse_balance($response);
     }
 

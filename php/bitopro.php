@@ -19,6 +19,7 @@ class bitopro extends Exchange {
             'countries' => array( 'TW' ), // Taiwan
             'version' => 'v3',
             'rateLimit' => 100,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
