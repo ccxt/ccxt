@@ -176,7 +176,6 @@ async def test_exchange(exchange):
             code = codes[i]
 
     symbol = get_test_symbol(exchange, [
-        'USDT/TWD',
         'BTC/USD',
         'BTC/USDT',
         'BTC/CNY',
