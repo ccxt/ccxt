@@ -63,6 +63,7 @@ class coinex(Exchange):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
@@ -685,6 +686,17 @@ class coinex(Exchange):
             ticker['symbol'] = symbol
             result[symbol] = ticker
         return self.filter_by_array(result, 'symbol', symbols)
+
+    def fetch_time(self, params={}):
+        response = self.perpetualPublicGetTime(params)
+        #
+        #     {
+        #         code: '0',
+        #         data: '1653261274414',
+        #         message: 'OK'
+        #     }
+        #
+        return self.safe_number(response, 'data')
 
     def fetch_order_book(self, symbol, limit=20, params={}):
         """

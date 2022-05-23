@@ -57,6 +57,7 @@ class coinex extends Exchange {
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
@@ -690,6 +691,18 @@ class coinex extends Exchange {
             $result[$symbol] = $ticker;
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
+    }
+
+    public function fetch_time($params = array ()) {
+        $response = $this->perpetualPublicGetTime ($params);
+        //
+        //     {
+        //         code => '0',
+        //         data => '1653261274414',
+        //         message => 'OK'
+        //     }
+        //
+        return $this->safe_number($response, 'data');
     }
 
     public function fetch_order_book($symbol, $limit = 20, $params = array ()) {
