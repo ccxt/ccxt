@@ -110,6 +110,7 @@ class Transpiler {
             [ /\.sortBy2\s/g, '.sort_by_2'],
             [ /\.filterBy\s/g, '.filter_by'],
             [ /\.groupBy\s/g, '.group_by'],
+            [ /\.marketSymbols\s/g, '.market_symbols'],
             [ /\.marketIds\s/g, '.market_ids'],
             [ /\.marketId\s/g, '.market_id'],
             [ /\.fetchTransactionFee\s/g, '.fetch_transaction_fee'],
