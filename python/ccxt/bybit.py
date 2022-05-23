@@ -53,6 +53,7 @@ class bybit(Exchange):
                 'fetchBorrowRate': False,
                 'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': True,
@@ -509,6 +510,112 @@ class bybit(Exchange):
         #     }
         #
         return self.safe_timestamp(response, 'time_now')
+
+    def safe_network(self, networkId):
+        networksById = {
+            'ETH': 'ERC20',
+            'TRX': 'TRC20',
+        }
+        return self.safe_string(networksById, networkId, networkId)
+
+    def fetch_currencies(self, params={}):
+        if not self.check_required_credentials(False):
+            return None
+        response = self.privateGetAssetV1PrivateCoinInfoQuery(params)
+        #
+        #     {
+        #         "ret_code":0,
+        #         "ret_msg":"OK",
+        #         "ext_code":"",
+        #         "result":{
+        #             "rows":[
+        #                 {
+        #                     "name":"BUSD",
+        #                     "coin":"BUSD",
+        #                     "remain_amount":"7500000",
+        #                     "chains":[
+        #                         {"chain_type":"BSC(BEP20)","confirmation":"20","withdraw_fee":"0.8","deposit_min":"0","withdraw_min":"1.6","chain":"BSC"},
+        #                         {"chain_type":"ERC20","confirmation":"12","withdraw_fee":"30","deposit_min":"0","withdraw_min":"30","chain":"ETH"},
+        #                     ],
+        #                 },
+        #                 {
+        #                     "name":"USDT",
+        #                     "coin":"USDT",
+        #                     "remain_amount":"15000000",
+        #                     "chains":[
+        #                         {"chain_type":"ERC20","confirmation":"12","withdraw_fee":"10","deposit_min":"0","withdraw_min":"20","chain":"ETH"},
+        #                         {"chain_type":"TRC20","confirmation":"100","withdraw_fee":"1","deposit_min":"0","withdraw_min":"10","chain":"TRX"},
+        #                         {"chain_type":"Arbitrum One","confirmation":"12","withdraw_fee":"10","deposit_min":"0","withdraw_min":"20","chain":"ARBI"},
+        #                         {"chain_type":"SOL","confirmation":"300","withdraw_fee":"1","deposit_min":"0","withdraw_min":"10","chain":"SOL"},
+        #                         {"chain_type":"BSC(BEP20)","confirmation":"20","withdraw_fee":"2","deposit_min":"0","withdraw_min":"10","chain":"BSC"},
+        #                         {"chain_type":"Zksync","confirmation":"1","withdraw_fee":"3","deposit_min":"0","withdraw_min":"3","chain":"ZKSYNC"},
+        #                         {"chain_type":"MATIC","confirmation":"128","withdraw_fee":"0.3","deposit_min":"0","withdraw_min":"0.3","chain":"MATIC"},
+        #                         {"chain_type":"OMNI","confirmation":"1","withdraw_fee":"","deposit_min":"0","withdraw_min":"","chain":"OMNI"},
+        #                     ],
+        #                 },
+        #             ],
+        #         },
+        #         "ext_info":null,
+        #         "time_now":1653312027278,
+        #         "rate_limit_status":119,
+        #         "rate_limit_reset_ms":1653312027278,
+        #         "rate_limit":1,
+        #     }
+        #
+        data = self.safe_value(response, 'result', [])
+        rows = self.safe_value(data, 'rows', [])
+        result = {}
+        precision = self.parse_number('0.00000001')
+        for i in range(0, len(rows)):
+            currency = rows[i]
+            currencyId = self.safe_string(currency, 'coin')
+            code = self.safe_currency_code(currencyId)
+            name = self.safe_string(currency, 'name')
+            chains = self.safe_value(currency, 'chains')
+            networks = {}
+            for j in range(0, len(chains)):
+                chain = chains[j]
+                networkId = self.safe_string(chain, 'chain')
+                network = self.safe_network(networkId)
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
+                    'fee': self.safe_number(chain, 'withdraw_fee'),
+                    'precision': None,
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(chain, 'withdraw_min'),
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': self.safe_number(chain, 'deposit_min'),
+                            'max': None,
+                        },
+                    },
+                }
+            result[code] = {
+                'info': currency,
+                'code': code,
+                'id': currencyId,
+                'name': name,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': None,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'networks': networks,
+            }
+        return result
 
     def fetch_markets(self, params={}):
         """

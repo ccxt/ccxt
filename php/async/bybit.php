@@ -45,6 +45,7 @@ class bybit extends Exchange {
                 'fetchBorrowRate' => false,
                 'fetchBorrowRates' => false,
                 'fetchClosedOrders' => true,
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => true,
@@ -503,6 +504,117 @@ class bybit extends Exchange {
         //     }
         //
         return $this->safe_timestamp($response, 'time_now');
+    }
+
+    public function safe_network($networkId) {
+        $networksById = array(
+            'ETH' => 'ERC20',
+            'TRX' => 'TRC20',
+        );
+        return $this->safe_string($networksById, $networkId, $networkId);
+    }
+
+    public function fetch_currencies($params = array ()) {
+        if (!$this->check_required_credentials(false)) {
+            return null;
+        }
+        $response = yield $this->privateGetAssetV1PrivateCoinInfoQuery ($params);
+        //
+        //     {
+        //         "ret_code":0,
+        //         "ret_msg":"OK",
+        //         "ext_code":"",
+        //         "result":array(
+        //             "rows":array(
+        //                 array(
+        //                     "name":"BUSD",
+        //                     "coin":"BUSD",
+        //                     "remain_amount":"7500000",
+        //                     "chains":array(
+        //                         array("chain_type":"BSC (BEP20)","confirmation":"20","withdraw_fee":"0.8","deposit_min":"0","withdraw_min":"1.6","chain":"BSC"),
+        //                         array("chain_type":"ERC20","confirmation":"12","withdraw_fee":"30","deposit_min":"0","withdraw_min":"30","chain":"ETH"),
+        //                     ),
+        //                 ),
+        //                 array(
+        //                     "name":"USDT",
+        //                     "coin":"USDT",
+        //                     "remain_amount":"15000000",
+        //                     "chains":array(
+        //                         array("chain_type":"ERC20","confirmation":"12","withdraw_fee":"10","deposit_min":"0","withdraw_min":"20","chain":"ETH"),
+        //                         array("chain_type":"TRC20","confirmation":"100","withdraw_fee":"1","deposit_min":"0","withdraw_min":"10","chain":"TRX"),
+        //                         array("chain_type":"Arbitrum One","confirmation":"12","withdraw_fee":"10","deposit_min":"0","withdraw_min":"20","chain":"ARBI"),
+        //                         array("chain_type":"SOL","confirmation":"300","withdraw_fee":"1","deposit_min":"0","withdraw_min":"10","chain":"SOL"),
+        //                         array("chain_type":"BSC (BEP20)","confirmation":"20","withdraw_fee":"2","deposit_min":"0","withdraw_min":"10","chain":"BSC"),
+        //                         array("chain_type":"Zksync","confirmation":"1","withdraw_fee":"3","deposit_min":"0","withdraw_min":"3","chain":"ZKSYNC"),
+        //                         array("chain_type":"MATIC","confirmation":"128","withdraw_fee":"0.3","deposit_min":"0","withdraw_min":"0.3","chain":"MATIC"),
+        //                         array("chain_type":"OMNI","confirmation":"1","withdraw_fee":"","deposit_min":"0","withdraw_min":"","chain":"OMNI"),
+        //                     ),
+        //                 ),
+        //             ),
+        //         ),
+        //         "ext_info":null,
+        //         "time_now":1653312027278,
+        //         "rate_limit_status":119,
+        //         "rate_limit_reset_ms":1653312027278,
+        //         "rate_limit":1,
+        //     }
+        //
+        $data = $this->safe_value($response, 'result', array());
+        $rows = $this->safe_value($data, 'rows', array());
+        $result = array();
+        $precision = $this->parse_number('0.00000001');
+        for ($i = 0; $i < count($rows); $i++) {
+            $currency = $rows[$i];
+            $currencyId = $this->safe_string($currency, 'coin');
+            $code = $this->safe_currency_code($currencyId);
+            $name = $this->safe_string($currency, 'name');
+            $chains = $this->safe_value($currency, 'chains');
+            $networks = array();
+            for ($j = 0; $j < count($chains); $j++) {
+                $chain = $chains[$j];
+                $networkId = $this->safe_string($chain, 'chain');
+                $network = $this->safe_network($networkId);
+                $networks[$network] = array(
+                    'info' => $chain,
+                    'id' => $networkId,
+                    'network' => $network,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => $this->safe_number($chain, 'withdraw_fee'),
+                    'precision' => null,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($chain, 'withdraw_min'),
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => $this->safe_number($chain, 'deposit_min'),
+                            'max' => null,
+                        ),
+                    ),
+                );
+            }
+            $result[$code] = array(
+                'info' => $currency,
+                'code' => $code,
+                'id' => $currencyId,
+                'name' => $name,
+                'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
+                'fee' => null,
+                'precision' => $precision,
+                'limits' => array(
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+                'networks' => $networks,
+            );
+        }
+        return $result;
     }
 
     public function fetch_markets($params = array ()) {
