@@ -534,16 +534,12 @@ module.exports = class bybit extends Exchange {
         const data = this.safeValue (response, 'result', []);
         const rows = this.safeValue (data, 'rows', []);
         const result = {};
-        const dataByCurrencyId = this.groupBy (rows, 'coin');
-        const currencyIds = Object.keys (dataByCurrencyId);
         const precision = this.parseNumber ('0.00000001');
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const currency = this.safeCurrency (currencyId);
-            const code = currency['code'];
-            let coin = dataByCurrencyId[currencyId];
-            coin = this.safeValue (coin, 0);
-            const chains = this.safeValue (coin, 'chains');
+        for (let i = 0; i < rows.length; i++) {
+            const currency = rows[i];
+            const currencyId = this.safeString (currency, 'coin');
+            const code = this.safeCurrencyCode (currencyId);
+            const chains = this.safeValue (currency, 'chains');
             const networks = {};
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
@@ -570,7 +566,7 @@ module.exports = class bybit extends Exchange {
                 };
             }
             result[code] = {
-                'info': coin,
+                'info': currency,
                 'code': code,
                 'id': currencyId,
                 'name': undefined,
