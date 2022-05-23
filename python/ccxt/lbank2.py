@@ -444,12 +444,13 @@ class lbank2(Exchange):
         """
         self.load_markets()
         market = self.market(symbol)
+        if limit is None:
+            limit = 60
         request = {
             'symbol': market['id'],
+            'size': limit,
         }
-        if limit is not None:
-            request['limit'] = limit
-        response = self.publicGetIncrDepth(self.extend(request, params))
+        response = self.publicGetDepth(self.extend(request, params))
         orderbook = response['data']
         timestamp = self.milliseconds()
         return self.parse_order_book(orderbook, symbol, timestamp)

@@ -442,13 +442,14 @@ class lbank2 extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
+        if ($limit === null) {
+            $limit = 60;
+        }
         $request = array(
             'symbol' => $market['id'],
+            'size' => $limit,
         );
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = $this->publicGetIncrDepth (array_merge($request, $params));
+        $response = $this->publicGetDepth (array_merge($request, $params));
         $orderbook = $response['data'];
         $timestamp = $this->milliseconds();
         return $this->parse_order_book($orderbook, $symbol, $timestamp);
