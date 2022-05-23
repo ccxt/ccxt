@@ -697,11 +697,11 @@ module.exports = class coinex extends Exchange {
     async fetchTime (params = {}) {
         const response = await this.perpetualPublicGetTime (params);
         //
-        // {
-        //     code: '0',
-        //     data: '1653261274414',
-        //     message: 'OK'
-        // }
+        //     {
+        //         code: '0',
+        //         data: '1653261274414',
+        //         message: 'OK'
+        //     }
         //
         return this.safeNumber (response, 'data');
     }
