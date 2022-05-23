@@ -11,7 +11,7 @@ module.exports = class wazirx extends Exchange {
             'name': 'WazirX',
             'countries': [ 'IN' ],
             'version': 'v2',
-            'rateLimit': 100,
+            'rateLimit': 1000,
             'has': {
                 'CORS': false,
                 'spot': true,
