@@ -952,7 +952,7 @@ module.exports = class bybit extends ccxt.bybit {
 
     parseWsTrade (trade, market = undefined) {
         //
-        // swap
+        // swap public
         //
         //     {
         //       symbol: 'BTCUSDT',
@@ -964,6 +964,23 @@ module.exports = class bybit extends ccxt.bybit {
         //       side: 'Buy',
         //       trade_id: '78352b1f-17b7-522a-9eea-b06f0deaf23e'
         //     }
+        //
+        // swap private
+        //    {
+        //        symbol: 'LTCUSDT',
+        //        side: 'Buy',
+        //        order_id: '6773a86c-24c3-4066-90b6-d45c6653f35f',
+        //        exec_id: '91d4962c-828f-58f1-9a1e-388c357d9344',
+        //        order_link_id: '',
+        //        price: 71.8,
+        //        order_qty: 0.1,
+        //        exec_type: 'Trade',
+        //        exec_qty: 0.1,
+        //        exec_fee: 0.004308,
+        //        leaves_qty: 0,
+        //        is_maker: false,
+        //        trade_time: '2022-05-23T14:08:08.875206Z'
+        //    }
         //
         // option
         //
@@ -1006,18 +1023,33 @@ module.exports = class bybit extends ccxt.bybit {
         //         'm': false, // isMaker
         //     }
         //
-        const id = this.safeStringN (trade, ['trade_id', 'v', 'tradeId', 'T']);
+        const id = this.safeStringN (trade, ['trade_id', 'v', 'tradeId', 'T', 'exec_id']);
         const marketId = this.safeString2 (trade, 'symbol', 's');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const amountString = this.safeString2 (trade, 'q', 'size');
-        const priceString = this.safeString2 (trade, 'p', 'price');
-        const costString = this.safeString (trade, 'exec_value');
-        const timestamp = this.safeNumberN (trade, ['trade_time_ms', 't', 'tradeTime', 'tradeTimeMs']);
+        const amount = this.safeStringN (trade, ['q', 'size', 'exec_qty']);
+        const price = this.safeString2 (trade, 'p', 'price');
+        const cost = this.safeString (trade, 'exec_value');
+        let timestamp = this.safeNumberN (trade, ['trade_time_ms', 't', 'tradeTime', 'tradeTimeMs']);
+        if (timestamp === undefined) {
+            timestamp = this.parse8601 (this.safeString (trade, 'trade_time'));
+        }
         const side = this.safeStringLower (trade, 'side');
-        const isMaker = this.safeValue (trade, 'm');
+        const isMaker = this.safeValue2 (trade, 'm', 'is_maker');
         const takerOrMaker = isMaker ? 'maker' : 'taker';
-        const orderId = this.safeString (trade, 'o');
+        const orderId = this.safeString2 (trade, 'o', 'order_id');
+        let fee = undefined;
+        const isContract = this.safeValue (market, 'contract');
+        if (isContract) {
+            const feeCost = this.safeString (trade, 'exec_fee');
+            if (feeCost !== undefined) {
+                const feeCurrency = market['linear'] ? market['quote'] : market['base'];
+                fee = {
+                    'cost': feeCost,
+                    'currency': feeCurrency,
+                };
+            }
+        }
         return this.safeTrade ({
             'id': id,
             'info': trade,
@@ -1028,10 +1060,10 @@ module.exports = class bybit extends ccxt.bybit {
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': priceString,
-            'amount': amountString,
-            'cost': costString,
-            'fee': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
         }, market);
     }
 
@@ -1098,10 +1130,8 @@ module.exports = class bybit extends ccxt.bybit {
         //   ]
         //
         let data = [];
-        let isSpot = false;
         if (Array.isArray (message)) {
             data = message;
-            isSpot = true;
         } else {
             data = this.safeValue (message, 'data', []);
             if ('result' in data) {
@@ -1117,14 +1147,7 @@ module.exports = class bybit extends ccxt.bybit {
         const marketSymbols = {};
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
-            let parsed = undefined;
-            if (isSpot) {
-                // spot trades have a different format
-                // from the REST API
-                parsed = this.parseWsTrade (rawTrade);
-            } else {
-                parsed = this.parseTrade (rawTrade);
-            }
+            const parsed = this.parseWsTrade (rawTrade);
             const symbol = parsed['symbol'];
             marketSymbols[symbol] = true;
             trades.append (parsed);
@@ -1744,12 +1767,12 @@ module.exports = class bybit extends ccxt.bybit {
             this.handleOrder (client, message);
             return;
         }
-        // spot public
         const methods = {
             'realtimes': this.handleTicker,
             'bookTicker': this.handleTicker,
             'depth': this.handleOrderBook,
             'wallet': this.handleBalance,
+            'execution': this.handleMyTrades,
         };
         const method = this.safeValue (methods, topic);
         if (method !== undefined) {
