@@ -994,6 +994,23 @@ module.exports = class bybit extends ccxt.bybit {
         //         "crossSeq":"118388"
         //     }
         //
+        // usdc
+        //   {
+        //       "orderId":"290b1b83-b6bb-4327-9839-8c5b9c322b4c",
+        //       "orderLinkId":"",
+        //       "tradeId":"3a69833e-f23c-5530-83a9-ccbb4af34926",
+        //       "symbol":"BTCPERP",
+        //       "side":"Sell",
+        //       "execPrice":"30331",
+        //       "execQty":"0.001",
+        //       "execFee":"0.0181986",
+        //       "feeRate":"0.0006",
+        //       "tradeTime":1653321686805,
+        //       "lastLiquidityInd":"TAKER",
+        //       "execValue":"30.331",
+        //       "execType":"TRADE"
+        //   }
+        //
         // spot public
         //
         //    {
@@ -1027,14 +1044,14 @@ module.exports = class bybit extends ccxt.bybit {
         const marketId = this.safeString2 (trade, 'symbol', 's');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const price = this.safeString2 (trade, 'p', 'price');
-        let amount = this.safeStringN (trade, ['q', 'size', 'exec_qty']);
-        let cost = this.safeString (trade, 'exec_value');
+        const price = this.safeStringN (trade, ['p', 'price', 'execPrice']);
+        let amount = this.safeStringN (trade, ['q', 'size', 'exec_qty', 'execQty']);
+        let cost = this.safeString2 (trade, 'exec_value', 'execValue');
         const isInverse = this.safeValue (market, 'inverse');
         if (isInverse) {
             // inverse swaps/futures report the amount in
             // the quote currency (USDT per eg)
-            // cost = 5, amount = cost/contractSize
+            // amount = cost/contractSize
             const contractSize = this.safeString (market, 'contractSize', '1');
             cost = amount;
             amount = Precise.stringDiv (cost, contractSize);
@@ -1044,13 +1061,17 @@ module.exports = class bybit extends ccxt.bybit {
             timestamp = this.parse8601 (this.safeString (trade, 'trade_time'));
         }
         const side = this.safeStringLower (trade, 'side');
-        const isMaker = this.safeValue2 (trade, 'm', 'is_maker');
+        let isMaker = this.safeValue2 (trade, 'm', 'is_maker');
+        if (isMaker === undefined) {
+            const lastLiquidityInd = this.safeString (trade, 'lastLiquidityInd');
+            isMaker = (lastLiquidityInd === 'MAKER');
+        }
         const takerOrMaker = isMaker ? 'maker' : 'taker';
-        const orderId = this.safeString2 (trade, 'o', 'order_id');
+        const orderId = this.safeStringN (trade, ['o', 'order_id', 'tradeTime']);
         let fee = undefined;
         const isContract = this.safeValue (market, 'contract');
         if (isContract) {
-            const feeCost = this.safeString (trade, 'exec_fee');
+            const feeCost = this.safeString2 (trade, 'exec_fee', 'execFee');
             if (feeCost !== undefined) {
                 const feeCurrency = market['linear'] ? market['quote'] : market['base'];
                 fee = {
@@ -1137,6 +1158,35 @@ module.exports = class bybit extends ccxt.bybit {
         //           'm': false,
         //       }
         //   ]
+        //
+        // usdc
+        //
+        //   {
+        //       "id":"b4c38cdc-5708-4c24-9f26-b3468f7b9658",
+        //       "topic":"user.openapi.perp.trade",
+        //       "creationTime":1653321605512,
+        //       "data":{
+        //          "result":[
+        //             {
+        //                "orderId":"cfafeaae-f4a5-4ee5-bd03-b899251b1557",
+        //                "orderLinkId":"",
+        //                "tradeId":"29a3b7da-f593-55c4-9f23-afd9d6715668",
+        //                "symbol":"BTCPERP",
+        //                "side":"Buy",
+        //                "execPrice":"30333.5",
+        //                "execQty":"0.001",
+        //                "execFee":"0.0182001",
+        //                "feeRate":"0.0006",
+        //                "tradeTime":1653321605486,
+        //                "lastLiquidityInd":"TAKER",
+        //                "execValue":"30.3335",
+        //                "execType":"TRADE"
+        //             }
+        //          ],
+        //          "version":5,
+        //          "baseLine":1
+        //       }
+        //   }
         //
         let data = [];
         if (Array.isArray (message)) {
@@ -1341,6 +1391,10 @@ module.exports = class bybit extends ccxt.bybit {
                 // usdc
                 data = data['result'];
             }
+        }
+        const dataLength = data.length;
+        if (dataLength === 0) {
+            return;
         }
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -1772,9 +1826,12 @@ module.exports = class bybit extends ccxt.bybit {
             this.handleTicker (client, message);
             return;
         }
-        if (topic.indexOf ('trade') >= 0) {
+        if ((topic.indexOf ('trade') >= 0)) {
+            if ((topic.indexOf ('user') >= 0)) {
+                this.handleMyTrades (client, message);
+                return;
+            }
             this.handleTrades (client, message);
-            return;
         }
         if (topic.indexOf ('orderBook') >= 0) {
             this.handleOrderBook (client, message);
