@@ -72,7 +72,7 @@ module.exports = class bybit extends ccxt.bybit {
                             },
                             'swap': {
                                 'public': 'wss://stream-testnet.{hostname}/perpetual/ws/v1/realtime_public',
-                                'private': 'wss://stream-testnet.{hostname}/trade/option/usdc/private/v1', // check this
+                                'private': 'wss://stream-testnet.{hostname}/trade/option/usdc/private/v1',
                             },
                         },
                     },
@@ -1013,6 +1013,47 @@ module.exports = class bybit extends ccxt.bybit {
         }, market);
     }
 
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const method = 'watchMyTrades';
+        let messageHash = 'usertrade';
+        await this.loadMarkets ();
+        let market = undefined;
+        let type = undefined;
+        let isUsdcSettled = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash += ':' + symbol;
+            type = market['type'];
+            isUsdcSettled = market['settle'] === 'USDC';
+        } else {
+            [ type, params ] = this.handleMarketTypeAndParams (method, undefined, params);
+            let settle = this.safeString (this.options, 'defaultSettle');
+            settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
+            params = this.omit (params, [ 'settle', 'defaultSettle' ]);
+            isUsdcSettled = settle === 'USDC';
+        }
+        let url = undefined;
+        [url, params] = this.getUrlByMarketType (symbol, true, method, params);
+        let trades = undefined;
+        if (type === 'spot') {
+            trades = await this.watchSpotPrivate (url, messageHash, params);
+        } else {
+            let channel = undefined;
+            if (isUsdcSettled) {
+                channel = (type === 'option') ? 'user.openapi.option.trade' : 'user.openapi.perp.trade';
+            } else {
+                channel = 'execution';
+            }
+            const reqParams = [ channel ];
+            trades = await this.watchSwapPrivate (url, messageHash, reqParams, params);
+        }
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const method = 'watchOrders';
         let messageHash = 'order';
@@ -1126,6 +1167,51 @@ module.exports = class bybit extends ccxt.bybit {
         //           }
         //         ]
         //     }
+        // usdc order
+        //
+        //     {
+        //         "id":"401a6485-5701-49f2-9d0b-c09d97d56748",
+        //         "topic":"user.openapi.perp.order",
+        //         "creationTime":1653304042137,
+        //         "data":{
+        //            "result":[
+        //               {
+        //                  "orderId":"fe2e0765-fa47-4516-a962-fb021b9418e7",
+        //                  "orderLinkId":"",
+        //                  "createdAt":1653304042104,
+        //                  "updatedAt":1653304042107,
+        //                  "symbol":"BTCPERP",
+        //                  "orderStatus":"New",
+        //                  "side":"Buy",
+        //                  "price":"20000.0000",
+        //                  "qty":"0.001",
+        //                  "cumExecQty":"0",
+        //                  "leavesQty":"0.001",
+        //                  "orderIM":"20.012",
+        //                  "realisedPnl":null,
+        //                  "orderType":"Limit",
+        //                  "reduceOnly":0,
+        //                  "timeInForce":"GoodTillCancel",
+        //                  "cumExecFee":"0",
+        //                  "orderPnl":"",
+        //                  "basePrice":"",
+        //                  "cumExecValue":"0",
+        //                  "closeOnTrigger":"false",
+        //                  "triggerBy":"UNKNOWN",
+        //                  "takeProfit":"0",
+        //                  "stopLoss":"0",
+        //                  "tpTriggerBy":"UNKNOWN",
+        //                  "slTriggerBy":"UNKNOWN",
+        //                  "triggerPrice":"0",
+        //                  "stopOrderType":"UNKNOWN",
+        //                  "cancelType":"UNKNOWN"
+        //               }
+        //            ],
+        //            "version":2,
+        //            "baseLine":1,
+        //            "dataType":"CHANGE"
+        //         }
+        //      }
         //
         let data = [];
         let isSpot = false;
@@ -1134,6 +1220,10 @@ module.exports = class bybit extends ccxt.bybit {
             isSpot = true;
         } else {
             data = this.safeValue (message, 'data', []);
+            if ('result' in data) {
+                // usdc
+                data = data['result'];
+            }
         }
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -1169,8 +1259,14 @@ module.exports = class bybit extends ccxt.bybit {
     prepareSwapOrder (order) {
         // small adjustments to make it compatibke
         // with the REST parser
-        order['created_at'] = this.safeString (order, 'create_time');
-        order['updated_at'] = this.safeString (order, 'update_time');
+        const create_time = this.safeString2 (order, 'create_time', 'timestamp');
+        if (create_time !== undefined) {
+            order['created_at'] = create_time;
+        }
+        const updated_time = this.safeString (order, 'update_time');
+        if (updated_time !== undefined) {
+            order['updated_at'] = updated_time;
+        }
         return order;
     }
 
@@ -1541,6 +1637,7 @@ module.exports = class bybit extends ccxt.bybit {
             this.handleSubscriptionStatus (client, message);
             return;
         }
+        // contract public and private
         const topic = this.safeString (message, 'topic', '');
         if ((topic.indexOf ('kline') >= 0 || topic.indexOf ('candle') >= 0)) {
             this.handleOHLCV (client, message);
@@ -1562,20 +1659,26 @@ module.exports = class bybit extends ccxt.bybit {
             this.handleOrder (client, message);
             return;
         }
+        // spot public
         const methods = {
             'realtimes': this.handleTicker,
             'bookTicker': this.handleTicker,
             'depth': this.handleOrderBook,
-            // 'order': this.handleOrder,
             'wallet': this.handleBalance,
         };
         const method = this.safeValue (methods, topic);
         if (method !== undefined) {
             method.call (this, client, message);
         }
+        // contract auth acknowledgement
         const request = this.safeValue (message, 'request', {});
         const op = this.safeString (request, 'op');
         if (op === 'auth') {
+            this.handleAuthenticate (client, message);
+        }
+        // usdc auth
+        const type = this.safeString (message, 'type');
+        if (type === 'AUTH_RESP') {
             this.handleAuthenticate (client, message);
         }
         // private spot topics
@@ -1587,6 +1690,9 @@ module.exports = class bybit extends ccxt.bybit {
             }
             if (topic === 'executionReport') {
                 this.handleOrder (client, message);
+            }
+            if (topic === 'ticketInfo') {
+                this.handleMyTrades (client, message);
             }
         }
     }
@@ -1613,20 +1719,6 @@ module.exports = class bybit extends ccxt.bybit {
         //
         client.lastPong = this.safeInteger (message, 'pong');
         return message;
-    }
-
-    async pong (client, message) {
-        // //
-        // //     { ping: 1583491673714 }
-        // //
-        // const pong = this.milliseconds ();
-        // client.lastPong = pong;
-        // // this.safeInteger (message, 'ping')
-        // await client.send ({ 'pong': pong });
-    }
-
-    handlePing (client, message) {
-        // this.spawn (this.pong, client, message);
     }
 
     handleAuthenticate (client, message) {
