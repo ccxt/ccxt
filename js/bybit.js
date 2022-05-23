@@ -16,7 +16,7 @@ module.exports = class bybit extends ccxt.bybit {
             'has': {
                 'ws': true,
                 'watchBalance': true,
-                'watchMyTrades': false,
+                'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
@@ -1739,13 +1739,21 @@ module.exports = class bybit extends ccxt.bybit {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
+        // contract pong
         const ret_msg = this.safeString (message, 'ret_msg');
         if (ret_msg === 'pong') {
             this.handlePong (client, message);
             return;
         }
+        // spot pong
         const pong = this.safeInteger (message, 'pong');
         if (pong !== undefined) {
+            this.handlePong (client, message);
+            return;
+        }
+        // usdc pong
+        const op = this.safeString (message, 'op');
+        if (op === 'pong') {
             this.handlePong (client, message);
             return;
         }
@@ -1789,8 +1797,8 @@ module.exports = class bybit extends ccxt.bybit {
         }
         // contract auth acknowledgement
         const request = this.safeValue (message, 'request', {});
-        const op = this.safeString (request, 'op');
-        if (op === 'auth') {
+        const reqOp = this.safeString (request, 'op');
+        if (reqOp === 'auth') {
             this.handleAuthenticate (client, message);
         }
         // usdc auth
