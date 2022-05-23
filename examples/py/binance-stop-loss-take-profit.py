@@ -8,7 +8,7 @@ sys.path.append(root + '/python')
 
 import ccxt  # noqa: E402
 
-exchange = ccxt.binance({
+exchange = ccxt.binanceusdm({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET',
 })
