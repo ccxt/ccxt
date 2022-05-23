@@ -499,6 +499,14 @@ module.exports = class bybit extends Exchange {
         return this.safeTimestamp (response, 'time_now');
     }
 
+    safeNetwork (networkId) {
+        const networksById = {
+            'ETH': 'ERC20',
+            'TRX': 'TRC20',
+        };
+        return this.safeString (networksById, networkId, networkId);
+    }
+
     async fetchCurrencies (params = {}) {
         if (!this.checkRequiredCredentials (false)) {
             return undefined;
@@ -552,14 +560,16 @@ module.exports = class bybit extends Exchange {
             const currency = rows[i];
             const currencyId = this.safeString (currency, 'coin');
             const code = this.safeCurrencyCode (currencyId);
+            const name = this.safeString (currency, 'name');
             const chains = this.safeValue (currency, 'chains');
             const networks = {};
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
-                const network = this.safeString (chain, 'chain');
+                const networkId = this.safeString (chain, 'chain');
+                const network = this.safeNetwork (networkId);
                 networks[network] = {
                     'info': chain,
-                    'id': network,
+                    'id': networkId,
                     'network': network,
                     'active': undefined,
                     'deposit': undefined,
@@ -582,7 +592,7 @@ module.exports = class bybit extends Exchange {
                 'info': currency,
                 'code': code,
                 'id': currencyId,
-                'name': undefined,
+                'name': name,
                 'active': undefined,
                 'deposit': undefined,
                 'withdraw': undefined,
