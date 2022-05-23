@@ -2970,7 +2970,7 @@ class Exchange {
     }
 
     public function market_symbols($symbols) {
-        return array_map(array($this, 'symbol'), $symbols);
+        return is_array($symbols) ? array_map(array($this, 'symbol'), $symbols) : $symbols;
     }
 
     public function market_id($symbol) {

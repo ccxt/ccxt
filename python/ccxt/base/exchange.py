@@ -2342,7 +2342,7 @@ class Exchange(object):
         return [self.market_id(symbol) for symbol in symbols]
 
     def market_symbols(self, symbols):
-        return [self.symbol(symbol) for symbol in symbols]
+        return [self.symbol(symbol) for symbol in symbols] if symbols else symbols
 
     def market_id(self, symbol):
         market = self.market(symbol)

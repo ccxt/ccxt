@@ -1076,7 +1076,7 @@ module.exports = class Exchange {
     }
 
     marketSymbols (symbols) {
-        return symbols.map ((symbol) => this.symbol (symbol))
+        return (symbols === undefined) ? symbols : symbols.map ((symbol) => this.symbol (symbol))
     }
 
     symbol (symbol) {
