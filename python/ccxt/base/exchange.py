@@ -2341,9 +2341,16 @@ class Exchange(object):
     def market_ids(self, symbols):
         return [self.market_id(symbol) for symbol in symbols]
 
+    def market_symbols(self, symbols):
+        return [self.symbol(symbol) for symbol in symbols]
+
     def market_id(self, symbol):
         market = self.market(symbol)
         return market['id'] if type(market) is dict else symbol
+
+    def symbol(self, symbol):
+        market = self.market(symbol)
+        return market['symbol'] if type(market) is dict else symbol
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]

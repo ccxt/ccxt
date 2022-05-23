@@ -1075,6 +1075,10 @@ module.exports = class Exchange {
         return symbols.map ((symbol) => this.marketId (symbol))
     }
 
+    marketSymbols (symbols) {
+        return symbols.map ((symbol) => this.symbol (symbol))
+    }
+
     symbol (symbol) {
         return this.market (symbol).symbol || symbol
     }

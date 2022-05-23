@@ -2969,8 +2969,16 @@ class Exchange {
         return array_map(array($this, 'market_id'), $symbols);
     }
 
+    public function market_symbols($symbols) {
+        return array_map(array($this, 'symbol'), $symbols);
+    }
+
     public function market_id($symbol) {
         return (is_array($market = $this->market($symbol))) ? $market['id'] : $symbol;
+    }
+
+    public function symbol($symbol) {
+        return (is_array($market = $this->market($symbol))) ? $market['symbol'] : $symbol;
     }
 
     public function __call($function, $params) {
