@@ -46,7 +46,7 @@ module.exports = class bybit extends ccxt.bybit {
                             },
                             'swap': {
                                 'public': 'wss://stream.{hostname}/perpetual/ws/v1/realtime_public',
-                                'private': 'wss://stream.{hostname}/trade/option/usdc/private/v1', // check this
+                                'private': 'wss://stream.{hostname}/trade/option/usdc/private/v1',
                             },
                         },
                     },
@@ -1014,15 +1014,44 @@ module.exports = class bybit extends ccxt.bybit {
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+        const method = 'watchOrders';
         let messageHash = 'order';
+        await this.loadMarkets ();
         let market = undefined;
+        let type = undefined;
+        let isUsdcSettled = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
-            messageHash += ':' + market['id'];
+            messageHash += ':' + symbol;
+            type = market['type'];
+            isUsdcSettled = market['settle'] === 'USDC';
+        } else {
+            [ type, params ] = this.handleMarketTypeAndParams (method, undefined, params);
+            let settle = this.safeString (this.options, 'defaultSettle');
+            settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
+            params = this.omit (params, [ 'settle', 'defaultSettle' ]);
+            isUsdcSettled = settle === 'USDC';
         }
-        const orders = await this.watchPrivate (messageHash, 'watchOrders', params);
+        let url = undefined;
+        [url, params] = this.getUrlByMarketType (symbol, true, method, params);
+        let orders = undefined;
+        if (type === 'spot') {
+            orders = await this.watchSpotPrivate (url, messageHash, params);
+        } else {
+            let channel = undefined;
+            if (isUsdcSettled) {
+                channel = (type === 'option') ? 'user.openapi.option.order' : 'user.openapi.perp.order';
+            } else {
+                const orderType = this.safeString (params, 'orderType');
+                const stop = this.safeValue (params, 'stop', false);
+                const isStopOrder = stop || (orderType === 'stop') || (orderType === 'conditional');
+                params = this.omit (params, ['stop', 'orderType']);
+                channel = isStopOrder ? 'stop_order' : 'order';
+            }
+            const reqParams = [ channel ];
+            orders = await this.watchSwapPrivate (url, messageHash, reqParams, params);
+        }
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -1031,28 +1060,71 @@ module.exports = class bybit extends ccxt.bybit {
 
     handleOrder (client, message, subscription = undefined) {
         //
+        // spot order
+        //
+        //     [
+        //         {
+        //           e: 'executionReport',
+        //           E: '1653297251061',
+        //           s: 'LTCUSDT',
+        //           c: '1653297250740',
+        //           S: 'SELL',
+        //           o: 'MARKET_OF_BASE',
+        //           f: 'GTC',
+        //           q: '0.16233',
+        //           p: '0',
+        //           X: 'NEW',
+        //           i: '1162336018974750208',
+        //           M: '0',
+        //           l: '0',
+        //           z: '0',
+        //           L: '0',
+        //           n: '0',
+        //           N: '',
+        //           u: true,
+        //           w: true,
+        //           m: false,
+        //           O: '1653297251042',
+        //           Z: '0',
+        //           A: '0',
+        //           C: false,
+        //           v: '0',
+        //           d: 'NO_LIQ'
+        //         }
+        //     ]
+        //
+        // swap order
         //     {
         //         topic: 'order',
-        //         action: 'insert',
-        //         user_id: 155328,
-        //         symbol: 'ltc-usdt',
-        //         data: {
-        //             symbol: 'ltc-usdt',
-        //             side: 'buy',
-        //             size: 0.05,
-        //             type: 'market',
-        //             price: 0,
-        //             fee_structure: { maker: 0.1, taker: 0.1 },
-        //             fee_coin: 'ltc',
-        //             id: 'ce38fd48-b336-400b-812b-60c636454231',
-        //             created_by: 155328,
-        //             filled: 0.05,
-        //             method: 'market',
-        //             created_at: '2022-04-11T14:09:00.760Z',
-        //             updated_at: '2022-04-11T14:09:00.760Z',
-        //             status: 'filled'
-        //         },
-        //         time: 1649686140
+        //         action: '',
+        //         data: [
+        //           {
+        //             order_id: 'f52071fd-6604-4cff-8112-82958ec55d3f',
+        //             order_link_id: '',
+        //             symbol: 'LTCUSDT',
+        //             side: 'Buy',
+        //             order_type: 'Market',
+        //             price: 75.5,
+        //             qty: 0.1,
+        //             leaves_qty: 0,
+        //             last_exec_price: 71.93,
+        //             cum_exec_qty: 0.1,
+        //             cum_exec_value: 7.193,
+        //             cum_exec_fee: 0.0043158,
+        //             time_in_force: 'ImmediateOrCancel',
+        //             create_type: 'CreateByUser',
+        //             cancel_type: 'UNKNOWN',
+        //             order_status: 'Filled',
+        //             take_profit: 0,
+        //             stop_loss: 0,
+        //             trailing_stop: 0,
+        //             create_time: '2022-05-23T09:32:34.266539338Z',
+        //             update_time: '2022-05-23T09:32:34.270607105Z',
+        //             reduce_only: false,
+        //             close_on_trigger: false,
+        //             position_idx: '1'
+        //           }
+        //         ]
         //     }
         //
         const channel = this.safeString (message, 'topic');
@@ -1099,12 +1171,18 @@ module.exports = class bybit extends ccxt.bybit {
 
     handleBalance (client, message) {
         //
-        // usdt linear
+        // swap
         //
-        //  {
-        //      topic: 'wallet',
-        //      data: [ { wallet_balance: 10.052857, available_balance: 5.049857 } ]
-        //  }
+        //   {
+        //       "topic":"wallet",
+        //       "data":[
+        //          {
+        //             "wallet_balance":10.052857,
+        //             "available_balance":5.049857
+        //             "coin": "BTC", // if not available = usdt
+        //          }
+        //       ]
+        //   }
         //
         // spot message
         //
@@ -1129,11 +1207,12 @@ module.exports = class bybit extends ccxt.bybit {
         let messageHash = 'balance';
         if (topic === 'wallet') {
             const data = this.safeValue (message, 'data', []);
-            // linear usdt branch
+            // swap
             for (let i = 0; i < data.length; i++) {
                 const account = this.account ();
-                const balance = message[i];
-                const code = this.safeCurrencyCode ('USDT');
+                const balance = data[i];
+                const currencyId = this.safeString (balance, 'coin', 'USDT');
+                const code = this.safeCurrencyCode (currencyId);
                 account['free'] = this.safeString (balance, 'available_balance');
                 account['total'] = this.safeString (balance, 'wallet_balance');
                 this.balance[code] = account;
@@ -1338,6 +1417,16 @@ module.exports = class bybit extends ccxt.bybit {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
+        const ret_msg = this.safeString (message, 'ret_msg');
+        if (ret_msg === 'pong') {
+            this.handlePong (client, message);
+            return;
+        }
+        const pong = this.safeInteger (message, 'pong');
+        if (pong !== undefined) {
+            this.handlePong (client, message);
+            return;
+        }
         const event = this.safeString (message, 'event');
         if (event === 'sub') {
             this.handleSubscriptionStatus (client, message);
@@ -1360,6 +1449,10 @@ module.exports = class bybit extends ccxt.bybit {
             this.handleOrderBook (client, message);
             return;
         }
+        if (topic.indexOf ('order') >= 0) {
+            this.handleOrder (client, message);
+            return;
+        }
         const methods = {
             'realtimes': this.handleTicker,
             'bookTicker': this.handleTicker,
@@ -1376,19 +1469,55 @@ module.exports = class bybit extends ccxt.bybit {
         if (op === 'auth') {
             this.handleAuthenticate (client, message);
         }
+        // private spot topics
         if (Array.isArray (message)) {
-            this.handleBalance (client, message);
+            const first = this.safeValue (message, 0);
+            const topic = this.safeString (first, 'e');
+            if (topic === 'outboundAccountInfo') {
+                this.handleBalance (client, message);
+            }
+            if (topic === 'executionReport') {
+                this.handleOrder (client, message);
+            }
         }
     }
 
     ping (client) {
-        const timestamp = this.milliseconds ();
-        return { 'ping': timestamp.toString () };
+        const type = this.safeString (this.options, 'defaultType', 'spot');
+        if (type === 'spot') {
+            const timestamp = this.milliseconds ();
+            return { 'ping': timestamp };
+        }
+        return { 'op': 'ping' };
     }
 
     handlePong (client, message) {
-        client.lastPong = this.milliseconds ();
+        //
+        //   {
+        //       success: true,
+        //       ret_msg: 'pong',
+        //       conn_id: 'db3158a0-8960-44b9-a9de-ac350ee13158',
+        //       request: { op: 'ping', args: null }
+        //   }
+        //
+        //   { pong: 1653296711335 }
+        //
+        client.lastPong = this.safeInteger (message, 'pong');
         return message;
+    }
+
+    async pong (client, message) {
+        // //
+        // //     { ping: 1583491673714 }
+        // //
+        // const pong = this.milliseconds ();
+        // client.lastPong = pong;
+        // // this.safeInteger (message, 'ping')
+        // await client.send ({ 'pong': pong });
+    }
+
+    handlePing (client, message) {
+        // this.spawn (this.pong, client, message);
     }
 
     handleAuthenticate (client, message) {
@@ -1427,6 +1556,7 @@ module.exports = class bybit extends ccxt.bybit {
         //        code: '0',
         //        msg: 'Success'
         //    }
+        //
         return message;
     }
 };
