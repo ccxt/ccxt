@@ -977,7 +977,7 @@ module.exports = class bybit extends ccxt.bybit {
         //         "crossSeq":"118388"
         //     }
         //
-        // spot
+        // spot public
         //
         //    {
         //      'symbol': 'BTCUSDT', // artificially added
@@ -988,8 +988,26 @@ module.exports = class bybit extends ccxt.bybit {
         //       m: true
         //     }
         //
-        const id = this.safeStringN (trade, ['trade_id', 'v', 'tradeId']);
-        const marketId = this.safeString (trade, 'symbol');
+        // spot private
+        //
+        //     {
+        //         'e': 'ticketInfo',
+        //         'E': '1653313467249', // event time
+        //         's': 'LTCUSDT',
+        //         'q': '0.13621',
+        //         't': '1653313467227', // timestamp
+        //         'p': '72.43',
+        //         'T': '2200000000004436641', // trade Id
+        //         'o': '1162472050160422400', // order Id
+        //         'c': '1653313466834', // client Id
+        //         'O': '1162471954312183040',
+        //         'a': '24478790', // account id
+        //         'A': '18478961',
+        //         'm': false, // isMaker
+        //     }
+        //
+        const id = this.safeStringN (trade, ['trade_id', 'v', 'tradeId', 'T']);
+        const marketId = this.safeString2 (trade, 'symbol', 's');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const amountString = this.safeString2 (trade, 'q', 'size');
@@ -999,13 +1017,14 @@ module.exports = class bybit extends ccxt.bybit {
         const side = this.safeStringLower (trade, 'side');
         const isMaker = this.safeValue (trade, 'm');
         const takerOrMaker = isMaker ? 'maker' : 'taker';
+        const orderId = this.safeString (trade, 'o');
         return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'order': undefined,
+            'order': orderId,
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
@@ -1054,6 +1073,71 @@ module.exports = class bybit extends ccxt.bybit {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleMyTrades (client, message) {
+        //
+        // spot
+        //
+        //   [
+        //       {
+        //           'e': 'ticketInfo',
+        //           'E': '1653313467249',
+        //           's': 'LTCUSDT',
+        //           'q': '0.13621',
+        //           't': '1653313467227',
+        //           'p': '72.43',
+        //           'T': '2200000000004436641',
+        //           'o': '1162472050160422400',
+        //           'c': '1653313466834',
+        //           'O': '1162471954312183040',
+        //           'a': '24478790',
+        //           'A': '18478961',
+        //           'm': false,
+        //       }
+        //   ]
+        //
+        let data = [];
+        let isSpot = false;
+        if (Array.isArray (message)) {
+            data = message;
+            isSpot = true;
+        } else {
+            data = this.safeValue (message, 'data', []);
+            if ('result' in data) {
+                // usdc
+                data = data['result'];
+            }
+        }
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const trades = this.myTrades;
+        const marketSymbols = {};
+        for (let i = 0; i < data.length; i++) {
+            const rawTrade = data[i];
+            let parsed = undefined;
+            if (isSpot) {
+                // spot trades have a different format
+                // from the REST API
+                parsed = this.parseWsTrade (rawTrade);
+            } else {
+                parsed = this.parseTrade (rawTrade);
+            }
+            const symbol = parsed['symbol'];
+            marketSymbols[symbol] = true;
+            trades.append (parsed);
+        }
+        const channel = 'usertrade';
+        // non-symbol specific
+        client.resolve (trades, channel);
+        const symbols = Object.keys (marketSymbols);
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const messageHash = channel + ':' + symbol;
+            client.resolve (trades, messageHash);
+        }
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
