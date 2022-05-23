@@ -39,6 +39,7 @@ module.exports = class bybit extends Exchange {
                 'fetchBorrowRate': false,
                 'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
@@ -497,6 +498,117 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         return this.safeTimestamp (response, 'time_now');
+    }
+
+    safeNetwork (networkId) {
+        const networksById = {
+            'ETH': 'ERC20',
+            'TRX': 'TRC20',
+        };
+        return this.safeString (networksById, networkId, networkId);
+    }
+
+    async fetchCurrencies (params = {}) {
+        if (!this.checkRequiredCredentials (false)) {
+            return undefined;
+        }
+        const response = await this.privateGetAssetV1PrivateCoinInfoQuery (params);
+        //
+        //     {
+        //         "ret_code":0,
+        //         "ret_msg":"OK",
+        //         "ext_code":"",
+        //         "result":{
+        //             "rows":[
+        //                 {
+        //                     "name":"BUSD",
+        //                     "coin":"BUSD",
+        //                     "remain_amount":"7500000",
+        //                     "chains":[
+        //                         {"chain_type":"BSC (BEP20)","confirmation":"20","withdraw_fee":"0.8","deposit_min":"0","withdraw_min":"1.6","chain":"BSC"},
+        //                         {"chain_type":"ERC20","confirmation":"12","withdraw_fee":"30","deposit_min":"0","withdraw_min":"30","chain":"ETH"},
+        //                     ],
+        //                 },
+        //                 {
+        //                     "name":"USDT",
+        //                     "coin":"USDT",
+        //                     "remain_amount":"15000000",
+        //                     "chains":[
+        //                         {"chain_type":"ERC20","confirmation":"12","withdraw_fee":"10","deposit_min":"0","withdraw_min":"20","chain":"ETH"},
+        //                         {"chain_type":"TRC20","confirmation":"100","withdraw_fee":"1","deposit_min":"0","withdraw_min":"10","chain":"TRX"},
+        //                         {"chain_type":"Arbitrum One","confirmation":"12","withdraw_fee":"10","deposit_min":"0","withdraw_min":"20","chain":"ARBI"},
+        //                         {"chain_type":"SOL","confirmation":"300","withdraw_fee":"1","deposit_min":"0","withdraw_min":"10","chain":"SOL"},
+        //                         {"chain_type":"BSC (BEP20)","confirmation":"20","withdraw_fee":"2","deposit_min":"0","withdraw_min":"10","chain":"BSC"},
+        //                         {"chain_type":"Zksync","confirmation":"1","withdraw_fee":"3","deposit_min":"0","withdraw_min":"3","chain":"ZKSYNC"},
+        //                         {"chain_type":"MATIC","confirmation":"128","withdraw_fee":"0.3","deposit_min":"0","withdraw_min":"0.3","chain":"MATIC"},
+        //                         {"chain_type":"OMNI","confirmation":"1","withdraw_fee":"","deposit_min":"0","withdraw_min":"","chain":"OMNI"},
+        //                     ],
+        //                 },
+        //             ],
+        //         },
+        //         "ext_info":null,
+        //         "time_now":1653312027278,
+        //         "rate_limit_status":119,
+        //         "rate_limit_reset_ms":1653312027278,
+        //         "rate_limit":1,
+        //     }
+        //
+        const data = this.safeValue (response, 'result', []);
+        const rows = this.safeValue (data, 'rows', []);
+        const result = {};
+        const precision = this.parseNumber ('0.00000001');
+        for (let i = 0; i < rows.length; i++) {
+            const currency = rows[i];
+            const currencyId = this.safeString (currency, 'coin');
+            const code = this.safeCurrencyCode (currencyId);
+            const name = this.safeString (currency, 'name');
+            const chains = this.safeValue (currency, 'chains');
+            const networks = {};
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const networkId = this.safeString (chain, 'chain');
+                const network = this.safeNetwork (networkId);
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': this.safeNumber (chain, 'withdraw_fee'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'withdraw_min'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (chain, 'deposit_min'),
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            result[code] = {
+                'info': currency,
+                'code': code,
+                'id': currencyId,
+                'name': name,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'networks': networks,
+            };
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}) {
