@@ -1027,9 +1027,18 @@ module.exports = class bybit extends ccxt.bybit {
         const marketId = this.safeString2 (trade, 'symbol', 's');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const amount = this.safeStringN (trade, ['q', 'size', 'exec_qty']);
         const price = this.safeString2 (trade, 'p', 'price');
-        const cost = this.safeString (trade, 'exec_value');
+        let amount = this.safeStringN (trade, ['q', 'size', 'exec_qty']);
+        let cost = this.safeString (trade, 'exec_value');
+        const isInverse = this.safeValue (market, 'inverse');
+        if (isInverse) {
+            // inverse swaps/futures report the amount in
+            // the quote currency (USDT per eg)
+            // cost = 5, amount = cost/contractSize
+            const contractSize = this.safeString (market, 'contractSize', '1');
+            cost = amount;
+            amount = Precise.stringDiv (cost, contractSize);
+        }
         let timestamp = this.safeNumberN (trade, ['trade_time_ms', 't', 'tradeTime', 'tradeTimeMs']);
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (trade, 'trade_time'));
