@@ -3,8 +3,8 @@
 // ----------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError, ArgumentsRequired } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
+const { ExchangeError } = require ('ccxt/js/base/errors');
+const { ArrayCache } = require ('./base/Cache');
 
 // ----------------------------------------------------------------------------
 
@@ -23,37 +23,19 @@ module.exports = class bitopro extends ccxt.bitopro {
                 'watchTrades': true,
             },
             'urls': {
-                'ws': 'wss://stream.bitopro.com:9443/ws',
-            },
-            'apis': {
                 'ws': {
-                    'watchTrades': '/v1/pub/trades',
-                    'watchTicker': '/v1/pub/tickers',
-                    'watchOrderBook': '/v1/pub/order-books',
-                    'watchOrders': '/v1/pub/auth/orders',
-                    'watchBalance': '/v1/pub/auth/account-balance',
+                    'public': 'wss://stream.bitopro.com:9443/ws/v1/pub',
+                    'private': 'wss://stream.bitopro.com:9443/ws/v1/pub/auth',
                 },
+            },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+                'login': true,
             },
             'options': {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
-                'OHLCVLimit': 1000,
-                'requestId': {},
-                'watchTrades': {
-                    'name': 'TRADE',
-                },
-                'watchTicker': {
-                    'name': 'TICKER',
-                },
-                'watchOrderBook': {
-                    'name': 'ORDER_BOOK',
-                },
-                'watchBalance': {
-                    'name': 'ACCOUNT_BALANCE',
-                },
-                'watchOrders': {
-                    'name': 'ACTIVE_ORDERS',
-                },
                 'ws': {
                     'options': {
                         // headers is required for the authentication
@@ -64,6 +46,11 @@ module.exports = class bitopro extends ccxt.bitopro {
         });
     }
 
+    async watchPublic (path, messageHash, marketId) {
+        const url = this.urls['ws']['public'] + '/' + path + '/' + marketId;
+        return await this.watch (url, messageHash, undefined, messageHash);
+    }
+
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         if (limit !== undefined) {
             if ((limit !== 5) && (limit !== 10) && (limit !== 20) && (limit !== 50) && (limit !== 100) && (limit !== 500) && (limit !== 1000)) {
@@ -72,16 +59,14 @@ module.exports = class bitopro extends ccxt.bitopro {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const name = this.safeString (options, 'name', 'trade');
-        const messageHash = market['id'].toUpperCase () + '@' + name;
-        const apis = this.safeValue (this.apis, 'ws');
-        const path = this.safeString (apis, 'watchOrderBook');
-        let url = this.urls['ws'] + path + '/' + market['id'];
-        if (limit !== undefined) {
-            url += ':' + limit;
+        const messageHash = 'ORDER_BOOK' + ':' + symbol;
+        let endPart = undefined;
+        if (limit === undefined) {
+            endPart = market['id'];
+        } else {
+            endPart = market['id'] + ':' + limit;
         }
-        const orderbook = await this.watch (url, messageHash, '', messageHash);
+        const orderbook = await this.watchPublic ('order-books', messageHash, endPart);
         return orderbook.limit (limit);
     }
 
@@ -111,7 +96,7 @@ module.exports = class bitopro extends ccxt.bitopro {
         const market = this.safeMarket (marketId, undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString (message, 'event');
-        const messageHash = market['id'].toUpperCase () + '@' + event;
+        const messageHash = event + ':' + symbol;
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
             orderbook = this.orderBook ({});
@@ -125,13 +110,8 @@ module.exports = class bitopro extends ccxt.bitopro {
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const options = this.safeValue (this.options, 'watchTrades', {});
-        const name = this.safeString (options, 'name', 'trade');
-        const messageHash = market['id'].toUpperCase () + '@' + name;
-        const apis = this.safeValue (this.apis, 'ws');
-        const path = this.safeString (apis, 'watchTrades');
-        const url = this.urls['ws'] + path + '/' + market['id'];
-        const trades = await this.watch (url, messageHash, '', messageHash);
+        const messageHash = 'TRADE' + ':' + symbol;
+        const trades = await this.watchPublic ('trades', messageHash, market['id'], limit);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -162,7 +142,7 @@ module.exports = class bitopro extends ccxt.bitopro {
         const market = this.safeMarket (marketId, undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString (message, 'event');
-        const messageHash = market['id'].toUpperCase () + '@' + event;
+        const messageHash = event + ':' + symbol;
         const rawData = this.safeValue (message, 'data', []);
         const trades = this.parseTrades (rawData, market);
         let tradesCache = this.safeValue (this.trades, symbol);
@@ -180,14 +160,8 @@ module.exports = class bitopro extends ccxt.bitopro {
     async watchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketId = market['id'].toUpperCase ();
-        const options = this.safeValue (this.options, 'watchTicker', {});
-        const name = this.safeString (options, 'name', 'ticker');
-        const messageHash = marketId + '@' + name;
-        const apis = this.safeValue (this.apis, 'ws');
-        const path = this.safeString (apis, 'watchTicker');
-        const url = this.urls['ws'] + path + '/' + market['id'];
-        return await this.watch (url, messageHash, this.extend ({}, params), messageHash);
+        const messageHash = 'TICKER' + ':' + symbol;
+        return await this.watchPublic ('tickers', messageHash, market['id']);
     }
 
     handleTicker (client, message) {
@@ -213,57 +187,55 @@ module.exports = class bitopro extends ccxt.bitopro {
         const market = this.safeMarket (marketId, undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString (message, 'event');
-        const messageHash = market['id'].toUpperCase () + '@' + event;
+        const messageHash = event + ':' + symbol;
         const result = this.parseTicker (message);
         const timestamp = this.safeInteger (message, 'timestamp');
         const datetime = this.safeString (message, 'datetime');
-        result.timestamp = timestamp;
-        result.datetime = datetime;
+        result['timestamp'] = timestamp;
+        result['datetime'] = datetime;
         this.tickers[symbol] = result;
         client.resolve (result, messageHash);
     }
 
-    async authenticate (params = {}) {
-        this.checkRequiredCredentials ();
-        const url = this.safeString (params, 'url');
-        const messageHash = this.safeString (params, 'messageHash');
-        const identity = this.safeString (this.options, 'identity');
-        if (url === undefined || messageHash === undefined || identity === undefined) {
-            throw new ArgumentsRequired (this.id + ' authenticate requires a url, messageHash and identity argument');
+    authenticate (url) {
+        if ((this.clients !== undefined) && (url in this.clients)) {
+            return;
         }
+        this.checkRequiredCredentials ();
         const nonce = this.milliseconds ();
-        let rawData = {
+        const rawData = this.json ({
             'nonce': nonce,
-            'identity': identity,
-        };
-        rawData = this.json (rawData);
+            'identity': this.login,
+        });
         const payload = this.stringToBase64 (rawData);
         const signature = this.hmac (payload, this.encode (this.secret), 'sha384');
-        const request = {
+        const defaultOptions = {
+            'ws': {
+                'options': {
+                    'headers': {},
+                },
+            },
+        };
+        this.options = this.extend (defaultOptions, this.options);
+        const originalHeaders = this.options['ws']['options']['headers'];
+        this.options['ws']['options']['headers'] = {
             'X-BITOPRO-API': 'ccxt',
             'X-BITOPRO-APIKEY': this.apiKey,
             'X-BITOPRO-PAYLOAD': payload,
             'X-BITOPRO-SIGNATURE': signature,
         };
-        this.options['ws']['options']['headers'] = request;
-        const client = this.client (url);
-        const future = this.safeValue (client.subscriptions, messageHash);
-        return await future;
+        // instantiate client
+        this.client (url);
+        this.options['ws']['options']['headers'] = originalHeaders;
     }
 
     async watchBalance (params = {}) {
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
-        const options = this.safeValue (this.options, 'watchBalance', {});
-        const name = this.safeString (options, 'name');
-        const messageHash = 'watchBalance@' + name;
-        const apis = this.safeValue (this.apis, 'ws');
-        const path = this.safeString (apis, 'watchBalance');
-        const url = this.urls['ws'] + path;
-        const future = await this.authenticate ({
-            messageHash,
-            url,
-        });
-        return await this.watch (url, messageHash, '', messageHash, future);
+        const messageHash = 'ACCOUNT_BALANCE';
+        const url = this.urls['ws']['private'] + '/' + 'account-balance';
+        this.authenticate (url);
+        return await this.watch (url, messageHash, undefined, messageHash);
     }
 
     handleBalance (client, message) {
@@ -290,108 +262,15 @@ module.exports = class bitopro extends ccxt.bitopro {
         for (let i = 0; i < currencies.length; i++) {
             const currency = this.safeString (currencies, i);
             const balance = this.safeValue (data, currency);
-            const code = this.safeCurrencyCode (this.safeString (balance, 'currency'));
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeString (balance, 'available');
             account['total'] = this.safeString (balance, 'amount');
             result[code] = account;
         }
-        const messageHash = 'watchBalance@' + event;
         this.balance = this.safeBalance (result);
-        client.resolve (this.balance, messageHash);
-    }
-
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.safeMarket (symbol);
-        const options = this.safeValue (this.options, 'watchOrders', {});
-        const name = this.safeString (options, 'name');
-        let messageHash = 'watchOrders@' + name;
-        if (symbol !== undefined) {
-            messageHash += ':' + market['symbol'];
-        }
-        const apis = this.safeValue (this.apis, 'ws');
-        const path = this.safeString (apis, 'watchOrders');
-        const url = this.urls['ws'] + path;
-        const future = await this.authenticate ({
-            messageHash,
-            url,
-        });
-        const orders = await this.watch (url, messageHash, '', messageHash, future);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, market['symbol'], since, limit, true);
-    }
-
-    handleOrders (client, message) {
-        //
-        //     {
-        //         event: 'ACTIVE_ORDERS',
-        //         timestamp: 1650526066301,
-        //         datetime: '2022-04-21T07:27:46.301Z',
-        //         data: {
-        //             usdt_twd: [
-        //                 {
-        //                     id: '3387412609',
-        //                     pair: 'usdt_twd',
-        //                     price: '29.99',
-        //                     avgExecutionPrice: '0',
-        //                     action: 'SELL',
-        //                     type: 'LIMIT',
-        //                     timestamp: 1650526032858,
-        //                     status: 0,
-        //                     originalAmount: '1',
-        //                     remainingAmount: '1',
-        //                     executedAmount: '0',
-        //                     fee: '0',
-        //                     feeSymbol: 'twd',
-        //                     bitoFee: '0',
-        //                     total: '0',
-        //                     seq: 'USDTTWD9172892144',
-        //                     timeInForce: 'GTC',
-        //                     createdTimestamp: 1650526032000,
-        //                     updatedTimestamp: 1650526032858
-        //                 }
-        //             ]
-        //         }
-        //     }
-        //
-        const event = this.safeString (message, 'event');
-        const messageHash = 'watchOrders@' + event;
-        const data = this.safeValue (message, 'data');
-        const currencies = Object.keys (data);
-        if (currencies.length > 0) {
-            if (this.orders === undefined) {
-                const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-                this.orders = new ArrayCacheBySymbolById (limit);
-            }
-            const stored = this.orders;
-            const symbols = {};
-            for (let i = 0; i < currencies.length; i++) {
-                const currency = currencies[i];
-                const ordersByCurrency = this.safeValue (data, currency);
-                for (let j = 0; j < ordersByCurrency.length; j++) {
-                    const currentOrder = ordersByCurrency[j];
-                    const orderId = this.safeString (currentOrder, 'id');
-                    const previousOrder = this.safeValue (stored.hashmap, orderId);
-                    let rawOrder = currentOrder;
-                    if (previousOrder !== undefined) {
-                        rawOrder = this.extend (previousOrder['info'], currentOrder);
-                    }
-                    const order = this.parseOrder (rawOrder);
-                    stored.append (order);
-                    const symbol = order['symbol'];
-                    symbols[symbol] = true;
-                }
-            }
-            client.resolve (this.orders, messageHash);
-            for (let i = 0; i < currencies.length; i++) {
-                const market = this.safeMarket (currencies[i], undefined, '_');
-                const symbol = market['symbol'];
-                client.resolve (this.orders, messageHash + ':' + symbol);
-            }
-        }
+        client.resolve (this.balance, event);
     }
 
     handleMessage (client, message) {
@@ -400,7 +279,6 @@ module.exports = class bitopro extends ccxt.bitopro {
             'TICKER': this.handleTicker,
             'ORDER_BOOK': this.handleOrderBook,
             'ACCOUNT_BALANCE': this.handleBalance,
-            'ACTIVE_ORDERS': this.handleOrders,
         };
         const event = this.safeString (message, 'event');
         const method = this.safeValue (methods, event);
