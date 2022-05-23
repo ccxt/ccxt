@@ -118,7 +118,6 @@ module.exports = class bybit extends ccxt.bybit {
             isUsdcSettled = (defaultSettle === 'USDC');
             isSpot = (type === 'spot');
             isLinear = (subType === 'linear');
-            params = this.omit (params, [ 'settle', 'defaultSettle', 'subType' ]);
         }
         if (isSpot) {
             url = url['spot'][accessibility];
@@ -131,15 +130,19 @@ module.exports = class bybit extends ccxt.bybit {
             url = url['inverse'][accessibility];
         }
         url = this.implodeHostname (url);
-        return [url, params];
+        return url;
+    }
+
+    cleanParams (params) {
+        params = this.omit (params, ['type', 'subType', 'settle', 'defaultSettle']);
     }
 
     async watchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = 'ticker:' + market['symbol'];
-        let url = undefined;
-        [ url, params ] = this.getUrlByMarketType (symbol, false, params);
+        const url = this.getUrlByMarketType (symbol, false, params);
+        params = this.cleanParams (params);
         if (market['spot']) {
             const options = this.safeValue (this.options, 'watchTicker', {});
             const channel = this.safeString (options, 'name', 'realtimes');
@@ -470,8 +473,8 @@ module.exports = class bybit extends ccxt.bybit {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const interval = this.timeframes[timeframe];
-        let url = undefined;
-        [ url, params ] = this.getUrlByMarketType (symbol, false, params);
+        const url = this.getUrlByMarketType (symbol, false, params);
+        params = this.cleanParams (params);
         const messageHash = 'kline' + ':' + timeframe + ':' + symbol;
         let ohlcv = undefined;
         if (market['spot']) {
@@ -634,8 +637,8 @@ module.exports = class bybit extends ccxt.bybit {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        let url = undefined;
-        [ url, params ] = this.getUrlByMarketType (symbol, false, params);
+        const url = this.getUrlByMarketType (symbol, false, params);
+        params = this.cleanParams (params);
         const messageHash = 'orderbook' + ':' + symbol;
         let orderbook = undefined;
         if (market['spot']) {
@@ -1020,6 +1023,7 @@ module.exports = class bybit extends ccxt.bybit {
         let market = undefined;
         let type = undefined;
         let isUsdcSettled = undefined;
+        const url = this.getUrlByMarketType (symbol, true, method, params);
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -1030,11 +1034,9 @@ module.exports = class bybit extends ccxt.bybit {
             [ type, params ] = this.handleMarketTypeAndParams (method, undefined, params);
             let settle = this.safeString (this.options, 'defaultSettle');
             settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
-            params = this.omit (params, [ 'settle', 'defaultSettle' ]);
             isUsdcSettled = settle === 'USDC';
         }
-        let url = undefined;
-        [url, params] = this.getUrlByMarketType (symbol, true, method, params);
+        params = this.cleanParams (params);
         let trades = undefined;
         if (type === 'spot') {
             trades = await this.watchSpotPrivate (url, messageHash, params);
@@ -1061,6 +1063,7 @@ module.exports = class bybit extends ccxt.bybit {
         let market = undefined;
         let type = undefined;
         let isUsdcSettled = undefined;
+        const url = this.getUrlByMarketType (symbol, true, method, params);
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -1071,11 +1074,9 @@ module.exports = class bybit extends ccxt.bybit {
             [ type, params ] = this.handleMarketTypeAndParams (method, undefined, params);
             let settle = this.safeString (this.options, 'defaultSettle');
             settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
-            params = this.omit (params, [ 'settle', 'defaultSettle' ]);
             isUsdcSettled = settle === 'USDC';
         }
-        let url = undefined;
-        [url, params] = this.getUrlByMarketType (symbol, true, method, params);
+        params = this.cleanParams (params);
         let orders = undefined;
         if (type === 'spot') {
             orders = await this.watchSpotPrivate (url, messageHash, params);
@@ -1257,7 +1258,7 @@ module.exports = class bybit extends ccxt.bybit {
     }
 
     prepareSwapOrder (order) {
-        // small adjustments to make it compatibke
+        // small adjustments to make it compatible
         // with the REST parser
         const create_time = this.safeString2 (order, 'create_time', 'timestamp');
         if (create_time !== undefined) {
@@ -1362,8 +1363,8 @@ module.exports = class bybit extends ccxt.bybit {
             throw new NotSupported (this.id + ' watchBalance does not support ' + type + ' type');
         }
         const messageHash = 'balance:' + type;
-        let url = undefined;
-        [url, params] = this.getUrlByMarketType (undefined, true, method, params);
+        const url = this.getUrlByMarketType (undefined, true, method, params);
+        params = this.cleanParams (params);
         if (type === 'spot') {
             return await this.watchSpotPrivate (url, messageHash, params);
         } else {
