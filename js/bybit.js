@@ -420,33 +420,35 @@ module.exports = class bybit extends ccxt.bybit {
         //
         let timestamp = this.safeInteger2 (ticker, 'time', 't');
         if (timestamp === undefined) {
-            timestamp = this.parse8601 (this.safeString (ticker, 'updated_at'));
+            timestamp = this.parse8601 (this.safeString2 (ticker, 'updated_at', 'updatedAt'));
             if (timestamp === undefined) {
                 const timestampE9 = this.safeString (ticker, 'updated_at_e9');
                 timestamp = Precise.stringDiv (timestampE9, '10000000');
-                timestamp = parseInt (this.parseNumber (timestamp));
+                timestamp = this.parseNumber (timestamp);
+                timestamp = (timestamp !== undefined) ? this.parseInt (timestamp) : undefined;
             }
         }
         const marketId = this.safeString2 (ticker, 'symbol', 's');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeString2 (ticker, 'l', 'last_price');
-        const open = this.safeString2 (ticker, 'prev_price_24h', 'o');
+        const last = this.safeStringN (ticker, ['l', 'last_price', 'lastPrice']);
+        const open = this.safeStringN (ticker, ['prev_price_24h', 'o', 'prevPrice24h']);
         let baseVolume = this.safeStringN (ticker, ['v', 'turnover24h']);
         if (baseVolume === undefined) {
-            baseVolume = this.safeString (ticker, 'turnover_24h_e8');
+            baseVolume = this.safeString2 (ticker, 'turnover_24h_e8', 'turnover24hE8');
             baseVolume = Precise.stringDiv (baseVolume, '100000000');
         }
         let quoteVolume = this.safeString2 (ticker, 'qv', 'volume24h');
         if (quoteVolume === undefined) {
-            quoteVolume = this.safeString (ticker, 'volume_24h_e8');
+            quoteVolume = this.safeString2 (ticker, 'volume_24h_e8', 'volume24hE8');
+            quoteVolume = Precise.stringDiv (quoteVolume, '100000000');
         }
         const bid = this.safeStringN (ticker, ['bidPrice', 'bid1_price']);
         const ask = this.safeStringN (ticker, ['askPrice', 'ask1_price']);
-        const high = this.safeStringN (ticker, ['high_price_24h', 'high24h', 'h']);
-        const low = this.safeStringN (ticker, ['low_price_24h', 'low24h', 'l']);
+        const high = this.safeStringN (ticker, ['high_price_24h', 'high24h', 'h', 'highPrice24h']);
+        const low = this.safeStringN (ticker, ['low_price_24h', 'low24h', 'l', 'lowPrice24h']);
         let percentage = this.safeString (ticker, 'm');
         if (percentage === undefined) {
-            percentage = this.safeString (ticker, 'price_24h_pcnt_e6');
+            percentage = this.safeString2 (ticker, 'price_24h_pcnt_e6', 'price24hPcntE6');
             percentage = Precise.stringDiv (percentage, '1000000');
         }
         const change = this.safeString (ticker, 'change24h');
