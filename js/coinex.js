@@ -31,7 +31,9 @@ module.exports = class coinex extends Exchange {
                 'createReduceOnlyOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddressByNetwork': false,
                 'fetchDepositAddresses': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': true,
@@ -256,11 +258,103 @@ module.exports = class coinex extends Exchange {
                 'defaultType': 'spot', // spot, swap, margin
                 'defaultSubType': 'linear', // linear, inverse
                 'defaultMarginMode': 'isolated', // isolated, cross
+                'fetchDepositAddress': {
+                    'fillResponseFromRequest': true,
+                },
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',
             },
         });
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetCommonAssetConfig (params);
+        //
+        //     {
+        //         code: 0,
+        //         data: {
+        //           'CET-CSC': {
+        //               asset: 'CET',
+        //               chain: 'CSC',
+        //               withdrawal_precision: 8,
+        //               can_deposit: true,
+        //               can_withdraw: true,
+        //               deposit_least_amount: '0.026',
+        //               withdraw_least_amount: '20',
+        //               withdraw_tx_fee: '0.026'
+        //           },
+        //           ...
+        //           message: 'Success',
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const coins = Object.keys (data);
+        const result = {};
+        for (let i = 0; i < coins.length; i++) {
+            const coin = coins[i];
+            const currency = data[coin];
+            const currencyId = this.safeString (currency, 'asset');
+            const networkId = this.safeString (currency, 'chain');
+            const code = this.safeCurrencyCode (currencyId);
+            if (this.safeValue (result, code) === undefined) {
+                result[code] = {
+                    'id': currencyId,
+                    'numericId': undefined,
+                    'code': code,
+                    'info': currency,
+                    'name': undefined,
+                    'active': true,
+                    'deposit': this.safeValue (currency, 'can_deposit'),
+                    'withdraw': this.safeValue (currency, 'can_withdraw'),
+                    'fee': this.safeNumber (currency, 'withdraw_tx_fee'),
+                    'precision': this.safeNumber (currency, 'withdrawal_precision'),
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (currency, 'deposit_least_amount'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber (currency, 'withdraw_least_amount'),
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            const networks = this.safeValue (result[code], 'networks', {});
+            const network = {
+                'info': currency,
+                'id': networkId,
+                'network': networkId,
+                'name': undefined,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': this.safeNumber (currency, 'deposit_least_amount'),
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeNumber (currency, 'withdraw_least_amount'),
+                        'max': undefined,
+                    },
+                },
+                'active': true,
+                'deposit': this.safeValue (currency, 'can_deposit'),
+                'withdraw': this.safeValue (currency, 'can_withdraw'),
+                'fee': this.safeNumber (currency, 'withdraw_tx_fee'),
+                'precision': this.safeNumber (currency, 'withdrawal_precision'),
+            };
+            networks[networkId] = network;
+            result[code]['networks'] = networks;
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}) {
@@ -2290,9 +2384,20 @@ module.exports = class coinex extends Exchange {
         const request = {
             'coin_type': currency['id'],
         };
-        if ('network' in params) {
-            const network = this.safeString (params, 'network');
-            params = this.omit (params, 'network');
+        const networks = this.safeValue (currency, 'networks', {});
+        const network = this.safeString (params, 'network');
+        params = this.omit (params, 'network');
+        const networksKeys = Object.keys (networks);
+        const numOfNetworks = networksKeys.length;
+        if (networks !== undefined && numOfNetworks > 1) {
+            if (network === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() ' + code + ' requires a network parameter');
+            }
+            if (!(network in networks)) {
+                throw new ExchangeError (this.id + ' fetchDepositAddress() ' + network + ' network not supported for ' + code);
+            }
+        }
+        if (network !== undefined) {
             request['smart_contract_name'] = network;
         }
         const response = await this.privateGetBalanceDepositAddressCoinType (this.extend (request, params));
@@ -2307,7 +2412,30 @@ module.exports = class coinex extends Exchange {
         //      }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseDepositAddress (data, currency);
+        const depositAddress = this.parseDepositAddress (data, currency);
+        const options = this.safeValue (this.options, 'fetchDepositAddress', {});
+        const fillResponseFromRequest = this.safeValue (options, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            depositAddress['network'] = this.safeNetworkCode (network, currency);
+        }
+        return depositAddress;
+    }
+
+    safeNetwork (networkId, currency = undefined) {
+        const networks = this.safeValue (currency, 'networks', {});
+        const networksCodes = Object.keys (networks);
+        if (networkId === undefined && networksCodes.length === 1) {
+            return networks[networksCodes[0]];
+        }
+        return {
+            'id': networkId,
+            'network': (networkId === undefined) ? undefined : networkId.toUpperCase (),
+        };
+    }
+
+    safeNetworkCode (networkId, currency = undefined) {
+        const network = this.safeNetwork (networkId, currency);
+        return network['network'];
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {

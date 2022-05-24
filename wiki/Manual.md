@@ -712,14 +712,18 @@ In terms of the ccxt library, every exchange offers multiple **markets** within 
     'active':    true,       // boolean, currency status (tradeable and withdrawable)
     'fee':       0.123,      // withdrawal fee, flat
     'precision': 8,          // number of decimal digits "after the dot" (depends on exchange.precisionMode)
+    'deposit':   true        // boolean, deposits are available
+    'withdraw':  true        // boolean, withdraws are available
     'limits': {              // value limits when placing orders on this market
         'amount': {
             'min': 0.01,     // order amount should be > min
             'max': 1000,     // order amount should be < max
         },
         'withdraw': { ... }, // withdrawal limits
+        'deposit': {...},
     },
-    'info': { ... }, // the original unparsed currency info from the exchange
+    'network': {...}         // network structure
+    'info': { ... },         // the original unparsed currency info from the exchange
 }
 ```
 
@@ -732,7 +736,43 @@ Each currency is an associative array (aka dictionary) with the following keys:
 - `active`. A boolean indicating whether trading or funding (depositing or withdrawing) for this currency is currently possible, more about it here: [`active` status](#active-status).
 - `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 - `precision`. Precision accepted in values by exchanges upon referencing this currency. The value of this property depends on [`exchange.precisionMode`](#precision-mode).
-- `limits`. The minimums and maximums for amounts (volumes) and withdrawals.
+- `limits`. The minimums and maximums for amounts (volumes), withdrawals and deposits.
+- `networks`. Object that contains each [network structure](#network-structure) of the currency, where the unified network code is the key.
+
+## Network structure
+```JavaScript
+{
+    'id':       'tron',         // string literal for referencing within an exchange
+    'network':  'TRC20'         // unified network
+    'name':     'Tron Network', // string, human-readable name, if specified
+    'active':    true,          // boolean, currency status (tradeable and withdrawable)
+    'fee':       0.123,         // withdrawal fee, flat
+    'precision': 8,             // number of decimal digits "after the dot" (depends on exchange.precisionMode)
+    'deposit':   true           // boolean, deposits are available
+    'withdraw':  true           // boolean, withdraws are available
+    'limits': {                 // value limits when placing orders on this market
+        'amount': {
+            'min': 0.01,        // order amount should be > min
+            'max': 1000,        // order amount should be < max
+        },
+        'withdraw': { ... },    // withdrawal limits
+        'deposit': {...},       // deposit limits
+    },
+    'info': { ... },            // the original unparsed currency info from the exchange
+}
+```
+
+Each network is an associative array (aka dictionary) with the following keys:
+
+- `id`. The string or numeric ID of the network within the exchange. Network ids are used inside exchanges internally to identify networks during the request/response process.
+- `network`. An uppercase string representation of a particular network. Networks are used to reference networks within the ccxt library.
+- `name`. A human-readable name of the network (can be a mix of uppercase & lowercase characters).
+- `fee`. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchnange does not specify it via public endpoints, the `fee` can be `undefined/None/null` or missing.
+- `active`. A boolean indicating whether trading or funding (depositing or withdrawing) for this currency is currently possible, more about it here: [`active` status](#active-status).
+- `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
+- `precision`. Precision accepted in values by exchanges upon referencing this currency. The value of this property depends on [`exchange.precisionMode`](#precision-mode).
+- `limits`. The minimums and maximums for amounts (volumes), withdrawals and deposits.
+
 
 ## Market Structure
 
