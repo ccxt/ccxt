@@ -1667,11 +1667,13 @@ class Transpiler {
             [ /module.exports\s+=\s+[^;]+;/g, '' ],
         ])
 
-        const pythonHeader = [
-            'import numbers  # noqa: E402',
-            '',
-            '',
-        ].join('\n')
+        const pythonHeader = [];
+        if (python3Body.indexOf ('numbers.') >= 0) {
+            pythonHeader.push ('import numbers  # noqa E402');
+        }
+
+        pythonHeader.push ('','')
+        pythonHeader = pythonHeader.join('\n')
 
         let { python3Body, python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
         const python = pythonHeader + python3Body;
