@@ -3097,9 +3097,11 @@ module.exports = class bybit extends Exchange {
                 request['orderFilter'] = isConditional ? 'StopOrder' : 'Order';
             }
         } else if (market['linear']) {
+            // linear futures and linear swaps
             method = isConditional ? 'privatePostPrivateLinearStopOrderCancel' : 'privatePostPrivateLinearOrderCancel';
-        } else if (market['future']) {
-            method = isConditional ? 'privatePostFuturesPrivateStopOrderCancel' : 'privatePostFuturesPrivateOrderCancel';
+        } else if (market['swap']) {
+            // inverse swaps
+            method = isConditional ? 'privatePostV2PrivateStopOrderCancel' : 'privatePostV2PrivateOrderCancel';
         } else {
             // inverse futures
             method = isConditional ? 'privatePostFuturesPrivateStopOrderCancel' : 'privatePostFuturesPrivateOrderCancel';
@@ -3152,6 +3154,7 @@ module.exports = class bybit extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = undefined;
         let isUsdcSettled = undefined;
         if (symbol !== undefined) {
@@ -3168,7 +3171,6 @@ module.exports = class bybit extends Exchange {
         if (!isUsdcSettled && symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument for ' + type + ' markets');
         }
-        await this.loadMarkets ();
         const request = {};
         if (!isUsdcSettled) {
             request['symbol'] = market['id'];
