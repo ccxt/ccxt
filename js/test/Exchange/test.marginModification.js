@@ -6,7 +6,7 @@ const assert = require("assert");
 
 // ----------------------------------------------------------------------------
 
-module.exports = (exchange, marginModification) => {
+function testMarginModification (exchange, marginModification) {
     const format = {
         info: {},
         type: "add",
@@ -24,7 +24,7 @@ module.exports = (exchange, marginModification) => {
     if (marginModification["type"] !== undefined) {
         assert (marginModification["type"] === "add" || marginModification["type"] === "reduce" || marginModification["type"] === "set");
     }
-    if (marginModification["ampunt"] !== undefined) {
+    if (marginModification["amount"] !== undefined) {
         assert (typeof marginModification["amount"] === "number");
     }
     if (marginModification["total"] !== undefined) {
@@ -37,6 +37,8 @@ module.exports = (exchange, marginModification) => {
         assert (typeof marginModification["symbol"] === "string");
     }
     if (marginModification["status"] !== undefined) {
-        assert (exchange.inArray (marginModification["status"], [ "ok", "pending", "canceled", "failed" ]);
+        assert (exchange.inArray (marginModification["status"], [ "ok", "pending", "canceled", "failed" ]));
     }
 };
+
+module.exports = testMarginModification;
