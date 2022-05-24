@@ -135,6 +135,7 @@ module.exports = class bybit extends ccxt.bybit {
 
     cleanParams (params) {
         params = this.omit (params, ['type', 'subType', 'settle', 'defaultSettle']);
+        return params;
     }
 
     async watchTicker (symbol, params = {}) {
@@ -1880,9 +1881,9 @@ module.exports = class bybit extends ccxt.bybit {
     }
 
     ping (client) {
-        const type = this.safeString (this.options, 'defaultType', 'spot');
-        if (type === 'spot') {
-            const timestamp = this.milliseconds ();
+        const url = client.url;
+        const timestamp = this.milliseconds ();
+        if (url.indexOf ('spot') >= 0) {
             return { 'ping': timestamp };
         }
         return { 'op': 'ping' };
