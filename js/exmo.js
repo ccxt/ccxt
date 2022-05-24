@@ -19,10 +19,13 @@ module.exports = class exmo extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined, // has but unimplemented
+                'margin': true,
                 'swap': false,
                 'future': false,
                 'option': false,
+                'addMargin': true,
+                'reduceMargin': true,
+                'setMargin': false,
                 'cancelOrder': true,
                 'createOrder': true,
                 'createStopLimitOrder': true,
@@ -174,6 +177,9 @@ module.exports = class exmo extends Exchange {
                 'fetchTradingFees': {
                     'method': 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
                 },
+                'margin': {
+                    'fillResponseFromRequest': true,
+                },
             },
             'commonCurrencies': {
                 'GMT': 'GMT Token',
@@ -204,6 +210,56 @@ module.exports = class exmo extends Exchange {
                 },
             },
         });
+    }
+
+    async modifyMarginHelper (symbol, amount, type, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'position_id': market['id'],
+            'quantity': amount,
+        };
+        let method = undefined;
+        if (type === 'add') {
+            method = 'privatePostMarginUserPositionMarginAdd';
+        } else if (type === 'reduce') {
+            method = 'privatePostMarginUserPositionMarginReduce';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //      {}
+        //
+        const margin = this.parseMarginModification (response, market);
+        const options = this.safeValue (this.options, 'margin', {});
+        const fillResponseFromRequest = this.safeValue (options, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            margin['type'] = type;
+            margin['amount'] = amount;
+        }
+        return margin;
+    }
+
+    parseMarginModification (data, market = undefined) {
+        //
+        //      {}
+        //
+        return {
+            'info': data,
+            'type': undefined,
+            'amount': undefined,
+            'code': market['quote'],
+            'symbol': market['symbol'],
+            'total': undefined,
+            'status': 'ok',
+        };
+    }
+
+    async reduceMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
+    }
+
+    async addMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
     async fetchTradingFees (params = {}) {
