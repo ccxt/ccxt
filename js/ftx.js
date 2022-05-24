@@ -985,13 +985,6 @@ module.exports = class ftx extends Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
-    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'index',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
-    }
-
     parseTrade (trade, market = undefined) {
         //
         // fetchTrades (public)

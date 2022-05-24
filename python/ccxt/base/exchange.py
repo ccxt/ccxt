@@ -3101,3 +3101,57 @@ class Exchange(object):
                 return rate
         else:
             raise NotSupported(self.id + ' fetch_funding_rate() is not supported yet')
+
+    def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical mark price candlestick data containing the open, high, low, and close price of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [[int|float]] A: list of candles ordered as timestamp, open, high, low, close, None
+        """
+        if self.has['fetchMarkOHLCV']:
+            request = {
+                'price': 'mark',
+            }
+            return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchMarkOHLCV() is not supported yet')
+
+    def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical index price candlestick data containing the open, high, low, and close price of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [[int|float]] A: list of candles ordered as timestamp, open, high, low, close, None
+        """
+        if self.has['fetchIndexOHLCV']:
+            request = {
+                'price': 'index',
+            }
+            return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchIndexOHLCV() is not supported yet')
+
+    def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [[int|float]] A: list of candles ordered as timestamp, open, high, low, close, None
+        """
+        if self.has['fetchPremiumIndexOHLCV']:
+            request = {
+                'price': 'premiumIndex',
+            }
+            return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchPremiumIndexOHLCV() is not supported yet')
