@@ -783,7 +783,7 @@ module.exports = class bybit extends ccxt.bybit {
             const nonce = this.safeInteger2 (message, 'cross_seq', 'crossSeq');
             const timestamp = this.safeIntegerProduct2 (message, 'timestamp_e6', 'timestampE6', 0.001);
             if (type === 'snapshot') {
-                const rawOrderBook = this.safeValue2 (data, 'order_book', 'orderBook');
+                const rawOrderBook = this.safeValue2 (data, 'order_book', 'orderBook', data);
                 const snapshot = this.parseOrderBook (rawOrderBook, symbol, timestamp, 'Buy', 'Sell', 'price', 'size');
                 snapshot['nonce'] = nonce;
                 let orderbook = undefined;
