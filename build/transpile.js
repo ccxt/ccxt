@@ -1669,7 +1669,7 @@ class Transpiler {
 
         let { python3Body, python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
 
-        const pythonHeader = [];
+        let pythonHeader = [];
         if (python3Body.indexOf ('numbers.') >= 0) {
             pythonHeader.push ('import numbers  # noqa E402');
         }
