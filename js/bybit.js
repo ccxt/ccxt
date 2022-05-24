@@ -844,6 +844,7 @@ module.exports = class bybit extends Exchange {
                 expiry = this.parse8601 (expiryDatetime);
                 symbol = symbol + '-' + this.yymmdd (expiry);
             }
+            const contractSize = !linear ? this.safeNumber (lotSizeFilter, 'min_trading_qty') : undefined;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -865,7 +866,7 @@ module.exports = class bybit extends Exchange {
                 'inverse': !linear,
                 'taker': this.safeNumber (market, 'taker_fee'),
                 'maker': this.safeNumber (market, 'maker_fee'),
-                'contractSize': this.safeNumber (lotSizeFilter, 'min_trading_qty'),
+                'contractSize': contractSize,
                 'expiry': expiry,
                 'expiryDatetime': expiryDatetime,
                 'strike': undefined,
