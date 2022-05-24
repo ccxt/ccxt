@@ -5818,12 +5818,12 @@ module.exports = class huobi extends Exchange {
          * @description Retrieves the open intestest history of a currency
          * @param {str} symbol Unified CCXT market symbol
          * @param {str} timeframe '1h', '4h', '12h', or '1d'
-         * @param {int} since Not used by huobi api, but response parsed by CCXT
-         * @param {int} limit Default：48，Data Range [1,200]
+         * @param {int|undefined} since Not used by huobi api, but response parsed by CCXT
+         * @param {int|undefined} limit Default：48，Data Range [1,200]
          * @param {dict} params Exchange specific parameters
          * @param {int} params.amount_type *required* Open interest unit. 1-cont，2-cryptocurrenty
-         * @param {int} params.pair eg BTC-USDT *Only for USDT-M*
-         * @returns An array of open interest structures
+         * @param {int|undefined} params.pair eg BTC-USDT *Only for USDT-M*
+         * @returns {dict} an array of [open interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#open-interest-structure}
          */
         if (timeframe !== '1h' && timeframe !== '4h' && timeframe !== '12h' && timeframe !== '1d') {
             throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot only use the 1h, 4h, 12h and 1d timeframe');
@@ -5939,9 +5939,8 @@ module.exports = class huobi extends Exchange {
         const timestamp = this.safeNumber (interest, 'ts');
         return {
             'symbol': this.safeString (market, 'symbol'),
-            'volume': this.safeNumber (interest, 'volume'),
-            'value': this.safeValue (interest, 'value'),
-            'valueCurrency': this.safeString (market, 'quote'),
+            'baseVolume': this.safeNumber (interest, 'volume'),
+            'quoteVolume': this.safeValue (interest, 'value'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
