@@ -1681,7 +1681,7 @@ class Transpiler {
             pythonHeader.push ('', '')
         }
 
-        pythonHeader = pythonCodingUtf8 + '\n' + pythonHeader.join ('\n')
+        pythonHeader = pythonCodingUtf8 + '\n\n' + pythonHeader.join ('\n')
 
         const python = pythonHeader + python3Body
         const php = this.getPHPPreamble (false) + phpBody
