@@ -1159,7 +1159,7 @@ module.exports = class btse extends Exchange {
         const side = this.safeStringLower (order, 'side');
         const timeInForce = this.safeString (order, 'time_in_force');
         const postOnly = this.safeValue (order, 'postOnly');
-        const cost = this.safeString (order, 'orderValue');
+        const cost = (filled && average) ? filled * average : 0;
         return this.safeOrder ({
             'info': order,
             'id': id,
