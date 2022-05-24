@@ -337,6 +337,13 @@ module.exports = class ascendex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name ascendex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the ascendex api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const assets = await this.v1PublicGetAssets (params);
         //
         //     {

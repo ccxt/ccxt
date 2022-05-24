@@ -1005,6 +1005,13 @@ module.exports = class bitget extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the bitget api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicSpotGetPublicCurrencies (params);
         //
         //     {

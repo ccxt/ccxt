@@ -436,6 +436,13 @@ module.exports = class bitrue extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name bitrue#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the bitrue api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.v1PublicGetExchangeInfo (params);
         //
         //     {

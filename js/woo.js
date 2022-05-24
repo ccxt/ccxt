@@ -552,6 +552,13 @@ module.exports = class woo extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name woo#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the woo api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         let method = undefined;
         const result = {};
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchCurrencies', undefined, params);

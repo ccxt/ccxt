@@ -903,6 +903,13 @@ module.exports = class cdax extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name cdax#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the cdax api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const request = {
             'language': this.options['language'],
         };

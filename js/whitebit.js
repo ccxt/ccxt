@@ -325,6 +325,13 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name whitebit#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the whitebit api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.v4PublicGetAssets (params);
         //
         //      "BTC": {
