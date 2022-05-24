@@ -290,6 +290,13 @@ module.exports = class kuna extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the kuna api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetTimestamp (params);
         //
         //     1594911427

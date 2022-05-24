@@ -338,6 +338,13 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPublicGetCommonTimestamp',

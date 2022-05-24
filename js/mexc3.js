@@ -439,6 +439,13 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name mexc3#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the mexc3 api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         let response = undefined;
         if (marketType === 'spot') {

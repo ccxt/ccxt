@@ -438,6 +438,13 @@ module.exports = class wazirx extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name wazirx#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the wazirx api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetTime (params);
         //
         //     {

@@ -491,6 +491,13 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.futuresPublicGetTimestamp (params);
         //
         //    {

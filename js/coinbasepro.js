@@ -863,6 +863,13 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name coinbasepro#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the coinbasepro api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetTime (params);
         //
         //     {

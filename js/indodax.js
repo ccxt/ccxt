@@ -158,6 +158,13 @@ module.exports = class indodax extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name indodax#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the indodax api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetServerTime (params);
         //
         //     {

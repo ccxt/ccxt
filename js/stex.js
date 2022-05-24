@@ -546,6 +546,13 @@ module.exports = class stex extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name stex#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the stex api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetPing (params);
         //
         //     {

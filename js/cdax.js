@@ -253,6 +253,13 @@ module.exports = class cdax extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name cdax#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the cdax api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetCommonTimestamp (params);
         return this.safeInteger (response, 'data');
     }

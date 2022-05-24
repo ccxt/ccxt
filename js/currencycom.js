@@ -291,6 +291,13 @@ module.exports = class currencycom extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name currencycom#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the currencycom api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetV2Time (params);
         //
         //     {

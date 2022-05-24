@@ -755,6 +755,13 @@ module.exports = class okx extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name okx#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the okx api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetPublicTime (params);
         //
         //     {
