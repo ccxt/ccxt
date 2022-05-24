@@ -3089,9 +3089,11 @@ class bybit extends Exchange {
                 $request['orderFilter'] = $isConditional ? 'StopOrder' : 'Order';
             }
         } else if ($market['linear']) {
+            // linear futures and linear swaps
             $method = $isConditional ? 'privatePostPrivateLinearStopOrderCancel' : 'privatePostPrivateLinearOrderCancel';
-        } else if ($market['future']) {
-            $method = $isConditional ? 'privatePostFuturesPrivateStopOrderCancel' : 'privatePostFuturesPrivateOrderCancel';
+        } else if ($market['swap']) {
+            // inverse swaps
+            $method = $isConditional ? 'privatePostV2PrivateStopOrderCancel' : 'privatePostV2PrivateOrderCancel';
         } else {
             // inverse futures
             $method = $isConditional ? 'privatePostFuturesPrivateStopOrderCancel' : 'privatePostFuturesPrivateOrderCancel';
@@ -3144,6 +3146,7 @@ class bybit extends Exchange {
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
+        yield $this->load_markets();
         $market = null;
         $isUsdcSettled = null;
         if ($symbol !== null) {
@@ -3160,7 +3163,6 @@ class bybit extends Exchange {
         if (!$isUsdcSettled && $symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument for ' . $type . ' markets');
         }
-        yield $this->load_markets();
         $request = array();
         if (!$isUsdcSettled) {
             $request['symbol'] = $market['id'];
