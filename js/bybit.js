@@ -487,6 +487,13 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetV2PublicTime (params);
         //
         //     {

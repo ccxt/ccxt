@@ -192,6 +192,13 @@ module.exports = class delta extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name delta#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the delta api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetSettings (params);
         // full response sample under `fetchStatus`
         const result = this.safeValue (response, 'result', {});

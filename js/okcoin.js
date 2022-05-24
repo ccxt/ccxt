@@ -782,6 +782,13 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.generalGetTime (params);
         //
         //     {
