@@ -859,9 +859,9 @@ module.exports = class bybit extends ccxt.bybit {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        let url = undefined;
         const commonChannel = 'trade';
-        [ url, params ] = this.getUrlByMarketType (symbol, false, params);
+        const url = this.getUrlByMarketType (symbol, false, params);
+        params = this.cleanParams (params);
         const messageHash = commonChannel + ':' + symbol;
         let trades = undefined;
         if (market['spot']) {
@@ -1046,18 +1046,9 @@ module.exports = class bybit extends ccxt.bybit {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const price = this.safeStringN (trade, ['p', 'price', 'execPrice']);
-        let amount = this.safeStringN (trade, ['q', 'size', 'exec_qty', 'execQty']);
-        let cost = this.safeString2 (trade, 'exec_value', 'execValue');
-        const isInverse = this.safeValue (market, 'inverse');
-        if (isInverse) {
-            // inverse swaps/futures report the amount in
-            // the quote currency (USDT per eg)
-            // amount = cost/contractSize
-            const contractSize = this.safeString (market, 'contractSize', '1');
-            cost = amount;
-            amount = Precise.stringDiv (cost, contractSize);
-        }
-        let timestamp = this.safeNumberN (trade, ['trade_time_ms', 't', 'tradeTime', 'tradeTimeMs']);
+        const amount = this.safeStringN (trade, ['q', 'size', 'exec_qty', 'execQty']);
+        const cost = this.safeString2 (trade, 'exec_value', 'execValue');
+        let timestamp = this.safeIntegerN (trade, ['trade_time_ms', 't', 'tradeTime', 'tradeTimeMs']);
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (trade, 'trade_time'));
         }
