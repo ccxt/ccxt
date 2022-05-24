@@ -1800,6 +1800,11 @@ class kraken(Exchange):
         return self.parse_transactions_by_type('deposit', response['result'], code, since, limit)
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the kraken api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         # https://www.kraken.com/en-us/features/api#get-server-time
         response = await self.publicGetTime(params)
         #

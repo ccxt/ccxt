@@ -194,6 +194,11 @@ class delta extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the delta api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = $this->publicGetSettings ($params);
         // full $response sample under `fetchStatus`
         $result = $this->safe_value($response, 'result', array());

@@ -267,6 +267,11 @@ class cdax(Exchange):
         })
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the cdax api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = self.publicGetCommonTimestamp(params)
         return self.safe_integer(response, 'data')
 

@@ -688,6 +688,11 @@ class bittrex(Exchange):
         }, market)
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = self.publicGetPing(params)
         #
         #     {

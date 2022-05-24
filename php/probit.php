@@ -801,6 +801,11 @@ class probit extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer $timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the probit api endpoint
+         * @return {int} the current integer $timestamp in milliseconds from the exchange server
+         */
         $response = $this->publicGetTime ($params);
         //
         //     array( "data":"2020-04-12T18:54:25.390Z" )

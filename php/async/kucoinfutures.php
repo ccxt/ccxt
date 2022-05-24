@@ -492,6 +492,11 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = yield $this->futuresPublicGetTimestamp ($params);
         //
         //    {

@@ -298,6 +298,11 @@ class bitvavo(Exchange):
         return self.decimal_to_precision(price, TRUNCATE, 8, DECIMAL_PLACES)
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the bitvavo api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.publicGetTime(params)
         #
         #     {"time": 1590379519148}

@@ -201,6 +201,11 @@ class delta(Exchange):
         })
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = self.publicGetSettings(params)
         # full response sample under `fetchStatus`
         result = self.safe_value(response, 'result', {})

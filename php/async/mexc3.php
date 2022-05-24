@@ -446,6 +446,11 @@ class mexc3 extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the mexc3 api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTime', null, $params);
         $response = null;
         if ($marketType === 'spot') {

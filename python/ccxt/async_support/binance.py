@@ -1248,6 +1248,11 @@ class binance(Exchange):
         return self.milliseconds() - self.options['timeDifference']
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         defaultType = self.safe_string_2(self.options, 'fetchTime', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')

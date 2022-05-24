@@ -462,6 +462,11 @@ class kucoin(Exchange):
         return self.milliseconds()
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the kucoin api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.publicGetTimestamp(params)
         #
         #     {
