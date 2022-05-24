@@ -675,6 +675,7 @@ module.exports = class bybit extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const active = this.safeValue (market, 'showStatus');
+            const quotePrecision = this.safeNumber (market, 'quotePrecision');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -703,7 +704,7 @@ module.exports = class bybit extends Exchange {
                 'optionType': undefined,
                 'precision': {
                     'amount': this.safeNumber (market, 'basePrecision'),
-                    'price': this.safeNumber (market, 'quotePrecision'),
+                    'price': this.safeNumber (market, 'minPricePrecision', quotePrecision),
                 },
                 'limits': {
                     'leverage': {
@@ -2701,7 +2702,7 @@ module.exports = class bybit extends Exchange {
             if (price === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder requires a price argument for a ' + type + ' order');
             }
-            request['price'] = price;
+            request['price'] = this.priceToPrecision (symbol, price);
         }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'orderLinkId');
         if (clientOrderId !== undefined) {
