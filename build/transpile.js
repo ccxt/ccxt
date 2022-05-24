@@ -1608,56 +1608,46 @@ class Transpiler {
                 'jsFile': './js/test/Exchange/test.market.js',
                 'pyFile': './python/ccxt/test/test_market.py',
                 'phpFile': './php/test/test_market.php',
-                'requireNumbers': true,
             },
             {
                 'jsFile': './js/test/Exchange/test.trade.js',
                 'pyFile': './python/ccxt/test/test_trade.py',
                 'phpFile': './php/test/test_trade.php',
-                'requireNumbers': true,
-
             },
             {
                 'jsFile': './js/test/Exchange/test.order.js',
                 'pyFile': './python/ccxt/test/test_order.py',
                 'phpFile': './php/test/test_order.php',
-                'requireNumbers': true,
             },
             {
                 'jsFile': './js/test/Exchange/test.position.js',
                 'pyFile': './python/ccxt/test/test_position.py',
                 'phpFile': './php/test/test_position.php',
-                'requireNumbers': true,
             },
             {
                 'jsFile': './js/test/Exchange/test.transaction.js',
                 'pyFile': './python/ccxt/test/test_transaction.py',
                 'phpFile': './php/test/test_transaction.php',
-                'requireNumbers': true,
             },
             {
                 'jsFile': './js/test/Exchange/test.ohlcv.js',
                 'pyFile': './python/ccxt/test/test_ohlcv.py',
                 'phpFile': './php/test/test_ohlcv.php',
-                'requireNumbers': true,
             },
             {
                 'jsFile': './js/test/Exchange/test.leverageTier.js',
                 'pyFile': './python/ccxt/test/test_leverage_tier.py',
                 'phpFile': './php/test/test_leverage_tier.php',
-                'requireNumbers': true,
             },
             {
                 'jsFile': './js/test/Exchange/test.account.js',
                 'pyFile': './python/ccxt/test/test_account.py',
                 'phpFile': './php/test/test_account.php',
-                'requireNumbers': false,
             },
             {
                 'jsFile': './js/test/Exchange/test.marginModification.js',
                 'pyFile': './python/ccxt/test/test_margin_modification.py',
                 'phpFile': './php/test/test_margin_modification.php',
-                'requireNumbers': false,
             },
         ]
         for (const test of tests) {
@@ -1677,14 +1667,11 @@ class Transpiler {
             [ /module.exports\s+=\s+[^;]+;/g, '' ],
         ])
 
-        let pythonHeader = ['',''].join('\n')
-        if (test.requireNumbers) {
-            pythonHeader = [
-                'import numbers  # noqa: E402',
-                '',
-                '',
-            ].join('\n')
-        }
+        const pythonHeader = [
+            'import numbers  # noqa: E402',
+            '',
+            '',
+        ].join('\n')
 
         let { python3Body, python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
         const python = pythonHeader + python3Body;
