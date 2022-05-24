@@ -470,12 +470,13 @@ class bybit(Exchange):
             'precisionMode': TICK_SIZE,
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
-                'defaultType': 'swap',  # 'swap', 'future', 'option'
+                'defaultType': 'swap',  # 'swap', 'future', 'option', 'spot'
+                'defaultSubType': 'linear',  # 'linear', 'inverse'
+                'defaultSettle': 'USDT',  # USDC for USDC settled markets
                 'code': 'BTC',
                 'recvWindow': 5 * 1000,  # 5 sec default
                 'timeDifference': 0,  # the difference between system clock and exchange server clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
-                'defaultSettle': 'USDT',  # USDC for USDC settled markets
                 'brokerId': 'CCXT',
             },
             'fees': {

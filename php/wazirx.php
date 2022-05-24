@@ -17,7 +17,7 @@ class wazirx extends Exchange {
             'name' => 'WazirX',
             'countries' => array( 'IN' ),
             'version' => 'v2',
-            'rateLimit' => 100,
+            'rateLimit' => 1000,
             'has' => array(
                 'CORS' => false,
                 'spot' => true,
