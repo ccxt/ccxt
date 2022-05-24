@@ -461,12 +461,13 @@ class bybit extends Exchange {
             'precisionMode' => TICK_SIZE,
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
-                'defaultType' => 'swap',  // 'swap', 'future', 'option'
+                'defaultType' => 'swap',  // 'swap', 'future', 'option', 'spot'
+                'defaultSubType' => 'linear',  // 'linear', 'inverse'
+                'defaultSettle' => 'USDT', // USDC for USDC settled markets
                 'code' => 'BTC',
                 'recvWindow' => 5 * 1000, // 5 sec default
                 'timeDifference' => 0, // the difference between system clock and exchange server clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
-                'defaultSettle' => 'USDT', // USDC for USDC settled markets
                 'brokerId' => 'CCXT',
             ),
             'fees' => array(
