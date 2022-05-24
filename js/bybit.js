@@ -432,18 +432,18 @@ module.exports = class bybit extends ccxt.bybit {
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeStringN (ticker, ['l', 'last_price', 'lastPrice']);
         const open = this.safeStringN (ticker, ['prev_price_24h', 'o', 'prevPrice24h']);
-        let baseVolume = this.safeStringN (ticker, ['v', 'turnover24h']);
-        if (baseVolume === undefined) {
-            baseVolume = this.safeString2 (ticker, 'turnover_24h_e8', 'turnover24hE8');
-            baseVolume = Precise.stringDiv (baseVolume, '100000000');
-        }
-        let quoteVolume = this.safeString2 (ticker, 'qv', 'volume24h');
+        let quoteVolume = this.safeStringN (ticker, ['v', 'turnover24h']);
         if (quoteVolume === undefined) {
-            quoteVolume = this.safeString2 (ticker, 'volume_24h_e8', 'volume24hE8');
+            quoteVolume = this.safeString2 (ticker, 'turnover_24h_e8', 'turnover24hE8');
             quoteVolume = Precise.stringDiv (quoteVolume, '100000000');
         }
-        const bid = this.safeStringN (ticker, ['bidPrice', 'bid1_price']);
-        const ask = this.safeStringN (ticker, ['askPrice', 'ask1_price']);
+        let baseVolume = this.safeStringN (ticker, ['qv', 'volume24h', 'volume_24h']);
+        if (baseVolume === undefined) {
+            baseVolume = this.safeString2 (ticker, 'volume_24h_e8', 'volume24hE8');
+            baseVolume = Precise.stringDiv (baseVolume, '100000000');
+        }
+        const bid = this.safeStringN (ticker, ['bidPrice', 'bid1_price', 'bid1Price']);
+        const ask = this.safeStringN (ticker, ['askPrice', 'ask1_price', 'ask1Price']);
         const high = this.safeStringN (ticker, ['high_price_24h', 'high24h', 'h', 'highPrice24h']);
         const low = this.safeStringN (ticker, ['low_price_24h', 'low24h', 'l', 'lowPrice24h']);
         let percentage = this.safeString (ticker, 'm');
