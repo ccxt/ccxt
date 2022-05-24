@@ -1684,16 +1684,45 @@ module.exports = class bybit extends ccxt.bybit {
         //       request: { op: '', args: null }
         //   }
         //
+        // auth error
+        //
+        //   {
+        //       success: false,
+        //       ret_msg: 'error:USVC1111',
+        //       conn_id: 'e73770fb-a0dc-45bd-8028-140e20958090',
+        //       request: {
+        //         op: 'auth',
+        //         args: [
+        //           '9rFT6uR4uz9Imkw4Wx',
+        //           '1653405853543',
+        //           '542e71bd85597b4db0290f0ce2d13ed1fd4bb5df3188716c1e9cc69a879f7889'
+        //         ]
+        //   }
+        //
         //   { code: '-10009', desc: 'Invalid period!' }
         //
-        const error = this.safeInteger (message, 'error');
+        const code = this.safeInteger (message, 'code');
         try {
-            if (error !== undefined) {
+            if (code !== undefined) {
                 const feedback = this.id + ' ' + this.json (message);
-                this.throwExactlyMatchedException (this.exceptions['ws']['exact'], error, feedback);
+                this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            }
+            const success = this.safeValue (message, 'success', false);
+            if (!success) {
+                const ret_msg = this.safeString (message, 'ret_msg');
+                const request = this.safeValue (message, 'request', {});
+                const op = this.safeString (request, 'op');
+                if (op === 'auth') {
+                    throw new AuthenticationError ('Authentication failed: ' + ret_msg);
+                }
             }
         } catch (e) {
             if (e instanceof AuthenticationError) {
+                client.reject (e, 'authenticated');
+                const method = 'login';
+                if (method in client.subscriptions) {
+                    delete client.subscriptions[method];
+                }
                 return false;
             }
         }
