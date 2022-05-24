@@ -271,15 +271,15 @@ module.exports = class bybit extends ccxt.bybit {
             client.resolve (ticker, messageHash);
             return;
         }
-        const type = this.safeString (message, 'type', '');
+        const updateType = this.safeString (message, 'type', '');
         const data = this.safeValue (message, 'data', {});
         let symbol = undefined;
-        if (type === 'snapshot') {
+        if (updateType === 'snapshot') {
             const parsed = this.parseWsTicker (data);
             symbol = parsed['symbol'];
             this.tickers[symbol] = parsed;
         }
-        if (type === 'delta') {
+        if (updateType === 'delta') {
             const topicParts = topic.split ('.');
             const topicLength = topicParts.length;
             const marketId = this.safeString (topicParts, topicLength - 1);
@@ -421,6 +421,11 @@ module.exports = class bybit extends ccxt.bybit {
         let timestamp = this.safeInteger2 (ticker, 'time', 't');
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (ticker, 'updated_at'));
+            if (timestamp === undefined) {
+                const timestampE9 = this.safeString (ticker, 'updated_at_e9');
+                timestamp = Precise.stringDiv (timestampE9, '10000000');
+                timestamp = parseInt (this.parseNumber (timestamp));
+            }
         }
         const marketId = this.safeString2 (ticker, 'symbol', 's');
         const symbol = this.safeSymbol (marketId, market);
