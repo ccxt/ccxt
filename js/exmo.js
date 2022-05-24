@@ -247,8 +247,8 @@ module.exports = class exmo extends Exchange {
             'info': data,
             'type': undefined,
             'amount': undefined,
-            'code': market['quote'],
-            'symbol': market['symbol'],
+            'code': this.safeValue (market, 'quote'),
+            'symbol': this.safeSymbol (undefined, market),
             'total': undefined,
             'status': 'ok',
         };
