@@ -1671,14 +1671,14 @@ class Transpiler {
 
         let pythonHeader = [];
         if (python3Body.indexOf ('numbers.') >= 0) {
-            pythonHeader.push ('import numbers  # noqa E402');
+            pythonHeader.push ('import numbers  # noqa E402')
         }
 
         pythonHeader.push ('','')
-        pythonHeader = pythonHeader.join('\n')
+        pythonHeader = pythonHeader.join ('\n')
 
-        const python = pythonHeader + python3Body;
-        const php = this.getPHPPreamble (false) + phpBody;
+        const python = pythonHeader + python3Body
+        const php = this.getPHPPreamble (false) + phpBody
 
         log.magenta ('→', test.pyFile.yellow)
         log.magenta ('→', test.phpFile.yellow)
