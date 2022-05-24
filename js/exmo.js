@@ -24,12 +24,18 @@ module.exports = class exmo extends Exchange {
                 'future': false,
                 'option': false,
                 'cancelOrder': true,
+                'cancelOrders': false,
                 'createOrder': true,
+                'createDepositAddress': false,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'fetchAccounts': false,
                 'fetchBalance': true,
+                'fetchCanceledOrders': true,
                 'fetchCurrencies': true,
+                'fetchDeposit': true,
+                'fetchDeposits': true,
                 'fetchDepositAddress': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -56,6 +62,7 @@ module.exports = class exmo extends Exchange {
                 'fetchTransactions': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'transfer': false,
                 'withdraw': true,
@@ -1235,7 +1242,7 @@ module.exports = class exmo extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // fetchOrders, fetchOpenOrders, fetchClosedOrders
+        // fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         //
         //     {
         //         "order_id": "14",
@@ -1273,20 +1280,18 @@ module.exports = class exmo extends Exchange {
         let timestamp = this.safeTimestamp (order, 'created');
         let symbol = undefined;
         const side = this.safeString (order, 'type');
-        if (market === undefined) {
-            let marketId = undefined;
-            if ('pair' in order) {
-                marketId = order['pair'];
-            } else if (('in_currency' in order) && ('out_currency' in order)) {
-                if (side === 'buy') {
-                    marketId = order['in_currency'] + '_' + order['out_currency'];
-                } else {
-                    marketId = order['out_currency'] + '_' + order['in_currency'];
-                }
+        let marketId = undefined;
+        if ('pair' in order) {
+            marketId = order['pair'];
+        } else if (('in_currency' in order) && ('out_currency' in order)) {
+            if (side === 'buy') {
+                marketId = order['in_currency'] + '_' + order['out_currency'];
+            } else {
+                marketId = order['out_currency'] + '_' + order['in_currency'];
             }
-            if ((marketId !== undefined) && (marketId in this.markets_by_id)) {
-                market = this.markets_by_id[marketId];
-            }
+        }
+        if ((marketId !== undefined) && (marketId in this.markets_by_id)) {
+            market = this.markets_by_id[marketId];
         }
         let amount = this.safeNumber (order, 'quantity');
         if (amount === undefined) {
@@ -1381,6 +1386,35 @@ module.exports = class exmo extends Exchange {
             'fee': fee,
             'info': order,
         };
+    }
+
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (since !== undefined) {
+            request['offset'] = limit;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const response = await this.privatePostUserCancelledOrders (this.extend (request, params));
+        //
+        //     [{
+        //         "order_id": "27056153840",
+        //         "client_id": "0",
+        //         "created": "1653428646",
+        //         "type": "buy",
+        //         "pair": "BTC_USDT",
+        //         "quantity": "0.1",
+        //         "price": "10",
+        //         "amount": "1"
+        //     }]
+        //
+        return this.parseOrders (response, market, since, limit, params);
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -1664,7 +1698,138 @@ module.exports = class exmo extends Exchange {
         //         "count": 23
         //     }
         //
-        return this.parseTransactions (response['items'], currency, since, limit);
+        const items = this.safeValue (response, 'items', []);
+        return this.parseTransactions (items, currency, since, limit);
+    }
+
+    async fetchWithdrawal (id, code = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {
+            'order_id': id,
+            'type': 'withdraw',
+        };
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.privatePostWalletOperations (this.extend (request, params));
+        //
+        //     {
+        //         "items": [
+        //         {
+        //             "operation_id": 47412538520634344,
+        //             "created": 1573760013,
+        //             "updated": 1573760013,
+        //             "type": "deposit",
+        //             "currency": "DOGE",
+        //             "status": "Paid",
+        //             "amount": "300",
+        //             "provider": "DOGE",
+        //             "commission": "0",
+        //             "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        //             "order_id": 69670170,
+        //             "extra": {
+        //                 "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        //                 "excode": "",
+        //                 "invoice": ""
+        //             },
+        //             "error": ""
+        //         },
+        //     ],
+        //         "count": 23
+        //     }
+        //
+        const items = this.safeValue (response, 'items', []);
+        const first = this.safeValue (items, 0, {});
+        return this.parseTransaction (first, currency);
+    }
+
+    async fetchDeposit (id = undefined, code = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {
+            'order_id': id,
+            'type': 'deposit',
+        };
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.privatePostWalletOperations (this.extend (request, params));
+        //
+        //     {
+        //         "items": [
+        //         {
+        //             "operation_id": 47412538520634344,
+        //             "created": 1573760013,
+        //             "updated": 1573760013,
+        //             "type": "deposit",
+        //             "currency": "DOGE",
+        //             "status": "Paid",
+        //             "amount": "300",
+        //             "provider": "DOGE",
+        //             "commission": "0",
+        //             "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        //             "order_id": 69670170,
+        //             "extra": {
+        //                 "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        //                 "excode": "",
+        //                 "invoice": ""
+        //             },
+        //             "error": ""
+        //         },
+        //     ],
+        //         "count": 23
+        //     }
+        //
+        const items = this.safeValue (response, 'items', []);
+        const first = this.safeValue (items, 0, {});
+        return this.parseTransaction (first, currency);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {
+            'type': 'deposit',
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default: 100, maximum: 100
+        }
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.privatePostWalletOperations (this.extend (request, params));
+        //
+        //     {
+        //         "items": [
+        //         {
+        //             "operation_id": 47412538520634344,
+        //             "created": 1573760013,
+        //             "updated": 1573760013,
+        //             "type": "deposit",
+        //             "currency": "DOGE",
+        //             "status": "Paid",
+        //             "amount": "300",
+        //             "provider": "DOGE",
+        //             "commission": "0",
+        //             "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        //             "order_id": 69670170,
+        //             "extra": {
+        //                 "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        //                 "excode": "",
+        //                 "invoice": ""
+        //             },
+        //             "error": ""
+        //         },
+        //     ],
+        //         "count": 23
+        //     }
+        //
+        const items = this.safeValue (response, 'items', []);
+        return this.parseTransactions (items, currency, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

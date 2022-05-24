@@ -373,7 +373,7 @@ Here's an overview of generic exchange properties with values added for example:
         'createDepositAddress': false,
         'createOrder': true,
         'fetchBalance': true,
-        'fetchCancelledOrders': false,
+        'fetchCanceledOrders': false,
         'fetchClosedOrder': false,
         'fetchClosedOrders': false,
         'fetchCurrencies': false,
@@ -502,7 +502,7 @@ See this section on [Overriding exchange properties](#overriding-exchange-proper
         'createDepositAddress': false,
         'createOrder': true,
         'fetchBalance': true,
-        'fetchCancelledOrders': false,
+        'fetchCanceledOrders': false,
         'fetchClosedOrder': false,
         'fetchClosedOrders': false,
         'fetchCurrencies': false,
@@ -1571,7 +1571,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchOrder (id[, symbol[, params]])`
 - `fetchOrders ([symbol[, since[, limit[, params]]]])`
 - `fetchOpenOrders ([symbol[, since, limit, params]]]])`
-- `fetchCancelledOrders ([symbol[, since[, limit[, params]]]])`
+- `fetchCanceledOrders ([symbol[, since[, limit[, params]]]])`
 - `fetchClosedOrders ([symbol[, since[, limit[, params]]]])`
 - `fetchMyTrades ([symbol[, since[, limit[, params]]]])`
 - ...
@@ -2923,7 +2923,7 @@ In order to be able to access your user account, perform algorithmic trading by 
 The exchanges' private APIs will usually allow the following types of interaction:
 
 - the current state of the user's account balance can be obtained with the `fetchBalance()` method as described in the [Account Balance](#account-balance) section
-- the user can place and cancel orders with `createOrder()`, `cancelOrder()`, as well as fetch current open orders and the past order history with methods like `fetchOrder`, `fetchOrders()`, `fetchOpenOrder()`, `fetchOpenOrders()`, `fetchCancelledOrders`, `fetchClosedOrder`, `fetchClosedOrders`, as described in the section on [Orders](#orders)
+- the user can place and cancel orders with `createOrder()`, `cancelOrder()`, as well as fetch current open orders and the past order history with methods like `fetchOrder`, `fetchOrders()`, `fetchOpenOrder()`, `fetchOpenOrders()`, `fetchCanceledOrders`, `fetchClosedOrder`, `fetchClosedOrders`, as described in the section on [Orders](#orders)
 - the user can query the history of past trades executed with their account using `fetchMyTrades`, as described in the [My Trades](#my-trades) section, also see [How Orders Are Related To Trades](https://docs.ccxt.com/en/latest/manual.html#how-orders-are-related-to-trades)
 - the user can query their positions with `fetchPositions()` and `fetchPosition()` as described in the [Positions](#positions) section
 - the user can fetch the history of their transactions (on-chain _transactions_ which are either _deposits_ to the exchange account or _withdrawals_ from the exchange account) with `fetchTransactions()`, or with `fetchDeposit()`, `fetchDeposits()` `fetchWithdrawal()`, and `fetchWithdrawals()` separately, depending on what is available from the exchange API
