@@ -2951,9 +2951,11 @@ class bybit(Exchange):
                 method = 'privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder'
                 request['orderFilter'] = 'StopOrder' if isConditional else 'Order'
         elif market['linear']:
+            # linear futures and linear swaps
             method = 'privatePostPrivateLinearStopOrderCancel' if isConditional else 'privatePostPrivateLinearOrderCancel'
-        elif market['future']:
-            method = 'privatePostFuturesPrivateStopOrderCancel' if isConditional else 'privatePostFuturesPrivateOrderCancel'
+        elif market['swap']:
+            # inverse swaps
+            method = 'privatePostV2PrivateStopOrderCancel' if isConditional else 'privatePostV2PrivateOrderCancel'
         else:
             # inverse futures
             method = 'privatePostFuturesPrivateStopOrderCancel' if isConditional else 'privatePostFuturesPrivateOrderCancel'
@@ -3002,6 +3004,7 @@ class bybit(Exchange):
         return self.parse_order(result, market)
 
     def cancel_all_orders(self, symbol=None, params={}):
+        self.load_markets()
         market = None
         isUsdcSettled = None
         if symbol is not None:
@@ -3016,7 +3019,6 @@ class bybit(Exchange):
         type, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
         if not isUsdcSettled and symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument for ' + type + ' markets')
-        self.load_markets()
         request = {}
         if not isUsdcSettled:
             request['symbol'] = market['id']
