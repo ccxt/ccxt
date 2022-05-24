@@ -613,7 +613,7 @@ module.exports = class bybit extends ccxt.bybit {
         //      low: 67.84,
         //      volume: 56,
         //      turnover: 0.82528936,
-        //      timestamp: '1652893152874413',
+        //      timestamp: '1652893152874413', // microseconds
         //      confirm: false,
         //      cross_seq: 63544166
         //   }
@@ -631,8 +631,12 @@ module.exports = class bybit extends ccxt.bybit {
         //      v: '9.71302'
         //   }
         //
+        let timestamp = this.safeInteger (ohlcv, 't');
+        if (timestamp === undefined) {
+            timestamp = this.safeIntegerProduct (ohlcv, 'timestamp', 0.001);
+        }
         return [
-            this.safeInteger2 (ohlcv, 'timestamp', 't'),
+            timestamp,
             this.safeNumber2 (ohlcv, 'open', 'o'),
             this.safeNumber2 (ohlcv, 'high', 'h'),
             this.safeNumber2 (ohlcv, 'low', 'l'),
