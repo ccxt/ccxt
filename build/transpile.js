@@ -1677,7 +1677,7 @@ class Transpiler {
             [ /module.exports\s+=\s+[^;]+;/g, '' ],
         ])
 
-        let pythonHeader = ['', ''].join('\n')
+        let pythonHeader = ['',''].join('\n')
         if (test.requireNumbers) {
             pythonHeader = [
                 'import numbers  # noqa: E402',
