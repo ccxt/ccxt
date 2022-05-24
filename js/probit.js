@@ -808,6 +808,13 @@ module.exports = class probit extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name probit#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the probit api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetTime (params);
         //
         //     { "data":"2020-04-12T18:54:25.390Z" }

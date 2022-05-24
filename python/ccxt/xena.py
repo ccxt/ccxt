@@ -193,6 +193,11 @@ class xena(Exchange):
         })
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = self.publicGetMarketDataV2ServerTime(params)
         #
         #     {

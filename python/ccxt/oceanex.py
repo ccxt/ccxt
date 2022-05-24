@@ -509,6 +509,11 @@ class oceanex(Exchange):
         }, market)
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the oceanex api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = self.publicGetTimestamp(params)
         #
         #     {"code":0,"message":"Operation successful","data":1559433420}

@@ -446,6 +446,11 @@ class mexc3(Exchange):
         }
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         marketType, query = self.handle_market_type_and_params('fetchTime', None, params)
         response = None
         if marketType == 'spot':

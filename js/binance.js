@@ -1231,6 +1231,13 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name binance#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const defaultType = this.safeString2 (this.options, 'fetchTime', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');

@@ -1920,6 +1920,13 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name kraken#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the kraken api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         // https://www.kraken.com/en-us/features/api#get-server-time
         const response = await this.publicGetTime (params);
         //

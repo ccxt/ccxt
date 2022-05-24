@@ -487,6 +487,13 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetV2PublicTime (params);
         //
         //     {
@@ -846,6 +853,8 @@ module.exports = class bybit extends Exchange {
                 expiry = this.parse8601 (expiryDatetime);
                 symbol = symbol + '-' + this.yymmdd (expiry);
             }
+            const inverse = !linear;
+            const contractSize = inverse ? this.safeNumber (lotSizeFilter, 'min_trading_qty') : undefined;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -864,10 +873,10 @@ module.exports = class bybit extends Exchange {
                 'active': active,
                 'contract': true,
                 'linear': linear,
-                'inverse': !linear,
+                'inverse': inverse,
                 'taker': this.safeNumber (market, 'taker_fee'),
                 'maker': this.safeNumber (market, 'maker_fee'),
-                'contractSize': undefined, // todo
+                'contractSize': contractSize,
                 'expiry': expiry,
                 'expiryDatetime': expiryDatetime,
                 'strike': undefined,
@@ -2544,7 +2553,7 @@ module.exports = class bybit extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        let timestamp = this.parse8601 (this.safeString2 (order, 'created_at', 'created_time'));
+        let timestamp = this.parse8601 (this.safeStringN (order, [ 'created_at', 'created_time', 'create_time', 'timestamp' ]));
         if (timestamp === undefined) {
             timestamp = this.safeNumber2 (order, 'time', 'transactTime');
             if (timestamp === undefined) {
@@ -2556,14 +2565,14 @@ module.exports = class bybit extends Exchange {
         const price = this.safeString2 (order, 'price', 'orderPrice');
         const average = this.safeString2 (order, 'average_price', 'avgPrice');
         const amount = this.safeStringN (order, [ 'qty', 'origQty', 'orderQty' ]);
-        const cost = this.safeString (order, 'cum_exec_value');
-        const filled = this.safeString2 (order, 'cum_exec_qty', 'executedQty');
-        const remaining = this.safeString (order, 'leaves_qty');
+        const cost = this.safeString2 (order, 'cum_exec_value', 'cumExecValue');
+        const filled = this.safeStringN (order, [ 'cum_exec_qty', 'executedQty', 'cumExecQty' ]);
+        const remaining = this.safeString2 (order, 'leaves_qty', 'leavesQty');
         let lastTradeTimestamp = this.safeTimestamp (order, 'last_exec_time');
         if (lastTradeTimestamp === 0) {
             lastTradeTimestamp = undefined;
         } else if (lastTradeTimestamp === undefined) {
-            lastTradeTimestamp = this.parse8601 (this.safeString2 (order, 'updated_time', 'updated_at'));
+            lastTradeTimestamp = this.parse8601 (this.safeStringN (order, [ 'updated_time', 'updated_at', 'update_time' ]));
             if (lastTradeTimestamp === undefined) {
                 lastTradeTimestamp = this.safeNumber (order, 'updateTime');
             }
@@ -2574,7 +2583,7 @@ module.exports = class bybit extends Exchange {
         let fee = undefined;
         const isContract = this.safeValue (market, 'contract');
         if (isContract) {
-            const feeCostString = this.safeString (order, 'cum_exec_fee');
+            const feeCostString = this.safeString2 (order, 'cum_exec_fee', 'cumExecFee');
             if (feeCostString !== undefined) {
                 const feeCurrency = market['linear'] ? market['quote'] : market['base'];
                 fee = {

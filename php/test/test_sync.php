@@ -301,14 +301,14 @@ function test_symbol($exchange, $symbol, $code) {
 function test_accounts($exchange) {
     $method = 'fetchAccounts';
     if ($exchange->has[$method]) {
-        dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
+        dump(green($exchange->id), 'executing ' . $method . '()');
         $accounts = $exchange->{$method}($symbol);
         foreach ($accounts as $account) {
             test_account($exchange, $account);
         }
-        dump(green($symbol), 'fetched', green(count($orders)), 'accounts');
+        dump(green($exchange->id), 'fetched', green(count($accounts)), 'accounts');
     } else {
-        dump(green($symbol), $method . '() is not supported');
+        dump(green($exchange->id), $method . '() is not supported');
     }
 }
 

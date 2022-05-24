@@ -352,6 +352,11 @@ class mexc(Exchange):
         })
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         marketType, query = self.handle_market_type_and_params('fetchTime', None, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPublicGetCommonTimestamp',

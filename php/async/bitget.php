@@ -754,6 +754,11 @@ class bitget extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = yield $this->publicSpotGetPublicTime ($params);
         //
         //     {

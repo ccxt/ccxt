@@ -753,6 +753,13 @@ module.exports = class digifinex extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name digifinex#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetTime (params);
         //
         //     {
