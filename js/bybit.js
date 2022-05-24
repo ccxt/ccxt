@@ -154,7 +154,7 @@ module.exports = class bybit extends ccxt.bybit {
         } else {
             const channel = 'instrument_info.100ms.' + market['id'];
             const reqParams = [ channel ];
-            return await this.watchSwapPublic (url, messageHash, reqParams, params);
+            return await this.watchContractPublic (url, messageHash, reqParams, params);
         }
     }
 
@@ -496,7 +496,7 @@ module.exports = class bybit extends ccxt.bybit {
             const prefix = market['linear'] ? 'candle' : 'klineV2';
             const channel = prefix + '.' + interval + '.' + market['id'];
             const reqParams = [ channel ];
-            ohlcv = await this.watchSwapPublic (url, messageHash, reqParams, params);
+            ohlcv = await this.watchContractPublic (url, messageHash, reqParams, params);
         }
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
@@ -671,7 +671,7 @@ module.exports = class bybit extends ccxt.bybit {
                 channel = prefix + '.' + market['id'];
             }
             const reqParams = [ channel ];
-            orderbook = await this.watchSwapPublic (url, messageHash, reqParams, params);
+            orderbook = await this.watchContractPublic (url, messageHash, reqParams, params);
         }
         return orderbook.limit (limit);
     }
@@ -884,7 +884,7 @@ module.exports = class bybit extends ccxt.bybit {
                 channel = commonChannel + '.' + market['id'];
             }
             const reqParams = [ channel ];
-            trades = await this.watchSwapPublic (url, messageHash, reqParams, params);
+            trades = await this.watchContractPublic (url, messageHash, reqParams, params);
         }
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -1128,7 +1128,7 @@ module.exports = class bybit extends ccxt.bybit {
                 channel = 'execution';
             }
             const reqParams = [ channel ];
-            trades = await this.watchSwapPrivate (url, messageHash, reqParams, params);
+            trades = await this.watchContractPrivate (url, messageHash, reqParams, params);
         }
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -1257,7 +1257,7 @@ module.exports = class bybit extends ccxt.bybit {
                 channel = isStopOrder ? 'stop_order' : 'order';
             }
             const reqParams = [ channel ];
-            orders = await this.watchSwapPrivate (url, messageHash, reqParams, params);
+            orders = await this.watchContractPrivate (url, messageHash, reqParams, params);
         }
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
@@ -1526,7 +1526,7 @@ module.exports = class bybit extends ccxt.bybit {
             const reqParams = [
                 'wallet',
             ];
-            return await this.watchSwapPrivate (url, messageHash, reqParams, params);
+            return await this.watchContractPrivate (url, messageHash, reqParams, params);
         }
     }
 
@@ -1602,7 +1602,7 @@ module.exports = class bybit extends ccxt.bybit {
         }
     }
 
-    async watchSwapPublic (url, messageHash, reqParams = {}, params = {}) {
+    async watchContractPublic (url, messageHash, reqParams = {}, params = {}) {
         const request = {
             'op': 'subscribe',
             'args': reqParams,
@@ -1643,12 +1643,12 @@ module.exports = class bybit extends ccxt.bybit {
         return await this.watch (url, messageHash, request, channel);
     }
 
-    async watchSwapPrivate (url, messageHash, reqParams, params = {}) {
-        await this.authenticateSwap (url, params);
-        return await this.watchSwapPublic (url, messageHash, reqParams, params);
+    async watchContractPrivate (url, messageHash, reqParams, params = {}) {
+        await this.authenticateContract (url, params);
+        return await this.watchContractPublic (url, messageHash, reqParams, params);
     }
 
-    async authenticateSwap (url, params = {}) {
+    async authenticateContract (url, params = {}) {
         this.checkRequiredCredentials ();
         const messageHash = 'login';
         const client = this.client (url);
