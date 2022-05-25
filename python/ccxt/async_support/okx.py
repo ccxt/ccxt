@@ -93,6 +93,7 @@ class okx(Exchange):
                 'fetchMySells': None,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': True,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -635,6 +636,16 @@ class okx(Exchange):
                 'layerTwo': {
                     'Lightning': True,
                     'Liquid': True,
+                },
+                'fetchOpenInterestHistory': {
+                    'timeframes': {
+                        '5m': '5m',
+                        '1h': '1H',
+                        '1d': '1D',
+                        '5M': '5m',
+                        '1H': '1H',
+                        '1D': '1D',
+                    },
                 },
                 'fetchOHLCV': {
                     # 'type': 'Candles',  # Candles or HistoryCandles, IndexCandles, MarkPriceCandles
@@ -4608,6 +4619,70 @@ class okx(Exchange):
             'timestamp': timestamp,  # Interest accrued time
             'datetime': self.iso8601(timestamp),
             'info': info,
+        }
+
+    async def fetch_open_interest_history(self, code, timeframe='5m', since=None, limit=None, params={}):
+        """
+        Retrieves the open interest history of a currency
+        :param str code: Unified CCXT currency code
+        :param str timeframe: "5m", "1h", or "1d"
+        :param int since: The time in ms of the earliest record to retrieve as a unix timestamp
+        :param int limit: Not used by okx, but parsed internally by CCXT
+        :param dict params: Exchange specific parameters
+        :param int params['till']: The time in ms of the latest record to retrieve as a unix timestamp
+        :returns: An array of open interest structures
+        """
+        options = self.safe_value(self.options, 'fetchOpenInterestHistory', {})
+        timeframes = self.safe_value(options, 'timeframes', {})
+        timeframe = self.safe_string(timeframes, timeframe, timeframe)
+        if timeframe != '5m' and timeframe != '1H' and timeframe != '1D':
+            raise BadRequest(self.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe')
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'ccy': currency['id'],
+            'period': timeframe,
+        }
+        if since is not None:
+            request['begin'] = since
+        till = self.safe_integer_2(params, 'till', 'end')
+        if till is not None:
+            request['end'] = till
+        response = await self.publicGetRubikStatContractsOpenInterestVolume(self.extend(request, params))
+        #
+        #    {
+        #        code: '0',
+        #        data: [
+        #            [
+        #                '1648221300000',  # timestamp
+        #                '2183354317.945',  # open interest(USD)
+        #                '74285877.617',  # volume(USD)
+        #            ],
+        #            ...
+        #        ],
+        #        msg: ''
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_open_interests(data, None, since, limit)
+
+    def parse_open_interest(self, interest, market=None):
+        #
+        #    [
+        #        '1648221300000',  # timestamp
+        #        '2183354317.945',  # open interest(USD)
+        #        '74285877.617',  # volume(USD)
+        #    ]
+        #
+        timestamp = self.safe_number(interest, 0)
+        openInterest = self.safe_number(interest, 1)
+        return {
+            'symbol': None,
+            'baseVolume': None,
+            'quoteVolume': openInterest,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': interest,
         }
 
     def set_sandbox_mode(self, enable):
