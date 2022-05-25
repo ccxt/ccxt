@@ -285,6 +285,7 @@ module.exports = class btcex extends Exchange {
                     'BEP20': 'BEP20',
                     'BSC': 'BSC',
                 },
+                'fetchMarkets': [ 'spot', 'future', 'swap', 'option' ],
             },
             'commonCurrencies': {
             },
@@ -292,6 +293,21 @@ module.exports = class btcex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        const types = this.safeValue (this.options, 'fetchMarkets');
+        const result = [];
+        let spotFutureOption = false;
+        for (let i = 0; i < types.length; i++) {
+            const marketType = types[i];
+            const isSpotFutureOption = (marketType === 'future') || (marketType === 'spot') || (marketType === 'option')
+            if (!spotFutureOption && isSpotFutureOption) {
+                continue;
+            }
+        }
+
+    }
+
+    async fetchMarketsHelper (params = {}) {
+        // by default this endpoint returns everything except perpetual markets
         const response = await this.publicGetGetInstruments (params);
         const markets = this.safeValue (response, 'result', []);
         //
@@ -359,9 +375,6 @@ module.exports = class btcex extends Exchange {
                 strike = this.safeString (market, 'strike');
             }
             const base = this.safeCurrencyCode (baseId);
-            if (!spot) {
-                quoteId = this.safeString (market, 'currency');
-            }
             const quote = this.safeCurrencyCode (quoteId);
             let symbol = quote + '/' + base;
             if (contract) {
@@ -427,6 +440,14 @@ module.exports = class btcex extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchSwapMarkets (params) {
+        const request = {
+            'currency': 'PERPETUAL',
+        };
+        const response = await this.fetchMarketsHelper (this.extend (request, params));
+        return response;
     }
 
     parseTicker (ticker, market = undefined) {
