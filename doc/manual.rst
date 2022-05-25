@@ -4509,6 +4509,8 @@ Parameters
  * **limit** (Integer) The maximum number of :ref:`open interest structures <open interest structures>` to retrieve (e.g. ``10``\ )
  * **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. ``{"endTime": 1645807945000}``\ )
 
+ **Note for OKX users:** instead of a unified symbol okx.fetchOpenInterestHistory expects a unified currency code in the **symbol** argument (e.g. ``'BTC'``\ ).
+
 Returns
 
 
