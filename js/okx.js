@@ -1860,9 +1860,8 @@ module.exports = class okx extends Exchange {
         const swap = market['swap'];
         const future = market['future'];
         const contract = market['contract'];
-        const timeInForce = this.safeString (params, 'timeInForce');
-        const postOnlyParam = this.safeValue (params, 'postOnly', false);
         const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPx');
+        let timeInForce = this.safeString (params, 'timeInForce', 'GTC');
         const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'tpTriggerPrice');
         let tpOrdPx = this.safeString (params, 'tpOrdPx');
         const tpTriggerPxType = this.safeString (params, 'tpTriggerPxType', 'last');
@@ -1870,8 +1869,7 @@ module.exports = class okx extends Exchange {
         let slOrdPx = this.safeString (params, 'slOrdPx');
         const slTriggerPxType = this.safeString (params, 'slTriggerPxType', 'last');
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
-        const tdMode = this.safeStringLower (params, 'tdMode'); // not omitted so as to be extended into request
-        params = this.omit (params, [ 'timeInForce', 'postOnly', 'stopPrice', 'triggerPx', 'cloOrdId', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slTriggerPx', 'tpTriggerPrice', 'tpOrdPx', 'slOrdPx', 'tpTriggerPxType', 'slTriggerPxType' ]);
+        const tdMode = this.safeStringLower (params, 'tdMode'); // not ommited so as to be extended into the request
         if (spot) {
             request['tdMode'] = 'cash';
         } else if (contract) {
@@ -1881,7 +1879,9 @@ module.exports = class okx extends Exchange {
                 throw new BadRequest (this.id + ' params["tdMode"] must be either "isolated" or "cross"');
             }
         }
-        const postOnly = ((postOnlyParam) || (type === 'post_only') || (timeInForce === 'PO'));
+        let postOnly = false;
+        [ type, postOnly, timeInForce, params ] = this.isPostOnly (type, timeInForce, undefined, params);
+        params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPx', 'cloOrdId', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slTriggerPx', 'tpTriggerPrice', 'tpOrdPx', 'slOrdPx', 'tpTriggerPxType', 'slTriggerPxType' ]);
         const ioc = ((timeInForce === 'IOC') || (type === 'ioc'));
         const fok = ((timeInForce === 'FOK') || (type === 'fok'));
         const trigger = ((stopPrice !== undefined) || (type === 'trigger'));
