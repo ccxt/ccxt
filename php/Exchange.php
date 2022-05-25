@@ -4042,6 +4042,15 @@ class Exchange {
         }
     }
 
+    public function parse_positions($positions, $symbols = null, $params = array()) {
+        $array = is_array($positions) ? array_values($positions) : array();
+        $result = array();
+        foreach ($array as $position) {
+            $result[] = $this->merge($this->parse_trade($position), $params);
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols, false);
+    }
+
     public function parse_borrow_interests($response, $market = null) {
         $interest = array();
         for ($i = 0; $i < count($response); $i++){
