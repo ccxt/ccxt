@@ -1180,12 +1180,6 @@ class mexc3(Exchange):
             candles = self.convert_trading_view_to_ohlcv(data, 'time', 'open', 'high', 'low', 'close', 'vol')
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend({'price': 'index'}, params))
-
-    def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend({'price': 'mark'}, params))
-
     def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.safe_integer(ohlcv, 0),

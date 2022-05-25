@@ -1224,14 +1224,6 @@ class mexc3 extends Exchange {
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge(array( 'price' => 'index' ), $params));
-    }
-
-    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge(array( 'price' => 'mark' ), $params));
-    }
-
     public function parse_ohlcv($ohlcv, $market = null) {
         return array(
             $this->safe_integer($ohlcv, 0),
