@@ -638,7 +638,7 @@ module.exports = class exmo extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': false,
+                'margin': true,
                 'swap': false,
                 'future': false,
                 'option': false,
