@@ -846,6 +846,8 @@ class bybit(Exchange):
                 expiryDatetime = artificial8601Date
                 expiry = self.parse8601(expiryDatetime)
                 symbol = symbol + '-' + self.yymmdd(expiry)
+            inverse = not linear
+            contractSize = self.safe_number(lotSizeFilter, 'min_trading_qty') if inverse else None
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -864,10 +866,10 @@ class bybit(Exchange):
                 'active': active,
                 'contract': True,
                 'linear': linear,
-                'inverse': not linear,
+                'inverse': inverse,
                 'taker': self.safe_number(market, 'taker_fee'),
                 'maker': self.safe_number(market, 'maker_fee'),
-                'contractSize': None,  # todo
+                'contractSize': contractSize,
                 'expiry': expiry,
                 'expiryDatetime': expiryDatetime,
                 'strike': None,
@@ -2457,7 +2459,7 @@ class bybit(Exchange):
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        timestamp = self.parse8601(self.safe_string_2(order, 'created_at', 'created_time'))
+        timestamp = self.parse8601(self.safe_string_n(order, ['created_at', 'created_time', 'create_time', 'timestamp']))
         if timestamp is None:
             timestamp = self.safe_number_2(order, 'time', 'transactTime')
             if timestamp is None:
@@ -2467,14 +2469,14 @@ class bybit(Exchange):
         price = self.safe_string_2(order, 'price', 'orderPrice')
         average = self.safe_string_2(order, 'average_price', 'avgPrice')
         amount = self.safe_string_n(order, ['qty', 'origQty', 'orderQty'])
-        cost = self.safe_string(order, 'cum_exec_value')
-        filled = self.safe_string_2(order, 'cum_exec_qty', 'executedQty')
-        remaining = self.safe_string(order, 'leaves_qty')
+        cost = self.safe_string_2(order, 'cum_exec_value', 'cumExecValue')
+        filled = self.safe_string_n(order, ['cum_exec_qty', 'executedQty', 'cumExecQty'])
+        remaining = self.safe_string_2(order, 'leaves_qty', 'leavesQty')
         lastTradeTimestamp = self.safe_timestamp(order, 'last_exec_time')
         if lastTradeTimestamp == 0:
             lastTradeTimestamp = None
         elif lastTradeTimestamp is None:
-            lastTradeTimestamp = self.parse8601(self.safe_string_2(order, 'updated_time', 'updated_at'))
+            lastTradeTimestamp = self.parse8601(self.safe_string_n(order, ['updated_time', 'updated_at', 'update_time']))
             if lastTradeTimestamp is None:
                 lastTradeTimestamp = self.safe_number(order, 'updateTime')
         raw_status = self.safe_string_n(order, ['order_status', 'stop_order_status', 'status', 'orderStatus'])
@@ -2483,7 +2485,7 @@ class bybit(Exchange):
         fee = None
         isContract = self.safe_value(market, 'contract')
         if isContract:
-            feeCostString = self.safe_string(order, 'cum_exec_fee')
+            feeCostString = self.safe_string_2(order, 'cum_exec_fee', 'cumExecFee')
             if feeCostString is not None:
                 feeCurrency = market['quote'] if market['linear'] else market['base']
                 fee = {
