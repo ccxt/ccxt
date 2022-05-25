@@ -2334,7 +2334,7 @@ module.exports = class okx extends Exchange {
         //         "uly": "BTC-USDT"
         //     }
         //
-        const id = this.safeString (order, 'ordId');
+        const id = this.safeString2 (order, 'ordId', 'algoId');
         const timestamp = this.safeInteger (order, 'cTime');
         const lastTradeTimestamp = this.safeInteger (order, 'fillTime');
         const side = this.safeString (order, 'side');
@@ -2386,7 +2386,7 @@ module.exports = class okx extends Exchange {
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
-        const stopPrice = this.safeNumber2 (order, 'slTriggerPx', 'triggerPx');
+        const stopPrice = this.safeNumber2 (order, 'triggerPx', 'slTriggerPx');
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -2423,7 +2423,6 @@ module.exports = class okx extends Exchange {
          * @param {integer} params.till Timestamp in ms of the latest time to retrieve orders for
          * @param {boolean} params.stop True if fetching trigger orders
          * @param {string} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
-         * @param {string} params.algoId Algo ID
          * @returns [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
         */
         if (symbol === undefined) {
@@ -2456,6 +2455,10 @@ module.exports = class okx extends Exchange {
             }
             method = 'privateGetTradeOrdersAlgoHistory';
             request['algoId'] = id;
+            if (stop) {
+                request['ordType'] = 'trigger';
+                params = this.omit (params, 'ordType');
+            }
         } else {
             if (clientOrderId !== undefined) {
                 request['clOrdId'] = clientOrderId;
@@ -2609,6 +2612,10 @@ module.exports = class okx extends Exchange {
         const stop = this.safeValue (params, 'stop');
         if (stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoPending';
+            if (stop) {
+                request['ordType'] = 'trigger';
+                params = this.omit (params, 'ordType');
+            }
         }
         const query = this.omit (params, [ 'method', 'stop' ]);
         const response = await this[method] (this.extend (request, query));
