@@ -27,8 +27,6 @@ module.exports = class woo extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'reduceMargin': false,
-                'setMargin': false,
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -75,6 +73,8 @@ module.exports = class woo extends Exchange {
                 'fetchTransactions': true,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'setMargin': false,
                 'transfer': true,
                 'withdraw': false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             },

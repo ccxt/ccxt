@@ -33,15 +33,18 @@ class woo(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
+                'addMargin': False,
                 'cancelAllOrders': False,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'cancelWithdraw': False,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
+                'createDepositAddress': False,
                 'createMarketOrder': False,
                 'createOrder': True,
                 'createStopLimitOrder': False,
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
+                'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchCanceledOrders': False,
                 'fetchClosedOrder': False,
@@ -77,6 +80,8 @@ class woo(Exchange):
                 'fetchTransactions': True,
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setMargin': False,
                 'transfer': True,
                 'withdraw': False,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             },
@@ -138,6 +143,8 @@ class woo(Exchange):
                             'client/info': 60,
                             'asset/deposit': 120,
                             'asset/history': 60,
+                            'sub_account/all': 60,
+                            'sub_account/assets': 60,
                             'token_interest': 60,
                             'token_interest/{token}': 60,
                             'interest/history': 60,
@@ -1104,6 +1111,49 @@ class woo(Exchange):
         # }
         trades = self.safe_value(response, 'rows', [])
         return self.parse_trades(trades, market, since, limit, params)
+
+    def fetch_accounts(self, params={}):
+        """
+        query to fetchAccounts
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns dict: a `account structure <https://docs.ccxt.com/en/latest/manual.html?#account-structure>`
+        """
+        response = self.v1PrivateGetSubAccountAssets(params)
+        #
+        #     {
+        #         rows: [{
+        #                 application_id: '13e4fc34-e2ff-4cb7-b1e4-4c22fee7d365',
+        #                 account: 'Main',
+        #                 usdt_balance: '4.0'
+        #             },
+        #             {
+        #                 application_id: '432952aa-a401-4e26-aff6-972920aebba3',
+        #                 account: 'subaccount',
+        #                 usdt_balance: '1.0'
+        #             }
+        #         ],
+        #         success: True
+        #     }
+        #
+        rows = self.safe_value(response, 'rows', [])
+        return self.parse_accounts(rows, params)
+
+    def parse_account(self, account):
+        #
+        #     {
+        #         application_id: '336952aa-a401-4e26-aff6-972920aebba3',
+        #         account: 'subaccount',
+        #         usdt_balance: '1.0',
+        #     }
+        #
+        accountId = self.safe_string(account, 'account')
+        return {
+            'info': account,
+            'id': self.safe_string(account, 'application_id'),
+            'name': accountId,
+            'code': None,
+            'type': accountId == 'main' if 'Main' else 'subaccount',
+        }
 
     def fetch_balance(self, params={}):
         """
