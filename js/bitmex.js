@@ -26,6 +26,7 @@ module.exports = class bitmex extends Exchange {
                 'swap': undefined, // has but not fully implemented
                 'future': undefined, // has but not fully implemented
                 'option': undefined, // has but not fully implemented
+                'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -54,6 +55,7 @@ module.exports = class bitmex extends Exchange {
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'reduceMargin': true,
                 'transfer': false,
                 'withdraw': true,
             },
@@ -2401,6 +2403,137 @@ module.exports = class bitmex extends Exchange {
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
         };
+    }
+
+    async modifyMarginHelper (symbol, amount, type, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        // amount = this.amountToPrecision (symbol, amount);
+        const request = {
+            'symbol': market['id'],
+            'amount': amount, // positive value for adding margin, negative for reducing
+        };
+        const response = await this.privatePostPositionTransferMargin (this.extend (request, params));
+        //
+        //     {
+        //         "account": 5555555,
+        //         "symbol": "XBTUSDT",
+        //         "currency": "USDt",
+        //         "underlying": "XBT",
+        //         "quoteCurrency": "USDT",
+        //         "commission": 0.00075,
+        //         "initMarginReq": 0.5,
+        //         "maintMarginReq": 0.005,
+        //         "riskLimit": 1000000000000,
+        //         "leverage": 2,
+        //         "crossMargin": false,
+        //         "deleveragePercentile": null,
+        //         "rebalancedPnl": 0,
+        //         "prevRealisedPnl": 0,
+        //         "prevUnrealisedPnl": 0,
+        //         "prevClosePrice": 29303.31,
+        //         "openingTimestamp": "2022-05-24T23:00:00.000Z",
+        //         "openingQty": 0,
+        //         "openingCost": 0,
+        //         "openingComm": 0,
+        //         "openOrderBuyQty": 0,
+        //         "openOrderBuyCost": 0,
+        //         "openOrderBuyPremium": 0,
+        //         "openOrderSellQty": 0,
+        //         "openOrderSellCost": 0,
+        //         "openOrderSellPremium": 0,
+        //         "execBuyQty": 2000,
+        //         "execBuyCost": 59502000,
+        //         "execSellQty": 0,
+        //         "execSellCost": 0,
+        //         "execQty": 2000,
+        //         "execCost": 59502000,
+        //         "execComm": 40163,
+        //         "currentTimestamp": "2022-05-24T23:14:34.408Z",
+        //         "currentQty": 2000,
+        //         "currentCost": 59502000,
+        //         "currentComm": 40163,
+        //         "realisedCost": 0,
+        //         "unrealisedCost": 59502000,
+        //         "grossOpenCost": 0,
+        //         "grossOpenPremium": 0,
+        //         "grossExecCost": 59502000,
+        //         "isOpen": true,
+        //         "markPrice": 29750.75,
+        //         "markValue": 59501500,
+        //         "riskValue": 59501500,
+        //         "homeNotional": 0.002,
+        //         "foreignNotional": -59.5015,
+        //         "posState": "",
+        //         "posCost": 59502000,
+        //         "posCost2": 59502000,
+        //         "posCross": 9,
+        //         "posInit": 29751000,
+        //         "posComm": 66940,
+        //         "posLoss": 0,
+        //         "posMargin": 29817949,
+        //         "posMaint": 370401,
+        //         "posAllowance": 0,
+        //         "taxableMargin": 0,
+        //         "initMargin": 0,
+        //         "maintMargin": 29817449,
+        //         "sessionMargin": 0,
+        //         "targetExcessMargin": 0,
+        //         "varMargin": 0,
+        //         "realisedGrossPnl": 0,
+        //         "realisedTax": 0,
+        //         "realisedPnl": -40163,
+        //         "unrealisedGrossPnl": -500,
+        //         "longBankrupt": 0,
+        //         "shortBankrupt": 0,
+        //         "taxBase": 0,
+        //         "indicativeTaxRate": null,
+        //         "indicativeTax": 0,
+        //         "unrealisedTax": 0,
+        //         "unrealisedPnl": -500,
+        //         "unrealisedPnlPcnt": 0,
+        //         "unrealisedRoePcnt": 0,
+        //         "simpleQty": null,
+        //         "simpleCost": null,
+        //         "simpleValue": null,
+        //         "simplePnl":  null,
+        //         "simplePnlPcnt": null,
+        //         "avgCostPrice": 29751,
+        //         "avgEntryPrice": 29751,
+        //         "breakEvenPrice": 29771.5,
+        //         "marginCallPrice": 15027.5,
+        //         "liquidationPrice": 15027.5,
+        //         "bankruptPrice": 14875.5,
+        //         "timestamp": "2022-05-24T23:14:34.408Z",
+        //         "lastPrice": 29750.75,
+        //         "lastValue": 59501500
+        //     }
+        //
+        return this.extend (this.parseMarginModification (response, market), {
+            'amount': amount,
+            'type': type,
+        });
+    }
+
+    parseMarginModification (data, market = undefined) {
+        const marketId = this.safeString (data, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        return {
+            'info': data,
+            'type': undefined,
+            'amount': undefined,
+            'code': market['quote'],
+            'symbol': symbol,
+            'status': undefined,
+        };
+    }
+
+    async addMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 'add', params);
+    }
+
+    async reduceMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
