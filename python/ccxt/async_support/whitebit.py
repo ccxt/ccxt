@@ -57,6 +57,7 @@ class whitebit(Exchange):
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
@@ -237,6 +238,11 @@ class whitebit(Exchange):
         })
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for whitebit
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.v2PublicGetMarkets(params)
         #
         #    {
@@ -326,6 +332,11 @@ class whitebit(Exchange):
         return result
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.v4PublicGetAssets(params)
         #
         #      "BTC": {
@@ -459,6 +470,12 @@ class whitebit(Exchange):
         return result
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -539,6 +556,12 @@ class whitebit(Exchange):
         }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         response = await self.v4PublicGetTicker(params)
         #
@@ -563,6 +586,13 @@ class whitebit(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -594,6 +624,14 @@ class whitebit(Exchange):
         return self.parse_order_book(response, symbol, timestamp)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -677,6 +715,15 @@ class whitebit(Exchange):
         }, market)
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -732,6 +779,11 @@ class whitebit(Exchange):
         ]
 
     async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = await self.v4PublicGetPing(params)
         #
         #      [
@@ -748,6 +800,11 @@ class whitebit(Exchange):
         }
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.v4PublicGetTime(params)
         #
         #     {
@@ -831,6 +888,11 @@ class whitebit(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.v4PrivatePostTradeAccountBalance(params)
         #
@@ -1173,7 +1235,7 @@ class whitebit(Exchange):
         if self.is_fiat(code):
             provider = self.safe_value(params, 'provider')
             if provider is None:
-                raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a provider when the ticker is fiat')
+                raise ArgumentsRequired(self.id + ' withdraw() requires a provider when the ticker is fiat')
             request['provider'] = provider
         response = await self.v4PrivatePostMainAccountWithdraw(self.extend(request, params))
         #

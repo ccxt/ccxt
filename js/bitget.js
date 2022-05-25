@@ -750,6 +750,13 @@ module.exports = class bitget extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the bitget api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicSpotGetPublicTime (params);
         //
         //     {
@@ -763,6 +770,13 @@ module.exports = class bitget extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchMarkets
+         * @description retrieves data on all markets for bitget
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const types = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'swap' ]);
         let result = [];
         for (let i = 0; i < types.length; i++) {
@@ -998,6 +1012,13 @@ module.exports = class bitget extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the bitget api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicSpotGetPublicCurrencies (params);
         //
         //     {
@@ -1083,6 +1104,15 @@ module.exports = class bitget extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the bitget api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
@@ -1117,35 +1147,40 @@ module.exports = class bitget extends Exchange {
     parseTicker (ticker, market = undefined) {
         //
         // spot
+        //
         //     {
-        //       symbol: 'BTCUSDT',
-        //       high24h: '40252.43',
-        //       low24h: '38548.54',
-        //       close: '39102.16',
-        //       quoteVol: '67295596.1458',
-        //       baseVol: '1723.4152',
-        //       usdtVol: '67295596.14578',
-        //       ts: '1645856170030',
-        //       buyOne: '39096.16',
-        //       sellOne: '39103.99'
+        //         symbol: 'BTCUSDT',
+        //         high24h: '40252.43',
+        //         low24h: '38548.54',
+        //         close: '39102.16',
+        //         quoteVol: '67295596.1458',
+        //         baseVol: '1723.4152',
+        //         usdtVol: '67295596.14578',
+        //         ts: '1645856170030',
+        //         buyOne: '39096.16',
+        //         sellOne: '39103.99'
         //     }
         //
         // swap
+        //
         //     {
-        //       symbol: 'BTCUSDT_UMCBL',
-        //       last: '39086',
-        //       bestAsk: '39087',
-        //       bestBid: '39086',
-        //       high24h: '40312',
-        //       low24h: '38524.5',
-        //       timestamp: '1645856591864',
-        //       priceChangePercent: '-0.00861',
-        //       baseVolume: '142251.757',
-        //       quoteVolume: '5552388715.9215',
-        //       usdtVolume: '5552388715.9215'
+        //         symbol: 'BTCUSDT_UMCBL',
+        //         last: '39086',
+        //         bestAsk: '39087',
+        //         bestBid: '39086',
+        //         high24h: '40312',
+        //         low24h: '38524.5',
+        //         timestamp: '1645856591864',
+        //         priceChangePercent: '-0.00861',
+        //         baseVolume: '142251.757',
+        //         quoteVolume: '5552388715.9215',
+        //         usdtVolume: '5552388715.9215'
         //     }
         //
-        const marketId = this.safeString (ticker, 'symbol');
+        let marketId = this.safeString (ticker, 'symbol');
+        if (!(marketId in this.markets_by_id)) {
+            marketId += '_SPBL';
+        }
         const symbol = this.safeSymbol (marketId, market);
         const high = this.safeString (ticker, 'high24h');
         const low = this.safeString (ticker, 'low24h');
@@ -1182,6 +1217,14 @@ module.exports = class bitget extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the bitget api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1195,21 +1238,21 @@ module.exports = class bitget extends Exchange {
         const response = await this[method] (this.extend (request, query));
         //
         //     {
-        //       code: '00000',
-        //       msg: 'success',
-        //       requestTime: '1645856138576',
-        //       data: {
-        //         symbol: 'BTCUSDT',
-        //         high24h: '40252.43',
-        //         low24h: '38548.54',
-        //         close: '39104.65',
-        //         quoteVol: '67221762.2184',
-        //         baseVol: '1721.527',
-        //         usdtVol: '67221762.218361',
-        //         ts: '1645856138031',
-        //         buyOne: '39102.55',
-        //         sellOne: '39110.56'
-        //       }
+        //         code: '00000',
+        //         msg: 'success',
+        //         requestTime: '1645856138576',
+        //         data: {
+        //             symbol: 'BTCUSDT',
+        //             high24h: '40252.43',
+        //             low24h: '38548.54',
+        //             close: '39104.65',
+        //             quoteVol: '67221762.2184',
+        //             baseVol: '1721.527',
+        //             usdtVol: '67221762.218361',
+        //             ts: '1645856138031',
+        //             buyOne: '39102.55',
+        //             sellOne: '39110.56'
+        //         }
         //     }
         //
         const data = this.safeValue (response, 'data');
@@ -1217,6 +1260,15 @@ module.exports = class bitget extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the bitget api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'publicSpotGetMarketTickers',
@@ -1228,6 +1280,52 @@ module.exports = class bitget extends Exchange {
             request['productType'] = (defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
         }
         const response = await this[method] (this.extend (request, query));
+        //
+        // spot
+        //
+        //     {
+        //         "code":"00000",
+        //         "msg":"success",
+        //         "requestTime":1653237548496,
+        //         "data":[
+        //             {
+        //                 "symbol":"LINKUSDT",
+        //                 "high24h":"7.2634",
+        //                 "low24h":"7.1697",
+        //                 "close":"7.2444",
+        //                 "quoteVol":"330424.2366",
+        //                 "baseVol":"46401.3116",
+        //                 "usdtVol":"330424.2365573",
+        //                 "ts":"1653237548026",
+        //                 "buyOne":"7.2382",
+        //                 "sellOne":"7.2513"
+        //             },
+        //         ]
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code":"00000",
+        //         "msg":"success",
+        //         "requestTime":1653237819762,
+        //         "data":[
+        //             {
+        //                 "symbol":"BTCUSDT_UMCBL",
+        //                 "last":"29891.5",
+        //                 "bestAsk":"29891.5",
+        //                 "bestBid":"29889.5",
+        //                 "high24h":"29941.5",
+        //                 "low24h":"29737.5",
+        //                 "timestamp":"1653237819761",
+        //                 "priceChangePercent":"0.00163",
+        //                 "baseVolume":"127937.56",
+        //                 "quoteVolume":"3806276573.6285",
+        //                 "usdtVolume":"3806276573.6285"
+        //             },
+        //         ]
+        //     }
+        //
         const data = this.safeValue (response, 'data');
         return this.parseTickers (data, symbols);
     }
@@ -1235,52 +1333,55 @@ module.exports = class bitget extends Exchange {
     parseTrade (trade, market = undefined) {
         //
         // spot
+        //
         //     {
-        //       symbol: 'BTCUSDT_SPBL',
-        //       tradeId: '881371996363608065',
-        //       side: 'sell',
-        //       fillPrice: '39123.05',
-        //       fillQuantity: '0.0363',
-        //       fillTime: '1645861379709'
+        //         symbol: 'BTCUSDT_SPBL',
+        //         tradeId: '881371996363608065',
+        //         side: 'sell',
+        //         fillPrice: '39123.05',
+        //         fillQuantity: '0.0363',
+        //         fillTime: '1645861379709'
         //     }
         //
         // swap
+        //
         //     {
-        //       tradeId: '881373204067311617',
-        //       price: '39119.0',
-        //       size: '0.001',
-        //       side: 'buy',
-        //       timestamp: '1645861667648',
-        //       symbol: 'BTCUSDT_UMCBL'
+        //         tradeId: '881373204067311617',
+        //         price: '39119.0',
+        //         size: '0.001',
+        //         side: 'buy',
+        //         timestamp: '1645861667648',
+        //         symbol: 'BTCUSDT_UMCBL'
         //     }
         //
         // private
+        //
         //     {
-        //       accountId: '6394957606',
-        //       symbol: 'LTCUSDT_SPBL',
-        //       orderId: '864752115272552448',
-        //       fillId: '864752115685969921',
-        //       orderType: 'limit',
-        //       side: 'buy',
-        //       fillPrice: '127.92000000',
-        //       fillQuantity: '0.10000000',
-        //       fillTotalAmount: '12.79200000',
-        //       feeCcy: 'LTC',
-        //       fees: '0.00000000',
-        //       cTime: '1641898891373'
+        //         accountId: '6394957606',
+        //         symbol: 'LTCUSDT_SPBL',
+        //         orderId: '864752115272552448',
+        //         fillId: '864752115685969921',
+        //         orderType: 'limit',
+        //         side: 'buy',
+        //         fillPrice: '127.92000000',
+        //         fillQuantity: '0.10000000',
+        //         fillTotalAmount: '12.79200000',
+        //         feeCcy: 'LTC',
+        //         fees: '0.00000000',
+        //         cTime: '1641898891373'
         //     }
         //
         //     {
-        //       tradeId: '881640729552281602',
-        //       symbol: 'BTCUSDT_UMCBL',
-        //       orderId: '881640729145409536',
-        //       price: '38429.50',
-        //       sizeQty: '0.001',
-        //       fee: '0',
-        //       side: 'open_long',
-        //       fillAmount: '38.4295',
-        //       profit: '0',
-        //       cTime: '1645925450694'
+        //         tradeId: '881640729552281602',
+        //         symbol: 'BTCUSDT_UMCBL',
+        //         orderId: '881640729145409536',
+        //         price: '38429.50',
+        //         sizeQty: '0.001',
+        //         fee: '0',
+        //         side: 'open_long',
+        //         fillAmount: '38.4295',
+        //         profit: '0',
+        //         cTime: '1645925450694'
         //     }
         //
         const marketId = this.safeString (trade, 'symbol');
@@ -1321,6 +1422,16 @@ module.exports = class bitget extends Exchange {
     }
 
     async fetchTrades (symbol, limit = undefined, since = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the bitget api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1472,6 +1583,17 @@ module.exports = class bitget extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the bitget api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1512,6 +1634,13 @@ module.exports = class bitget extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the bitget api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const method = this.getSupportedMapping (marketType, {
@@ -2447,6 +2576,16 @@ module.exports = class bitget extends Exchange {
     }
 
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchFundingRateHistory
+         * @description fetches historical funding rate prices
+         * @param {str|undefined} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
+         * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {dict} params extra parameters specific to the bitget api endpoint
+         * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }

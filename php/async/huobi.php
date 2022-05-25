@@ -770,6 +770,7 @@ class huobi extends Exchange {
                 ),
                 'exact' => array(
                     // err-code
+                    '403' => '\\ccxt\\AuthenticationError',  // array("status":"error","err_code":403,"err_msg":"Incorrect Access key [Access key错误]","ts":1652774224344)
                     '1010' => '\\ccxt\\AccountNotEnabled', // array("status":"error","err_code":1010,"err_msg":"Account doesnt exist.","ts":1648137970490)
                     '1017' => '\\ccxt\\OrderNotFound', // array("status":"error","err_code":1017,"err_msg":"Order doesnt exist.","ts":1640550859242)
                     '1034' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1034,"err_msg":"Incorrect field of order price type.","ts":1643802870182)
@@ -777,6 +778,7 @@ class huobi extends Exchange {
                     '1039' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1039,"err_msg":"Buy price must be lower than 39270.9USDT. Sell price must exceed 37731USDT.","ts":1643802374403)
                     '1041' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1041,"err_msg":"The order amount exceeds the limit (170000Cont), please modify and order again.","ts":1643802784940)
                     '1047' => '\\ccxt\\InsufficientFunds', // array("status":"error","err_code":1047,"err_msg":"Insufficient margin available.","ts":1643802672652)
+                    '1048' => '\\ccxt\\InsufficientFunds',  // array("status":"error","err_code":1048,"err_msg":"Insufficient close amount available.","ts":1652772408864)
                     '1066' => '\\ccxt\\BadSymbol', // array("status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147)
                     '1067' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1067,"err_msg":"The client_order_id field is invalid. Please re-enter.","ts":1643802119413)
                     '1013' => '\\ccxt\\BadSymbol', // array("status":"error","err_code":1013,"err_msg":"This contract symbol doesnt exist.","ts":1640550459583)
@@ -858,6 +860,18 @@ class huobi extends Exchange {
                     'funding' => 'pro',
                     'future' => 'futures',
                 ),
+                'accountsById' => array(
+                    'spot' => 'spot',
+                    'margin' => 'margin',
+                    'otc' => 'otc',
+                    'point' => 'point',
+                    'super-margin' => 'super-margin',
+                    'investment' => 'investment',
+                    'borrow' => 'borrow',
+                    'grid-trading' => 'grid-trading',
+                    'deposit-earning' => 'deposit-earning',
+                    'otc-options' => 'otc-options',
+                ),
                 'typesByAccount' => array(
                     'pro' => 'spot',
                     'futures' => 'future',
@@ -913,6 +927,11 @@ class huobi extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $options = $this->safe_value($this->options, 'fetchTime', array());
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $type = $this->safe_string($options, 'type', $defaultType);
@@ -1052,6 +1071,11 @@ class huobi extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for huobi
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing market data
+         */
         $options = $this->safe_value($this->options, 'fetchMarkets', array());
         $types = $this->safe_value($options, 'types', array());
         $allMarkets = array();
@@ -1461,6 +1485,12 @@ class huobi extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array();
@@ -1531,6 +1561,12 @@ class huobi extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         yield $this->load_markets();
         $options = $this->safe_value($this->options, 'fetchTickers', array());
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
@@ -1669,6 +1705,13 @@ class huobi extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -2044,6 +2087,14 @@ class huobi extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = 1000, $params = array ()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int|null} $since timestamp in ms of the earliest $trade to fetch
+         * @param {int|null} $limit the maximum amount of $trades to fetch
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades $trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -2133,6 +2184,15 @@ class huobi extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -2269,7 +2329,28 @@ class huobi extends Exchange {
         //         )
         //     }
         //
-        return $response['data'];
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_accounts($data);
+    }
+
+    public function parse_account($account) {
+        //
+        //     {
+        //         "id" => 5202591,
+        //         "type" => "point",   // spot, margin, otc, point, super-margin, investment, borrow, grid-trading, deposit-earning, otc-options
+        //         "subtype" => "",     // The corresponding trading symbol (currency pair) the isolated margin is based on, e.g. btcusdt
+        //         "state" => "working" // working, lock
+        //     }
+        //
+        $typeId = $this->safe_string($account, 'type');
+        $accountsById = $this->safe_value($this->options, 'accountsById', array());
+        $type = $this->safe_value($accountsById, $typeId, $typeId);
+        return array(
+            'info' => $account,
+            'id' => $this->safe_string($account, 'id'),
+            'type' => $type,
+            'code' => null,
+        );
     }
 
     public function fetch_account_id_by_type($type, $params = array ()) {
@@ -2285,6 +2366,11 @@ class huobi extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = yield $this->spotPublicGetV2ReferenceCurrencies ();
         //     {
         //       "code" => 200,
@@ -2419,6 +2505,11 @@ class huobi extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for $balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#$balance-structure $balance structure~
+         */
         yield $this->load_markets();
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
@@ -3759,7 +3850,7 @@ class huobi extends Exchange {
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
         yield $this->load_markets();
         $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('cancelOrder', null, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelOrders', null, $params);
         $request = array(
             // spot -----------------------------------------------------------
             // 'order-ids' => $ids->jsoin (','), // max 50
@@ -3880,7 +3971,7 @@ class huobi extends Exchange {
     public function cancel_all_orders($symbol = null, $params = array ()) {
         yield $this->load_markets();
         $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('cancelOrder', null, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', null, $params);
         $request = array(
             // spot -----------------------------------------------------------
             // 'account-id' => account['id'],
@@ -3905,7 +3996,7 @@ class huobi extends Exchange {
             $method = 'spotPrivatePostV1OrderOrdersBatchCancelOpenOrders';
         } else {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol for ' . $marketType . ' orders');
+                throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol for ' . $marketType . ' orders');
             }
             $market = $this->market($symbol);
             $request['contract_code'] = $market['id'];
@@ -3924,7 +4015,7 @@ class huobi extends Exchange {
                 } else if ($marketType === 'swap') {
                     $method = 'contractPrivatePostSwapApiV1SwapCancelall';
                 } else {
-                    throw new NotSupported($this->id . ' cancelOrders() does not support ' . $marketType . ' markets');
+                    throw new NotSupported($this->id . ' cancelAllOrders() does not support ' . $marketType . ' markets');
                 }
             }
         }
@@ -4467,14 +4558,14 @@ class huobi extends Exchange {
     }
 
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
-        //
-        // Gets a history of funding $rates with their timestamps
-        //  (param) $symbol => Future currency pair
-        //  (param) $limit => not used by huobi
-        //  (param) $since => not used by huobi
-        //  (param) $params => Object containing more $params for the $request
-        //  return => [array($symbol, fundingRate, $timestamp, dateTime)]
-        //
+        /**
+         * fetches historical funding rate prices
+         * @param {str|null} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int|null} $since not used by huobi, but filtered internally by ccxt
+         * @param {int|null} $limit not used by huobi, but filtered internally by ccxt
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
@@ -4585,7 +4676,7 @@ class huobi extends Exchange {
         } else if ($market['linear']) {
             $method = 'contractPublicGetLinearSwapApiV1SwapFundingRate';
         } else {
-            throw new NotSupported($this->id . ' fetchFundingRateHistory() supports inverse and linear swaps only');
+            throw new NotSupported($this->id . ' fetchFundingRate() supports inverse and linear swaps only');
         }
         $request = array(
             'contract_code' => $market['id'],
@@ -4966,7 +5057,7 @@ class huobi extends Exchange {
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchPosition', $market, $params);
+        list($marketType, $query) = $this->handle_market_type_and_params('setLeverage', $market, $params);
         $method = null;
         if ($market['linear']) {
             $defaultMargin = $market['future'] ? 'cross' : 'isolated';
@@ -5151,7 +5242,11 @@ class huobi extends Exchange {
         yield $this->load_markets();
         $marginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'isolated');
         $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchPositions', null, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchPositions', null, $params);
+        if ($marketType === 'spot') {
+            $marketType = 'future';
+        }
         $method = null;
         if ($defaultSubType === 'linear') {
             $method = $this->get_supported_mapping($marginMode, array(
@@ -5241,7 +5336,7 @@ class huobi extends Exchange {
             //     }
             //
         }
-        $response = yield $this->$method ($query);
+        $response = yield $this->$method ($params);
         $data = $this->safe_value($response, 'data');
         $timestamp = $this->safe_integer($response, 'ts');
         $result = array();
@@ -5644,7 +5739,7 @@ class huobi extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             if (!$market['contract']) {
-                throw new BadRequest($this->id . ' fetchLeverageTiers() $symbol supports contract markets only');
+                throw new BadRequest($this->id . ' fetchMarketLeverageTiers() $symbol supports contract markets only');
             }
             $request['contract_code'] = $market['id'];
         }

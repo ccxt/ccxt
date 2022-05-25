@@ -67,6 +67,7 @@ class coinbase(Exchange):
                 'fetchMySells': True,
                 'fetchMyTrades': None,
                 'fetchOHLCV': False,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': None,
                 'fetchOrder': None,
                 'fetchOrderBook': False,
@@ -202,6 +203,11 @@ class coinbase(Exchange):
         })
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = self.publicGetTime(params)
         #
         #     {
@@ -251,19 +257,48 @@ class coinbase(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        result = []
-        for i in range(0, len(data)):
-            account = data[i]
-            currency = self.safe_value(account, 'currency', {})
-            currencyId = self.safe_string(currency, 'code')
-            code = self.safe_currency_code(currencyId)
-            result.append({
-                'id': self.safe_string(account, 'id'),
-                'type': self.safe_string(account, 'type'),
-                'code': code,
-                'info': account,
-            })
-        return result
+        self.parse_accounts(data, params)
+
+    def parse_account(self, account):
+        #
+        #     {
+        #         "id": "XLM",
+        #         "name": "XLM Wallet",
+        #         "primary": False,
+        #         "type": "wallet",
+        #         "currency": {
+        #             "code": "XLM",
+        #             "name": "Stellar Lumens",
+        #             "color": "#000000",
+        #             "sort_index": 127,
+        #             "exponent": 7,
+        #             "type": "crypto",
+        #             "address_regex": "^G[A-Z2-7]{55}$",
+        #             "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
+        #             "destination_tag_name": "XLM Memo ID",
+        #             "destination_tag_regex": "^[-~]{1,28}$"
+        #         },
+        #         "balance": {
+        #             "amount": "0.0000000",
+        #             "currency": "XLM"
+        #         },
+        #         "created_at": null,
+        #         "updated_at": null,
+        #         "resource": "account",
+        #         "resource_path": "/v2/accounts/XLM",
+        #         "allow_deposits": True,
+        #         "allow_withdrawals": True
+        #     }
+        #
+        currency = self.safe_value(account, 'currency', {})
+        currencyId = self.safe_string(currency, 'code')
+        code = self.safe_currency_code(currencyId)
+        return {
+            'id': self.safe_string(account, 'id'),
+            'type': self.safe_string(account, 'type'),
+            'code': code,
+            'info': account,
+        }
 
     def create_deposit_address(self, code, params={}):
         accountId = self.safe_string(params, 'account_id')
@@ -545,6 +580,11 @@ class coinbase(Exchange):
         }
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for coinbase
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.fetch_currencies_from_cache(params)
         currencies = self.safe_value(response, 'currencies', {})
         exchangeRates = self.safe_value(response, 'exchangeRates', {})
@@ -629,6 +669,11 @@ class coinbase(Exchange):
         return self.safe_value(self.options, 'fetchCurrencies', {})
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.fetch_currencies_from_cache(params)
         currencies = self.safe_value(response, 'currencies', {})
         #
@@ -696,6 +741,12 @@ class coinbase(Exchange):
         return result
 
     def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         request = {
             # 'currency': 'USD',
@@ -728,6 +779,12 @@ class coinbase(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = self.extend({
@@ -798,6 +855,11 @@ class coinbase(Exchange):
         }, market, False)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         request = {
             'limit': 100,

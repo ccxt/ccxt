@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { PAD_WITH_ZERO } = require ('./base/functions/number');
+const { TICK_SIZE, PAD_WITH_ZERO, ROUND, TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 const { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
@@ -56,6 +56,7 @@ module.exports = class idex extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -156,12 +157,33 @@ module.exports = class idex extends Exchange {
                 'apiKey': true,
                 'secret': true,
             },
+            'precisionMode': TICK_SIZE,
             'paddingMode': PAD_WITH_ZERO,
             'commonCurrencies': {},
         });
     }
 
+    priceToPrecision (symbol, price) {
+        //
+        // we override priceToPrecision to fix the following issue
+        // https://github.com/ccxt/ccxt/issues/13367
+        // {"code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\": all quantities and prices must be below 100 billion, above 0, need to be provided as strings, and always require 4 decimals ending with 4 zeroes"}
+        //
+        const market = this.market (symbol);
+        const info = this.safeValue (market, 'info', {});
+        const quoteAssetPrecision = this.safeInteger (info, 'quoteAssetPrecision');
+        price = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode);
+        return this.decimalToPrecision (price, TRUNCATE, quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO);
+    }
+
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name idex#fetchMarkets
+         * @description retrieves data on all markets for idex
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetMarkets (params);
         //
         // [
@@ -188,7 +210,8 @@ module.exports = class idex extends Exchange {
         //     "takerFeeRate": "0.002",
         //     "makerTradeMinimum": "0.15000000",
         //     "takerTradeMinimum": "0.05000000",
-        //     "withdrawalMinimum": "0.04000000"
+        //     "withdrawalMinimum": "0.04000000",
+        //     "tickSize":"0.00001000"
         // }
         //
         const maker = this.safeNumber (response2, 'makerFeeRate');
@@ -206,8 +229,9 @@ module.exports = class idex extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const basePrecisionString = this.safeString (entry, 'baseAssetPrecision');
             const quotePrecisionString = this.safeString (entry, 'quoteAssetPrecision');
-            const basePrecision = this.parsePrecision (basePrecisionString);
-            const quotePrecision = this.parsePrecision (quotePrecisionString);
+            const basePrecision = this.parseNumber (this.parsePrecision (basePrecisionString));
+            let quotePrecision = this.parseNumber (this.parsePrecision (quotePrecisionString));
+            quotePrecision = this.safeNumber (entry, 'tickSize', quotePrecision);
             const status = this.safeString (entry, 'status');
             let minCost = undefined;
             if (quote === 'ETH') {
@@ -228,7 +252,7 @@ module.exports = class idex extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': (status === 'active'),
+                'active': (status !== 'inactive'),
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -240,8 +264,8 @@ module.exports = class idex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': parseInt (basePrecisionString),
-                    'price': parseInt (quotePrecisionString),
+                    'amount': basePrecision,
+                    'price': quotePrecision,
                 },
                 'limits': {
                     'leverage': {
@@ -249,11 +273,11 @@ module.exports = class idex extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.parseNumber (basePrecision),
+                        'min': basePrecision,
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.parseNumber (quotePrecision),
+                        'min': quotePrecision,
                         'max': undefined,
                     },
                     'cost': {
@@ -268,6 +292,14 @@ module.exports = class idex extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name idex#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the idex api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -297,6 +329,14 @@ module.exports = class idex extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name idex#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the idex api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         // [
         //   {
@@ -367,6 +407,17 @@ module.exports = class idex extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name idex#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the idex api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -419,6 +470,16 @@ module.exports = class idex extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name idex#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the idex api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -563,6 +624,15 @@ module.exports = class idex extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name idex#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the idex api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -619,6 +689,13 @@ module.exports = class idex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name idex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the idex api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         // [
         //   {
         //     name: 'Ether',
@@ -678,6 +755,13 @@ module.exports = class idex extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name idex#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the idex api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const nonce1 = this.uuidv1 ();

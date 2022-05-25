@@ -45,7 +45,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
@@ -245,6 +245,7 @@ module.exports = class ascendex extends Exchange {
                 'defaultType': 'spot', // 'spot', 'margin', 'swap'
                 'accountsByType': {
                     'spot': 'cash',
+                    'swap': 'futures',
                     'future': 'futures',
                     'margin': 'margin',
                 },
@@ -336,6 +337,13 @@ module.exports = class ascendex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name ascendex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the ascendex api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const assets = await this.v1PublicGetAssets (params);
         //
         //     {
@@ -438,6 +446,13 @@ module.exports = class ascendex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name ascendex#fetchMarkets
+         * @description retrieves data on all markets for ascendex
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const products = await this.v1PublicGetProducts (params);
         //
         //     {
@@ -536,6 +551,10 @@ module.exports = class ascendex extends Exchange {
             let quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
             const status = this.safeString (market, 'status');
+            let active = false;
+            if ((status === 'Normal') || (status === 'InternalTrading')) {
+                active = true;
+            }
             const spot = settle === undefined;
             const swap = !spot;
             const linear = swap ? true : undefined;
@@ -576,7 +595,7 @@ module.exports = class ascendex extends Exchange {
                 'swap': swap,
                 'future': false,
                 'option': false,
-                'active': (status === 'Normal'),
+                'active': active,
                 'contract': swap,
                 'linear': linear,
                 'inverse': swap ? !linear : undefined,
@@ -688,6 +707,13 @@ module.exports = class ascendex extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name ascendex#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the ascendex api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         await this.loadAccounts ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
@@ -760,6 +786,15 @@ module.exports = class ascendex extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ascendex#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the ascendex api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -845,6 +880,14 @@ module.exports = class ascendex extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name ascendex#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the ascendex api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -872,6 +915,14 @@ module.exports = class ascendex extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name ascendex#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the ascendex api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         if (symbols !== undefined) {
@@ -929,6 +980,17 @@ module.exports = class ascendex extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ascendex#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the ascendex api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1013,6 +1075,16 @@ module.exports = class ascendex extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ascendex#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the ascendex api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1168,6 +1240,11 @@ module.exports = class ascendex extends Exchange {
             };
         }
         const stopPrice = this.safeNumber (order, 'stopPrice');
+        let reduceOnly = undefined;
+        const execInst = this.safeString (order, 'execInst');
+        if (execInst === 'reduceOnly') {
+            reduceOnly = true;
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1179,6 +1256,7 @@ module.exports = class ascendex extends Exchange {
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
+            'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1248,12 +1326,6 @@ module.exports = class ascendex extends Exchange {
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'id');
-        const reduceOnly = this.safeValue (params, 'execInst');
-        if (reduceOnly !== undefined) {
-            if ((marketType !== 'swap')) {
-                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for perpetuals only');
-            }
-        }
         const request = {
             'account-group': accountGroup,
             'account-category': accountCategory,
@@ -1270,6 +1342,15 @@ module.exports = class ascendex extends Exchange {
             // 'posStopLossPrice': position stop loss price ( v2 swap orders only)
             // 'posTakeProfitPrice': position take profit price (v2 swap orders only)
         };
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        if (reduceOnly !== undefined) {
+            if ((marketType !== 'swap')) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for perpetuals only');
+            }
+        }
+        if (reduceOnly === true) {
+            request['execInst'] = 'reduceOnly';
+        }
         if (clientOrderId !== undefined) {
             request['id'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId', 'id' ]);
@@ -1372,13 +1453,6 @@ module.exports = class ascendex extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const order = this.safeValue2 (data, 'order', 'info', {});
         return this.parseOrder (order, market);
-    }
-
-    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        const request = {
-            'execInst': 'reduceOnly',
-        };
-        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -1618,7 +1692,7 @@ module.exports = class ascendex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchCLosedOrders', market, params);
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
         const options = this.safeValue (this.options, 'fetchClosedOrders', {});
         const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountGroupGetOrderHist');
         const method = this.getSupportedMapping (type, {

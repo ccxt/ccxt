@@ -10,6 +10,7 @@ include_once 'test_order.php';
 include_once 'test_ohlcv.php';
 include_once 'test_position.php';
 include_once 'test_transaction.php';
+include_once 'test_account.php';
 
 function style($s, $style) {
     return $style . $s . "\033[0m";
@@ -295,6 +296,22 @@ function test_symbol($exchange, $symbol, $code) {
     }
 }
 
+//-----------------------------------------------------------------------------
+
+function test_accounts($exchange) {
+    $method = 'fetchAccounts';
+    if ($exchange->has[$method]) {
+        dump(green($exchange->id), 'executing ' . $method . '()');
+        $accounts = $exchange->{$method}($symbol);
+        foreach ($accounts as $account) {
+            test_account($exchange, $account);
+        }
+        dump(green($exchange->id), 'fetched', green(count($accounts)), 'accounts');
+    } else {
+        dump(green($exchange->id), $method . '() is not supported');
+    }
+}
+
 function load_exchange($exchange) {
     global $verbose;
     $markets = $exchange->load_markets();
@@ -471,6 +488,8 @@ function test_exchange($exchange) {
         dump(green('CODE:'), green($code));
         test_symbol($exchange, $symbol, $code);
     }
+
+    test_accounts($exchange);
 }
 
 $proxies = array(

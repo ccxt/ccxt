@@ -54,6 +54,7 @@ module.exports = class mexc extends Exchange {
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -139,6 +140,7 @@ module.exports = class mexc extends Exchange {
                             'position/list/history_positions': 2,
                             'position/open_positions': 2,
                             'position/funding_records': 2,
+                            'position/position_mode': 2,
                             'order/list/open_orders/{symbol}': 2,
                             'order/list/history_orders': 2,
                             'order/external/{symbol}/{external_oid}': 2,
@@ -155,6 +157,7 @@ module.exports = class mexc extends Exchange {
                         'post': {
                             'position/change_margin': 2,
                             'position/change_leverage': 2,
+                            'position/change_position_mode': 2,
                             'order/submit': 2,
                             'order/submit_batch': 40,
                             'order/cancel': 2,
@@ -335,6 +338,13 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPublicGetCommonTimestamp',
@@ -361,6 +371,13 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
         const response = await this.spotPublicGetCommonPing (params);
         //
         //     { "code":200 }
@@ -377,6 +394,13 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.spotPublicGetMarketCoinList (params);
         //
         //     {
@@ -496,6 +520,13 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchMarkets
+         * @description retrieves data on all markets for mexc
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
@@ -736,6 +767,14 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
         const method = this.getSupportedMapping (marketType, {
@@ -775,6 +814,14 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -918,6 +965,15 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -988,6 +1044,16 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1171,6 +1237,17 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const options = this.safeValue (this.options, 'timeframes', {});
@@ -1286,6 +1363,13 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const method = this.getSupportedMapping (marketType, {
@@ -3048,14 +3132,16 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        //
-        // Gets a history of funding rates with their timestamps
-        //  (param) symbol: Future currency pair
-        //  (param) limit: mexc limit is page_size default 20, maximum is 100
-        //  (param) since: not used by mexc
-        //  (param) params: Object containing more params for the request
-        //  return: [{symbol, fundingRate, timestamp, dateTime}]
-        //
+        /**
+         * @method
+         * @name mexc#fetchFundingRateHistory
+         * @description fetches historical funding rate prices
+         * @param {str|undefined} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int|undefined} since not used by mexc, but filtered internally by ccxt
+         * @param {int|undefined} limit mexc limit is page_size default 20, maximum is 100
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -3071,28 +3157,28 @@ module.exports = class mexc extends Exchange {
         }
         const response = await this.contractPublicGetFundingRateHistory (this.extend (request, params));
         //
-        // {
-        //     "success": true,
-        //     "code": 0,
-        //     "data": {
-        //         "pageSize": 2,
-        //         "totalCount": 21,
-        //         "totalPage": 11,
-        //         "currentPage": 1,
-        //         "resultList": [
-        //             {
-        //                 "symbol": "BTC_USDT",
-        //                 "fundingRate": 0.000266,
-        //                 "settleTime": 1609804800000
-        //             },
-        //             {
-        //                 "symbol": "BTC_USDT",
-        //                 "fundingRate": 0.00029,
-        //                 "settleTime": 1609776000000
-        //             }
-        //         ]
-        //     }
-        // }
+        //    {
+        //        "success": true,
+        //        "code": 0,
+        //        "data": {
+        //            "pageSize": 2,
+        //            "totalCount": 21,
+        //            "totalPage": 11,
+        //            "currentPage": 1,
+        //            "resultList": [
+        //                {
+        //                    "symbol": "BTC_USDT",
+        //                    "fundingRate": 0.000266,
+        //                    "settleTime": 1609804800000
+        //                },
+        //                {
+        //                    "symbol": "BTC_USDT",
+        //                    "fundingRate": 0.00029,
+        //                    "settleTime": 1609776000000
+        //                }
+        //            ]
+        //        }
+        //    }
         //
         const data = this.safeValue (response, 'data');
         const result = this.safeValue (data, 'resultList');

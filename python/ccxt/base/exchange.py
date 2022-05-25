@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.82.87'
+__version__ = '1.83.85'
 
 # -----------------------------------------------------------------------------
 
@@ -19,6 +19,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import NullResponse
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import RateLimitExceeded
 
@@ -257,6 +258,7 @@ class Exchange(object):
         'createMarketOrder': True,
         'createOrder': True,
         'createPostOnlyOrder': None,
+        'createReduceOnlyOrder': None,
         'createStopOrder': None,
         'createStopLimitOrder': None,
         'createStopMarketOrder': None,
@@ -321,6 +323,7 @@ class Exchange(object):
         'loadMarkets': True,
         'reduceMargin': None,
         'setLeverage': None,
+        'setMargin': None,
         'setMarginMode': None,
         'setPositionMode': None,
         'signIn': None,
@@ -1690,7 +1693,7 @@ class Exchange(object):
             tickers = self.fetch_tickers([symbol], params)
             ticker = self.safe_value(tickers, symbol)
             if ticker is None:
-                raise BadSymbol(self.id + ' fetchTickers() could not find a ticker for ' + symbol)
+                raise NullResponse(self.id + ' fetchTickers() could not find a ticker for ' + symbol)
             else:
                 return ticker
         else:
@@ -2097,6 +2100,10 @@ class Exchange(object):
                 'quoteVolume': self.parse_number(quoteVolume),
             })
 
+    def parse_accounts(self, accounts, params={}):
+        array = self.to_array(accounts)
+        return [self.extend(self.parse_account(account), params) for account in array]
+
     def parse_tickers(self, tickers, symbols=None, params={}):
         result = []
         values = self.to_array(tickers)
@@ -2334,9 +2341,16 @@ class Exchange(object):
     def market_ids(self, symbols):
         return [self.market_id(symbol) for symbol in symbols]
 
+    def market_symbols(self, symbols):
+        return [self.symbol(symbol) for symbol in symbols] if symbols else symbols
+
     def market_id(self, symbol):
         market = self.market(symbol)
         return market['id'] if type(market) is dict else symbol
+
+    def symbol(self, symbol):
+        market = self.market(symbol)
+        return market['symbol'] if type(market) is dict else symbol
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
@@ -2976,7 +2990,7 @@ class Exchange(object):
         if self.has['fetchLeverageTiers']:
             market = self.market(symbol)
             if (not market['contract']):
-                raise BadRequest(self.id + ' fetch_leverage_tiers() supports contract markets only')
+                raise BadRequest(self.id + ' fetch_market_leverage_tiers() supports contract markets only')
             tiers = self.fetch_leverage_tiers([symbol])
             return self.safe_value(tiers, symbol)
         else:
@@ -3016,6 +3030,12 @@ class Exchange(object):
         query = self.extend(params, {'postOnly': True})
         return self.create_order(symbol, type, side, amount, price, query)
 
+    def create_reduce_only_order(self, symbol, type, side, amount, price, params={}):
+        if not self.has['createReduceOnlyOrder']:
+            raise NotSupported(self.id + ' create_reduce_only_order() is not supported yet')
+        query = self.extend(params, {'reduceOnly': True})
+        return self.create_order(symbol, type, side, amount, price, query)
+
     def create_stop_order(self, symbol, type, side, amount, price=None, stopPrice=None, params={}):
         if not self.has['createStopOrder']:
             raise NotSupported(self.id + 'create_stop_order() is not supported yet')
@@ -3036,6 +3056,13 @@ class Exchange(object):
         query = self.extend(params, {'stopPrice': stopPrice})
         return self.create_order(symbol, 'market', side, amount, None, query)
 
+    def check_order_arguments(self, market, type, side, amount, price, params):
+        if price is None:
+            if type == 'limit':
+                raise ArgumentsRequired(self.id + ' create_order() requires a price argument for a limit order')
+        if amount <= 0:
+            raise ArgumentsRequired(self.id + ' create_order() amount should be above 0')
+
     def parse_borrow_interests(self, response, market=None):
         interest = []
         for i in range(len(response)):
@@ -3051,3 +3078,27 @@ class Exchange(object):
         sorted = self.sort_by(rates, 'timestamp')
         symbol = None if (market is None) else market['symbol']
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def parse_open_interests(self, response, market=None, since=None, limit=None):
+        interests = []
+        for i in range(len(response)):
+            entry = response[i]
+            interest = self.parseOpenInterest(entry, market)
+            interests.append(interest)
+        sorted = self.sortBy(interests, 'timestamp')
+        symbol = this.safeString(market, 'symbol')
+        return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
+
+    def fetch_funding_rate(self, symbol, params={}):
+        if self.has['fetchFundingRates']:
+            market = self.market(symbol)
+            if not market['contract']:
+                raise BadSymbol(self.id + ' fetch_funding_rate() supports contract markets only')
+            rates = self.fetchFundingRates([symbol], params)
+            rate = self.safe_value(rates, symbol)
+            if rate is None:
+                raise NullResponse(self.id + ' fetch_funding_rate() returned no data for ' + symbol)
+            else:
+                return rate
+        else:
+            raise NotSupported(self.id + ' fetch_funding_rate() is not supported yet')

@@ -65,6 +65,8 @@ class bitmex(Exchange):
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'setLeverage': True,
+                'setMarginMode': True,
                 'transfer': False,
                 'withdraw': True,
             },
@@ -213,6 +215,11 @@ class bitmex(Exchange):
         })
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bitmex
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.publicGetInstrumentActiveAndIndices(params)
         #
         #    {
@@ -488,6 +495,11 @@ class bitmex(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         request = {
             'currency': 'all',
@@ -543,6 +555,13 @@ class bitmex(Exchange):
         return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -929,6 +948,12 @@ class bitmex(Exchange):
         }
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         tickers = await self.fetch_tickers([market['symbol']], params)
@@ -938,8 +963,125 @@ class bitmex(Exchange):
         return ticker
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         response = await self.publicGetInstrumentActiveAndIndices(params)
+        #
+        #     [
+        #         {
+        #             "symbol":".EVOL7D",
+        #             "rootSymbol":"EVOL",
+        #             "state":"Unlisted",
+        #             "typ":"MRIXXX",
+        #             "listing":null,
+        #             "front":null,
+        #             "expiry":null,
+        #             "settle":null,
+        #             "listedSettle":null,
+        #             "relistInterval":null,
+        #             "inverseLeg":"",
+        #             "sellLeg":"",
+        #             "buyLeg":"",
+        #             "optionStrikePcnt":null,
+        #             "optionStrikeRound":null,
+        #             "optionStrikePrice":null,
+        #             "optionMultiplier":null,
+        #             "positionCurrency":"",
+        #             "underlying":"ETH",
+        #             "quoteCurrency":"XXX",
+        #             "underlyingSymbol":".EVOL7D",
+        #             "reference":"BMI",
+        #             "referenceSymbol":".BETHXBT",
+        #             "calcInterval":"2000-01-08T00:00:00.000Z",
+        #             "publishInterval":"2000-01-01T00:05:00.000Z",
+        #             "publishTime":null,
+        #             "maxOrderQty":null,
+        #             "maxPrice":null,
+        #             "lotSize":null,
+        #             "tickSize":0.01,
+        #             "multiplier":null,
+        #             "settlCurrency":"",
+        #             "underlyingToPositionMultiplier":null,
+        #             "underlyingToSettleMultiplier":null,
+        #             "quoteToSettleMultiplier":null,
+        #             "isQuanto":false,
+        #             "isInverse":false,
+        #             "initMargin":null,
+        #             "maintMargin":null,
+        #             "riskLimit":null,
+        #             "riskStep":null,
+        #             "limit":null,
+        #             "capped":false,
+        #             "taxed":false,
+        #             "deleverage":false,
+        #             "makerFee":null,
+        #             "takerFee":null,
+        #             "settlementFee":null,
+        #             "insuranceFee":null,
+        #             "fundingBaseSymbol":"",
+        #             "fundingQuoteSymbol":"",
+        #             "fundingPremiumSymbol":"",
+        #             "fundingTimestamp":null,
+        #             "fundingInterval":null,
+        #             "fundingRate":null,
+        #             "indicativeFundingRate":null,
+        #             "rebalanceTimestamp":null,
+        #             "rebalanceInterval":null,
+        #             "openingTimestamp":null,
+        #             "closingTimestamp":null,
+        #             "sessionInterval":null,
+        #             "prevClosePrice":null,
+        #             "limitDownPrice":null,
+        #             "limitUpPrice":null,
+        #             "bankruptLimitDownPrice":null,
+        #             "bankruptLimitUpPrice":null,
+        #             "prevTotalVolume":null,
+        #             "totalVolume":null,
+        #             "volume":null,
+        #             "volume24h":null,
+        #             "prevTotalTurnover":null,
+        #             "totalTurnover":null,
+        #             "turnover":null,
+        #             "turnover24h":null,
+        #             "homeNotional24h":null,
+        #             "foreignNotional24h":null,
+        #             "prevPrice24h":5.27,
+        #             "vwap":null,
+        #             "highPrice":null,
+        #             "lowPrice":null,
+        #             "lastPrice":4.72,
+        #             "lastPriceProtected":null,
+        #             "lastTickDirection":"ZeroMinusTick",
+        #             "lastChangePcnt":-0.1044,
+        #             "bidPrice":null,
+        #             "midPrice":null,
+        #             "askPrice":null,
+        #             "impactBidPrice":null,
+        #             "impactMidPrice":null,
+        #             "impactAskPrice":null,
+        #             "hasLiquidity":false,
+        #             "openInterest":null,
+        #             "openValue":0,
+        #             "fairMethod":"",
+        #             "fairBasisRate":null,
+        #             "fairBasis":null,
+        #             "fairPrice":null,
+        #             "markMethod":"LastPrice",
+        #             "markPrice":4.72,
+        #             "indicativeTaxRate":null,
+        #             "indicativeSettlePrice":null,
+        #             "optionUnderlyingPrice":null,
+        #             "settledPriceAdjustmentRate":null,
+        #             "settledPrice":null,
+        #             "timestamp":"2022-05-21T04:30:00.000Z"
+        #         }
+        #     ]
+        #
         result = {}
         for i in range(0, len(response)):
             ticker = self.parse_ticker(response[i])
@@ -952,7 +1094,8 @@ class bitmex(Exchange):
                 symbol = symbols[i]
                 market = self.market(symbol)
                 uniformSymbols.append(market['symbol'])
-        return self.filter_by_array(result, 'symbol', uniformSymbols)
+            return self.filter_by_array(result, 'symbol', uniformSymbols)
+        return result
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -1117,6 +1260,15 @@ class bitmex(Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         # send JSON key/value pairs, such as {"key": "value"}
         # filter by individual fields and do advanced queries on timestamps
@@ -1384,6 +1536,14 @@ class bitmex(Exchange):
         }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1641,8 +1801,144 @@ class bitmex(Exchange):
         #         }
         #     ]
         #
-        # todo unify parsePosition/parsePositions
-        return response
+        result = self.parse_positions(response)
+        return self.filter_by_array(result, 'symbol', symbols, False)
+
+    def parse_position(self, position, market=None):
+        #
+        #     {
+        #         "account": 9371654,
+        #         "symbol": "ETHUSDT",
+        #         "currency": "USDt",
+        #         "underlying": "ETH",
+        #         "quoteCurrency": "USDT",
+        #         "commission": 0.00075,
+        #         "initMarginReq": 0.3333333333333333,
+        #         "maintMarginReq": 0.01,
+        #         "riskLimit": 1000000000000,
+        #         "leverage": 3,
+        #         "crossMargin": False,
+        #         "deleveragePercentile": 1,
+        #         "rebalancedPnl": 0,
+        #         "prevRealisedPnl": 0,
+        #         "prevUnrealisedPnl": 0,
+        #         "prevClosePrice": 2053.738,
+        #         "openingTimestamp": "2022-05-21T04:00:00.000Z",
+        #         "openingQty": 0,
+        #         "openingCost": 0,
+        #         "openingComm": 0,
+        #         "openOrderBuyQty": 0,
+        #         "openOrderBuyCost": 0,
+        #         "openOrderBuyPremium": 0,
+        #         "openOrderSellQty": 0,
+        #         "openOrderSellCost": 0,
+        #         "openOrderSellPremium": 0,
+        #         "execBuyQty": 2000,
+        #         "execBuyCost": 39260000,
+        #         "execSellQty": 0,
+        #         "execSellCost": 0,
+        #         "execQty": 2000,
+        #         "execCost": 39260000,
+        #         "execComm": 26500,
+        #         "currentTimestamp": "2022-05-21T04:35:16.397Z",
+        #         "currentQty": 2000,
+        #         "currentCost": 39260000,
+        #         "currentComm": 26500,
+        #         "realisedCost": 0,
+        #         "unrealisedCost": 39260000,
+        #         "grossOpenCost": 0,
+        #         "grossOpenPremium": 0,
+        #         "grossExecCost": 39260000,
+        #         "isOpen": True,
+        #         "markPrice": 1964.195,
+        #         "markValue": 39283900,
+        #         "riskValue": 39283900,
+        #         "homeNotional": 0.02,
+        #         "foreignNotional": -39.2839,
+        #         "posState": "",
+        #         "posCost": 39260000,
+        #         "posCost2": 39260000,
+        #         "posCross": 0,
+        #         "posInit": 13086667,
+        #         "posComm": 39261,
+        #         "posLoss": 0,
+        #         "posMargin": 13125928,
+        #         "posMaint": 435787,
+        #         "posAllowance": 0,
+        #         "taxableMargin": 0,
+        #         "initMargin": 0,
+        #         "maintMargin": 13149828,
+        #         "sessionMargin": 0,
+        #         "targetExcessMargin": 0,
+        #         "varMargin": 0,
+        #         "realisedGrossPnl": 0,
+        #         "realisedTax": 0,
+        #         "realisedPnl": -26500,
+        #         "unrealisedGrossPnl": 23900,
+        #         "longBankrupt": 0,
+        #         "shortBankrupt": 0,
+        #         "taxBase": 0,
+        #         "indicativeTaxRate": null,
+        #         "indicativeTax": 0,
+        #         "unrealisedTax": 0,
+        #         "unrealisedPnl": 23900,
+        #         "unrealisedPnlPcnt": 0.0006,
+        #         "unrealisedRoePcnt": 0.0018,
+        #         "simpleQty": null,
+        #         "simpleCost": null,
+        #         "simpleValue": null,
+        #         "simplePnl": null,
+        #         "simplePnlPcnt": null,
+        #         "avgCostPrice": 1963,
+        #         "avgEntryPrice": 1963,
+        #         "breakEvenPrice": 1964.35,
+        #         "marginCallPrice": 1328.5,
+        #         "liquidationPrice": 1328.5,
+        #         "bankruptPrice": 1308.7,
+        #         "timestamp": "2022-05-21T04:35:16.397Z",
+        #         "lastPrice": 1964.195,
+        #         "lastValue": 39283900
+        #     }
+        #
+        market = self.safe_market(self.safe_string(position, 'symbol'), market)
+        symbol = market['symbol']
+        datetime = self.safe_string(position, 'timestamp')
+        crossMargin = self.safe_value(position, 'crossMargin')
+        marginMode = 'cross' if (crossMargin is True) else 'isolated'
+        notional = None
+        if market['quote'] == 'USDT':
+            notional = Precise.string_mul(self.safe_string(position, 'foreignNotional'), '-1')
+        return {
+            'info': position,
+            'id': self.safe_string(position, 'account'),
+            'symbol': symbol,
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+            'hedged': None,
+            'side': None,
+            'contracts': None,
+            'contractSize': None,
+            'entryPrice': self.safe_number(position, 'avgEntryPrice'),
+            'markPrice': self.safe_number(position, 'markPrice'),
+            'notional': notional,
+            'leverage': self.safe_number(position, 'leverage'),
+            'collateral': None,
+            'initialMargin': None,
+            'initialMarginPercentage': self.safe_number(position, 'initMarginReq'),
+            'maintenanceMargin': None,
+            'maintenanceMarginPercentage': None,
+            'unrealizedPnl': None,
+            'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
+            'marginMode': marginMode,
+            'marginRatio': None,
+            'percentage': self.safe_number(position, 'unrealisedPnlPcnt'),
+        }
+
+    def parse_positions(self, positions):
+        result = []
+        for i in range(0, len(positions)):
+            result.append(self.parse_position(positions[i]))
+        return result
 
     def is_fiat(self, currency):
         if currency == 'EUR':
@@ -1929,16 +2225,16 @@ class bitmex(Exchange):
     async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         """
         Fetches the history of funding rates
-        :param str symbol: Unified market symbol, use currency code to get data for the nearest expiring contract in that series, can also send a timeframe, eg XBT:quarterly, Timeframes are nearest, daily, weekly, monthly, quarterly, biquarterly, and perpetual
-        :param int since: timestamp in ms for starting date filter
-        :param int limit: number of results to fetch
-        :param dict params: exchange specific params
-        :param int params['till']: timestamp in ms for ending date filter
-        :param bool params['reverse']: if True, will sort results newest first
-        :param int params['start']: starting point for results
-        :param str params['columns']: array of column names to fetch in info, if omitted, will return all columns
-        :param str params['filter']: generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the `timestamp docs <https://www.bitmex.com/app/restAPI#Timestamp-Filters>` for more details
-        :returns: A list of `funding rate history structures <https://docs.ccxt.com/en/latest/manual.html#funding-rate-history-structure>`
+        :param str|None symbol: unified symbol of the market to fetch the funding rate history for
+        :param int|None since: timestamp in ms of the earliest funding rate to fetch
+        :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :param int|None params['till']: timestamp in ms for ending date filter
+        :param bool|None params['reverse']: if True, will sort results newest first
+        :param int|None params['start']: starting point for results
+        :param str|None params['columns']: array of column names to fetch in info, if omitted, will return all columns
+        :param str|None params['filter']: generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the `timestamp docs <https://www.bitmex.com/app/restAPI#Timestamp-Filters>` for more details
+        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
         await self.load_markets()
         request = {}
@@ -1998,6 +2294,38 @@ class bitmex(Exchange):
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
         }
+
+    async def set_leverage(self, leverage, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        if (leverage < 0.01) or (leverage > 100):
+            raise BadRequest(self.id + ' leverage should be between 0.01 and 100')
+        await self.load_markets()
+        market = self.market(symbol)
+        if market['type'] != 'swap' and market['type'] != 'future':
+            raise BadSymbol(self.id + ' setLeverage() supports future and swap contracts only')
+        request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        }
+        return await self.privatePostPositionLeverage(self.extend(request, params))
+
+    async def set_margin_mode(self, marginMode, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        marginMode = marginMode.lower()
+        if marginMode != 'isolated' and marginMode != 'cross':
+            raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
+        await self.load_markets()
+        market = self.market(symbol)
+        if (market['type'] != 'swap') and (market['type'] != 'future'):
+            raise BadSymbol(self.id + ' setMarginMode() supports swap and future contracts only')
+        enabled = False if (marginMode == 'cross') else True
+        request = {
+            'symbol': market['id'],
+            'enabled': enabled,
+        }
+        return await self.privatePostPositionIsolate(self.extend(request, params))
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

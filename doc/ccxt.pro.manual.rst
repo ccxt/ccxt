@@ -54,7 +54,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for `multilanguage support
 Exchanges
 ---------
 
-The CCXT Pro library currently supports the following 40 cryptocurrency exchange markets and WebSocket trading APIs:
+The CCXT Pro library currently supports the following 42 cryptocurrency exchange markets and WebSocket trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -245,6 +245,21 @@ The CCXT Pro library currently supports the following 40 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/158227251-3a92a220-9222-453c-9277-977c6677fe71.jpg
+          :target: https://www.bitopro.com
+          :alt: bitopro
+     
+     - bitopro
+     - `BitoPro <https://www.bitopro.com>`__
+     - .. image:: https://img.shields.io/badge/3-lightgray
+          :target: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/rest.md
+          :alt: API Version 3
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg
           :target: https://www.bitstamp.net
           :alt: bitstamp
@@ -275,7 +290,7 @@ The CCXT Pro library currently supports the following 40 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg
+   * - .. image:: https://user-images.githubusercontent.com/1294454/169202626-bd130fc5-fcf9-41bb-8d97-6093225c73cd.jpg
           :target: https://bitvavo.com/?a=24F34952F7
           :alt: bitvavo
      
@@ -317,6 +332,21 @@ The CCXT Pro library currently supports the following 40 cryptocurrency exchange
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://docs.pro.coinbase.com
           :alt: API Version *
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/168937923-80d6af4a-43b5-4ed9-9d53-31065656be4f.jpg
+          :target: https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P
+          :alt: coinflex
+     
+     - coinflex
+     - `CoinFLEX <https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P>`__
+     - .. image:: https://img.shields.io/badge/3-lightgray
+          :target: https://docs.coinflex.com/
+          :alt: API Version 3
      
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black

@@ -37,7 +37,7 @@ def main():
     symbol = 'BTC/USDT'
 
     results = []
-    num_iterations = 10
+    num_iterations = 50
 
     for i in range(0, num_iterations):
         started = exchange.milliseconds()

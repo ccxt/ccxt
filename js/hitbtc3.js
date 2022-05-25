@@ -339,6 +339,13 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#fetchMarkets
+         * @description retrieves data on all markets for hitbtc3
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetPublicSymbol (params);
         //
         //     {
@@ -471,6 +478,13 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetPublicCurrency (params);
         //
         //     {
@@ -633,6 +647,13 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         const type = this.safeStringLower (params, 'type', 'spot');
         params = this.omit (params, [ 'type' ]);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
@@ -663,11 +684,27 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         const response = await this.fetchTickers ([ symbol ], params);
         return this.safeValue (response, symbol);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         if (symbols !== undefined) {
@@ -748,6 +785,16 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
@@ -1076,6 +1123,15 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         const result = await this.fetchOrderBooks ([ symbol ], limit, params);
         return result[symbol];
     }
@@ -1147,6 +1203,17 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1503,12 +1570,6 @@ module.exports = class hitbtc3 extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const reduceOnly = this.safeValue2 (params, 'reduce_only', 'reduceOnly');
-        if (reduceOnly !== undefined) {
-            if ((market['type'] !== 'swap') && (market['type'] !== 'margin')) {
-                throw new InvalidOrder (this.id + ' createOrder() does not support reduce_only for ' + market['type'] + ' orders, reduce_only orders are supported for swap and margin markets only');
-            }
-        }
         const request = {
             'type': type,
             'side': side,
@@ -1526,6 +1587,15 @@ module.exports = class hitbtc3 extends Exchange {
             // 'take_rate': 0.001, // Optional
             // 'make_rate': 0.001, // Optional
         };
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        if (reduceOnly !== undefined) {
+            if ((market['type'] !== 'swap') && (market['type'] !== 'margin')) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support reduce_only for ' + market['type'] + ' orders, reduce_only orders are supported for swap and margin markets only');
+            }
+        }
+        if (reduceOnly === true) {
+            request['reduce_only'] = reduceOnly;
+        }
         const timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force');
         const expireTime = this.safeString (params, 'expire_time');
         const stopPrice = this.safeNumber2 (params, 'stopPrice', 'stop_price');
@@ -1555,13 +1625,6 @@ module.exports = class hitbtc3 extends Exchange {
         });
         const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response, market);
-    }
-
-    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        const request = {
-            'reduce_only': true,
-        };
-        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
     parseOrderStatus (status) {
@@ -1680,6 +1743,7 @@ module.exports = class hitbtc3 extends Exchange {
             'side': side,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
+            'reduceOnly': this.safeValue (order, 'reduce_only'),
             'filled': filled,
             'remaining': undefined,
             'cost': undefined,
@@ -1806,6 +1870,16 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#fetchFundingRateHistory
+         * @description fetches historical funding rate prices
+         * @param {str|undefined} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
+         * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         const request = {

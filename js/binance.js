@@ -70,6 +70,7 @@ module.exports = class binance extends Exchange {
                 'fetchMySells': undefined,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': true,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -1230,6 +1231,13 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name binance#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const defaultType = this.safeString2 (this.options, 'fetchTime', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
@@ -1244,6 +1252,13 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name binance#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const fetchCurrenciesEnabled = this.safeValue (this.options, 'fetchCurrencies');
         if (!fetchCurrenciesEnabled) {
             return undefined;
@@ -1387,6 +1402,13 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name binance#fetchMarkets
+         * @description retrieves data on all markets for binance
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
@@ -1755,6 +1777,13 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name binance#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
@@ -1961,6 +1990,15 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -2086,6 +2124,13 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name binance#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
         const response = await this.sapiGetSystemStatus (params);
         //
         //     {
@@ -2104,6 +2149,14 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -2124,6 +2177,14 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchBidsAsks (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchBidsAsks
+         * @description fetches the bid and ask price and volume for multiple markets
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBidsAsks', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
@@ -2141,6 +2202,14 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
@@ -2204,6 +2273,17 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
@@ -2431,6 +2511,16 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -2678,6 +2768,7 @@ module.exports = class binance extends Exchange {
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
+            'reduceOnly': this.safeValue (order, 'reduceOnly'),
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -2690,13 +2781,6 @@ module.exports = class binance extends Exchange {
             'fee': undefined,
             'trades': fills,
         }, market);
-    }
-
-    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        const request = {
-            'reduceOnly': true,
-        };
-        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -3027,7 +3111,7 @@ module.exports = class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
+        const defaultType = this.safeString2 (this.options, 'cancelOrder', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         // https://github.com/ccxt/ccxt/issues/6507
         const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
@@ -4069,7 +4153,7 @@ module.exports = class binance extends Exchange {
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
         let method = undefined;
-        const defaultType = this.safeString2 (this.options, 'fetchFundingRates', 'defaultType', 'future');
+        const defaultType = this.safeString2 (this.options, 'fetchTradingFees', 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
         if ((type === 'spot') || (type === 'margin')) {
@@ -4275,15 +4359,17 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        //
-        // Gets a history of funding rates with their timestamps
-        //  (param) symbol: Future currency pair (e.g. "BTC/USDT")
-        //  (param) limit: maximum number of data points returned
-        //  (param) since: Unix timestamp in miliseconds for the time of the earliest requested funding rate
-        //  (param) params: Object containing more params for the request
-        //          - until: Unix timestamp in miliseconds for the time of the earliest requested funding rate
-        //  return: [{symbol, fundingRate, timestamp}]
-        //
+        /**
+         * @method
+         * @name binance#fetchFundingRateHistory
+         * @description fetches historical funding rate prices
+         * @param {str|undefined} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
+         * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @param {int|undefined} params.till timestamp in ms of the earliest funding rate
+         * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         let method = undefined;
@@ -5472,6 +5558,16 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchBorrowRateHistory
+         * @description retrieves a history of a currencies borrow interest rate at specific time slots
+         * @param {str} code unified currency code
+         * @param {int|undefined} since timestamp for the earliest borrow rate
+         * @param {int|undefined} limit the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} to retrieve
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         */
         await this.loadMarkets ();
         if (limit === undefined) {
             limit = 93;
@@ -5656,6 +5752,83 @@ module.exports = class binance extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': info,
+        };
+    }
+
+    async fetchOpenInterestHistory (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchOpenInterestHistory
+         * @description Retrieves the open intestest history of a currency
+         * @param {str} symbol Unified CCXT market symbol
+         * @param {str} timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
+         * @param {int} since The time(ms) of the earliest record to retrieve as a unix timestamp
+         * @param {int} limit default 30, max 500
+         * @param {dict} params Exchange specific parameters
+         * @param {int} params.till The time(ms) of the latest record to retrieve as a unix timestamp
+         * @returns An array of open interest structures
+         */
+        if (timeframe === '1m') {
+            throw new BadRequest (this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'period': this.timeframes[timeframe],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const symbolKey = market['future'] ? 'symbol' : 'pair';
+        request[symbolKey] = market['id'];
+        if (market['delivery']) {
+            request['contractType'] = this.safeString (params, 'contractType', 'CURRENT_QUARTER');
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const till = this.safeInteger (params, 'till'); // unified in milliseconds
+        const endTime = this.safeString (params, 'endTime', till); // exchange-specific in milliseconds
+        params = this.omit (params, [ 'endTime', 'till' ]);
+        if (endTime) {
+            request['endTime'] = endTime;
+        } else if (since) {
+            if (limit === undefined) {
+                limit = 30; // Exchange default
+            }
+            const duration = this.parseTimeframe (timeframe);
+            request['endTime'] = this.sum (since, duration * limit * 1000);
+        }
+        let method = 'fapiDataGetOpenInterestHist';
+        if (market['delivery']) {
+            method = 'dapiDataGetOpenInterestHist';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //  [
+        //      {
+        //          "symbol":"BTCUSDT",
+        //          "sumOpenInterest":"75375.61700000",
+        //          "sumOpenInterestValue":"3248828883.71251440",
+        //          "timestamp":1642179900000
+        //      },
+        //      ...
+        //  ]
+        //
+        return this.parseOpenInterests (response, symbol, since, limit);
+    }
+
+    parseOpenInterest (interest, market = undefined) {
+        const timestamp = this.safeInteger (interest, 'timestamp');
+        const id = this.safeString (interest, 'symbol');
+        market = this.safeMarket (id, market);
+        return {
+            'symbol': this.safeSymbol (id),
+            'baseVolume': this.safeNumber (interest, 'sumOpenInterest'),
+            'quoteVolume': this.safeNumber (interest, 'sumOpenInterestValue'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
         };
     }
 };
