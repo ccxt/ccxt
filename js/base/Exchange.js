@@ -2234,8 +2234,9 @@ module.exports = class Exchange {
 
     }
 
-    parsePositions (positions, market = undefined, params = {}) {
-        return Object.values (positions || []).map ((position) => this.merge (this.parsePosition (position, market), params));
+    parsePositions (positions, symbols = undefined, params = {}) {
+        const result = Object.values (positions || []).map ((position) => this.merge (this.parsePosition (position), params));
+        return this.filterByArray (result, 'symbol', symbols, false);
     }
 
     parseBorrowInterests (response, market = undefined) {
