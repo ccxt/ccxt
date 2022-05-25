@@ -614,6 +614,13 @@ module.exports = class okx extends Exchange {
                     'Lightning': true,
                     'Liquid': true,
                 },
+                'fetchOpenInterestHistory': {
+                    'timeframes': {
+                        '5m': '5m',
+                        '1h': '1H',
+                        '1d': '1D',
+                    },
+                },
                 'fetchOHLCV': {
                     // 'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
@@ -4870,7 +4877,9 @@ module.exports = class okx extends Exchange {
          * @param {int} params.till The time in ms of the latest record to retrieve as a unix timestamp
          * @returns An array of open interest structures
          */
-        timeframe = (timeframe === '5m') ? timeframe : timeframe.toUpperCase ();
+        const options = this.safeValue (options, 'fetchOpenInterestHistory', {});
+        const timeframes = this.safeValue (options, 'timeframes', {});
+        timeframe = this.safeString (timeframes, timeframe, timeframe);
         if (timeframe !== '5m' && timeframe !== '1H' && timeframe !== '1D') {
             throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe');
         }
