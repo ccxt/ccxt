@@ -77,4 +77,5 @@ async def main():
     print()
     pprint(priceChanges)
 
+
 asyncio.run(main())
