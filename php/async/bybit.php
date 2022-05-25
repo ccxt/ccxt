@@ -746,7 +746,7 @@ class bybit extends Exchange {
         //         "ext_code":"",
         //         "ext_info":"",
         //         "result":array(
-        //             // inverse $swap
+        //             // $inverse $swap
         //             array(
         //                 "name":"BTCUSD",
         //                 "alias":"BTCUSD",
@@ -774,7 +774,7 @@ class bybit extends Exchange {
         //                 "price_filter":array("min_price":"0.5","max_price":"999999","tick_size":"0.5"),
         //                 "lot_size_filter":array("max_trading_qty":100,"min_trading_qty":0.001, "qty_step":0.001)
         //             ),
-        //  inverse futures
+        //  $inverse futures
         //            {
         //                "name" => "BTCUSDU22",
         //                "alias" => "BTCUSD0930",
@@ -854,6 +854,8 @@ class bybit extends Exchange {
                 $expiry = $this->parse8601($expiryDatetime);
                 $symbol = $symbol . '-' . $this->yymmdd($expiry);
             }
+            $inverse = !$linear;
+            $contractSize = $inverse ? $this->safe_number($lotSizeFilter, 'min_trading_qty') : null;
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -872,10 +874,10 @@ class bybit extends Exchange {
                 'active' => $active,
                 'contract' => true,
                 'linear' => $linear,
-                'inverse' => !$linear,
+                'inverse' => $inverse,
                 'taker' => $this->safe_number($market, 'taker_fee'),
                 'maker' => $this->safe_number($market, 'maker_fee'),
-                'contractSize' => null, // todo
+                'contractSize' => $contractSize,
                 'expiry' => $expiry,
                 'expiryDatetime' => $expiryDatetime,
                 'strike' => null,
@@ -2540,7 +2542,7 @@ class bybit extends Exchange {
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
-        $timestamp = $this->parse8601($this->safe_string_2($order, 'created_at', 'created_time'));
+        $timestamp = $this->parse8601($this->safe_string_n($order, array( 'created_at', 'created_time', 'create_time', 'timestamp' )));
         if ($timestamp === null) {
             $timestamp = $this->safe_number_2($order, 'time', 'transactTime');
             if ($timestamp === null) {
@@ -2552,14 +2554,14 @@ class bybit extends Exchange {
         $price = $this->safe_string_2($order, 'price', 'orderPrice');
         $average = $this->safe_string_2($order, 'average_price', 'avgPrice');
         $amount = $this->safe_string_n($order, array( 'qty', 'origQty', 'orderQty' ));
-        $cost = $this->safe_string($order, 'cum_exec_value');
-        $filled = $this->safe_string_2($order, 'cum_exec_qty', 'executedQty');
-        $remaining = $this->safe_string($order, 'leaves_qty');
+        $cost = $this->safe_string_2($order, 'cum_exec_value', 'cumExecValue');
+        $filled = $this->safe_string_n($order, array( 'cum_exec_qty', 'executedQty', 'cumExecQty' ));
+        $remaining = $this->safe_string_2($order, 'leaves_qty', 'leavesQty');
         $lastTradeTimestamp = $this->safe_timestamp($order, 'last_exec_time');
         if ($lastTradeTimestamp === 0) {
             $lastTradeTimestamp = null;
         } else if ($lastTradeTimestamp === null) {
-            $lastTradeTimestamp = $this->parse8601($this->safe_string_2($order, 'updated_time', 'updated_at'));
+            $lastTradeTimestamp = $this->parse8601($this->safe_string_n($order, array( 'updated_time', 'updated_at', 'update_time' )));
             if ($lastTradeTimestamp === null) {
                 $lastTradeTimestamp = $this->safe_number($order, 'updateTime');
             }
@@ -2570,7 +2572,7 @@ class bybit extends Exchange {
         $fee = null;
         $isContract = $this->safe_value($market, 'contract');
         if ($isContract) {
-            $feeCostString = $this->safe_string($order, 'cum_exec_fee');
+            $feeCostString = $this->safe_string_2($order, 'cum_exec_fee', 'cumExecFee');
             if ($feeCostString !== null) {
                 $feeCurrency = $market['linear'] ? $market['quote'] : $market['base'];
                 $fee = array(
