@@ -2445,6 +2445,7 @@ module.exports = class Exchange {
     }
 
     parsePositions (positions, symbols = undefined, params = {}) {
+        symbols = this.marketSymbols (symbols);
         const result = Object.values (positions || []).map ((position) => this.merge (this.parsePosition (position), params));
         return this.filterByArray (result, 'symbol', symbols, false);
     }

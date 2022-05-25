@@ -3064,6 +3064,7 @@ class Exchange(object):
             raise ArgumentsRequired(self.id + ' create_order() amount should be above 0')
 
     def parse_positions(self, positions, symbols = None, params = {}):
+        symbols = self.market_symbols(symbols)
         array = self.to_array(positions)
         array = [self.merge(self.parse_position(position), params) for position in array]
         return self.filter_by_array(array, 'symbol', symbols, False)

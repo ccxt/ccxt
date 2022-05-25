@@ -4043,6 +4043,7 @@ class Exchange {
     }
 
     public function parse_positions($positions, $symbols = null, $params = array()) {
+        $symbols = $this->market_symbols($symbols);
         $array = is_array($positions) ? array_values($positions) : array();
         $result = array();
         foreach ($array as $position) {
