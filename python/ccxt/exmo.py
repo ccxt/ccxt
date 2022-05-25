@@ -36,13 +36,19 @@ class exmo(Exchange):
                 'future': False,
                 'option': False,
                 'cancelOrder': True,
+                'cancelOrders': False,
+                'createDepositAddress': False,
                 'createOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
+                'fetchAccounts': False,
                 'fetchBalance': True,
+                'fetchCanceledOrders': True,
                 'fetchCurrencies': True,
+                'fetchDeposit': True,
                 'fetchDepositAddress': True,
+                'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -68,6 +74,7 @@ class exmo(Exchange):
                 'fetchTransactions': True,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'transfer': False,
                 'withdraw': True,
@@ -1158,7 +1165,7 @@ class exmo(Exchange):
 
     def parse_order(self, order, market=None):
         #
-        # fetchOrders, fetchOpenOrders, fetchClosedOrders
+        # fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         #
         #     {
         #         "order_id": "14",
@@ -1196,17 +1203,16 @@ class exmo(Exchange):
         timestamp = self.safe_timestamp(order, 'created')
         symbol = None
         side = self.safe_string(order, 'type')
-        if market is None:
-            marketId = None
-            if 'pair' in order:
-                marketId = order['pair']
-            elif ('in_currency' in order) and ('out_currency' in order):
-                if side == 'buy':
-                    marketId = order['in_currency'] + '_' + order['out_currency']
-                else:
-                    marketId = order['out_currency'] + '_' + order['in_currency']
-            if (marketId is not None) and (marketId in self.markets_by_id):
-                market = self.markets_by_id[marketId]
+        marketId = None
+        if 'pair' in order:
+            marketId = order['pair']
+        elif ('in_currency' in order) and ('out_currency' in order):
+            if side == 'buy':
+                marketId = order['in_currency'] + '_' + order['out_currency']
+            else:
+                marketId = order['out_currency'] + '_' + order['in_currency']
+        if (marketId is not None) and (marketId in self.markets_by_id):
+            market = self.markets_by_id[marketId]
         amount = self.safe_number(order, 'quantity')
         if amount is None:
             amountField = 'in_amount' if (side == 'buy') else 'out_amount'
@@ -1285,6 +1291,31 @@ class exmo(Exchange):
             'fee': fee,
             'info': order,
         }
+
+    def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        if since is not None:
+            request['offset'] = limit
+        if limit is not None:
+            request['limit'] = limit
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        response = self.privatePostUserCancelledOrders(self.extend(request, params))
+        #
+        #     [{
+        #         "order_id": "27056153840",
+        #         "client_id": "0",
+        #         "created": "1653428646",
+        #         "type": "buy",
+        #         "pair": "BTC_USDT",
+        #         "quantity": "0.1",
+        #         "price": "10",
+        #         "amount": "1"
+        #     }]
+        #
+        return self.parse_orders(response, market, since, limit, params)
 
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
@@ -1541,7 +1572,131 @@ class exmo(Exchange):
         #         "count": 23
         #     }
         #
-        return self.parse_transactions(response['items'], currency, since, limit)
+        items = self.safe_value(response, 'items', [])
+        return self.parse_transactions(items, currency, since, limit)
+
+    def fetch_withdrawal(self, id, code=None, params={}):
+        self.load_markets()
+        currency = None
+        request = {
+            'order_id': id,
+            'type': 'withdraw',
+        }
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        response = self.privatePostWalletOperations(self.extend(request, params))
+        #
+        #     {
+        #         "items": [
+        #         {
+        #             "operation_id": 47412538520634344,
+        #             "created": 1573760013,
+        #             "updated": 1573760013,
+        #             "type": "deposit",
+        #             "currency": "DOGE",
+        #             "status": "Paid",
+        #             "amount": "300",
+        #             "provider": "DOGE",
+        #             "commission": "0",
+        #             "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        #             "order_id": 69670170,
+        #             "extra": {
+        #                 "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        #                 "excode": "",
+        #                 "invoice": ""
+        #             },
+        #             "error": ""
+        #         },
+        #     ],
+        #         "count": 23
+        #     }
+        #
+        items = self.safe_value(response, 'items', [])
+        first = self.safe_value(items, 0, {})
+        return self.parse_transaction(first, currency)
+
+    def fetch_deposit(self, id=None, code=None, params={}):
+        self.load_markets()
+        currency = None
+        request = {
+            'order_id': id,
+            'type': 'deposit',
+        }
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        response = self.privatePostWalletOperations(self.extend(request, params))
+        #
+        #     {
+        #         "items": [
+        #         {
+        #             "operation_id": 47412538520634344,
+        #             "created": 1573760013,
+        #             "updated": 1573760013,
+        #             "type": "deposit",
+        #             "currency": "DOGE",
+        #             "status": "Paid",
+        #             "amount": "300",
+        #             "provider": "DOGE",
+        #             "commission": "0",
+        #             "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        #             "order_id": 69670170,
+        #             "extra": {
+        #                 "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        #                 "excode": "",
+        #                 "invoice": ""
+        #             },
+        #             "error": ""
+        #         },
+        #     ],
+        #         "count": 23
+        #     }
+        #
+        items = self.safe_value(response, 'items', [])
+        first = self.safe_value(items, 0, {})
+        return self.parse_transaction(first, currency)
+
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        currency = None
+        request = {
+            'type': 'deposit',
+        }
+        if limit is not None:
+            request['limit'] = limit  # default: 100, maximum: 100
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        response = self.privatePostWalletOperations(self.extend(request, params))
+        #
+        #     {
+        #         "items": [
+        #         {
+        #             "operation_id": 47412538520634344,
+        #             "created": 1573760013,
+        #             "updated": 1573760013,
+        #             "type": "deposit",
+        #             "currency": "DOGE",
+        #             "status": "Paid",
+        #             "amount": "300",
+        #             "provider": "DOGE",
+        #             "commission": "0",
+        #             "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        #             "order_id": 69670170,
+        #             "extra": {
+        #                 "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        #                 "excode": "",
+        #                 "invoice": ""
+        #             },
+        #             "error": ""
+        #         },
+        #     ],
+        #         "count": 23
+        #     }
+        #
+        items = self.safe_value(response, 'items', [])
+        return self.parse_transactions(items, currency, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/'

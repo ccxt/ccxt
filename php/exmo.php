@@ -28,13 +28,19 @@ class exmo extends Exchange {
                 'future' => false,
                 'option' => false,
                 'cancelOrder' => true,
+                'cancelOrders' => false,
+                'createDepositAddress' => false,
                 'createOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
+                'fetchAccounts' => false,
                 'fetchBalance' => true,
+                'fetchCanceledOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -60,6 +66,7 @@ class exmo extends Exchange {
                 'fetchTransactions' => true,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'transfer' => false,
                 'withdraw' => true,
@@ -1230,7 +1237,7 @@ class exmo extends Exchange {
 
     public function parse_order($order, $market = null) {
         //
-        // fetchOrders, fetchOpenOrders, fetchClosedOrders
+        // fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         //
         //     {
         //         "order_id" => "14",
@@ -1268,20 +1275,18 @@ class exmo extends Exchange {
         $timestamp = $this->safe_timestamp($order, 'created');
         $symbol = null;
         $side = $this->safe_string($order, 'type');
-        if ($market === null) {
-            $marketId = null;
-            if (is_array($order) && array_key_exists('pair', $order)) {
-                $marketId = $order['pair'];
-            } else if ((is_array($order) && array_key_exists('in_currency', $order)) && (is_array($order) && array_key_exists('out_currency', $order))) {
-                if ($side === 'buy') {
-                    $marketId = $order['in_currency'] . '_' . $order['out_currency'];
-                } else {
-                    $marketId = $order['out_currency'] . '_' . $order['in_currency'];
-                }
+        $marketId = null;
+        if (is_array($order) && array_key_exists('pair', $order)) {
+            $marketId = $order['pair'];
+        } else if ((is_array($order) && array_key_exists('in_currency', $order)) && (is_array($order) && array_key_exists('out_currency', $order))) {
+            if ($side === 'buy') {
+                $marketId = $order['in_currency'] . '_' . $order['out_currency'];
+            } else {
+                $marketId = $order['out_currency'] . '_' . $order['in_currency'];
             }
-            if (($marketId !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
-                $market = $this->markets_by_id[$marketId];
-            }
+        }
+        if (($marketId !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+            $market = $this->markets_by_id[$marketId];
         }
         $amount = $this->safe_number($order, 'quantity');
         if ($amount === null) {
@@ -1376,6 +1381,35 @@ class exmo extends Exchange {
             'fee' => $fee,
             'info' => $order,
         );
+    }
+
+    public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array();
+        if ($since !== null) {
+            $request['offset'] = $limit;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $response = $this->privatePostUserCancelledOrders (array_merge($request, $params));
+        //
+        //     [array(
+        //         "order_id" => "27056153840",
+        //         "client_id" => "0",
+        //         "created" => "1653428646",
+        //         "type" => "buy",
+        //         "pair" => "BTC_USDT",
+        //         "quantity" => "0.1",
+        //         "price" => "10",
+        //         "amount" => "1"
+        //     )]
+        //
+        return $this->parse_orders($response, $market, $since, $limit, $params);
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
@@ -1659,7 +1693,138 @@ class exmo extends Exchange {
         //         "count" => 23
         //     }
         //
-        return $this->parse_transactions($response['items'], $currency, $since, $limit);
+        $items = $this->safe_value($response, 'items', array());
+        return $this->parse_transactions($items, $currency, $since, $limit);
+    }
+
+    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+        $this->load_markets();
+        $currency = null;
+        $request = array(
+            'order_id' => $id,
+            'type' => 'withdraw',
+        );
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        $response = $this->privatePostWalletOperations (array_merge($request, $params));
+        //
+        //     {
+        //         "items" => array(
+        //         array(
+        //             "operation_id" => 47412538520634344,
+        //             "created" => 1573760013,
+        //             "updated" => 1573760013,
+        //             "type" => "deposit",
+        //             "currency" => "DOGE",
+        //             "status" => "Paid",
+        //             "amount" => "300",
+        //             "provider" => "DOGE",
+        //             "commission" => "0",
+        //             "account" => "DOGE => DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        //             "order_id" => 69670170,
+        //             "extra" => array(
+        //                 "txid" => "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        //                 "excode" => "",
+        //                 "invoice" => ""
+        //             ),
+        //             "error" => ""
+        //         ),
+        //     ),
+        //         "count" => 23
+        //     }
+        //
+        $items = $this->safe_value($response, 'items', array());
+        $first = $this->safe_value($items, 0, array());
+        return $this->parse_transaction($first, $currency);
+    }
+
+    public function fetch_deposit($id = null, $code = null, $params = array ()) {
+        $this->load_markets();
+        $currency = null;
+        $request = array(
+            'order_id' => $id,
+            'type' => 'deposit',
+        );
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        $response = $this->privatePostWalletOperations (array_merge($request, $params));
+        //
+        //     {
+        //         "items" => array(
+        //         array(
+        //             "operation_id" => 47412538520634344,
+        //             "created" => 1573760013,
+        //             "updated" => 1573760013,
+        //             "type" => "deposit",
+        //             "currency" => "DOGE",
+        //             "status" => "Paid",
+        //             "amount" => "300",
+        //             "provider" => "DOGE",
+        //             "commission" => "0",
+        //             "account" => "DOGE => DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        //             "order_id" => 69670170,
+        //             "extra" => array(
+        //                 "txid" => "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        //                 "excode" => "",
+        //                 "invoice" => ""
+        //             ),
+        //             "error" => ""
+        //         ),
+        //     ),
+        //         "count" => 23
+        //     }
+        //
+        $items = $this->safe_value($response, 'items', array());
+        $first = $this->safe_value($items, 0, array());
+        return $this->parse_transaction($first, $currency);
+    }
+
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $currency = null;
+        $request = array(
+            'type' => 'deposit',
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default => 100, maximum => 100
+        }
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        $response = $this->privatePostWalletOperations (array_merge($request, $params));
+        //
+        //     {
+        //         "items" => array(
+        //         array(
+        //             "operation_id" => 47412538520634344,
+        //             "created" => 1573760013,
+        //             "updated" => 1573760013,
+        //             "type" => "deposit",
+        //             "currency" => "DOGE",
+        //             "status" => "Paid",
+        //             "amount" => "300",
+        //             "provider" => "DOGE",
+        //             "commission" => "0",
+        //             "account" => "DOGE => DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        //             "order_id" => 69670170,
+        //             "extra" => array(
+        //                 "txid" => "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        //                 "excode" => "",
+        //                 "invoice" => ""
+        //             ),
+        //             "error" => ""
+        //         ),
+        //     ),
+        //         "count" => 23
+        //     }
+        //
+        $items = $this->safe_value($response, 'items', array());
+        return $this->parse_transactions($items, $currency, $since, $limit);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
