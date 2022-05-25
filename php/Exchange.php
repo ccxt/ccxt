@@ -53,7 +53,12 @@ const TICK_SIZE = 2;
 const NO_PADDING = 0;
 const PAD_WITH_ZERO = 1;
 
+
+require_once "ExchangeCommon.php";
+
 class Exchange {
+
+    use ExchangeCommon;
 
     const VERSION = '1.83.91';
 

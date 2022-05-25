@@ -4,6 +4,8 @@
 
 const functions = require ('./functions')
 
+const baseFunctions = require('./ExchangeCommon')
+
 const {
     isNode
     , keys
@@ -240,6 +242,7 @@ module.exports = class Exchange {
 
     constructor (userConfig = {}) {
         Object.assign (this, functions)
+        Object.assign (this, baseFunctions)
         // if (isNode) {
         //     this.nodeVersion = process.version.match (/\d+\.\d+\.\d+/)[0]
         //     this.userAgent = {

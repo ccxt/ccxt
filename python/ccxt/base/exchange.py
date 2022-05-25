@@ -52,6 +52,10 @@ except ImportError:
 
 # -----------------------------------------------------------------------------
 
+import ccxt.base.exchange_common as exchange_common
+
+# -----------------------------------------------------------------------------
+
 __all__ = [
     'Exchange',
 ]
@@ -3156,3 +3160,11 @@ class Exchange(object):
             return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
         else:
             raise NotSupported(self.id + ' fetchPremiumIndexOHLCV() is not supported yet')
+
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# Hack-y thing, set imported common methods as part of the class
+common_methods = list((n for n in dir(exchange_common) if n[:1] != "_"))
+for method in common_methods:
+    setattr(Exchange, method, getattr(exchange_common, method))
+# -----------------------------------------------------------------------------
