@@ -24,10 +24,11 @@ class exmo extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null, // has but unimplemented
+                'margin' => true,
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'addMargin' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
                 'createDepositAddress' => false,
@@ -69,6 +70,8 @@ class exmo extends Exchange {
                 'fetchTransfers' => false,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => true,
+                'setMargin' => false,
                 'transfer' => false,
                 'withdraw' => true,
             ),
@@ -186,6 +189,9 @@ class exmo extends Exchange {
                 'fetchTradingFees' => array(
                     'method' => 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
                 ),
+                'margin' => array(
+                    'fillResponseFromRequest' => true,
+                ),
             ),
             'commonCurrencies' => array(
                 'GMT' => 'GMT Token',
@@ -216,6 +222,56 @@ class exmo extends Exchange {
                 ),
             ),
         ));
+    }
+
+    public function modify_margin_helper($symbol, $amount, $type, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'position_id' => $market['id'],
+            'quantity' => $amount,
+        );
+        $method = null;
+        if ($type === 'add') {
+            $method = 'privatePostMarginUserPositionMarginAdd';
+        } else if ($type === 'reduce') {
+            $method = 'privatePostMarginUserPositionMarginReduce';
+        }
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        //      array()
+        //
+        $margin = $this->parse_margin_modification($response, $market);
+        $options = $this->safe_value($this->options, 'margin', array());
+        $fillResponseFromRequest = $this->safe_value($options, 'fillResponseFromRequest', true);
+        if ($fillResponseFromRequest) {
+            $margin['type'] = $type;
+            $margin['amount'] = $amount;
+        }
+        return $margin;
+    }
+
+    public function parse_margin_modification($data, $market = null) {
+        //
+        //      array()
+        //
+        return array(
+            'info' => $data,
+            'type' => null,
+            'amount' => null,
+            'code' => $this->safe_value($market, 'quote'),
+            'symbol' => $this->safe_symbol(null, $market),
+            'total' => null,
+            'status' => 'ok',
+        );
+    }
+
+    public function reduce_margin($symbol, $amount, $params = array ()) {
+        return yield $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
+    }
+
+    public function add_margin($symbol, $amount, $params = array ()) {
+        return yield $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
     public function fetch_trading_fees($params = array ()) {
@@ -583,7 +639,7 @@ class exmo extends Exchange {
                 'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'margin' => false,
+                'margin' => true,
                 'swap' => false,
                 'future' => false,
                 'option' => false,

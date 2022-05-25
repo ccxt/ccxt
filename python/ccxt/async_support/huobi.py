@@ -2918,11 +2918,14 @@ class huobi(Exchange):
         #                     "liquidation_type": "0",
         #                     "is_tpsl": 0,
         #                     "real_profit": 0
-        #                     "pair": "BTC-USDT",
-        #                     "business_type": "futures",
         #                     "margin_asset": "USDT",
         #                     "margin_mode": "cross",
         #                     "margin_account": "USDT",
+        #                     "trade_partition": "USDT",  # only in isolated & cross of linear
+        #                     "reduce_only": "1",  # only in isolated & cross of linear
+        #                     "contract_type": "quarter",  # only in cross-margin(inverse & linear)
+        #                     "pair": "BTC-USDT",  # only in cross-margin(inverse & linear)
+        #                     "business_type": "futures"  # only in cross-margin(inverse & linear)
         #                 }
         #             ],
         #             "total_page": 19,
@@ -3211,60 +3214,95 @@ class huobi(Exchange):
         # contracts fetchOrder detailed
         #
         #     {
-        #         "status": "ok",
-        #         "data": {
-        #             "symbol": "BTC",
-        #             "contract_code": "BTC-USDT",
-        #             "instrument_price": 0,
-        #             "final_interest": 0,
-        #             "adjust_value": 0,
-        #             "lever_rate": 10,
-        #             "direction": "sell",
-        #             "offset": "open",
-        #             "volume": 1.000000000000000000,
-        #             "price": 13059.800000000000000000,
-        #             "created_at": 1603703614712,
-        #             "canceled_at": 0,
-        #             "order_source": "api",
-        #             "order_price_type": "opponent",
-        #             "margin_frozen": 0,
-        #             "profit": 0,
-        #             "trades": [
-        #                 {
-        #                     "trade_id": 131560927,
-        #                     "trade_price": 13059.800000000000000000,
-        #                     "trade_volume": 1.000000000000000000,
-        #                     "trade_turnover": 13.059800000000000000,
-        #                     "trade_fee": -0.005223920000000000,
-        #                     "created_at": 1603703614715,
-        #                     "role": "taker",
-        #                     "fee_asset": "USDT",
-        #                     "profit": 0,
-        #                     "real_profit": 0,
-        #                     "id": "131560927-770334322963152896-1"
-        #                 }
-        #             ],
-        #             "total_page": 1,
-        #             "current_page": 1,
-        #             "total_size": 1,
-        #             "liquidation_type": "0",
-        #             "fee_asset": "USDT",
-        #             "fee": -0.005223920000000000,
-        #             "order_id": 770334322963152896,
-        #             "order_id_str": "770334322963152896",
-        #             "client_order_id": 57012021045,
-        #             "order_type": "1",
-        #             "status": 6,
-        #             "trade_avg_price": 13059.800000000000000000,
-        #             "trade_turnover": 13.059800000000000000,
-        #             "trade_volume": 1.000000000000000000,
-        #             "margin_asset": "USDT",
-        #             "margin_mode": "isolated",
-        #             "margin_account": "BTC-USDT",
-        #             "real_profit": 0,
-        #             "is_tpsl": 0
-        #         },
-        #         "ts": 1603703678477
+        #         "symbol": "BTC",
+        #         "contract_code": "BTC-USDT",
+        #         "instrument_price": 0,
+        #         "final_interest": 0,
+        #         "adjust_value": 0,
+        #         "lever_rate": 10,
+        #         "direction": "sell",
+        #         "offset": "open",
+        #         "volume": 1.000000000000000000,
+        #         "price": 13059.800000000000000000,
+        #         "created_at": 1603703614712,
+        #         "canceled_at": 0,
+        #         "order_source": "api",
+        #         "order_price_type": "opponent",
+        #         "margin_frozen": 0,
+        #         "profit": 0,
+        #         "trades": [
+        #             {
+        #                 "trade_id": 131560927,
+        #                 "trade_price": 13059.800000000000000000,
+        #                 "trade_volume": 1.000000000000000000,
+        #                 "trade_turnover": 13.059800000000000000,
+        #                 "trade_fee": -0.005223920000000000,
+        #                 "created_at": 1603703614715,
+        #                 "role": "taker",
+        #                 "fee_asset": "USDT",
+        #                 "profit": 0,
+        #                 "real_profit": 0,
+        #                 "id": "131560927-770334322963152896-1"
+        #             }
+        #         ],
+        #         "total_page": 1,
+        #         "current_page": 1,
+        #         "total_size": 1,
+        #         "liquidation_type": "0",
+        #         "fee_asset": "USDT",
+        #         "fee": -0.005223920000000000,
+        #         "order_id": 770334322963152896,
+        #         "order_id_str": "770334322963152896",
+        #         "client_order_id": 57012021045,
+        #         "order_type": "1",
+        #         "status": 6,
+        #         "trade_avg_price": 13059.800000000000000000,
+        #         "trade_turnover": 13.059800000000000000,
+        #         "trade_volume": 1.000000000000000000,
+        #         "margin_asset": "USDT",
+        #         "margin_mode": "isolated",
+        #         "margin_account": "BTC-USDT",
+        #         "real_profit": 0,
+        #         "is_tpsl": 0
+        #     }
+        #
+        # fetchOrders
+        #
+        #     {
+        #         "order_id": 773131315209248768,
+        #         "contract_code": "ADA201225",
+        #         "symbol": "ADA",
+        #         "lever_rate": 20,
+        #         "direction": "buy",
+        #         "offset": "close",
+        #         "volume": 1,
+        #         "price": 0.0925,
+        #         "create_date": 1604370469629,
+        #         "update_time": 1603704221118,
+        #         "order_source": "web",
+        #         "order_price_type": 6,
+        #         "order_type": 1,
+        #         "margin_frozen": 0,
+        #         "profit": 0,
+        #         "contract_type": "quarter",
+        #         "trade_volume": 0,
+        #         "trade_turnover": 0,
+        #         "fee": 0,
+        #         "trade_avg_price": 0,
+        #         "status": 3,
+        #         "order_id_str": "773131315209248768",
+        #         "fee_asset": "ADA",
+        #         "liquidation_type": "0",
+        #         "is_tpsl": 0,
+        #         "real_profit": 0
+        #         "margin_asset": "USDT",
+        #         "margin_mode": "cross",
+        #         "margin_account": "USDT",
+        #         "trade_partition": "USDT",  # only in isolated & cross of linear
+        #         "reduce_only": "1",  # only in isolated & cross of linear
+        #         "contract_type": "quarter",  # only in cross-margin(inverse & linear)
+        #         "pair": "BTC-USDT",  # only in cross-margin(inverse & linear)
+        #         "business_type": "futures"  # only in cross-margin(inverse & linear)
         #     }
         #
         id = self.safe_string_2(order, 'id', 'order_id_str')
@@ -3277,7 +3315,7 @@ class huobi(Exchange):
         status = self.parse_order_status(self.safe_string_2(order, 'state', 'status'))
         marketId = self.safe_string_2(order, 'contract_code', 'symbol')
         market = self.safe_market(marketId, market)
-        timestamp = self.safe_integer_2(order, 'created_at', 'created-at')
+        timestamp = self.safe_integer_n(order, ['created_at', 'created-at', 'create_date'])
         clientOrderId = self.safe_string_2(order, 'client_order_id', 'client-order-id')
         amount = self.safe_string_2(order, 'volume', 'amount')
         filled = self.safe_string_2(order, 'filled-amount', 'field-amount')  # typo in their API, filled amount

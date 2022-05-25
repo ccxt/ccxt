@@ -31,10 +31,11 @@ class exmo(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,  # has but unimplemented
+                'margin': True,
                 'swap': False,
                 'future': False,
                 'option': False,
+                'addMargin': True,
                 'cancelOrder': True,
                 'cancelOrders': False,
                 'createDepositAddress': False,
@@ -76,6 +77,8 @@ class exmo(Exchange):
                 'fetchTransfers': False,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': True,
+                'setMargin': False,
                 'transfer': False,
                 'withdraw': True,
             },
@@ -193,6 +196,9 @@ class exmo(Exchange):
                 'fetchTradingFees': {
                     'method': 'fetchPrivateTradingFees',  # or 'fetchPublicTradingFees'
                 },
+                'margin': {
+                    'fillResponseFromRequest': True,
+                },
             },
             'commonCurrencies': {
                 'GMT': 'GMT Token',
@@ -223,6 +229,50 @@ class exmo(Exchange):
                 },
             },
         })
+
+    async def modify_margin_helper(self, symbol, amount, type, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'position_id': market['id'],
+            'quantity': amount,
+        }
+        method = None
+        if type == 'add':
+            method = 'privatePostMarginUserPositionMarginAdd'
+        elif type == 'reduce':
+            method = 'privatePostMarginUserPositionMarginReduce'
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #      {}
+        #
+        margin = self.parse_margin_modification(response, market)
+        options = self.safe_value(self.options, 'margin', {})
+        fillResponseFromRequest = self.safe_value(options, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            margin['type'] = type
+            margin['amount'] = amount
+        return margin
+
+    def parse_margin_modification(self, data, market=None):
+        #
+        #      {}
+        #
+        return {
+            'info': data,
+            'type': None,
+            'amount': None,
+            'code': self.safe_value(market, 'quote'),
+            'symbol': self.safe_symbol(None, market),
+            'total': None,
+            'status': 'ok',
+        }
+
+    async def reduce_margin(self, symbol, amount, params={}):
+        return await self.modify_margin_helper(symbol, amount, 'reduce', params)
+
+    async def add_margin(self, symbol, amount, params={}):
+        return await self.modify_margin_helper(symbol, amount, 'add', params)
 
     async def fetch_trading_fees(self, params={}):
         method = self.safe_string(params, 'method')
@@ -564,7 +614,7 @@ class exmo(Exchange):
                 'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': False,
+                'margin': True,
                 'swap': False,
                 'future': False,
                 'option': False,
