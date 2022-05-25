@@ -1274,25 +1274,52 @@ class Transpiler {
 
     // ========================================================================
 
-    transpileExchangeCommonFiles(jsFolder, filename) {
+    transpileExchangeCommonFiles(jsFolder, filename, className, options ) {
         const jsPath = jsFolder + '/' + filename
-        const className = 'Exchange'
+        const { python2Folder, python3Folder, phpFolder, phpAsyncFolder } = options
         let contents = fs.readFileSync (jsPath, 'utf8')
 
+        const python2FolderBase = python2Folder + 'base/'
+        const python3FolderBase = python3Folder + 'base/'
+
         let methods = contents.trim ().split (/\n\s*\n/)
-        methods.pop(); // remove modules.exports = {...}
+        methods.pop(); // tmp :: remove modules.exports = {...}
 
         let {
             python2,
             python3,
             php,
             phpAsync,
-        } = this.transpileMethodsToAllLanguages(className, methods)
+        } = this.transpileMethodsToAllLanguages(className, methods, true)
+
+        log.cyan ('Transpiling common Exchange methods')
+
+        const extensionLessFilename = filename.replace ('.js', '')
+        const snakeFilename = unCamelCase(extensionLessFilename)
+        const pythonFilename = snakeFilename + '.py'
+        const phpFilename = extensionLessFilename + '.php'
+
+        const python3File = python3.join('\n')
+        const python2File = python2.join('\n')
+        const phpFile = php.join('\n')
+        const phpAsyncFile = phpAsync.join('\n')
+
+        ;[
+            [ python2FolderBase, pythonFilename, python2File ],
+            [ python3FolderBase, pythonFilename, python3File ],
+            [ phpFolder, phpFilename, phpFile ],
+            [ phpAsyncFolder, phpFilename, phpAsyncFile ],
+        ].forEach (([ folder, filename, code ]) => {
+            if (folder) {
+                overwriteFile (folder + filename, code)
+                // fs.utimesSync (folder + filename, new Date (), new Date (jsMtime))
+            }
+        })
     }
 
     // ========================================================================
 
-    transpileMethodsToAllLanguages(className, methods) {
+    transpileMethodsToAllLanguages(className, methods, firstLevel = false) {
         let python2 = []
         let python3 = []
         let php = []
@@ -1354,24 +1381,26 @@ class Transpiler {
 
             // compile signature + body for Python sync
             python2.push ('');
-            python2.push ('    ' + pythonString);
+            
+            const identation = firstLevel ? '' : '    '
+            python2.push (identation + pythonString);
             python2.push (python2Body);
 
             // compile signature + body for Python async
             python3.push ('');
-            python3.push ('    ' + keyword + pythonString);
+            python3.push (identation + keyword + pythonString);
             python3.push (python3Body);
 
             // compile signature + body for PHP
             php.push ('');
-            php.push ('    public function ' + method + '(' + phpArgs + ') {');
+            php.push (identation + 'public function ' + method + '(' + phpArgs + ') {');
             php.push (phpBody);
-            php.push ('    }')
+            php.push (identation + '}')
 
             phpAsync.push ('');
-            phpAsync.push ('    public function ' + method + '(' + phpArgs + ') {');
+            phpAsync.push (identation + 'public function ' + method + '(' + phpArgs + ') {');
             phpAsync.push (phpAsyncBody);
-            phpAsync.push ('    }')
+            phpAsync.push (identation + '}')
         }
 
         return {
@@ -1864,7 +1893,7 @@ class Transpiler {
 
         //*
 
-        this.transpileExchangeCommonFiles('./js/base', 'ExchangeCommon.js') 
+        this.transpileExchangeCommonFiles('./js/base', 'ExchangeCommon.js', 'Exchange', options) 
 
         const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern, force)
 
