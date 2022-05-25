@@ -26,15 +26,20 @@ module.exports = class woo extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'addMargin': false,
+                'reduceMargin': false,
+                'setMargin': false,
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'cancelWithdraw': false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
+                'createDepositAddress': false,
                 'createMarketOrder': false,
                 'createOrder': true,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
+                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
@@ -131,6 +136,8 @@ module.exports = class woo extends Exchange {
                             'client/info': 60,
                             'asset/deposit': 120,
                             'asset/history': 60,
+                            'sub_account/all': 60,
+                            'sub_account/assets': 60,
                             'token_interest': 60,
                             'token_interest/{token}': 60,
                             'interest/history': 60,
@@ -1151,6 +1158,53 @@ module.exports = class woo extends Exchange {
         // }
         const trades = this.safeValue (response, 'rows', []);
         return this.parseTrades (trades, market, since, limit, params);
+    }
+
+    async fetchAccounts (params = {}) {
+        /**
+         * @method
+         * @name woo#fetchAccounts
+         * @description query to fetchAccounts
+         * @param {dict} params extra parameters specific to the woo api endpoint
+         * @returns {dict} a [account structure]{@link https://docs.ccxt.com/en/latest/manual.html?#account-structure}
+         */
+        const response = await this.v1PrivateGetSubAccountAssets (params);
+        //
+        //     {
+        //         rows: [{
+        //                 application_id: '13e4fc34-e2ff-4cb7-b1e4-4c22fee7d365',
+        //                 account: 'Main',
+        //                 usdt_balance: '4.0'
+        //             },
+        //             {
+        //                 application_id: '432952aa-a401-4e26-aff6-972920aebba3',
+        //                 account: 'subaccount',
+        //                 usdt_balance: '1.0'
+        //             }
+        //         ],
+        //         success: true
+        //     }
+        //
+        const rows = this.safeValue (response, 'rows', []);
+        return this.parseAccounts (rows, params);
+    }
+
+    parseAccount (account) {
+        //
+        //     {
+        //         application_id: '336952aa-a401-4e26-aff6-972920aebba3',
+        //         account: 'subaccount',
+        //         usdt_balance: '1.0',
+        //     }
+        //
+        const accountId = this.safeString (account, 'account');
+        return {
+            'info': account,
+            'id': this.safeString (account, 'application_id'),
+            'name': accountId,
+            'code': undefined,
+            'type': accountId === 'Main' ? 'main' : 'subaccount',
+        };
     }
 
     async fetchBalance (params = {}) {

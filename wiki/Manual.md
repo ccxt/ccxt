@@ -3191,11 +3191,13 @@ The `fetchAccounts()` method will return a structure like shown below:
     {
         id: "s32kj302lasli3930",
         type: "main",
+        name: "main",
         code: "USDT",
         info: { ... }
     },
     {
         id: "20f0sdlri34lf90",
+        name: "customAccount",
         type: "margin",
         code: "USDT",
         info: { ... }
@@ -3203,6 +3205,7 @@ The `fetchAccounts()` method will return a structure like shown below:
     {
         id: "4oidfk40dadeg4328",
         type: "spot",
+        name: "spotAccount32",
         code: "BTC",
         info: { ... }
     },
