@@ -3920,7 +3920,7 @@ module.exports = class gateio extends Exchange {
         //         }
         //     ]
         //
-        const result = this.parsePositions (response, symbols);
+        return this.parsePositions (response, symbols);
     }
 
     async fetchLeverageTiers (symbols = undefined, params = {}) {
