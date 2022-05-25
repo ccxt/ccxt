@@ -1455,6 +1455,12 @@ class mexc3(Exchange):
         }, market, False)
 
     async def fetch_bids_asks(self, symbols=None, params={}):
+        """
+        fetches the bid and ask price and volume for multiple markets
+        :param [str]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = None
         isSingularMarket = False

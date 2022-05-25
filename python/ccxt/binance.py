@@ -2134,6 +2134,12 @@ class binance(Exchange):
         return self.parse_ticker(response, market)
 
     def fetch_bids_asks(self, symbols=None, params={}):
+        """
+        fetches the bid and ask price and volume for multiple markets
+        :param [str]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchBidsAsks', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
