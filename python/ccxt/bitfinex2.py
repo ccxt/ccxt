@@ -310,15 +310,15 @@ class bitfinex2(bitfinex):
                     # 'LIMIT': None,
                     'EXCHANGE LIMIT': 'limit',
                     # 'STOP': None,
-                    # 'EXCHANGE STOP': None,
+                    'EXCHANGE STOP': 'market',
                     # 'TRAILING STOP': None,
                     # 'EXCHANGE TRAILING STOP': None,
                     # 'FOK': None,
-                    # 'EXCHANGE FOK': None,
+                    'EXCHANGE FOK': 'limit',
                     # 'STOP LIMIT': None,
-                    # 'EXCHANGE STOP LIMIT': None,
+                    'EXCHANGE STOP LIMIT': 'limit',
                     # 'IOC': None,
-                    # 'EXCHANGE IOC': None,
+                    'EXCHANGE IOC': 'limit',
                 },
                 # convert 'market' to 'EXCHANGE MARKET'
                 # convert 'limit' 'EXCHANGE LIMIT'
@@ -1185,11 +1185,35 @@ class bitfinex2(bitfinex):
             'EXECUTED': 'closed',
             'CANCELED': 'canceled',
             'INSUFFICIENT': 'canceled',
-            'POSTONLY': 'canceled',
+            'POSTONLY CANCELED': 'canceled',
             'RSN_DUST': 'rejected',
             'RSN_PAUSE': 'rejected',
+            'IOC CANCELED': 'canceled',
+            'FILLORKILL CANCELED': 'canceled',
         }
         return self.safe_string(statuses, state, status)
+
+    def parse_order_flags(self, flags):
+        # flags can be added to each other...
+        flagValues = {
+            '1024': ['reduceOnly'],
+            '4096': ['postOnly'],
+            '5120': ['reduceOnly', 'postOnly'],
+            # '64': 'hidden',  # The hidden order option ensures an order does not appear in the order book
+            # '512': 'close',  # Close position if position present.
+            # '16384': 'OCO',  # The one cancels other order option allows you to place a pair of orders stipulating that if one order is executed fully or partially, then the other is automatically canceled.
+            # '524288': 'No Var Rates'  # Excludes variable rate funding offers from matching against self order, if on margin
+        }
+        return self.safe_value(flagValues, flags, None)
+
+    def parse_time_in_force(self, orderType):
+        orderTypes = {
+            'EXCHANGE IOC': 'IOC',
+            'EXCHANGE FOK': 'FOK',
+            'IOC': 'IOC',  # Margin
+            'FOK': 'FOK',  # Margin
+        }
+        return self.safe_string(orderTypes, orderType, 'GTC')
 
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 0)
@@ -1210,12 +1234,26 @@ class bitfinex2(bitfinex):
         side = 'sell' if Precise.string_lt(signedAmount, '0') else 'buy'
         orderType = self.safe_string(order, 8)
         type = self.safe_string(self.safe_value(self.options, 'exchangeTypes'), orderType)
+        timeInForce = self.parse_time_in_force(orderType)
+        rawFlags = self.safe_string(order, 12)
+        flags = self.parse_order_flags(rawFlags)
+        postOnly = False
+        if flags is not None:
+            for i in range(0, len(flags)):
+                if flags[i] == 'postOnly':
+                    postOnly = True
+        price = self.safe_string(order, 16)
+        stopPrice = None
+        if (orderType == 'EXCHANGE STOP') or (orderType == 'EXCHANGE STOP LIMIT'):
+            price = None
+            stopPrice = self.safe_number(order, 16)
+            if orderType == 'EXCHANGE STOP LIMIT':
+                price = self.safe_number(order, 19)
         status = None
         statusString = self.safe_string(order, 13)
         if statusString is not None:
             parts = statusString.split(' @ ')
             status = self.parse_order_status(self.safe_string(parts, 0))
-        price = self.safe_string(order, 16)
         average = self.safe_string(order, 17)
         clientOrderId = self.safe_string(order, 2)
         return self.safe_order({
@@ -1227,11 +1265,11 @@ class bitfinex2(bitfinex):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
-            'timeInForce': None,
-            'postOnly': None,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': None,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': None,
             'average': average,
@@ -1243,22 +1281,46 @@ class bitfinex2(bitfinex):
         }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        Create an order on the exchange
+        :param str symbol: Unified CCXT market symbol
+        :param str type: "limit" or "market"
+        :param str side: "buy" or "sell"
+        :param float amount: the amount of currency to trade
+        :param float price: price of order
+        :param dict params:  Extra parameters specific to the exchange API endpoint
+        :param float params['stopPrice']: The price at which a trigger order is triggered at
+        :param str params['timeInForce']: "GTC", "IOC", "FOK", or "PO"
+        :param bool params.postOnly:
+        :param bool params['reduceOnly']: Ensures that the executed order does not flip the opened position.
+        :param int params['flags']: additional order parameters: 4096(Post Only), 1024(Reduce Only), 16384(OCO), 64(Hidden), 512(Close), 524288(No Var Rates)
+        :param int params['lev']: leverage for a derivative order, supported by derivative symbol orders only. The value should be between 1 and 100 inclusive.
+        :param str params['price_traling']: The trailing price for a trailing stop order
+        :param str params['price_aux_limit']: Order price for stop limit orders
+        :param str params['price_oco_stop']: OCO stop price
+        """
         self.load_markets()
         market = self.market(symbol)
+        # order types "limit" and "market" immediatley parsed "EXCHANGE LIMIT" and "EXCHANGE MARKET"
+        # note: same order types exist for margin orders without the EXCHANGE prefix
         orderTypes = self.safe_value(self.options, 'orderTypes', {})
         orderType = self.safe_string_upper(orderTypes, type, type)
-        postOnly = self.safe_value(params, 'postOnly', False)
-        params = self.omit(params, ['postOnly'])
-        amount = -amount if (side == 'sell') else amount
+        stopPrice = self.safe_string(params, 'stopPrice')
+        timeInForce = self.safe_string(params, 'timeInForce')
+        postOnlyParam = self.safe_value(params, 'postOnly', False)
+        reduceOnly = self.safe_value(params, 'reduceOnly', False)
+        clientOrderId = self.safe_value_2(params, 'cid', 'clientOrderId')
+        params = self.omit(params, ['stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'price_aux_limit'])
+        amount = amount if (side == 'buy') else -amount
         request = {
             # 'gid': 0123456789,  # int32,  optional group id for the order
             # 'cid': 0123456789,  # int32 client order id
             'type': orderType,
             'symbol': market['id'],
             # 'price': self.number_to_string(price),
-            'amount': self.number_to_string(amount),
+            'amount': self.amount_to_precision(symbol, amount),
             # 'flags': 0,  # int32, https://docs.bitfinex.com/v2/docs/flag-values
-            # 'lev': 10,  # the value should be between 1 and 100 inclusive, optional, 10 by default
+            # 'lev': 10,  # leverage for a derivative orders, the value should be between 1 and 100 inclusive, optional, 10 by default
             # 'price_trailing': self.number_to_string(priceTrailing),
             # 'price_aux_limit': self.number_to_string(stopPrice),
             # 'price_oco_stop': self.number_to_string(ocoStopPrice),
@@ -1267,85 +1329,89 @@ class bitfinex2(bitfinex):
             #     'aff_code': 'AFF_CODE_HERE'
             # },
         }
+        stopLimit = ((orderType == 'EXCHANGE STOP LIMIT') or ((orderType == 'EXCHANGE LIMIT') and (stopPrice is not None)))
+        exchangeStop = (orderType == 'EXCHANGE STOP')
+        exchangeMarket = (orderType == 'EXCHANGE MARKET')
+        stopMarket = (exchangeStop or (exchangeMarket and (stopPrice is not None)))
+        ioc = ((orderType == 'EXCHANGE IOC') or (timeInForce == 'IOC'))
+        fok = ((orderType == 'EXCHANGE FOK') or (timeInForce == 'FOK'))
+        postOnly = (postOnlyParam or (timeInForce == 'PO'))
+        if (ioc or fok) and (price is None):
+            raise InvalidOrder(self.id + ' createOrder() requires a price argument with IOC and FOK orders')
+        if (ioc or fok) and exchangeMarket:
+            raise InvalidOrder(self.id + ' createOrder() does not allow market IOC and FOK orders')
+        if (orderType != 'MARKET') and (not exchangeMarket) and (not exchangeStop):
+            request['price'] = self.price_to_precision(symbol, price)
+        if stopLimit or stopMarket:
+            # request['price'] is taken as stopPrice for stop orders
+            request['price'] = self.price_to_precision(symbol, stopPrice)
+            if stopMarket:
+                request['type'] = 'EXCHANGE STOP'
+            elif stopLimit:
+                request['type'] = 'EXCHANGE STOP LIMIT'
+                request['price_aux_limit'] = self.price_to_precision(symbol, price)
+        if ioc:
+            request['type'] = 'EXCHANGE IOC'
+        elif fok:
+            request['type'] = 'EXCHANGE FOK'
+        # flag values may be summed to combine flags
+        flags = 0
         if postOnly:
-            request['flags'] = 4096
-        if (orderType == 'LIMIT') or (orderType == 'EXCHANGE LIMIT'):
-            request['price'] = self.number_to_string(price)
-        elif (orderType == 'STOP') or (orderType == 'EXCHANGE STOP'):
-            stopPrice = self.safe_number(params, 'stopPrice', price)
-            request['price'] = self.number_to_string(stopPrice)
-        elif (orderType == 'STOP LIMIT') or (orderType == 'EXCHANGE STOP LIMIT'):
-            priceAuxLimit = self.safe_number(params, 'price_aux_limit')
-            stopPrice = self.safe_number(params, 'stopPrice')
-            if priceAuxLimit is None:
-                if stopPrice is None:
-                    raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter or a price_aux_limit parameter for a ' + orderType + ' order')
-                else:
-                    request['price_aux_limit'] = self.number_to_string(price)
-            else:
-                request['price_aux_limit'] = self.number_to_string(priceAuxLimit)
-                if stopPrice is None:
-                    stopPrice = price
-            request['price'] = self.number_to_string(stopPrice)
-        elif (orderType == 'TRAILING STOP') or (orderType == 'EXCHANGE TRAILING STOP'):
-            priceTrailing = self.safe_number(params, 'price_trailing')
-            request['price_trailing'] = self.number_to_string(priceTrailing)
-            stopPrice = self.safe_number(params, 'stopPrice', price)
-            request['price'] = self.number_to_string(stopPrice)
-        elif (orderType == 'FOK') or (orderType == 'EXCHANGE FOK') or (orderType == 'IOC') or (orderType == 'EXCHANGE IOC'):
-            request['price'] = self.number_to_string(price)
-        params = self.omit(params, ['stopPrice', 'price_aux_limit', 'price_trailing'])
-        clientOrderId = self.safe_value_2(params, 'cid', 'clientOrderId')
+            flags = self.sum(flags, 4096)
+        if reduceOnly:
+            flags = self.sum(flags, 1024)
+        if flags != 0:
+            request['flags'] = flags
         if clientOrderId is not None:
             request['cid'] = clientOrderId
             params = self.omit(params, ['cid', 'clientOrderId'])
         response = self.privatePostAuthWOrderSubmit(self.extend(request, params))
         #
-        #     [
-        #         1578784364.748,    # Millisecond Time Stamp of the update
-        #         "on-req",          # Purpose of notification('on-req', 'oc-req', 'uca', 'fon-req', 'foc-req')
-        #         null,              # Unique ID of the message
-        #         null,              # Ignore
-        #         [
-        #             [
-        #                 37271830598,           # Order ID
-        #                 null,                  # Group ID
-        #                 1578784364748,         # Client Order ID
-        #                 "tBTCUST",             # Pair
-        #                 1578784364748,         # Millisecond timestamp of creation
-        #                 1578784364748,         # Millisecond timestamp of update
-        #                 -0.005,                # Positive means buy, negative means sell
-        #                 -0.005,                # Original amount
-        #                 "EXCHANGE LIMIT",      # Order type(LIMIT, MARKET, STOP, TRAILING STOP, EXCHANGE MARKET, EXCHANGE LIMIT, EXCHANGE STOP, EXCHANGE TRAILING STOP, FOK, EXCHANGE FOK, IOC, EXCHANGE IOC)
-        #                 null,                  # Previous order type
-        #                 null,                  # Millisecond timestamp of Time-In-Force: automatic order cancellation
-        #                 null,                  # Ignore
-        #                 0,                     # Flags(see https://docs.bitfinex.com/docs/flag-values)
-        #                 "ACTIVE",              # Order Status
-        #                 null,                  # Ignore
-        #                 null,                  # Ignore
-        #                 20000,                 # Price
-        #                 0,                     # Average price
-        #                 0,                     # The trailing price
-        #                 0,                     # Auxiliary Limit price(for STOP LIMIT)
-        #                 null,                  # Ignore
-        #                 null,                  # Ignore
-        #                 null,                  # Ignore
-        #                 0,                     # 1 - hidden order
-        #                 null,                  # If another order caused self order to be placed(OCO) self will be that other order's ID
-        #                 null,                  # Ignore
-        #                 null,                  # Ignore
-        #                 null,                  # Ignore
-        #                 "API>BFX",             # Origin of action: BFX, ETHFX, API>BFX, API>ETHFX
-        #                 null,                  # Ignore
-        #                 null,                  # Ignore
-        #                 null                   # Meta
-        #             ]
-        #         ],
-        #         null,                  # Error code
-        #         "SUCCESS",             # Status(SUCCESS, ERROR, FAILURE, ...)
-        #         "Submitting 1 orders."  # Text of the notification
-        #     ]
+        #      [
+        #          1653325121,   # Timestamp in milliseconds
+        #          "on-req",     # Purpose of notification('on-req', 'oc-req', 'uca', 'fon-req', 'foc-req')
+        #          null,         # unique ID of the message
+        #          null,
+        #              [
+        #                  [
+        #                      95412102131,            # Order ID
+        #                      null,                   # Group ID
+        #                      1653325121798,          # Client Order ID
+        #                      "tDOGE:UST",            # Market ID
+        #                      1653325121798,          # Millisecond timestamp of creation
+        #                      1653325121798,          # Millisecond timestamp of update
+        #                      -10,                    # Amount(Positive means buy, negative means sell)
+        #                      -10,                    # Original amount
+        #                      "EXCHANGE LIMIT",       # Type of the order: LIMIT, EXCHANGE LIMIT, MARKET, EXCHANGE MARKET, STOP, EXCHANGE STOP, STOP LIMIT, EXCHANGE STOP LIMIT, TRAILING STOP, EXCHANGE TRAILING STOP, FOK, EXCHANGE FOK, IOC, EXCHANGE IOC.
+        #                      null,                   # Previous order type(stop-limit orders are converted to limit orders so for them previous type is always STOP)
+        #                      null,                   # Millisecond timestamp of Time-In-Force: automatic order cancellation
+        #                      null,                   # _PLACEHOLDER
+        #                      4096,                   # Flags, see parseOrderFlags()
+        #                      "ACTIVE",               # Order Status, see parseOrderStatus()
+        #                      null,                   # _PLACEHOLDER
+        #                      null,                   # _PLACEHOLDER
+        #                      0.071,                  # Price(Stop Price for stop-limit orders, Limit Price for limit orders)
+        #                      0,                      # Average Price
+        #                      0,                      # Trailing Price
+        #                      0,                      # Auxiliary Limit price(for STOP LIMIT)
+        #                      null,                   # _PLACEHOLDER
+        #                      null,                   # _PLACEHOLDER
+        #                      null,                   # _PLACEHOLDER
+        #                      0,                      # Hidden(0 if False, 1 if True)
+        #                      0,                      # Placed ID(If another order caused self order to be placed(OCO) self will be that other order's ID)
+        #                      null,                   # _PLACEHOLDER
+        #                      null,                   # _PLACEHOLDER
+        #                      null,                   # _PLACEHOLDER
+        #                      "API>BFX",              # Routing, indicates origin of action: BFX, ETHFX, API>BFX, API>ETHFX
+        #                      null,                   # _PLACEHOLDER
+        #                      null,                   # _PLACEHOLDER
+        #                      {"$F7":1}               # additional meta information about the order( $F7 = IS_POST_ONLY(0 if False, 1 if True), $F33 = Leverage(int))
+        #                  ]
+        #              ],
+        #          null,      # CODE(work in progress)
+        #          "SUCCESS",                    # Status of the request
+        #          "Submitting 1 orders."      # Message
+        #       ]
         #
         status = self.safe_string(response, 6)
         if status != 'SUCCESS':
@@ -1415,12 +1481,54 @@ class bitfinex2(bitfinex):
             market = self.market(symbol)
             request['symbol'] = market['id']
             response = self.privatePostAuthROrdersSymbol(self.extend(request, params))
+        #
+        #      [
+        #          [
+        #              95408916206,            # Order ID
+        #              null,                   # Group Order ID
+        #              1653322349926,          # Client Order ID
+        #              "tDOGE:UST",            # Market ID
+        #              1653322349926,          # Created Timestamp in milliseconds
+        #              1653322349927,          # Updated Timestamp in milliseconds
+        #              -10,                    # Amount remaining(Positive means buy, negative means sell)
+        #              -10,                    # Original amount
+        #              "EXCHANGE LIMIT",       # Order type
+        #              null,                   # Previous Order Type
+        #              null,                   # _PLACEHOLDER
+        #              null,                   # _PLACEHOLDER
+        #              0,                      # Flags, see parseOrderFlags()
+        #              "ACTIVE",               # Order Status, see parseOrderStatus()
+        #              null,                   # _PLACEHOLDER
+        #              null,                   # _PLACEHOLDER
+        #              0.11,                   # Price
+        #              0,                      # Average Price
+        #              0,                      # Trailing Price
+        #              0,                      # Auxiliary Limit price(for STOP LIMIT)
+        #              null,                   # _PLACEHOLDER
+        #              null,                   # _PLACEHOLDER
+        #              null,                   # _PLACEHOLDER
+        #              0,                      # Hidden(0 if False, 1 if True)
+        #              0,                      # Placed ID(If another order caused self order to be placed(OCO) self will be that other order's ID)
+        #              null,                   # _PLACEHOLDER
+        #              null,                   # _PLACEHOLDER
+        #              null,                   # _PLACEHOLDER
+        #              "API>BFX",              # Routing, indicates origin of action: BFX, ETHFX, API>BFX, API>ETHFX
+        #              null,                   # _PLACEHOLDER
+        #              null,                   # _PLACEHOLDER
+        #              {"$F7":1}               # additional meta information about the order( $F7 = IS_POST_ONLY(0 if False, 1 if True), $F33 = Leverage(int))
+        #          ],
+        #      ]
+        #
         return self.parse_orders(response, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         # returns the most recent closed or canceled orders up to circa two weeks ago
         self.load_markets()
         request = {}
+        if since is not None:
+            request['start'] = since
+        if limit is not None:
+            request['limit'] = limit  # default 25, max 2500
         market = None
         response = None
         if symbol is None:
@@ -1429,10 +1537,44 @@ class bitfinex2(bitfinex):
             market = self.market(symbol)
             request['symbol'] = market['id']
             response = self.privatePostAuthROrdersSymbolHist(self.extend(request, params))
-        if since is not None:
-            request['start'] = since
-        if limit is not None:
-            request['limit'] = limit  # default 25, max 2500
+        #
+        #      [
+        #          [
+        #              95412102131,            # Order ID
+        #              null,                   # Group Order ID
+        #              1653325121798,          # Client Order ID
+        #              "tDOGE:UST",            # Market ID
+        #              1653325122000,          # Created Timestamp in milliseconds
+        #              1653325122000,          # Updated Timestamp in milliseconds
+        #              -10,                    # Amount remaining(Positive means buy, negative means sell)
+        #              -10,                    # Original amount
+        #              "EXCHANGE LIMIT",       # Order type
+        #              null,                   # Previous Order Type
+        #              null,                   # Millisecond timestamp of Time-In-Force: automatic order cancellation
+        #              null,                   # _PLACEHOLDER
+        #              "4096",                 # Flags, see parseOrderFlags()
+        #              "POSTONLY CANCELED",    # Order Status, see parseOrderStatus()
+        #              null,                   # _PLACEHOLDER
+        #              null,                   # _PLACEHOLDER
+        #              0.071,                  # Price
+        #              0,                      # Average Price
+        #              0,                      # Trailing Price
+        #              0,                      # Auxiliary Limit price(for STOP LIMIT)
+        #              null,                   # _PLACEHOLDER
+        #              null,                   # _PLACEHOLDER
+        #              null,                   # _PLACEHOLDER
+        #              0,                      # Notify(0 if False, 1 if True)
+        #              0,                      # Hidden(0 if False, 1 if True)
+        #              null,                   # Placed ID(If another order caused self order to be placed(OCO) self will be that other order's ID)
+        #              null,                   # _PLACEHOLDER
+        #              null,                   # _PLACEHOLDER
+        #              "API>BFX",              # Routing, indicates origin of action: BFX, ETHFX, API>BFX, API>ETHFX
+        #              null,                   # _PLACEHOLDER
+        #              null,                   # _PLACEHOLDER
+        #              {"_$F7":1}              # additional meta information about the order( _$F7 = IS_POST_ONLY(0 if False, 1 if True), _$F33 = Leverage(int))
+        #          ]
+        #      ]
+        #
         return self.parse_orders(response, market, since, limit)
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
