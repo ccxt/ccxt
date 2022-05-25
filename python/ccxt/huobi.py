@@ -94,6 +94,7 @@ class huobi(Exchange):
                 'fetchMySells': None,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': True,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -5475,3 +5476,131 @@ class huobi(Exchange):
                         })
                 result[symbol] = tiers
         return result
+
+    def fetch_open_interest_history(self, symbol, timeframe='1h', since=None, limit=None, params={}):
+        """
+        Retrieves the open intestest history of a currency
+        :param str symbol: Unified CCXT market symbol
+        :param str timeframe: '1h', '4h', '12h', or '1d'
+        :param int|None since: Not used by huobi api, but response parsed by CCXT
+        :param int|None limit: Default：48，Data Range [1,200]
+        :param dict params: Exchange specific parameters
+        :param int params['amount_type']: *required* Open interest unit. 1-cont，2-cryptocurrenty
+        :param int|None params['pair']: eg BTC-USDT *Only for USDT-M*
+        :returns dict: an array of `open interest structures <https://docs.ccxt.com/en/latest/manual.html#open-interest-structure>`
+        """
+        if timeframe != '1h' and timeframe != '4h' and timeframe != '12h' and timeframe != '1d':
+            raise BadRequest(self.id + ' fetchOpenInterestHistory cannot only use the 1h, 4h, 12h and 1d timeframe')
+        self.load_markets()
+        timeframes = {
+            '1h': '60min',
+            '4h': '4hour',
+            '12h': '12hour',
+            '1d': '1day',
+        }
+        market = self.market(symbol)
+        amountType = self.safe_number_2(params, 'amount_type', 'amountType')
+        if amountType is None:
+            raise ArgumentsRequired(self.id + ' fetchOpenInterestHistory requires parameter params.amountType to be either 1(cont), or 2(cryptocurrenty)')
+        request = {
+            'period': timeframes[timeframe],
+            'amount_type': amountType,
+        }
+        method = None
+        if market['future']:
+            request['contract_type'] = self.safe_string(market['info'], 'contract_type')
+            request['symbol'] = market['baseId']  # currency code on coin-m futures
+            method = 'contractPublicGetApiV1ContractHisOpenInterest'  # coin-m futures
+        elif market['linear']:
+            request['contract_type'] = 'swap'
+            request['contract_code'] = market['id']
+            request['contract_code'] = market['id']
+            method = 'contractPublicGetLinearSwapApiV1SwapHisOpenInterest'  # USDT-M
+        else:
+            request['contract_code'] = market['id']
+            method = 'contractPublicGetSwapApiV1SwapHisOpenInterest'  # coin-m swaps
+        if limit is not None:
+            request['size'] = limit
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #  contractPublicGetlinearSwapApiV1SwapHisOpenInterest
+        #    {
+        #        status: 'ok',
+        #        data: {
+        #            symbol: 'BTC',
+        #            tick: [
+        #                {
+        #                    volume: '4385.4350000000000000',
+        #                    amount_type: '2',
+        #                    ts: '1648220400000',
+        #                    value: '194059884.1850000000000000'
+        #                },
+        #                ...
+        #            ],
+        #            contract_code: 'BTC-USDT',
+        #            business_type: 'swap',
+        #            pair: 'BTC-USDT',
+        #            contract_type: 'swap',
+        #            trade_partition: 'USDT'
+        #        },
+        #        ts: '1648223733007'
+        #    }
+        #
+        #  contractPublicGetSwapApiV1SwapHisOpenInterest
+        #    {
+        #        "status": "ok",
+        #        "data": {
+        #            "symbol": "CRV",
+        #            "tick": [
+        #                {
+        #                    "volume": 19174.0000000000000000,
+        #                    "amount_type": 1,
+        #                    "ts": 1648224000000
+        #                },
+        #                ...
+        #            ],
+        #            "contract_code": "CRV-USD"
+        #        },
+        #        "ts": 1648226554260
+        #    }
+        #
+        #  contractPublicGetApiV1ContractHisOpenInterest
+        #    {
+        #         "status": "ok",
+        #         "data": {
+        #             "symbol": "BTC",
+        #             "contract_type": "self_week",
+        #             "tick": [
+        #                {
+        #                     "volume": "48419.0000000000000000",
+        #                     "amount_type": 1,
+        #                     "ts": 1648224000000
+        #                },
+        #                ...
+        #            ]
+        #        },
+        #        "ts": 1648227062944
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        tick = self.safe_value(data, 'tick')
+        return self.parse_open_interests(tick, None, since, limit)
+
+    def parse_open_interest(self, interest, market=None):
+        #
+        #    {
+        #        volume: '4385.4350000000000000',
+        #        amount_type: '2',
+        #        ts: '1648220400000',
+        #        value: '194059884.1850000000000000'
+        #    }
+        #
+        timestamp = self.safe_number(interest, 'ts')
+        return {
+            'symbol': self.safe_string(market, 'symbol'),
+            'baseVolume': self.safe_number(interest, 'volume'),
+            'quoteVolume': self.safe_value(interest, 'value'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': interest,
+        }

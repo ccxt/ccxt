@@ -82,6 +82,7 @@ class huobi extends Exchange {
                 'fetchMySells' => null,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => true,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -5808,5 +5809,139 @@ class huobi extends Exchange {
             }
         }
         return $result;
+    }
+
+    public function fetch_open_interest_history($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {
+        /**
+         * Retrieves the open intestest history of a currency
+         * @param {str} $symbol Unified CCXT $market $symbol
+         * @param {str} $timeframe '1h', '4h', '12h', or '1d'
+         * @param {int|null} $since Not used by huobi api, but $response parsed by CCXT
+         * @param {int|null} $limit Default：48，Data Range [1,200]
+         * @param {dict} $params Exchange specific parameters
+         * @param {int} $params->amount_type *required* Open interest unit. 1-cont，2-cryptocurrenty
+         * @param {int|null} $params->pair eg BTC-USDT *Only for USDT-M*
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#open-interest-structure open interest structures}
+         */
+        if ($timeframe !== '1h' && $timeframe !== '4h' && $timeframe !== '12h' && $timeframe !== '1d') {
+            throw new BadRequest($this->id . ' fetchOpenInterestHistory cannot only use the 1h, 4h, 12h and 1d timeframe');
+        }
+        $this->load_markets();
+        $timeframes = array(
+            '1h' => '60min',
+            '4h' => '4hour',
+            '12h' => '12hour',
+            '1d' => '1day',
+        );
+        $market = $this->market($symbol);
+        $amountType = $this->safe_number_2($params, 'amount_type', 'amountType');
+        if ($amountType === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOpenInterestHistory requires parameter $params->amountType to be either 1 (cont), or 2 (cryptocurrenty)');
+        }
+        $request = array(
+            'period' => $timeframes[$timeframe],
+            'amount_type' => $amountType,
+        );
+        $method = null;
+        if ($market['future']) {
+            $request['contract_type'] = $this->safe_string($market['info'], 'contract_type');
+            $request['symbol'] = $market['baseId'];  // currency code on coin-m futures
+            $method = 'contractPublicGetApiV1ContractHisOpenInterest'; // coin-m futures
+        } else if ($market['linear']) {
+            $request['contract_type'] = 'swap';
+            $request['contract_code'] = $market['id'];
+            $request['contract_code'] = $market['id'];
+            $method = 'contractPublicGetLinearSwapApiV1SwapHisOpenInterest'; // USDT-M
+        } else {
+            $request['contract_code'] = $market['id'];
+            $method = 'contractPublicGetSwapApiV1SwapHisOpenInterest'; // coin-m swaps
+        }
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        //  contractPublicGetlinearSwapApiV1SwapHisOpenInterest
+        //    {
+        //        status => 'ok',
+        //        $data => array(
+        //            $symbol => 'BTC',
+        //            $tick => array(
+        //                array(
+        //                    volume => '4385.4350000000000000',
+        //                    amount_type => '2',
+        //                    ts => '1648220400000',
+        //                    value => '194059884.1850000000000000'
+        //                ),
+        //                ...
+        //            ),
+        //            contract_code => 'BTC-USDT',
+        //            business_type => 'swap',
+        //            pair => 'BTC-USDT',
+        //            contract_type => 'swap',
+        //            trade_partition => 'USDT'
+        //        ),
+        //        ts => '1648223733007'
+        //    }
+        //
+        //  contractPublicGetSwapApiV1SwapHisOpenInterest
+        //    {
+        //        "status" => "ok",
+        //        "data" => array(
+        //            "symbol" => "CRV",
+        //            "tick" => array(
+        //                array(
+        //                    "volume" => 19174.0000000000000000,
+        //                    "amount_type" => 1,
+        //                    "ts" => 1648224000000
+        //                ),
+        //                ...
+        //            ),
+        //            "contract_code" => "CRV-USD"
+        //        ),
+        //        "ts" => 1648226554260
+        //    }
+        //
+        //  contractPublicGetApiV1ContractHisOpenInterest
+        //    {
+        //         "status" => "ok",
+        //         "data" => array(
+        //             "symbol" => "BTC",
+        //             "contract_type" => "this_week",
+        //             "tick" => array(
+        //                array(
+        //                     "volume" => "48419.0000000000000000",
+        //                     "amount_type" => 1,
+        //                     "ts" => 1648224000000
+        //                ),
+        //                ...
+        //            )
+        //        ),
+        //        "ts" => 1648227062944
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        $tick = $this->safe_value($data, 'tick');
+        return $this->parse_open_interests($tick, null, $since, $limit);
+    }
+
+    public function parse_open_interest($interest, $market = null) {
+        //
+        //    {
+        //        volume => '4385.4350000000000000',
+        //        amount_type => '2',
+        //        ts => '1648220400000',
+        //        value => '194059884.1850000000000000'
+        //    }
+        //
+        $timestamp = $this->safe_number($interest, 'ts');
+        return array(
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'baseVolume' => $this->safe_number($interest, 'volume'),
+            'quoteVolume' => $this->safe_value($interest, 'value'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $interest,
+        );
     }
 }
