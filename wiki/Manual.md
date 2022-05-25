@@ -2824,6 +2824,8 @@ fetchOpenInterestHistory (symbol, timeframe = '5m', since = undefined, limit = u
 Parameters
 
 - **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+    **Note for OKX users**
+    - instead of **symbol** okx.fetchOpenInterestHistory accepts the argument **code** (String) Unified CCXT currency code (e.g. "BTC")
 - **timeframe** (String) Check exchange.timeframes for available values
 - **since** (Integer) Timestamp for the earliest open interest record (e.g. `1645807945000`)
 - **limit** (Integer) The maximum number of [open interest structures](#open-interest-structures) to retrieve (e.g. `10`)
