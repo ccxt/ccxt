@@ -199,6 +199,13 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the coinbase api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetTime (params);
         //
         //     {
@@ -687,6 +694,13 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the coinbase api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.fetchCurrenciesFromCache (params);
         const currencies = this.safeValue (response, 'currencies', {});
         //

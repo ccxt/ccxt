@@ -218,6 +218,11 @@ class latoken(Exchange):
         return self.milliseconds() - self.options['timeDifference']
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the latoken api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.publicGetTime(params)
         #
         #     {
@@ -370,6 +375,11 @@ class latoken(Exchange):
         return self.safe_value(self.options['fetchCurrencies'], 'response')
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the latoken api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.fetch_currencies_from_cache(params)
         #
         #     [

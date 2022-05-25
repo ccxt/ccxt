@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.83.71';
+$version = '1.83.85';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.83.71';
+    const VERSION = '1.83.85';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -4067,7 +4067,8 @@ class Exchange {
             array_push($interests, $interest);
         }
         $sorted = $this->sortBy ($interests, 'timestamp');
-        return $this->filterBySymbolSinceLimit ($sorted, $market, $since, $limit);
+        $symbol = $this->safeString ($market, 'symbol');
+        return $this->filterBySymbolSinceLimit ($sorted, $symbol, $since, $limit);
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {

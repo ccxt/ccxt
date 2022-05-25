@@ -288,6 +288,13 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
         const response = await this.publicGetV2Ping (params);
         //
         //     { "success": "true" }
@@ -461,6 +468,13 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetV3Assets (params);
         //
         //     {

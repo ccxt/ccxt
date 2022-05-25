@@ -1191,6 +1191,11 @@ class gateio(Exchange):
         return self.safe_value(fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle)
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the gateio api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         # sandbox/testnet only supports future markets
         apiBackup = self.safe_value(self.urls, 'apiBackup')
         if apiBackup is not None:

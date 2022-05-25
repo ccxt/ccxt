@@ -342,6 +342,11 @@ class ascendex extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the ascendex api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $assets = yield $this->v1PublicGetAssets ($params);
         //
         //     {

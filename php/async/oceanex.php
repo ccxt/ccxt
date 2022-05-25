@@ -524,6 +524,11 @@ class oceanex extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the oceanex api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = yield $this->publicGetTimestamp ($params);
         //
         //     array("code":0,"message":"Operation successful","data":1559433420)

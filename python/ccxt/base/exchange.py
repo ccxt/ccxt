@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.83.71'
+__version__ = '1.83.85'
 
 # -----------------------------------------------------------------------------
 
@@ -3086,7 +3086,8 @@ class Exchange(object):
             interest = self.parseOpenInterest(entry, market)
             interests.append(interest)
         sorted = self.sortBy(interests, 'timestamp')
-        return self.filterBySymbolSinceLimit(sorted, market, since, limit)
+        symbol = this.safeString(market, 'symbol')
+        return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
 
     def fetch_funding_rate(self, symbol, params={}):
         if self.has['fetchFundingRates']:

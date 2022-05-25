@@ -600,6 +600,9 @@ class bit2c(Exchange):
             'info': depositAddress,
         }
 
+    def nonce(self):
+        return self.milliseconds()
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         if api == 'public':

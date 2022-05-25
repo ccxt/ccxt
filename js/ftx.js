@@ -409,6 +409,13 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name ftx#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the ftx api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetCoins (params);
         const currencies = this.safeValue (response, 'result', []);
         //

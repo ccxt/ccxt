@@ -300,6 +300,11 @@ class currencycom(Exchange):
         return self.milliseconds() - self.options['timeDifference']
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the currencycom api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = self.publicGetV2Time(params)
         #
         #     {
@@ -309,6 +314,11 @@ class currencycom(Exchange):
         return self.safe_integer(response, 'serverTime')
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the currencycom api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         # requires authentication
         if not self.check_required_credentials(False):
             return None

@@ -524,6 +524,11 @@ class kraken extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {dict} $params extra parameters specific to the kraken api endpoint
+         * @return {dict} an associative dictionary of $currencies
+         */
         $response = $this->publicGetAssets ($params);
         //
         //     {
@@ -1915,6 +1920,11 @@ class kraken extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the kraken api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         // https://www.kraken.com/en-us/features/api#get-server-time
         $response = $this->publicGetTime ($params);
         //

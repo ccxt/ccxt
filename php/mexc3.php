@@ -420,6 +420,11 @@ class mexc3 extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {dict} $params extra parameters specific to the mexc3 api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-$status-structure $status structure}
+         */
         list($marketType, $query) = $this->handle_market_type_and_params('fetchStatus', null, $params);
         $response = null;
         $status = null;
@@ -445,6 +450,11 @@ class mexc3 extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the mexc3 api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTime', null, $params);
         $response = null;
         if ($marketType === 'spot') {
@@ -463,6 +473,11 @@ class mexc3 extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the mexc3 api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = $this->spot2PublicGetMarketCoinList ($params);
         //
         //     {
@@ -1502,6 +1517,12 @@ class mexc3 extends Exchange {
     }
 
     public function fetch_bids_asks($symbols = null, $params = array ()) {
+        /**
+         * fetches the bid and ask price and volume for multiple markets
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {dict} $params extra parameters specific to the mexc3 api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
         $this->load_markets();
         $market = null;
         $isSingularMarket = false;

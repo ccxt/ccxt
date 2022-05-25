@@ -304,6 +304,13 @@ module.exports = class ndax extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name ndax#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the ndax api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         const request = {
             'omsId': omsId,

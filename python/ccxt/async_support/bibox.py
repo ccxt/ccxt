@@ -492,6 +492,11 @@ class bibox(Exchange):
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         if self.check_required_credentials(False):
             return await self.fetch_currencies_private(params)
         else:
