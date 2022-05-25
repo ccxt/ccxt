@@ -813,6 +813,7 @@ class bittrex extends \ccxt\async\bittrex {
             'orderBook' => array($this, 'handle_order_book'),
             'heartbeat' => array($this, 'handle_heartbeat'),
             'ticker' => array($this, 'handle_ticker'),
+            'execution' => array($this, 'handle_my_trades'),
         );
         $M = $this->safe_value($message, 'M', array());
         for ($i = 0; $i < count($M); $i++) {
