@@ -1231,14 +1231,6 @@ module.exports = class mexc3 extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend ({ 'price': 'index' }, params));
-    }
-
-    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend ({ 'price': 'mark' }, params));
-    }
-
     parseOHLCV (ohlcv, market = undefined) {
         return [
             this.safeInteger (ohlcv, 0),
