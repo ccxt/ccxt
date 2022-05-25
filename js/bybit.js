@@ -1898,7 +1898,7 @@ module.exports = class bybit extends Exchange {
         const costString = this.safeString (trade, 'exec_value');
         let timestamp = this.parse8601 (this.safeString (trade, 'time'));
         if (timestamp === undefined) {
-            timestamp = this.safeNumber2 (trade, 'trade_time_ms', 'time');
+            timestamp = this.safeInteger2 (trade, 'trade_time_ms', 'time');
         }
         let side = this.safeStringLower (trade, 'side');
         if (side === undefined) {
