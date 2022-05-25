@@ -2039,7 +2039,7 @@ module.exports = class bitmex extends Exchange {
             return value;
         }
         let resultValue = undefined;
-        value = value.toString ();
+        value = this.numberToString (value);
         if ((market['quote'] === 'USD') || (market['quote'] === 'EUR')) {
             resultValue = Precise.stringMul (value, '0.00000001');
         }
