@@ -95,7 +95,7 @@ class huobi extends Exchange {
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => true,
-                'fetchStatus' => null,
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -141,11 +141,23 @@ class huobi extends Exchange {
                 'hostnames' => array(
                     'contract' => 'api.hbdm.com',
                     'spot' => 'api.huobi.pro',
+                    'status' => array(
+                        'spot' => 'status.huobigroup.com',
+                        'future' => array(
+                            'inverse' => 'status-dm.huobigroup.com',
+                            'linear' => 'status-linear-swap.huobigroup.com', // USDT-Margined Contracts
+                        ),
+                        'swap' => array(
+                            'inverse' => 'status-swap.huobigroup.com',
+                            'linear' => 'status-linear-swap.huobigroup.com', // USDT-Margined Contracts
+                        ),
+                    ),
                     // recommended for AWS
                     // 'contract' => 'api.hbdm.vn',
                     // 'spot' => 'api-aws.huobi.pro',
                 ),
                 'api' => array(
+                    'status' => 'https://{hostname}',
                     'contract' => 'https://{hostname}',
                     'spot' => 'https://{hostname}',
                     'market' => 'https://{hostname}',
@@ -318,6 +330,39 @@ class huobi extends Exchange {
                 // 'https://status-dm.huobigroup.com/api/v2/summary.json' => 1,
                 // 'https://status-swap.huobigroup.com/api/v2/summary.json' => 1,
                 // 'https://status-linear-swap.huobigroup.com/api/v2/summary.json' => 1,
+                'status' => array(
+                    'public' => array(
+                        'spot' => array(
+                            'get' => array(
+                                'api/v2/summary.json' => 1,
+                            ),
+                        ),
+                        'future' => array(
+                            'inverse' => array(
+                                'get' => array(
+                                    'api/v2/summary.json' => 1,
+                                ),
+                            ),
+                            'linear' => array(
+                                'get' => array(
+                                    'api/v2/summary.json' => 1,
+                                ),
+                            ),
+                        ),
+                        'swap' => array(
+                            'inverse' => array(
+                                'get' => array(
+                                    'api/v2/summary.json' => 1,
+                                ),
+                            ),
+                            'linear' => array(
+                                'get' => array(
+                                    'api/v2/summary.json' => 1,
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
                 'spot' => array(
                     'public' => array(
                         'get' => array(
@@ -450,6 +495,7 @@ class huobi extends Exchange {
                     'public' => array(
                         'get' => array(
                             'api/v1/timestamp' => 1,
+                            'heartbeat/' => 1, // backslash is not a typo
                             // Future Market Data interface
                             'api/v1/contract_contract_info' => 1,
                             'api/v1/contract_index' => 1,
@@ -925,6 +971,216 @@ class huobi extends Exchange {
                 'BIFI' => 'Bitcoin File', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
             ),
         ));
+    }
+
+    public function fetch_status($params = array ()) {
+        yield $this->load_markets();
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', null, $params);
+        $method = 'statusPublicSpotGetApiV2SummaryJson';
+        if ($marketType !== 'spot') {
+            $subType = $this->safe_string($params, 'subType', $this->options['defaultSubType']);
+            if ($marketType === 'swap') {
+                if ($subType === 'linear') {
+                    $method = 'statusPublicSwapLinearGetApiV2SummaryJson';
+                } else if ($subType === 'inverse') {
+                    $method = 'statusPublicSwapInverseGetApiV2SummaryJson';
+                }
+            } else if ($marketType === 'future') {
+                if ($subType === 'linear') {
+                    $method = 'statusPublicFutureLinearGetApiV2SummaryJson';
+                } else if ($subType === 'inverse') {
+                    $method = 'statusPublicFutureInverseGetApiV2SummaryJson';
+                }
+            } else if ($marketType === 'contract') {
+                $method = 'contractPublicGetHeartbeat';
+            }
+        }
+        $response = yield $this->$method ();
+        //
+        // statusPublicSpotGetApiV2SummaryJson, statusPublicSwapInverseGetApiV2SummaryJson, statusPublicFutureLinearGetApiV2SummaryJson, statusPublicFutureInverseGetApiV2SummaryJson
+        //
+        //      {
+        //          "page" => array(
+        //              "id":"mn7l2lw8pz4p",
+        //              "name":"Huobi Futures-USDT-margined Swaps",
+        //              "url":"https://status-linear-swap.huobigroup.com",
+        //              "time_zone":"Asia/Singapore",
+        //              "updated_at":"2022-04-29T12:47:21.319+08:00"),
+        //              "components" => array(
+        //                  array(
+        //                      "id":"lrv093qk3yp5",
+        //                      "name":"market data",
+        //                      "status":"operational",
+        //                      "created_at":"2020-10-29T14:08:59.427+08:00",
+        //                      "updated_at":"2020-10-29T14:08:59.427+08:00",
+        //                      "position":1,"description":null,
+        //                      "showcase":false,
+        //                      "start_date":null,
+        //                      "group_id":null,
+        //                      "page_id":"mn7l2lw8pz4p",
+        //                      "group":true,
+        //                      "only_show_if_degraded":false,
+        //                      "components" => array(
+        //                          "82k5jxg7ltxd" // list of related components
+        //                      )
+        //                  ),
+        //              ),
+        //              "incidents" => array( // empty array if there are no issues
+        //                  {
+        //                      "id" => "rclfxz2g21ly",  // incident id
+        //                      "name" => "Market data is delayed",  // incident name
+        //                      "status" => "investigating",  // incident $status
+        //                      "created_at" => "2020-02-11T03:15:01.913Z",  // incident create time
+        //                      "updated_at" => "2020-02-11T03:15:02.003Z",   // incident update time
+        //                      "monitoring_at" => null,
+        //                      "resolved_at" => null,
+        //                      "impact" => "minor",  // incident impact
+        //                      "shortlink" => "http://stspg.io/pkvbwp8jppf9",
+        //                      "started_at" => "2020-02-11T03:15:01.906Z",
+        //                      "page_id" => "p0qjfl24znv5",
+        //                      "incident_updates" => array(
+        //                          {
+        //                              "id" => "dwfsk5ttyvtb",
+        //                              "status" => "investigating",
+        //                              "body" => "Market data is delayed",
+        //                              "incident_id" => "rclfxz2g21ly",
+        //                              "created_at" => "2020-02-11T03:15:02.000Z",
+        //                              "updated_at" => "2020-02-11T03:15:02.000Z",
+        //                              "display_at" => "2020-02-11T03:15:02.000Z",
+        //                              "affected_components" => array(
+        //                                  {
+        //                                      "code" => "nctwm9tghxh6",
+        //                                      "name" => "Market data",
+        //                                      "old_status" => "operational",
+        //                                      "new_status" => "degraded_performance"
+        //                                  }
+        //                              ),
+        //                              "deliver_notifications" => true,
+        //                              "custom_tweet" => null,
+        //                              "tweet_id" => null
+        //                          }
+        //                      ),
+        //                      "components" => array(
+        //                          array(
+        //                              "id" => "nctwm9tghxh6",
+        //                              "name" => "Market data",
+        //                              "status" => "degraded_performance",
+        //                              "created_at" => "2020-01-13T09:34:48.284Z",
+        //                              "updated_at" => "2020-02-11T03:15:01.951Z",
+        //                              "position" => 8,
+        //                              "description" => null,
+        //                              "showcase" => false,
+        //                              "group_id" => null,
+        //                              "page_id" => "p0qjfl24znv5",
+        //                              "group" => false,
+        //                              "only_show_if_degraded" => false
+        //                          }
+        //                      )
+        //                  ), ...
+        //              ),
+        //              "scheduled_maintenances":array( // empty array if there are no scheduled maintenances
+        //                  {
+        //                      "id" => "k7g299zl765l", // incident id
+        //                      "name" => "Schedule maintenance", // incident name
+        //                      "status" => "scheduled", // incident $status
+        //                      "created_at" => "2020-02-11T03:16:31.481Z",  // incident create time
+        //                      "updated_at" => "2020-02-11T03:16:31.530Z",  // incident update time
+        //                      "monitoring_at" => null,
+        //                      "resolved_at" => null,
+        //                      "impact" => "maintenance",  // incident impact
+        //                      "shortlink" => "http://stspg.io/md4t4ym7nytd",
+        //                      "started_at" => "2020-02-11T03:16:31.474Z",
+        //                      "page_id" => "p0qjfl24znv5",
+        //                      "incident_updates" => array(
+        //                          {
+        //                              "id" => "8whgr3rlbld8",
+        //                              "status" => "scheduled",
+        //                              "body" => "We will be undergoing scheduled maintenance during this time.",
+        //                              "incident_id" => "k7g299zl765l",
+        //                              "created_at" => "2020-02-11T03:16:31.527Z",
+        //                              "updated_at" => "2020-02-11T03:16:31.527Z",
+        //                              "display_at" => "2020-02-11T03:16:31.527Z",
+        //                              "affected_components" => array(
+        //                                  {
+        //                                      "code" => "h028tnzw1n5l",
+        //                                      "name" => "Deposit And Withdraw - Deposit",
+        //                                      "old_status" => "operational",
+        //                                      "new_status" => "operational"
+        //                                  }
+        //                              ),
+        //                              "deliver_notifications" => true,
+        //                              "custom_tweet" => null,
+        //                              "tweet_id" => null
+        //                          }
+        //                      ),
+        //                      "components" => array(
+        //                          {
+        //                              "id" => "h028tnzw1n5l",
+        //                              "name" => "Deposit",
+        //                              "status" => "operational",
+        //                              "created_at" => "2019-12-05T02:07:12.372Z",
+        //                              "updated_at" => "2020-02-10T12:34:52.970Z",
+        //                              "position" => 1,
+        //                              "description" => null,
+        //                              "showcase" => false,
+        //                              "group_id" => "gtd0nyr3pf0k",
+        //                              "page_id" => "p0qjfl24znv5",
+        //                              "group" => false,
+        //                              "only_show_if_degraded" => false
+        //                          }
+        //                      ),
+        //                      "scheduled_for" => "2020-02-15T00:00:00.000Z",  // scheduled maintenance start time
+        //                      "scheduled_until" => "2020-02-15T01:00:00.000Z"  // scheduled maintenance end time
+        //                  }
+        //              ),
+        //              "status" => {
+        //                  "indicator":"none", // none, minor, major, critical, maintenance
+        //                  "description":"all systems operational" // All Systems Operational, Minor Service Outage, Partial System Outage, Partially Degraded Service, Service Under Maintenance
+        //              }
+        //          }
+        //
+        //
+        // contractPublicGetHeartbeat
+        //
+        //      {
+        //          "status" => "ok", // 'ok', 'error'
+        //          "data" => array(
+        //              "heartbeat" => 1, // future 1 => available, 0 => maintenance with service suspended
+        //              "estimated_recovery_time" => null, // estimated recovery time in milliseconds
+        //              "swap_heartbeat" => 1,
+        //              "swap_estimated_recovery_time" => null,
+        //              "option_heartbeat" => 1,
+        //              "option_estimated_recovery_time" => null,
+        //              "linear_swap_heartbeat" => 1,
+        //              "linear_swap_estimated_recovery_time" => null
+        //          ),
+        //          "ts" => 1557714418033
+        //      }
+        //
+        $status = null;
+        $updated = null;
+        $url = null;
+        if ($method === 'contractPublicGetHeartbeat') {
+            $statusRaw = $this->safe_string($response, 'status');
+            $status = ($statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
+            $updated = $this->safe_string($response, 'ts');
+        } else {
+            $statusData = $this->safe_value($response, 'status', array());
+            $statusRaw = $this->safe_string($statusData, 'indicator');
+            $status = ($statusRaw === 'none') ? 'ok' : 'maintenance'; // none, minor, major, critical, maintenance
+            $pageData = $this->safe_value($response, 'page', array());
+            $datetime = $this->safe_string($pageData, 'updated_at');
+            $updated = $this->parse8601($datetime);
+            $url = $this->safe_string($pageData, 'url');
+        }
+        return array(
+            'status' => $status,
+            'updated' => $updated,
+            'eta' => null,
+            'url' => $url,
+            'info' => $response,
+        );
     }
 
     public function fetch_time($params = array ()) {
@@ -4862,7 +5118,7 @@ class huobi extends Exchange {
             'account' => ($marginMode === 'isolated') ? $symbol : 'cross',  // deprecated
             'symbol' => $symbol,
             'marginMode' => $marginMode,
-            'marginType' => $marginMode,
+            'marginType' => $marginMode, // deprecated
             'currency' => $this->safe_currency_code($this->safe_string($info, 'currency')),
             'interest' => $this->safe_number($info, 'interest-amount'),
             'interestRate' => $this->safe_number($info, 'interest-rate'),
@@ -4928,8 +5184,18 @@ class huobi extends Exchange {
             // list($type, $access) = $api;
             $type = $this->safe_string($api, 0);
             $access = $this->safe_string($api, 1);
+            $levelOneNestedPath = $this->safe_string($api, 2);
+            $levelTwoNestedPath = $this->safe_string($api, 3);
+            $hostname = null;
+            $hostnames = $this->safe_value($this->urls['hostnames'], $type);
+            if (gettype($hostnames) !== 'string') {
+                $hostnames = $this->safe_value($hostnames, $levelOneNestedPath);
+                if ((gettype($hostname) !== 'string') && ($levelTwoNestedPath !== null)) {
+                    $hostnames = $this->safe_value($hostnames, $levelTwoNestedPath);
+                }
+            }
+            $hostname = $hostnames;
             $url .= $this->implode_params($path, $params);
-            $hostname = $this->safe_string($this->urls['hostnames'], $type);
             if ($access === 'public') {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);
