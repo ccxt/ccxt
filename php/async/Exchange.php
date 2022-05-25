@@ -499,11 +499,13 @@ class Exchange extends \ccxt\Exchange {
         } else {
             throw new NotSupported($this->id . ' fetchPremiumIndexOHLCV () is not supported yet');
         }
+    }
 
-    public function fetch_position($symbol, $params = array()){
+    public function fetch_position($symbol, $params = array()) {
         if (!$this->has['fetchPositions']) {
-            throw new NotSupported ($this->id + 'fetch_position() is not supported yet');
+            throw new NotSupported ($this->id . 'fetch_position() is not supported yet');
         }
-        return $this->save_value(yield $this.fetch_positions([$symbol], $params), 0);
+        $positions = yield $this.fetch_positions([$symbol], $params);
+        return $this->save_value($positions, 0);
     }
 }
