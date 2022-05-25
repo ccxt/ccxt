@@ -355,6 +355,13 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name aax#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
         const response = await this.publicGetAnnouncementMaintenance (params);
         //
         // note, when there is no maintenance, then data is `null`

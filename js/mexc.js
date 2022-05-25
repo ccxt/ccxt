@@ -371,6 +371,13 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
         const response = await this.spotPublicGetCommonPing (params);
         //
         //     { "code":200 }

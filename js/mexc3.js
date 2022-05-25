@@ -414,6 +414,13 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name mexc3#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {dict} params extra parameters specific to the mexc3 api endpoint
+         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
         let response = undefined;
         let status = undefined;
