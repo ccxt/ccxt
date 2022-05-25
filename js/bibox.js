@@ -508,6 +508,13 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name bibox#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the bibox api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         if (this.checkRequiredCredentials (false)) {
             return await this.fetchCurrenciesPrivate (params);
         } else {

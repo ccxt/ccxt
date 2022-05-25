@@ -362,6 +362,11 @@ class bitmart(Exchange):
         })
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.publicSystemGetTime(params)
         #
         #     {
@@ -377,6 +382,11 @@ class bitmart(Exchange):
         return self.safe_integer(data, 'server_time')
 
     async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         options = self.safe_value(self.options, 'fetchStatus', {})
         defaultType = self.safe_string(self.options, 'defaultType')
         type = self.safe_string(options, 'type', defaultType)
@@ -870,6 +880,11 @@ class bitmart(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.publicAccountGetCurrencies(params)
         #
         #     {

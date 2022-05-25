@@ -26,10 +26,15 @@ module.exports = class coinex extends Exchange {
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': true,
+                'fetchDepositAddress': true,
+                'fetchDepositAddressByNetwork': false,
+                'fetchDepositAddresses': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
@@ -56,7 +61,11 @@ module.exports = class coinex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
+                'fetchTransactionFee:': false,
+                'fetchTransactoinFees': false,
+                'fetchTransfer': false,
                 'fetchTransfers': true,
+                'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'setLeverage': true,
@@ -250,11 +259,103 @@ module.exports = class coinex extends Exchange {
                 'defaultType': 'spot', // spot, swap, margin
                 'defaultSubType': 'linear', // linear, inverse
                 'defaultMarginMode': 'isolated', // isolated, cross
+                'fetchDepositAddress': {
+                    'fillResponseFromRequest': true,
+                },
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',
             },
         });
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetCommonAssetConfig (params);
+        //
+        //     {
+        //         code: 0,
+        //         data: {
+        //           'CET-CSC': {
+        //               asset: 'CET',
+        //               chain: 'CSC',
+        //               withdrawal_precision: 8,
+        //               can_deposit: true,
+        //               can_withdraw: true,
+        //               deposit_least_amount: '0.026',
+        //               withdraw_least_amount: '20',
+        //               withdraw_tx_fee: '0.026'
+        //           },
+        //           ...
+        //           message: 'Success',
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const coins = Object.keys (data);
+        const result = {};
+        for (let i = 0; i < coins.length; i++) {
+            const coin = coins[i];
+            const currency = data[coin];
+            const currencyId = this.safeString (currency, 'asset');
+            const networkId = this.safeString (currency, 'chain');
+            const code = this.safeCurrencyCode (currencyId);
+            if (this.safeValue (result, code) === undefined) {
+                result[code] = {
+                    'id': currencyId,
+                    'numericId': undefined,
+                    'code': code,
+                    'info': currency,
+                    'name': undefined,
+                    'active': true,
+                    'deposit': this.safeValue (currency, 'can_deposit'),
+                    'withdraw': this.safeValue (currency, 'can_withdraw'),
+                    'fee': this.safeNumber (currency, 'withdraw_tx_fee'),
+                    'precision': this.safeNumber (currency, 'withdrawal_precision'),
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (currency, 'deposit_least_amount'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber (currency, 'withdraw_least_amount'),
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            const networks = this.safeValue (result[code], 'networks', {});
+            const network = {
+                'info': currency,
+                'id': networkId,
+                'network': networkId,
+                'name': undefined,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': this.safeNumber (currency, 'deposit_least_amount'),
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeNumber (currency, 'withdraw_least_amount'),
+                        'max': undefined,
+                    },
+                },
+                'active': true,
+                'deposit': this.safeValue (currency, 'can_deposit'),
+                'withdraw': this.safeValue (currency, 'can_withdraw'),
+                'fee': this.safeNumber (currency, 'withdraw_tx_fee'),
+                'precision': this.safeNumber (currency, 'withdrawal_precision'),
+            };
+            networks[networkId] = network;
+            result[code]['networks'] = networks;
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}) {
@@ -695,6 +796,13 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name coinex#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the coinex api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.perpetualPublicGetTime (params);
         //
         //     {
@@ -2265,6 +2373,108 @@ module.exports = class coinex extends Exchange {
         return await this.fetchOrdersByStatus ('finished', symbol, since, limit, params);
     }
 
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin_type': currency['id'],
+        };
+        if ('network' in params) {
+            const network = this.safeString (params, 'network');
+            params = this.omit (params, 'network');
+            request['smart_contract_name'] = network;
+        }
+        const response = await this.privatePutBalanceDepositAddressCoinType (this.extend (request, params));
+        //
+        //     {
+        //         code: 0,
+        //         data: {
+        //             coin_address: 'TV639dSpb9iGRtoFYkCp4AoaaDYKrK1pw5',
+        //             is_bitcoin_cash: false
+        //         },
+        //         message: 'Success'
+        //     }
+        const data = this.safeValue (response, 'data', {});
+        return this.parseDepositAddress (data, currency);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin_type': currency['id'],
+        };
+        const networks = this.safeValue (currency, 'networks', {});
+        const network = this.safeString (params, 'network');
+        params = this.omit (params, 'network');
+        const networksKeys = Object.keys (networks);
+        const numOfNetworks = networksKeys.length;
+        if (networks !== undefined && numOfNetworks > 1) {
+            if (network === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() ' + code + ' requires a network parameter');
+            }
+            if (!(network in networks)) {
+                throw new ExchangeError (this.id + ' fetchDepositAddress() ' + network + ' network not supported for ' + code);
+            }
+        }
+        if (network !== undefined) {
+            request['smart_contract_name'] = network;
+        }
+        const response = await this.privateGetBalanceDepositAddressCoinType (this.extend (request, params));
+        //
+        //      {
+        //          code: 0,
+        //          data: {
+        //            coin_address: '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
+        //            is_bitcoin_cash: false
+        //          },
+        //          message: 'Success'
+        //      }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const depositAddress = this.parseDepositAddress (data, currency);
+        const options = this.safeValue (this.options, 'fetchDepositAddress', {});
+        const fillResponseFromRequest = this.safeValue (options, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            depositAddress['network'] = this.safeNetworkCode (network, currency);
+        }
+        return depositAddress;
+    }
+
+    safeNetwork (networkId, currency = undefined) {
+        const networks = this.safeValue (currency, 'networks', {});
+        const networksCodes = Object.keys (networks);
+        if (networkId === undefined && networksCodes.length === 1) {
+            return networks[networksCodes[0]];
+        }
+        return {
+            'id': networkId,
+            'network': (networkId === undefined) ? undefined : networkId.toUpperCase (),
+        };
+    }
+
+    safeNetworkCode (networkId, currency = undefined) {
+        const network = this.safeNetwork (networkId, currency);
+        return network['network'];
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         coin_address: '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
+        //         is_bitcoin_cash: false
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'coin_address');
+        return {
+            'info': depositAddress,
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'address': address,
+            'tag': undefined,
+            'network': undefined,
+        };
+    }
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
@@ -3492,7 +3702,7 @@ module.exports = class coinex extends Exchange {
                 'Authorization': signature.toLowerCase (),
                 'AccessId': this.apiKey,
             };
-            if ((method === 'GET')) {
+            if ((method === 'GET') || (method === 'PUT')) {
                 url += '?' + urlencoded;
             } else {
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -3514,7 +3724,7 @@ module.exports = class coinex extends Exchange {
                 'Authorization': signature.toUpperCase (),
                 'Content-Type': 'application/json',
             };
-            if ((method === 'GET') || (method === 'DELETE')) {
+            if ((method === 'GET') || (method === 'DELETE') || (method === 'PUT')) {
                 url += '?' + urlencoded;
             } else {
                 body = this.json (query);

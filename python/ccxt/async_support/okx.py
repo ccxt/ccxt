@@ -93,6 +93,7 @@ class okx(Exchange):
                 'fetchMySells': None,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': True,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -636,6 +637,16 @@ class okx(Exchange):
                     'Lightning': True,
                     'Liquid': True,
                 },
+                'fetchOpenInterestHistory': {
+                    'timeframes': {
+                        '5m': '5m',
+                        '1h': '1H',
+                        '1d': '1D',
+                        '5M': '5m',
+                        '1H': '1H',
+                        '1D': '1D',
+                    },
+                },
                 'fetchOHLCV': {
                     # 'type': 'Candles',  # Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
@@ -731,6 +742,11 @@ class okx(Exchange):
         return self.safe_string(exchangeTypes, type, type)
 
     async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = await self.publicGetSystemStatus(params)
         #
         # Note, if there is no maintenance around, the 'data' array is empty
@@ -771,6 +787,11 @@ class okx(Exchange):
         return update
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.publicGetPublicTime(params)
         #
         #     {
@@ -1043,6 +1064,11 @@ class okx(Exchange):
         return self.safe_string(networksById, networkId, networkId)
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         # self endpoint requires authentication
         # while fetchCurrencies is a public API method by design
         # therefore we check the keys here
@@ -1595,18 +1621,6 @@ class okx(Exchange):
             })
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
-
-    async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'index',
-        }
-        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
-
-    async def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'mark',
-        }
-        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def parse_balance_by_type(self, type, response):
         if type == 'funding':
@@ -4605,6 +4619,70 @@ class okx(Exchange):
             'timestamp': timestamp,  # Interest accrued time
             'datetime': self.iso8601(timestamp),
             'info': info,
+        }
+
+    async def fetch_open_interest_history(self, code, timeframe='5m', since=None, limit=None, params={}):
+        """
+        Retrieves the open interest history of a currency
+        :param str code: Unified CCXT currency code
+        :param str timeframe: "5m", "1h", or "1d"
+        :param int since: The time in ms of the earliest record to retrieve as a unix timestamp
+        :param int limit: Not used by okx, but parsed internally by CCXT
+        :param dict params: Exchange specific parameters
+        :param int params['till']: The time in ms of the latest record to retrieve as a unix timestamp
+        :returns: An array of open interest structures
+        """
+        options = self.safe_value(self.options, 'fetchOpenInterestHistory', {})
+        timeframes = self.safe_value(options, 'timeframes', {})
+        timeframe = self.safe_string(timeframes, timeframe, timeframe)
+        if timeframe != '5m' and timeframe != '1H' and timeframe != '1D':
+            raise BadRequest(self.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe')
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'ccy': currency['id'],
+            'period': timeframe,
+        }
+        if since is not None:
+            request['begin'] = since
+        till = self.safe_integer_2(params, 'till', 'end')
+        if till is not None:
+            request['end'] = till
+        response = await self.publicGetRubikStatContractsOpenInterestVolume(self.extend(request, params))
+        #
+        #    {
+        #        code: '0',
+        #        data: [
+        #            [
+        #                '1648221300000',  # timestamp
+        #                '2183354317.945',  # open interest(USD)
+        #                '74285877.617',  # volume(USD)
+        #            ],
+        #            ...
+        #        ],
+        #        msg: ''
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_open_interests(data, None, since, limit)
+
+    def parse_open_interest(self, interest, market=None):
+        #
+        #    [
+        #        '1648221300000',  # timestamp
+        #        '2183354317.945',  # open interest(USD)
+        #        '74285877.617',  # volume(USD)
+        #    ]
+        #
+        timestamp = self.safe_number(interest, 0)
+        openInterest = self.safe_number(interest, 1)
+        return {
+            'symbol': None,
+            'baseVolume': None,
+            'quoteVolume': openInterest,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': interest,
         }
 
     def set_sandbox_mode(self, enable):

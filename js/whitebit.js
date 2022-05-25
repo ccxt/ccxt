@@ -325,6 +325,13 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name whitebit#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the whitebit api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.v4PublicGetAssets (params);
         //
         //      "BTC": {
@@ -798,6 +805,13 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name whitebit#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {dict} params extra parameters specific to the whitebit api endpoint
+         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
         const response = await this.v4PublicGetPing (params);
         //
         //      [
@@ -815,6 +829,13 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name whitebit#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the whitebit api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.v4PublicGetTime (params);
         //
         //     {

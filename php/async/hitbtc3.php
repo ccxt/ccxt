@@ -487,6 +487,11 @@ class hitbtc3 extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {dict} $params extra parameters specific to the hitbtc3 api endpoint
+         * @return {dict} an associative dictionary of $currencies
+         */
         $response = yield $this->publicGetPublicCurrency ($params);
         //
         //     {
@@ -1260,27 +1265,6 @@ class hitbtc3 extends Exchange {
         //
         $ohlcvs = $this->safe_value($response, $market['id']);
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
-    }
-
-    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'mark',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
-    }
-
-    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'index',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
-    }
-
-    public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'premiumIndex',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

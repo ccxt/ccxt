@@ -157,6 +157,13 @@ module.exports = class bytetrade extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name bytetrade#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the bytetrade api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const currencies = await this.publicGetCurrencies (params);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
@@ -540,6 +547,14 @@ module.exports = class bytetrade extends Exchange {
     }
 
     async fetchBidsAsks (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bytetrade#fetchBidsAsks
+         * @description fetches the bid and ask price and volume for multiple markets
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {dict} params extra parameters specific to the bytetrade api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const response = await this.marketGetDepth (params);
         return this.parseTickers (response, symbols);

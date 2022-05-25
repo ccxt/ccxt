@@ -189,6 +189,13 @@ module.exports = class novadax extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name novadax#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the novadax api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetCommonTimestamp (params);
         //
         //     {

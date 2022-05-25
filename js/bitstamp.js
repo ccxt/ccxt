@@ -513,6 +513,13 @@ module.exports = class bitstamp extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name bitstamp#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the bitstamp api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.fetchMarketsFromCache (params);
         //
         //     [

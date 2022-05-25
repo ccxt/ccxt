@@ -409,6 +409,13 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name ftx#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the ftx api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetCoins (params);
         const currencies = this.safeValue (response, 'result', []);
         //
@@ -983,13 +990,6 @@ module.exports = class ftx extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
-    }
-
-    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'index',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     parseTrade (trade, market = undefined) {

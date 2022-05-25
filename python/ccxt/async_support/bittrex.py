@@ -438,6 +438,11 @@ class bittrex(Exchange):
         return orderbook
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.publicGetCurrencies(params)
         #
         #     [
@@ -688,6 +693,11 @@ class bittrex(Exchange):
         }, market)
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.publicGetPing(params)
         #
         #     {

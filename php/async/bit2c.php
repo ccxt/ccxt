@@ -632,6 +632,10 @@ class bit2c extends Exchange {
         );
     }
 
+    public function nonce() {
+        return $this->milliseconds();
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
         if ($api === 'public') {

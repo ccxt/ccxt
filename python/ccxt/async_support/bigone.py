@@ -410,6 +410,11 @@ class bigone(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the bigone api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.publicGetPing(params)
         #
         #     {

@@ -344,6 +344,11 @@ class mexc extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the mexc api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTime', null, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotPublicGetCommonTimestamp',
@@ -370,6 +375,11 @@ class mexc extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {dict} $params extra parameters specific to the mexc api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-$status-structure $status structure}
+         */
         $response = yield $this->spotPublicGetCommonPing ($params);
         //
         //     array( "code":200 )
@@ -386,6 +396,11 @@ class mexc extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the mexc api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = yield $this->spotPublicGetMarketCoinList ($params);
         //
         //     {
@@ -1312,27 +1327,6 @@ class mexc extends Exchange {
             $this->safe_number($ohlcv, $market['spot'] ? 2 : 4),
             $this->safe_number($ohlcv, 5),
         ];
-    }
-
-    public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'premiumIndex',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
-    }
-
-    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'index',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
-    }
-
-    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'mark',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_balance($params = array ()) {

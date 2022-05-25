@@ -1,10 +1,6 @@
 'use strict'
 
-// ----------------------------------------------------------------------------
-
 const assert = require ('assert')
-
-// ----------------------------------------------------------------------------
 
 function testAccount (exchange, account, method) {
     const format = {

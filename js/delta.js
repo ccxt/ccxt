@@ -192,6 +192,13 @@ module.exports = class delta extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name delta#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the delta api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetSettings (params);
         // full response sample under `fetchStatus`
         const result = this.safeValue (response, 'result', {});
@@ -199,6 +206,13 @@ module.exports = class delta extends Exchange {
     }
 
     async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name delta#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {dict} params extra parameters specific to the delta api endpoint
+         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
         const response = await this.publicGetSettings (params);
         //
         //     {
@@ -267,6 +281,13 @@ module.exports = class delta extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name delta#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the delta api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetAssets (params);
         //
         //     {

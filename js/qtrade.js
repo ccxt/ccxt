@@ -270,6 +270,13 @@ module.exports = class qtrade extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name qtrade#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the qtrade api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetCurrencies (params);
         //
         //     {

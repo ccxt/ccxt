@@ -423,6 +423,11 @@ class ftx(Exchange):
         })
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.publicGetCoins(params)
         currencies = self.safe_value(response, 'result', [])
         #
@@ -962,12 +967,6 @@ class ftx(Exchange):
         #
         result = self.safe_value(response, 'result', [])
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
-
-    async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'index',
-        }
-        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def parse_trade(self, trade, market=None):
         #

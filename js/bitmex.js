@@ -54,6 +54,8 @@ module.exports = class bitmex extends Exchange {
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'setLeverage': true,
+                'setMarginMode': true,
                 'transfer': false,
                 'withdraw': true,
             },
@@ -2401,6 +2403,46 @@ module.exports = class bitmex extends Exchange {
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
         };
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        if ((leverage < 0.01) || (leverage > 100)) {
+            throw new BadRequest (this.id + ' leverage should be between 0.01 and 100');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['type'] !== 'swap' && market['type'] !== 'future') {
+            throw new BadSymbol (this.id + ' setLeverage() supports future and swap contracts only');
+        }
+        const request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        };
+        return await this.privatePostPositionLeverage (this.extend (request, params));
+    }
+
+    async setMarginMode (marginMode, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
+        marginMode = marginMode.toLowerCase ();
+        if (marginMode !== 'isolated' && marginMode !== 'cross') {
+            throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if ((market['type'] !== 'swap') && (market['type'] !== 'future')) {
+            throw new BadSymbol (this.id + ' setMarginMode() supports swap and future contracts only');
+        }
+        const enabled = (marginMode === 'cross') ? false : true;
+        const request = {
+            'symbol': market['id'],
+            'enabled': enabled,
+        };
+        return await this.privatePostPositionIsolate (this.extend (request, params));
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

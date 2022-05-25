@@ -413,6 +413,11 @@ class ftx extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {dict} $params extra parameters specific to the ftx api endpoint
+         * @return {dict} an associative dictionary of $currencies
+         */
         $response = $this->publicGetCoins ($params);
         $currencies = $this->safe_value($response, 'result', array());
         //
@@ -977,13 +982,6 @@ class ftx extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
-    }
-
-    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'index',
-        );
-        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function parse_trade($trade, $market = null) {

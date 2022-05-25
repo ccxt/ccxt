@@ -70,6 +70,7 @@ module.exports = class okx extends Exchange {
                 'fetchMySells': undefined,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -613,6 +614,16 @@ module.exports = class okx extends Exchange {
                     'Lightning': true,
                     'Liquid': true,
                 },
+                'fetchOpenInterestHistory': {
+                    'timeframes': {
+                        '5m': '5m',
+                        '1h': '1H',
+                        '1d': '1D',
+                        '5M': '5m',
+                        '1H': '1H',
+                        '1D': '1D',
+                    },
+                },
                 'fetchOHLCV': {
                     // 'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
@@ -712,6 +723,13 @@ module.exports = class okx extends Exchange {
     }
 
     async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name okx#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {dict} params extra parameters specific to the okx api endpoint
+         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
         const response = await this.publicGetSystemStatus (params);
         //
         // Note, if there is no maintenance around, the 'data' array is empty
@@ -755,6 +773,13 @@ module.exports = class okx extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name okx#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the okx api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetPublicTime (params);
         //
         //     {
@@ -1047,6 +1072,13 @@ module.exports = class okx extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name okx#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the okx api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
@@ -1648,20 +1680,6 @@ module.exports = class okx extends Exchange {
         }
         const sorted = this.sortBy (rates, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
-    }
-
-    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'index',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
-    }
-
-    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'mark',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     parseBalanceByType (type, response) {
@@ -4853,6 +4871,77 @@ module.exports = class okx extends Exchange {
             'timestamp': timestamp,  // Interest accrued time
             'datetime': this.iso8601 (timestamp),
             'info': info,
+        };
+    }
+
+    async fetchOpenInterestHistory (code, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchOpenInterestHistory
+         * @description Retrieves the open interest history of a currency
+         * @param {str} code Unified CCXT currency code
+         * @param {str} timeframe "5m", "1h", or "1d"
+         * @param {int} since The time in ms of the earliest record to retrieve as a unix timestamp
+         * @param {int} limit Not used by okx, but parsed internally by CCXT
+         * @param {dict} params Exchange specific parameters
+         * @param {int} params.till The time in ms of the latest record to retrieve as a unix timestamp
+         * @returns An array of open interest structures
+         */
+        const options = this.safeValue (this.options, 'fetchOpenInterestHistory', {});
+        const timeframes = this.safeValue (options, 'timeframes', {});
+        timeframe = this.safeString (timeframes, timeframe, timeframe);
+        if (timeframe !== '5m' && timeframe !== '1H' && timeframe !== '1D') {
+            throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'ccy': currency['id'],
+            'period': timeframe,
+        };
+        if (since !== undefined) {
+            request['begin'] = since;
+        }
+        const till = this.safeInteger2 (params, 'till', 'end');
+        if (till !== undefined) {
+            request['end'] = till;
+        }
+        const response = await this.publicGetRubikStatContractsOpenInterestVolume (this.extend (request, params));
+        //
+        //    {
+        //        code: '0',
+        //        data: [
+        //            [
+        //                '1648221300000',  // timestamp
+        //                '2183354317.945',  // open interest (USD)
+        //                '74285877.617',  // volume (USD)
+        //            ],
+        //            ...
+        //        ],
+        //        msg: ''
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseOpenInterests (data, undefined, since, limit);
+    }
+
+    parseOpenInterest (interest, market = undefined) {
+        //
+        //    [
+        //        '1648221300000',  // timestamp
+        //        '2183354317.945',  // open interest (USD)
+        //        '74285877.617',  // volume (USD)
+        //    ]
+        //
+        const timestamp = this.safeNumber (interest, 0);
+        const openInterest = this.safeNumber (interest, 1);
+        return {
+            'symbol': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': openInterest,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
         };
     }
 
