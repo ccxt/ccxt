@@ -1061,6 +1061,13 @@ module.exports = class okx extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name okx#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the okx api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here

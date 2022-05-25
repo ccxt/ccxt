@@ -640,6 +640,13 @@ module.exports = class kucoin extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name kucoin#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the kucoin api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetCurrencies (params);
         //
         //     {

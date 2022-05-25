@@ -202,6 +202,13 @@ module.exports = class cex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name cex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.fetchCurrenciesFromCache (params);
         this.options['currencies'] = {
             'timestamp': this.milliseconds (),

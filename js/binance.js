@@ -1252,6 +1252,13 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name binance#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const fetchCurrenciesEnabled = this.safeValue (this.options, 'fetchCurrencies');
         if (!fetchCurrenciesEnabled) {
             return undefined;

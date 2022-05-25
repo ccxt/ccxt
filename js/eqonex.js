@@ -330,6 +330,13 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetGetInstruments (params);
         //
         //     {
