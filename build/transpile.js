@@ -1282,14 +1282,23 @@ class Transpiler {
         let methods = contents.trim ().split (/\n\s*\n/)
         methods.pop(); // remove modules.exports = {...}
 
+        let {
+            python2,
+            python3,
+            php,
+            phpAsync,
+        } = this.transpileMethodsToAllLanguages(className, methods)
+    }
+
+    // ========================================================================
+
+    transpileMethodsToAllLanguages(className, methods) {
         let python2 = []
         let python3 = []
         let php = []
         let phpAsync = []
-
         let methodNames = []
 
-        // run through all methods
         for (let i = 0; i < methods.length; i++) {
             // parse the method signature
             let part = methods[i].trim ()
@@ -1364,6 +1373,15 @@ class Transpiler {
             phpAsync.push (phpAsyncBody);
             phpAsync.push ('    }')
         }
+
+        return {
+            // altogether in PHP, async PHP, Python sync and async
+            python2,
+            python3,
+            php,
+            phpAsync,
+        }
+
     }
 
     // ========================================================================
