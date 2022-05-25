@@ -4506,7 +4506,7 @@ module.exports = class bybit extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async fetchOpenInterestHistory (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+    async fetchOpenInterestHistory (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchOpenInterestHistory
@@ -4549,7 +4549,7 @@ module.exports = class bybit extends Exchange {
         //    }
         //
         const result = this.safeValue (response, 'result');
-        return this.parseOpenInterests (result);
+        return this.parseOpenInterests (result, market, since, limit);
     }
 
     parseOpenInterest (interest, market = undefined) {
@@ -4564,11 +4564,11 @@ module.exports = class bybit extends Exchange {
         market = this.safeMarket (id, market);
         const timestamp = this.safeTimestamp (interest, 'timestamp');
         const numContracts = this.safeString (interest, 'open_interest');
-        const contractSize = market['contractSize'];
+        const contractSize = this.safeNumber (market, 'contractSize');
         return {
             'symbol': this.safeSymbol (id),
-            'baseVolume': this.parseNumber (numContracts),
-            'quoteVolume': Precise.stringMul (numContracts, contractSize),
+            'baseVolume': Precise.stringMul (numContracts, contractSize),
+            'quoteVolume': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
