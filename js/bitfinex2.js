@@ -1384,17 +1384,19 @@ module.exports = class bitfinex2 extends bitfinex {
             // },
         };
         const stopLimit = ((orderType === 'EXCHANGE STOP LIMIT') || ((orderType === 'EXCHANGE LIMIT') && (stopPrice !== undefined)));
-        const stopMarket = ((orderType === 'EXCHANGE STOP') || ((orderType === 'EXCHANGE MARKET') && (stopPrice !== undefined)));
+        const exchangeStop = (orderType === 'EXCHANGE STOP');
+        const exchangeMarket = (orderType === 'EXCHANGE MARKET');
+        const stopMarket = (exchangeStop || (exchangeMarket && (stopPrice !== undefined)));
         const ioc = ((orderType === 'EXCHANGE IOC') || (timeInForce === 'IOC'));
         const fok = ((orderType === 'EXCHANGE FOK') || (timeInForce === 'FOK'));
         const postOnly = (postOnlyParam || (timeInForce === 'PO'));
         if ((ioc || fok) && (price === undefined)) {
             throw new InvalidOrder (this.id + ' createOrder() requires a price argument with IOC and FOK orders');
         }
-        if ((ioc || fok) && (orderType === 'EXCHANGE MARKET')) {
+        if ((ioc || fok) && exchangeMarket) {
             throw new InvalidOrder (this.id + ' createOrder() does not allow market IOC and FOK orders');
         }
-        if ((orderType !== 'MARKET') && (orderType !== 'EXCHANGE MARKET') && (orderType !== 'EXCHANGE STOP')) {
+        if ((orderType !== 'MARKET') && (!exchangeMarket) && (!exchangeStop)) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         if (stopLimit || stopMarket) {
