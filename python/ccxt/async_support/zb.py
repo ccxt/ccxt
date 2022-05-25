@@ -35,7 +35,14 @@ class zb(Exchange):
             'id': 'zb',
             'name': 'ZB',
             'countries': ['CN'],
-            'rateLimit': 100,
+            # previously rateLimit = 100
+            # Trading and Margin 10 000 per minute(IP) => 10000 / 60 = 166.66666... per second => rateLimit = 1000/166.66666 = 6
+            # Trade and Margin 60 per second(apiKey) => weight = 166.666 / 60 = 2.778(2.7777777...)
+            # Kline 1 per second => weight = 166.667
+            # v2 Futures API 100 per 2 seconds => 50 per second => weight = 3.334(3.3333333...)
+            # for endpoints not mentioned in docs
+            # previous rateLimit was 100 translating to 10 requests per second => weight = 166.666 / 10 = 16.667(16.666666...)
+            'rateLimit': 6,
             'version': 'v1',
             'certified': True,
             'pro': True,
@@ -52,11 +59,15 @@ class zb(Exchange):
                 'createMarketOrder': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': True,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': True,
+                'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -141,133 +152,134 @@ class zb(Exchange):
                 'spot': {
                     'v1': {
                         'public': {
-                            'get': [
-                                'markets',
-                                'ticker',
-                                'allTicker',
-                                'depth',
-                                'trades',
-                                'kline',
-                                'getGroupMarkets',
-                                'getFeeInfo',
-                            ],
+                            'get': {
+                                'markets': 16.667,
+                                'ticker': 16.667,
+                                'allTicker': 16.667,
+                                'depth': 16.667,
+                                'trades': 16.667,
+                                'kline': 166.667,  # Kline 1 per second
+                                'getGroupMarkets': 16.667,
+                                'getFeeInfo': 16.667,
+                            },
                         },
                         'private': {
-                            'get': [
+                            'get': {
                                 # spot API
-                                'order',
-                                'orderMoreV2',
-                                'cancelOrder',
-                                'getOrder',
-                                'getOrders',
-                                'getOrdersNew',
-                                'getOrdersIgnoreTradeType',
-                                'getUnfinishedOrdersIgnoreTradeType',
-                                'getFinishedAndPartialOrders',
-                                'getAccountInfo',
-                                'getUserAddress',
-                                'getPayinAddress',
-                                'getWithdrawAddress',
-                                'getWithdrawRecord',
-                                'getChargeRecord',
-                                'getCnyWithdrawRecord',
-                                'getCnyChargeRecord',
-                                'withdraw',
+                                'order': 1,  # Trade API
+                                'orderMoreV2': 1,  # Trade API
+                                'cancelOrder': 1,  # Trade API
+                                'cancelAllOrdersAfter': 1,  # Trade API TODO add cancelAllOrders
+                                'getOrder': 1,  # Trade API
+                                'getOrders': 1,  # Trade API
+                                'getOrdersNew': 16.667,
+                                'getOrdersIgnoreTradeType': 1,  # Trade API
+                                'getUnfinishedOrdersIgnoreTradeType': 1,  # Trade API
+                                'getFinishedAndPartialOrders': 1,  # Trade API
+                                'getAccountInfo': 16.667,
+                                'getUserAddress': 16.667,
+                                'getPayinAddress': 16.667,
+                                'getWithdrawAddress': 16.667,
+                                'getWithdrawRecord': 16.667,
+                                'getChargeRecord': 16.667,
+                                'getCnyWithdrawRecord': 16.667,
+                                'getCnyChargeRecord': 16.667,
+                                'withdraw': 16.667,
                                 # sub accounts
-                                'addSubUser',
-                                'getSubUserList',
-                                'doTransferFunds',
-                                'createSubUserKey',  # removed on 2021-03-16 according to the update log in the API doc
+                                'addSubUser': 16.667,
+                                'getSubUserList': 16.667,
+                                'doTransferFunds': 16.667,
+                                'createSubUserKey': 16.667,  # removed on 2021-03-16 according to the update log in the API doc
                                 # leverage API
-                                'getLeverAssetsInfo',
-                                'getLeverBills',
-                                'transferInLever',
-                                'transferOutLever',
-                                'loan',
-                                'cancelLoan',
-                                'getLoans',
-                                'getLoanRecords',
-                                'borrow',
-                                'autoBorrow',
-                                'repay',
-                                'doAllRepay',
-                                'getRepayments',
-                                'getFinanceRecords',
-                                'changeInvestMark',
-                                'changeLoop',
+                                'getLeverAssetsInfo': 16.667,
+                                'getLeverBills': 16.667,
+                                'transferInLever': 16.667,
+                                'transferOutLever': 16.667,
+                                'loan': 16.667,
+                                'cancelLoan': 16.667,
+                                'getLoans': 16.667,
+                                'getLoanRecords': 16.667,
+                                'borrow': 16.667,
+                                'autoBorrow': 16.667,
+                                'repay': 16.667,
+                                'doAllRepay': 16.667,
+                                'getRepayments': 16.667,
+                                'getFinanceRecords': 16.667,
+                                'changeInvestMark': 16.667,
+                                'changeLoop': 16.667,
                                 # cross API
-                                'getCrossAssets',
-                                'getCrossBills',
-                                'transferInCross',
-                                'transferOutCross',
-                                'doCrossLoan',
-                                'doCrossRepay',
-                                'getCrossRepayRecords',
-                            ],
+                                'getCrossAssets': 16.667,
+                                'getCrossBills': 16.667,
+                                'transferInCross': 16.667,
+                                'transferOutCross': 16.667,
+                                'doCrossLoan': 16.667,
+                                'doCrossRepay': 16.667,
+                                'getCrossRepayRecords': 16.667,
+                            },
                         },
                     },
                 },
                 'contract': {
                     'v1': {
                         'public': {
-                            'get': [
-                                'depth',
-                                'fundingRate',
-                                'indexKline',
-                                'indexPrice',
-                                'kline',
-                                'markKline',
-                                'markPrice',
-                                'ticker',
-                                'trade',
-                            ],
+                            'get': {
+                                'depth': 16.667,
+                                'fundingRate': 16.667,
+                                'indexKline': 16.667,
+                                'indexPrice': 16.667,
+                                'kline': 16.667,
+                                'markKline': 16.667,
+                                'markPrice': 16.667,
+                                'ticker': 16.667,
+                                'trade': 16.667,
+                            },
                         },
                     },
                     'v2': {
                         'public': {
-                            'get': [
-                                'allForceOrders',
-                                'config/marketList',
-                                'topLongShortAccountRatio',
-                                'topLongShortPositionRatio',
-                                'fundingRate',
-                                'premiumIndex',
-                            ],
+                            'get': {
+                                'allForceOrders': 3.334,
+                                'config/marketList': 3.334,
+                                'topLongShortAccountRatio': 3.334,
+                                'topLongShortPositionRatio': 3.334,
+                                'fundingRate': 3.334,
+                                'premiumIndex': 3.334,
+                            },
                         },
                         'private': {
-                            'get': [
-                                'Fund/balance',
-                                'Fund/getAccount',
-                                'Fund/getBill',
-                                'Fund/getBillTypeList',
-                                'Fund/marginHistory',
-                                'Positions/getPositions',
-                                'Positions/getNominalValue',
-                                'Positions/marginInfo',
-                                'setting/get',
-                                'trade/getAllOrders',
-                                'trade/getOrder',
-                                'trade/getOrderAlgos',
-                                'trade/getTradeList',
-                                'trade/getUndoneOrders',
-                                'trade/tradeHistory',
-                            ],
-                            'post': [
-                                'activity/buyTicket',
-                                'Fund/transferFund',
-                                'Positions/setMarginCoins',
-                                'Positions/updateAppendUSDValue',
-                                'Positions/updateMargin',
-                                'setting/setLeverage',
-                                'trade/batchOrder',
-                                'trade/batchCancelOrder',
-                                'trade/cancelAlgos',
-                                'trade/cancelAllOrders',
-                                'trade/cancelOrder',
-                                'trade/order',
-                                'trade/orderAlgo',
-                                'trade/updateOrderAlgo',
-                            ],
+                            'get': {
+                                'Fund/balance': 3.334,
+                                'Fund/getAccount': 3.334,
+                                'Fund/getBill': 3.334,
+                                'Fund/getBillTypeList': 3.334,
+                                'Fund/marginHistory': 3.334,
+                                'Positions/getPositions': 3.334,
+                                'Positions/getNominalValue': 3.334,
+                                'Positions/marginInfo': 3.334,
+                                'setting/get': 3.334,
+                                'trade/getAllOrders': 3.334,
+                                'trade/getOrder': 3.334,
+                                'trade/getOrderAlgos': 3.334,
+                                'trade/getTradeList': 3.334,
+                                'trade/getUndoneOrders': 3.334,
+                                'trade/tradeHistory': 3.334,
+                            },
+                            'post': {
+                                'activity/buyTicket': 3.334,
+                                'Fund/transferFund': 3.334,
+                                'Positions/setMarginCoins': 3.334,
+                                'Positions/updateAppendUSDValue': 3.334,
+                                'Positions/updateMargin': 3.334,
+                                'setting/setLeverage': 3.334,
+                                'trade/batchOrder': 3.334,
+                                'trade/batchCancelOrder': 3.334,
+                                'trade/cancelAlgos': 3.334,
+                                'trade/cancelAllOrders': 3.334,
+                                'trade/cancelOrder': 3.334,
+                                'trade/order': 3.334,
+                                'trade/orderAlgo': 3.334,
+                                'trade/updateOrderAlgo': 3.334,
+                            },
                         },
                     },
                 },
@@ -545,6 +557,11 @@ class zb(Exchange):
         })
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for zb
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         markets = await self.spotV1PublicGetMarkets(params)
         #
         #     {
@@ -817,12 +834,12 @@ class zb(Exchange):
             result[code] = account
         return self.safe_balance(result)
 
-    def parse_margin_balance(self, response, marginType):
+    def parse_margin_balance(self, response, marginMode):
         result = {
             'info': response,
         }
         levers = None
-        if marginType == 'isolated':
+        if marginMode == 'isolated':
             message = self.safe_value(response, 'message', {})
             data = self.safe_value(message, 'datas', {})
             levers = self.safe_value(data, 'levers', [])
@@ -904,7 +921,7 @@ class zb(Exchange):
             #     ],
             #
             account = self.account()
-            if marginType == 'isolated':
+            if marginMode == 'isolated':
                 code = self.safe_currency_code(self.safe_string(balance, 'fShowName'))
                 account['total'] = self.safe_string(balance, 'fAvailableUSD')  # total amount in USD
                 account['free'] = self.safe_string(balance, 'couldTransferOutFiat')
@@ -919,16 +936,21 @@ class zb(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
         margin = (marketType == 'margin')
         swap = (marketType == 'swap')
         marginMethod = None
         defaultMargin = 'isolated' if margin else 'cross'
-        marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
-        if marginType == 'isolated':
+        marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+        if marginMode == 'isolated':
             marginMethod = 'spotV1PrivateGetGetLeverAssetsInfo'
-        elif marginType == 'cross':
+        elif marginMode == 'cross':
             marginMethod = 'spotV1PrivateGetGetCrossAssets'
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotV1PrivateGetGetAccountInfo',
@@ -1101,7 +1123,7 @@ class zb(Exchange):
         if swap:
             return self.parse_swap_balance(response)
         elif margin:
-            return self.parse_margin_balance(response, marginType)
+            return self.parse_margin_balance(response, marginMode)
         else:
             return self.parse_balance(response)
 
@@ -1207,6 +1229,13 @@ class zb(Exchange):
         return self.parse_deposit_address(datas, currency)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1273,6 +1302,12 @@ class zb(Exchange):
         return self.parse_order_book(result, symbol, timestamp)
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         response = await self.spotV1PublicGetAllTicker(params)
         result = {}
@@ -1283,11 +1318,21 @@ class zb(Exchange):
             marketsByIdWithoutUnderscore[tickerId] = self.markets_by_id[marketIds[i]]
         ids = list(response.keys())
         for i in range(0, len(ids)):
-            market = marketsByIdWithoutUnderscore[ids[i]]
-            result[market['symbol']] = self.parse_ticker(response[ids[i]], market)
+            market = self.safe_value(marketsByIdWithoutUnderscore, ids[i])
+            if market is not None:
+                symbol = market['symbol']
+                ticker = self.safe_value(response, ids[i])
+                if ticker is not None:
+                    result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1431,6 +1476,15 @@ class zb(Exchange):
             ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         swap = market['swap']
@@ -1614,6 +1668,14 @@ class zb(Exchange):
         }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchTrades() requires a symbol argument')
         await self.load_markets()
@@ -1688,6 +1750,9 @@ class zb(Exchange):
         swap = market['swap']
         spot = market['spot']
         timeInForce = self.safe_string(params, 'timeInForce')
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        stop = self.safe_value(params, 'stop')
+        stopPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
         if type == 'market':
             raise InvalidOrder(self.id + ' createOrder() on ' + market['type'] + ' markets does not allow market orders')
         method = self.get_supported_mapping(market['type'], {
@@ -1696,25 +1761,22 @@ class zb(Exchange):
         })
         request = {
             'amount': self.amount_to_precision(symbol, amount),
+            # 'symbol': market['id'],
             # 'acctType': 0,  # Spot, Margin 0/1/2 [Spot/Isolated/Cross] Optional, Default to: 0 Spot
             # 'customerOrderId': '1f2g',  # Spot, Margin
             # 'orderType': 1,  # Spot, Margin order type 1/2 [PostOnly/IOC] Optional
+            # 'triggerPrice': 30000.0,  # Stop trigger price
+            # 'algoPrice': 29000.0,  # Stop order price
+            # 'priceType': 1,  # Stop Loss Take Profit, 1: Mark price, 2: Last price
+            # 'bizType': 1,  # Stop Loss Take Profit, 1: TP, 2: SL
         }
-        if price:
-            request['price'] = self.price_to_precision(symbol, price)
-        if spot:
-            request['tradeType'] = '1' if (side == 'buy') else '0'
-            request['currency'] = market['id']
-            if timeInForce is not None:
-                if timeInForce == 'PO':
-                    request['orderType'] = 1
-                elif timeInForce == 'IOC':
-                    request['orderType'] = 2
-                else:
-                    raise InvalidOrder(self.id + ' createOrder() on ' + market['type'] + ' markets does not allow ' + timeInForce + ' orders')
-        elif swap:
-            reduceOnly = self.safe_value(params, 'reduceOnly')
-            params = self.omit(params, 'reduceOnly')
+        if stop or stopPrice:
+            method = 'contractV2PrivatePostTradeOrderAlgo'
+            orderType = self.safe_integer(params, 'orderType')
+            priceType = self.safe_integer(params, 'priceType')
+            bizType = self.safe_integer(params, 'bizType')
+            algoPrice = self.safe_number(params, 'algoPrice')
+            request['symbol'] = market['id']
             if side == 'sell' and reduceOnly:
                 request['side'] = 3  # close long
             elif side == 'buy' and reduceOnly:
@@ -1723,20 +1785,62 @@ class zb(Exchange):
                 request['side'] = 1  # open long
             elif side == 'sell':
                 request['side'] = 2  # open short
-            if type == 'limit':
-                request['action'] = 1
-            elif timeInForce == 'IOC':
-                request['action'] = 3
-            elif timeInForce == 'PO':
-                request['action'] = 4
-            elif timeInForce == 'FOK':
-                request['action'] = 5
-            else:
-                request['action'] = type
-            request['symbol'] = market['id']
-            request['clientOrderId'] = params['clientOrderId']  # OPTIONAL '^[a-zA-Z0-9-_]{1,36}$',  # The user-defined order number
-            request['extend'] = params['extend']  # OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
-        response = await getattr(self, method)(self.extend(request, params))
+            elif side == 5:
+                request['side'] = 5  # one way position buy
+            elif side == 6:
+                request['side'] = 6  # one way position sell
+            elif side == 0:
+                request['side'] = 0  # one way position close only
+            if type == 'trigger' or orderType == 1:
+                request['orderType'] = 1
+            elif type == 'stop loss' or type == 'take profit' or orderType == 2 or priceType or bizType:
+                request['orderType'] = 2
+                request['priceType'] = priceType
+                request['bizType'] = bizType
+            request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
+            request['algoPrice'] = self.price_to_precision(symbol, algoPrice)
+        else:
+            if price:
+                request['price'] = self.price_to_precision(symbol, price)
+            if spot:
+                request['tradeType'] = '1' if (side == 'buy') else '0'
+                request['currency'] = market['id']
+                if timeInForce is not None:
+                    if timeInForce == 'PO':
+                        request['orderType'] = 1
+                    elif timeInForce == 'IOC':
+                        request['orderType'] = 2
+                    else:
+                        raise InvalidOrder(self.id + ' createOrder() on ' + market['type'] + ' markets does not allow ' + timeInForce + ' orders')
+            elif swap:
+                if side == 'sell' and reduceOnly:
+                    request['side'] = 3  # close long
+                elif side == 'buy' and reduceOnly:
+                    request['side'] = 4  # close short
+                elif side == 'buy':
+                    request['side'] = 1  # open long
+                elif side == 'sell':
+                    request['side'] = 2  # open short
+                if type == 'limit':
+                    request['action'] = 1
+                elif timeInForce == 'IOC':
+                    request['action'] = 3
+                elif timeInForce == 'PO':
+                    request['action'] = 4
+                elif timeInForce == 'FOK':
+                    request['action'] = 5
+                else:
+                    request['action'] = type
+                request['symbol'] = market['id']
+                clientOrderId = self.safe_string(params, 'clientOrderId')  # OPTIONAL '^[a-zA-Z0-9-_]{1,36}$',  # The user-defined order number
+                if clientOrderId is not None:
+                    request['clientOrderId'] = clientOrderId
+                # using self.extend as name causes issues in python
+                extendOrderAlgos = self.safe_value(params, 'extend', None)  # OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
+                if extendOrderAlgos is not None:
+                    request['extend'] = extendOrderAlgos
+        query = self.omit(params, ['reduceOnly', 'stop', 'stopPrice', 'orderType', 'triggerPrice', 'algoPrice', 'priceType', 'bizType', 'clientOrderId', 'extend'])
+        response = await getattr(self, method)(self.extend(request, query))
         #
         # Spot
         #
@@ -1757,12 +1861,22 @@ class zb(Exchange):
         #         }
         #     }
         #
-        if swap:
+        # Algo order
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": "6919884551305242624",
+        #         "desc": "操作成功"
+        #     }
+        #
+        if (swap) and (not stop) and (stopPrice is None):
             response = self.safe_value(response, 'data')
-        response['timeInForce'] = timeInForce
-        response['type'] = request['tradeType']
-        response['total_amount'] = amount
-        response['price'] = price
+            response['timeInForce'] = timeInForce
+            tradeType = self.safe_string(response, 'tradeType')
+            if tradeType is None:
+                response['type'] = tradeType
+            response['total_amount'] = amount
+            response['price'] = price
         return self.parse_order(response, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -1809,25 +1923,42 @@ class zb(Exchange):
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
+        stop = self.safe_value(params, 'stop')
         if market['spot']:
             raise NotSupported(self.id + ' cancelAllOrders() is not supported on ' + market['type'] + ' markets')
         request = {
             'symbol': market['id'],
+            # 'ids': [6904603200733782016, 6819506476072247297],  # STOP
+            # 'side': params['side'],  # STOP, for stop orders: 1 Open long(buy), 2 Open short(sell), 3 Close long(sell), 4 Close Short(Buy). One-Way Positions: 5 Buy, 6 Sell, 0 Close Only
         }
-        return await self.contractV2PrivatePostTradeCancelAllOrders(self.extend(request, params))
+        method = 'contractV2PrivatePostTradeCancelAllOrders'
+        if stop:
+            method = 'contractV2PrivatePostTradeCancelAlgos'
+        query = self.omit(params, 'stop')
+        return await getattr(self, method)(self.extend(request, query))
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        stop = self.safe_value(params, 'stop')
         swap = market['swap']
         request = {
             # 'currency': self.market_id(symbol),  # only applicable to SPOT
             # 'id': str(id),  # only applicable to SPOT
-            # 'symbol': self.market_id(symbol),  # only applicable to SWAP
             # 'orderId': str(id),  # only applicable to SWAP
             # 'clientOrderId': params['clientOrderId'],  # only applicable to SWAP
+            # 'symbol': market['id'],  # STOP and SWAP
+            # 'side': params['side'],  # STOP and SWAP, for stop orders: 1 Open long(buy), 2 Open short(sell), 3 Close long(sell), 4 Close Short(Buy). One-Way Positions: 5 Buy, 6 Sell, 0 Close Only
+            # 'orderType': 1,  # STOP, 1: Plan order, 2: SP/SL
+            # 'bizType': 1,  # Plan order, 1: TP, 2: SL
+            # 'status': 1,  # STOP, 1: untriggered, 2: cancelled, 3:triggered, 4:failed, 5:completed
+            # 'startTime': since,  # STOP and SWAP
+            # 'endTime': params['endTime'],  # STOP and SWAP
+            # 'pageNum': 1,  # STOP and SWAP, default 1
+            # 'pageSize': limit,  # STOP, default 10
         }
         marketIdField = 'symbol' if swap else 'currency'
         request[marketIdField] = self.market_id(symbol)
@@ -1837,7 +1968,34 @@ class zb(Exchange):
             'spot': 'spotV1PrivateGetGetOrder',
             'swap': 'contractV2PrivateGetTradeGetOrder',
         })
-        response = await getattr(self, method)(self.extend(request, params))
+        if stop:
+            method = 'contractV2PrivateGetTradeGetOrderAlgos'
+            orderType = self.safe_integer(params, 'orderType')
+            if orderType is None:
+                raise ArgumentsRequired(self.id + ' fetchOrder() requires an orderType parameter for stop orders')
+            side = self.safe_integer(params, 'side')
+            bizType = self.safe_integer(params, 'bizType')
+            if side == 'sell' and reduceOnly:
+                request['side'] = 3  # close long
+            elif side == 'buy' and reduceOnly:
+                request['side'] = 4  # close short
+            elif side == 'buy':
+                request['side'] = 1  # open long
+            elif side == 'sell':
+                request['side'] = 2  # open short
+            elif side == 5:
+                request['side'] = 5  # one way position buy
+            elif side == 6:
+                request['side'] = 6  # one way position sell
+            elif side == 0:
+                request['side'] = 0  # one way position close only
+            if orderType == 1:
+                request['orderType'] = 1
+            elif orderType == 2 or bizType:
+                request['orderType'] = 2
+                request['bizType'] = bizType
+        query = self.omit(params, ['reduceOnly', 'stop', 'side', 'orderType', 'bizType'])
+        response = await getattr(self, method)(self.extend(request, query))
         #
         # Spot
         #
@@ -1887,28 +2045,83 @@ class zb(Exchange):
         #         "desc":"操作成功"
         #     }
         #
-        if swap:
+        # Algo order
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": {
+        #             "list": [
+        #                 {
+        #                     "action": 1,
+        #                     "algoPrice": "30000",
+        #                     "amount": "0.003",
+        #                     "bizType": 0,
+        #                     "canCancel": True,
+        #                     "createTime": "1649913941109",
+        #                     "errorCode": 0,
+        #                     "id": "6920240642849449984",
+        #                     "isLong": False,
+        #                     "leverage": 10,
+        #                     "marketId": "100",
+        #                     "modifyTime": "1649913941109",
+        #                     "orderType": 1,
+        #                     "priceType": 2,
+        #                     "side": 5,
+        #                     "sourceType": 4,
+        #                     "status": 1,
+        #                     "submitPrice": "41270.53",
+        #                     "symbol": "BTC_USDT",
+        #                     "tradedAmount": "0",
+        #                     "triggerCondition": "<=",
+        #                     "triggerPrice": "31000",
+        #                     "triggerTime": "0",
+        #                     "userId": "6896693805014120448"
+        #                 },
+        #             ],
+        #             "pageNum": 1,
+        #             "pageSize": 10
+        #         },
+        #         "desc": "操作成功"
+        #     }
+        #
+        if stop:
+            data = self.safe_value(response, 'data', {})
+            response = self.safe_value(data, 'list', [])
+            result = []
+            for i in range(0, len(response)):
+                entry = response[i]
+                algoId = self.safe_string(entry, 'id')
+                if id == algoId:
+                    result.append(entry)
+            response = result[0]
+        if swap and not stop:
             response = self.safe_value(response, 'data', {})
         return self.parse_order(response, market)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + 'fetchOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        stop = self.safe_value(params, 'stop')
         swap = market['swap']
         request = {
             'pageSize': limit,  # default pageSize is 50 for spot, 30 for swap
             # 'currency': market['id'],  # only applicable to SPOT
             # 'pageIndex': 1,  # only applicable to SPOT
-            # 'symbol': market['id'],  # only applicable to SWAP
-            # 'pageNum': 1,  # only applicable to SWAP
             # 'type': params['type'],  # only applicable to SWAP
-            # 'side': params['side'],  # only applicable to SWAP
             # 'dateRange': params['dateRange'],  # only applicable to SWAP
             # 'action': params['action'],  # only applicable to SWAP
-            # 'endTime': params['endTime'],  # only applicable to SWAP
-            # 'startTime': since,  # only applicable to SWAP
+            # 'symbol': market['id'],  # STOP and SWAP
+            # 'side': params['side'],  # STOP and SWAP, for stop orders: 1 Open long(buy), 2 Open short(sell), 3 Close long(sell), 4 Close Short(Buy). One-Way Positions: 5 Buy, 6 Sell, 0 Close Only
+            # 'orderType': 1,  # STOP, 1: Plan order, 2: SP/SL
+            # 'bizType': 1,  # Plan order, 1: TP, 2: SL
+            # 'status': 1,  # STOP, 1: untriggered, 2: cancelled, 3:triggered, 4:failed, 5:completed
+            # 'startTime': since,  # STOP and SWAP
+            # 'endTime': params['endTime'],  # STOP and SWAP
+            # 'pageNum': 1,  # STOP and SWAP, default 1
+            # 'pageSize': limit,  # STOP, default 10
         }
         marketIdField = 'symbol' if market['swap'] else 'currency'
         request[marketIdField] = market['id']
@@ -1923,9 +2136,36 @@ class zb(Exchange):
         # tradeType 交易类型1/0[buy/sell]
         if 'tradeType' in params:
             method = 'spotV1PrivateGetGetOrdersNew'
+        if stop:
+            method = 'contractV2PrivateGetTradeGetOrderAlgos'
+            orderType = self.safe_integer(params, 'orderType')
+            if orderType is None:
+                raise ArgumentsRequired(self.id + ' fetchOrders() requires an orderType parameter for stop orders')
+            side = self.safe_integer(params, 'side')
+            bizType = self.safe_integer(params, 'bizType')
+            if side == 'sell' and reduceOnly:
+                request['side'] = 3  # close long
+            elif side == 'buy' and reduceOnly:
+                request['side'] = 4  # close short
+            elif side == 'buy':
+                request['side'] = 1  # open long
+            elif side == 'sell':
+                request['side'] = 2  # open short
+            elif side == 5:
+                request['side'] = 5  # one way position buy
+            elif side == 6:
+                request['side'] = 6  # one way position sell
+            elif side == 0:
+                request['side'] = 0  # one way position close only
+            if orderType == 1:
+                request['orderType'] = 1
+            elif orderType == 2 or bizType:
+                request['orderType'] = 2
+                request['bizType'] = bizType
+        query = self.omit(params, ['reduceOnly', 'stop', 'side', 'orderType', 'bizType'])
         response = None
         try:
-            response = await getattr(self, method)(self.extend(request, params))
+            response = await getattr(self, method)(self.extend(request, query))
         except Exception as e:
             if isinstance(e, OrderNotFound):
                 return []
@@ -1990,39 +2230,328 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
+        # Algo order
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": {
+        #             "list": [
+        #                 {
+        #                     "action": 1,
+        #                     "algoPrice": "30000",
+        #                     "amount": "0.003",
+        #                     "bizType": 0,
+        #                     "canCancel": True,
+        #                     "createTime": "1649913941109",
+        #                     "errorCode": 0,
+        #                     "id": "6920240642849449984",
+        #                     "isLong": False,
+        #                     "leverage": 10,
+        #                     "marketId": "100",
+        #                     "modifyTime": "1649913941109",
+        #                     "orderType": 1,
+        #                     "priceType": 2,
+        #                     "side": 5,
+        #                     "sourceType": 4,
+        #                     "status": 1,
+        #                     "submitPrice": "41270.53",
+        #                     "symbol": "BTC_USDT",
+        #                     "tradedAmount": "0",
+        #                     "triggerCondition": "<=",
+        #                     "triggerPrice": "31000",
+        #                     "triggerTime": "0",
+        #                     "userId": "6896693805014120448"
+        #                 },
+        #             ],
+        #             "pageNum": 1,
+        #             "pageSize": 10
+        #         },
+        #         "desc": "操作成功"
+        #     }
+        #
         if swap:
             data = self.safe_value(response, 'data', {})
             response = self.safe_value(data, 'list', [])
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=10, params={}):
+    async def fetch_canceled_orders(self, symbol=None, since=None, limit=10, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + 'fetchClosedOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchCanceledOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        stop = self.safe_value(params, 'stop')
         request = {
-            'currency': market['id'],
-            'pageIndex': 1,  # default pageIndex is 1
-            'pageSize': limit,  # default pageSize is 10, doesn't work with other values now
+            'pageSize': limit,  # SPOT and STOP, default pageSize is 10, doesn't work with other values now
+            # 'currency': market['id'],  # SPOT
+            # 'pageIndex': 1,  # SPOT, default pageIndex is 1
+            # 'symbol': market['id'],  # STOP
+            # 'side': params['side'],  # STOP, for stop orders: 1 Open long(buy), 2 Open short(sell), 3 Close long(sell), 4 Close Short(Buy). One-Way Positions: 5 Buy, 6 Sell, 0 Close Only
+            # 'orderType': 1,  # STOP, 1: Plan order, 2: SP/SL
+            # 'bizType': 1,  # Plan order, 1: TP, 2: SL
+            # 'status': 1,  # STOP, 1: untriggered, 2: cancelled, 3:triggered, 4:failed, 5:completed
+            # 'startTime': since,  # STOP
+            # 'endTime': params['endTime'],  # STOP
+            # 'pageNum': 1,  # STOP, default 1
         }
-        response = await self.spotV1PrivateGetGetFinishedAndPartialOrders(self.extend(request, params))
+        marketIdField = 'currency' if market['spot'] else 'symbol'
+        request[marketIdField] = market['id']
+        pageNumField = 'pageIndex' if market['spot'] else 'pageNum'
+        request[pageNumField] = 1
+        method = 'spotV1PrivateGetGetOrdersIgnoreTradeType'
+        if stop:
+            method = 'contractV2PrivateGetTradeGetOrderAlgos'
+            orderType = self.safe_integer(params, 'orderType')
+            if orderType is None:
+                raise ArgumentsRequired(self.id + ' fetchCanceledOrders() requires an orderType parameter for stop orders')
+            side = self.safe_integer(params, 'side')
+            bizType = self.safe_integer(params, 'bizType')
+            if side == 'sell' and reduceOnly:
+                request['side'] = 3  # close long
+            elif side == 'buy' and reduceOnly:
+                request['side'] = 4  # close short
+            elif side == 'buy':
+                request['side'] = 1  # open long
+            elif side == 'sell':
+                request['side'] = 2  # open short
+            elif side == 5:
+                request['side'] = 5  # one way position buy
+            elif side == 6:
+                request['side'] = 6  # one way position sell
+            elif side == 0:
+                request['side'] = 0  # one way position close only
+            if orderType == 1:
+                request['orderType'] = 1
+            elif orderType == 2 or bizType:
+                request['orderType'] = 2
+                request['bizType'] = bizType
+            request['status'] = 2
+        # tradeType 交易类型1/0[buy/sell]
+        if 'tradeType' in params:
+            method = 'spotV1PrivateGetGetOrdersNew'
+        response = None
+        try:
+            response = await getattr(self, method)(self.extend(request, params))
+        except Exception as e:
+            if isinstance(e, OrderNotFound):
+                return []
+            raise e
+        query = self.omit(params, ['reduceOnly', 'stop', 'side', 'orderType', 'bizType'])
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
+        #
+        #     [
+        #         {
+        #             "acctType": 0,
+        #             "currency": "btc_usdt",
+        #             "fees": 0,
+        #             "id": "202202234857482656",
+        #             "price": 30000.0,
+        #             "status": 1,
+        #             "total_amount": 0.0006,
+        #             "trade_amount": 0.0000,
+        #             "trade_date": 1645610254524,
+        #             "trade_money": 0.000000,
+        #             "type": 1,
+        #             "useZbFee": False,
+        #             "webId": 0
+        #         }
+        #     ]
+        #
+        # Algo order
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": {
+        #             "list": [
+        #                 {
+        #                     "action": 1,
+        #                     "algoPrice": "30000",
+        #                     "amount": "0.003",
+        #                     "bizType": 0,
+        #                     "canCancel": True,
+        #                     "createTime": "1649913941109",
+        #                     "errorCode": 0,
+        #                     "id": "6920240642849449984",
+        #                     "isLong": False,
+        #                     "leverage": 10,
+        #                     "marketId": "100",
+        #                     "modifyTime": "1649913941109",
+        #                     "orderType": 1,
+        #                     "priceType": 2,
+        #                     "side": 5,
+        #                     "sourceType": 4,
+        #                     "status": 2,
+        #                     "submitPrice": "41270.53",
+        #                     "symbol": "BTC_USDT",
+        #                     "tradedAmount": "0",
+        #                     "triggerCondition": "<=",
+        #                     "triggerPrice": "31000",
+        #                     "triggerTime": "0",
+        #                     "userId": "6896693805014120448"
+        #                 },
+        #             ],
+        #             "pageNum": 1,
+        #             "pageSize": 10
+        #         },
+        #         "desc": "操作成功"
+        #     }
+        #
+        if stop:
+            data = self.safe_value(response, 'data', {})
+            response = self.safe_value(data, 'list', [])
+        result = []
+        if market['type'] == 'spot':
+            for i in range(0, len(response)):
+                entry = response[i]
+                status = self.safe_string(entry, 'status')
+                if status == '1':
+                    result.append(entry)
+            response = result
+        return self.parse_orders(response, market, since, limit)
+
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=10, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        stop = self.safe_value(params, 'stop')
+        request = {
+            'pageSize': limit,  # SPOT and STOP, default pageSize is 10, doesn't work with other values now
+            # 'currency': market['id'],  # SPOT
+            # 'pageIndex': 1,  # SPOT, default pageIndex is 1
+            # 'symbol': market['id'],  # STOP
+            # 'side': params['side'],  # STOP, for stop orders: 1 Open long(buy), 2 Open short(sell), 3 Close long(sell), 4 Close Short(Buy). One-Way Positions: 5 Buy, 6 Sell, 0 Close Only
+            # 'orderType': 1,  # STOP, 1: Plan order, 2: SP/SL
+            # 'bizType': 1,  # Plan order, 1: TP, 2: SL
+            # 'status': 1,  # STOP, 1: untriggered, 2: cancelled, 3:triggered, 4:failed, 5:completed
+            # 'startTime': since,  # STOP
+            # 'endTime': params['endTime'],  # STOP
+            # 'pageNum': 1,  # STOP, default 1
+        }
+        marketIdField = 'currency' if market['spot'] else 'symbol'
+        request[marketIdField] = market['id']
+        pageNumField = 'pageIndex' if market['spot'] else 'pageNum'
+        request[pageNumField] = 1
+        method = 'spotV1PrivateGetGetFinishedAndPartialOrders'
+        if stop:
+            method = 'contractV2PrivateGetTradeGetOrderAlgos'
+            orderType = self.safe_integer(params, 'orderType')
+            if orderType is None:
+                raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires an orderType parameter for stop orders')
+            side = self.safe_integer(params, 'side')
+            bizType = self.safe_integer(params, 'bizType')
+            if side == 'sell' and reduceOnly:
+                request['side'] = 3  # close long
+            elif side == 'buy' and reduceOnly:
+                request['side'] = 4  # close short
+            elif side == 'buy':
+                request['side'] = 1  # open long
+            elif side == 'sell':
+                request['side'] = 2  # open short
+            elif side == 5:
+                request['side'] = 5  # one way position buy
+            elif side == 6:
+                request['side'] = 6  # one way position sell
+            elif side == 0:
+                request['side'] = 0  # one way position close only
+            if orderType == 1:
+                request['orderType'] = 1
+            elif orderType == 2 or bizType:
+                request['orderType'] = 2
+                request['bizType'] = bizType
+            request['status'] = 5
+        query = self.omit(params, ['reduceOnly', 'stop', 'side', 'orderType', 'bizType'])
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
+        #
+        #     [
+        #         {
+        #             "acctType": 0,
+        #             "currency": "btc_usdt",
+        #             "fees": 0.00823354,
+        #             "id": "202204145086706337",
+        #             "price": 41167.7,
+        #             "status": 2,
+        #             "total_amount": 0.0001,
+        #             "trade_amount": 0.0001,
+        #             "trade_date": 1649917867370,
+        #             "trade_money": 4.116770,
+        #             "type": 0,
+        #             "useZbFee": False,
+        #             "webId": 0
+        #         },
+        #     ]
+        #
+        # Algo order
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": {
+        #             "list": [
+        #                 {
+        #                     "action": 1,
+        #                     "algoPrice": "30000",
+        #                     "amount": "0.003",
+        #                     "bizType": 0,
+        #                     "canCancel": True,
+        #                     "createTime": "1649913941109",
+        #                     "errorCode": 0,
+        #                     "id": "6920240642849449984",
+        #                     "isLong": False,
+        #                     "leverage": 10,
+        #                     "marketId": "100",
+        #                     "modifyTime": "1649913941109",
+        #                     "orderType": 1,
+        #                     "priceType": 2,
+        #                     "side": 5,
+        #                     "sourceType": 4,
+        #                     "status": 1,
+        #                     "submitPrice": "41270.53",
+        #                     "symbol": "BTC_USDT",
+        #                     "tradedAmount": "0",
+        #                     "triggerCondition": "<=",
+        #                     "triggerPrice": "31000",
+        #                     "triggerTime": "0",
+        #                     "userId": "6896693805014120448"
+        #                 },
+        #             ],
+        #             "pageNum": 1,
+        #             "pageSize": 10
+        #         },
+        #         "desc": "操作成功"
+        #     }
+        #
+        if stop:
+            data = self.safe_value(response, 'data', {})
+            response = self.safe_value(data, 'list', [])
         return self.parse_orders(response, market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + 'fetchOpenOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        stop = self.safe_value(params, 'stop')
         swap = market['swap']
         request = {
             # 'pageSize': limit,  # default pageSize is 10 for spot, 30 for swap
-            # 'currency': market['id'],  # spot only
-            # 'pageIndex': 1,  # spot only
-            # 'symbol': market['id'],  # swap only
-            # 'pageNum': 1,  # swap only
+            # 'currency': market['id'],  # SPOT
+            # 'pageIndex': 1,  # SPOT
+            # 'symbol': market['id'],  # SWAP and STOP
+            # 'pageNum': 1,  # SWAP and STOP, default 1
             # 'type': params['type'],  # swap only
-            # 'side': params['side'],  # swap only
-            # 'action': params['action'],  # swap only
+            # 'side': params['side'],  # SWAP and STOP, for stop orders: 1 Open long(buy), 2 Open short(sell), 3 Close long(sell), 4 Close Short(Buy). One-Way Positions: 5 Buy, 6 Sell, 0 Close Only
+            # 'action': params['action'],  # SWAP
+            # 'orderType': 1,  # STOP, 1: Plan order, 2: SP/SL
+            # 'bizType': 1,  # Plan order, 1: TP, 2: SL
+            # 'status': 1,  # STOP, 1: untriggered, 2: cancelled, 3:triggered, 4:failed, 5:completed
+            # 'startTime': since,  # SWAP and STOP
+            # 'endTime': params['endTime'],  # STOP
         }
         if limit is not None:
             request['pageSize'] = limit  # default pageSize is 10 for spot, 30 for swap
@@ -2036,12 +2565,40 @@ class zb(Exchange):
             'spot': 'spotV1PrivateGetGetUnfinishedOrdersIgnoreTradeType',
             'swap': 'contractV2PrivateGetTradeGetUndoneOrders',
         })
+        if stop:
+            method = 'contractV2PrivateGetTradeGetOrderAlgos'
+            orderType = self.safe_integer(params, 'orderType')
+            if orderType is None:
+                raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires an orderType parameter for stop orders')
+            side = self.safe_integer(params, 'side')
+            bizType = self.safe_integer(params, 'bizType')
+            if side == 'sell' and reduceOnly:
+                request['side'] = 3  # close long
+            elif side == 'buy' and reduceOnly:
+                request['side'] = 4  # close short
+            elif side == 'buy':
+                request['side'] = 1  # open long
+            elif side == 'sell':
+                request['side'] = 2  # open short
+            elif side == 5:
+                request['side'] = 5  # one way position buy
+            elif side == 6:
+                request['side'] = 6  # one way position sell
+            elif side == 0:
+                request['side'] = 0  # one way position close only
+            if orderType == 1:
+                request['orderType'] = 1
+            elif orderType == 2 or bizType:
+                request['orderType'] = 2
+                request['bizType'] = bizType
+            request['status'] = 1
+        query = self.omit(params, ['reduceOnly', 'stop', 'side', 'orderType', 'bizType'])
         # tradeType 交易类型1/0[buy/sell]
         if 'tradeType' in params:
             method = 'spotV1PrivateGetGetOrdersNew'
         response = None
         try:
-            response = await getattr(self, method)(self.extend(request, params))
+            response = await getattr(self, method)(self.extend(request, query))
         except Exception as e:
             if isinstance(e, OrderNotFound):
                 return []
@@ -2105,6 +2662,45 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
+        # Algo order
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": {
+        #             "list": [
+        #                 {
+        #                     "action": 1,
+        #                     "algoPrice": "30000",
+        #                     "amount": "0.003",
+        #                     "bizType": 0,
+        #                     "canCancel": True,
+        #                     "createTime": "1649913941109",
+        #                     "errorCode": 0,
+        #                     "id": "6920240642849449984",
+        #                     "isLong": False,
+        #                     "leverage": 10,
+        #                     "marketId": "100",
+        #                     "modifyTime": "1649913941109",
+        #                     "orderType": 1,
+        #                     "priceType": 2,
+        #                     "side": 5,
+        #                     "sourceType": 4,
+        #                     "status": 1,
+        #                     "submitPrice": "41270.53",
+        #                     "symbol": "BTC_USDT",
+        #                     "tradedAmount": "0",
+        #                     "triggerCondition": "<=",
+        #                     "triggerPrice": "31000",
+        #                     "triggerTime": "0",
+        #                     "userId": "6896693805014120448"
+        #                 },
+        #             ],
+        #             "pageNum": 1,
+        #             "pageSize": 10
+        #         },
+        #         "desc": "操作成功"
+        #     }
+        #
         if swap:
             data = self.safe_value(response, 'data', {})
             response = self.safe_value(data, 'list', [])
@@ -2112,7 +2708,7 @@ class zb(Exchange):
 
     def parse_order(self, order, market=None):
         #
-        # fetchOrder Spot
+        # Spot fetchOrder, fetchClosedOrders
         #
         #     {
         #         acctType: 0,
@@ -2129,7 +2725,7 @@ class zb(Exchange):
         #         useZbFee: False
         #     },
         #
-        # fetchOrder Swap
+        # Swap fetchOrder
         #
         #     {
         #         "action": 1,
@@ -2159,7 +2755,36 @@ class zb(Exchange):
         #         "value": "60"
         #     },
         #
-        # Spot
+        # Algo fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
+        #
+        #     {
+        #         "action": 1,
+        #         "algoPrice": "30000",
+        #         "amount": "0.003",
+        #         "bizType": 0,
+        #         "canCancel": True,
+        #         "createTime": "1649913941109",
+        #         "errorCode": 0,
+        #         "id": "6920240642849449984",
+        #         "isLong": False,
+        #         "leverage": 10,
+        #         "marketId": "100",
+        #         "modifyTime": "1649913941109",
+        #         "orderType": 1,
+        #         "priceType": 2,
+        #         "side": 5,
+        #         "sourceType": 4,
+        #         "status": 1,
+        #         "submitPrice": "41270.53",
+        #         "symbol": "BTC_USDT",
+        #         "tradedAmount": "0",
+        #         "triggerCondition": "<=",
+        #         "triggerPrice": "31000",
+        #         "triggerTime": "0",
+        #         "userId": "6896693805014120448"
+        #     },
+        #
+        # Spot createOrder
         #
         #     {
         #         code: '1000',
@@ -2170,7 +2795,7 @@ class zb(Exchange):
         #         price: 30000
         #     }
         #
-        # Swap
+        # Swap createOrder
         #
         #     {
         #         orderId: '6901786759944937472',
@@ -2180,26 +2805,35 @@ class zb(Exchange):
         #         price: 30000
         #     }
         #
+        # Algo createOrder
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": "6919884551305242624",
+        #         "desc": "操作成功"
+        #     }
+        #
         orderId = self.safe_value(order, 'orderId') if market['swap'] else self.safe_value(order, 'id')
         if orderId is None:
             orderId = self.safe_value(order, 'id')
-        side = self.safe_integer(order, 'type')
+        side = self.safe_integer_2(order, 'type', 'side')
         if side is None:
             side = None
         else:
-            side = 'buy' if (side == 1) else 'sell'
+            if market['type'] == 'spot':
+                side = 'buy' if (side == 1) else 'sell'
         timestamp = self.safe_integer(order, 'trade_date')
         if timestamp is None:
             timestamp = self.safe_integer(order, 'createTime')
         marketId = self.safe_string(order, 'currency')
         market = self.safe_market(marketId, market, '_')
-        price = self.safe_string(order, 'price')
+        price = self.safe_string_2(order, 'price', 'algoPrice')
         filled = self.safe_string(order, 'tradeAmount') if market['swap'] else self.safe_string(order, 'trade_amount')
         amount = self.safe_string(order, 'total_amount')
         if amount is None:
             amount = self.safe_string(order, 'amount')
         cost = self.safe_string(order, 'trade_money')
-        status = self.parse_order_status(self.safe_string(order, 'status'))
+        status = self.parse_order_status(self.safe_string(order, 'status'), market)
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = (timeInForce == 'PO')
         feeCost = self.safe_number(order, 'fees')
@@ -2228,7 +2862,7 @@ class zb(Exchange):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': None,
+            'stopPrice': self.safe_string(order, 'triggerPrice'),
             'average': self.safe_string(order, 'avgPrice'),
             'cost': cost,
             'amount': amount,
@@ -2239,13 +2873,23 @@ class zb(Exchange):
             'trades': None,
         }, market)
 
-    def parse_order_status(self, status):
-        statuses = {
-            '0': 'open',
-            '1': 'canceled',
-            '2': 'closed',
-            '3': 'open',  # partial
-        }
+    def parse_order_status(self, status, market=None):
+        statuses = {}
+        if market['type'] == 'spot':
+            statuses = {
+                '0': 'open',
+                '1': 'canceled',
+                '2': 'closed',
+                '3': 'open',  # partial
+            }
+        else:
+            statuses = {
+                '1': 'open',
+                '2': 'canceled',
+                '3': 'open',  # stop order triggered
+                '4': 'failed',
+                '5': 'closed',
+            }
         return self.safe_string(statuses, status, status)
 
     def parse_transaction_status(self, status):
@@ -2347,7 +2991,7 @@ class zb(Exchange):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         if (leverage < 1) or (leverage > 125):
-            raise BadRequest(self.id + ' leverage should be between 1 and 125')
+            raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 125')
         market = self.market(symbol)
         accountType = None
         if not market['swap']:
@@ -2362,6 +3006,14 @@ class zb(Exchange):
         return await self.contractV2PrivatePostSettingSetLeverage(self.extend(request, params))
 
     async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches historical funding rate prices
+        :param str|None symbol: unified symbol of the market to fetch the funding rate history for
+        :param int|None since: timestamp in ms of the earliest funding rate to fetch
+        :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        """
         await self.load_markets()
         request = {
             # 'symbol': market['id'],
@@ -2813,7 +3465,7 @@ class zb(Exchange):
         rawSide = self.safe_string(position, 'side')
         side = 'long' if (rawSide == '1') else 'short'
         openType = self.safe_string(position, 'marginMode')
-        marginType = 'isolated' if (openType == '1') else 'cross'
+        marginMode = 'isolated' if (openType == '1') else 'cross'
         leverage = self.safe_string(position, 'leverage')
         liquidationPrice = self.safe_number(position, 'liquidatePrice')
         unrealizedProfit = self.safe_number(position, 'unrealizedPnl')
@@ -2833,7 +3485,8 @@ class zb(Exchange):
             'unrealizedProfit': unrealizedProfit,
             'leverage': self.parse_number(leverage),
             'percentage': percentage,
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode,  # deprecated
             'notional': notional,
             'markPrice': None,
             'liquidationPrice': liquidationPrice,
@@ -3001,8 +3654,9 @@ class zb(Exchange):
         swap = (marketType == 'swap')
         side = None
         marginMethod = None
+        amountToPrecision = self.currency_to_precision(code, amount)
         request = {
-            'amount': amount,  # Swap, Cross Margin, Isolated Margin
+            'amount': amountToPrecision,  # Swap, Cross Margin, Isolated Margin
             # 'coin': currency['id'],  # Margin
             # 'currencyName': currency['id'],  # Swap
             # 'clientId': self.safe_string(params, 'clientId'),  # Swap "2sdfsdfsdf232342"
@@ -3019,14 +3673,14 @@ class zb(Exchange):
             request['side'] = side
         else:
             defaultMargin = 'isolated' if margin else 'cross'
-            marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
-            if marginType == 'isolated':
+            marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+            if marginMode == 'isolated':
                 if fromAccount == 'spot' or toAccount == 'isolated':
                     marginMethod = 'spotV1PrivateGetTransferInLever'
                 else:
                     marginMethod = 'spotV1PrivateGetTransferOutLever'
                 request['marketName'] = self.safe_string(params, 'marketName')
-            elif marginType == 'cross':
+            elif marginMode == 'cross':
                 if fromAccount == 'spot' or toAccount == 'cross':
                     marginMethod = 'spotV1PrivateGetTransferInCross'
                 else:
@@ -3053,43 +3707,24 @@ class zb(Exchange):
         #         "message": "Success"
         #     }
         #
-        timestamp = self.milliseconds()
-        transfer = {
-            'id': self.safe_string(response, 'data'),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'currency': code,
-            'amount': amount,
+        return self.extend(self.parse_transfer(response, currency), {
+            'amount': self.parse_number(amountToPrecision),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': self.safe_integer(response, 'code'),
-        }
-        return self.parse_transfer(transfer, code)
+        })
 
     def parse_transfer(self, transfer, currency=None):
-        #
-        #     {
-        #         "id": "2sdfsdfsdf232342",
-        #         "timestamp": "",
-        #         "datetime": "",
-        #         "currency": "USDT",
-        #         "amount": "10",
-        #         "fromAccount": "futures account",
-        #         "toAccount": "zb account",
-        #         "status": 10000,
-        #     }
-        #
-        currencyId = self.safe_string(transfer, 'currency')
+        # response samples in 'transfer'
+        timestamp = self.milliseconds()
         return {
-            'info': transfer,
-            'id': self.safe_string(transfer, 'id'),
-            'timestamp': self.safe_integer(transfer, 'timestamp'),
-            'datetime': self.safe_string(transfer, 'datetime'),
-            'currency': self.safe_currency_code(currencyId, currency),
-            'amount': self.safe_number(transfer, 'amount'),
-            'fromAccount': self.safe_string(transfer, 'fromAccount'),
-            'toAccount': self.safe_string(transfer, 'toAccount'),
-            'status': self.safe_integer(transfer, 'status'),
+            'id': self.safe_string(transfer, 'data'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': self.safe_currency_code(None, 'currency'),
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': None,
         }
 
     async def modify_margin_helper(self, symbol, amount, type, params={}):
@@ -3146,28 +3781,34 @@ class zb(Exchange):
         #         "desc":"操作成功"
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        side = 'add' if (type == 1) else 'reduce'
-        errorCode = self.safe_integer(data, 'status')
-        status = 'ok' if (errorCode == 1) else 'failed'
+        return self.extend(self.parse_margin_modification(response, market), {
+            'amount': self.parse_number(amount),
+        })
+
+    def parse_margin_modification(self, data, market=None):
+        innerData = self.safe_value(data, 'data', {})
+        sideRaw = self.safe_integer(innerData, 'side')
+        side = 'add' if (sideRaw == 1) else 'reduce'
+        statusCode = self.safe_integer(innerData, 'status')
+        status = 'ok' if (statusCode == 1) else 'failed'
         return {
-            'info': response,
+            'info': data,
             'type': side,
-            'amount': amount,
+            'amount': None,
             'code': market['quote'],
             'symbol': market['symbol'],
             'status': status,
         }
 
-    async def reduce_margin(self, symbol, amount, params={}):
-        if params['positionsId'] is None:
-            raise ArgumentsRequired(self.id + ' reduceMargin() requires a positionsId argument in the params')
-        return await self.modify_margin_helper(symbol, amount, 0, params)
-
     async def add_margin(self, symbol, amount, params={}):
         if params['positionsId'] is None:
             raise ArgumentsRequired(self.id + ' addMargin() requires a positionsId argument in the params')
         return await self.modify_margin_helper(symbol, amount, 1, params)
+
+    async def reduce_margin(self, symbol, amount, params={}):
+        if params['positionsId'] is None:
+            raise ArgumentsRequired(self.id + ' reduceMargin() requires a positionsId argument in the params')
+        return await self.modify_margin_helper(symbol, amount, 0, params)
 
     async def fetch_borrow_rate(self, code, params={}):
         await self.load_markets()

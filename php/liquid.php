@@ -46,6 +46,7 @@ class liquid extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -67,7 +68,7 @@ class liquid extends Exchange {
                         'products/{id}/price_levels',
                         'executions',
                         'ir_ladders/{currency}',
-                        'fees', // add fetchFees, fetchTradingFees, fetchFundingFees
+                        'fees', // add fetchFees, fetchTradingFees, fetchTransactionFees
                     ),
                 ),
                 'private' => array(
@@ -304,6 +305,11 @@ class liquid extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for liquid
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $spot = $this->publicGetProducts ($params);
         //
         //     array(
@@ -528,6 +534,11 @@ class liquid extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $response = $this->privateGetAccounts ($params);
         //
@@ -568,6 +579,13 @@ class liquid extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         */
         $this->load_markets();
         $request = array(
             'id' => $this->market_id($symbol),
@@ -621,6 +639,12 @@ class liquid extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         $this->load_markets();
         $response = $this->publicGetProducts ($params);
         $result = array();
@@ -633,6 +657,12 @@ class liquid extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -682,6 +712,14 @@ class liquid extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1187,11 +1225,15 @@ class liquid extends Exchange {
             }
         }
         $networks = $this->safe_value($this->options, 'networks', array());
-        $paramsCwArray = $this->safe_value($params, 'crypto_withdrawal', array());
-        $network = $this->safe_string_upper($paramsCwArray, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        if ($network === null) {
+            $paramsCwArray = $this->safe_value($params, 'crypto_withdrawal', array());
+            $network = $this->safe_string_upper($paramsCwArray, 'network');
+        }
         $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
         if ($network !== null) {
             $request['crypto_withdrawal']['network'] = $network;
+            $params = $this->omit($params, 'network');
             $params['crypto_withdrawal'] = $this->omit($params['crypto_withdrawal'], 'network');
         }
         $response = $this->privatePostCryptoWithdrawals ($this->deep_extend($request, $params));

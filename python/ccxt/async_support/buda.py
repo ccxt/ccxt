@@ -46,18 +46,17 @@ class buda(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': None,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -70,11 +69,16 @@ class buda(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchTransactionFees': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': False,
                 'withdraw': True,
             },
             'urls': {
@@ -215,6 +219,11 @@ class buda(Exchange):
         return None
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for buda
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         marketsResponse = await self.publicGetMarkets(params)
         markets = self.safe_value(marketsResponse, 'markets')
         currenciesResponse = await self.publicGetCurrencies()
@@ -344,7 +353,7 @@ class buda(Exchange):
             }
         return result
 
-    async def fetch_funding_fees(self, codes=None, params={}):
+    async def fetch_transaction_fees(self, codes=None, params={}):
         #  by default it will try load withdrawal fees of all currencies(with separate requests)
         #  however if you define codes = ['ETH', 'BTC'] in args it will only load those
         await self.load_markets()
@@ -384,6 +393,12 @@ class buda(Exchange):
         }
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the buda api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -454,6 +469,14 @@ class buda(Exchange):
         }, market, False)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the buda api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -516,6 +539,13 @@ class buda(Exchange):
         }, market)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the buda api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -526,6 +556,15 @@ class buda(Exchange):
         return self.parse_order_book(orderbook, symbol)
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the buda api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         if since is None:
@@ -553,6 +592,11 @@ class buda(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the buda api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.privateGetBalances(params)
         return self.parse_balance(response)
@@ -742,7 +786,7 @@ class buda(Exchange):
         await self.load_markets()
         currency = self.currency(code)
         if self.is_fiat(code):
-            raise NotSupported(self.id + ': fiat fetchDepositAddress() for ' + code + ' is not supported')
+            raise NotSupported(self.id + ' createDepositAddress() of fiat for ' + code + ' is not supported')
         request = {
             'currency': currency['id'],
         }
@@ -806,7 +850,7 @@ class buda(Exchange):
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
         if code is None:
-            raise ArgumentsRequired(self.id + ': fetchDeposits() requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -819,7 +863,7 @@ class buda(Exchange):
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
         if code is None:
-            raise ArgumentsRequired(self.id + ': fetchDeposits() requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
         currency = self.currency(code)
         request = {
             'currency': currency['id'],

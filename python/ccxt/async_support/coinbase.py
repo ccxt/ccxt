@@ -37,7 +37,9 @@ class coinbase(Exchange):
                 'createDepositAddress': True,
                 'createOrder': None,
                 'createReduceOnlyOrder': False,
-                'deposit': None,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
@@ -55,7 +57,6 @@ class coinbase(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchL2OrderBook': False,
                 'fetchLedger': True,
                 'fetchLeverage': False,
@@ -66,6 +67,7 @@ class coinbase(Exchange):
                 'fetchMySells': True,
                 'fetchMyTrades': None,
                 'fetchOHLCV': False,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': None,
                 'fetchOrder': None,
                 'fetchOrderBook': False,
@@ -250,19 +252,48 @@ class coinbase(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        result = []
-        for i in range(0, len(data)):
-            account = data[i]
-            currency = self.safe_value(account, 'currency', {})
-            currencyId = self.safe_string(currency, 'code')
-            code = self.safe_currency_code(currencyId)
-            result.append({
-                'id': self.safe_string(account, 'id'),
-                'type': self.safe_string(account, 'type'),
-                'code': code,
-                'info': account,
-            })
-        return result
+        self.parse_accounts(data, params)
+
+    def parse_account(self, account):
+        #
+        #     {
+        #         "id": "XLM",
+        #         "name": "XLM Wallet",
+        #         "primary": False,
+        #         "type": "wallet",
+        #         "currency": {
+        #             "code": "XLM",
+        #             "name": "Stellar Lumens",
+        #             "color": "#000000",
+        #             "sort_index": 127,
+        #             "exponent": 7,
+        #             "type": "crypto",
+        #             "address_regex": "^G[A-Z2-7]{55}$",
+        #             "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
+        #             "destination_tag_name": "XLM Memo ID",
+        #             "destination_tag_regex": "^[-~]{1,28}$"
+        #         },
+        #         "balance": {
+        #             "amount": "0.0000000",
+        #             "currency": "XLM"
+        #         },
+        #         "created_at": null,
+        #         "updated_at": null,
+        #         "resource": "account",
+        #         "resource_path": "/v2/accounts/XLM",
+        #         "allow_deposits": True,
+        #         "allow_withdrawals": True
+        #     }
+        #
+        currency = self.safe_value(account, 'currency', {})
+        currencyId = self.safe_string(currency, 'code')
+        code = self.safe_currency_code(currencyId)
+        return {
+            'id': self.safe_string(account, 'id'),
+            'type': self.safe_string(account, 'type'),
+            'code': code,
+            'info': account,
+        }
 
     async def create_deposit_address(self, code, params={}):
         accountId = self.safe_string(params, 'account_id')
@@ -275,7 +306,7 @@ class coinbase(Exchange):
                     accountId = account['id']
                     break
         if accountId is None:
-            raise ExchangeError(self.id + ' createDepositAddress could not find the account with matching currency code, specify an `account_id` extra param')
+            raise ExchangeError(self.id + ' createDepositAddress() could not find the account with matching currency code, specify an `account_id` extra param')
         request = {
             'account_id': accountId,
         }
@@ -544,6 +575,11 @@ class coinbase(Exchange):
         }
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for coinbase
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.fetch_currencies_from_cache(params)
         currencies = self.safe_value(response, 'currencies', {})
         exchangeRates = self.safe_value(response, 'exchangeRates', {})
@@ -695,6 +731,12 @@ class coinbase(Exchange):
         return result
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         request = {
             # 'currency': 'USD',
@@ -727,6 +769,12 @@ class coinbase(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = self.extend({
@@ -797,6 +845,11 @@ class coinbase(Exchange):
         }, market, False)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         request = {
             'limit': 100,
@@ -1175,7 +1228,7 @@ class coinbase(Exchange):
     def prepare_account_request(self, limit=None, params={}):
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
         if accountId is None:
-            raise ArgumentsRequired(self.id + ' method requires an account_id(or accountId) parameter')
+            raise ArgumentsRequired(self.id + ' prepareAccountRequest() method requires an account_id(or accountId) parameter')
         request = {
             'account_id': accountId,
         }
@@ -1187,10 +1240,10 @@ class coinbase(Exchange):
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
         if accountId is None:
             if code is None:
-                raise ArgumentsRequired(self.id + ' method requires an account_id(or accountId) parameter OR a currency code argument')
+                raise ArgumentsRequired(self.id + ' prepareAccountRequestWithCurrencyCode() method requires an account_id(or accountId) parameter OR a currency code argument')
             accountId = await self.find_account_id(code)
             if accountId is None:
-                raise ExchangeError(self.id + ' could not find account id for ' + code)
+                raise ExchangeError(self.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code)
         request = {
             'account_id': accountId,
         }

@@ -31,11 +31,9 @@ module.exports = class cryptocom extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
-                'fetchFundingFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRates': false,
-                'fetchIsolatedPositions': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -51,6 +49,7 @@ module.exports = class cryptocom extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
@@ -266,6 +265,13 @@ module.exports = class cryptocom extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name cryptocom#fetchMarkets
+         * @description retrieves data on all markets for cryptocom
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         //
         //    {
         //        id: 11,
@@ -467,6 +473,14 @@ module.exports = class cryptocom extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the cryptocom api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
         const method = this.getSupportedMapping (marketType, {
@@ -498,10 +512,28 @@ module.exports = class cryptocom extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        if (symbols === undefined) {
+            return result;
+        }
+        const unifiedSymbols = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            if (market !== undefined) {
+                unifiedSymbols.push (market['symbol']);
+            }
+        }
+        return this.filterByArray (result, 'symbol', unifiedSymbols);
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the cryptocom api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -509,7 +541,7 @@ module.exports = class cryptocom extends Exchange {
         };
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
         if (marketType !== 'spot') {
-            throw new NotSupported (this.id + ' fetchTicker only supports spot markets');
+            throw new NotSupported (this.id + ' fetchTicker() only supports spot markets');
         }
         const response = await this.spotPublicGetPublicGetTicker (this.extend (request, query));
         // {
@@ -526,7 +558,7 @@ module.exports = class cryptocom extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -622,6 +654,16 @@ module.exports = class cryptocom extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the cryptocom api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -665,6 +707,17 @@ module.exports = class cryptocom extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the cryptocom api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -698,6 +751,15 @@ module.exports = class cryptocom extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the cryptocom api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -763,6 +825,13 @@ module.exports = class cryptocom extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name cryptocom#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the cryptocom api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const method = this.getSupportedMapping (marketType, {
@@ -1136,11 +1205,7 @@ module.exports = class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result');
-        const id = this.safeString (result, 'id');
-        return {
-            'info': response,
-            'id': id,
-        };
+        return this.parseTransaction (result, currency);
     }
 
     async fetchDepositAddressesByNetwork (code, params = {}) {
@@ -1178,7 +1243,7 @@ module.exports = class cryptocom extends Exchange {
         const data = this.safeValue (response, 'result', {});
         const addresses = this.safeValue (data, 'deposit_address_list', []);
         if (addresses.length === 0) {
-            throw new ExchangeError (this.id + ' generating address...');
+            throw new ExchangeError (this.id + ' fetchDepositAddressesByNetwork() generating address...');
         }
         const result = {};
         for (let i = 0; i < addresses.length; i++) {
@@ -1309,28 +1374,28 @@ module.exports = class cryptocom extends Exchange {
         fromAccount = fromAccount.toLowerCase ();
         toAccount = toAccount.toLowerCase ();
         const accountsById = this.safeValue (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsById, fromAccount);
-        if (fromId === undefined) {
-            const keys = Object.keys (accountsById);
-            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
-        }
-        const toId = this.safeString (accountsById, toAccount);
-        if (toId === undefined) {
-            const keys = Object.keys (accountsById);
-            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
-        }
+        const fromId = this.safeString (accountsById, fromAccount, fromAccount);
+        const toId = this.safeString (accountsById, toAccount, toAccount);
         const request = {
             'currency': currency['id'],
             'amount': parseFloat (amount),
             'from': fromId,
             'to': toId,
         };
-        return await this.spotPrivatePostPrivateDerivTransfer (this.extend (request, params));
+        const repsonse = await this.spotPrivatePostPrivateDerivTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "id": 11,
+        //         "method": "private/deriv/transfer",
+        //         "code": 0
+        //     }
+        //
+        return this.parseTransfer (repsonse, currency);
     }
 
     async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (!('direction' in params)) {
-            throw new ArgumentsRequired (this.id + ' fetchTransfers requires a direction param to be either "IN" or "OUT"');
+            throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a direction param to be either "IN" or "OUT"');
         }
         await this.loadMarkets ();
         let currency = undefined;
@@ -1363,12 +1428,7 @@ module.exports = class cryptocom extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const transferList = this.safeValue (result, 'transfer_list', []);
-        const resultArray = [];
-        for (let i = 0; i < transferList.length; i++) {
-            const transfer = transferList[i];
-            resultArray.push (this.parseTransfer (transfer, currency));
-        }
-        return this.filterBySinceLimit (resultArray, since, limit);
+        return this.parseTransfers (transferList, currency, since, limit, params);
     }
 
     parseTransferStatus (status) {
@@ -1406,7 +1466,7 @@ module.exports = class cryptocom extends Exchange {
         const status = this.parseTransferStatus (rawStatus);
         return {
             'info': transfer,
-            'id': undefined,
+            'id': this.safeString (transfer, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'currency': code,
@@ -1697,30 +1757,42 @@ module.exports = class cryptocom extends Exchange {
         //
         // fetchDeposits
         //
-        // {
-        //     "currency": "XRP",
-        //     "fee": 1.0,
-        //     "create_time": 1607063412000,
-        //     "id": "2220",
-        //     "update_time": 1607063460000,
-        //     "amount": 100,
-        //     "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        //     "status": "1"
-        // }
+        //     {
+        //         "currency": "XRP",
+        //         "fee": 1.0,
+        //         "create_time": 1607063412000,
+        //         "id": "2220",
+        //         "update_time": 1607063460000,
+        //         "amount": 100,
+        //         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
+        //         "status": "1"
+        //     }
         //
         // fetchWithdrawals
         //
-        // {
-        //     "currency": "XRP",
-        //     "client_wid": "my_withdrawal_002",
-        //     "fee": 1.0,
-        //     "create_time": 1607063412000,
-        //     "id": "2220",
-        //     "update_time": 1607063460000,
-        //     "amount": 100,
-        //     "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        //     "status": "1"
-        // }
+        //     {
+        //         "currency": "XRP",
+        //         "client_wid": "my_withdrawal_002",
+        //         "fee": 1.0,
+        //         "create_time": 1607063412000,
+        //         "id": "2220",
+        //         "update_time": 1607063460000,
+        //         "amount": 100,
+        //         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
+        //         "status": "1"
+        //     }
+        //
+        // withdraw
+        //
+        //     {
+        //         "id": 2220,
+        //         "amount": 1,
+        //         "fee": 0.0004,
+        //         "symbol": "BTC",
+        //         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf",
+        //         "client_wid": "my_withdrawal_002",
+        //         "create_time":1607063412000
+        //     }
         //
         let type = undefined;
         const rawStatus = this.safeString (transaction, 'status');

@@ -45,6 +45,7 @@ module.exports = class digifinex extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -83,7 +84,7 @@ module.exports = class digifinex extends Exchange {
                         'trades',
                         'trades/symbols',
                         'ticker',
-                        'currencies', // todo add fetchCurrencies
+                        'currencies',
                     ],
                 },
                 'private': {
@@ -91,7 +92,7 @@ module.exports = class digifinex extends Exchange {
                         '{market}/financelog',
                         '{market}/mytrades',
                         '{market}/order',
-                        '{market}​/order​/detail', // todo add fetchOrder
+                        '{market}/order/detail',
                         '{market}/order/current',
                         '{market}/order/history',
                         'margin/assets',
@@ -108,21 +109,21 @@ module.exports = class digifinex extends Exchange {
                         'spot/order',
                         'spot/order/current',
                         'spot/order/history',
-                        'deposit/address', // todo add fetchDepositAddress
-                        'deposit/history', // todo add fetchDeposits
-                        'withdraw/history', // todo add fetchWithdrawals
+                        'deposit/address',
+                        'deposit/history',
+                        'withdraw/history',
                     ],
                     'post': [
                         '{market}/order/cancel',
                         '{market}/order/new',
-                        '{market}​/order​/batch_new',
+                        '{market}/order/batch_new',
                         'margin/order/cancel',
                         'margin/order/new',
                         'margin/position/close',
                         'spot/order/cancel',
                         'spot/order/new',
                         'transfer',
-                        'withdraw/new', // todo add withdraw()
+                        'withdraw/new',
                         'withdraw/cancel',
                     ],
                 },
@@ -191,6 +192,11 @@ module.exports = class digifinex extends Exchange {
             'options': {
                 'defaultType': 'spot',
                 'types': [ 'spot', 'margin', 'otc' ],
+                'accountsByType': {
+                    'spot': '1',
+                    'margin': '2',
+                    'OTC': '3',
+                },
             },
             'commonCurrencies': {
                 'BHT': 'Black House Test',
@@ -288,6 +294,13 @@ module.exports = class digifinex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name digifinex#fetchMarkets
+         * @description retrieves data on all markets for digifinex
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const options = this.safeValue (this.options, 'fetchMarkets', {});
         const method = this.safeString (options, 'method', 'fetch_markets_v2');
         return await this[method] (params);
@@ -481,6 +494,13 @@ module.exports = class digifinex extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name digifinex#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
@@ -501,6 +521,15 @@ module.exports = class digifinex extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name digifinex#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -531,6 +560,14 @@ module.exports = class digifinex extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name digifinex#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const response = await this.publicGetTicker (params);
         //
@@ -565,6 +602,14 @@ module.exports = class digifinex extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name digifinex#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -719,21 +764,35 @@ module.exports = class digifinex extends Exchange {
     }
 
     async fetchStatus (params = {}) {
-        await this.publicGetPing (params);
+        const response = await this.publicGetPing (params);
         //
         //     {
         //         "msg": "pong",
         //         "code": 0
         //     }
         //
-        this.status = this.extend (this.status, {
-            'status': 'ok',
+        const code = this.safeInteger (response, 'code');
+        const status = (code === 0) ? 'ok' : 'maintenance';
+        return {
+            'status': status,
             'updated': this.milliseconds (),
-        });
-        return this.status;
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name digifinex#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -791,6 +850,17 @@ module.exports = class digifinex extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name digifinex#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -887,7 +957,7 @@ module.exports = class digifinex extends Exchange {
         const canceledOrders = this.safeValue (response, 'success', []);
         const numCanceledOrders = canceledOrders.length;
         if (numCanceledOrders !== 1) {
-            throw new OrderNotFound (this.id + ' cancelOrder ' + id + ' not found');
+            throw new OrderNotFound (this.id + ' cancelOrder() ' + id + ' not found');
         }
         return response;
     }
@@ -917,7 +987,7 @@ module.exports = class digifinex extends Exchange {
         const canceledOrders = this.safeValue (response, 'success', []);
         const numCanceledOrders = canceledOrders.length;
         if (numCanceledOrders < 1) {
-            throw new OrderNotFound (this.id + ' cancelOrders error');
+            throw new OrderNotFound (this.id + ' cancelOrders() error');
         }
         return response;
     }
@@ -1306,7 +1376,7 @@ module.exports = class digifinex extends Exchange {
         const addresses = this.parseDepositAddresses (data);
         const address = this.safeValue (addresses, code);
         if (address === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress did not return an address for ' + code + ' - create the deposit address in the user settings on the exchange website first.');
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() did not return an address for ' + code + ' - create the deposit address in the user settings on the exchange website first.');
         }
         return address;
     }
@@ -1442,6 +1512,59 @@ module.exports = class digifinex extends Exchange {
             'updated': updated,
             'fee': fee,
         };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            '0': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         "code": 0
+        //     }
+        //
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': this.safeString (transfer, 'fromAccount'),
+            'toAccount': this.safeString (transfer, 'toAccount'),
+            'status': this.parseTransferStatus (this.safeString (transfer, 'code')),
+        };
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        const request = {
+            'currency_mark': currency['id'],
+            'num': parseFloat (this.currencyToPrecision (code, amount)),
+            'from': fromId, // 1 = SPOT, 2 = MARGIN, 3 = OTC
+            'to': toId, // 1 = SPOT, 2 = MARGIN, 3 = OTC
+        };
+        const response = await this.privatePostTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0
+        //     }
+        //
+        const transfer = this.parseTransfer (response, currency);
+        return this.extend (transfer, {
+            'amount': amount,
+            'currency': code,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        });
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {

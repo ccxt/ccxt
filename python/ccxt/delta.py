@@ -41,7 +41,9 @@ class delta(Exchange):
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDeposit': None,
                 'fetchDepositAddress': True,
+                'fetchDeposits': None,
                 'fetchLedger': True,
                 'fetchLeverageTiers': False,  # An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
                 'fetchMarketLeverageTiers': False,
@@ -57,6 +59,12 @@ class delta(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTransfer': None,
+                'fetchTransfers': None,
+                'fetchWithdrawal': None,
+                'fetchWithdrawals': None,
+                'transfer': False,
+                'withdraw': False,
             },
             'timeframes': {
                 '1m': '1m',
@@ -194,34 +202,76 @@ class delta(Exchange):
 
     def fetch_time(self, params={}):
         response = self.publicGetSettings(params)
-        #
-        #     {
-        #         "result":{
-        #             "server_time":1605472733766141,
-        #             "deto_referral_mining_daily_reward":"25000",
-        #             "deto_total_reward_pool":"100000000",
-        #             "deto_trade_mining_daily_reward":"75000",
-        #             "kyc_deposit_limit":"20",
-        #             "kyc_withdrawal_limit":"2",
-        #             "under_maintenance":"false"
-        #         },
-        #         "success":true
-        #     }
-        #
+        # full response sample under `fetchStatus`
         result = self.safe_value(response, 'result', {})
         return self.safe_integer_product(result, 'server_time', 0.001)
 
     def fetch_status(self, params={}):
         response = self.publicGetSettings(params)
+        #
+        #     {
+        #         "result": {
+        #           "deto_liquidity_mining_daily_reward": "40775",
+        #           "deto_msp": "1.0",
+        #           "deto_staking_daily_reward": "23764.08",
+        #           "enabled_wallets": [
+        #             "BTC",
+        #             ...
+        #           ],
+        #           "portfolio_margin_params": {
+        #             "enabled_portfolios": {
+        #               ".DEAVAXUSDT": {
+        #                 "asset_id": 5,
+        #                 "futures_contingency_margin_percent": "1",
+        #                 "interest_rate": "0",
+        #                 "maintenance_margin_multiplier": "0.8",
+        #                 "max_price_shock": "20",
+        #                 "max_short_notional_limit": "2000",
+        #                 "options_contingency_margin_percent": "1",
+        #                 "options_discount_range": "10",
+        #                 "options_liq_band_range_percentage": "25",
+        #                 "settling_asset": "USDT",
+        #                 "sort_priority": 5,
+        #                 "underlying_asset": "AVAX",
+        #                 "volatility_down_shock": "30",
+        #                 "volatility_up_shock": "45"
+        #               },
+        #               ...
+        #             },
+        #             "portfolio_enabled_contracts": [
+        #               "futures",
+        #               "perpetual_futures",
+        #               "call_options",
+        #               "put_options"
+        #             ]
+        #           },
+        #           "server_time": 1650640673500273,
+        #           "trade_farming_daily_reward": "100000",
+        #           "circulating_supply": "140000000",
+        #           "circulating_supply_update_time": "1636752800",
+        #           "deto_referral_mining_daily_reward": "0",
+        #           "deto_total_reward_pool": "100000000",
+        #           "deto_trade_mining_daily_reward": "0",
+        #           "kyc_deposit_limit": "20",
+        #           "kyc_withdrawal_limit": "10000",
+        #           "maintenance_start_time": "1650387600000000",
+        #           "msp_deto_commission_percent": "25",
+        #           "under_maintenance": "false"
+        #         },
+        #         "success": True
+        #     }
+        #
         result = self.safe_value(response, 'result', {})
-        underMaintenance = self.safe_value(result, 'under_maintenance')
+        underMaintenance = self.safe_string(result, 'under_maintenance')
         status = 'maintenance' if (underMaintenance == 'true') else 'ok'
-        updated = self.safe_integer_product(result, 'server_time', 0.001)
-        self.status = self.extend(self.status, {
+        updated = self.safe_integer_product(result, 'server_time', 0.001, self.milliseconds())
+        return {
             'status': status,
             'updated': updated,
-        })
-        return self.status
+            'eta': None,
+            'url': None,
+            'info': response,
+        }
 
     def fetch_currencies(self, params={}):
         response = self.publicGetAssets(params)
@@ -300,6 +350,11 @@ class delta(Exchange):
         return markets
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for delta
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.publicGetProducts(params)
         #
         #     {
@@ -530,6 +585,12 @@ class delta(Exchange):
         }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -561,6 +622,12 @@ class delta(Exchange):
         return self.parse_ticker(result, market)
 
     def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         response = self.publicGetTickers(params)
         #
@@ -595,6 +662,13 @@ class delta(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         request = {
             'symbol': self.market_id(symbol),
@@ -719,6 +793,14 @@ class delta(Exchange):
         }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -764,6 +846,15 @@ class delta(Exchange):
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -810,6 +901,11 @@ class delta(Exchange):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         response = self.privateGetWalletBalances(params)
         #

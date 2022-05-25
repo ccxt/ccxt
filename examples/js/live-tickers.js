@@ -23,7 +23,7 @@ let printTickers = async (id) => {
         log ('Instantiating', id.green, 'exchange')
 
         // instantiate the exchange by id
-        let exchange = new ccxt[id] ({ enableRateLimit: true })
+        let exchange = new ccxt[id] ()
 
         // load all markets from the exchange
         let markets = await exchange.loadMarkets ()

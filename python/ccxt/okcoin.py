@@ -72,6 +72,7 @@ class okcoin(Exchange):
                 'fetchTrades': True,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -767,6 +768,16 @@ class okcoin(Exchange):
                 'createMarketBuyOrderRequiresPrice': True,
                 'fetchMarkets': ['spot'],
                 'defaultType': 'spot',  # 'account', 'spot', 'margin', 'futures', 'swap', 'option'
+                'accountsByType': {
+                    'spot': '1',
+                    'margin': '5',
+                    'funding': '6',
+                },
+                'accountsById': {
+                    '1': 'spot',
+                    '5': 'margin',
+                    '6': 'funding',
+                },
                 'auth': {
                     'time': 'public',
                     'currencies': 'private',
@@ -801,6 +812,11 @@ class okcoin(Exchange):
         return self.parse8601(self.safe_string(response, 'iso'))
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for okcoin
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         types = self.safe_value(self.options, 'fetchMarkets')
         result = []
         for i in range(0, len(types)):
@@ -1077,7 +1093,7 @@ class okcoin(Exchange):
             #
             return self.parse_markets(response)
         else:
-            raise NotSupported(self.id + ' fetchMarketsByType does not support market type ' + type)
+            raise NotSupported(self.id + ' fetchMarketsByType() does not support market type ' + type)
 
     def fetch_currencies(self, params={}):
         # despite that their docs say these endpoints are public:
@@ -1136,6 +1152,13 @@ class okcoin(Exchange):
             return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         market = self.market(symbol)
         method = market['type'] + 'GetInstrumentsInstrumentId'
@@ -1222,6 +1245,12 @@ class okcoin(Exchange):
         }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         method = market['type'] + 'GetInstrumentsInstrumentIdTicker'
@@ -1258,6 +1287,12 @@ class okcoin(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         defaultType = self.safe_string_2(self.options, 'fetchTickers', 'defaultType')
         type = self.safe_string(params, 'type', defaultType)
         return self.fetch_tickers_by_type(type, symbols, self.omit(params, 'type'))
@@ -1385,6 +1420,14 @@ class okcoin(Exchange):
         }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         method = market['type'] + 'GetInstrumentsInstrumentIdTrades'
@@ -1478,6 +1521,15 @@ class okcoin(Exchange):
             ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         self.load_markets()
         market = self.market(symbol)
         duration = self.parse_timeframe(timeframe)
@@ -1502,7 +1554,7 @@ class okcoin(Exchange):
                     request['end'] = self.iso8601(now)
         elif type == 'HistoryCandles':
             if market['option']:
-                raise NotSupported(self.id + ' fetchOHLCV does not have ' + type + ' for ' + market['type'] + ' markets')
+                raise NotSupported(self.id + ' fetchOHLCV() does not have ' + type + ' for ' + market['type'] + ' markets')
             if since is not None:
                 if limit is None:
                     limit = 300  # default
@@ -1808,6 +1860,11 @@ class okcoin(Exchange):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType')
         type = self.safe_string(params, 'type', defaultType)
         if type is None:
@@ -2482,8 +2539,87 @@ class okcoin(Exchange):
         addressesByCode = self.parse_deposit_addresses(response)
         address = self.safe_value(addressesByCode, code)
         if address is None:
-            raise InvalidAddress(self.id + ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first')
+            raise InvalidAddress(self.id + ' fetchDepositAddress() cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first')
         return address
+
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount, toAccount)
+        request = {
+            'amount': self.currency_to_precision(code, amount),
+            'currency': currency['id'],
+            'from': fromId,  # 1 spot, 5 margin, 6 funding
+            'to': toId,  # 1 spot, 5 margin, 6 funding
+            'type': '0',  # 0 Transfer between accounts in the main account/sub_account, 1 main account to sub_account, 2 sub_account to main account
+        }
+        if fromId == 'main':
+            request['type'] = '1'
+            request['sub_account'] = toId
+            request['to'] = '0'
+        elif toId == 'main':
+            request['type'] = '2'
+            request['sub_account'] = fromId
+            request['from'] = '0'
+            request['to'] = '6'
+        elif fromId == '5' or toId == '5':
+            marketId = self.safe_string_2(params, 'instrument_id', 'to_instrument_id')
+            if marketId is None:
+                symbol = self.safe_string(params, 'symbol')
+                if symbol is None:
+                    raise ArgumentsRequired(self.id + ' transfer() requires an exchange-specific instrument_id parameter or a unified symbol parameter')
+                else:
+                    params = self.omit(params, 'symbol')
+                    market = self.market(symbol)
+                    marketId = market['id']
+                if fromId == '5':
+                    request['instrument_id'] = marketId
+                if toId == '5':
+                    request['to_instrument_id'] = marketId
+        response = self.accountPostTransfer(self.extend(request, params))
+        #
+        #      {
+        #          "transfer_id": "754147",
+        #          "currency": "ETC",
+        #          "from": "6",
+        #          "amount": "0.1",
+        #          "to": "1",
+        #          "result": True
+        #      }
+        #
+        return self.parse_transfer(response, currency)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #      {
+        #          "transfer_id": "754147",
+        #          "currency": "ETC",
+        #          "from": "6",
+        #          "amount": "0.1",
+        #          "to": "1",
+        #          "result": True
+        #      }
+        #
+        accountsById = self.safe_value(self.options, 'accountsById', {})
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'transfer_id'),
+            'timestamp': None,
+            'datetime': None,
+            'currency': self.safe_currency_code(self.safe_string(transfer, 'currency'), currency),
+            'amount': self.safe_number(transfer, 'amount'),
+            'fromAccount': self.safe_string(accountsById, self.safe_string(transfer, 'from')),
+            'toAccount': self.safe_string(accountsById, self.safe_string(transfer, 'to')),
+            'status': self.parse_transfer_status(self.safe_string(transfer, 'result')),
+        }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'true': 'ok',
+        }
+        return self.safe_string(statuses, status, 'failed')
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
@@ -2520,10 +2656,7 @@ class okcoin(Exchange):
         #         "result":true
         #     }
         #
-        return {
-            'info': response,
-            'id': self.safe_string(response, 'withdrawal_id'),
-        }
+        return self.parse_transaction(response, currency)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         self.load_markets()

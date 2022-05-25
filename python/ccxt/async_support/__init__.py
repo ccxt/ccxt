@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.77.34'
+__version__ = '1.83.47'
 
 # -----------------------------------------------------------------------------
 
@@ -103,6 +103,7 @@ from ccxt.async_support.coinbasepro import coinbasepro                    # noqa
 from ccxt.async_support.coincheck import coincheck                        # noqa: F401
 from ccxt.async_support.coinex import coinex                              # noqa: F401
 from ccxt.async_support.coinfalcon import coinfalcon                      # noqa: F401
+from ccxt.async_support.coinflex import coinflex                          # noqa: F401
 from ccxt.async_support.coinmate import coinmate                          # noqa: F401
 from ccxt.async_support.coinone import coinone                            # noqa: F401
 from ccxt.async_support.coinspot import coinspot                          # noqa: F401
@@ -136,11 +137,13 @@ from ccxt.async_support.kucoinfutures import kucoinfutures                # noqa
 from ccxt.async_support.kuna import kuna                                  # noqa: F401
 from ccxt.async_support.latoken import latoken                            # noqa: F401
 from ccxt.async_support.lbank import lbank                                # noqa: F401
+from ccxt.async_support.lbank2 import lbank2                              # noqa: F401
 from ccxt.async_support.liquid import liquid                              # noqa: F401
 from ccxt.async_support.luno import luno                                  # noqa: F401
 from ccxt.async_support.lykke import lykke                                # noqa: F401
 from ccxt.async_support.mercado import mercado                            # noqa: F401
 from ccxt.async_support.mexc import mexc                                  # noqa: F401
+from ccxt.async_support.mexc3 import mexc3                                # noqa: F401
 from ccxt.async_support.ndax import ndax                                  # noqa: F401
 from ccxt.async_support.novadax import novadax                            # noqa: F401
 from ccxt.async_support.oceanex import oceanex                            # noqa: F401
@@ -223,6 +226,7 @@ exchanges = [
     'coincheck',
     'coinex',
     'coinfalcon',
+    'coinflex',
     'coinmate',
     'coinone',
     'coinspot',
@@ -256,11 +260,13 @@ exchanges = [
     'kuna',
     'latoken',
     'lbank',
+    'lbank2',
     'liquid',
     'luno',
     'lykke',
     'mercado',
     'mexc',
+    'mexc3',
     'ndax',
     'novadax',
     'oceanex',

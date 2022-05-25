@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from asyncio import get_event_loop
+import asyncio
 from pprint import pprint
 import os
 import sys
@@ -13,7 +13,18 @@ import ccxt.async_support as ccxt  # noqa: E402
 # import ccxtpro as ccxt
 
 
-async def main(exchange):
+print('CCXT Version:', ccxt.__version__)
+
+
+async def main():
+    exchange = ccxt.okex({
+        'apiKey': 'YOUR_API_KEY',  # https://github.com/ccxt/ccxt/wiki/Manual#authentication
+        'secret': 'YOUR_API_SECRET',
+        'password': 'YOUR_API_PASSWORD',
+        'options': {
+            'defaultType': 'futures',
+        },
+    })
     try:
         markets = await exchange.load_markets()
         exchange.verbose = True  # uncomment for debugging
@@ -25,7 +36,7 @@ async def main(exchange):
         print('Futures symbols:')
         print([market['symbol'] for market in markets.values() if market['futures']])
         print('---------------------------------------------------------------')
-        symbol = 'BTC-USDT-201225'  # a futures symbol
+        symbol = 'BTC/USDT:USDT-201225'  # a futures symbol
         market = exchange.market(symbol)
         pprint(market)
         print('---------------------------------------------------------------')
@@ -46,17 +57,4 @@ async def main(exchange):
     await exchange.close()
 
 
-print('CCXT Version:', ccxt.__version__)
-
-loop = get_event_loop()
-exchange = ccxt.okex({
-    'asyncio_loop': loop,
-    'enableRateLimit': True,  # https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
-    'apiKey': 'YOUR_API_KEY',  # https://github.com/ccxt/ccxt/wiki/Manual#authentication
-    'secret': 'YOUR_API_SECRET',
-    'password': 'YOUR_API_PASSWORD',
-    'options': {
-        'defaultType': 'futures',
-    },
-})
-loop.run_until_complete(main(exchange))
+asyncio.run(main())

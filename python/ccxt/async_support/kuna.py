@@ -8,7 +8,6 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
-from ccxt.base.precise import Precise
 
 
 class kuna(Exchange):
@@ -35,13 +34,13 @@ class kuna(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchL3OrderBook': True,
                 'fetchLeverage': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': 'emulated',
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -301,6 +300,11 @@ class kuna(Exchange):
         return response * 1000
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for kuna
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         quotes = ['btc', 'rub', 'uah', 'usd', 'usdt', 'usdc']
         markets = []
         response = await self.publicGetTickers(params)
@@ -387,6 +391,13 @@ class kuna(Exchange):
         return markets
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -427,6 +438,12 @@ class kuna(Exchange):
         }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         response = await self.publicGetTickers(params)
         ids = list(response.keys())
@@ -450,6 +467,12 @@ class kuna(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -462,15 +485,65 @@ class kuna(Exchange):
         return await self.fetch_order_book(symbol, limit, params)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'market': market['id'],
         }
         response = await self.publicGetTrades(self.extend(request, params))
+        #
+        #      [
+        #          {
+        #              "id":11353466,
+        #              "price":"3000.16",
+        #              "volume":"0.000397",
+        #              "funds":"1.19106352",
+        #              "market":"ethusdt",
+        #              "created_at":"2022-04-12T18:32:36Z",
+        #              "side":null,
+        #              "trend":"sell"
+        #          },
+        #      ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #      {
+        #          "id":11353466,
+        #          "price":"3000.16",
+        #          "volume":"0.000397",
+        #          "funds":"1.19106352",
+        #          "market":"ethusdt",
+        #          "created_at":"2022-04-12T18:32:36Z",
+        #          "side":null,
+        #          "trend":"sell"
+        #      }
+        #
+        # fetchMyTrades(private)
+        #
+        #      {
+        #          "id":11353719,
+        #          "price":"0.13566",
+        #          "volume":"99.0",
+        #          "funds":"13.43034",
+        #          "market":"dogeusdt",
+        #          "created_at":"2022-04-12T18:58:44Z",
+        #          "side":"ask",
+        #          "order_id":1665670371,
+        #          "trend":"buy"
+        #      }
+        #
         timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         symbol = None
         if market:
@@ -484,14 +557,10 @@ class kuna(Exchange):
             side = self.safe_string(sideMap, side, side)
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'volume')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.safe_number(trade, 'funds')
-        if cost is None:
-            cost = self.parse_number(Precise.string_mul(priceString, amountString))
+        costString = self.safe_number(trade, 'funds')
         orderId = self.safe_string(trade, 'order_id')
         id = self.safe_string(trade, 'id')
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -501,13 +570,22 @@ class kuna(Exchange):
             'side': side,
             'order': orderId,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': None,
-        }
+        }, market)
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         trades = await self.fetch_trades(symbol, since, limit, params)
         ohlcvc = self.build_ohlcvc(trades, timeframe, since, limit)
@@ -538,6 +616,11 @@ class kuna(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.privateGetMembersMe(params)
         return self.parse_balance(response)
@@ -632,6 +715,21 @@ class kuna(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        #
+        #      [
+        #          {
+        #              "id":11353719,
+        #              "price":"0.13566",
+        #              "volume":"99.0",
+        #              "funds":"13.43034",
+        #              "market":"dogeusdt",
+        #              "created_at":"2022-04-12T18:58:44Z",
+        #              "side":"ask",
+        #              "order_id":1665670371,
+        #              "trend":"buy"
+        #          },
+        #      ]
+        #
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()

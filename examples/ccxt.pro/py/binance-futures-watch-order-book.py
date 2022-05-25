@@ -4,7 +4,6 @@ from asyncio import get_event_loop
 
 async def main():
     exchange = ccxtpro.binance({
-        'enableRateLimit': True,
         'options': {
             'defaultType': 'future',
         },

@@ -39,7 +39,9 @@ class woo(Exchange):
                 'cancelWithdraw': False,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
                 'createMarketOrder': False,
                 'createOrder': True,
-                'deposit': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'fetchBalance': True,
                 'fetchCanceledOrders': False,
                 'fetchClosedOrder': False,
@@ -57,6 +59,7 @@ class woo(Exchange):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrder': False,
                 'fetchOpenOrders': False,
                 'fetchOrder': True,
@@ -74,6 +77,7 @@ class woo(Exchange):
                 'fetchTransactions': True,
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
+                'transfer': True,
                 'withdraw': False,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             },
             'timeframes': {
@@ -141,6 +145,7 @@ class woo(Exchange):
                         },
                         'post': {
                             'order': 5,  # 2 requests per 1 second per symbol
+                            'asset/main_sub_transfer': 30,  # 20 requests per 60 seconds
                             'asset/withdraw': 120,  # implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
                         },
                         'delete': {
@@ -221,6 +226,9 @@ class woo(Exchange):
                     # 'USDT': 'TRC20',
                     # 'BTC': 'BTC',
                 },
+                'transfer': {
+                    'fillResponseFromRequest': True,
+                },
             },
             'commonCurrencies': {},
             'exceptions': {
@@ -254,6 +262,11 @@ class woo(Exchange):
         })
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for woo
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         marketType, query = self.handle_market_type_and_params('fetchMarkets', None, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'v1PublicGetInfo',
@@ -354,6 +367,14 @@ class woo(Exchange):
         return result
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchTrades() requires a symbol argument')
         self.load_markets()
@@ -899,6 +920,13 @@ class woo(Exchange):
         return status
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -932,6 +960,15 @@ class woo(Exchange):
         return self.parse_order_book(response, symbol, timestamp, 'bids', 'asks', 'price', 'quantity')
 
     def fetch_ohlcv(self, symbol, timeframe='1h', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1064,6 +1101,11 @@ class woo(Exchange):
         return self.parse_trades(trades, market, since, limit, params)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
         method = self.get_supported_mapping(marketType, {
@@ -1309,6 +1351,31 @@ class woo(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'token': currency['id'],
+            'amount': self.parse_number(amount),
+            'from_application_id': fromAccount,
+            'to_application_id': toAccount,
+        }
+        response = self.v1PrivatePostAssetMainSubTransfer(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "id": 200
+        #     }
+        #
+        transfer = self.parse_transfer(response, currency)
+        transferOptions = self.safe_value(self.options, 'transfer', {})
+        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            transfer['amount'] = amount
+            transfer['fromAccount'] = fromAccount
+            transfer['toAccount'] = toAccount
+        return transfer
+
     def fetch_transfers(self, code=None, since=None, limit=None, params={}):
         request = {
             'type': 'COLLATERAL',
@@ -1317,7 +1384,33 @@ class woo(Exchange):
         return self.parse_transfers(rows, currency, since, limit, params)
 
     def parse_transfer(self, transfer, currency=None):
-        # example is "fetchTransactions"
+        #
+        #    getAssetHistoryRows
+        #        {
+        #            "created_time": "1579399877.041",  # Unix epoch time in seconds
+        #            "updated_time": "1579399877.041",  # Unix epoch time in seconds
+        #            "id": "202029292829292",
+        #            "external_id": "202029292829292",
+        #            "application_id": null,
+        #            "token": "ETH",
+        #            "target_address": "0x31d64B3230f8baDD91dE1710A65DF536aF8f7cDa",
+        #            "source_address": "0x70fd25717f769c7f9a46b319f0f9103c0d887af0",
+        #            "extra": "",
+        #            "type": "BALANCE",
+        #            "token_side": "DEPOSIT",
+        #            "amount": 1000,
+        #            "tx_id": "0x8a74c517bc104c8ebad0c3c3f64b1f302ed5f8bca598ae4459c63419038106b6",
+        #            "fee_token": null,
+        #            "fee_amount": null,
+        #            "status": "CONFIRMING"
+        #        }
+        #
+        #    v1PrivatePostAssetMainSubTransfer
+        #        {
+        #            "success": True,
+        #            "id": 200
+        #        }
+        #
         networkizedCode = self.safe_string(transfer, 'token')
         currencyDefined = self.get_currency_from_chaincode(networkizedCode, currency)
         code = currencyDefined['code']
@@ -1329,10 +1422,14 @@ class woo(Exchange):
         if movementDirection == 'withdraw':
             fromAccount = None
             toAccount = 'spot'
-        else:
+        elif movementDirection == 'deposit':
             fromAccount = 'spot'
             toAccount = None
         timestamp = self.safe_timestamp(transfer, 'created_time')
+        success = self.safe_value(transfer, 'success')
+        status = None
+        if success is not None:
+            status = 'ok' if success else 'failed'
         return {
             'id': self.safe_string(transfer, 'id'),
             'timestamp': timestamp,
@@ -1341,12 +1438,19 @@ class woo(Exchange):
             'amount': self.safe_number(transfer, 'amount'),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': self.parse_transfer_status(self.safe_string(transfer, 'status')),
+            'status': self.parse_transfer_status(self.safe_string(transfer, 'status', status)),
             'info': transfer,
         }
 
     def parse_transfer_status(self, status):
-        return self.parse_transaction_status(status)
+        statuses = {
+            'NEW': 'pending',
+            'CONFIRMING': 'pending',
+            'PROCESSING': 'pending',
+            'COMPLETED': 'ok',
+            'CANCELED': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
 
     def nonce(self):
         return self.milliseconds()

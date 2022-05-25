@@ -1,17 +1,23 @@
 'use strict'
 
+const testTradingFee = require ("./test.tradingFee")
+
 module.exports = async (exchange) => {
+    const method = "fetchTradingFees"
     const skippedExchanges = []
     if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, 'found in ignored exchanges, skipping fetchTradingFees...')
+        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...')
         return
     }
-    if (exchange.has.fetchTradingFees) {
-        const method = 'fetchTradingFees'
+    if (exchange.has[method]) {
         const fees = await exchange[method] ()
-        console.log ({ 'maker': fees['maker'], 'taker': fees['taker'] })
+        const symbols = Object.keys (fees)
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i]
+            testTradingFee (exchange, symbol, fees[symbol])
+        }
         return fees
     } else {
-        console.log ('fetching trading fees not supported')
+        console.log (method + '() is not supported')
     }
 }

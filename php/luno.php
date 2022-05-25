@@ -16,7 +16,8 @@ class luno extends Exchange {
             'id' => 'luno',
             'name' => 'luno',
             'countries' => array( 'GB', 'SG', 'ZA' ),
-            'rateLimit' => 1000,
+            // 300 calls per minute = 5 calls per second = 1000ms / 5 = 200ms between requests
+            'rateLimit' => 200,
             'version' => '1',
             'has' => array(
                 'CORS' => null,
@@ -41,13 +42,13 @@ class luno extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
-                'fetchIsolatedPositions' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -83,56 +84,56 @@ class luno extends Exchange {
             'api' => array(
                 'exchange' => array(
                     'get' => array(
-                        'markets',
+                        'markets' => 1,
                     ),
                 ),
                 'public' => array(
                     'get' => array(
-                        'orderbook',
-                        'orderbook_top',
-                        'ticker',
-                        'tickers',
-                        'trades',
+                        'orderbook' => 1,
+                        'orderbook_top' => 1,
+                        'ticker' => 1,
+                        'tickers' => 1,
+                        'trades' => 1,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'accounts/{id}/pending',
-                        'accounts/{id}/transactions',
-                        'balance',
-                        'beneficiaries',
-                        'fee_info',
-                        'funding_address',
-                        'listorders',
-                        'listtrades',
-                        'orders/{id}',
-                        'quotes/{id}',
-                        'withdrawals',
-                        'withdrawals/{id}',
-                        'transfers',
+                        'accounts/{id}/pending' => 1,
+                        'accounts/{id}/transactions' => 1,
+                        'balance' => 1,
+                        'beneficiaries' => 1,
+                        'fee_info' => 1,
+                        'funding_address' => 1,
+                        'listorders' => 1,
+                        'listtrades' => 1,
+                        'orders/{id}' => 1,
+                        'quotes/{id}' => 1,
+                        'withdrawals' => 1,
+                        'withdrawals/{id}' => 1,
+                        'transfers' => 1,
                         // GET /api/exchange/2/listorders
                         // GET /api/exchange/2/orders/{id}
                         // GET /api/exchange/3/order
                     ),
                     'post' => array(
-                        'accounts',
-                        'accounts/{id}/name',
-                        'postorder',
-                        'marketorder',
-                        'stoporder',
-                        'funding_address',
-                        'withdrawals',
-                        'send',
-                        'quotes',
-                        'oauth2/grant',
+                        'accounts' => 1,
+                        'accounts/{id}/name' => 1,
+                        'postorder' => 1,
+                        'marketorder' => 1,
+                        'stoporder' => 1,
+                        'funding_address' => 1,
+                        'withdrawals' => 1,
+                        'send' => 1,
+                        'quotes' => 1,
+                        'oauth2/grant' => 1,
                     ),
                     'put' => array(
-                        'accounts/{id}/name',
-                        'quotes/{id}',
+                        'accounts/{id}/name' => 1,
+                        'quotes/{id}' => 1,
                     ),
                     'delete' => array(
-                        'quotes/{id}',
-                        'withdrawals/{id}',
+                        'quotes/{id}' => 1,
+                        'withdrawals/{id}' => 1,
                     ),
                 ),
             ),
@@ -148,6 +149,11 @@ class luno extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for luno
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = $this->exchangeGetMarkets ($params);
         //
         //     {
@@ -279,6 +285,11 @@ class luno extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the luno api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $response = $this->privateGetBalance ($params);
         //
@@ -295,6 +306,13 @@ class luno extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the luno api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         */
         $this->load_markets();
         $method = 'publicGetOrderbook';
         if ($limit !== null) {
@@ -468,6 +486,12 @@ class luno extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the luno api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         $this->load_markets();
         $response = $this->publicGetTickers ($params);
         $tickers = $this->index_by($response['tickers'], 'pair');
@@ -484,6 +508,12 @@ class luno extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the luno api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -503,10 +533,40 @@ class luno extends Exchange {
     }
 
     public function parse_trade($trade, $market) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "sequence":276989,
+        //          "timestamp":1648651276949,
+        //          "price":"35773.20000000",
+        //          "volume":"0.00300000",
+        //          "is_buy":false
+        //      }
+        //
+        // fetchMyTrades (private)
+        //
+        //      {
+        //          "pair":"LTCXBT",
+        //          "sequence":3256813,
+        //          "order_id":"BXEX6XHHDT5EGW2",
+        //          "type":"ASK",
+        //          "timestamp":1648652135235,
+        //          "price":"0.002786",
+        //          "volume":"0.10",
+        //          "base":"0.10",
+        //          "counter":"0.0002786",
+        //          "fee_base":"0.0001",
+        //          "fee_counter":"0.00",
+        //          "is_buy":false,
+        //          "client_order_id":""
+        //      }
+        //
         // For public $trade data (is_buy === True) indicates 'buy' $side but for private $trade data
         // is_buy indicates maker or taker. The value of "type" (ASK/BID) indicate sell/buy $side->
         // Private $trade data includes ID field which public $trade data does not.
         $orderId = $this->safe_string($trade, 'order_id');
+        $id = $this->safe_string($trade, 'sequence');
         $takerOrMaker = null;
         $side = null;
         if ($orderId !== null) {
@@ -526,25 +586,25 @@ class luno extends Exchange {
         } else {
             $side = $trade['is_buy'] ? 'buy' : 'sell';
         }
-        $feeBase = $this->safe_number($trade, 'fee_base');
-        $feeCounter = $this->safe_number($trade, 'fee_counter');
+        $feeBaseString = $this->safe_string($trade, 'fee_base');
+        $feeCounterString = $this->safe_string($trade, 'fee_counter');
         $feeCurrency = null;
         $feeCost = null;
-        if ($feeBase !== null) {
-            if ($feeBase !== 0.0) {
+        if ($feeBaseString !== null) {
+            if (!Precise::string_equals($feeBaseString, '0.0')) {
                 $feeCurrency = $market['base'];
-                $feeCost = $feeBase;
+                $feeCost = $feeBaseString;
             }
-        } else if ($feeCounter !== null) {
-            if ($feeCounter !== 0.0) {
+        } else if ($feeCounterString !== null) {
+            if (!Precise::string_equals($feeCounterString, '0.0')) {
                 $feeCurrency = $market['quote'];
-                $feeCost = $feeCounter;
+                $feeCost = $feeCounterString;
             }
         }
         $timestamp = $this->safe_integer($trade, 'timestamp');
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
-            'id' => null,
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $market['symbol'],
@@ -552,18 +612,26 @@ class luno extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $this->safe_number($trade, 'price'),
-            'amount' => $this->safe_number($trade, 'volume'),
+            'price' => $this->safe_string($trade, 'price'),
+            'amount' => $this->safe_string($trade, 'volume'),
             // Does not include potential fee costs
-            'cost' => $this->safe_number($trade, 'counter'),
+            'cost' => $this->safe_string($trade, 'counter'),
             'fee' => array(
                 'cost' => $feeCost,
                 'currency' => $feeCurrency,
             ),
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of $trades to fetch
+         * @param {dict} $params extra parameters specific to the luno api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -573,6 +641,19 @@ class luno extends Exchange {
             $request['since'] = $since;
         }
         $response = $this->publicGetTrades (array_merge($request, $params));
+        //
+        //      {
+        //          "trades":array(
+        //              array(
+        //                  "sequence":276989,
+        //                  "timestamp":1648651276949,
+        //                  "price":"35773.20000000",
+        //                  "volume":"0.00300000",
+        //                  "is_buy":false
+        //              ),...
+        //          )
+        //      }
+        //
         $trades = $this->safe_value($response, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -593,6 +674,27 @@ class luno extends Exchange {
             $request['limit'] = $limit;
         }
         $response = $this->privateGetListtrades (array_merge($request, $params));
+        //
+        //      {
+        //          "trades":array(
+        //              array(
+        //                  "pair":"LTCXBT",
+        //                  "sequence":3256813,
+        //                  "order_id":"BXEX6XHHDT5EGW2",
+        //                  "type":"ASK",
+        //                  "timestamp":1648652135235,
+        //                  "price":"0.002786",
+        //                  "volume":"0.10",
+        //                  "base":"0.10",
+        //                  "counter":"0.0002786",
+        //                  "fee_base":"0.0001",
+        //                  "fee_counter":"0.00",
+        //                  "is_buy":false,
+        //                  "client_order_id":""
+        //              ),...
+        //          )
+        //      }
+        //
         $trades = $this->safe_value($response, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }

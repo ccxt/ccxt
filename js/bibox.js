@@ -33,7 +33,6 @@ module.exports = class bibox extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchFundingFees': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -45,6 +44,7 @@ module.exports = class bibox extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransactionFees': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -141,6 +141,7 @@ module.exports = class bibox extends Exchange {
                 'APENFT(NFT)': 'NFT',
                 'BOX': 'DefiBox',
                 'BPT': 'BlockPool Token',
+                'GMT': 'GMT Token',
                 'KEY': 'Bihu',
                 'MTC': 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
                 'NFT': 'NFT Protocol',
@@ -153,6 +154,13 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name bibox#fetchMarkets
+         * @description retrieves data on all markets for bibox
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const request = {
             'cmd': 'pairList',
         };
@@ -316,6 +324,14 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name bibox#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the bibox api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -327,6 +343,14 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bibox#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the bibox api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         const request = {
             'cmd': 'marketAll',
         };
@@ -380,6 +404,16 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bibox#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the bibox api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -394,6 +428,15 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bibox#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the bibox api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -429,6 +472,17 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1000, params = {}) {
+        /**
+         * @method
+         * @name bibox#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the bibox api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -637,6 +691,13 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name bibox#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the bibox api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const type = this.safeString (params, 'type', 'assets');
         params = this.omit (params, 'type');
@@ -812,7 +873,14 @@ module.exports = class bibox extends Exchange {
         //         'status': 3
         //     }
         //
-        const id = this.safeString (transaction, 'id');
+        // withdraw
+        //
+        //     {
+        //         "result": 228, // withdrawal id
+        //         "cmd":"transfer/transferOut"
+        //     }
+        //
+        const id = this.safeString2 (transaction, 'id', 'result');
         const address = this.safeString (transaction, 'to_address');
         const currencyId = this.safeString (transaction, 'coin_symbol');
         const code = this.safeCurrencyCode (currencyId, currency);
@@ -1289,14 +1357,10 @@ module.exports = class bibox extends Exchange {
         //
         const outerResults = this.safeValue (response, 'result');
         const firstResult = this.safeValue (outerResults, 0, {});
-        const id = this.safeValue (firstResult, 'result');
-        return {
-            'info': response,
-            'id': id,
-        };
+        return this.parseTransaction (firstResult, currency);
     }
 
-    async fetchFundingFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes = undefined, params = {}) {
         // by default it will try load withdrawal fees of all currencies (with separate requests)
         // however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
         await this.loadMarkets ();

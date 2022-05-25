@@ -51,6 +51,7 @@ module.exports = class okcoin extends Exchange {
                 'fetchTrades': true,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -746,6 +747,16 @@ module.exports = class okcoin extends Exchange {
                 'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarkets': [ 'spot' ],
                 'defaultType': 'spot', // 'account', 'spot', 'margin', 'futures', 'swap', 'option'
+                'accountsByType': {
+                    'spot': '1',
+                    'margin': '5',
+                    'funding': '6',
+                },
+                'accountsById': {
+                    '1': 'spot',
+                    '5': 'margin',
+                    '6': 'funding',
+                },
                 'auth': {
                     'time': 'public',
                     'currencies': 'private',
@@ -782,6 +793,13 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchMarkets
+         * @description retrieves data on all markets for okcoin
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const types = this.safeValue (this.options, 'fetchMarkets');
         let result = [];
         for (let i = 0; i < types.length; i++) {
@@ -1070,7 +1088,7 @@ module.exports = class okcoin extends Exchange {
             //
             return this.parseMarkets (response);
         } else {
-            throw new NotSupported (this.id + ' fetchMarketsByType does not support market type ' + type);
+            throw new NotSupported (this.id + ' fetchMarketsByType() does not support market type ' + type);
         }
     }
 
@@ -1135,6 +1153,15 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         let method = market['type'] + 'GetInstrumentsInstrumentId';
@@ -1224,6 +1251,14 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const method = market['type'] + 'GetInstrumentsInstrumentIdTicker';
@@ -1263,6 +1298,14 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType');
         const type = this.safeString (params, 'type', defaultType);
         return await this.fetchTickersByType (type, symbols, this.omit (params, 'type'));
@@ -1397,6 +1440,16 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const method = market['type'] + 'GetInstrumentsInstrumentIdTrades';
@@ -1495,6 +1548,17 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const duration = this.parseTimeframe (timeframe);
@@ -1522,7 +1586,7 @@ module.exports = class okcoin extends Exchange {
             }
         } else if (type === 'HistoryCandles') {
             if (market['option']) {
-                throw new NotSupported (this.id + ' fetchOHLCV does not have ' + type + ' for ' + market['type'] + ' markets');
+                throw new NotSupported (this.id + ' fetchOHLCV() does not have ' + type + ' for ' + market['type'] + ' markets');
             }
             if (since !== undefined) {
                 if (limit === undefined) {
@@ -1848,6 +1912,13 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType');
         const type = this.safeString (params, 'type', defaultType);
         if (type === undefined) {
@@ -2570,9 +2641,96 @@ module.exports = class okcoin extends Exchange {
         const addressesByCode = this.parseDepositAddresses (response);
         const address = this.safeValue (addressesByCode, code);
         if (address === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
         }
         return address;
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        const request = {
+            'amount': this.currencyToPrecision (code, amount),
+            'currency': currency['id'],
+            'from': fromId, // 1 spot, 5 margin, 6 funding
+            'to': toId, // 1 spot, 5 margin, 6 funding
+            'type': '0', // 0 Transfer between accounts in the main account/sub_account, 1 main account to sub_account, 2 sub_account to main account
+        };
+        if (fromId === 'main') {
+            request['type'] = '1';
+            request['sub_account'] = toId;
+            request['to'] = '0';
+        } else if (toId === 'main') {
+            request['type'] = '2';
+            request['sub_account'] = fromId;
+            request['from'] = '0';
+            request['to'] = '6';
+        } else if (fromId === '5' || toId === '5') {
+            let marketId = this.safeString2 (params, 'instrument_id', 'to_instrument_id');
+            if (marketId === undefined) {
+                const symbol = this.safeString (params, 'symbol');
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' transfer() requires an exchange-specific instrument_id parameter or a unified symbol parameter');
+                } else {
+                    params = this.omit (params, 'symbol');
+                    const market = this.market (symbol);
+                    marketId = market['id'];
+                }
+                if (fromId === '5') {
+                    request['instrument_id'] = marketId;
+                }
+                if (toId === '5') {
+                    request['to_instrument_id'] = marketId;
+                }
+            }
+        }
+        const response = await this.accountPostTransfer (this.extend (request, params));
+        //
+        //      {
+        //          "transfer_id": "754147",
+        //          "currency": "ETC",
+        //          "from": "6",
+        //          "amount": "0.1",
+        //          "to": "1",
+        //          "result": true
+        //      }
+        //
+        return this.parseTransfer (response, currency);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //      {
+        //          "transfer_id": "754147",
+        //          "currency": "ETC",
+        //          "from": "6",
+        //          "amount": "0.1",
+        //          "to": "1",
+        //          "result": true
+        //      }
+        //
+        const accountsById = this.safeValue (this.options, 'accountsById', {});
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'transfer_id'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': this.safeCurrencyCode (this.safeString (transfer, 'currency'), currency),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': this.safeString (accountsById, this.safeString (transfer, 'from')),
+            'toAccount': this.safeString (accountsById, this.safeString (transfer, 'to')),
+            'status': this.parseTransferStatus (this.safeString (transfer, 'result')),
+        };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'true': 'ok',
+        };
+        return this.safeString (statuses, status, 'failed');
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -2614,10 +2772,7 @@ module.exports = class okcoin extends Exchange {
         //         "result":true
         //     }
         //
-        return {
-            'info': response,
-            'id': this.safeString (response, 'withdrawal_id'),
-        };
+        return this.parseTransaction (response, currency);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {

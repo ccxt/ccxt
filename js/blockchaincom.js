@@ -27,6 +27,9 @@ module.exports = class blockchaincom extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
@@ -45,6 +48,7 @@ module.exports = class blockchaincom extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': false,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -54,9 +58,12 @@ module.exports = class blockchaincom extends Exchange {
                 'fetchTrades': false,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': true, // fetches exchange specific benficiary-ids needed for withdrawals
+                'transfer': false,
                 'withdraw': true,
             },
             'timeframes': undefined,
@@ -167,6 +174,13 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name blockchaincom#fetchMarkets
+         * @description retrieves data on all markets for blockchaincom
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         //
         //     "USDC-GBP": {
         //         "base_currency": "USDC",
@@ -203,9 +217,9 @@ module.exports = class blockchaincom extends Exchange {
             let active = undefined;
             const marketState = this.safeString (market, 'status');
             if (marketState === 'open') {
-                active = 'true';
+                active = true;
             } else {
-                active = 'false';
+                active = false;
             }
             // price precision
             const minPriceIncrementString = this.safeString (market, 'min_price_increment');
@@ -290,6 +304,15 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name blockchaincom#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the blockchaincom api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         return await this.fetchL3OrderBook (symbol, limit, params);
     }
 
@@ -356,6 +379,14 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name blockchaincom#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the blockchaincom api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -366,6 +397,14 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name blockchaincom#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the blockchaincom api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const tickers = await this.publicGetTickers (params);
         return this.parseTickers (tickers, symbols);
@@ -460,7 +499,7 @@ module.exports = class blockchaincom extends Exchange {
         };
         const stopPrice = this.safeValue2 (params, 'stopPx', 'stopPrice');
         params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
-        if (uppercaseOrderType === 'STOP' || uppercaseOrderType === 'LIMIT') {
+        if (uppercaseOrderType === 'STOP' || uppercaseOrderType === 'STOPLIMIT') {
             if (stopPrice === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPx or stopPrice param for a ' + uppercaseOrderType + ' order');
             }
@@ -780,10 +819,10 @@ module.exports = class blockchaincom extends Exchange {
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
-        const currencyid = this.currencyId (code);
+        const currency = this.currency (code);
         const request = {
             'amount': amount,
-            'currency': currencyid,
+            'currency': currency['id'],
             // 'beneficiary': address/id,
             'sendMax': false,
         };
@@ -799,12 +838,7 @@ module.exports = class blockchaincom extends Exchange {
         //         timestamp: "1634218452595"
         //     },
         //
-        const withdrawalId = this.safeString (response, 'withdrawalId');
-        const result = {
-            'info': response,
-            'id': withdrawalId,
-        };
-        return result;
+        return this.parseTransaction (response, currency);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -853,6 +887,13 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name blockchaincom#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the blockchaincom api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const accountName = this.safeString (params, 'account', 'primary');
         params = this.omit (params, 'account');

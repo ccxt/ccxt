@@ -51,12 +51,12 @@ class tidex(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -247,6 +247,11 @@ class tidex(Exchange):
         return result
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for tidex
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.publicGetInfo(params)
         #
         #     {
@@ -349,6 +354,11 @@ class tidex(Exchange):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the tidex api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         response = self.privatePostGetInfoExt(params)
         #
@@ -380,6 +390,13 @@ class tidex(Exchange):
         return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the tidex api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -402,7 +419,7 @@ class tidex(Exchange):
             # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if len(ids) > 2048:
                 numIds = len(self.ids)
-                raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks')
+                raise ExchangeError(self.id + ' fetchOrderBooks() has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks')
         else:
             ids = self.market_ids(symbols)
             ids = '-'.join(ids)
@@ -461,6 +478,12 @@ class tidex(Exchange):
         }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the tidex api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         ids = self.ids
         if symbols is None:
@@ -469,7 +492,7 @@ class tidex(Exchange):
             # max URL length is 2048 symbols, including http schema, hostname, tld, etc...
             if len(ids) > self.options['fetchTickersMaxLength']:
                 maxLength = self.safe_integer(self.options, 'fetchTickersMaxLength', 2048)
-                raise ArgumentsRequired(self.id + ' has ' + str(numIds) + ' markets exceeding max URL length for self endpoint(' + str(maxLength) + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers')
+                raise ArgumentsRequired(self.id + ' fetchTickers() has ' + str(numIds) + ' markets exceeding max URL length for self endpoint(' + str(maxLength) + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers')
         else:
             ids = self.market_ids(symbols)
             ids = '-'.join(ids)
@@ -487,6 +510,12 @@ class tidex(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the tidex api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         tickers = self.fetch_tickers([symbol], params)
         return tickers[symbol]
 
@@ -541,6 +570,14 @@ class tidex(Exchange):
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the tidex api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -557,7 +594,7 @@ class tidex(Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
-            raise ExchangeError(self.id + ' allows limit orders only')
+            raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         amountString = str(amount)
         priceString = str(price)
         self.load_markets()
@@ -760,15 +797,55 @@ class tidex(Exchange):
         #                     "tx":null,
         #                     "error":null
         #                 },
-        #             "in_blockchain":false
+        #                 "in_blockchain":false
         #             }
         #         }
         #     }
         #
         result = self.safe_value(response, 'return', {})
+        withdrawInfo = self.safe_value(result, 'withdraw_info', {})
+        return self.parse_transaction(withdrawInfo, currency)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        #     {
+        #         "id":1111,
+        #         "asset_id":1,
+        #         "asset":"BTC",
+        #         "amount":0.0093,
+        #         "fee":0.0007,
+        #         "create_time":1575128018,
+        #         "status":"Created",
+        #         "data":{
+        #             "address":"1KFHE7w8BhaENAswwryaoccDb6qcT6DbYY",
+        #             "memo":"memo",
+        #             "tx":null,
+        #             "error":null
+        #         },
+        #         "in_blockchain":false
+        #     }
+        #
+        currency = self.safe_currency(None, currency)
         return {
-            'info': response,
-            'id': self.safe_string(result, 'withdraw_id'),
+            'id': self.safe_string(transaction, 'id'),
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'amount': None,
+            'type': None,
+            'currency': currency['code'],
+            'status': None,
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': None,
+            'fee': None,
+            'info': transaction,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

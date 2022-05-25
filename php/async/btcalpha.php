@@ -38,17 +38,19 @@ class btcalpha extends Exchange {
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchDeposit' => false,
+                'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
-                'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -61,10 +63,16 @@ class btcalpha extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
+                'fetchWithdrawal' => false,
+                'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'transfer' => false,
+                'withdraw' => false,
             ),
             'timeframes' => array(
                 '1m' => '1',
@@ -130,6 +138,11 @@ class btcalpha extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for btcalpha
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = yield $this->publicGetPairs ($params);
         //
         //    array(
@@ -210,6 +223,13 @@ class btcalpha extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the btcalpha api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         */
         yield $this->load_markets();
         $request = array(
             'pair_name' => $this->market_id($symbol),
@@ -283,6 +303,14 @@ class btcalpha extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of $trades to fetch
+         * @param {dict} $params extra parameters specific to the btcalpha api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         */
         yield $this->load_markets();
         $market = null;
         $request = array();
@@ -295,6 +323,102 @@ class btcalpha extends Exchange {
         }
         $trades = yield $this->publicGetExchanges (array_merge($request, $params));
         return $this->parse_trades($trades, $market, $since, $limit);
+    }
+
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privateGetDeposits ($params);
+        //
+        //     array(
+        //         {
+        //             "timestamp" => 1485363039.18359,
+        //             "id" => 317,
+        //             "currency" => "BTC",
+        //             "amount" => 530.00000000
+        //         }
+        //     )
+        //
+        return $this->parse_transactions($response, $code, $since, $limit, array( 'type' => 'deposit' ));
+    }
+
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $currency = null;
+        $request = array();
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency_id'] = $currency['id'];
+        }
+        $response = yield $this->privateGetWithdraws (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "id" => 403,
+        //             "timestamp" => 1485363466.868539,
+        //             "currency" => "BTC",
+        //             "amount" => 0.53000000,
+        //             "status" => 20
+        //         }
+        //     )
+        //
+        return $this->parse_transactions($response, $code, $since, $limit, array( 'type' => 'withdrawal' ));
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        //  deposit
+        //      {
+        //          "timestamp" => 1485363039.18359,
+        //          "id" => 317,
+        //          "currency" => "BTC",
+        //          "amount" => 530.00000000
+        //      }
+        //
+        //  withdrawal
+        //      {
+        //          "id" => 403,
+        //          "timestamp" => 1485363466.868539,
+        //          "currency" => "BTC",
+        //          "amount" => 0.53000000,
+        //          "status" => 20
+        //      }
+        //
+        $timestamp = $this->safe_string($transaction, 'timestamp');
+        $timestamp = Precise::string_mul($timestamp, '1000');
+        $currencyId = $this->safe_string($transaction, 'currency');
+        $statusId = $this->safe_string($transaction, 'status');
+        return array(
+            'id' => $this->safe_string($transaction, 'id'),
+            'info' => $transaction,
+            'timestamp' => $this->parse_number($timestamp),
+            'datetime' => $this->iso8601($timestamp),
+            'network' => null,
+            'address' => null,
+            'addressTo' => null,
+            'addressFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'tagFrom' => null,
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_number($transaction, 'amount'),
+            'txid' => null,
+            'type' => null,
+            'status' => $this->parse_transaction_status($statusId),
+            'comment' => null,
+            'fee' => null,
+            'updated' => null,
+        );
+    }
+
+    public function parse_transaction_status($status) {
+        $statuses = array(
+            '10' => 'pending',  // New
+            '20' => 'pending',  // Verified, waiting for approving
+            '30' => 'ok',       // Approved by moderator
+            '40' => 'failed',   // Refused by moderator. See your email for more details
+            '50' => 'canceled', // Cancelled by user
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -319,6 +443,15 @@ class btcalpha extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the btcalpha api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -357,6 +490,11 @@ class btcalpha extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the btcalpha api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         yield $this->load_markets();
         $response = yield $this->privateGetWallets ($params);
         return $this->parse_balance($response);

@@ -35,7 +35,9 @@ module.exports = class currencycom extends Exchange {
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
-                'deposit': undefined,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'editOrder': 'emulated',
                 'fetchAccounts': true,
                 'fetchBalance': true,
@@ -53,8 +55,6 @@ module.exports = class currencycom extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
-                'fetchFundingFee': undefined,
-                'fetchFundingFees': undefined,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -87,6 +87,8 @@ module.exports = class currencycom extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTradingLimits': undefined,
+                'fetchTransactionFee': undefined,
+                'fetchTransactionFees': undefined,
                 'fetchTransactions': true,
                 'fetchTransfers': undefined,
                 'fetchWithdrawal': undefined,
@@ -247,12 +249,15 @@ module.exports = class currencycom extends Exchange {
                     'Combination of parameters invalid': BadRequest,
                     'Invalid limit price': BadRequest,
                     'Only leverage symbol allowed here:': BadSymbol, // when you fetchLeverage for non-leverage symbols, like 'BTC/USDT' instead of 'BTC/USDT_LEVERAGE': {"code":"-1128","msg":"Only leverage symbol allowed here: BTC/USDT"}
+                    'market data service is not available': ExchangeNotAvailable, // {"code":"-1021","msg":"market data service is not available"}
+                    'your time is ahead of server': InvalidNonce, // {"code":"-1021","msg":"your time is ahead of server"}
                 },
                 'exact': {
                     '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     '-1013': InvalidOrder, // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
-                    '-1021': InvalidNonce, // 'your time is ahead of server'
+                    // '-1021': InvalidNonce, // {"code":"-1021","msg":"your time is ahead of server"} // see above in the broad section
                     '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
+                    '-1030': InvalidOrder, // {"code":"-1030","msg":"You mentioned an invalid value for the price parameter."}
                     '-1100': InvalidOrder, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                     '-1104': ExchangeError, // Not all sent parameters were read, read 8 parameters but was sent 9
                     '-1025': AuthenticationError, // {"code":-1025,"msg":"Invalid API-key, IP, or permissions for action"}
@@ -364,6 +369,13 @@ module.exports = class currencycom extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name currencycom#fetchMarkets
+         * @description retrieves data on all markets for currencycom
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetV2ExchangeInfo (params);
         //
         //     {
@@ -665,6 +677,13 @@ module.exports = class currencycom extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name currencycom#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the currencycom api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privateGetV2Account (params);
         //
@@ -702,6 +721,15 @@ module.exports = class currencycom extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name currencycom#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the currencycom api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -811,6 +839,14 @@ module.exports = class currencycom extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name currencycom#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the currencycom api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -841,6 +877,14 @@ module.exports = class currencycom extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name currencycom#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the currencycom api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const response = await this.publicGetV2Ticker24hr (params);
         //
@@ -886,6 +930,17 @@ module.exports = class currencycom extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name currencycom#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the currencycom api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -988,6 +1043,16 @@ module.exports = class currencycom extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name currencycom#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the currencycom api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1697,7 +1762,8 @@ module.exports = class currencycom extends Exchange {
             'unrealizedProfit': unrealizedProfit,
             'leverage': leverage,
             'percentage': undefined,
-            'marginType': undefined,
+            'marginMode': undefined,
+            'marginType': undefined, // deprecated
             'notional': undefined,
             'markPrice': undefined,
             'liquidationPrice': undefined,

@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -18,7 +19,6 @@ from ccxt.base.errors import CancelPending
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.decimal_to_precision import TRUNCATE
-from ccxt.base.precise import Precise
 
 
 class novadax(Exchange):
@@ -28,7 +28,9 @@ class novadax(Exchange):
             'id': 'novadax',
             'name': 'NovaDAX',
             'countries': ['BR'],  # Brazil
-            'rateLimit': 50,
+            # 60 requests per second = 1000ms / 60 = 16.6667ms between requests(public endpoints, limited by IP address)
+            # 20 requests per second => cost = 60 / 20 = 3(private endpoints, limited by API Key)
+            'rateLimit': 16.6667,
             'version': 'v1',
             # new metainfo interface
             'has': {
@@ -42,6 +44,9 @@ class novadax(Exchange):
                 'cancelOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
@@ -53,17 +58,16 @@ class novadax(Exchange):
                 'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
-                'fetchFundingRateHistories': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -85,6 +89,7 @@ class novadax(Exchange):
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -112,35 +117,35 @@ class novadax(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'common/symbol',
-                        'common/symbols',
-                        'common/timestamp',
-                        'market/tickers',
-                        'market/ticker',
-                        'market/depth',
-                        'market/trades',
-                        'market/kline/history',
-                    ],
+                    'get': {
+                        'common/symbol': 1.2,
+                        'common/symbols': 1.2,
+                        'common/timestamp': 1.2,
+                        'market/tickers': 1.2,
+                        'market/ticker': 1.2,
+                        'market/depth': 1.2,
+                        'market/trades': 1.2,
+                        'market/kline/history': 1.2,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'orders/get',
-                        'orders/list',
-                        'orders/fill',
-                        'orders/fills',
-                        'account/getBalance',
-                        'account/subs',
-                        'account/subs/balance',
-                        'account/subs/transfer/record',
-                        'wallet/query/deposit-withdraw',
-                    ],
-                    'post': [
-                        'orders/create',
-                        'orders/cancel',
-                        'account/withdraw/coin',
-                        'account/subs/transfer',
-                    ],
+                    'get': {
+                        'orders/get': 3,
+                        'orders/list': 3,
+                        'orders/fill': 3,
+                        'orders/fills': 3,
+                        'account/getBalance': 3,
+                        'account/subs': 3,
+                        'account/subs/balance': 3,
+                        'account/subs/transfer/record': 3,
+                        'wallet/query/deposit-withdraw': 3,
+                    },
+                    'post': {
+                        'orders/create': 3,
+                        'orders/cancel': 3,
+                        'account/withdraw/coin': 3,
+                        'account/subs/transfer': 3,
+                    },
                 },
             },
             'fees': {
@@ -165,7 +170,7 @@ class novadax(Exchange):
                     'A10004': RateLimitExceeded,  # 429 Too many requests Too many requests are made
                     'A10005': PermissionDenied,  # 403 Kyc required Need to complete KYC firstly
                     'A10006': AccountSuspended,  # 403 Customer canceled Account is canceled
-                    'A10007': BadRequest,  # 400 Account not exist Sub account does not exist
+                    'A10007': AccountNotEnabled,  # 400 Account not exist Sub account does not exist
                     'A10011': BadSymbol,  # 400 Symbol not exist Trading symbol does not exist
                     'A10012': BadSymbol,  # 400 Symbol not trading Trading symbol is temporarily not available
                     'A10013': OnMaintenance,  # 503 Symbol maintain Trading symbol is in maintain
@@ -181,6 +186,7 @@ class novadax(Exchange):
                     'A30010': CancelPending,  # 400 Order cancelling The order is being cancelled
                     'A30011': InvalidOrder,  # 400 Order price too high The order price is too high
                     'A30012': InvalidOrder,  # 400 Order price too low The order price is too low
+                    'A40004': InsufficientFunds,  # {"code":"A40004","data":[],"message":"sub account balance Insufficient"}
                 },
                 'broad': {
                 },
@@ -188,6 +194,9 @@ class novadax(Exchange):
             'options': {
                 'fetchOHLCV': {
                     'volume': 'amount',  # 'amount' for base volume or 'vol' for quote volume
+                },
+                'transfer': {
+                    'fillResponseFromRequest': True,
                 },
             },
         })
@@ -204,6 +213,11 @@ class novadax(Exchange):
         return self.safe_integer(response, 'data')
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for novadax
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.publicGetCommonSymbols(params)
         #
         #     {
@@ -334,6 +348,12 @@ class novadax(Exchange):
         }, market)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the novadax api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -362,6 +382,12 @@ class novadax(Exchange):
         return self.parse_ticker(data, market)
 
     def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the novadax api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         response = self.publicGetMarketTickers(params)
         #
@@ -393,6 +419,13 @@ class novadax(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the novadax api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         request = {
             'symbol': self.market_id(symbol),
@@ -436,33 +469,35 @@ class novadax(Exchange):
         #
         # private fetchOrderTrades
         #
-        #     {
-        #         "id": "608717046691139584",
-        #         "orderId": "608716957545402368",
-        #         "symbol": "BTC_BRL",
-        #         "side": "BUY",
-        #         "amount": "0.0988",
-        #         "price": "45514.76",
-        #         "fee": "0.0000988 BTC",
-        #         "role": "MAKER",
-        #         "timestamp": 1565171053345
-        #     }
+        #      {
+        #          "id": "608717046691139584",
+        #          "orderId": "608716957545402368",
+        #          "symbol": "BTC_BRL",
+        #          "side": "BUY",
+        #          "amount": "0.0988",
+        #          "price": "45514.76",
+        #          "fee": "0.0000988 BTC",
+        #          "feeAmount": "0.0000988",
+        #          "feeCurrency": "BTC",
+        #          "role": "MAKER",
+        #          "timestamp": 1565171053345
+        #       }
         #
-        # private fetchMyTrades
+        # private fetchMyTrades(same endpoint as fetchOrderTrades)
         #
-        #     {
-        #         "id": "608717046691139584",
-        #         "orderId": "608716957545402368",
-        #         "symbol": "BTC_BRL",
-        #         "side": "BUY",
-        #         "amount": "0.0988",
-        #         "price": "45514.76",
-        #         "fee": "0.0000988 BTC",
-        #         "feeAmount": "0.0000988",
-        #         "feeCurrency": "BTC",
-        #         "role": "MAKER",
-        #         "timestamp": 1565171053345
-        #     }
+        #      {
+        #          "id": "608717046691139584",
+        #          "orderId": "608716957545402368",
+        #          "symbol": "BTC_BRL",
+        #          "side": "BUY",
+        #          "amount": "0.0988",
+        #          "price": "45514.76",
+        #          "fee": "0.0000988 BTC",
+        #          "feeAmount": "0.0000988",
+        #          "feeCurrency": "BTC",
+        #          "role": "MAKER",
+        #          "timestamp": 1565171053345
+        #       }
         #
         id = self.safe_string(trade, 'id')
         orderId = self.safe_string(trade, 'orderId')
@@ -470,25 +505,19 @@ class novadax(Exchange):
         side = self.safe_string_lower(trade, 'side')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.safe_number(trade, 'volume')
-        if cost is None:
-            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
         takerOrMaker = self.safe_string_lower(trade, 'role')
         feeString = self.safe_string(trade, 'fee')
         fee = None
         if feeString is not None:
-            parts = feeString.split(' ')
-            feeCurrencyId = self.safe_string(parts, 1)
+            feeCurrencyId = self.safe_string(trade, 'feeCurrency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': self.safe_number(parts, 0),
+                'cost': self.safe_string(trade, 'feeAmount'),
                 'currency': feeCurrencyCode,
             }
-        return {
+        return self.safe_trade({
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
@@ -496,15 +525,23 @@ class novadax(Exchange):
             'symbol': symbol,
             'type': None,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
             'info': trade,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the novadax api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -528,6 +565,15 @@ class novadax(Exchange):
         return self.parse_trades(data, market, since, limit)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the novadax api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -612,6 +658,11 @@ class novadax(Exchange):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the novadax api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         response = self.privateGetAccountGetBalance(params)
         #
@@ -821,23 +872,25 @@ class novadax(Exchange):
             market = self.market(symbol)
         data = self.safe_value(response, 'data', [])
         #
-        #     {
-        #         "code": "A10000",
-        #         "data": [
-        #             {
-        #                 "id": "608717046691139584",
-        #                 "orderId": "608716957545402368",
-        #                 "symbol": "BTC_BRL",
-        #                 "side": "BUY",
-        #                 "amount": "0.0988",
-        #                 "price": "45514.76",
-        #                 "fee": "0.0000988 BTC",
-        #                 "role": "MAKER",
-        #                 "timestamp": 1565171053345
-        #             },
-        #         ],
-        #         "message": "Success"
-        #     }
+        #      {
+        #          "code": "A10000",
+        #          "data": [
+        #              {
+        #                  "id": "608717046691139584",
+        #                  "orderId": "608716957545402368",
+        #                  "symbol": "BTC_BRL",
+        #                  "side": "BUY",
+        #                  "amount": "0.0988",
+        #                  "price": "45514.76",
+        #                  "fee": "0.0000988 BTC",
+        #                  "feeAmount": "0.0000988",
+        #                  "feeCurrency": "BTC",
+        #                  "role": "MAKER",
+        #                  "timestamp": 1565171053345
+        #              },
+        #          ],
+        #          "message": "Success"
+        #      }
         #
         return self.parse_trades(data, market, since, limit)
 
@@ -924,6 +977,65 @@ class novadax(Exchange):
             'fee': fee,
             'trades': None,
         }, market)
+
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        if fromAccount != 'main' and toAccount != 'main':
+            raise ExchangeError(self.id + ' transfer() supports transfers between main account and subaccounts only')
+        # master-transfer-in = from master account to subaccount
+        # master-transfer-out = from subaccount to master account
+        type = 'master-transfer-in' if (fromAccount == 'main') else 'master-transfer-out'
+        request = {
+            'transferAmount': self.currency_to_precision(code, amount),
+            'currency': currency['id'],
+            'subId': toAccount if (type == 'master-transfer-in') else fromAccount,
+            'transferType': type,
+        }
+        response = self.privatePostAccountSubsTransfer(self.extend(request, params))
+        #
+        #    {
+        #        "code":"A10000",
+        #        "message":"Success",
+        #        "data":40
+        #    }
+        #
+        transfer = self.parse_transfer(response, currency)
+        transferOptions = self.safe_value(self.options, 'transfer', {})
+        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            transfer['fromAccount'] = fromAccount
+            transfer['toAccount'] = toAccount
+            transfer['amount'] = amount
+        return transfer
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #    {
+        #        "code":"A10000",
+        #        "message":"Success",
+        #        "data":40
+        #    }
+        #
+        id = self.safe_string(transfer, 'data')
+        status = self.safe_string(transfer, 'message')
+        return {
+            'info': transfer,
+            'id': id,
+            'amount': None,
+            'code': self.safe_currency_code(None, currency),
+            'fromAccount': None,
+            'toAccount': None,
+            'timestamp': None,
+            'datetime': None,
+            'status': status,
+        }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'SUCCESS': 'pending',
+        }
+        return self.safe_string(statuses, status, 'failed')
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
@@ -1128,38 +1240,25 @@ class novadax(Exchange):
             request['fromTimestamp'] = since
         response = self.privateGetOrdersFills(self.extend(request, params))
         #
-        #     {
-        #         "code": "A10000",
-        #         "data": [
-        #             {
-        #                 "id": "608717046691139584",
-        #                 "orderId": "608716957545402368",
-        #                 "symbol": "BTC_BRL",
-        #                 "side": "BUY",
-        #                 "amount": "0.0988",
-        #                 "price": "45514.76",
-        #                 "fee": "0.0000988 BTC",
-        #                 "feeAmount": "0.0000988",
-        #                 "feeCurrency": "BTC",
-        #                 "role": "MAKER",
-        #                 "timestamp": 1565171053345
-        #             },
-        #             {
-        #                 "id": "608717065729085441",
-        #                 "orderId": "608716957545402368",
-        #                 "symbol": "BTC_BRL",
-        #                 "side": "BUY",
-        #                 "amount": "0.0242",
-        #                 "price": "45514.76",
-        #                 "fee": "0.0000242 BTC",
-        #                 "feeAmount": "0.0000988",
-        #                 "feeCurrency": "BTC",
-        #                 "role": "MAKER",
-        #                 "timestamp": 1565171057882
-        #             }
-        #         ],
-        #         "message": "Success"
-        #     }
+        #      {
+        #          "code": "A10000",
+        #          "data": [
+        #              {
+        #                  "id": "608717046691139584",
+        #                  "orderId": "608716957545402368",
+        #                  "symbol": "BTC_BRL",
+        #                  "side": "BUY",
+        #                  "amount": "0.0988",
+        #                  "price": "45514.76",
+        #                  "fee": "0.0000988 BTC",
+        #                  "feeAmount": "0.0000988",
+        #                  "feeCurrency": "BTC",
+        #                  "role": "MAKER",
+        #                  "timestamp": 1565171053345
+        #              },
+        #          ],
+        #          "message": "Success"
+        #      }
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)

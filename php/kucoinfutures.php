@@ -35,6 +35,9 @@ class kucoinfutures extends kucoin {
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
@@ -46,7 +49,6 @@ class kucoinfutures extends kucoin {
                 'fetchCurrencies' => false,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
-                'fetchFundingFee' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
@@ -69,6 +71,7 @@ class kucoinfutures extends kucoin {
                 'fetchTickers' => false,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTransactionFee' => true,
                 'fetchWithdrawals' => true,
                 'setMarginMode' => false,
                 'transfer' => true,
@@ -196,6 +199,9 @@ class kucoinfutures extends kucoin {
                     '411100' => '\\ccxt\\AccountSuspended', // User is frozen -- Please contact us via support center
                     '500000' => '\\ccxt\\ExchangeNotAvailable', // Internal Server Error -- We had a problem with our server. Try again later.
                 ),
+                'broad' => array(
+                    'Position does not exist' => '\\ccxt\\OrderNotFound', // array( "code":"200000", "msg":"Position does not exist" )
+                ),
             ),
             'fees' => array(
                 'trading' => array(
@@ -271,6 +277,7 @@ class kucoinfutures extends kucoin {
                 'symbolSeparator' => '-',
                 'defaultType' => 'swap',
                 'code' => 'USDT',
+                'marginModes' => array(),
                 'marginTypes' => array(),
                 // endpoint versions
                 'versions' => array(
@@ -299,7 +306,7 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_accounts($params = array ()) {
-        throw new BadRequest($this->id . ' has no method fetchAccounts');
+        throw new BadRequest($this->id . ' fetchAccounts() is not supported yet');
     }
 
     public function fetch_status($params = array ()) {
@@ -308,24 +315,28 @@ class kucoinfutures extends kucoin {
         //     {
         //         "code":"200000",
         //         "data":{
-        //             "msg":"",
-        //             "status":"open"
+        //             "status" => "open", // open, close, cancelonly
+        //             "msg" => "upgrade match engine" // remark for operation when $status not open
         //         }
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $status = $this->safe_value($data, 'status');
-        if ($status !== null) {
-            $status = ($status === 'open') ? 'ok' : 'maintenance';
-            $this->status = array_merge($this->status, array(
-                'status' => $status,
-                'updated' => $this->milliseconds(),
-            ));
-        }
-        return $this->status;
+        $status = $this->safe_string($data, 'status');
+        return array(
+            'status' => ($status === 'open') ? 'ok' : 'maintenance',
+            'updated' => $this->milliseconds(),
+            'eta' => null,
+            'url' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves $data on all markets for kucoinfutures
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market $data
+         */
         $response = $this->futuresPublicGetContractsActive ($params);
         //
         //    {
@@ -491,6 +502,15 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '15m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['id'];
@@ -549,7 +569,7 @@ class kucoinfutures extends kucoin {
     }
 
     public function create_deposit_address($code, $params = array ()) {
-        throw new BadRequest($this->id . ' has no method createDepositAddress');
+        throw new BadRequest($this->id . ' createDepositAddress() is not supported yet');
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
@@ -585,10 +605,17 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         $this->load_markets();
         $level = $this->safe_number($params, 'level');
         if ($level !== 2 && $level !== null) {
-            throw new BadRequest($this->id . ' fetchOrderBook can only return $level 2');
+            throw new BadRequest($this->id . ' fetchOrderBook() can only return $level 2');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -598,7 +625,7 @@ class kucoinfutures extends kucoin {
             if (($limit === 20) || ($limit === 100)) {
                 $request['limit'] = $limit;
             } else {
-                throw new BadRequest($this->id . ' fetchOrderBook $limit argument must be 20 or 100');
+                throw new BadRequest($this->id . ' fetchOrderBook() $limit argument must be 20 or 100');
             }
         } else {
             $request['limit'] = 20;
@@ -630,10 +657,16 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_l3_order_book($symbol, $limit = null, $params = array ()) {
-        throw new BadRequest($this->id . ' only can only fetch the L2 order book');
+        throw new BadRequest($this->id . ' fetchL3OrderBook() is not supported yet');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -902,7 +935,7 @@ class kucoinfutures extends kucoin {
         $unrealisedPnl = $this->safe_string($position, 'unrealisedPnl');
         $crossMode = $this->safe_value($position, 'crossMode');
         // currently $crossMode is always set to false and only isolated positions are supported
-        $marginType = $crossMode ? 'cross' : 'isolated';
+        $marginMode = $crossMode ? 'cross' : 'isolated';
         return array(
             'info' => $position,
             'symbol' => $this->safe_string($market, 'symbol'),
@@ -923,13 +956,35 @@ class kucoinfutures extends kucoin {
             'liquidationPrice' => $this->safe_number($position, 'liquidationPrice'),
             'markPrice' => $this->safe_number($position, 'markPrice'),
             'collateral' => $this->safe_number($position, 'maintMargin'),
-            'marginType' => $marginType,
+            'marginMode' => $marginMode,
+            'marginType' => $marginMode,
             'side' => $side,
             'percentage' => $this->parse_number(Precise::string_div($unrealisedPnl, $initialMargin)),
         );
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * Create an order on the exchange
+         * @param {str} $symbol Unified CCXT $market $symbol
+         * @param {str} $type "limit" or "market"
+         * @param {str} $side "buy" or "sell"
+         * @param {float} $amount the $amount of currency to trade
+         * @param {float} $price *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
+         * @param {dict} $params  Extra parameters specific to the exchange API endpoint
+         * @param {float} $params->leverage Leverage size of the order
+         * @param {float} $params->stopPrice The $price at which a trigger order is triggered at
+         * @param {bool} $params->reduceOnly A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
+         * @param {str} $params->timeInForce GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+         * @param {str} $params->postOnly Post only flag, invalid when $timeInForce is IOC or FOK
+         * @param {str} $params->clientOid client order id, defaults to uuid if not passed
+         * @param {str} $params->remark remark for the order, length cannot exceed 100 utf8 characters
+         * @param {str} $params->stop 'up' or 'down', defaults to 'up' if $side is sell and 'down' if $side is buy, requires $stopPrice
+         * @param {str} $params->stopPriceType  TP, IP or MP, defaults to TP
+         * @param {bool} $params->closeOrder set to true to close position
+         * @param {bool} $params->forceHold A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
+         * @return an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         // required param, cannot be used twice
@@ -946,36 +1001,12 @@ class kucoinfutures extends kucoin {
             'type' => $type, // limit or $market
             'size' => $preciseAmount,
             'leverage' => 1,
-            // 'remark' => '', // optional remark for the order, length cannot exceed 100 utf8 characters
-            // 'tradeType' => 'TRADE', // TRADE, MARGIN_TRADE // not used with margin orders
-            // limit orders ---------------------------------------------------
-            // 'timeInForce' => 'GTC', // GTC, GTT, IOC, or FOK (default is GTC), limit orders only
-            // 'cancelAfter' => long, // cancel after n seconds, requires $timeInForce to be GTT
-            // 'postOnly' => false, // Post only flag, invalid when $timeInForce is IOC or FOK
-            // 'hidden' => false, // Order will not be displayed in the order book
-            // 'iceberg' => false, // Only a portion of the order is displayed in the order book
-            // 'visibleSize' => $this->amount_to_precision($symbol, $visibleSize), // The maximum visible size of an $iceberg order
-            // $market orders --------------------------------------------------
-            // 'funds' => $this->cost_to_precision($symbol, cost), // Amount of quote currency to use
-            // stop orders ----------------------------------------------------
-            // 'stop' => 'loss', // loss or entry, the default is loss, requires $stopPrice
-            // 'stopPrice' => $this->price_to_precision($symbol, $amount), // need to be defined if stop is specified
-            // 'stopPriceType' // Either TP, IP or MP, Need to be defined if stop is specified.
-            // margin orders --------------------------------------------------
-            // 'marginMode' => 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
-            // 'autoBorrow' => false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
-            // futures orders -------------------------------------------------
-            // reduceOnly // (boolean) A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
-            // closeOrder // (boolean) A mark to close the position. Set to false by default. It will close all the positions when closeOrder is true.
-            // forceHold // (boolean) A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
         );
         $stopPrice = $this->safe_number($params, 'stopPrice');
         if ($stopPrice) {
-            $request['stop'] = ($side === 'buy') ? 'down' : 'up';
-            $stopPriceType = $this->safe_string($params, 'stopPriceType');
-            if (!$stopPriceType) {
-                throw new ArgumentsRequired($this->id . ' createOrder() trigger orders require a $stopPriceType parameter to be set to TP, IP or MP (Trade Price, Index Price or Mark Price)');
-            }
+            $request['stop'] = ($side === 'buy') ? 'up' : 'down';
+            $stopPriceType = $this->safe_string($params, 'stopPriceType', 'TP');
+            $request['stopPriceType'] = $stopPriceType;
         }
         $uppercaseType = strtoupper($type);
         $timeInForce = $this->safe_string($params, 'timeInForce');
@@ -1058,13 +1089,22 @@ class kucoinfutures extends kucoin {
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
+        /**
+         * Cancels all orders in one api call
+         * @param {str} $symbol Assign to cancel only the orders in the market matching the unified $symbol
+         * @param {dict} $params Exchange specific parameters
+         * @param {dict} $params->stop When true, all the trigger orders will be cancelled
+         * @return Response from the exchange
+         */
         $this->load_markets();
         $request = array();
         if ($symbol !== null) {
             $request['symbol'] = $this->market_id($symbol);
         }
-        $response = $this->futuresPrivateDeleteOrders (array_merge($request, $params));
-        // ? futuresPrivateDeleteStopOrders
+        $stop = $this->safe_value($params, 'stop');
+        $method = $stop ? 'futuresPrivateDeleteStopOrders' : 'futuresPrivateDeleteOrders';
+        $response = $this->$method (array_merge($request, $params));
+        //
         //   {
         //       code => "200000",
         //       data => array(
@@ -1083,17 +1123,157 @@ class kucoinfutures extends kucoin {
         $uuid = $this->uuid();
         $request = array(
             'symbol' => $market['id'],
-            'margin' => $amount,
+            'margin' => $this->amount_to_precision($symbol, $amount),
             'bizNo' => $uuid,
         );
-        return $this->futuresPrivatePostPositionMarginDepositMargin (array_merge($request, $params));
+        $response = $this->futuresPrivatePostPositionMarginDepositMargin (array_merge($request, $params));
+        //
+        //    {
+        //        code => '200000',
+        //        $data => {
+        //            id => '62311d26064e8f00013f2c6d',
+        //            $symbol => 'XRPUSDTM',
+        //            autoDeposit => false,
+        //            maintMarginReq => 0.01,
+        //            riskLimit => 200000,
+        //            realLeverage => 0.88,
+        //            crossMode => false,
+        //            delevPercentage => 0.4,
+        //            openingTimestamp => 1647385894798,
+        //            currentTimestamp => 1647414510672,
+        //            currentQty => -1,
+        //            currentCost => -7.658,
+        //            currentComm => 0.0053561,
+        //            unrealisedCost => -7.658,
+        //            realisedGrossCost => 0,
+        //            realisedCost => 0.0053561,
+        //            isOpen => true,
+        //            markPrice => 0.7635,
+        //            markValue => -7.635,
+        //            posCost => -7.658,
+        //            posCross => 1.00016084,
+        //            posInit => 7.658,
+        //            posComm => 0.00979006,
+        //            posLoss => 0,
+        //            posMargin => 8.6679509,
+        //            posMaint => 0.08637006,
+        //            maintMargin => 8.6909509,
+        //            realisedGrossPnl => 0,
+        //            realisedPnl => -0.0038335,
+        //            unrealisedPnl => 0.023,
+        //            unrealisedPnlPcnt => 0.003,
+        //            unrealisedRoePcnt => 0.003,
+        //            avgEntryPrice => 0.7658,
+        //            liquidationPrice => 1.6239,
+        //            bankruptPrice => 1.6317,
+        //            settleCurrency => 'USDT'
+        //        }
+        //    }
+        //
+        //
+        //    {
+        //        "code":"200000",
+        //        "msg":"Position does not exist"
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        return array_merge($this->parseModifyMargin ($data, $market), array(
+            'amount' => $this->amount_to_precision($symbol, $amount),
+            'direction' => 'in',
+        ));
+    }
+
+    public function parse_margin_modification($info, $market = null) {
+        //
+        //    {
+        //        $id => '62311d26064e8f00013f2c6d',
+        //        symbol => 'XRPUSDTM',
+        //        autoDeposit => false,
+        //        maintMarginReq => 0.01,
+        //        riskLimit => 200000,
+        //        realLeverage => 0.88,
+        //        $crossMode => false,
+        //        delevPercentage => 0.4,
+        //        openingTimestamp => 1647385894798,
+        //        currentTimestamp => 1647414510672,
+        //        currentQty => -1,
+        //        currentCost => -7.658,
+        //        currentComm => 0.0053561,
+        //        unrealisedCost => -7.658,
+        //        realisedGrossCost => 0,
+        //        realisedCost => 0.0053561,
+        //        isOpen => true,
+        //        markPrice => 0.7635,
+        //        markValue => -7.635,
+        //        posCost => -7.658,
+        //        posCross => 1.00016084,
+        //        posInit => 7.658,
+        //        posComm => 0.00979006,
+        //        posLoss => 0,
+        //        posMargin => 8.6679509,
+        //        posMaint => 0.08637006,
+        //        maintMargin => 8.6909509,
+        //        realisedGrossPnl => 0,
+        //        realisedPnl => -0.0038335,
+        //        unrealisedPnl => 0.023,
+        //        unrealisedPnlPcnt => 0.003,
+        //        unrealisedRoePcnt => 0.003,
+        //        avgEntryPrice => 0.7658,
+        //        liquidationPrice => 1.6239,
+        //        bankruptPrice => 1.6317,
+        //        settleCurrency => 'USDT'
+        //    }
+        //
+        //    {
+        //        "code":"200000",
+        //        "msg":"Position does not exist"
+        //    }
+        //
+        $id = $this->safe_string($info, 'id');
+        $market = $this->safe_market($id, $market);
+        $currencyId = $this->safe_string($info, 'settleCurrency');
+        $crossMode = $this->safe_value($info, 'crossMode');
+        $mode = $crossMode ? 'cross' : 'isolated';
+        $marketId = $this->safe_string($market, 'symbol');
+        return array(
+            'info' => $info,
+            'direction' => null,
+            'mode' => $mode,
+            'amount' => null,
+            'code' => $this->safe_currency_code($currencyId),
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'status' => null,
+        );
     }
 
     public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches a list of $orders placed on the exchange
+         * @param {str} $status 'active' or 'closed', only 'active' is valid for $stop $orders
+         * @param {str} $symbol unified $symbol for the $market to retrieve $orders from
+         * @param {int} $since timestamp in ms of the earliest order to retrieve
+         * @param {int} $limit The maximum number of $orders to retrieve
+         * @param {dict} $params exchange specific parameters
+         * @param {bool} $params->stop set to true to retrieve untriggered $stop $orders
+         * @param {int} $params->till End time in ms
+         * @param {str} $params->side buy or sell
+         * @param {str} $params->type $limit or $market
+         * @return An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure array of order structures}
+         */
         $this->load_markets();
-        $request = array(
-            'status' => $status,
-        );
+        $stop = $this->safe_value($params, 'stop');
+        $params = $this->omit($params, 'stop');
+        if ($status === 'closed') {
+            $status = 'done';
+        } else if ($status === 'open') {
+            $status = 'active';
+        }
+        $request = array();
+        if (!$stop) {
+            $request['status'] = $status;
+        } else if ($status !== 'active') {
+            throw new BadRequest($this->id . ' fetchOrdersByStatus() can only fetch untriggered $stop orders');
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1102,10 +1282,30 @@ class kucoinfutures extends kucoin {
         if ($since !== null) {
             $request['startAt'] = $since;
         }
-        $response = $this->futuresPrivateGetOrders (array_merge($request, $params));
+        $till = $this->safe_integer($params, 'till', 'endAt');
+        if ($till !== null) {
+            $request['endAt'] = $till;
+        }
+        $method = $stop ? 'futuresPrivateGetStopOrders' : 'futuresPrivateGetOrders';
+        $response = $this->$method (array_merge($request, $params));
         $responseData = $this->safe_value($response, 'data', array());
         $orders = $this->safe_value($responseData, 'items', array());
         return $this->parse_orders($orders, $market, $since, $limit);
+    }
+
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch a list of orders
+         * @param {str} $symbol unified market $symbol
+         * @param {int} $since timestamp in ms of the earliest order
+         * @param {int} $limit max number of orders to return
+         * @param {dict} $params exchange specific $params
+         * @param {int} $params->till end time in ms
+         * @param {str} $params->side buy or sell
+         * @param {str} $params->type $limit, or market
+         * @return An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure array of order structures}
+         */
+        return $this->fetch_orders_by_status('done', $symbol, $since, $limit, $params);
     }
 
     public function fetch_order($id = null, $symbol = null, $params = array ()) {
@@ -1256,6 +1456,11 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         // only fetches one balance at a time
         $defaultCode = $this->safe_string($this->options, 'code');
@@ -1287,17 +1492,14 @@ class kucoinfutures extends kucoin {
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         if (($toAccount !== 'main' && $toAccount !== 'funding') || ($fromAccount !== 'futures' && $fromAccount !== 'future' && $fromAccount !== 'contract')) {
-            throw new BadRequest($this->id . ' only supports transfers from contract(future) account to main(funding) account');
+            throw new BadRequest($this->id . ' transfer() only supports transfers from contract(future) account to main(funding) account');
         }
-        return $this->transfer_out($code, $amount, $params);
-    }
-
-    public function transfer_out($code, $amount, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
+        $amountToPrecision = $this->currency_to_precision($code, $amount);
         $request = array(
             'currency' => $this->safe_string($currency, 'id'), // Currency,including XBT,USDT
-            'amount' => $amount,
+            'amount' => $amountToPrecision,
         );
         // transfer from usdm futures wallet to spot wallet
         $response = $this->futuresPrivatePostTransferOut (array_merge($request, $params));
@@ -1310,18 +1512,40 @@ class kucoinfutures extends kucoin {
         //    }
         //
         $data = $this->safe_value($response, 'data');
-        $timestamp = $this->safe_string($data, 'updatedAt');
-        return array(
-            'info' => $response,
-            'id' => $this->safe_string($data, 'applyId'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'currency' => $code,
-            'amount' => $amount,
+        return array_merge($this->parse_transfer($data, $currency), array(
+            'amount' => $this->parse_number($amountToPrecision),
             'fromAccount' => 'future',
             'toAccount' => 'spot',
-            'status' => $this->safe_string($data, 'status'),
+        ));
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        // $transfer
+        //
+        //     {
+        //            "applyId" => "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
+        //     }
+        //
+        $timestamp = $this->safe_string($transfer, 'updatedAt');
+        return array(
+            'id' => $this->safe_string($transfer, 'applyId'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => $this->safe_string($transfer, 'status'),
+            'info' => $transfer,
         );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'PROCESSING' => 'pending',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1382,6 +1606,14 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of $trades to fetch
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1620,19 +1852,19 @@ class kucoinfutures extends kucoin {
         return $this->parse_transactions($responseData, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function fetch_funding_fee($code, $params = array ()) {
-        throw new BadRequest($this->id . ' has no method fetchFundingFee');
+    public function fetch_transaction_fee($code, $params = array ()) {
+        throw new BadRequest($this->id . ' fetchTransactionFee() is not supported yet');
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
-        throw new BadRequest($this->id . ' has no method fetchLedger');
+        throw new BadRequest($this->id . ' fetchLedger() is not supported yet');
     }
 
     public function fetch_market_leverage_tiers($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['contract']) {
-            throw new BadRequest($this->id . ' fetchLeverageTiers() supports contract markets only');
+            throw new BadRequest($this->id . ' fetchMarketLeverageTiers() supports contract markets only');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -1661,26 +1893,29 @@ class kucoinfutures extends kucoin {
 
     public function parse_market_leverage_tiers($info, $market) {
         /**
-            @param $info => Exchange $market response for 1 $market
-            {
-                "symbol" => "ETHUSDTM",
-                "level" => 1,
-                "maxRiskLimit" => 300000,
-                "minRiskLimit" => 0,
-                "maxLeverage" => 100,
-                "initialMargin" => 0.0100000000,
-                "maintainMargin" => 0.0050000000
-            }
-            @param $market => CCXT $market
-        */
+         * @ignore
+         * @param {dict} $info Exchange $market response for 1 $market
+         * @param {dict} $market CCXT $market
+         */
+        //
+        //    {
+        //        "symbol" => "ETHUSDTM",
+        //        "level" => 1,
+        //        "maxRiskLimit" => 300000,
+        //        "minRiskLimit" => 0,
+        //        "maxLeverage" => 100,
+        //        "initialMargin" => 0.0100000000,
+        //        "maintainMargin" => 0.0050000000
+        //    }
+        //
         $tiers = array();
         for ($i = 0; $i < count($info); $i++) {
             $tier = $info[$i];
             $tiers[] = array(
                 'tier' => $this->safe_number($tier, 'level'),
                 'currency' => $market['base'],
-                'notionalFloor' => $this->safe_number($tier, 'minRiskLimit'),
-                'notionalCap' => $this->safe_number($tier, 'maxRiskLimit'),
+                'minNotional' => $this->safe_number($tier, 'minRiskLimit'),
+                'maxNotional' => $this->safe_number($tier, 'maxRiskLimit'),
                 'maintenanceMarginRate' => $this->safe_number($tier, 'maintainMargin'),
                 'maxLeverage' => $this->safe_number($tier, 'maxLeverage'),
                 'info' => $tier,

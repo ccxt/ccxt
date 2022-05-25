@@ -40,14 +40,15 @@ class whitebit(Exchange):
                 'createLimitOrder': None,
                 'createMarketOrder': None,
                 'createOrder': True,
-                'deposit': None,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'editOrder': None,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
-                'fetchFundingFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -56,6 +57,7 @@ class whitebit(Exchange):
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
@@ -66,6 +68,8 @@ class whitebit(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransactionFees': True,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -173,6 +177,7 @@ class whitebit(Exchange):
                             'main-account/history',
                             'main-account/withdraw',
                             'main-account/withdraw-pay',
+                            'main-account/transfer',
                             'trade-account/balance',
                             'trade-account/executed-history',
                             'trade-account/order',
@@ -199,6 +204,14 @@ class whitebit(Exchange):
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
                 'fiatCurrencies': ['EUR', 'USD', 'RUB', 'UAH'],
+                'accountsByType': {
+                    'main': 'main',
+                    'spot': 'trade',
+                    'margin': 'margin',  # api does not suppot transfers to margin
+                },
+                'transfer': {
+                    'fillTransferResponseFromRequest': True,
+                },
             },
             'exceptions': {
                 'exact': {
@@ -225,6 +238,11 @@ class whitebit(Exchange):
         })
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for whitebit
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.v2PublicGetMarkets(params)
         #
         #    {
@@ -363,7 +381,7 @@ class whitebit(Exchange):
             }
         return result
 
-    def fetch_funding_fees(self, params={}):
+    def fetch_transaction_fees(self, codes=None, params={}):
         self.load_markets()
         response = self.v4PublicGetFee(params)
         #
@@ -447,6 +465,12 @@ class whitebit(Exchange):
         return result
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -474,36 +498,35 @@ class whitebit(Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
+        #
         #  FetchTicker(v1)
         #
-        #      {
-        #          "bid":"0.021979",
-        #          "ask":"0.021996",
-        #          "open":"0.02182",
-        #          "high":"0.022039",
-        #          "low":"0.02161",
-        #          "last":"0.021987",
-        #          "volume":"2810.267",
-        #          "deal":"61.383565474",
-        #          "change":"0.76",
-        #      }
+        #    {
+        #        "bid": "0.021979",
+        #        "ask": "0.021996",
+        #        "open": "0.02182",
+        #        "high": "0.022039",
+        #        "low": "0.02161",
+        #        "last": "0.021987",
+        #        "volume": "2810.267",
+        #        "deal": "61.383565474",
+        #        "change": "0.76",
+        #    }
         #
         # FetchTickers(v4)
         #
-        #      "BCH_RUB":{
-        #          "base_id":1831,
-        #          "quote_id":0,
-        #          "last_price":"32830.21",
-        #          "quote_volume":"1494659.8024096",
-        #          "base_volume":"46.1083",
-        #          "isFrozen":false,
-        #          "change":"2.12"  # in percent
-        #      },
+        #    "BCH_RUB": {
+        #        "base_id": 1831,
+        #        "quote_id": 0,
+        #        "last_price": "32830.21",
+        #        "quote_volume": "1494659.8024096",
+        #        "base_volume": "46.1083",
+        #        "isFrozen": False,
+        #        "change": "2.12"  # in percent
+        #    }
         #
         market = self.safe_market(None, market)
         last = self.safe_string(ticker, 'last_price')
-        change = self.safe_string(ticker, 'change')
-        percentage = Precise.string_mul(change, '0.01')
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': None,
@@ -520,7 +543,7 @@ class whitebit(Exchange):
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': percentage,
+            'percentage': self.safe_string(ticker, 'change'),
             'average': None,
             'baseVolume': self.safe_string_2(ticker, 'base_volume', 'volume'),
             'quoteVolume': self.safe_string_2(ticker, 'quote_volume', 'deal'),
@@ -528,6 +551,12 @@ class whitebit(Exchange):
         }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         response = self.v4PublicGetTicker(params)
         #
@@ -552,6 +581,13 @@ class whitebit(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -583,6 +619,14 @@ class whitebit(Exchange):
         return self.parse_order_book(response, symbol, timestamp)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -666,6 +710,15 @@ class whitebit(Exchange):
         }, market)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -727,13 +780,14 @@ class whitebit(Exchange):
         #          "pong"
         #      ]
         #
-        status = self.safe_string(response, 0, None)
-        status = 'maintenance' if (status is None) else 'ok'
-        self.status = self.extend(self.status, {
-            'status': status,
+        status = self.safe_string(response, 0)
+        return {
+            'status': 'ok' if (status == 'pong') else status,
             'updated': self.milliseconds(),
-        })
-        return self.status
+            'eta': None,
+            'url': None,
+            'info': response,
+        }
 
     def fetch_time(self, params={}):
         response = self.v4PublicGetTime(params)
@@ -773,7 +827,7 @@ class whitebit(Exchange):
         # aggregate common assignments regardless stop or not
         if type == 'limit' or type == 'stopLimit':
             if price is None:
-                raise ArgumentsRequired(self.id + ' createOrder requires a price argument for a stopLimit order')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for a stopLimit order')
             convertedPrice = self.price_to_precision(symbol, price)
             request['price'] = convertedPrice
         if type == 'market' or type == 'stopMarket':
@@ -790,7 +844,7 @@ class whitebit(Exchange):
                     cost = amount if (cost is None) else cost
                 request['amount'] = self.cost_to_precision(symbol, cost)
         if method is None:
-            raise ArgumentsRequired(self.id + 'Invalid type:  createOrder() requires one of the following order types: market, limit, stopLimit or stopMarket')
+            raise ArgumentsRequired(self.id + ' createOrder() requires one of the following order types: market, limit, stopLimit or stopMarket')
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_order(response)
 
@@ -819,6 +873,11 @@ class whitebit(Exchange):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         response = self.v4PrivatePostTradeAccountBalance(params)
         #
@@ -1097,6 +1156,53 @@ class whitebit(Exchange):
             'info': response,
         }
 
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        accountsByType = self.safe_value(self.options, 'accountsByType')
+        fromAccountId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toAccountId = self.safe_string(accountsByType, toAccount, toAccount)
+        type = None
+        if fromAccountId == 'main' and toAccountId == 'trade':
+            type = 'deposit'
+        elif fromAccountId == 'trade' and toAccountId == 'main':
+            type = 'withdraw'
+        if type is None:
+            raise ExchangeError(self.id + ' transfer() only allows transfers between main account and spot account')
+        request = {
+            'ticker': currency['id'],
+            'method': type,
+            'amount': self.currency_to_precision(code, amount),
+        }
+        response = self.v4PrivatePostMainAccountTransfer(self.extend(request, params))
+        #
+        #    []
+        #
+        transfer = self.parse_transfer(response, currency)
+        transferOptions = self.safe_value(self.options, 'transfer', {})
+        fillTransferResponseFromRequest = self.safe_value(transferOptions, 'fillTransferResponseFromRequest', True)
+        if fillTransferResponseFromRequest:
+            transfer['amount'] = amount
+            transfer['fromAccount'] = fromAccount
+            transfer['toAccount'] = toAccount
+        return transfer
+
+    def parse_transfer(self, transfer, currency):
+        #
+        #    []
+        #
+        return {
+            'info': transfer,
+            'id': None,
+            'timestamp': None,
+            'datetime': None,
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': 'pending',
+        }
+
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.load_markets()
         currency = self.currency(code)  # check if it has canDeposit
@@ -1114,7 +1220,7 @@ class whitebit(Exchange):
         if self.is_fiat(code):
             provider = self.safe_value(params, 'provider')
             if provider is None:
-                raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a provider when the ticker is fiat')
+                raise ArgumentsRequired(self.id + ' withdraw() requires a provider when the ticker is fiat')
             request['provider'] = provider
         response = self.v4PrivatePostMainAccountWithdraw(self.extend(request, params))
         #
@@ -1123,9 +1229,35 @@ class whitebit(Exchange):
         #
         #     []
         #
+        return self.extend({'id': uniqueId}, self.parse_transaction(response, currency))
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #     []
+        #
+        currency = self.safe_currency(None, currency)
         return {
-            'id': uniqueId,
-            'info': response,
+            'id': None,
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'amount': None,
+            'type': None,
+            'currency': currency['code'],
+            'status': None,
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': None,
+            'fee': None,
+            'info': transaction,
         }
 
     def is_fiat(self, currency):

@@ -57,7 +57,12 @@ class bitbns(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
+                'transfer': False,
+                'withdraw': False,
             },
             'timeframes': {
             },
@@ -162,16 +167,21 @@ class bitbns(Exchange):
         #         "code":200
         #     }
         #
-        status = self.safe_string(response, 'status')
-        if status is not None:
-            status = 'ok' if (status == '1') else 'maintenance'
-            self.status = self.extend(self.status, {
-                'status': status,
-                'updated': self.milliseconds(),
-            })
-        return self.status
+        statusRaw = self.safe_string(response, 'status')
+        return {
+            'status': self.safe_string({'1': 'ok'}, statusRaw, statusRaw),
+            'updated': self.milliseconds(),
+            'eta': None,
+            'url': None,
+            'info': response,
+        }
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bitbns
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.wwwGetOrderFetchMarkets(params)
         #
         #     [
@@ -264,6 +274,13 @@ class bitbns(Exchange):
         return result
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bitbns api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -351,6 +368,12 @@ class bitbns(Exchange):
         }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the bitbns api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         response = await self.wwwGetOrderFetchTickers(params)
         #
@@ -411,6 +434,11 @@ class bitbns(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the bitbns api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.v1PostCurrentCoinBalanceEVERYTHING(params)
         #
@@ -623,7 +651,7 @@ class bitbns(Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         quoteSide = 'usdtListOpenOrders' if (market['quoteId'] == 'USDT') else 'listOpenOrders'
@@ -731,7 +759,7 @@ class bitbns(Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -786,6 +814,14 @@ class bitbns(Exchange):
         return self.parse_trades(data, market, since, limit)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bitbns api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchTrades() requires a symbol argument')
         await self.load_markets()

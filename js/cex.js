@@ -28,7 +28,9 @@ module.exports = class cex extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDeposit': false,
                 'fetchDepositAddress': true,
+                'fetchDeposits': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -37,6 +39,7 @@ module.exports = class cex extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -47,6 +50,12 @@ module.exports = class cex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
+                'fetchWithdrawal': false,
+                'fetchWithdrawals': false,
+                'transfer': false,
+                'withdraw': false,
             },
             'timeframes': {
                 '1m': '1m',
@@ -144,6 +153,7 @@ module.exports = class cex extends Exchange {
                     'There was an error while placing your order': InvalidOrder,
                     'Sorry, too many clients already': DDoSProtection,
                     'Invalid Symbols Pair': BadSymbol,
+                    'Wrong currency pair': BadSymbol, // {"error":"There was an error while placing your order: Wrong currency pair.","safe":true}
                 },
             },
             'options': {
@@ -280,6 +290,13 @@ module.exports = class cex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name cex#fetchMarkets
+         * @description retrieves data on all markets for cex
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const currenciesResponse = await this.fetchCurrenciesFromCache (params);
         const currenciesData = this.safeValue (currenciesResponse, 'data', {});
         const currencies = this.safeValue (currenciesData, 'symbols', []);
@@ -405,12 +422,28 @@ module.exports = class cex extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name cex#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privatePostBalance (params);
         return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const request = {
             'pair': this.marketId (symbol),
@@ -445,6 +478,17 @@ module.exports = class cex extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (since === undefined) {
@@ -511,6 +555,14 @@ module.exports = class cex extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const currencies = Object.keys (this.currencies);
         const request = {
@@ -530,6 +582,14 @@ module.exports = class cex extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -576,6 +636,16 @@ module.exports = class cex extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1327,7 +1397,7 @@ module.exports = class cex extends Exchange {
     async fetchDepositAddress (code, params = {}) {
         if (code === 'XRP' || code === 'XLM') {
             // https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
-            throw new NotSupported (this.id + ' fetchDepositAddress does not support XRP and XLM addresses yet (awaiting docs from CEX.io)');
+            throw new NotSupported (this.id + ' fetchDepositAddress() does not support XRP and XLM addresses yet (awaiting docs from CEX.io)');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);

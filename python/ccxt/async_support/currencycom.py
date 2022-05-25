@@ -46,7 +46,9 @@ class currencycom(Exchange):
                 'createLimitOrder': True,
                 'createMarketOrder': True,
                 'createOrder': True,
-                'deposit': None,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'editOrder': 'emulated',
                 'fetchAccounts': True,
                 'fetchBalance': True,
@@ -64,8 +66,6 @@ class currencycom(Exchange):
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
-                'fetchFundingFee': None,
-                'fetchFundingFees': None,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -98,6 +98,8 @@ class currencycom(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTradingLimits': None,
+                'fetchTransactionFee': None,
+                'fetchTransactionFees': None,
                 'fetchTransactions': True,
                 'fetchTransfers': None,
                 'fetchWithdrawal': None,
@@ -258,12 +260,15 @@ class currencycom(Exchange):
                     'Combination of parameters invalid': BadRequest,
                     'Invalid limit price': BadRequest,
                     'Only leverage symbol allowed here:': BadSymbol,  # when you fetchLeverage for non-leverage symbols, like 'BTC/USDT' instead of 'BTC/USDT_LEVERAGE': {"code":"-1128","msg":"Only leverage symbol allowed here: BTC/USDT"}
+                    'market data service is not available': ExchangeNotAvailable,  # {"code":"-1021","msg":"market data service is not available"}
+                    'your time is ahead of server': InvalidNonce,  # {"code":"-1021","msg":"your time is ahead of server"}
                 },
                 'exact': {
                     '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     '-1013': InvalidOrder,  # createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
-                    '-1021': InvalidNonce,  # 'your time is ahead of server'
+                    # '-1021': InvalidNonce,  # {"code":"-1021","msg":"your time is ahead of server"}  # see above in the broad section
                     '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for self request is not valid."}
+                    '-1030': InvalidOrder,  # {"code":"-1030","msg":"You mentioned an invalid value for the price parameter."}
                     '-1100': InvalidOrder,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                     '-1104': ExchangeError,  # Not all sent parameters were read, read 8 parameters but was sent 9
                     '-1025': AuthenticationError,  # {"code":-1025,"msg":"Invalid API-key, IP, or permissions for action"}
@@ -369,6 +374,11 @@ class currencycom(Exchange):
         return result
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for currencycom
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.publicGetV2ExchangeInfo(params)
         #
         #     {
@@ -655,6 +665,11 @@ class currencycom(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the currencycom api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.privateGetV2Account(params)
         #
@@ -691,6 +706,13 @@ class currencycom(Exchange):
         return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the currencycom api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -797,6 +819,12 @@ class currencycom(Exchange):
         }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the currencycom api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -826,6 +854,12 @@ class currencycom(Exchange):
         return self.parse_ticker(response, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the currencycom api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         response = await self.publicGetV2Ticker24hr(params)
         #
@@ -869,6 +903,15 @@ class currencycom(Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the currencycom api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -965,6 +1008,14 @@ class currencycom(Exchange):
         }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the currencycom api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1622,7 +1673,8 @@ class currencycom(Exchange):
             'unrealizedProfit': unrealizedProfit,
             'leverage': leverage,
             'percentage': None,
-            'marginType': None,
+            'marginMode': None,
+            'marginType': None,  # deprecated
             'notional': None,
             'markPrice': None,
             'liquidationPrice': None,

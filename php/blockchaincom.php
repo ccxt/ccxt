@@ -30,6 +30,9 @@ class blockchaincom extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'fetchBalance' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
@@ -48,6 +51,7 @@ class blockchaincom extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => false,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -57,9 +61,12 @@ class blockchaincom extends Exchange {
                 'fetchTrades' => false,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => true, // fetches exchange specific benficiary-ids needed for withdrawals
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'timeframes' => null,
@@ -170,6 +177,11 @@ class blockchaincom extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for blockchaincom
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         //
         //     "USDC-GBP" => {
         //         "base_currency" => "USDC",
@@ -206,9 +218,9 @@ class blockchaincom extends Exchange {
             $active = null;
             $marketState = $this->safe_string($market, 'status');
             if ($marketState === 'open') {
-                $active = 'true';
+                $active = true;
             } else {
-                $active = 'false';
+                $active = false;
             }
             // price precision
             $minPriceIncrementString = $this->safe_string($market, 'min_price_increment');
@@ -293,6 +305,13 @@ class blockchaincom extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the blockchaincom api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         */
         return $this->fetch_l3_order_book($symbol, $limit, $params);
     }
 
@@ -359,6 +378,12 @@ class blockchaincom extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the blockchaincom api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -369,6 +394,12 @@ class blockchaincom extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the blockchaincom api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
         $this->load_markets();
         $tickers = $this->publicGetTickers ($params);
         return $this->parse_tickers($tickers, $symbols);
@@ -463,7 +494,7 @@ class blockchaincom extends Exchange {
         );
         $stopPrice = $this->safe_value_2($params, 'stopPx', 'stopPrice');
         $params = $this->omit($params, array( 'stopPx', 'stopPrice' ));
-        if ($uppercaseOrderType === 'STOP' || $uppercaseOrderType === 'LIMIT') {
+        if ($uppercaseOrderType === 'STOP' || $uppercaseOrderType === 'STOPLIMIT') {
             if ($stopPrice === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPx or $stopPrice param for a ' . $uppercaseOrderType . ' order');
             }
@@ -783,10 +814,10 @@ class blockchaincom extends Exchange {
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
-        $currencyid = $this->currencyId ($code);
+        $currency = $this->currency($code);
         $request = array(
             'amount' => $amount,
-            'currency' => $currencyid,
+            'currency' => $currency['id'],
             // 'beneficiary' => address/id,
             'sendMax' => false,
         );
@@ -794,20 +825,15 @@ class blockchaincom extends Exchange {
         //
         //     array(
         //         $amount => "30.0",
-        //         currency => "USDT",
+        //         $currency => "USDT",
         //         beneficiary => "adcd43fb-9ba6-41f7-8c0d-7013482cb88f",
-        //         $withdrawalId => "99df5ef7-eab6-4033-be49-312930fbd1ea",
+        //         withdrawalId => "99df5ef7-eab6-4033-be49-312930fbd1ea",
         //         fee => "34.005078",
         //         state => "PENDING",
         //         timestamp => "1634218452595"
         //     ),
         //
-        $withdrawalId = $this->safe_string($response, 'withdrawalId');
-        $result = array(
-            'info' => $response,
-            'id' => $withdrawalId,
-        );
-        return $result;
+        return $this->parse_transaction($response, $currency);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
@@ -856,6 +882,11 @@ class blockchaincom extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the blockchaincom api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $accountName = $this->safe_string($params, 'account', 'primary');
         $params = $this->omit($params, 'account');

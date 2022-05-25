@@ -129,6 +129,13 @@ module.exports = class bitflyer extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name bitflyer#fetchMarkets
+         * @description retrieves data on all markets for bitflyer
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const jp_markets = await this.publicGetGetmarkets (params);
         //
         //     [
@@ -288,6 +295,13 @@ module.exports = class bitflyer extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name bitflyer#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the bitflyer api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privateGetGetbalance (params);
         //
@@ -313,6 +327,15 @@ module.exports = class bitflyer extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitflyer#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the bitflyer api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const request = {
             'product_code': this.marketId (symbol),
@@ -350,6 +373,14 @@ module.exports = class bitflyer extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name bitflyer#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the bitflyer api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -423,6 +454,16 @@ module.exports = class bitflyer extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitflyer#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the bitflyer api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -643,11 +684,12 @@ module.exports = class bitflyer extends Exchange {
             // 'bank_account_id': 1234,
         };
         const response = await this.privatePostWithdraw (this.extend (request, params));
-        const id = this.safeString (response, 'message_id');
-        return {
-            'info': response,
-            'id': id,
-        };
+        //
+        //     {
+        //         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
+        //     }
+        //
+        return this.parseTransaction (response, currency);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -661,18 +703,20 @@ module.exports = class bitflyer extends Exchange {
             request['count'] = limit; // default 100
         }
         const response = await this.privateGetGetcoinins (this.extend (request, params));
-        // [
-        //   {
-        //     "id": 100,
-        //     "order_id": "CDP20151227-024141-055555",
-        //     "currency_code": "BTC",
-        //     "amount": 0.00002,
-        //     "address": "1WriteySQufKZ2pVuM1oMhPrTtTVFq35j",
-        //     "tx_hash": "9f92ee65a176bb9545f7becb8706c50d07d4cee5ffca34d8be3ef11d411405ae",
-        //     "status": "COMPLETED",
-        //     "event_date": "2015-11-27T08:59:20.301"
-        //   }
-        // ]
+        //
+        //     [
+        //         {
+        //             "id": 100,
+        //             "order_id": "CDP20151227-024141-055555",
+        //             "currency_code": "BTC",
+        //             "amount": 0.00002,
+        //             "address": "1WriteySQufKZ2pVuM1oMhPrTtTVFq35j",
+        //             "tx_hash": "9f92ee65a176bb9545f7becb8706c50d07d4cee5ffca34d8be3ef11d411405ae",
+        //             "status": "COMPLETED",
+        //             "event_date": "2015-11-27T08:59:20.301"
+        //         }
+        //     ]
+        //
         return this.parseTransactions (response, currency, since, limit);
     }
 
@@ -688,20 +732,20 @@ module.exports = class bitflyer extends Exchange {
         }
         const response = await this.privateGetGetcoinouts (this.extend (request, params));
         //
-        // [
-        //   {
-        //     "id": 500,
-        //     "order_id": "CWD20151224-014040-077777",
-        //     "currency_code": "BTC",
-        //     "amount": 0.1234,
-        //     "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
-        //     "tx_hash": "724c07dfd4044abcb390b0412c3e707dd5c4f373f0a52b3bd295ce32b478c60a",
-        //     "fee": 0.0005,
-        //     "additional_fee": 0.0001,
-        //     "status": "COMPLETED",
-        //     "event_date": "2015-12-24T01:40:40.397"
-        //   }
-        // ]
+        //     [
+        //         {
+        //             "id": 500,
+        //             "order_id": "CWD20151224-014040-077777",
+        //             "currency_code": "BTC",
+        //             "amount": 0.1234,
+        //             "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+        //             "tx_hash": "724c07dfd4044abcb390b0412c3e707dd5c4f373f0a52b3bd295ce32b478c60a",
+        //             "fee": 0.0005,
+        //             "additional_fee": 0.0001,
+        //             "status": "COMPLETED",
+        //             "event_date": "2015-12-24T01:40:40.397"
+        //         }
+        //     ]
         //
         return this.parseTransactions (response, currency, since, limit);
     }
@@ -726,33 +770,39 @@ module.exports = class bitflyer extends Exchange {
         //
         // fetchDeposits
         //
-        //   {
-        //     "id": 100,
-        //     "order_id": "CDP20151227-024141-055555",
-        //     "currency_code": "BTC",
-        //     "amount": 0.00002,
-        //     "address": "1WriteySQufKZ2pVuM1oMhPrTtTVFq35j",
-        //     "tx_hash": "9f92ee65a176bb9545f7becb8706c50d07d4cee5ffca34d8be3ef11d411405ae",
-        //     "status": "COMPLETED",
-        //     "event_date": "2015-11-27T08:59:20.301"
-        //   }
+        //     {
+        //         "id": 100,
+        //         "order_id": "CDP20151227-024141-055555",
+        //         "currency_code": "BTC",
+        //         "amount": 0.00002,
+        //         "address": "1WriteySQufKZ2pVuM1oMhPrTtTVFq35j",
+        //         "tx_hash": "9f92ee65a176bb9545f7becb8706c50d07d4cee5ffca34d8be3ef11d411405ae",
+        //         "status": "COMPLETED",
+        //         "event_date": "2015-11-27T08:59:20.301"
+        //     }
         //
         // fetchWithdrawals
         //
-        //   {
-        //     "id": 500,
-        //     "order_id": "CWD20151224-014040-077777",
-        //     "currency_code": "BTC",
-        //     "amount": 0.1234,
-        //     "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
-        //     "tx_hash": "724c07dfd4044abcb390b0412c3e707dd5c4f373f0a52b3bd295ce32b478c60a",
-        //     "fee": 0.0005,
-        //     "additional_fee": 0.0001,
-        //     "status": "COMPLETED",
-        //     "event_date": "2015-12-24T01:40:40.397"
-        //   }
+        //     {
+        //         "id": 500,
+        //         "order_id": "CWD20151224-014040-077777",
+        //         "currency_code": "BTC",
+        //         "amount": 0.1234,
+        //         "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+        //         "tx_hash": "724c07dfd4044abcb390b0412c3e707dd5c4f373f0a52b3bd295ce32b478c60a",
+        //         "fee": 0.0005,
+        //         "additional_fee": 0.0001,
+        //         "status": "COMPLETED",
+        //         "event_date": "2015-12-24T01:40:40.397"
+        //     }
         //
-        const id = this.safeString (transaction, 'id');
+        // withdraw
+        //
+        //     {
+        //         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
+        //     }
+        //
+        const id = this.safeString2 (transaction, 'id', 'message_id');
         const address = this.safeString (transaction, 'address');
         const currencyId = this.safeString (transaction, 'currency_code');
         const code = this.safeCurrencyCode (currencyId, currency);

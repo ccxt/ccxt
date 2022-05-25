@@ -23,9 +23,7 @@ const ccxt = require ('../../ccxt.js')
 
         // instantiate each exchange and save it to the exchanges list
 
-        .map (id => new ccxt[id] ({
-            'enableRateLimit': true,
-        }))
+        .map (id => new ccxt[id] ())
 
     // the worker function for each "async thread"
     const worker = async function () {

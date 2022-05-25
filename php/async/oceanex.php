@@ -45,7 +45,6 @@ class oceanex extends Exchange {
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
-                'fetchFundingFees' => null,
                 'fetchMarkets' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -60,6 +59,7 @@ class oceanex extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTradingLimits' => null,
+                'fetchTransactionFees' => null,
             ),
             'timeframes' => array(
                 '1m' => '1',
@@ -144,6 +144,11 @@ class oceanex extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for oceanex
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $request = array( 'show_details' => true );
         $response = yield $this->publicGetMarkets (array_merge($request, $params));
         //
@@ -226,6 +231,12 @@ class oceanex extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the oceanex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -254,6 +265,12 @@ class oceanex extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the oceanex api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         yield $this->load_markets();
         if ($symbols === null) {
             $symbols = $this->symbols;
@@ -332,6 +349,13 @@ class oceanex extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the oceanex api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -414,6 +438,14 @@ class oceanex extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the oceanex api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -423,11 +455,43 @@ class oceanex extends Exchange {
             $request['limit'] = $limit;
         }
         $response = yield $this->publicGetTrades (array_merge($request, $params));
+        //
+        //      {
+        //          "code":0,
+        //          "message":"Operation successful",
+        //          "data" => array(
+        //              array(
+        //                  "id":220247666,
+        //                  "price":"3098.62",
+        //                  "volume":"0.00196",
+        //                  "funds":"6.0732952",
+        //                  "market":"ethusdt",
+        //                  "created_at":"2022-04-19T19:03:15Z",
+        //                  "created_on":1650394995,
+        //                  "side":"bid"
+        //              ),
+        //          )
+        //      }
+        //
         $data = $this->safe_value($response, 'data');
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "id":220247666,
+        //          "price":"3098.62",
+        //          "volume":"0.00196",
+        //          "funds":"6.0732952",
+        //          "market":"ethusdt",
+        //          "created_at":"2022-04-19T19:03:15Z",
+        //          "created_on":1650394995,
+        //          "side":"bid"
+        //      }
+        //
         $side = $this->safe_value($trade, 'side');
         if ($side === 'bid') {
             $side = 'buy';
@@ -440,7 +504,9 @@ class oceanex extends Exchange {
         if ($timestamp === null) {
             $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         }
-        return array(
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'volume');
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -450,11 +516,11 @@ class oceanex extends Exchange {
             'type' => 'limit',
             'takerOrMaker' => null,
             'side' => $side,
-            'price' => $this->safe_number($trade, 'price'),
-            'amount' => $this->safe_number($trade, 'volume'),
+            'price' => $priceString,
+            'amount' => $amountString,
             'cost' => null,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function fetch_time($params = array ()) {
@@ -508,6 +574,11 @@ class oceanex extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the oceanex api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         yield $this->load_markets();
         $response = yield $this->privateGetMembersMe ($params);
         return $this->parse_balance($response);
@@ -618,6 +689,15 @@ class oceanex extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the oceanex api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(

@@ -36,7 +36,6 @@ module.exports = class zonda extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchIsolatedPositions': false,
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
@@ -44,6 +43,7 @@ module.exports = class zonda extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
@@ -58,6 +58,7 @@ module.exports = class zonda extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -217,6 +218,9 @@ module.exports = class zonda extends Exchange {
             },
             'options': {
                 'fiatCurrencies': [ 'EUR', 'USD', 'GBP', 'PLN' ],
+                'transfer': {
+                    'fillResponseFromRequest': true,
+                },
             },
             'exceptions': {
                 '400': ExchangeError, // At least one parameter wasn't set
@@ -253,6 +257,13 @@ module.exports = class zonda extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchMarkets
+         * @description retrieves data on all markets for zonda
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.v1_01PublicGetTradingTicker (params);
         const fiatCurrencies = this.safeValue (this.options, 'fiatCurrencies', []);
         //
@@ -461,12 +472,28 @@ module.exports = class zonda extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the zonda api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const response = await this.v1_01PrivateGetBalancesBITBAYBalance (params);
         return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the zonda api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const request = {
             'symbol': this.marketId (symbol),
@@ -544,6 +571,14 @@ module.exports = class zonda extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the zonda api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -940,6 +975,17 @@ module.exports = class zonda extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the zonda api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
@@ -1055,6 +1101,16 @@ module.exports = class zonda extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the zonda api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
@@ -1076,6 +1132,7 @@ module.exports = class zonda extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
+        amount = parseFloat (this.amountToPrecision (symbol, amount));
         const request = {
             'symbol': tradingSymbol,
             'offerType': side,
@@ -1084,9 +1141,8 @@ module.exports = class zonda extends Exchange {
         };
         if (type === 'limit') {
             request['rate'] = price;
-            price = parseFloat (price);
+            price = parseFloat (this.priceToPrecision (symbol, price));
         }
-        amount = parseFloat (amount);
         const response = await this.v1_01PrivatePostTradingOfferSymbol (this.extend (request, params));
         //
         // unfilled (open order)
@@ -1220,6 +1276,109 @@ module.exports = class zonda extends Exchange {
         return this.safeValue (fiatCurrencies, currency, false);
     }
 
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'source': fromAccount,
+            'destination': toAccount,
+            'currency': code,
+            'funds': this.currencyToPrecision (code, amount),
+        };
+        const response = await this.v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination (this.extend (request, params));
+        //
+        //     {
+        //         "status": "Ok",
+        //         "from": {
+        //             "id": "ad9397c5-3bd9-4372-82ba-22da6a90cb56",
+        //             "userId": "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        //             "availableFunds": 0.01803472,
+        //             "totalFunds": 0.01804161,
+        //             "lockedFunds": 0.00000689,
+        //             "currency": "BTC",
+        //             "type": "CRYPTO",
+        //             "name": "BTC",
+        //             "balanceEngine": "BITBAY"
+        //         },
+        //         "to": {
+        //             "id": "01931d52-536b-4ca5-a9f4-be28c86d0cc3",
+        //             "userId": "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        //             "availableFunds": 0.0001,
+        //             "totalFunds": 0.0001,
+        //             "lockedFunds": 0,
+        //             "currency": "BTC",
+        //             "type": "CRYPTO",
+        //             "name": "Prowizja",
+        //             "balanceEngine": "BITBAY"
+        //         },
+        //         "errors": null
+        //     }
+        //
+        const transfer = this.parseTransfer (response, currency);
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            transfer['amount'] = amount;
+        }
+        return transfer;
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         "status": "Ok",
+        //         "from": {
+        //             "id": "ad9397c5-3bd9-4372-82ba-22da6a90cb56",
+        //             "userId": "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        //             "availableFunds": 0.01803472,
+        //             "totalFunds": 0.01804161,
+        //             "lockedFunds": 0.00000689,
+        //             "currency": "BTC",
+        //             "type": "CRYPTO",
+        //             "name": "BTC",
+        //             "balanceEngine": "BITBAY"
+        //         },
+        //         "to": {
+        //             "id": "01931d52-536b-4ca5-a9f4-be28c86d0cc3",
+        //             "userId": "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        //             "availableFunds": 0.0001,
+        //             "totalFunds": 0.0001,
+        //             "lockedFunds": 0,
+        //             "currency": "BTC",
+        //             "type": "CRYPTO",
+        //             "name": "Prowizja",
+        //             "balanceEngine": "BITBAY"
+        //         },
+        //         "errors": null
+        //     }
+        //
+        const status = this.safeString (transfer, 'status');
+        const fromAccount = this.safeValue (transfer, 'from', {});
+        const fromId = this.safeString (fromAccount, 'id');
+        const to = this.safeValue (transfer, 'to', {});
+        const toId = this.safeString (to, 'id');
+        const currencyId = this.safeString (fromAccount, 'currency');
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': undefined,
+            'fromAccount': fromId,
+            'toAccount': toId,
+            'status': this.parseTransferStatus (status),
+        };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'Ok': 'ok',
+            'Fail': 'failed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
@@ -1243,9 +1402,47 @@ module.exports = class zonda extends Exchange {
             request['address'] = address;
         }
         const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "status": "Ok",
+        //         "data": {
+        //           "id": "65e01087-afb0-4ab2-afdb-cc925e360296"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseTransaction (data, currency);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "id": "65e01087-afb0-4ab2-afdb-cc925e360296"
+        //     }
+        //
+        currency = this.safeCurrency (undefined, currency);
         return {
-            'info': response,
-            'id': undefined,
+            'id': this.safeString (transaction, 'id'),
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': undefined,
+            'type': undefined,
+            'currency': currency['code'],
+            'status': undefined,
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+            'info': transaction,
         };
     }
 

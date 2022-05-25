@@ -33,6 +33,7 @@ class bitopro(Exchange):
                 'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
                 'createOrder': True,
                 'editOrder': False,
                 'fetchBalance': True,
@@ -44,7 +45,6 @@ class bitopro(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': False,
                 'fetchDeposits': True,
-                'fetchFundingFees': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -54,6 +54,7 @@ class bitopro(Exchange):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -67,11 +68,15 @@ class bitopro(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransactionFees': False,
                 'fetchTransactions': False,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'setLeverage': False,
                 'setMarginMode': False,
+                'transfer': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -250,6 +255,11 @@ class bitopro(Exchange):
         return result
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bitopro
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.publicGetProvisioningTradingPairs()
         markets = self.safe_value(response, 'data', [])
         #
@@ -276,10 +286,10 @@ class bitopro(Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             active = not self.safe_value(market, 'maintain')
-            pair = self.safe_string(market, 'pair')
+            id = self.safe_string(market, 'pair')
+            uppercaseId = id.upper()
             baseId = self.safe_string(market, 'base')
             quoteId = self.safe_string(market, 'quote')
-            id = pair
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
@@ -307,6 +317,7 @@ class bitopro(Exchange):
             }
             result.append({
                 'id': id,
+                'uppercaseId': uppercaseId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -375,6 +386,12 @@ class bitopro(Exchange):
         }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bitopro api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -398,6 +415,12 @@ class bitopro(Exchange):
         return self.parse_ticker(ticker, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the bitopro api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         response = await self.publicGetTickers()
         tickers = self.safe_value(response, 'data', [])
@@ -419,6 +442,13 @@ class bitopro(Exchange):
         return self.parse_tickers(tickers, symbols)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bitopro api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         request = {
             'pair': self.market_id(symbol),
@@ -528,6 +558,14 @@ class bitopro(Exchange):
         }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bitopro api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -641,6 +679,15 @@ class bitopro(Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the bitopro api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         resolution = self.timeframes[timeframe]
@@ -742,6 +789,11 @@ class bitopro(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the bitopro api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.privateGetAccountsBalance(params)
         balances = self.safe_value(response, 'data', [])
@@ -911,6 +963,27 @@ class bitopro(Exchange):
         #     }
         #
         return self.parse_order(response, market)
+
+    async def cancel_orders(self, ids, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        id = market['uppercaseId']
+        request = {}
+        request[id] = ids
+        response = await self.privatePutOrders(self.extend(request, params))
+        #
+        #     {
+        #         "data":{
+        #             "BNB_TWD":[
+        #                 "5236347105",
+        #                 "359488711"
+        #             ]
+        #         }
+        #     }
+        #
+        return response
 
     async def cancel_all_orders(self, symbol=None, params={}):
         await self.load_markets()
@@ -1303,7 +1376,7 @@ class bitopro(Exchange):
         headers['X-BITOPRO-API'] = 'ccxt'
         if api == 'private':
             self.check_required_credentials()
-            if method == 'POST':
+            if method == 'POST' or method == 'PUT':
                 body = self.json(params)
                 payload = self.string_to_base64(body)
                 signature = self.hmac(payload, self.encode(self.secret), hashlib.sha384)

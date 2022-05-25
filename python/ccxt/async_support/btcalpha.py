@@ -38,17 +38,19 @@ class btcalpha(Exchange):
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchDeposit': False,
+                'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -61,10 +63,16 @@ class btcalpha(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'fetchWithdrawal': False,
+                'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': False,
+                'withdraw': False,
             },
             'timeframes': {
                 '1m': '1',
@@ -129,6 +137,11 @@ class btcalpha(Exchange):
         })
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for btcalpha
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.publicGetPairs(params)
         #
         #    [
@@ -207,6 +220,13 @@ class btcalpha(Exchange):
         return result
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the btcalpha api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         request = {
             'pair_name': self.market_id(symbol),
@@ -274,6 +294,14 @@ class btcalpha(Exchange):
         }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the btcalpha api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = None
         request = {}
@@ -284,6 +312,97 @@ class btcalpha(Exchange):
             request['limit'] = limit
         trades = await self.publicGetExchanges(self.extend(request, params))
         return self.parse_trades(trades, market, since, limit)
+
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        response = await self.privateGetDeposits(params)
+        #
+        #     [
+        #         {
+        #             "timestamp": 1485363039.18359,
+        #             "id": 317,
+        #             "currency": "BTC",
+        #             "amount": 530.00000000
+        #         }
+        #     ]
+        #
+        return self.parse_transactions(response, code, since, limit, {'type': 'deposit'})
+
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['currency_id'] = currency['id']
+        response = await self.privateGetWithdraws(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "id": 403,
+        #             "timestamp": 1485363466.868539,
+        #             "currency": "BTC",
+        #             "amount": 0.53000000,
+        #             "status": 20
+        #         }
+        #     ]
+        #
+        return self.parse_transactions(response, code, since, limit, {'type': 'withdrawal'})
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        #  deposit
+        #      {
+        #          "timestamp": 1485363039.18359,
+        #          "id": 317,
+        #          "currency": "BTC",
+        #          "amount": 530.00000000
+        #      }
+        #
+        #  withdrawal
+        #      {
+        #          "id": 403,
+        #          "timestamp": 1485363466.868539,
+        #          "currency": "BTC",
+        #          "amount": 0.53000000,
+        #          "status": 20
+        #      }
+        #
+        timestamp = self.safe_string(transaction, 'timestamp')
+        timestamp = Precise.string_mul(timestamp, '1000')
+        currencyId = self.safe_string(transaction, 'currency')
+        statusId = self.safe_string(transaction, 'status')
+        return {
+            'id': self.safe_string(transaction, 'id'),
+            'info': transaction,
+            'timestamp': self.parse_number(timestamp),
+            'datetime': self.iso8601(timestamp),
+            'network': None,
+            'address': None,
+            'addressTo': None,
+            'addressFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(transaction, 'amount'),
+            'txid': None,
+            'type': None,
+            'status': self.parse_transaction_status(statusId),
+            'comment': None,
+            'fee': None,
+            'updated': None,
+        }
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            '10': 'pending',  # New
+            '20': 'pending',  # Verified, waiting for approving
+            '30': 'ok',       # Approved by moderator
+            '40': 'failed',   # Refused by moderator. See your email for more details
+            '50': 'canceled',  # Cancelled by user
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -306,6 +425,15 @@ class btcalpha(Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the btcalpha api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -339,6 +467,11 @@ class btcalpha(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the btcalpha api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.privateGetWallets(params)
         return self.parse_balance(response)

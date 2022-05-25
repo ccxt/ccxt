@@ -8,14 +8,16 @@ const testBalance = require ('./test.balance.js')
 
 module.exports = async (exchange) => {
 
-    if (!(exchange.has.fetchBalance)) {
-        console.log (exchange.id, ' does not have fetchBalance')
+    const method = 'fetchBalance'
+
+    if (!(exchange.has[method])) {
+        console.log (exchange.id, method + '() is not supported')
         return
     }
 
     console.log ('fetching balance...')
 
-    const response = await exchange.fetchBalance ()
+    const response = await exchange[method] ()
 
     testBalance (exchange, response)
 

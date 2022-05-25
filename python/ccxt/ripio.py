@@ -14,7 +14,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.decimal_to_precision import TICK_SIZE
-from ccxt.base.precise import Precise
 
 
 class ripio(Exchange):
@@ -52,11 +51,11 @@ class ripio(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -152,6 +151,11 @@ class ripio(Exchange):
         })
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for ripio
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.publicGetPair(params)
         #
         #     {
@@ -359,6 +363,12 @@ class ripio(Exchange):
         }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the ripio api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -388,6 +398,12 @@ class ripio(Exchange):
         return self.parse_ticker(response, market)
 
     def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the ripio api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         response = self.publicGetRateAll(params)
         #
@@ -420,6 +436,13 @@ class ripio(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the ripio api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         request = {
             'pair': self.market_id(symbol),
@@ -446,7 +469,22 @@ class ripio(Exchange):
 
     def parse_trade(self, trade, market=None):
         #
-        # public fetchTrades, private fetchMyTrades
+        #
+        # fetchTrades(public)
+        #
+        #      {
+        #          "created_at":1649899167,
+        #          "amount":"0.00852",
+        #          "price":"3106.000000",
+        #          "side":"SELL",
+        #          "pair":"ETH_USDC",
+        #          "taker_fee":"0",
+        #          "taker_side":"SELL",
+        #          "maker_fee":"0"
+        #      }
+        #
+        #
+        # fetchMyTrades(private)
         #
         #     {
         #         "created_at":1601322501,
@@ -482,20 +520,17 @@ class ripio(Exchange):
             side = side.lower()
         priceString = self.safe_string_2(trade, 'price', 'match_price')
         amountString = self.safe_string_2(trade, 'amount', 'exchanged')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         marketId = self.safe_string(trade, 'pair')
         market = self.safe_market(marketId, market)
-        feeCost = self.safe_number(trade, takerOrMaker + '_fee')
+        feeCostString = self.safe_string(trade, takerOrMaker + '_fee')
         orderId = self.safe_string(trade, takerOrMaker)
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': market['base'] if (side == 'buy') else market['quote'],
             }
-        return {
+        return self.safe_trade({
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
@@ -503,15 +538,23 @@ class ripio(Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
             'info': trade,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the ripio api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -519,20 +562,18 @@ class ripio(Exchange):
         }
         response = self.publicGetTradehistoryPair(self.extend(request, params))
         #
-        #     [
-        #         {
-        #             "created_at":1601322501,
-        #             "amount":"0.00276",
-        #             "price":"10850.020000",
-        #             "side":"SELL",
-        #             "pair":"BTC_USDC",
-        #             "taker_fee":"0",
-        #             "taker_side":"SELL",
-        #             "maker_fee":"0",
-        #             "taker":2577953,
-        #             "maker":2577937
-        #         }
-        #     ]
+        #      [
+        #          {
+        #              "created_at":1649899167,
+        #              "amount":"0.00852",
+        #              "price":"3106.000000",
+        #              "side":"SELL",
+        #              "pair":"ETH_USDC",
+        #              "taker_fee":"0",
+        #              "taker_side":"SELL",
+        #              "maker_fee":"0"
+        #          }
+        #      ]
         #
         return self.parse_trades(response, market, since, limit)
 
@@ -599,6 +640,11 @@ class ripio(Exchange):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the ripio api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         response = self.privateGetBalancesExchangeBalances(params)
         #

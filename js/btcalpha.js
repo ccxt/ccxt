@@ -33,17 +33,19 @@ module.exports = class btcalpha extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchDeposit': false,
+                'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -56,10 +58,16 @@ module.exports = class btcalpha extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
+                'fetchWithdrawal': false,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': false,
+                'withdraw': false,
             },
             'timeframes': {
                 '1m': '1',
@@ -125,6 +133,13 @@ module.exports = class btcalpha extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name btcalpha#fetchMarkets
+         * @description retrieves data on all markets for btcalpha
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetPairs (params);
         //
         //    [
@@ -205,6 +220,15 @@ module.exports = class btcalpha extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name btcalpha#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the btcalpha api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const request = {
             'pair_name': this.marketId (symbol),
@@ -278,6 +302,16 @@ module.exports = class btcalpha extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name btcalpha#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the btcalpha api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
@@ -290,6 +324,102 @@ module.exports = class btcalpha extends Exchange {
         }
         const trades = await this.publicGetExchanges (this.extend (request, params));
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetDeposits (params);
+        //
+        //     [
+        //         {
+        //             "timestamp": 1485363039.18359,
+        //             "id": 317,
+        //             "currency": "BTC",
+        //             "amount": 530.00000000
+        //         }
+        //     ]
+        //
+        return this.parseTransactions (response, code, since, limit, { 'type': 'deposit' });
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency_id'] = currency['id'];
+        }
+        const response = await this.privateGetWithdraws (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": 403,
+        //             "timestamp": 1485363466.868539,
+        //             "currency": "BTC",
+        //             "amount": 0.53000000,
+        //             "status": 20
+        //         }
+        //     ]
+        //
+        return this.parseTransactions (response, code, since, limit, { 'type': 'withdrawal' });
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //  deposit
+        //      {
+        //          "timestamp": 1485363039.18359,
+        //          "id": 317,
+        //          "currency": "BTC",
+        //          "amount": 530.00000000
+        //      }
+        //
+        //  withdrawal
+        //      {
+        //          "id": 403,
+        //          "timestamp": 1485363466.868539,
+        //          "currency": "BTC",
+        //          "amount": 0.53000000,
+        //          "status": 20
+        //      }
+        //
+        let timestamp = this.safeString (transaction, 'timestamp');
+        timestamp = Precise.stringMul (timestamp, '1000');
+        const currencyId = this.safeString (transaction, 'currency');
+        const statusId = this.safeString (transaction, 'status');
+        return {
+            'id': this.safeString (transaction, 'id'),
+            'info': transaction,
+            'timestamp': this.parseNumber (timestamp),
+            'datetime': this.iso8601 (timestamp),
+            'network': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transaction, 'amount'),
+            'txid': undefined,
+            'type': undefined,
+            'status': this.parseTransactionStatus (statusId),
+            'comment': undefined,
+            'fee': undefined,
+            'updated': undefined,
+        };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            '10': 'pending',  // New
+            '20': 'pending',  // Verified, waiting for approving
+            '30': 'ok',       // Approved by moderator
+            '40': 'failed',   // Refused by moderator. See your email for more details
+            '50': 'canceled', // Cancelled by user
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -314,6 +444,17 @@ module.exports = class btcalpha extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name btcalpha#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the btcalpha api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -352,6 +493,13 @@ module.exports = class btcalpha extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name btcalpha#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the btcalpha api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privateGetWallets (params);
         return this.parseBalance (response);

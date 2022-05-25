@@ -53,6 +53,7 @@ class liquid(Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchWithdrawals': True,
+                'transfer': False,
                 'withdraw': True,
             },
             'urls': {
@@ -74,7 +75,7 @@ class liquid(Exchange):
                         'products/{id}/price_levels',
                         'executions',
                         'ir_ladders/{currency}',
-                        'fees',  # add fetchFees, fetchTradingFees, fetchFundingFees
+                        'fees',  # add fetchFees, fetchTradingFees, fetchTransactionFees
                     ],
                 },
                 'private': {
@@ -308,6 +309,11 @@ class liquid(Exchange):
         return result
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for liquid
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         spot = await self.publicGetProducts(params)
         #
         #     [
@@ -521,6 +527,11 @@ class liquid(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.privateGetAccounts(params)
         #
@@ -560,6 +571,13 @@ class liquid(Exchange):
         return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         request = {
             'id': self.market_id(symbol),
@@ -607,6 +625,12 @@ class liquid(Exchange):
         }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         response = await self.publicGetProducts(params)
         result = {}
@@ -617,6 +641,12 @@ class liquid(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -663,6 +693,14 @@ class liquid(Exchange):
         }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1135,11 +1173,14 @@ class liquid(Exchange):
             else:
                 raise NotSupported(self.id + ' withdraw() only supports a tag along the address for XRP or XLM')
         networks = self.safe_value(self.options, 'networks', {})
-        paramsCwArray = self.safe_value(params, 'crypto_withdrawal', {})
-        network = self.safe_string_upper(paramsCwArray, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        if network is None:
+            paramsCwArray = self.safe_value(params, 'crypto_withdrawal', {})
+            network = self.safe_string_upper(paramsCwArray, 'network')
         network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
         if network is not None:
             request['crypto_withdrawal']['network'] = network
+            params = self.omit(params, 'network')
             params['crypto_withdrawal'] = self.omit(params['crypto_withdrawal'], 'network')
         response = await self.privatePostCryptoWithdrawals(self.deep_extend(request, params))
         #

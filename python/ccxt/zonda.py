@@ -49,7 +49,6 @@ class zonda(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLedger': True,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
@@ -57,6 +56,7 @@ class zonda(Exchange):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
@@ -71,6 +71,7 @@ class zonda(Exchange):
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -230,6 +231,9 @@ class zonda(Exchange):
             },
             'options': {
                 'fiatCurrencies': ['EUR', 'USD', 'GBP', 'PLN'],
+                'transfer': {
+                    'fillResponseFromRequest': True,
+                },
             },
             'exceptions': {
                 '400': ExchangeError,  # At least one parameter wasn't set
@@ -265,6 +269,11 @@ class zonda(Exchange):
         })
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for zonda
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.v1_01PublicGetTradingTicker(params)
         fiatCurrencies = self.safe_value(self.options, 'fiatCurrencies', [])
         #
@@ -462,11 +471,23 @@ class zonda(Exchange):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the zonda api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         response = self.v1_01PrivateGetBalancesBITBAYBalance(params)
         return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the zonda api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         request = {
             'symbol': self.market_id(symbol),
@@ -542,6 +563,12 @@ class zonda(Exchange):
         }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the zonda api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -929,6 +956,15 @@ class zonda(Exchange):
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the zonda api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         self.load_markets()
         market = self.market(symbol)
         tradingSymbol = market['baseId'] + '-' + market['quoteId']
@@ -1037,6 +1073,14 @@ class zonda(Exchange):
         }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the zonda api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         tradingSymbol = market['baseId'] + '-' + market['quoteId']
@@ -1055,6 +1099,7 @@ class zonda(Exchange):
         self.load_markets()
         market = self.market(symbol)
         tradingSymbol = market['baseId'] + '-' + market['quoteId']
+        amount = float(self.amount_to_precision(symbol, amount))
         request = {
             'symbol': tradingSymbol,
             'offerType': side,
@@ -1063,8 +1108,7 @@ class zonda(Exchange):
         }
         if type == 'limit':
             request['rate'] = price
-            price = float(price)
-        amount = float(amount)
+            price = float(self.price_to_precision(symbol, price))
         response = self.v1_01PrivatePostTradingOfferSymbol(self.extend(request, params))
         #
         # unfilled(open order)
@@ -1191,6 +1235,105 @@ class zonda(Exchange):
         }
         return self.safe_value(fiatCurrencies, currency, False)
 
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'source': fromAccount,
+            'destination': toAccount,
+            'currency': code,
+            'funds': self.currency_to_precision(code, amount),
+        }
+        response = self.v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination(self.extend(request, params))
+        #
+        #     {
+        #         "status": "Ok",
+        #         "from": {
+        #             "id": "ad9397c5-3bd9-4372-82ba-22da6a90cb56",
+        #             "userId": "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        #             "availableFunds": 0.01803472,
+        #             "totalFunds": 0.01804161,
+        #             "lockedFunds": 0.00000689,
+        #             "currency": "BTC",
+        #             "type": "CRYPTO",
+        #             "name": "BTC",
+        #             "balanceEngine": "BITBAY"
+        #         },
+        #         "to": {
+        #             "id": "01931d52-536b-4ca5-a9f4-be28c86d0cc3",
+        #             "userId": "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        #             "availableFunds": 0.0001,
+        #             "totalFunds": 0.0001,
+        #             "lockedFunds": 0,
+        #             "currency": "BTC",
+        #             "type": "CRYPTO",
+        #             "name": "Prowizja",
+        #             "balanceEngine": "BITBAY"
+        #         },
+        #         "errors": null
+        #     }
+        #
+        transfer = self.parse_transfer(response, currency)
+        transferOptions = self.safe_value(self.options, 'transfer', {})
+        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            transfer['amount'] = amount
+        return transfer
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         "status": "Ok",
+        #         "from": {
+        #             "id": "ad9397c5-3bd9-4372-82ba-22da6a90cb56",
+        #             "userId": "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        #             "availableFunds": 0.01803472,
+        #             "totalFunds": 0.01804161,
+        #             "lockedFunds": 0.00000689,
+        #             "currency": "BTC",
+        #             "type": "CRYPTO",
+        #             "name": "BTC",
+        #             "balanceEngine": "BITBAY"
+        #         },
+        #         "to": {
+        #             "id": "01931d52-536b-4ca5-a9f4-be28c86d0cc3",
+        #             "userId": "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        #             "availableFunds": 0.0001,
+        #             "totalFunds": 0.0001,
+        #             "lockedFunds": 0,
+        #             "currency": "BTC",
+        #             "type": "CRYPTO",
+        #             "name": "Prowizja",
+        #             "balanceEngine": "BITBAY"
+        #         },
+        #         "errors": null
+        #     }
+        #
+        status = self.safe_string(transfer, 'status')
+        fromAccount = self.safe_value(transfer, 'from', {})
+        fromId = self.safe_string(fromAccount, 'id')
+        to = self.safe_value(transfer, 'to', {})
+        toId = self.safe_string(to, 'id')
+        currencyId = self.safe_string(fromAccount, 'currency')
+        return {
+            'info': transfer,
+            'id': None,
+            'timestamp': None,
+            'datetime': None,
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': None,
+            'fromAccount': fromId,
+            'toAccount': toId,
+            'status': self.parse_transfer_status(status),
+        }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'Ok': 'ok',
+            'Fail': 'failed',
+        }
+        return self.safe_string(statuses, status, status)
+
     def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -1212,9 +1355,46 @@ class zonda(Exchange):
                 address += '?dt=' + str(tag)
             request['address'] = address
         response = getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "status": "Ok",
+        #         "data": {
+        #           "id": "65e01087-afb0-4ab2-afdb-cc925e360296"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_transaction(data, currency)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #     {
+        #         "id": "65e01087-afb0-4ab2-afdb-cc925e360296"
+        #     }
+        #
+        currency = self.safe_currency(None, currency)
         return {
-            'info': response,
-            'id': None,
+            'id': self.safe_string(transaction, 'id'),
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'amount': None,
+            'type': None,
+            'currency': currency['code'],
+            'status': None,
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': None,
+            'fee': None,
+            'info': transaction,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

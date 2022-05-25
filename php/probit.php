@@ -48,13 +48,13 @@ class probit extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
-                'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -68,11 +68,16 @@ class probit extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
+                'fetchWithdrawal' => false,
+                'fetchWithdrawals' => false,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'signIn' => true,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -197,7 +202,9 @@ class probit extends Exchange {
                 'CHE' => 'Chellit',
                 'CLR' => 'Color Platform',
                 'CTK' => 'Cryptyk',
+                'CTT' => 'Castweet',
                 'DIP' => 'Dipper',
+                'DKT' => 'DAKOTA',
                 'EGC' => 'EcoG9coin',
                 'EPS' => 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FX' => 'Fanzy',
@@ -208,8 +215,10 @@ class probit extends Exchange {
                 'GRB' => 'Global Reward Bank',
                 'HBC' => 'Hybrid Bank Cash',
                 'HUSL' => 'The Hustle App',
+                'LAND' => 'Landbox',
                 'LBK' => 'Legal Block',
                 'ORC' => 'Oracle System',
+                'PXP' => 'PIXSHOP COIN',
                 'PYE' => 'CreamPYE',
                 'ROOK' => 'Reckoon',
                 'SOC' => 'Soda Coin',
@@ -224,6 +233,11 @@ class probit extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for probit
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = $this->publicGetMarket ($params);
         //
         //     {
@@ -461,6 +475,11 @@ class probit extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the probit api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $response = $this->privateGetBalance ($params);
         //
@@ -478,6 +497,13 @@ class probit extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the probit api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -499,6 +525,12 @@ class probit extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the probit api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
         $this->load_markets();
         $request = array();
         if ($symbols !== null) {
@@ -527,6 +559,12 @@ class probit extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {dict} $params extra parameters specific to the probit api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -644,6 +682,14 @@ class probit extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the probit api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -726,21 +772,18 @@ class probit extends Exchange {
         $side = $this->safe_string($trade, 'side');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'quantity');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $orderId = $this->safe_string($trade, 'order_id');
-        $feeCost = $this->safe_number($trade, 'fee_amount');
+        $feeCostString = $this->safe_string($trade, 'fee_amount');
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_currency_id');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -750,11 +793,11 @@ class probit extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_time($params = array ()) {
@@ -803,6 +846,15 @@ class probit extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the probit api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $interval = $this->timeframes[$timeframe];
@@ -1150,7 +1202,7 @@ class probit extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $firstAddress = $this->safe_value($data, 0);
         if ($firstAddress === null) {
-            throw new InvalidAddress($this->id . ' fetchDepositAddress returned an empty response');
+            throw new InvalidAddress($this->id . ' fetchDepositAddress() returned an empty response');
         }
         return $this->parse_deposit_address($firstAddress, $currency);
     }

@@ -25,20 +25,25 @@ class paymium(Exchange):
                 'future': False,
                 'option': False,
                 'cancelOrder': True,
+                'createDepositAddress': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchDepositAddress': True,
+                'fetchDepositAddresses': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchMarkOHLCV': False,
+                'fetchOpenInterestHistory': False,
                 'fetchOrderBook': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'transfer': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg',
@@ -48,6 +53,7 @@ class paymium(Exchange):
                 'doc': [
                     'https://github.com/Paymium/api-documentation',
                     'https://www.paymium.com/page/developers',
+                    'https://paymium.github.io/api-documentation/',
                 ],
                 'referral': 'https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj',
             },
@@ -116,11 +122,23 @@ class paymium(Exchange):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the paymium api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         response = self.privateGetUser(params)
         return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the paymium api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         request = {
             'currency': self.market_id(symbol),
@@ -177,6 +195,12 @@ class paymium(Exchange):
         }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the paymium api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -228,6 +252,14 @@ class paymium(Exchange):
         }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the paymium api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -235,6 +267,69 @@ class paymium(Exchange):
         }
         response = self.publicGetDataCurrencyTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
+
+    def create_deposit_address(self, code, params={}):
+        self.load_markets()
+        response = self.privatePostUserAddresses(params)
+        #
+        #     {
+        #         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        #         "valid_until": 1620041926,
+        #         "currency": "BTC",
+        #         "label": "Savings"
+        #     }
+        #
+        return self.parse_deposit_address(response)
+
+    def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
+        request = {
+            'address': code,
+        }
+        response = self.privateGetUserAddressesAddress(self.extend(request, params))
+        #
+        #     {
+        #         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        #         "valid_until": 1620041926,
+        #         "currency": "BTC",
+        #         "label": "Savings"
+        #     }
+        #
+        return self.parse_deposit_address(response)
+
+    def fetch_deposit_addresses(self, codes=None, params={}):
+        self.load_markets()
+        response = self.privateGetUserAddresses(params)
+        #
+        #     [
+        #         {
+        #             "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        #             "valid_until": 1620041926,
+        #             "currency": "BTC",
+        #             "label": "Savings"
+        #         }
+        #     ]
+        #
+        return self.parse_deposit_addresses(response, codes)
+
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        #     {
+        #         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        #         "valid_until": 1620041926,
+        #         "currency": "BTC",
+        #         "label": "Savings"
+        #     }
+        #
+        address = self.safe_string(depositAddress, 'address')
+        currencyId = self.safe_string(depositAddress, 'currency')
+        return {
+            'info': depositAddress,
+            'currency': self.safe_currency_code(currencyId, currency),
+            'address': address,
+            'tag': None,
+            'network': None,
+        }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -257,6 +352,112 @@ class paymium(Exchange):
             'uuid': id,
         }
         return self.privateDeleteUserOrdersUuidCancel(self.extend(request, params))
+
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        if toAccount.find('@') < 0:
+            raise ExchangeError(self.id + ' transfer() only allows transfers to an email address')
+        if code != 'BTC' and code != 'EUR':
+            raise ExchangeError(self.id + ' transfer() only allows BTC or EUR')
+        request = {
+            'currency': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+            'email': toAccount,
+            # 'comment': 'a small note explaining the transfer'
+        }
+        response = self.privatePostUserEmailTransfers(self.extend(request, params))
+        #
+        #     {
+        #         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        #         "type": "Transfer",
+        #         "currency": "BTC",
+        #         "currency_amount": "string",
+        #         "created_at": "2013-10-24T10:34:37.000Z",
+        #         "updated_at": "2013-10-24T10:34:37.000Z",
+        #         "amount": "1.0",
+        #         "state": "executed",
+        #         "currency_fee": "0.0",
+        #         "btc_fee": "0.0",
+        #         "comment": "string",
+        #         "traded_btc": "string",
+        #         "traded_currency": "string",
+        #         "direction": "buy",
+        #         "price": "string",
+        #         "account_operations": [
+        #             {
+        #                 "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        #                 "amount": "1.0",
+        #                 "currency": "BTC",
+        #                 "created_at": "2013-10-24T10:34:37.000Z",
+        #                 "created_at_int": 1389094259,
+        #                 "name": "account_operation",
+        #                 "address": "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
+        #                 "tx_hash": "string",
+        #                 "is_trading_account": True
+        #             }
+        #         ]
+        #     }
+        #
+        return self.parse_transfer(response, currency)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        #         "type": "Transfer",
+        #         "currency": "BTC",
+        #         "currency_amount": "string",
+        #         "created_at": "2013-10-24T10:34:37.000Z",
+        #         "updated_at": "2013-10-24T10:34:37.000Z",
+        #         "amount": "1.0",
+        #         "state": "executed",
+        #         "currency_fee": "0.0",
+        #         "btc_fee": "0.0",
+        #         "comment": "string",
+        #         "traded_btc": "string",
+        #         "traded_currency": "string",
+        #         "direction": "buy",
+        #         "price": "string",
+        #         "account_operations": [
+        #             {
+        #                 "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        #                 "amount": "1.0",
+        #                 "currency": "BTC",
+        #                 "created_at": "2013-10-24T10:34:37.000Z",
+        #                 "created_at_int": 1389094259,
+        #                 "name": "account_operation",
+        #                 "address": "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
+        #                 "tx_hash": "string",
+        #                 "is_trading_account": True
+        #             }
+        #         ]
+        #     }
+        #
+        currencyId = self.safe_string(transfer, 'currency')
+        updatedAt = self.safe_string(transfer, 'updated_at')
+        timetstamp = self.parse_date(updatedAt)
+        accountOperations = self.safe_value(transfer, 'account_operations')
+        firstOperation = self.safe_value(accountOperations, 0, {})
+        status = self.safe_string(transfer, 'state')
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'uuid'),
+            'timestamp': timetstamp,
+            'datetime': self.iso8601(timetstamp),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(transfer, 'amount'),
+            'fromAccount': None,
+            'toAccount': self.safe_string(firstOperation, 'address'),
+            'status': self.parse_transfer_status(status),
+        }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'executed': 'ok',
+            # what are the other statuses?
+        }
+        return self.safe_string(statuses, status, status)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)

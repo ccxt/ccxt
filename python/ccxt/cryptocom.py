@@ -44,11 +44,9 @@ class cryptocom(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRates': False,
-                'fetchIsolatedPositions': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -64,6 +62,7 @@ class cryptocom(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchTransactionFees': False,
                 'fetchTransactions': False,
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
@@ -278,6 +277,11 @@ class cryptocom(Exchange):
         })
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for cryptocom
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         #
         #    {
         #        id: 11,
@@ -472,6 +476,12 @@ class cryptocom(Exchange):
         return result
 
     def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the cryptocom api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         marketType, query = self.handle_market_type_and_params('fetchTickers', None, params)
         method = self.get_supported_mapping(marketType, {
@@ -502,9 +512,22 @@ class cryptocom(Exchange):
             market = self.safe_market(marketId, None, '_')
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        if symbols is None:
+            return result
+        unifiedSymbols = []
+        for i in range(0, len(symbols)):
+            market = self.market(symbols[i])
+            if market is not None:
+                unifiedSymbols.append(market['symbol'])
+        return self.filter_by_array(result, 'symbol', unifiedSymbols)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the cryptocom api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -512,7 +535,7 @@ class cryptocom(Exchange):
         }
         marketType, query = self.handle_market_type_and_params('fetchTicker', market, params)
         if marketType != 'spot':
-            raise NotSupported(self.id + ' fetchTicker only supports spot markets')
+            raise NotSupported(self.id + ' fetchTicker() only supports spot markets')
         response = self.spotPublicGetPublicGetTicker(self.extend(request, query))
         # {
         #     "code":0,
@@ -527,7 +550,7 @@ class cryptocom(Exchange):
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -619,6 +642,14 @@ class cryptocom(Exchange):
         return self.parse_orders(orderList, market, since, limit)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the cryptocom api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -659,6 +690,15 @@ class cryptocom(Exchange):
         return self.parse_trades(data, market, since, limit)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the cryptocom api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -691,6 +731,13 @@ class cryptocom(Exchange):
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the cryptocom api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -750,6 +797,11 @@ class cryptocom(Exchange):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the cryptocom api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
         method = self.get_supported_mapping(marketType, {
@@ -1098,11 +1150,7 @@ class cryptocom(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result')
-        id = self.safe_string(result, 'id')
-        return {
-            'info': response,
-            'id': id,
-        }
+        return self.parse_transaction(result, currency)
 
     def fetch_deposit_addresses_by_network(self, code, params={}):
         self.load_markets()
@@ -1139,7 +1187,7 @@ class cryptocom(Exchange):
         data = self.safe_value(response, 'result', {})
         addresses = self.safe_value(data, 'deposit_address_list', [])
         if len(addresses) == 0:
-            raise ExchangeError(self.id + ' generating address...')
+            raise ExchangeError(self.id + ' fetchDepositAddressesByNetwork() generating address...')
         result = {}
         for i in range(0, len(addresses)):
             value = self.safe_value(addresses, i)
@@ -1256,25 +1304,27 @@ class cryptocom(Exchange):
         fromAccount = fromAccount.lower()
         toAccount = toAccount.lower()
         accountsById = self.safe_value(self.options, 'accountsByType', {})
-        fromId = self.safe_string(accountsById, fromAccount)
-        if fromId is None:
-            keys = list(accountsById.keys())
-            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
-        toId = self.safe_string(accountsById, toAccount)
-        if toId is None:
-            keys = list(accountsById.keys())
-            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+        fromId = self.safe_string(accountsById, fromAccount, fromAccount)
+        toId = self.safe_string(accountsById, toAccount, toAccount)
         request = {
             'currency': currency['id'],
             'amount': float(amount),
             'from': fromId,
             'to': toId,
         }
-        return self.spotPrivatePostPrivateDerivTransfer(self.extend(request, params))
+        repsonse = self.spotPrivatePostPrivateDerivTransfer(self.extend(request, params))
+        #
+        #     {
+        #         "id": 11,
+        #         "method": "private/deriv/transfer",
+        #         "code": 0
+        #     }
+        #
+        return self.parse_transfer(repsonse, currency)
 
     def fetch_transfers(self, code=None, since=None, limit=None, params={}):
         if not ('direction' in params):
-            raise ArgumentsRequired(self.id + ' fetchTransfers requires a direction param to be either "IN" or "OUT"')
+            raise ArgumentsRequired(self.id + ' fetchTransfers() requires a direction param to be either "IN" or "OUT"')
         self.load_markets()
         currency = None
         request = {
@@ -1305,11 +1355,7 @@ class cryptocom(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         transferList = self.safe_value(result, 'transfer_list', [])
-        resultArray = []
-        for i in range(0, len(transferList)):
-            transfer = transferList[i]
-            resultArray.append(self.parse_transfer(transfer, currency))
-        return self.filter_by_since_limit(resultArray, since, limit)
+        return self.parse_transfers(transferList, currency, since, limit, params)
 
     def parse_transfer_status(self, status):
         statuses = {
@@ -1344,7 +1390,7 @@ class cryptocom(Exchange):
         status = self.parse_transfer_status(rawStatus)
         return {
             'info': transfer,
-            'id': None,
+            'id': self.safe_string(transfer, 'id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'currency': code,
@@ -1619,30 +1665,42 @@ class cryptocom(Exchange):
         #
         # fetchDeposits
         #
-        # {
-        #     "currency": "XRP",
-        #     "fee": 1.0,
-        #     "create_time": 1607063412000,
-        #     "id": "2220",
-        #     "update_time": 1607063460000,
-        #     "amount": 100,
-        #     "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        #     "status": "1"
-        # }
+        #     {
+        #         "currency": "XRP",
+        #         "fee": 1.0,
+        #         "create_time": 1607063412000,
+        #         "id": "2220",
+        #         "update_time": 1607063460000,
+        #         "amount": 100,
+        #         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
+        #         "status": "1"
+        #     }
         #
         # fetchWithdrawals
         #
-        # {
-        #     "currency": "XRP",
-        #     "client_wid": "my_withdrawal_002",
-        #     "fee": 1.0,
-        #     "create_time": 1607063412000,
-        #     "id": "2220",
-        #     "update_time": 1607063460000,
-        #     "amount": 100,
-        #     "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        #     "status": "1"
-        # }
+        #     {
+        #         "currency": "XRP",
+        #         "client_wid": "my_withdrawal_002",
+        #         "fee": 1.0,
+        #         "create_time": 1607063412000,
+        #         "id": "2220",
+        #         "update_time": 1607063460000,
+        #         "amount": 100,
+        #         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
+        #         "status": "1"
+        #     }
+        #
+        # withdraw
+        #
+        #     {
+        #         "id": 2220,
+        #         "amount": 1,
+        #         "fee": 0.0004,
+        #         "symbol": "BTC",
+        #         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf",
+        #         "client_wid": "my_withdrawal_002",
+        #         "create_time":1607063412000
+        #     }
         #
         type = None
         rawStatus = self.safe_string(transaction, 'status')

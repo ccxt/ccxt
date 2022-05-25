@@ -37,19 +37,17 @@ class bitso extends Exchange {
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchDepositAddress' => true,
-                'fetchFundingFee' => false,
-                'fetchFundingFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
-                'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -62,6 +60,8 @@ class bitso extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchTransactionFee' => false,
+                'fetchTransactionFees' => true,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'reduceMargin' => false,
@@ -163,6 +163,11 @@ class bitso extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for bitso
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = yield $this->publicGetAvailableBooks ($params);
         //
         //     {
@@ -315,6 +320,11 @@ class bitso extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the bitso api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         yield $this->load_markets();
         $response = yield $this->privateGetBalance ($params);
         //
@@ -346,6 +356,13 @@ class bitso extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the bitso api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         */
         yield $this->load_markets();
         $request = array(
             'book' => $this->market_id($symbol),
@@ -402,6 +419,12 @@ class bitso extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {dict} $params extra parameters specific to the bitso api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -430,6 +453,15 @@ class bitso extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the bitso api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -595,6 +627,14 @@ class bitso extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the bitso api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -679,7 +719,7 @@ class bitso extends Exchange {
         // warn the user with an exception if the user wants to filter
         // starting from $since timestamp, but does not set the trade id with an extra 'marker' param
         if (($since !== null) && !$markerInParams) {
-            throw new ExchangeError($this->id . ' fetchMyTrades does not support fetching trades starting from a timestamp with the `$since` argument, use the `marker` extra param to filter starting from an integer trade id');
+            throw new ExchangeError($this->id . ' fetchMyTrades() does not support fetching trades starting from a timestamp with the `$since` argument, use the `marker` extra param to filter starting from an integer trade id');
         }
         // convert it to an integer unconditionally
         if ($markerInParams) {
@@ -779,7 +819,7 @@ class bitso extends Exchange {
         // warn the user with an exception if the user wants to filter
         // starting from $since timestamp, but does not set the trade id with an extra 'marker' param
         if (($since !== null) && !$markerInParams) {
-            throw new ExchangeError($this->id . ' fetchOpenOrders does not support fetching $orders starting from a timestamp with the `$since` argument, use the `marker` extra param to filter starting from an integer trade id');
+            throw new ExchangeError($this->id . ' fetchOpenOrders() does not support fetching $orders starting from a timestamp with the `$since` argument, use the `marker` extra param to filter starting from an integer trade id');
         }
         // convert it to an integer unconditionally
         if ($markerInParams) {
@@ -847,7 +887,7 @@ class bitso extends Exchange {
         );
     }
 
-    public function fetch_funding_fees($params = array ()) {
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
         yield $this->load_markets();
         $response = yield $this->privateGetFees ($params);
         //
@@ -928,6 +968,7 @@ class bitso extends Exchange {
             'BCH' => 'Bcash',
             'LTC' => 'Litecoin',
         );
+        $currency = $this->currency($code);
         $method = (is_array($methods) && array_key_exists($code, $methods)) ? $methods[$code] : null;
         if ($method === null) {
             throw new ExchangeError($this->id . ' not valid withdraw coin => ' . $code);
@@ -939,9 +980,68 @@ class bitso extends Exchange {
         );
         $classMethod = 'privatePost' . $method . 'Withdrawal';
         $response = yield $this->$classMethod (array_merge($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //         "payload" => array(
+        //             {
+        //                 "wid" => "c5b8d7f0768ee91d3b33bee648318688",
+        //                 "status" => "pending",
+        //                 "created_at" => "2016-04-08T17:52:31.000+00:00",
+        //                 "currency" => "btc",
+        //                 "method" => "Bitcoin",
+        //                 "amount" => "0.48650929",
+        //                 "details" => array(
+        //                     "withdrawal_address" => "18MsnATiNiKLqUHDTRKjurwMg7inCrdNEp",
+        //                     "tx_hash" => "d4f28394693e9fb5fffcaf730c11f32d1922e5837f76ca82189d3bfe30ded433"
+        //                 }
+        //             ),
+        //         )
+        //     }
+        //
+        $payload = $this->safe_value($response, 'payload', array());
+        $first = $this->safe_value($payload, 0);
+        return $this->parse_transaction($first, $currency);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "wid" => "c5b8d7f0768ee91d3b33bee648318688",
+        //         "status" => "pending",
+        //         "created_at" => "2016-04-08T17:52:31.000+00:00",
+        //         "currency" => "btc",
+        //         "method" => "Bitcoin",
+        //         "amount" => "0.48650929",
+        //         "details" => {
+        //             "withdrawal_address" => "18MsnATiNiKLqUHDTRKjurwMg7inCrdNEp",
+        //             "tx_hash" => "d4f28394693e9fb5fffcaf730c11f32d1922e5837f76ca82189d3bfe30ded433"
+        //         }
+        //     }
+        //
+        $currency = $this->safe_currency(null, $currency);
         return array(
-            'info' => $response,
-            'id' => $this->safe_string($response['payload'], 'wid'),
+            'id' => $this->safe_string($transaction, 'wid'),
+            'txid' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'network' => null,
+            'addressFrom' => null,
+            'address' => null,
+            'addressTo' => null,
+            'amount' => null,
+            'type' => null,
+            'currency' => $currency['code'],
+            'status' => null,
+            'updated' => null,
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'comment' => null,
+            'fee' => null,
+            'info' => $transaction,
         );
     }
 

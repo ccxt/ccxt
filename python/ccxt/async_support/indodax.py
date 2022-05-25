@@ -43,17 +43,19 @@ class indodax(Exchange):
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchDeposit': False,
+                'fetchDeposits': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': None,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -68,10 +70,16 @@ class indodax(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchTransactions': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'fetchWithdrawal': False,
+                'fetchWithdrawals': False,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': False,
                 'withdraw': True,
             },
             'version': '2.0',  # as of 9 April 2018
@@ -101,7 +109,7 @@ class indodax(Exchange):
                 'private': {
                     'post': {
                         'getInfo': 4,
-                        'transHistory': 4,  # TODO add fetchDeposits, fetchWithdrawals, fetchTransactionsbyType
+                        'transHistory': 4,
                         'trade': 1,
                         'tradeHistory': 4,  # TODO add fetchMyTrades
                         'openOrders': 4,
@@ -166,6 +174,11 @@ class indodax(Exchange):
         return self.safe_integer(response, 'server_time')
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for indodax
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.publicGetPairs(params)
         #
         #     [
@@ -275,6 +288,11 @@ class indodax(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the indodax api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.privatePostGetInfo(params)
         #
@@ -310,6 +328,13 @@ class indodax(Exchange):
         return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the indodax api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         request = {
             'pair': self.market_id(symbol),
@@ -359,6 +384,12 @@ class indodax(Exchange):
         }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the indodax api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -401,6 +432,14 @@ class indodax(Exchange):
         }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the indodax api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -531,7 +570,7 @@ class indodax(Exchange):
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         await self.load_markets()
         request = {}
         market = None
@@ -546,7 +585,7 @@ class indodax(Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':
-            raise ExchangeError(self.id + ' allows limit orders only')
+            raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -582,6 +621,92 @@ class indodax(Exchange):
             'type': side,
         }
         return await self.privatePostCancelOrder(self.extend(request, params))
+
+    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {}
+        if since is not None:
+            startTime = self.iso8601(since)[0:10]
+            request['start'] = startTime
+            request['end'] = self.iso8601(self.milliseconds())[0:10]
+        response = await self.privatePostTransHistory(self.extend(request, params))
+        #
+        #     {
+        #         "success": 1,
+        #         "return": {
+        #             "withdraw": {
+        #                 "idr": [
+        #                     {
+        #                         "status": "success",
+        #                         "type": "coupon",
+        #                         "rp": "115205",
+        #                         "fee": "500",
+        #                         "amount": "114705",
+        #                         "submit_time": "1539844166",
+        #                         "success_time": "1539844189",
+        #                         "withdraw_id": "1783717",
+        #                         "tx": "BTC-IDR-RDTVVO2P-ETD0EVAW-VTNZGMIR-HTNTUAPI-84ULM9OI",
+        #                         "sender": "boris",
+        #                         "used_by": "viginia88"
+        #                     },
+        #                     ...
+        #                 ],
+        #                 "btc": [],
+        #                 "abyss": [],
+        #                 ...
+        #             },
+        #             "deposit": {
+        #                 "idr": [
+        #                     {
+        #                         "status": "success",
+        #                         "type": "duitku",
+        #                         "rp": "393000",
+        #                         "fee": "5895",
+        #                         "amount": "387105",
+        #                         "submit_time": "1576555012",
+        #                         "success_time": "1576555012",
+        #                         "deposit_id": "3395438",
+        #                         "tx": "Duitku OVO Settlement"
+        #                     },
+        #                     ...
+        #                 ],
+        #                 "btc": [
+        #                     {
+        #                         "status": "success",
+        #                         "btc": "0.00118769",
+        #                         "amount": "0.00118769",
+        #                         "success_time": "1539529208",
+        #                         "deposit_id": "3602369",
+        #                         "tx": "c816aeb35a5b42f389970325a32aff69bb6b2126784dcda8f23b9dd9570d6573"
+        #                     },
+        #                     ...
+        #                 ],
+        #                 "abyss": [],
+        #                 ...
+        #             }
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'return', {})
+        withdraw = self.safe_value(data, 'withdraw', {})
+        deposit = self.safe_value(data, 'deposit', {})
+        transactions = []
+        currency = None
+        if code is None:
+            keys = list(withdraw.keys())
+            for i in range(0, len(keys)):
+                key = keys[i]
+                transactions = self.array_concat(transactions, withdraw[key])
+            keys = list(deposit.keys())
+            for i in range(0, len(keys)):
+                key = keys[i]
+                transactions = self.array_concat(transactions, deposit[key])
+        else:
+            currency = self.currency(code)
+            withdraws = self.safe_value(withdraw, currency['id'], [])
+            deposits = self.safe_value(deposit, currency['id'], [])
+            transactions = self.array_concat(withdraws, deposits)
+        return self.parse_transactions(transactions, currency, since, limit)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
@@ -619,13 +744,87 @@ class indodax(Exchange):
         #         "withdraw_memo": "123123"
         #     }
         #
-        id = None
-        if ('txid' in response) and (len(response['txid']) > 0):
-            id = response['txid']
+        return self.parse_transaction(response, currency)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #     {
+        #         "success": 1,
+        #         "status": "approved",
+        #         "withdraw_currency": "xrp",
+        #         "withdraw_address": "rwWr7KUZ3ZFwzgaDGjKBysADByzxvohQ3C",
+        #         "withdraw_amount": "10000.00000000",
+        #         "fee": "2.00000000",
+        #         "amount_after_fee": "9998.00000000",
+        #         "submit_time": "1509469200",
+        #         "withdraw_id": "xrp-12345",
+        #         "txid": "",
+        #         "withdraw_memo": "123123"
+        #     }
+        #
+        # transHistory
+        #
+        #     {
+        #         "status": "success",
+        #         "type": "coupon",
+        #         "rp": "115205",
+        #         "fee": "500",
+        #         "amount": "114705",
+        #         "submit_time": "1539844166",
+        #         "success_time": "1539844189",
+        #         "withdraw_id": "1783717",
+        #         "tx": "BTC-IDR-RDTVVO2P-ETD0EVAW-VTNZGMIR-HTNTUAPI-84ULM9OI",
+        #         "sender": "boris",
+        #         "used_by": "viginia88"
+        #     }
+        #
+        #     {
+        #         "status": "success",
+        #         "btc": "0.00118769",
+        #         "amount": "0.00118769",
+        #         "success_time": "1539529208",
+        #         "deposit_id": "3602369",
+        #         "tx": "c816aeb35a5b42f389970325a32aff69bb6b2126784dcda8f23b9dd9570d6573"
+        #     },
+        status = self.safe_string(transaction, 'status')
+        timestamp = self.safe_timestamp_2(transaction, 'success_time', 'submit_time')
+        depositId = self.safe_string(transaction, 'deposit_id')
+        feeCost = self.safe_number(transaction, 'fee')
+        fee = None
+        if feeCost is not None:
+            fee = {
+                'currency': self.safe_currency_code(None, currency),
+                'cost': self.safe_number('fee'),
+            }
         return {
-            'info': response,
-            'id': id,
+            'id': self.safe_string_2(transaction, 'withdraw_id', 'deposit_id'),
+            'txid': self.safe_string_2(transaction, 'txid', 'tx'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'network': None,
+            'addressFrom': None,
+            'address': self.safe_string(transaction, 'withdraw_address'),
+            'addressTo': None,
+            'amount': self.safe_number_n(transaction, ['amount', 'withdraw_amount', 'deposit_amount']),
+            'type': 'withdraw' if (depositId is None) else 'deposit',
+            'currency': self.safe_currency_code(None, currency),
+            'status': self.parse_transaction_status(status),
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': self.safe_string(transaction, 'withdraw_memo'),
+            'fee': fee,
+            'info': transaction,
         }
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'success': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]

@@ -28,11 +28,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.77.34';
+$version = '1.83.47';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.77.34';
+    const VERSION = '1.83.47';
 
     public static $loop;
     public static $kernel;
@@ -189,6 +189,11 @@ class Exchange extends \ccxt\Exchange {
         return yield $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
     }
 
+    public function fetch_permissions($params = array()) {
+        throw new NotSupported($this->id . ' fetch_permissions() is not supported yet');
+    }
+
+
     public function load_markets_helper($reload = false, $params = array()) {
         // copied from js
         if (!$reload && $this->markets) {
@@ -274,7 +279,7 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array()) {
         if (!$this->has['fetchTrades']) {
-            throw new NotSupported($this->id . ' fetch_ohlcv() not supported yet');
+            throw new NotSupported($this->id . ' fetch_ohlcv() is not supported yet');
         }
         yield $this->load_markets();
         $trades = yield $this->fetch_trades($symbol, $since, $limit, $params);
@@ -291,10 +296,31 @@ class Exchange extends \ccxt\Exchange {
         return $this->status;
     }
 
+    public function create_limit_order($symbol, $side, $amount, $price, $params = array()) {
+        return yield $this->create_order($symbol, 'limit', $side, $amount, $price, $params);
+    }
+
+    public function create_market_order($symbol, $side, $amount, $price = null, $params = array()) {
+        return yield $this->create_order($symbol, 'market', $side, $amount, $price, $params);
+    }
+
+    public function create_limit_buy_order($symbol, $amount, $price, $params = array()) {
+        return yield $this->create_order($symbol, 'limit', 'buy', $amount, $price, $params);
+    }
+
+    public function create_limit_sell_order($symbol, $amount, $price, $params = array()) {
+        return yield $this->create_order($symbol, 'limit', 'sell', $amount, $price, $params);
+    }
+
+    public function create_market_buy_order($symbol, $amount, $params = array()) {
+        return yield $this->create_order($symbol, 'market', 'buy', $amount, null, $params);
+    }
+
+    public function create_market_sell_order($symbol, $amount, $params = array()) {
+        return yield $this->create_order($symbol, 'market', 'sell', $amount, null, $params);
+    }
+
     public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array()) {
-        if (!$this->enableRateLimit) {
-            throw new ExchangeError($this->id . ' edit_order() requires enableRateLimit = true');
-        }
         yield $this->cancel_order($id, $symbol, $params);
         return yield $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
@@ -309,7 +335,7 @@ class Exchange extends \ccxt\Exchange {
                 return $deposit_address;
             }
         } else {
-            throw new NotSupported ($this->id + ' fetchDepositAddress not supported yet');
+            throw new NotSupported ($this->id . ' fetchDepositAddress() is not supported yet');
         }
     }
 
@@ -318,12 +344,12 @@ class Exchange extends \ccxt\Exchange {
             $tickers = yield $this->fetch_tickers(array( $symbol ), $params);
             $ticker = $this->safe_value($tickers, $symbol);
             if ($ticker === null) {
-                throw new BadSymbol($this->id . ' fetchTickers could not find a $ticker for ' . $symbol);
+                throw new NullResponse($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
             } else {
                 return $ticker;
             }
         } else {
-            throw new NotSupported($this->id . ' fetchTicker not supported yet');
+            throw new NotSupported($this->id . ' fetchTicker() is not supported yet');
         }
     }
 
@@ -338,15 +364,15 @@ class Exchange extends \ccxt\Exchange {
         if ($this->has['fetchLeverageTiers']) {
             $market = yield $this->market($symbol);
             if (!$market['contract']) {
-                throw new BadRequest($this->id + ' fetchLeverageTiers() supports contract markets only');
+                throw new BadRequest($this->id . ' fetch_market_leverage_tiers() supports contract markets only');
             }
             $tiers = yield $this->fetch_leverage_tiers(array($symbol));
             return $this->safe_value($tiers, $symbol);
         } else {
-            throw new NotSupported($this->id + 'fetch_market_leverage_tiers() is not supported yet');
+            throw new NotSupported($this->id . ' fetch_market_leverage_tiers() is not supported yet');
         }
     }
-    
+
     public function sleep($milliseconds) {
         $time = $milliseconds / 1000;
         $loop = $this->get_loop();
@@ -356,5 +382,62 @@ class Exchange extends \ccxt\Exchange {
                 $resolve(null);
             });
         });
+    }
+
+    public function create_post_only_order($symbol, $type, $side, $amount, $price, $params = array()) {
+        if (!$this->has['createPostOnlyOrder']) {
+            throw new NotSupported($this->id . ' create_post_only_order() is not supported yet');
+        }
+        $array = array('postOnly' => true);
+        $query = $this->extend($params, $array);
+        return yield $this->create_order($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    public function create_stop_order($symbol, $type, $side, $amount, $price = null, $stopPrice = null, $params = array()) {
+        if (!$this->has['createStopOrder']) {
+            throw new NotSupported($this->id . ' create_stop_order() is not supported yet');
+        }
+        if ($stopPrice === null) {
+            throw new ArgumentsRequired($this->id . ' create_stop_order() requires a stopPrice argument');
+        }
+        $array = array('stopPrice' => $stopPrice);
+        $query = $this->extend($params, $array);
+        return yield $this->create_order($symbol, $type, $side, $amount, $price, $query);
+    }
+
+    public function create_stop_limit_order($symbol, $side, $amount, $price, $stopPrice, $params = array()) {
+        if (!$this->has['createStopLimitOrder']) {
+            throw new NotSupported($this->id . ' create_stop_limit_order() is not supported yet');
+        }
+        $array = array('stopPrice' => $stopPrice);
+        $query = $this->extend($params, $array);
+        return yield $this->create_order($symbol, 'limit', $side, $amount, $price, $query);
+    }
+
+    public function create_stop_market_order($symbol, $side, $amount, $stopPrice, $params = array()) {
+        if (!$this->has['createStopMarketOrder']) {
+            throw new NotSupported($this->id . ' create_stop_market_order() is not supported yet');
+        }
+        $array = array('stopPrice' => $stopPrice);
+        $query = $this->extend($params, $array);
+        return yield $this->create_order($symbol, 'market', $side, $amount, null, $query);
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        if ($this->has['fetchFundingRates']) {
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadSymbol($this->id . ' fetch_funding_rate() supports contract markets only');
+            }
+            $rates = yield $this->fetchFundingRates (array( $symbol ), $params);
+            $rate = $this->safe_value($rates, $symbol);
+            if ($rate === null) {
+                throw new NullResponse($this->id . ' fetch_funding_rate () returned no data for ' . $symbol);
+            } else {
+                return $rate;
+            }
+        } else {
+            throw new NotSupported($this->id . ' fetch_funding_rate () is not supported yet');
+        }
     }
 }

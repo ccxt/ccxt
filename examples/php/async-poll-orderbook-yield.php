@@ -6,7 +6,6 @@ include_once $root . '/vendor/autoload.php';
 use ccxt\async;
 
 $exchange = new async\binance([
-    'enableRateLimit' => true,
     'verbose' => true,
 ]);
 

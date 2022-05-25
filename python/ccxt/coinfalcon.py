@@ -37,18 +37,20 @@ class coinfalcon(Exchange):
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
+                'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
                 'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -61,11 +63,14 @@ class coinfalcon(Exchange):
                 'fetchTrades': True,
                 'fetchTradinFee': False,
                 'fetchTradingFees': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': False,
                 'withdraw': True,
             },
             'urls': {
@@ -123,6 +128,11 @@ class coinfalcon(Exchange):
         })
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for coinfalcon
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.publicGetMarkets(params)
         #
         #    {
@@ -245,11 +255,23 @@ class coinfalcon(Exchange):
         }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the coinfalcon api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         tickers = self.fetch_tickers([symbol], params)
         return tickers[symbol]
 
     def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the coinfalcon api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         response = self.publicGetMarkets(params)
         #
@@ -280,6 +302,13 @@ class coinfalcon(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the coinfalcon api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         request = {
             'market': self.market_id(symbol),
@@ -382,6 +411,14 @@ class coinfalcon(Exchange):
         return self.parse_trades(data, market, since, limit)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the coinfalcon api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -451,9 +488,50 @@ class coinfalcon(Exchange):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the coinfalcon api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         response = self.privateGetUserAccounts(params)
         return self.parse_balance(response)
+
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        #     {
+        #         "address":"0x77b5051f97efa9cc52c9ad5b023a53fc15c200d3",
+        #         "tag":"0"
+        #     }
+        #
+        address = self.safe_string(depositAddress, 'address')
+        tag = self.safe_string(depositAddress, 'tag')
+        self.check_address(address)
+        return {
+            'currency': self.safe_currency_code(None, currency),
+            'address': address,
+            'tag': tag,
+            'network': None,
+            'info': depositAddress,
+        }
+
+    def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.safe_currency(code)
+        request = {
+            'currency': self.safe_string_lower(currency, 'id'),
+        }
+        response = self.privateGetAccountDepositAddress(self.extend(request, params))
+        #
+        #     {
+        #         data: {
+        #             address: '0x9918987bbe865a1a9301dc736cf6cf3205956694',
+        #             tag:null
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_deposit_address(data, currency)
 
     def parse_order_status(self, status):
         statuses = {
@@ -583,7 +661,7 @@ class coinfalcon(Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['currency'] = currency['id'].lower()
+            request['currency'] = self.safe_string_lower(currency, 'id')
         if since is not None:
             request['since_time'] = self.iso8601(since)
         response = self.privateGetAccountDeposits(self.extend(request, params))
@@ -617,7 +695,7 @@ class coinfalcon(Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['currency'] = currency['id'].lower()
+            request['currency'] = self.safe_string_lower(currency, 'id')
         if since is not None:
             request['since_time'] = self.iso8601(since)
         response = self.privateGetAccountWithdrawals(self.extend(request, params))
@@ -646,7 +724,7 @@ class coinfalcon(Exchange):
         self.load_markets()
         currency = self.currency(code)
         request = {
-            'currency': currency['id'].lower(),
+            'currency': self.safeStingLower(currency, 'id'),
             'address': address,
             'amount': amount,
             # 'tag': 'string',  # withdraw tag/memo

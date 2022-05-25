@@ -52,13 +52,13 @@ class hitbtc extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
-                'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -216,13 +216,8 @@ class hitbtc extends Exchange {
                 ),
                 'defaultTimeInForce' => 'FOK',
                 'accountsByType' => array(
-                    'bank' => 'bank',
-                    'exchange' => 'exchange',
-                    'main' => 'bank',  // alias of the above
                     'funding' => 'bank',
                     'spot' => 'exchange',
-                    'trade' => 'exchange',
-                    'trading' => 'exchange',
                 ),
                 'fetchBalanceMethod' => array(
                     'account' => 'account',
@@ -244,12 +239,14 @@ class hitbtc extends Exchange {
                 'BOX' => 'BOX Token',
                 'CPT' => 'Cryptaur', // conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
                 'GET' => 'Themis',
+                'GMT' => 'GMT Token',
                 'HSR' => 'HC',
                 'IQ' => 'IQ.Cash',
                 'LNC' => 'LinkerCoin',
                 'PLA' => 'PlayChip',
                 'PNT' => 'Penta',
                 'SBTC' => 'Super Bitcoin',
+                'STEPN' => 'GMT',
                 'STX' => 'STOX',
                 'TV' => 'Tokenville',
                 'USD' => 'USDT',
@@ -277,6 +274,11 @@ class hitbtc extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for hitbtc
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = $this->publicGetSymbol ($params);
         //
         //     array(
@@ -377,34 +379,45 @@ class hitbtc extends Exchange {
         $type = $this->safe_string($params, 'type');
         if ($type === null) {
             $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-            $fromId = $this->safe_string($accountsByType, $fromAccount);
-            $toId = $this->safe_string($accountsByType, $toAccount);
-            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            if ($fromId === null) {
-                throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys) . ' instead of ' . $fromId);
-            }
-            if ($toId === null) {
-                throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys) . ' instead of ' . $toId);
-            }
+            $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+            $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
             if ($fromId === $toId) {
-                throw new ExchangeError($this->id . ' from and to cannot be the same account');
+                throw new ExchangeError($this->id . ' $transfer() from and to cannot be the same account');
             }
             $type = $fromId . 'To' . $this->capitalize($toId);
         }
         $request['type'] = $type;
         $response = $this->privatePostAccountTransfer (array_merge($request, $params));
-        // array( $id => '2db6ebab-fb26-4537-9ef8-1a689472d236' )
-        $id = $this->safe_string($response, 'id');
-        return array(
-            'info' => $response,
-            'id' => $id,
-            'timestamp' => null,
-            'datetime' => null,
-            'amount' => $requestAmount,
-            'currency' => $code,
+        //
+        //     {
+        //         'id' => '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        //     }
+        //
+        $transfer = $this->parse_transfer($response, $currency);
+        return array_merge($transfer, array(
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
+            'amount' => $this->parse_number($requestAmount),
+        ));
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         'id' => '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        //     }
+        //
+        $timestamp = $this->milliseconds();
+        return array(
+            'id' => $this->safe_string($transfer, 'id'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
             'status' => null,
+            'info' => $transfer,
         );
     }
 
@@ -535,12 +548,17 @@ class hitbtc extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * $query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the hitbtc api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $type = $this->safe_string($params, 'type', 'trading');
         $fetchBalanceAccounts = $this->safe_value($this->options, 'fetchBalanceMethod', array());
         $typeId = $this->safe_string($fetchBalanceAccounts, $type);
         if ($typeId === null) {
-            throw new ExchangeError($this->id . ' fetchBalance account $type must be either main or trading');
+            throw new ExchangeError($this->id . ' fetchBalance() account $type must be either main or trading');
         }
         $method = 'privateGet' . $this->capitalize($typeId) . 'Balance';
         $query = $this->omit($params, 'type');
@@ -578,6 +596,15 @@ class hitbtc extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the hitbtc api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -602,6 +629,13 @@ class hitbtc extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the hitbtc api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         */
         $this->load_markets();
         $request = array(
             'symbol' => $this->market_id($symbol),
@@ -645,6 +679,12 @@ class hitbtc extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the hitbtc api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         $this->load_markets();
         $response = $this->publicGetTicker ($params);
         $result = array();
@@ -659,6 +699,12 @@ class hitbtc extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the hitbtc api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -768,10 +814,12 @@ class hitbtc extends Exchange {
 
     public function parse_transaction($transaction, $currency = null) {
         //
+        // transactions
+        //
         //     array(
         //         $id => 'd53ee9df-89bf-4d09-886e-849f8be64647',
         //         index => 1044718371,
-        //         $type => 'payout',
+        //         $type => 'payout', // payout, payin
         //         $status => 'success',
         //         $currency => 'ETH',
         //         $amount => '4.522683200000000000000000',
@@ -784,46 +832,20 @@ class hitbtc extends Exchange {
         //     array(
         //         $id => 'e6c63331-467e-4922-9edc-019e75d20ba3',
         //         index => 1044714672,
-        //         $type => 'exchangeToBank',
+        //         $type => 'exchangeToBank', // exchangeToBank, bankToExchange, withdraw
         //         $status => 'success',
         //         $currency => 'ETH',
         //         $amount => '4.532263200000000000',
         //         createdAt => '2018-06-07T00:42:39.543Z',
         //         updatedAt => '2018-06-07T00:42:39.683Z',
         //     ),
-        //     array(
-        //         $id => '3b052faa-bf97-4636-a95c-3b5260015a10',
-        //         index => 1009280164,
-        //         $type => 'bankToExchange',
-        //         $status => 'success',
-        //         $currency => 'CAS',
-        //         $amount => '104797.875800000000000000',
-        //         createdAt => '2018-05-19T02:34:36.750Z',
-        //         updatedAt => '2018-05-19T02:34:36.857Z',
-        //     ),
-        //     {
-        //         $id => 'd525249f-7498-4c81-ba7b-b6ae2037dc08',
-        //         index => 1009279948,
-        //         $type => 'payin',
-        //         $status => 'success',
-        //         $currency => 'CAS',
-        //         $amount => '104797.875800000000000000',
-        //         createdAt => '2018-05-19T02:30:16.698Z',
-        //         updatedAt => '2018-05-19T02:34:28.159Z',
-        //         hash => '0xa6530e1231de409cf1f282196ed66533b103eac1df2aa4a7739d56b02c5f0388',
-        //         $address => '0xd53ed559a6d963af7cb3f3fcd0e7ca499054db8b',
-        //     }
+        //
+        // withdraw
         //
         //     {
-        //         "id" => "4f351f4f-a8ee-4984-a468-189ed590ddbd",
-        //         "index" => 3112719565,
-        //         "type" => "withdraw",
-        //         "status" => "success",
-        //         "currency" => "BCHOLD",
-        //         "amount" => "0.02423133",
-        //         "createdAt" => "2019-07-16T16:52:04.494Z",
-        //         "updatedAt" => "2019-07-16T16:54:07.753Z"
+        //         "id" => "d2ce578f-647d-4fa0-b1aa-4a27e5ee597b"
         //     }
+        //
         $id = $this->safe_string($transaction, 'id');
         $timestamp = $this->parse8601($this->safe_string($transaction, 'createdAt'));
         $updated = $this->parse8601($this->safe_string($transaction, 'updatedAt'));
@@ -883,6 +905,14 @@ class hitbtc extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the hitbtc api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1256,7 +1286,7 @@ class hitbtc extends Exchange {
         $fromNetwork = $this->safe_string($networks, $fromNetwork, $fromNetwork); // handle ETH>ERC20 alias
         $toNetwork = $this->safe_string($networks, $toNetwork, $toNetwork); // handle ETH>ERC20 alias
         if ($fromNetwork === $toNetwork) {
-            throw new ExchangeError($this->id . ' $fromNetwork cannot be the same as toNetwork');
+            throw new ExchangeError($this->id . ' convertCurrencyNetwork() $fromNetwork cannot be the same as toNetwork');
         }
         $request = array(
             'fromCurrency' => $currency['id'] . $fromNetwork,
@@ -1290,10 +1320,12 @@ class hitbtc extends Exchange {
             $params = $this->omit($params, 'network');
         }
         $response = $this->privatePostAccountCryptoWithdraw (array_merge($request, $params));
-        return array(
-            'info' => $response,
-            'id' => $response['id'],
-        );
+        //
+        //     {
+        //         "id" => "d2ce578f-647d-4fa0-b1aa-4a27e5ee597b"
+        //     }
+        //
+        return $this->parse_transaction($response, $currency);
     }
 
     public function nonce() {

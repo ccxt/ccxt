@@ -86,7 +86,7 @@ declare module 'ccxt' {
             amount: number | undefined,
             price: number | undefined
         };
-        limits: { 
+        limits: {
             amount?: MinMax,
             cost?: MinMax,
             leverage?: MinMax,
@@ -308,7 +308,7 @@ declare module 'ccxt' {
         countries: string[];
         // set by loadMarkets
         markets: Dictionary<Market>;
-        marketsById: Dictionary<Market>;
+        markets_by_id: Dictionary<Market>;
         currencies: Dictionary<Currency>;
         ids: string[];
         symbols: string[];
@@ -496,6 +496,7 @@ declare module 'ccxt' {
     export class coincheck extends Exchange {}
     export class coinex extends Exchange {}
     export class coinfalcon extends Exchange {}
+    export class coinflex extends Exchange {}
     export class coinmate extends Exchange {}
     export class coinone extends Exchange {}
     export class coinspot extends Exchange {}
@@ -529,11 +530,13 @@ declare module 'ccxt' {
     export class kuna extends Exchange {}
     export class latoken extends Exchange {}
     export class lbank extends Exchange {}
+    export class lbank2 extends Exchange {}
     export class liquid extends Exchange {}
     export class luno extends Exchange {}
     export class lykke extends Exchange {}
     export class mercado extends Exchange {}
     export class mexc extends Exchange {}
+    export class mexc3 extends Exchange {}
     export class ndax extends Exchange {}
     export class novadax extends Exchange {}
     export class oceanex extends Exchange {}
@@ -618,6 +621,7 @@ declare module 'ccxt' {
         | 'coincheck'
         | 'coinex'
         | 'coinfalcon'
+        | 'coinflex'
         | 'coinmate'
         | 'coinone'
         | 'coinspot'
@@ -651,11 +655,13 @@ declare module 'ccxt' {
         | 'kuna'
         | 'latoken'
         | 'lbank'
+        | 'lbank2'
         | 'liquid'
         | 'luno'
         | 'lykke'
         | 'mercado'
         | 'mexc'
+        | 'mexc3'
         | 'ndax'
         | 'novadax'
         | 'oceanex'

@@ -8,7 +8,6 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\BadSymbol;
-use \ccxt\NotSupported;
 
 class bitstamp1 extends Exchange {
 
@@ -41,11 +40,11 @@ class bitstamp1 extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
-                'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
-                'fetchOrder' => true,
+                'fetchOpenInterestHistory' => false,
+                'fetchOrder' => null,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
                 'fetchPositions' => false,
@@ -116,6 +115,13 @@ class bitstamp1 extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the bitstamp1 api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         */
         if ($symbol !== 'BTC/USD') {
             throw new ExchangeError($this->id . ' ' . $this->version . " fetchOrderBook doesn't support " . $symbol . ', use it for BTC/USD only');
         }
@@ -170,6 +176,12 @@ class bitstamp1 extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {dict} $params extra parameters specific to the bitstamp1 api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         */
         if ($symbol !== 'BTC/USD') {
             throw new ExchangeError($this->id . ' ' . $this->version . " fetchTicker doesn't support " . $symbol . ', use it for BTC/USD only');
         }
@@ -219,6 +231,14 @@ class bitstamp1 extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the bitstamp1 api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         if ($symbol !== 'BTC/USD') {
             throw new BadSymbol($this->id . ' ' . $this->version . " fetchTrades doesn't support " . $symbol . ', use it for BTC/USD only');
         }
@@ -248,6 +268,11 @@ class bitstamp1 extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the bitstamp1 api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $response = $this->privatePostBalance ($params);
         return $this->parse_balance($response);
     }
@@ -308,10 +333,6 @@ class bitstamp1 extends Exchange {
         );
         $response = $this->privatePostOpenOrdersId (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
-    }
-
-    public function fetch_order($id, $symbol = null, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchOrder is not implemented yet');
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

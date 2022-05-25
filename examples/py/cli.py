@@ -33,9 +33,15 @@ class Argv(object):
     testnet = False
     test = False
     nonce = None
-    exchange_id = None
+    exchange_id = ''
+    debug = False
+    cors = False
     method = None
     symbol = None
+    spot = False
+    swap = False
+    future = False
+    args = []
 
 
 argv = Argv()
@@ -49,6 +55,9 @@ parser.add_argument('--debug', action='store_true', help='enable debug output')
 parser.add_argument('--sandbox', action='store_true', help='enable sandbox/testnet')
 parser.add_argument('--testnet', action='store_true', help='enable sandbox/testnet')
 parser.add_argument('--test', action='store_true', help='enable sandbox/testnet')
+parser.add_argument('--spot', action='store_true', help='enable spot markets')
+parser.add_argument('--swap', action='store_true', help='enable swap markets')
+parser.add_argument('--future', action='store_true', help='enable future markets')
 parser.add_argument('exchange_id', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('method', type=str, help='method or property', nargs='?')
 parser.add_argument('args', type=str, help='arguments', nargs='*')
@@ -101,7 +110,6 @@ with open(keys_file) as file:
 config = {
     # 'verbose': argv.verbose,  # set later, after load_markets
     'timeout': 30000,
-    'enableRateLimit': True,
 }
 
 if not argv.exchange_id:
@@ -119,18 +127,25 @@ if argv.exchange_id in keys:
 
 exchange = getattr(ccxt, argv.exchange_id)(config)
 
+if argv.spot:
+    exchange.options['defaultType'] = 'spot'
+elif argv.swap:
+    exchange.options['defaultType'] = 'swap'
+elif argv.future:
+    exchange.options['defaultType'] = 'future'
+
 # check auth keys in env var
 requiredCredentials = exchange.requiredCredentials
 for credential, isRequired in requiredCredentials.items():
     if isRequired and credential and not getattr(exchange, credential, None):
-        credentialEnvName = (argv.exchange_id + '_' + credential).upper() # example: KRAKEN_APIKEY
+        credentialEnvName = (argv.exchange_id + '_' + credential).upper()  # example: KRAKEN_APIKEY
         if credentialEnvName in os.environ:
             credentialValue = os.environ[credentialEnvName]
             setattr(exchange, credential, credentialValue)
 
 if argv.cors:
-    exchange.proxy = 'https://cors-anywhere.herokuapp.com/';
-    exchange.origin = exchange.uuid ()
+    exchange.proxy = 'https://cors-anywhere.herokuapp.com/'
+    exchange.origin = exchange.uuid()
 
 # pprint(dir(exchange))
 
@@ -184,4 +199,3 @@ if argv.method:
         pprint(result)
 else:
     pprint(dir(exchange))
-

@@ -39,7 +39,11 @@ class kraken extends Exchange {
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
@@ -53,7 +57,6 @@ class kraken extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
-                'fetchIsolatedPositions' => false,
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => true,
                 'fetchLeverageTiers' => false,
@@ -61,6 +64,7 @@ class kraken extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -339,6 +343,11 @@ class kraken extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for kraken
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = $this->publicGetAssetPairs ($params);
         //
         //     {
@@ -629,10 +638,17 @@ class kraken extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the kraken api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         if ($market['darkpool']) {
-            throw new ExchangeError($this->id . ' does not provide an order book for darkpool $symbol ' . $symbol);
+            throw new ExchangeError($this->id . ' fetchOrderBook() does not provide an order book for darkpool $symbol ' . $symbol);
         }
         $request = array(
             'pair' => $market['id'],
@@ -724,6 +740,12 @@ class kraken extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the kraken api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         if ($symbols === null) {
             throw new ArgumentsRequired($this->id . ' fetchTickers() requires a $symbols argument, an array of symbols');
         }
@@ -754,10 +776,16 @@ class kraken extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {dict} $params extra parameters specific to the kraken api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         */
         $this->load_markets();
         $darkpool = mb_strpos($symbol, '.d') !== false;
         if ($darkpool) {
-            throw new ExchangeError($this->id . ' does not provide a $ticker for $darkpool $symbol ' . $symbol);
+            throw new ExchangeError($this->id . ' fetchTicker() does not provide a $ticker for $darkpool $symbol ' . $symbol);
         }
         $market = $this->market($symbol);
         $request = array(
@@ -792,6 +820,15 @@ class kraken extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the kraken api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1062,6 +1099,14 @@ class kraken extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of $trades to fetch
+         * @param {dict} $params extra parameters specific to the kraken api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $id = $market['id'];
@@ -1127,6 +1172,11 @@ class kraken extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the kraken api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $response = $this->privatePostBalance ($params);
         //
@@ -1194,7 +1244,20 @@ class kraken extends Exchange {
                 }
             }
         }
-        $params = $this->omit($params, array( 'price', 'stopPrice', 'price2' ));
+        $close = $this->safe_value($params, 'close');
+        if ($close !== null) {
+            $close = array_merge(array(), $close);
+            $closePrice = $this->safe_value($close, 'price');
+            if ($closePrice !== null) {
+                $close['price'] = $this->price_to_precision($symbol, $closePrice);
+            }
+            $closePrice2 = $this->safe_value($close, 'price2'); // $stopPrice
+            if ($closePrice2 !== null) {
+                $close['price2'] = $this->price_to_precision($symbol, $closePrice2);
+            }
+            $request['close'] = $close;
+        }
+        $params = $this->omit($params, array( 'price', 'stopPrice', 'price2', 'close' ));
         $response = $this->privatePostAddOrder (array_merge($request, $params));
         //
         //     {
@@ -1711,17 +1774,18 @@ class kraken extends Exchange {
         //
         // fetchDeposits
         //
-        //     { method => "Ether (Hex)",
-        //       aclass => "currency",
-        //        asset => "XETH",
-        //        refid => "Q2CANKL-LBFVEE-U4Y2WQ",
+        //     {
+        //         method => "Ether (Hex)",
+        //         aclass => "currency",
+        //         asset => "XETH",
+        //         refid => "Q2CANKL-LBFVEE-U4Y2WQ",
         //         $txid => "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
         //         info => "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
-        //       $amount => "7.9999257900",
-        //          fee => "0.0000000000",
+        //         $amount => "7.9999257900",
+        //         fee => "0.0000000000",
         //         time =>  1529223212,
-        //       $status => "Success"                                                       }
-        //
+        //         $status => "Success"
+        //     }
         //
         // there can be an additional 'status-prop' field present
         // deposit pending review by exchange => 'on-hold'
@@ -1745,19 +1809,25 @@ class kraken extends Exchange {
         //
         // fetchWithdrawals
         //
-        //     { method => "Ether",
-        //       aclass => "currency",
-        //        asset => "XETH",
-        //        refid => "A2BF34S-O7LBNQ-UE4Y4O",
+        //     {
+        //         method => "Ether",
+        //         aclass => "currency",
+        //         asset => "XETH",
+        //         refid => "A2BF34S-O7LBNQ-UE4Y4O",
         //         $txid => "0x288b83c6b0904d8400ef44e1c9e2187b5c8f7ea3d838222d53f701a15b5c274d",
         //         info => "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
-        //       $amount => "9.9950000000",
-        //          fee => "0.0050000000",
+        //         $amount => "9.9950000000",
+        //         fee => "0.0050000000",
         //         time =>  1530481750,
-        //       $status => "Success"                                                             }
+        //         $status => "Success"
+        //         $status-prop => 'on-hold' // this field might not be present in some cases
+        //     }
         //
-        // withdrawals may also have an additional 'status-prop' field present
+        // withdraw
         //
+        //     {
+        //         "refid" => "AGBSO6T-UFMTTQ-I7KGS6"
+        //     }
         //
         $id = $this->safe_string($transaction, 'refid');
         $txid = $this->safe_string($transaction, 'txid');
@@ -2014,12 +2084,16 @@ class kraken extends Exchange {
                 // 'address' => $address, // they don't allow withdrawals to direct addresses
             );
             $response = $this->privatePostWithdraw (array_merge($request, $params));
+            //
+            //     {
+            //         "error" => array(),
+            //         "result" => {
+            //             "refid" => "AGBSO6T-UFMTTQ-I7KGS6"
+            //         }
+            //     }
+            //
             $result = $this->safe_value($response, 'result', array());
-            $id = $this->safe_string($result, 'refid');
-            return array(
-                'info' => $result,
-                'id' => $id,
-            );
+            return $this->parse_transaction($result, $currency);
         }
         throw new ExchangeError($this->id . " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)");
     }
@@ -2086,12 +2160,14 @@ class kraken extends Exchange {
         $url = '/' . $this->version . '/' . $api . '/' . $path;
         if ($api === 'public') {
             if ($params) {
-                $url .= '?' . $this->urlencode($params);
+                // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
+                $url .= '?' . $this->urlencode_nested($params);
             }
         } else if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
-            $body = $this->urlencode(array_merge(array( 'nonce' => $nonce ), $params));
+            // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
+            $body = $this->urlencode_nested(array_merge(array( 'nonce' => $nonce ), $params));
             $auth = $this->encode($nonce . $body);
             $hash = $this->hash($auth, 'sha256', 'binary');
             $binary = $this->encode($url);

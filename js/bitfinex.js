@@ -36,7 +36,6 @@ module.exports = class bitfinex extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': undefined,
-                'fetchFundingFees': true,
                 'fetchIndexOHLCV': false,
                 'fetchLeverageTiers': false,
                 'fetchMarkets': true,
@@ -54,6 +53,7 @@ module.exports = class bitfinex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransactionFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': undefined,
                 'transfer': true,
@@ -232,6 +232,7 @@ module.exports = class bitfinex extends Exchange {
                 'EDO': 'PNT',
                 'EUS': 'EURS',
                 'EUT': 'EURT',
+                'IDX': 'ID',
                 'IOT': 'IOTA',
                 'IQX': 'IQ',
                 'MNA': 'MANA',
@@ -378,16 +379,13 @@ module.exports = class bitfinex extends Exchange {
                     'spot': 'exchange',
                     'margin': 'trading',
                     'funding': 'deposit',
-                    'exchange': 'exchange',
-                    'trading': 'trading',
-                    'deposit': 'deposit',
-                    'derivatives': 'trading',
+                    'swap': 'trading',
                 },
             },
         });
     }
 
-    async fetchFundingFees (params = {}) {
+    async fetchTransactionFees (codes = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostAccountFees (params);
         const fees = response['withdraw'];
@@ -480,6 +478,13 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name bitfinex#fetchMarkets
+         * @description retrieves data on all markets for bitfinex
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const ids = await this.publicGetSymbols ();
         //
         //     [ "btcusd", "ltcusd", "ltcbtc" ]
@@ -591,13 +596,20 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name bitfinex#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the bitfinex api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const requestedType = this.safeString (params, 'type', 'exchange');
-        const accountType = this.safeString (accountsByType, requestedType);
+        const accountType = this.safeString (accountsByType, requestedType, requestedType);
         if (accountType === undefined) {
             const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' fetchBalance type parameter must be one of ' + keys.join (', '));
+            throw new ExchangeError (this.id + ' fetchBalance() type parameter must be one of ' + keys.join (', '));
         }
         const query = this.omit (params, 'type');
         const response = await this.privatePostBalances (query);
@@ -646,16 +658,8 @@ module.exports = class bitfinex extends Exchange {
         // however we support it in CCXT (from just looking at web inspector)
         await this.loadMarkets ();
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsByType, fromAccount);
-        if (fromId === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' transfer fromAccount must be one of ' + keys.join (', '));
-        }
-        const toId = this.safeString (accountsByType, toAccount);
-        if (toId === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' transfer toAccount must be one of ' + keys.join (', '));
-        }
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
         const currency = this.currency (code);
         const fromCurrencyId = this.convertDerivativesId (currency['id'], fromAccount);
         const toCurrencyId = this.convertDerivativesId (currency['id'], toAccount);
@@ -668,33 +672,52 @@ module.exports = class bitfinex extends Exchange {
             'walletto': toId,
         };
         const response = await this.privatePostTransfer (this.extend (request, params));
-        // [
-        //   {
-        //     status: 'success',
-        //     message: '0.0001 Bitcoin transfered from Margin to Exchange'
-        //   }
-        // ]
+        //
+        //     [
+        //         {
+        //             status: 'success',
+        //             message: '0.0001 Bitcoin transfered from Margin to Exchange'
+        //         }
+        //     ]
+        //
         const result = this.safeValue (response, 0);
-        const status = this.safeString (result, 'status');
         const message = this.safeString (result, 'message');
         if (message === undefined) {
             throw new ExchangeError (this.id + ' transfer failed');
         }
-        // [{"status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again."}]
-        if (status === 'error') {
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
-            throw new ExchangeError (this.id + ' ' + message);
-        }
-        return {
-            'info': response,
-            'status': status,
-            'amount': requestedAmount,
-            'code': code,
+        return this.extend (this.parseTransfer (result, currency), {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'amount': this.parseNumber (requestedAmount),
+        });
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         status: 'success',
+        //         message: '0.0001 Bitcoin transfered from Margin to Exchange'
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': this.parseTransferStatus (this.safeString (transfer, 'status')),
         };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'SUCCESS': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     convertDerivativesId (currencyId, type) {
@@ -709,6 +732,15 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfinex#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the bitfinex api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const request = {
             'symbol': this.marketId (symbol),
@@ -722,6 +754,14 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfinex#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the bitfinex api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const response = await this.publicGetTickers (params);
         const result = {};
@@ -734,6 +774,14 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name bitfinex#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the bitfinex api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -868,6 +916,16 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = 50, params = {}) {
+        /**
+         * @method
+         * @name bitfinex#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the bitfinex api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1093,6 +1151,17 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfinex#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the bitfinex api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         if (limit === undefined) {
             limit = 100;
@@ -1237,6 +1306,14 @@ module.exports = class bitfinex extends Exchange {
         //         "timestamp_created": "1561716066.0"
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "status":"success",
+        //         "message":"Your withdrawal request has been successfully submitted.",
+        //         "withdrawal_id":586829
+        //     }
+        //
         const timestamp = this.safeTimestamp (transaction, 'timestamp_created');
         const updated = this.safeTimestamp (transaction, 'timestamp');
         const currencyId = this.safeString (transaction, 'currency');
@@ -1250,7 +1327,7 @@ module.exports = class bitfinex extends Exchange {
         const tag = this.safeString (transaction, 'description');
         return {
             'info': transaction,
-            'id': this.safeString (transaction, 'id'),
+            'id': this.safeString2 (transaction, 'id', 'withdrawal_id'),
             'txid': this.safeString (transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1290,6 +1367,7 @@ module.exports = class bitfinex extends Exchange {
         await this.loadMarkets ();
         // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         const name = this.getCurrencyName (code);
+        const currency = this.currency (code);
         const request = {
             'withdraw_type': name,
             'walletselected': 'exchange',
@@ -1300,7 +1378,16 @@ module.exports = class bitfinex extends Exchange {
             request['payment_id'] = tag;
         }
         const responses = await this.privatePostWithdraw (this.extend (request, params));
-        const response = responses[0];
+        //
+        //     [
+        //         {
+        //             "status":"success",
+        //             "message":"Your withdrawal request has been successfully submitted.",
+        //             "withdrawal_id":586829
+        //         }
+        //     ]
+        //
+        const response = this.safeValue (responses, 0, {});
         const id = this.safeString (response, 'withdrawal_id');
         const message = this.safeString (response, 'message');
         const errorMessage = this.findBroadlyMatchedKey (this.exceptions['broad'], message);
@@ -1311,10 +1398,7 @@ module.exports = class bitfinex extends Exchange {
             }
             throw new ExchangeError (this.id + ' withdraw returned an id of zero: ' + this.json (response));
         }
-        return {
-            'info': response,
-            'id': id,
-        };
+        return this.parseTransaction (response, currency);
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
@@ -1383,14 +1467,27 @@ module.exports = class bitfinex extends Exchange {
         if (response === undefined) {
             return;
         }
+        let throwError = false;
         if (code >= 400) {
-            if (body[0] === '{') {
-                const feedback = this.id + ' ' + body;
-                const message = this.safeString2 (response, 'message', 'error');
-                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-                throw new ExchangeError (feedback); // unknown message
+            const firstChar = this.safeString (body, 0);
+            if (firstChar === '{') {
+                throwError = true;
             }
+        } else {
+            // json response with error, i.e:
+            // [{"status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again."}]
+            const responseObject = this.safeValue (response, 0, {});
+            const status = this.safeString (responseObject, 'status', '');
+            if (status === 'error') {
+                throwError = true;
+            }
+        }
+        if (throwError) {
+            const feedback = this.id + ' ' + body;
+            const message = this.safeString2 (response, 'message', 'error');
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            throw new ExchangeError (feedback); // unknown message
         }
     }
 };

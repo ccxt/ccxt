@@ -13,6 +13,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
@@ -58,6 +59,9 @@ class latoken(Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
                 'fetchTransactions': True,
+                'fetchTransfer': False,
+                'fetchTransfers': True,
+                'transfer': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg',
@@ -152,6 +156,7 @@ class latoken(Exchange):
                 'GDX': 'GoldenX',
                 'GEC': 'Geco One',
                 'GEM': 'NFTmall',
+                'GMT': 'GMT Token',
                 'IMC': 'IMCoin',
                 'MT': 'Monarch',
                 'TPAY': 'Tetra Pay',
@@ -182,12 +187,15 @@ class latoken(Exchange):
                     'UNKNOWN_LOCATION': AuthenticationError,  # user logged from unusual location, email confirmation required.
                     'TOO_MANY_REQUESTS': RateLimitExceeded,  # too many requests at the time. A response header X-Rate-Limit-Remaining indicates the number of allowed request per a period.
                     'INSUFFICIENT_FUNDS': InsufficientFunds,  # {"message":"not enough balance on the spot account for currency(USDT), need(20.000)","error":"INSUFFICIENT_FUNDS","status":"FAILURE"}
+                    'ORDER_VALIDATION': InvalidOrder,  # {"message":"Quantity(0) is not positive","error":"ORDER_VALIDATION","status":"FAILURE"}
                 },
                 'broad': {
                     'invalid API key, signature or digest': AuthenticationError,  # {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
                     'request expired or bad': InvalidNonce,  # {"result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE"}
                     'For input string': BadRequest,  # {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
                     'Unable to resolve currency by tag': BadSymbol,  # {"message":"Unable to resolve currency by tag(None)","error":"NOT_FOUND","status":"FAILURE"}
+                    'Unable to place order because pair is in inactive state': BadSymbol,  # {"message":"Unable to place order because pair is in inactive state(PAIR_STATUS_INACTIVE)","error":"ORDER_VALIDATION","status":"FAILURE"}
+                    'API keys are not available for FROZEN user': AccountSuspended,  # {"result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE"}
                 },
             },
             'options': {
@@ -219,6 +227,11 @@ class latoken(Exchange):
         return self.safe_integer(response, 'serverTime')
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for latoken
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         currencies = await self.fetch_currencies_from_cache(params)
         #
         #     [
@@ -432,6 +445,11 @@ class latoken(Exchange):
         return result
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the latoken api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.privateGetAuthAccount(params)
         #
@@ -487,6 +505,13 @@ class latoken(Exchange):
         return self.safe_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the latoken api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -556,6 +581,12 @@ class latoken(Exchange):
         }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the latoken api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -578,6 +609,12 @@ class latoken(Exchange):
         return self.parse_ticker(response, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the latoken api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         response = await self.publicGetTicker(params)
         #
@@ -678,6 +715,14 @@ class latoken(Exchange):
         }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the latoken api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1202,6 +1247,132 @@ class latoken(Exchange):
             'TRANSACTION_TYPE_WITHDRAWAL': 'withdrawal',
         }
         return self.safe_string(types, type, type)
+
+    async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        response = await self.privateGetAuthTransfer(params)
+        #
+        #     {
+        #         "hasNext": True,
+        #         "content": [
+        #             {
+        #             "id": "ebd6312f-cb4f-45d1-9409-4b0b3027f21e",
+        #             "status": "TRANSFER_STATUS_COMPLETED",
+        #             "type": "TRANSFER_TYPE_WITHDRAW_SPOT",
+        #             "fromAccount": "c429c551-adbb-4078-b74b-276bea308a36",
+        #             "toAccount": "631c6203-bd62-4734-a04d-9b2a951f43b9",
+        #             "transferringFunds": 1259.0321785,
+        #             "usdValue": 1259.032179,
+        #             "rejectReason": null,
+        #             "timestamp": 1633515579530,
+        #             "direction": "INTERNAL",
+        #             "method": "TRANSFER_METHOD_UNKNOWN",
+        #             "recipient": null,
+        #             "sender": null,
+        #             "currency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        #             "codeRequired": False,
+        #             "fromUser": "ce555f3f-585d-46fb-9ae6-487f66738073",
+        #             "toUser": "ce555f3f-585d-46fb-9ae6-487f66738073",
+        #             "fee": 0
+        #             },
+        #             ...
+        #         ],
+        #         "first": True,
+        #         "pageSize": 20,
+        #         "hasContent": True
+        #     }
+        #
+        transfers = self.safe_value(response, 'content', [])
+        return self.parse_transfers(transfers, currency, since, limit)
+
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        method = None
+        if toAccount.includes('@'):
+            method = 'privatePostAuthTransferEmail'
+        elif len(toAccount) == 36:
+            method = 'privatePostAuthTransferId'
+        else:
+            method = 'privatePostAuthTransferPhone'
+        request = {
+            'currency': currency['id'],
+            'recipient': toAccount,
+            'value': self.currency_to_precision(code, amount),
+        }
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "id": "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
+        #         "status": "TRANSFER_STATUS_COMPLETED",
+        #         "type": "TRANSFER_TYPE_DEPOSIT_SPOT",
+        #         "fromAccount": "3bf61015-bf32-47a6-b237-c9f70df772ad",
+        #         "toAccount": "355eb279-7c7e-4515-814a-575a49dc0325",
+        #         "transferringFunds": "500000.000000000000000000",
+        #         "usdValue": "0.000000000000000000",
+        #         "rejectReason": "",
+        #         "timestamp": 1576844438402,
+        #         "direction": "INTERNAL",
+        #         "method": "TRANSFER_METHOD_UNKNOWN",
+        #         "recipient": "",
+        #         "sender": "",
+        #         "currency": "40af7879-a8cc-4576-a42d-7d2749821b58",
+        #         "codeRequired": False,
+        #         "fromUser": "cd555555-666d-46fb-9ae6-487f66738073",
+        #         "toUser": "cd555555-666d-46fb-9ae6-487f66738073",
+        #         "fee": 0
+        #     }
+        #
+        return self.parse_transfer(response)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         "id": "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
+        #         "status": "TRANSFER_STATUS_COMPLETED",
+        #         "type": "TRANSFER_TYPE_DEPOSIT_SPOT",
+        #         "fromAccount": "3bf61015-bf32-47a6-b237-c9f70df772ad",
+        #         "toAccount": "355eb279-7c7e-4515-814a-575a49dc0325",
+        #         "transferringFunds": "500000.000000000000000000",
+        #         "usdValue": "0.000000000000000000",
+        #         "rejectReason": "",
+        #         "timestamp": 1576844438402,
+        #         "direction": "INTERNAL",
+        #         "method": "TRANSFER_METHOD_UNKNOWN",
+        #         "recipient": "",
+        #         "sender": "",
+        #         "currency": "40af7879-a8cc-4576-a42d-7d2749821b58",
+        #         "codeRequired": False,
+        #         "fromUser": "cd555555-666d-46fb-9ae6-487f66738073",
+        #         "toUser": "cd555555-666d-46fb-9ae6-487f66738073",
+        #         "fee": 0
+        #     }
+        #
+        timestamp = self.safe_timestamp(transfer, 'timestamp')
+        currencyId = self.safe_string(transfer, 'currency')
+        status = self.safe_string(transfer, 'status')
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'id'),
+            'timestamp': self.safe_number(transfer),
+            'datetime': self.iso8601(timestamp),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(transfer, 'transferringFunds'),
+            'fromAccount': self.safe_string(transfer, 'fromAccount'),
+            'toAccount': self.safe_string(transfer, 'toAccount'),
+            'status': self.parse_transfer_status(status),
+        }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'TRANSFER_STATUS_COMPLETED': 'ok',
+            'TRANSFER_STATUS_PENDING': 'pending',
+            'TRANSFER_STATUS_REJECTED': 'failed',
+            'TRANSFER_STATUS_UNVERIFIED': 'pending',
+            'TRANSFER_STATUS_CANCELLED': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
 
     def sign(self, path, api='public', method='GET', params=None, headers=None, body=None):
         request = '/' + self.version + '/' + self.implode_params(path, params)

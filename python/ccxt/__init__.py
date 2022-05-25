@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.77.34'
+__version__ = '1.83.47'
 
 # ----------------------------------------------------------------------------
 
@@ -32,6 +32,8 @@ from ccxt.base.precise import Precise                       # noqa: F401
 from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa: F401
 from ccxt.base.decimal_to_precision import TRUNCATE              # noqa: F401
 from ccxt.base.decimal_to_precision import ROUND                 # noqa: F401
+from ccxt.base.decimal_to_precision import ROUND_UP              # noqa: F401
+from ccxt.base.decimal_to_precision import ROUND_DOWN            # noqa: F401
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES        # noqa: F401
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS    # noqa: F401
 from ccxt.base.decimal_to_precision import TICK_SIZE             # noqa: F401
@@ -121,6 +123,7 @@ from ccxt.coinbasepro import coinbasepro                    # noqa: F401
 from ccxt.coincheck import coincheck                        # noqa: F401
 from ccxt.coinex import coinex                              # noqa: F401
 from ccxt.coinfalcon import coinfalcon                      # noqa: F401
+from ccxt.coinflex import coinflex                          # noqa: F401
 from ccxt.coinmate import coinmate                          # noqa: F401
 from ccxt.coinone import coinone                            # noqa: F401
 from ccxt.coinspot import coinspot                          # noqa: F401
@@ -154,11 +157,13 @@ from ccxt.kucoinfutures import kucoinfutures                # noqa: F401
 from ccxt.kuna import kuna                                  # noqa: F401
 from ccxt.latoken import latoken                            # noqa: F401
 from ccxt.lbank import lbank                                # noqa: F401
+from ccxt.lbank2 import lbank2                              # noqa: F401
 from ccxt.liquid import liquid                              # noqa: F401
 from ccxt.luno import luno                                  # noqa: F401
 from ccxt.lykke import lykke                                # noqa: F401
 from ccxt.mercado import mercado                            # noqa: F401
 from ccxt.mexc import mexc                                  # noqa: F401
+from ccxt.mexc3 import mexc3                                # noqa: F401
 from ccxt.ndax import ndax                                  # noqa: F401
 from ccxt.novadax import novadax                            # noqa: F401
 from ccxt.oceanex import oceanex                            # noqa: F401
@@ -241,6 +246,7 @@ exchanges = [
     'coincheck',
     'coinex',
     'coinfalcon',
+    'coinflex',
     'coinmate',
     'coinone',
     'coinspot',
@@ -274,11 +280,13 @@ exchanges = [
     'kuna',
     'latoken',
     'lbank',
+    'lbank2',
     'liquid',
     'luno',
     'lykke',
     'mercado',
     'mexc',
+    'mexc3',
     'ndax',
     'novadax',
     'oceanex',

@@ -54,7 +54,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for `multilanguage support
 Exchanges
 ---------
 
-The CCXT Pro library currently supports the following 38 cryptocurrency exchange markets and WebSocket trading APIs:
+The CCXT Pro library currently supports the following 41 cryptocurrency exchange markets and WebSocket trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -87,7 +87,7 @@ The CCXT Pro library currently supports the following 38 cryptocurrency exchange
      - ascendex
      - `AscendEX <https://ascendex.com/en-us/register?inviteCode=EL6BXBQM>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation
+          :target: https://ascendex.github.io/ascendex-pro-api/#ascendex-pro-api-documentation
           :alt: API Version 2
      
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
@@ -275,7 +275,7 @@ The CCXT Pro library currently supports the following 38 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg
+   * - .. image:: https://user-images.githubusercontent.com/1294454/169202626-bd130fc5-fcf9-41bb-8d97-6093225c73cd.jpg
           :target: https://bitvavo.com/?a=24F34952F7
           :alt: bitvavo
      
@@ -317,6 +317,21 @@ The CCXT Pro library currently supports the following 38 cryptocurrency exchange
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://docs.pro.coinbase.com
           :alt: API Version *
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/168937923-80d6af4a-43b5-4ed9-9d53-31065656be4f.jpg
+          :target: https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P
+          :alt: coinflex
+     
+     - coinflex
+     - `CoinFLEX <https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P>`__
+     - .. image:: https://img.shields.io/badge/3-lightgray
+          :target: https://docs.coinflex.com/
+          :alt: API Version 3
      
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
@@ -452,6 +467,21 @@ The CCXT Pro library currently supports the following 38 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/75841031-ca375180-5ddd-11ea-8417-b975674c23cb.jpg
+          :target: https://pro.hollaex.com/signup?affiliation_code=QSWA6G
+          :alt: hollaex
+     
+     - hollaex
+     - `HollaEx <https://pro.hollaex.com/signup?affiliation_code=QSWA6G>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://apidocs.hollaex.com
+          :alt: API Version 2
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg
           :target: https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223
           :alt: huobi
@@ -491,9 +521,9 @@ The CCXT Pro library currently supports the following 38 cryptocurrency exchange
      
      - idex
      - `IDEX <https://idex.io>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
+     - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://docs.idex.io/
-          :alt: API Version 2
+          :alt: API Version 3
      
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
@@ -529,6 +559,24 @@ The CCXT Pro library currently supports the following 38 cryptocurrency exchange
           :alt: API Version 2
      
      - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg
+          :target: https://m.mexc.com/auth/signup?inviteCode=1FQ1G
+          :alt: mexc
+     
+     - mexc
+     - `MEXC Global <https://m.mexc.com/auth/signup?inviteCode=1FQ1G>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://mxcdevelop.github.io/APIDoc/
+          :alt: API Version 2
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -863,7 +911,6 @@ The cache is a fixed-size deque aka array/list with two ends. The CCXT Pro libra
 .. code-block:: Python
 
    ccxtpro.ftx({
-       'enableRateLimit': True,
        'options': {
            'tradesLimit': 1000,
            'OHLCVLimit': 1000,
@@ -995,7 +1042,7 @@ Creating a CCXT Pro exchange instance is pretty much identical to creating a CCX
 
    // JavaScript
    const ccxtpro = require ('ccxt.pro')
-   const exchange = new ccxtpro.binance ({ enableRateLimit: true, newUpdates: false })
+   const exchange = new ccxtpro.binance ({ newUpdates: false })
 
 The Python implementation of CCXT Pro relies on builtin `asyncio <https://docs.python.org/3/library/asyncio.html>`__ and `Event Loop <https://docs.python.org/3/library/asyncio-eventloop.html>`__ in particular. In Python it is possible to supply an asyncio's event loop instance in the constructor arguments as shown below (identical to ``ccxt.async support``\ ):
 
@@ -1003,17 +1050,17 @@ The Python implementation of CCXT Pro relies on builtin `asyncio <https://docs.p
 
    # Python
    import ccxtpro
-   import asyncio
+   from asyncio import run
 
-   async def main(loop):
-       exchange = ccxtpro.kraken({'enableRateLimit': True, 'asyncio_loop': loop, 'newUpdates': False })
+   async def main():
+       exchange = ccxtpro.kraken({'newUpdates': False})
        while True:
            orderbook = await exchange.watch_order_book('BTC/USD')
            print(orderbook['asks'][0], orderbook['bids'][0])
        await exchange.close()
 
-   loop = asyncio.new_event_loop()
-   loop.run_until_complete(main(loop))
+
+   run(main())
 
 In PHP the async primitives are borrowed from `ReactPHP <https://reactphp.org>`__. The PHP implementation of CCXT Pro relies on `Promise <https://github.com/reactphp/promise>`__ and `EventLoop <https://github.com/reactphp/event-loop>`__ in particular. In PHP the user is required to supply a ReactPHP's event loop instance in the constructor arguments as shown below:
 
@@ -1025,7 +1072,7 @@ In PHP the async primitives are borrowed from `ReactPHP <https://reactphp.org>`_
    require_once 'vendor/autoload.php';
 
    $loop = \React\EventLoop\Factory::create(); // the event loop goes here ↓
-   $exchange = new \ccxtpro\kucoin(array('enableRateLimit' => true, 'loop' => $loop, 'newUpdates': false ));
+   $exchange = new \ccxtpro\kucoin(array('loop' => $loop, 'newUpdates': false ));
 
 Exchange Properties
 -------------------
@@ -1316,6 +1363,21 @@ Obviously, it takes time to calculate 2nd-order OHLCV candles from trades. Apart
 There is no strict guarantee on how much time it will take from the exchange to calculate the 2nd order data and stream it to you over WS. The delays and lags on OHLCV candles can vary significantly from exchange to exchange. For example, an exchange can send an OHLCV update ~30 seconds after the actual closing of a corresponding period. Other exchanges may send the current OHLCV updates at a regular intervals (say, once every 100ms), while in reality trades can happen much more frequently.
 
 Most people use WS to avoid any sorts of delays and have real-time data. So, in most cases it is much better to not wait for the exchange. Recalculating the 2nd order data from 1st order data on your own may be much faster and that can lower the unnecessary delays. Therefore it does not make much sense to use WS for watching just the OHLCV candles from the exchange. Developers would rather ``watch_trades()`` instead and recalculate the OHLCV candles using CCXT's built-in methods like ``build_ohlcvc()``.
+
+.. code-block:: Python
+
+   # Python
+   exchange = ccxtpro.binance()
+   if not exchange.has['watchOHLCV']:
+       while True:
+           try:
+               trades = await exchange.watch_trades(symbol)
+               ohlcvc = exchange.build_ohlcvc(trades, '1m')
+               print(ohlcvc)
+           except Exception as e:
+               print(e)
+               # stop the loop on exception or leave it commented to retry
+               # raise e
 
 That explains why some exchanges reasonably think that OHLCVs are not necessary in the WS context, cause users can calculate that information in the userland much faster having just a WS stream of realtime 1st-order trades.
 

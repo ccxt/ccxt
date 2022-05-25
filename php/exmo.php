@@ -29,10 +29,12 @@ class exmo extends Exchange {
                 'option' => false,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'fetchBalance' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
-                'fetchFundingFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -42,6 +44,7 @@ class exmo extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => 'emulated',
                 'fetchOrderBook' => true,
@@ -53,8 +56,12 @@ class exmo extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchTransactionFees' => true,
                 'fetchTransactions' => true,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
                 'fetchWithdrawals' => true,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -160,7 +167,7 @@ class exmo extends Exchange {
                 ),
                 'funding' => array(
                     'tierBased' => false,
-                    'percentage' => false, // fixed funding fees for crypto, see fetchFundingFees below
+                    'percentage' => false, // fixed funding fees for crypto, see fetchTransactionFees below
                 ),
             ),
             'options' => array(
@@ -171,6 +178,9 @@ class exmo extends Exchange {
                 'fetchTradingFees' => array(
                     'method' => 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
                 ),
+            ),
+            'commonCurrencies' => array(
+                'GMT' => 'GMT Token',
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -315,12 +325,12 @@ class exmo extends Exchange {
         $value = str_replace('%', '', $parts[0]);
         $result = floatval($value);
         if (($result > 0) && $isPercentage) {
-            throw new ExchangeError($this->id . ' parseFixedFloatValue detected an unsupported non-zero percentage-based fee ' . $input);
+            throw new ExchangeError($this->id . ' parseFixedFloatValue() detected an unsupported non-zero percentage-based fee ' . $input);
         }
         return $result;
     }
 
-    public function fetch_funding_fees($params = array ()) {
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
         $this->load_markets();
         $currencyList = $this->publicGetCurrencyListExtended ($params);
         //
@@ -517,6 +527,11 @@ class exmo extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for exmo
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = $this->publicGetPairSettings ($params);
         //
         //     {
@@ -599,6 +614,15 @@ class exmo extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market $to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle $to fetch
+         * @param {int|null} $limit the maximum amount of $candles $to fetch
+         * @param {dict} $params extra parameters specific $to the exmo api endpoint
+         * @return {[[int]]} A list of $candles ordered as timestamp, open, high, low, close, volume
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -614,7 +638,7 @@ class exmo extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument or a $limit argument');
             } else {
                 if ($limit > $maxLimit) {
-                    throw new BadRequest($this->id . ' fetchOHLCV will serve ' . (string) $maxLimit . ' $candles at most');
+                    throw new BadRequest($this->id . ' fetchOHLCV() will serve ' . (string) $maxLimit . ' $candles at most');
                 }
                 $request['from'] = intval($now / 1000) - $limit * $duration - 1;
                 $request['to'] = intval($now / 1000);
@@ -625,7 +649,7 @@ class exmo extends Exchange {
                 $request['to'] = intval($now / 1000);
             } else {
                 if ($limit > $maxLimit) {
-                    throw new BadRequest($this->id . ' fetchOHLCV will serve ' . (string) $maxLimit . ' $candles at most');
+                    throw new BadRequest($this->id . ' fetchOHLCV() will serve ' . (string) $maxLimit . ' $candles at most');
                 }
                 $to = $this->sum($since, $limit * $duration * 1000);
                 $request['to'] = intval($to / 1000);
@@ -687,6 +711,11 @@ class exmo extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the exmo api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $response = $this->privatePostUserInfo ($params);
         //
@@ -705,6 +734,13 @@ class exmo extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the exmo api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -726,7 +762,7 @@ class exmo extends Exchange {
             // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
             if (strlen($ids) > 2048) {
                 $numIds = is_array($this->ids) ? count($this->ids) : 0;
-                throw new ExchangeError($this->id . ' has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
+                throw new ExchangeError($this->id . ' fetchOrderBooks() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
             }
         } else {
             $ids = $this->market_ids($symbols);
@@ -795,6 +831,12 @@ class exmo extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the exmo api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         $this->load_markets();
         $response = $this->publicGetTicker ($params);
         //
@@ -825,6 +867,12 @@ class exmo extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the exmo api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         $this->load_markets();
         $response = $this->publicGetTicker ($params);
         $market = $this->market($symbol);
@@ -918,6 +966,14 @@ class exmo extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the exmo api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1027,7 +1083,7 @@ class exmo extends Exchange {
         if ($clientOrderId !== null) {
             $clientOrderId = $this->safe_integer_2($params, 'client_id', 'clientOrderId');
             if ($clientOrderId === null) {
-                throw new BadRequest($this->id . ' createOrder client order $id must be an integer / numeric literal');
+                throw new BadRequest($this->id . ' createOrder() client order $id must be an integer / numeric literal');
             } else {
                 $request['client_id'] = $clientOrderId;
             }
@@ -1371,10 +1427,7 @@ class exmo extends Exchange {
             $params = $this->omit($params, 'network');
         }
         $response = $this->privatePostWithdrawCrypt (array_merge($request, $params));
-        return array(
-            'info' => $response,
-            'id' => $response['task_id'],
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function parse_transaction_status($status) {
@@ -1432,7 +1485,7 @@ class exmo extends Exchange {
         //             "error" => ""
         //          ),
         //
-        $id = $this->safe_string($transaction, 'order_id');
+        $id = $this->safe_string_2($transaction, 'order_id', 'task_id');
         $timestamp = $this->safe_timestamp_2($transaction, 'dt', 'created');
         $updated = $this->safe_timestamp($transaction, 'updated');
         $amount = $this->safe_number($transaction, 'amount');

@@ -44,12 +44,12 @@ class coinmate(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -67,6 +67,8 @@ class coinmate(Exchange):
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': False,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg',
@@ -170,6 +172,20 @@ class coinmate(Exchange):
                     },
                 },
             },
+            'options': {
+                'withdraw': {
+                    'fillResponsefromRequest': True,
+                    'methods': {
+                        'BTC': 'privatePostBitcoinWithdrawal',
+                        'LTC': 'privatePostLitecoinWithdrawal',
+                        'BCH': 'privatePostBitcoinCashWithdrawal',
+                        'ETH': 'privatePostEthereumWithdrawal',
+                        'XRP': 'privatePostRippleWithdrawal',
+                        'DASH': 'privatePostDashWithdrawal',
+                        'DAI': 'privatePostDaiWithdrawal',
+                    },
+                },
+            },
             'exceptions': {
                 'exact': {
                     'No order with given ID': OrderNotFound,
@@ -185,6 +201,11 @@ class coinmate(Exchange):
         })
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for coinmate
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.publicGetTradingPairs(params)
         #
         #     {
@@ -281,11 +302,23 @@ class coinmate(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the coinmate api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.privatePostBalances(params)
         return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the coinmate api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         request = {
             'currencyPair': self.market_id(symbol),
@@ -297,6 +330,12 @@ class coinmate(Exchange):
         return self.parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the coinmate api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         request = {
             'currencyPair': self.market_id(symbol),
@@ -346,8 +385,13 @@ class coinmate(Exchange):
 
     def parse_transaction_status(self, status):
         statuses = {
-            # any other types ?
             'COMPLETED': 'ok',
+            'WAITING': 'pending',
+            'SENT': 'pending',
+            'CREATED': 'pending',
+            'OK': 'ok',
+            'NEW': 'pending',
+            'CANCELED': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
@@ -386,6 +430,12 @@ class coinmate(Exchange):
         #         destinationTag: null
         #     }
         #
+        # withdraw
+        #
+        #     {
+        #         "id": 2132583,
+        #     }
+        #
         timestamp = self.safe_integer(transaction, 'timestamp')
         amount = self.safe_number(transaction, 'amount')
         fee = self.safe_number(transaction, 'fee')
@@ -396,7 +446,7 @@ class coinmate(Exchange):
         code = self.safe_currency_code(currencyId, currency)
         type = self.safe_string_lower(transaction, 'transferType')
         status = self.parse_transaction_status(self.safe_string(transaction, 'transferStatus'))
-        id = self.safe_string(transaction, 'transactionId')
+        id = self.safe_string_2(transaction, 'transactionId', 'id')
         network = self.safe_string(transaction, 'walletType')
         return {
             'id': id,
@@ -420,6 +470,45 @@ class coinmate(Exchange):
             },
             'info': transaction,
         }
+
+    async def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        self.check_address(address)
+        await self.load_markets()
+        currency = self.currency(code)
+        withdrawOptions = self.safe_value(self.options, 'withdraw', {})
+        methods = self.safe_value(withdrawOptions, 'methods', {})
+        method = self.safe_string(methods, code)
+        if method is None:
+            allowedCurrencies = list(methods.keys())
+            raise ExchangeError(self.id + ' withdraw() only allows withdrawing the following currencies: ' + ', '.join(allowedCurrencies))
+        request = {
+            'amount': self.currency_to_precision(code, amount),
+            'address': address,
+        }
+        if tag is not None:
+            request['destinationTag'] = tag
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "error": False,
+        #         "errorMessage": null,
+        #         "data": {
+        #             "id": "9e0a37fc-4ab4-4b9d-b9e7-c9c8f7c4c8e0"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        transaction = self.parse_transaction(data, currency)
+        fillResponseFromRequest = self.safe_value(withdrawOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            transaction['amount'] = amount
+            transaction['currency'] = code
+            transaction['address'] = address
+            transaction['tag'] = tag
+            transaction['type'] = 'withdrawal'
+            transaction['status'] = 'pending'
+        return transaction
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -500,6 +589,14 @@ class coinmate(Exchange):
         }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the coinmate api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {

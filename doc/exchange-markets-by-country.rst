@@ -343,6 +343,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 1
      
    * - China
+     - .. image:: https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg
+          :target: https://www.lbex.io/invite?icode=7QCY
+          :alt: lbank2
+     
+     - lbank2
+     - `LBank <https://www.lbex.io/invite?icode=7QCY>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://github.com/LBank-exchange/lbank-official-api-docs
+          :alt: API Version 2
+     
+   * - China
      - .. image:: https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg
           :target: https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976
           :alt: liquid
@@ -482,7 +493,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - stex
      - `STEX <https://app.stex.com?ref=36416021>`__
      - .. image:: https://img.shields.io/badge/3-lightgray
-          :target: https://help.stex.com/en/collections/1593608-api-v3-documentation
+          :target: https://apidocs.stex.com/
           :alt: API Version 3
      
    * - Estonia
@@ -849,7 +860,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 3
      
    * - Netherlands
-     - .. image:: https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg
+     - .. image:: https://user-images.githubusercontent.com/1294454/169202626-bd130fc5-fcf9-41bb-8d97-6093225c73cd.jpg
           :target: https://bitvavo.com/?a=24F34952F7
           :alt: bitvavo
      
@@ -970,6 +981,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 1
      
    * - Seychelles
+     - .. image:: https://user-images.githubusercontent.com/1294454/168937923-80d6af4a-43b5-4ed9-9d53-31065656be4f.jpg
+          :target: https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P
+          :alt: coinflex
+     
+     - coinflex
+     - `CoinFLEX <https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P>`__
+     - .. image:: https://img.shields.io/badge/3-lightgray
+          :target: https://docs.coinflex.com/
+          :alt: API Version 3
+     
+   * - Seychelles
      - .. image:: https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg
           :target: https://www.kucoin.com/?rcode=E5wkqe
           :alt: kucoin
@@ -1003,6 +1025,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 2
      
    * - Seychelles
+     - .. image:: https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg
+          :target: https://m.mexc.com/auth/signup?inviteCode=1FQ1G
+          :alt: mexc3
+     
+     - mexc3
+     - `MEXC Global <https://m.mexc.com/auth/signup?inviteCode=1FQ1G>`__
+     - .. image:: https://img.shields.io/badge/3-lightgray
+          :target: https://mxcdevelop.github.io/apidocs/spot_v3_en/
+          :alt: API Version 3
+     
+   * - Seychelles
      - .. image:: https://user-images.githubusercontent.com/51840849/79268032-c4379480-7ea2-11ea-80b3-dd96bb29fd0d.jpg
           :target: https://www.probit.com/r/34608773
           :alt: probit
@@ -1021,7 +1054,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - ascendex
      - `AscendEX <https://ascendex.com/en-us/register?inviteCode=EL6BXBQM>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation
+          :target: https://ascendex.github.io/ascendex-pro-api/#ascendex-pro-api-documentation
           :alt: API Version 2
      
    * - Singapore
@@ -1493,9 +1526,9 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
      - idex
      - `IDEX <https://idex.io>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
+     - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://docs.idex.io/
-          :alt: API Version 2
+          :alt: API Version 3
      
    * - US
      - .. image:: https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg

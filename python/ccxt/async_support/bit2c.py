@@ -9,6 +9,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.precise import Precise
 
@@ -38,16 +39,17 @@ class bit2c(Exchange):
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
+                'fetchDepositAddress': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
@@ -58,10 +60,13 @@ class bit2c(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
@@ -85,7 +90,7 @@ class bit2c(Exchange):
                 'private': {
                     'post': [
                         'Merchant/CreateCheckout',
-                        'Order/AddCoinFundsRequest',
+                        'Funds/AddCoinFundsRequest',
                         'Order/AddFund',
                         'Order/AddOrder',
                         'Order/AddOrderMarketPriceBuy',
@@ -158,6 +163,11 @@ class bit2c(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the bit2c api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.privateGetAccountBalanceV2(params)
         #
@@ -205,6 +215,13 @@ class bit2c(Exchange):
         return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bit2c api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         request = {
             'pair': self.market_id(symbol),
@@ -242,6 +259,12 @@ class bit2c(Exchange):
         }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bit2c api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -251,9 +274,17 @@ class bit2c(Exchange):
         return self.parse_ticker(response, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bit2c api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
-        method = self.options['fetchTradesMethod']
+        method = self.options['fetchTradesMethod']  # public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
         request = {
             'pair': market['id'],
         }
@@ -262,6 +293,13 @@ class bit2c(Exchange):
         if limit is not None:
             request['limit'] = limit  # max 100000
         response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     [
+        #         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
+        #         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
+        #         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
+        #     ]
+        #
         if isinstance(response, str):
             raise ExchangeError(response)
         return self.parse_trades(response, market, since, limit)
@@ -395,9 +433,78 @@ class bit2c(Exchange):
             market = self.market(symbol)
             request['pair'] = market['id']
         response = await self.privateGetOrderOrderHistory(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "ticks":1574767951,
+        #             "created":"26/11/19 13:32",
+        #             "action":1,
+        #             "price":"1000",
+        #             "pair":"EthNis",
+        #             "reference":"EthNis|10867390|10867377",
+        #             "fee":"0.5",
+        #             "feeAmount":"0.08",
+        #             "feeCoin":"₪",
+        #             "firstAmount":"-0.015",
+        #             "firstAmountBalance":"9",
+        #             "secondAmount":"14.93",
+        #             "secondAmountBalance":"130,233.28",
+        #             "firstCoin":"ETH",
+        #             "secondCoin":"₪"
+        #         },
+        #         {
+        #             "ticks":1574767951,
+        #             "created":"26/11/19 13:32",
+        #             "action":0,
+        #             "price":"1000",
+        #             "pair":"EthNis",
+        #             "reference":"EthNis|10867390|10867377",
+        #             "fee":"0.5",
+        #             "feeAmount":"0.08",
+        #             "feeCoin":"₪",
+        #             "firstAmount":"0.015",
+        #             "firstAmountBalance":"9.015",
+        #             "secondAmount":"-15.08",
+        #             "secondAmountBalance":"130,218.35",
+        #             "firstCoin":"ETH",
+        #             "secondCoin":"₪"
+        #         }
+        #     ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     def parse_trade(self, trade, market=None):
+        #
+        # public fetchTrades
+        #
+        #     {
+        #         "date":1651785980,
+        #         "price":127975.68,
+        #         "amount":0.3750321,
+        #         "isBid":true,
+        #         "tid":1261018
+        #     }
+        #
+        # private fetchMyTrades
+        #
+        #     {
+        #         "ticks":1574767951,
+        #         "created":"26/11/19 13:32",
+        #         "action":1,
+        #         "price":"1000",
+        #         "pair":"EthNis",
+        #         "reference":"EthNis|10867390|10867377",
+        #         "fee":"0.5",
+        #         "feeAmount":"0.08",
+        #         "feeCoin":"₪",
+        #         "firstAmount":"-0.015",
+        #         "firstAmountBalance":"9",
+        #         "secondAmount":"14.93",
+        #         "secondAmountBalance":"130,233.28",
+        #         "firstCoin":"ETH",
+        #         "secondCoin":"₪"
+        #     }
+        #
         timestamp = None
         id = None
         price = None
@@ -411,12 +518,9 @@ class bit2c(Exchange):
             price = self.safe_string(trade, 'price')
             amount = self.safe_string(trade, 'firstAmount')
             reference_parts = reference.split('|')  # reference contains 'pair|orderId|tradeId'
-            if market is None:
-                marketId = self.safe_string(trade, 'pair')
-                if marketId in self.markets_by_id[marketId]:
-                    market = self.markets_by_id[marketId]
-                elif reference_parts[0] in self.markets_by_id:
-                    market = self.markets_by_id[reference_parts[0]]
+            marketId = self.safe_string(trade, 'pair')
+            market = self.safe_market(marketId, market)
+            market = self.safe_market(reference_parts[0], market)
             orderId = reference_parts[1]
             id = reference_parts[2]
             side = self.safe_integer(trade, 'action')
@@ -457,6 +561,44 @@ class bit2c(Exchange):
             'cost': None,
             'fee': fee,
         }, market)
+
+    def is_fiat(self, code):
+        return code == 'NIS'
+
+    async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        if self.is_fiat(code):
+            raise NotSupported(self.id + ' fetchDepositAddress() does not support fiat currencies')
+        request = {
+            'Coin': currency['id'],
+        }
+        response = await self.privatePostFundsAddCoinFundsRequest(self.extend(request, params))
+        #
+        #     {
+        #         'address': '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
+        #         'hasTx': False
+        #     }
+        #
+        return self.parse_deposit_address(response, currency)
+
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        #     {
+        #         'address': '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
+        #         'hasTx': False
+        #     }
+        #
+        address = self.safe_string(depositAddress, 'address')
+        self.check_address(address)
+        code = self.safe_currency_code(None, currency)
+        return {
+            'currency': code,
+            'network': None,
+            'address': address,
+            'tag': None,
+            'info': depositAddress,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)

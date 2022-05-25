@@ -40,6 +40,7 @@ class poloniex extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrder' => true, // true endpoint for a single open order
                 'fetchOpenOrders' => true, // true endpoint for open orders
                 'fetchOrderBook' => true,
@@ -52,7 +53,10 @@ class poloniex extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => true,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
                 'fetchWithdrawals' => true,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -204,6 +208,18 @@ class poloniex extends Exchange {
                         ),
                     ),
                 ),
+                'accountsByType' => array(
+                    'spot' => 'exchange',
+                    'margin' => 'margin',
+                    'future' => 'futures',
+                    'lending' => 'lending',
+                ),
+                'accountsById' => array(
+                    'exchange' => 'spot',
+                    'margin' => 'margin',
+                    'futures' => 'future',
+                    'lending' => 'lending',
+                ),
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -232,7 +248,7 @@ class poloniex extends Exchange {
                     'This account is locked.' => '\\ccxt\\AccountSuspended', // array("error":"This account is locked.")
                     'Not enough' => '\\ccxt\\InsufficientFunds',
                     'Nonce must be greater' => '\\ccxt\\InvalidNonce',
-                    'You have already called cancelOrder or moveOrder on this order.' => '\\ccxt\\CancelPending',
+                    'You have already called cancelOrder' => '\\ccxt\\CancelPending', // array("error":"You have already called cancelOrder, moveOrder, or cancelReplace on this order. Please wait for that call's response.")
                     'Amount must be at least' => '\\ccxt\\InvalidOrder', // array("error":"Amount must be at least 0.000001.")
                     'is either completed or does not exist' => '\\ccxt\\OrderNotFound', // array("error":"Order 587957810791 is either completed or does not exist.")
                     'Error pulling ' => '\\ccxt\\ExchangeError', // array("error":"Error pulling order book")
@@ -265,6 +281,15 @@ class poloniex extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the poloniex api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -306,6 +331,11 @@ class poloniex extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for poloniex
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $markets = $this->publicGetReturnTicker ($params);
         $keys = is_array($markets) ? array_keys($markets) : array();
         $result = array();
@@ -383,6 +413,11 @@ class poloniex extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the poloniex api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $request = array(
             'account' => 'all',
@@ -427,6 +462,13 @@ class poloniex extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the poloniex api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         */
         $this->load_markets();
         $request = array(
             'currencyPair' => $this->market_id($symbol),
@@ -514,6 +556,12 @@ class poloniex extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the poloniex api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         $this->load_markets();
         $response = $this->publicGetReturnTicker ($params);
         $ids = is_array($response) ? array_keys($response) : array();
@@ -599,6 +647,12 @@ class poloniex extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {dict} $params extra parameters specific to the poloniex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $response = $this->publicGetReturnTicker ($params);
@@ -733,6 +787,14 @@ class poloniex extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of $trades to fetch
+         * @param {dict} $params extra parameters specific to the poloniex api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1286,6 +1348,63 @@ class poloniex extends Exchange {
         );
     }
 
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $amount = $this->currency_to_precision($code, $amount);
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $fromAccount);
+        $request = array(
+            'amount' => $amount,
+            'currency' => $currency['id'],
+            'fromAccount' => $fromId,
+            'toAccount' => $toId,
+        );
+        $response = $this->privatePostTransferBalance (array_merge($request, $params));
+        //
+        //    {
+        //        success => '1',
+        //        message => 'Transferred 1.00000000 USDT from exchange to lending account.'
+        //    }
+        //
+        return $this->parse_transfer($response, $currency);
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            '1' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //    {
+        //        success => '1',
+        //        $message => 'Transferred 1.00000000 USDT from exchange to lending account.'
+        //    }
+        //
+        $message = $this->safe_string($transfer, 'message');
+        $words = explode(' ', $message);
+        $amount = $this->safe_number($words, 1);
+        $currencyId = $this->safe_string($words, 2);
+        $fromAccountId = $this->safe_string($words, 4);
+        $toAccountId = $this->safe_string($words, 6);
+        $accountsById = $this->safe_value($this->options, 'accountsById', array());
+        return array(
+            'info' => $transfer,
+            'id' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $amount,
+            'fromAccount' => $this->safe_string($accountsById, $fromAccountId),
+            'toAccount' => $this->safe_string($accountsById, $toAccountId),
+            'status' => $this->parse_order_status($this->safe_string($transfer, 'success', 'failed')),
+        );
+    }
+
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
@@ -1314,10 +1433,7 @@ class poloniex extends Exchange {
         //         withdrawalNumber => 13449869
         //     }
         //
-        return array(
-            'info' => $response,
-            'id' => $this->safe_string($response, 'withdrawalNumber'),
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function fetch_transactions_helper($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1486,6 +1602,14 @@ class poloniex extends Exchange {
         //         "timestamp" => 1523834337,
         //         "canResendEmail" => 0,
         //         "withdrawalNumber" => 11162900
+        //     }
+        //
+        // withdraw
+        //
+        //     {
+        //         response => 'Withdrew 1.00000000 USDT.',
+        //         email2FA => false,
+        //         withdrawalNumber => 13449869
         //     }
         //
         $timestamp = $this->safe_timestamp($transaction, 'timestamp');

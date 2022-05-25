@@ -25,10 +25,12 @@ module.exports = class exmo extends Exchange {
                 'option': false,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchFundingFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -38,6 +40,7 @@ module.exports = class exmo extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': 'emulated',
                 'fetchOrderBook': true,
@@ -49,8 +52,12 @@ module.exports = class exmo extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransactionFees': true,
                 'fetchTransactions': true,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
                 'fetchWithdrawals': true,
+                'transfer': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -156,7 +163,7 @@ module.exports = class exmo extends Exchange {
                 },
                 'funding': {
                     'tierBased': false,
-                    'percentage': false, // fixed funding fees for crypto, see fetchFundingFees below
+                    'percentage': false, // fixed funding fees for crypto, see fetchTransactionFees below
                 },
             },
             'options': {
@@ -167,6 +174,9 @@ module.exports = class exmo extends Exchange {
                 'fetchTradingFees': {
                     'method': 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
                 },
+            },
+            'commonCurrencies': {
+                'GMT': 'GMT Token',
             },
             'exceptions': {
                 'exact': {
@@ -311,12 +321,12 @@ module.exports = class exmo extends Exchange {
         const value = parts[0].replace ('%', '');
         const result = parseFloat (value);
         if ((result > 0) && isPercentage) {
-            throw new ExchangeError (this.id + ' parseFixedFloatValue detected an unsupported non-zero percentage-based fee ' + input);
+            throw new ExchangeError (this.id + ' parseFixedFloatValue() detected an unsupported non-zero percentage-based fee ' + input);
         }
         return result;
     }
 
-    async fetchFundingFees (params = {}) {
+    async fetchTransactionFees (codes = undefined, params = {}) {
         await this.loadMarkets ();
         const currencyList = await this.publicGetCurrencyListExtended (params);
         //
@@ -513,6 +523,13 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name exmo#fetchMarkets
+         * @description retrieves data on all markets for exmo
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetPairSettings (params);
         //
         //     {
@@ -595,6 +612,17 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exmo#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the exmo api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -610,7 +638,7 @@ module.exports = class exmo extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument or a limit argument');
             } else {
                 if (limit > maxLimit) {
-                    throw new BadRequest (this.id + ' fetchOHLCV will serve ' + maxLimit.toString () + ' candles at most');
+                    throw new BadRequest (this.id + ' fetchOHLCV() will serve ' + maxLimit.toString () + ' candles at most');
                 }
                 request['from'] = parseInt (now / 1000) - limit * duration - 1;
                 request['to'] = parseInt (now / 1000);
@@ -621,7 +649,7 @@ module.exports = class exmo extends Exchange {
                 request['to'] = parseInt (now / 1000);
             } else {
                 if (limit > maxLimit) {
-                    throw new BadRequest (this.id + ' fetchOHLCV will serve ' + maxLimit.toString () + ' candles at most');
+                    throw new BadRequest (this.id + ' fetchOHLCV() will serve ' + maxLimit.toString () + ' candles at most');
                 }
                 const to = this.sum (since, limit * duration * 1000);
                 request['to'] = parseInt (to / 1000);
@@ -683,6 +711,13 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name exmo#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the exmo api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privatePostUserInfo (params);
         //
@@ -701,6 +736,15 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exmo#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the exmo api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -722,7 +766,7 @@ module.exports = class exmo extends Exchange {
             // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if (ids.length > 2048) {
                 const numIds = this.ids.length;
-                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
+                throw new ExchangeError (this.id + ' fetchOrderBooks() has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
             }
         } else {
             ids = this.marketIds (symbols);
@@ -791,6 +835,14 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name exmo#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the exmo api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const response = await this.publicGetTicker (params);
         //
@@ -821,6 +873,14 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name exmo#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the exmo api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const response = await this.publicGetTicker (params);
         const market = this.market (symbol);
@@ -914,6 +974,16 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exmo#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the exmo api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1023,7 +1093,7 @@ module.exports = class exmo extends Exchange {
         if (clientOrderId !== undefined) {
             clientOrderId = this.safeInteger2 (params, 'client_id', 'clientOrderId');
             if (clientOrderId === undefined) {
-                throw new BadRequest (this.id + ' createOrder client order id must be an integer / numeric literal');
+                throw new BadRequest (this.id + ' createOrder() client order id must be an integer / numeric literal');
             } else {
                 request['client_id'] = clientOrderId;
             }
@@ -1367,10 +1437,7 @@ module.exports = class exmo extends Exchange {
             params = this.omit (params, 'network');
         }
         const response = await this.privatePostWithdrawCrypt (this.extend (request, params));
-        return {
-            'info': response,
-            'id': response['task_id'],
-        };
+        return this.parseTransaction (response, currency);
     }
 
     parseTransactionStatus (status) {
@@ -1428,7 +1495,7 @@ module.exports = class exmo extends Exchange {
         //             "error": ""
         //          },
         //
-        const id = this.safeString (transaction, 'order_id');
+        const id = this.safeString2 (transaction, 'order_id', 'task_id');
         const timestamp = this.safeTimestamp2 (transaction, 'dt', 'created');
         const updated = this.safeTimestamp (transaction, 'updated');
         let amount = this.safeNumber (transaction, 'amount');

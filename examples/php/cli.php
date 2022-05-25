@@ -21,6 +21,15 @@ if (count($argv) > 2) {
     $debug = count(array_filter($args, function ($option) { return strstr($option, '--debug') !== false; })) > 0;
     $args = array_values(array_filter($args, function ($option) { return strstr($option, '--debug') === false; }));
 
+    $spot = count(array_filter($args, function ($option) { return strstr($option, '--spot') !== false; })) > 0;
+    $args = array_values(array_filter($args, function ($option) { return strstr($option, '--spot') === false; }));
+
+    $swap = count(array_filter($args, function ($option) { return strstr($option, '--swap') !== false; })) > 0;
+    $args = array_values(array_filter($args, function ($option) { return strstr($option, '--swap') === false; }));
+
+    $future = count(array_filter($args, function ($option) { return strstr($option, '--future') !== false; })) > 0;
+    $args = array_values(array_filter($args, function ($option) { return strstr($option, '--future') === false; }));
+
     $id = $args[1];
     $member = $args[2];
     $args = array_slice($args, 3);
@@ -41,6 +50,14 @@ if (count($argv) > 2) {
         // instantiate the exchange by id
         $exchange = '\\ccxt\\' . $id;
         $exchange = new $exchange($config);
+
+        if ($spot) {
+            $exchange->options['defaultType'] = 'spot';
+        } else if ($swap) {
+            $exchange->options['defaultType'] = 'swap';
+        } else if ($future) {
+            $exchange->options['defaultType'] = 'future';
+        }
 
         if ($test) {
             $exchange->set_sandbox_mode(true);

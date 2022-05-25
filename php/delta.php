@@ -33,7 +33,9 @@ class delta extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchDeposit' => null,
                 'fetchDepositAddress' => true,
+                'fetchDeposits' => null,
                 'fetchLedger' => true,
                 'fetchLeverageTiers' => false, // An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
                 'fetchMarketLeverageTiers' => false,
@@ -49,6 +51,12 @@ class delta extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTransfer' => null,
+                'fetchTransfers' => null,
+                'fetchWithdrawal' => null,
+                'fetchWithdrawals' => null,
+                'transfer' => false,
+                'withdraw' => false,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -187,35 +195,77 @@ class delta extends Exchange {
 
     public function fetch_time($params = array ()) {
         $response = $this->publicGetSettings ($params);
-        //
-        //     {
-        //         "result":array(
-        //             "server_time":1605472733766141,
-        //             "deto_referral_mining_daily_reward":"25000",
-        //             "deto_total_reward_pool":"100000000",
-        //             "deto_trade_mining_daily_reward":"75000",
-        //             "kyc_deposit_limit":"20",
-        //             "kyc_withdrawal_limit":"2",
-        //             "under_maintenance":"false"
-        //         ),
-        //         "success":true
-        //     }
-        //
+        // full $response sample under `fetchStatus`
         $result = $this->safe_value($response, 'result', array());
         return $this->safe_integer_product($result, 'server_time', 0.001);
     }
 
     public function fetch_status($params = array ()) {
         $response = $this->publicGetSettings ($params);
+        //
+        //     {
+        //         "result" => array(
+        //           "deto_liquidity_mining_daily_reward" => "40775",
+        //           "deto_msp" => "1.0",
+        //           "deto_staking_daily_reward" => "23764.08",
+        //           "enabled_wallets" => array(
+        //             "BTC",
+        //             ...
+        //           ),
+        //           "portfolio_margin_params" => array(
+        //             "enabled_portfolios" => array(
+        //               ".DEAVAXUSDT" => array(
+        //                 "asset_id" => 5,
+        //                 "futures_contingency_margin_percent" => "1",
+        //                 "interest_rate" => "0",
+        //                 "maintenance_margin_multiplier" => "0.8",
+        //                 "max_price_shock" => "20",
+        //                 "max_short_notional_limit" => "2000",
+        //                 "options_contingency_margin_percent" => "1",
+        //                 "options_discount_range" => "10",
+        //                 "options_liq_band_range_percentage" => "25",
+        //                 "settling_asset" => "USDT",
+        //                 "sort_priority" => 5,
+        //                 "underlying_asset" => "AVAX",
+        //                 "volatility_down_shock" => "30",
+        //                 "volatility_up_shock" => "45"
+        //               ),
+        //               ...
+        //             ),
+        //             "portfolio_enabled_contracts" => array(
+        //               "futures",
+        //               "perpetual_futures",
+        //               "call_options",
+        //               "put_options"
+        //             )
+        //           ),
+        //           "server_time" => 1650640673500273,
+        //           "trade_farming_daily_reward" => "100000",
+        //           "circulating_supply" => "140000000",
+        //           "circulating_supply_update_time" => "1636752800",
+        //           "deto_referral_mining_daily_reward" => "0",
+        //           "deto_total_reward_pool" => "100000000",
+        //           "deto_trade_mining_daily_reward" => "0",
+        //           "kyc_deposit_limit" => "20",
+        //           "kyc_withdrawal_limit" => "10000",
+        //           "maintenance_start_time" => "1650387600000000",
+        //           "msp_deto_commission_percent" => "25",
+        //           "under_maintenance" => "false"
+        //         ),
+        //         "success" => true
+        //     }
+        //
         $result = $this->safe_value($response, 'result', array());
-        $underMaintenance = $this->safe_value($result, 'under_maintenance');
+        $underMaintenance = $this->safe_string($result, 'under_maintenance');
         $status = ($underMaintenance === 'true') ? 'maintenance' : 'ok';
-        $updated = $this->safe_integer_product($result, 'server_time', 0.001);
-        $this->status = array_merge($this->status, array(
+        $updated = $this->safe_integer_product($result, 'server_time', 0.001, $this->milliseconds());
+        return array(
             'status' => $status,
             'updated' => $updated,
-        ));
-        return $this->status;
+            'eta' => null,
+            'url' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_currencies($params = array ()) {
@@ -300,6 +350,11 @@ class delta extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for delta
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = $this->publicGetProducts ($params);
         //
         //     {
@@ -537,6 +592,12 @@ class delta extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the delta api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -569,6 +630,12 @@ class delta extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the delta api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         $this->load_markets();
         $response = $this->publicGetTickers ($params);
         //
@@ -605,6 +672,13 @@ class delta extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the delta api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         */
         $this->load_markets();
         $request = array(
             'symbol' => $this->market_id($symbol),
@@ -736,6 +810,14 @@ class delta extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the delta api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -783,6 +865,15 @@ class delta extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the delta api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -833,6 +924,11 @@ class delta extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the delta api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $response = $this->privateGetWalletBalances ($params);
         //

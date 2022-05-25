@@ -9,7 +9,6 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
-use \ccxt\Precise;
 
 class novadax extends Exchange {
 
@@ -18,7 +17,9 @@ class novadax extends Exchange {
             'id' => 'novadax',
             'name' => 'NovaDAX',
             'countries' => array( 'BR' ), // Brazil
-            'rateLimit' => 50,
+            // 60 requests per second = 1000ms / 60 = 16.6667ms between requests (public endpoints, limited by IP address)
+            // 20 requests per second => cost = 60 / 20 = 3 (private endpoints, limited by API Key)
+            'rateLimit' => 16.6667,
             'version' => 'v1',
             // new metainfo interface
             'has' => array(
@@ -32,6 +33,9 @@ class novadax extends Exchange {
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
@@ -43,17 +47,16 @@ class novadax extends Exchange {
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
-                'fetchFundingRateHistories' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
-                'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -75,6 +78,7 @@ class novadax extends Exchange {
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -103,33 +107,33 @@ class novadax extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'common/symbol',
-                        'common/symbols',
-                        'common/timestamp',
-                        'market/tickers',
-                        'market/ticker',
-                        'market/depth',
-                        'market/trades',
-                        'market/kline/history',
+                        'common/symbol' => 1.2,
+                        'common/symbols' => 1.2,
+                        'common/timestamp' => 1.2,
+                        'market/tickers' => 1.2,
+                        'market/ticker' => 1.2,
+                        'market/depth' => 1.2,
+                        'market/trades' => 1.2,
+                        'market/kline/history' => 1.2,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'orders/get',
-                        'orders/list',
-                        'orders/fill',
-                        'orders/fills',
-                        'account/getBalance',
-                        'account/subs',
-                        'account/subs/balance',
-                        'account/subs/transfer/record',
-                        'wallet/query/deposit-withdraw',
+                        'orders/get' => 3,
+                        'orders/list' => 3,
+                        'orders/fill' => 3,
+                        'orders/fills' => 3,
+                        'account/getBalance' => 3,
+                        'account/subs' => 3,
+                        'account/subs/balance' => 3,
+                        'account/subs/transfer/record' => 3,
+                        'wallet/query/deposit-withdraw' => 3,
                     ),
                     'post' => array(
-                        'orders/create',
-                        'orders/cancel',
-                        'account/withdraw/coin',
-                        'account/subs/transfer',
+                        'orders/create' => 3,
+                        'orders/cancel' => 3,
+                        'account/withdraw/coin' => 3,
+                        'account/subs/transfer' => 3,
                     ),
                 ),
             ),
@@ -155,7 +159,7 @@ class novadax extends Exchange {
                     'A10004' => '\\ccxt\\RateLimitExceeded', // 429 Too many requests Too many requests are made
                     'A10005' => '\\ccxt\\PermissionDenied', // 403 Kyc required Need to complete KYC firstly
                     'A10006' => '\\ccxt\\AccountSuspended', // 403 Customer canceled Account is canceled
-                    'A10007' => '\\ccxt\\BadRequest', // 400 Account not exist Sub account does not exist
+                    'A10007' => '\\ccxt\\AccountNotEnabled', // 400 Account not exist Sub account does not exist
                     'A10011' => '\\ccxt\\BadSymbol', // 400 Symbol not exist Trading symbol does not exist
                     'A10012' => '\\ccxt\\BadSymbol', // 400 Symbol not trading Trading symbol is temporarily not available
                     'A10013' => '\\ccxt\\OnMaintenance', // 503 Symbol maintain Trading symbol is in maintain
@@ -171,6 +175,7 @@ class novadax extends Exchange {
                     'A30010' => '\\ccxt\\CancelPending', // 400 Order cancelling The order is being cancelled
                     'A30011' => '\\ccxt\\InvalidOrder', // 400 Order price too high The order price is too high
                     'A30012' => '\\ccxt\\InvalidOrder', // 400 Order price too low The order price is too low
+                    'A40004' => '\\ccxt\\InsufficientFunds', // array("code":"A40004","data":array(),"message":"sub account balance Insufficient")
                 ),
                 'broad' => array(
                 ),
@@ -178,6 +183,9 @@ class novadax extends Exchange {
             'options' => array(
                 'fetchOHLCV' => array(
                     'volume' => 'amount', // 'amount' for base volume or 'vol' for quote volume
+                ),
+                'transfer' => array(
+                    'fillResponseFromRequest' => true,
                 ),
             ),
         ));
@@ -196,6 +204,11 @@ class novadax extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves $data on all markets for novadax
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market $data
+         */
         $response = yield $this->publicGetCommonSymbols ($params);
         //
         //     {
@@ -329,6 +342,12 @@ class novadax extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the novadax api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -358,6 +377,12 @@ class novadax extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the novadax api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         yield $this->load_markets();
         $response = yield $this->publicGetMarketTickers ($params);
         //
@@ -391,6 +416,13 @@ class novadax extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the novadax api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         */
         yield $this->load_markets();
         $request = array(
             'symbol' => $this->market_id($symbol),
@@ -436,33 +468,35 @@ class novadax extends Exchange {
         //
         // private fetchOrderTrades
         //
-        //     {
-        //         "id" => "608717046691139584",
-        //         "orderId" => "608716957545402368",
-        //         "symbol" => "BTC_BRL",
-        //         "side" => "BUY",
-        //         "amount" => "0.0988",
-        //         "price" => "45514.76",
-        //         "fee" => "0.0000988 BTC",
-        //         "role" => "MAKER",
-        //         "timestamp" => 1565171053345
-        //     }
+        //      {
+        //          "id" => "608717046691139584",
+        //          "orderId" => "608716957545402368",
+        //          "symbol" => "BTC_BRL",
+        //          "side" => "BUY",
+        //          "amount" => "0.0988",
+        //          "price" => "45514.76",
+        //          "fee" => "0.0000988 BTC",
+        //          "feeAmount" => "0.0000988",
+        //          "feeCurrency" => "BTC",
+        //          "role" => "MAKER",
+        //          "timestamp" => 1565171053345
+        //       }
         //
-        // private fetchMyTrades
+        // private fetchMyTrades (same endpoint as fetchOrderTrades)
         //
-        //     {
-        //         "id" => "608717046691139584",
-        //         "orderId" => "608716957545402368",
-        //         "symbol" => "BTC_BRL",
-        //         "side" => "BUY",
-        //         "amount" => "0.0988",
-        //         "price" => "45514.76",
-        //         "fee" => "0.0000988 BTC",
-        //         "feeAmount" => "0.0000988",
-        //         "feeCurrency" => "BTC",
-        //         "role" => "MAKER",
-        //         "timestamp" => 1565171053345
-        //     }
+        //      {
+        //          "id" => "608717046691139584",
+        //          "orderId" => "608716957545402368",
+        //          "symbol" => "BTC_BRL",
+        //          "side" => "BUY",
+        //          "amount" => "0.0988",
+        //          "price" => "45514.76",
+        //          "fee" => "0.0000988 BTC",
+        //          "feeAmount" => "0.0000988",
+        //          "feeCurrency" => "BTC",
+        //          "role" => "MAKER",
+        //          "timestamp" => 1565171053345
+        //       }
         //
         $id = $this->safe_string($trade, 'id');
         $orderId = $this->safe_string($trade, 'orderId');
@@ -470,27 +504,20 @@ class novadax extends Exchange {
         $side = $this->safe_string_lower($trade, 'side');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->safe_number($trade, 'volume');
-        if ($cost === null) {
-            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        }
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $takerOrMaker = $this->safe_string_lower($trade, 'role');
         $feeString = $this->safe_string($trade, 'fee');
         $fee = null;
         if ($feeString !== null) {
-            $parts = explode(' ', $feeString);
-            $feeCurrencyId = $this->safe_string($parts, 1);
+            $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
-                'cost' => $this->safe_number($parts, 0),
+                'cost' => $this->safe_string($trade, 'feeAmount'),
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'order' => $orderId,
             'timestamp' => $timestamp,
@@ -498,16 +525,24 @@ class novadax extends Exchange {
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'takerOrMaker' => $takerOrMaker,
             'fee' => $fee,
             'info' => $trade,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the novadax api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -533,6 +568,15 @@ class novadax extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the novadax api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -623,6 +667,11 @@ class novadax extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the novadax api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         yield $this->load_markets();
         $response = yield $this->privateGetAccountGetBalance ($params);
         //
@@ -851,23 +900,25 @@ class novadax extends Exchange {
         }
         $data = $this->safe_value($response, 'data', array());
         //
-        //     {
-        //         "code" => "A10000",
-        //         "data" => array(
-        //             array(
-        //                 "id" => "608717046691139584",
-        //                 "orderId" => "608716957545402368",
-        //                 "symbol" => "BTC_BRL",
-        //                 "side" => "BUY",
-        //                 "amount" => "0.0988",
-        //                 "price" => "45514.76",
-        //                 "fee" => "0.0000988 BTC",
-        //                 "role" => "MAKER",
-        //                 "timestamp" => 1565171053345
-        //             ),
-        //         ),
-        //         "message" => "Success"
-        //     }
+        //      {
+        //          "code" => "A10000",
+        //          "data" => array(
+        //              array(
+        //                  "id" => "608717046691139584",
+        //                  "orderId" => "608716957545402368",
+        //                  "symbol" => "BTC_BRL",
+        //                  "side" => "BUY",
+        //                  "amount" => "0.0988",
+        //                  "price" => "45514.76",
+        //                  "fee" => "0.0000988 BTC",
+        //                  "feeAmount" => "0.0000988",
+        //                  "feeCurrency" => "BTC",
+        //                  "role" => "MAKER",
+        //                  "timestamp" => 1565171053345
+        //              ),
+        //          ),
+        //          "message" => "Success"
+        //      }
         //
         return $this->parse_trades($data, $market, $since, $limit);
     }
@@ -957,6 +1008,70 @@ class novadax extends Exchange {
             'fee' => $fee,
             'trades' => null,
         ), $market);
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        if ($fromAccount !== 'main' && $toAccount !== 'main') {
+            throw new ExchangeError($this->id . ' $transfer() supports transfers between main account and subaccounts only');
+        }
+        // master-$transfer-in = from master account to subaccount
+        // master-$transfer-out = from subaccount to master account
+        $type = ($fromAccount === 'main') ? 'master-$transfer-in' : 'master-$transfer-out';
+        $request = array(
+            'transferAmount' => $this->currency_to_precision($code, $amount),
+            'currency' => $currency['id'],
+            'subId' => ($type === 'master-$transfer-in') ? $toAccount : $fromAccount,
+            'transferType' => $type,
+        );
+        $response = yield $this->privatePostAccountSubsTransfer (array_merge($request, $params));
+        //
+        //    {
+        //        "code":"A10000",
+        //        "message":"Success",
+        //        "data":40
+        //    }
+        //
+        $transfer = $this->parse_transfer($response, $currency);
+        $transferOptions = $this->safe_value($this->options, 'transfer', array());
+        $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
+        if ($fillResponseFromRequest) {
+            $transfer['fromAccount'] = $fromAccount;
+            $transfer['toAccount'] = $toAccount;
+            $transfer['amount'] = $amount;
+        }
+        return $transfer;
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //    {
+        //        "code":"A10000",
+        //        "message":"Success",
+        //        "data":40
+        //    }
+        //
+        $id = $this->safe_string($transfer, 'data');
+        $status = $this->safe_string($transfer, 'message');
+        return array(
+            'info' => $transfer,
+            'id' => $id,
+            'amount' => null,
+            'code' => $this->safe_currency_code(null, $currency),
+            'fromAccount' => null,
+            'toAccount' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'status' => $status,
+        );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'SUCCESS' => 'pending',
+        );
+        return $this->safe_string($statuses, $status, 'failed');
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
@@ -1177,38 +1292,25 @@ class novadax extends Exchange {
         }
         $response = yield $this->privateGetOrdersFills (array_merge($request, $params));
         //
-        //     {
-        //         "code" => "A10000",
-        //         "data" => array(
-        //             array(
-        //                 "id" => "608717046691139584",
-        //                 "orderId" => "608716957545402368",
-        //                 "symbol" => "BTC_BRL",
-        //                 "side" => "BUY",
-        //                 "amount" => "0.0988",
-        //                 "price" => "45514.76",
-        //                 "fee" => "0.0000988 BTC",
-        //                 "feeAmount" => "0.0000988",
-        //                 "feeCurrency" => "BTC",
-        //                 "role" => "MAKER",
-        //                 "timestamp" => 1565171053345
-        //             ),
-        //             {
-        //                 "id" => "608717065729085441",
-        //                 "orderId" => "608716957545402368",
-        //                 "symbol" => "BTC_BRL",
-        //                 "side" => "BUY",
-        //                 "amount" => "0.0242",
-        //                 "price" => "45514.76",
-        //                 "fee" => "0.0000242 BTC",
-        //                 "feeAmount" => "0.0000988",
-        //                 "feeCurrency" => "BTC",
-        //                 "role" => "MAKER",
-        //                 "timestamp" => 1565171057882
-        //             }
-        //         ),
-        //         "message" => "Success"
-        //     }
+        //      {
+        //          "code" => "A10000",
+        //          "data" => array(
+        //              array(
+        //                  "id" => "608717046691139584",
+        //                  "orderId" => "608716957545402368",
+        //                  "symbol" => "BTC_BRL",
+        //                  "side" => "BUY",
+        //                  "amount" => "0.0988",
+        //                  "price" => "45514.76",
+        //                  "fee" => "0.0000988 BTC",
+        //                  "feeAmount" => "0.0000988",
+        //                  "feeCurrency" => "BTC",
+        //                  "role" => "MAKER",
+        //                  "timestamp" => 1565171053345
+        //              ),
+        //          ),
+        //          "message" => "Success"
+        //      }
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);

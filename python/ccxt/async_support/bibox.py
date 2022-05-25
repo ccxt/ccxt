@@ -49,7 +49,6 @@ class bibox(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -61,6 +60,7 @@ class bibox(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchTransactionFees': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
@@ -157,6 +157,7 @@ class bibox(Exchange):
                 'APENFT(NFT)': 'NFT',
                 'BOX': 'DefiBox',
                 'BPT': 'BlockPool Token',
+                'GMT': 'GMT Token',
                 'KEY': 'Bihu',
                 'MTC': 'MTC Mesh Network',  # conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
                 'NFT': 'NFT Protocol',
@@ -168,6 +169,11 @@ class bibox(Exchange):
         })
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bibox
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         request = {
             'cmd': 'pairList',
         }
@@ -324,6 +330,12 @@ class bibox(Exchange):
         }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -334,6 +346,12 @@ class bibox(Exchange):
         return self.parse_ticker(response['result'], market)
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         request = {
             'cmd': 'marketAll',
         }
@@ -382,6 +400,14 @@ class bibox(Exchange):
         }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -394,6 +420,13 @@ class bibox(Exchange):
         return self.parse_trades(response['result'], market, since, limit)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -426,6 +459,15 @@ class bibox(Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1000, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -624,6 +666,11 @@ class bibox(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         type = self.safe_string(params, 'type', 'assets')
         params = self.omit(params, 'type')
@@ -790,7 +837,14 @@ class bibox(Exchange):
         #         'status': 3
         #     }
         #
-        id = self.safe_string(transaction, 'id')
+        # withdraw
+        #
+        #     {
+        #         "result": 228,  # withdrawal id
+        #         "cmd":"transfer/transferOut"
+        #     }
+        #
+        id = self.safe_string_2(transaction, 'id', 'result')
         address = self.safe_string(transaction, 'to_address')
         currencyId = self.safe_string(transaction, 'coin_symbol')
         code = self.safe_currency_code(currencyId, currency)
@@ -1244,13 +1298,9 @@ class bibox(Exchange):
         #
         outerResults = self.safe_value(response, 'result')
         firstResult = self.safe_value(outerResults, 0, {})
-        id = self.safe_value(firstResult, 'result')
-        return {
-            'info': response,
-            'id': id,
-        }
+        return self.parse_transaction(firstResult, currency)
 
-    async def fetch_funding_fees(self, codes=None, params={}):
+    async def fetch_transaction_fees(self, codes=None, params={}):
         # by default it will try load withdrawal fees of all currencies(with separate requests)
         # however if you define codes = ['ETH', 'BTC'] in args it will only load those
         await self.load_markets()

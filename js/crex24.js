@@ -30,6 +30,9 @@ module.exports = class crex24 extends Exchange {
                 'cancelOrders': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
@@ -42,19 +45,18 @@ module.exports = class crex24 extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchFundingFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -69,6 +71,7 @@ module.exports = class crex24 extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransactionFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
@@ -172,6 +175,7 @@ module.exports = class crex24 extends Exchange {
                 'FUND': 'FUNDChains',
                 'GHOST': 'GHOSTPRISM',
                 'GM': 'GM Holding',
+                'GMT': 'GMT Token',
                 'GTC': 'GastroCoin', // conflict with Gitcoin and Game.com
                 'IQ': 'IQ.Cash',
                 'ONE': 'One Hundred Coin',
@@ -230,6 +234,13 @@ module.exports = class crex24 extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchMarkets
+         * @description retrieves data on all markets for crex24
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetInstruments (params);
         //
         //         [ {
@@ -460,7 +471,7 @@ module.exports = class crex24 extends Exchange {
         return result;
     }
 
-    async fetchFundingFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetCurrenciesWithdrawalFees (params);
         //
@@ -518,6 +529,13 @@ module.exports = class crex24 extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const request = {
             // 'currency': 'ETH', // comma-separated list of currency ids
@@ -537,6 +555,15 @@ module.exports = class crex24 extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -611,6 +638,14 @@ module.exports = class crex24 extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -633,12 +668,20 @@ module.exports = class crex24 extends Exchange {
         //
         const numTickers = response.length;
         if (numTickers < 1) {
-            throw new ExchangeError (this.id + ' fetchTicker could not load quotes for symbol ' + symbol);
+            throw new ExchangeError (this.id + ' fetchTicker() could not load quotes for symbol ' + symbol);
         }
         return this.parseTicker (response[0], market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         if (symbols !== undefined) {
@@ -735,6 +778,16 @@ module.exports = class crex24 extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -877,6 +930,17 @@ module.exports = class crex24 extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1070,7 +1134,7 @@ module.exports = class crex24 extends Exchange {
         //
         const numOrders = response.length;
         if (numOrders < 1) {
-            throw new OrderNotFound (this.id + ' fetchOrder could not fetch order id ' + id);
+            throw new OrderNotFound (this.id + ' fetchOrder() could not fetch order id ' + id);
         }
         return this.parseOrder (response[0]);
     }
@@ -1259,7 +1323,7 @@ module.exports = class crex24 extends Exchange {
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
         if (!Array.isArray (ids)) {
-            throw new ArgumentsRequired (this.id + ' cancelOrders ids argument should be an array');
+            throw new ArgumentsRequired (this.id + ' cancelOrders() ids argument should be an array');
         }
         await this.loadMarkets ();
         const request = {
