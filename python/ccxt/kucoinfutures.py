@@ -318,6 +318,11 @@ class kucoinfutures(kucoin):
         raise BadRequest(self.id + ' fetchAccounts() is not supported yet')
 
     def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = self.futuresPublicGetStatus(params)
         #
         #     {

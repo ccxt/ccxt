@@ -730,6 +730,11 @@ class okx(Exchange):
         return self.safe_string(exchangeTypes, type, type)
 
     def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = self.publicGetSystemStatus(params)
         #
         # Note, if there is no maintenance around, the 'data' array is empty

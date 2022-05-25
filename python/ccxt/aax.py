@@ -363,6 +363,11 @@ class aax(Exchange):
         return self.safe_integer(response, 'data')
 
     def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = self.publicGetAnnouncementMaintenance(params)
         #
         # note, when there is no maintenance, then data is `null`

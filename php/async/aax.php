@@ -357,6 +357,11 @@ class aax extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {dict} $params extra parameters specific to the aax api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-$status-structure $status structure}
+         */
         $response = yield $this->publicGetAnnouncementMaintenance ($params);
         //
         // note, when there is no maintenance, then $data is `null`

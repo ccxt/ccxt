@@ -774,6 +774,11 @@ class whitebit(Exchange):
         ]
 
     async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = await self.v4PublicGetPing(params)
         #
         #      [
