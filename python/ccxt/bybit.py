@@ -1856,7 +1856,7 @@ class bybit(Exchange):
         costString = self.safe_string(trade, 'exec_value')
         timestamp = self.parse8601(self.safe_string(trade, 'time'))
         if timestamp is None:
-            timestamp = self.safe_number_2(trade, 'trade_time_ms', 'time')
+            timestamp = self.safe_integer_2(trade, 'trade_time_ms', 'time')
         side = self.safe_string_lower(trade, 'side')
         if side is None:
             isBuyer = self.safe_value(trade, 'isBuyer')

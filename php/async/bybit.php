@@ -1910,7 +1910,7 @@ class bybit extends Exchange {
         $costString = $this->safe_string($trade, 'exec_value');
         $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
         if ($timestamp === null) {
-            $timestamp = $this->safe_number_2($trade, 'trade_time_ms', 'time');
+            $timestamp = $this->safe_integer_2($trade, 'trade_time_ms', 'time');
         }
         $side = $this->safe_string_lower($trade, 'side');
         if ($side === null) {
