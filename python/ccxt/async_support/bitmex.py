@@ -65,6 +65,7 @@ class bitmex(Exchange):
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'setMarginMode': True,
                 'transfer': False,
                 'withdraw': True,
             },
@@ -2292,6 +2293,23 @@ class bitmex(Exchange):
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
         }
+
+    async def set_margin_mode(self, marginMode, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        marginMode = marginMode.lower()
+        if marginMode != 'isolated' and marginMode != 'cross':
+            raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
+        await self.load_markets()
+        market = self.market(symbol)
+        if (market['type'] != 'swap') and (market['type'] != 'future'):
+            raise BadSymbol(self.id + ' setMarginMode() supports swap and future contracts only')
+        enabled = False if (marginMode == 'cross') else True
+        request = {
+            'symbol': market['id'],
+            'enabled': enabled,
+        }
+        return await self.privatePostPositionIsolate(self.extend(request, params))
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

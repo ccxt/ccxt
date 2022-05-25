@@ -59,6 +59,7 @@ class bitmex extends Exchange {
                 'fetchTransactions' => 'emulated',
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'setMarginMode' => true,
                 'transfer' => false,
                 'withdraw' => true,
             ),
@@ -2390,6 +2391,27 @@ class bitmex extends Exchange {
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
         );
+    }
+
+    public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+        }
+        $marginMode = strtolower($marginMode);
+        if ($marginMode !== 'isolated' && $marginMode !== 'cross') {
+            throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (($market['type'] !== 'swap') && ($market['type'] !== 'future')) {
+            throw new BadSymbol($this->id . ' setMarginMode() supports swap and future contracts only');
+        }
+        $enabled = ($marginMode === 'cross') ? false : true;
+        $request = array(
+            'symbol' => $market['id'],
+            'enabled' => $enabled,
+        );
+        return $this->privatePostPositionIsolate (array_merge($request, $params));
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
