@@ -619,6 +619,9 @@ module.exports = class okx extends Exchange {
                         '5m': '5m',
                         '1h': '1H',
                         '1d': '1D',
+                        '5M': '5m',
+                        '1H': '1H',
+                        '1D': '1D',
                     },
                 },
                 'fetchOHLCV': {
@@ -4877,7 +4880,7 @@ module.exports = class okx extends Exchange {
          * @param {int} params.till The time in ms of the latest record to retrieve as a unix timestamp
          * @returns An array of open interest structures
          */
-        const options = this.safeValue (options, 'fetchOpenInterestHistory', {});
+        const options = this.safeValue (this.options, 'fetchOpenInterestHistory', {});
         const timeframes = this.safeValue (options, 'timeframes', {});
         timeframe = this.safeString (timeframes, timeframe, timeframe);
         if (timeframe !== '5m' && timeframe !== '1H' && timeframe !== '1D') {
