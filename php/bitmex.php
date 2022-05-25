@@ -59,6 +59,7 @@ class bitmex extends Exchange {
                 'fetchTransactions' => 'emulated',
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'setLeverage' => true,
                 'setMarginMode' => true,
                 'transfer' => false,
                 'withdraw' => true,
@@ -2391,6 +2392,25 @@ class bitmex extends Exchange {
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
         );
+    }
+
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
+        if (($leverage < 0.01) || ($leverage > 100)) {
+            throw new BadRequest($this->id . ' $leverage should be between 0.01 and 100');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if ($market['type'] !== 'swap' && $market['type'] !== 'future') {
+            throw new BadSymbol($this->id . ' setLeverage() supports future and swap contracts only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'leverage' => $leverage,
+        );
+        return $this->privatePostPositionLeverage (array_merge($request, $params));
     }
 
     public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {

@@ -65,6 +65,7 @@ class bitmex(Exchange):
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'setLeverage': True,
                 'setMarginMode': True,
                 'transfer': False,
                 'withdraw': True,
@@ -2293,6 +2294,21 @@ class bitmex(Exchange):
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
         }
+
+    async def set_leverage(self, leverage, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        if (leverage < 0.01) or (leverage > 100):
+            raise BadRequest(self.id + ' leverage should be between 0.01 and 100')
+        await self.load_markets()
+        market = self.market(symbol)
+        if market['type'] != 'swap' and market['type'] != 'future':
+            raise BadSymbol(self.id + ' setLeverage() supports future and swap contracts only')
+        request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        }
+        return await self.privatePostPositionLeverage(self.extend(request, params))
 
     async def set_margin_mode(self, marginMode, symbol=None, params={}):
         if symbol is None:
