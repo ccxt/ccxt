@@ -4874,12 +4874,12 @@ module.exports = class okx extends Exchange {
         };
     }
 
-    async fetchOpenInterestHistory (code, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+    async fetchOpenInterestHistory (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchOpenInterestHistory
          * @description Retrieves the open interest history of a currency
-         * @param {str} code Unified CCXT currency code
+         * @param {str} symbol Unified CCXT currency code instead of a unified symbol
          * @param {str} timeframe "5m", "1h", or "1d"
          * @param {int} since The time in ms of the earliest record to retrieve as a unix timestamp
          * @param {int} limit Not used by okx, but parsed internally by CCXT
@@ -4894,7 +4894,7 @@ module.exports = class okx extends Exchange {
             throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe');
         }
         await this.loadMarkets ();
-        const currency = this.currency (code);
+        const currency = this.currency (symbol);
         const request = {
             'ccy': currency['id'],
             'period': timeframe,
