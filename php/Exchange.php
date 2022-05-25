@@ -4067,7 +4067,8 @@ class Exchange {
             array_push($interests, $interest);
         }
         $sorted = $this->sortBy ($interests, 'timestamp');
-        return $this->filterBySymbolSinceLimit ($sorted, $market, $since, $limit);
+        $symbol = $this->safeString ($market, 'symbol');
+        return $this->filterBySymbolSinceLimit ($sorted, $symbol, $since, $limit);
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
