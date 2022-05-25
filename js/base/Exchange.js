@@ -2444,6 +2444,11 @@ module.exports = class Exchange {
         }
     }
 
+    parsePositions (positions, symbols = undefined, params = {}) {
+        const result = Object.values (positions || []).map ((position) => this.merge (this.parsePosition (position), params));
+        return this.filterByArray (result, 'symbol', symbols, false);
+    }
+
     parseBorrowInterests (response, market = undefined) {
         const interest = [];
         for (let i = 0; i < response.length; i++) {
