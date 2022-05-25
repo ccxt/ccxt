@@ -360,6 +360,7 @@ class ftx(Exchange):
                     'Account does not have enough balances': InsufficientFunds,  # {"success":false,"error":"Account does not have enough balances"}
                     'Not authorized for subaccount-specific access': PermissionDenied,  # {"success":false,"error":"Not authorized for subaccount-specific access"}
                     'Not approved to trade self product': PermissionDenied,  # {"success":false,"error":"Not approved to trade self product"}
+                    'Internal Error': ExchangeNotAvailable,  # {"success":false,"error":"Internal Error"}
                 },
                 'broad': {
                     # {"error":"Not logged in","success":false}

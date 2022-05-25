@@ -369,7 +369,7 @@ class okx(Exchange):
                     '50023': ExchangeError,  # Funding fee frozen. Operation restricted
                     '50024': BadRequest,  # Parameter {0} and {1} can not exist at the same time
                     '50025': ExchangeError,  # Parameter {0} count exceeds the limit {1}
-                    '50026': ExchangeError,  # System error
+                    '50026': ExchangeNotAvailable,  # System error, please try again later.
                     '50027': PermissionDenied,  # The account is restricted from trading
                     '50028': ExchangeError,  # Unable to take the order, please reach out to support center for details
                     # API Class
@@ -615,6 +615,7 @@ class okx(Exchange):
                     '63999': ExchangeError,  # Internal system error
                 },
                 'broad': {
+                    'server error': ExchangeNotAvailable,  # {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249"}
                 },
             },
             'httpExceptions': {

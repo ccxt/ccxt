@@ -350,6 +350,7 @@ class ftx extends Exchange {
                     'Account does not have enough balances' => '\\ccxt\\InsufficientFunds', // array("success":false,"error":"Account does not have enough balances")
                     'Not authorized for subaccount-specific access' => '\\ccxt\\PermissionDenied', // array("success":false,"error":"Not authorized for subaccount-specific access")
                     'Not approved to trade this product' => '\\ccxt\\PermissionDenied', // array("success":false,"error":"Not approved to trade this product")
+                    'Internal Error' => '\\ccxt\\ExchangeNotAvailable', // array("success":false,"error":"Internal Error")
                 ),
                 'broad' => array(
                     // array("error":"Not logged in","success":false)

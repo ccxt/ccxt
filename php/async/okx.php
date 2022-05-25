@@ -353,7 +353,7 @@ class okx extends Exchange {
                     '50023' => '\\ccxt\\ExchangeError', // Funding fee frozen. Operation restricted
                     '50024' => '\\ccxt\\BadRequest', // Parameter {0} and {1} can not exist at the same time
                     '50025' => '\\ccxt\\ExchangeError', // Parameter {0} count exceeds the limit {1}
-                    '50026' => '\\ccxt\\ExchangeError', // System error
+                    '50026' => '\\ccxt\\ExchangeNotAvailable', // System error, please try again later.
                     '50027' => '\\ccxt\\PermissionDenied', // The account is restricted from trading
                     '50028' => '\\ccxt\\ExchangeError', // Unable to take the order, please reach out to support center for details
                     // API Class
@@ -599,6 +599,7 @@ class okx extends Exchange {
                     '63999' => '\\ccxt\\ExchangeError', // Internal system error
                 ),
                 'broad' => array(
+                    'server error' => '\\ccxt\\ExchangeNotAvailable', // array("code":500,"data":array(),"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249")
                 ),
             ),
             'httpExceptions' => array(
