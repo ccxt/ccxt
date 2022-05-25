@@ -693,6 +693,11 @@ class coinbase extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {dict} $params extra parameters specific to the coinbase api endpoint
+         * @return {dict} an associative dictionary of $currencies
+         */
         $response = yield $this->fetch_currencies_from_cache($params);
         $currencies = $this->safe_value($response, 'currencies', array());
         //

@@ -2271,6 +2271,11 @@ class huobi(Exchange):
         return self.safe_string(account, 'id')
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.spotPublicGetV2ReferenceCurrencies()
         #     {
         #       "code": 200,

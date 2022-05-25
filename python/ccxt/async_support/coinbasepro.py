@@ -231,6 +231,11 @@ class coinbasepro(Exchange):
         })
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.publicGetCurrencies(params)
         #
         #     [

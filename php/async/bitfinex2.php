@@ -504,6 +504,11 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the bitfinex2 api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $labels = array(
             'pub:list:currency',
             'pub:map:currency:sym', // maps symbols to their API symbols, BAB > BCH

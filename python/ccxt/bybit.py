@@ -525,6 +525,11 @@ class bybit(Exchange):
         return self.safe_string(networksById, networkId, networkId)
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         if not self.check_required_credentials(False):
             return None
         response = self.privateGetAssetV1PrivateCoinInfoQuery(params)

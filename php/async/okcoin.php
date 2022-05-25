@@ -1102,6 +1102,11 @@ class okcoin extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the okcoin api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         // despite that their docs say these endpoints are public:
         //     https://www.okex.com/api/account/v3/withdrawal/fee
         //     https://www.okex.com/api/account/v3/currencies

@@ -1051,6 +1051,11 @@ class okx(Exchange):
         return self.safe_string(networksById, networkId, networkId)
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         # self endpoint requires authentication
         # while fetchCurrencies is a public API method by design
         # therefore we check the keys here

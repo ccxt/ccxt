@@ -1101,6 +1101,11 @@ class okcoin(Exchange):
             raise NotSupported(self.id + ' fetchMarketsByType() does not support market type ' + type)
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         # despite that their docs say these endpoints are public:
         #     https://www.okex.com/api/account/v3/withdrawal/fee
         #     https://www.okex.com/api/account/v3/currencies

@@ -669,6 +669,11 @@ class coinbase(Exchange):
         return self.safe_value(self.options, 'fetchCurrencies', {})
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.fetch_currencies_from_cache(params)
         currencies = self.safe_value(response, 'currencies', {})
         #

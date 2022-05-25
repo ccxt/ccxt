@@ -1059,6 +1059,11 @@ class okx extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here

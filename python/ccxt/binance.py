@@ -1265,6 +1265,11 @@ class binance(Exchange):
         return self.safe_integer(response, 'serverTime')
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         fetchCurrenciesEnabled = self.safe_value(self.options, 'fetchCurrencies')
         if not fetchCurrenciesEnabled:
             return None

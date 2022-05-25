@@ -298,6 +298,11 @@ class stex extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {dict} $params extra parameters specific to the stex api endpoint
+         * @return {dict} an associative dictionary of $currencies
+         */
         $response = yield $this->publicGetCurrencies ($params);
         //
         //     {

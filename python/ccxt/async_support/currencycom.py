@@ -314,6 +314,11 @@ class currencycom(Exchange):
         return self.safe_integer(response, 'serverTime')
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the currencycom api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         # requires authentication
         if not self.check_required_credentials(False):
             return None

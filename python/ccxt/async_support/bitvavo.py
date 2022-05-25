@@ -411,6 +411,11 @@ class bitvavo(Exchange):
         return self.safe_value(self.options['fetchCurrencies'], 'response')
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the bitvavo api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.fetch_currencies_from_cache(params)
         #
         #     [

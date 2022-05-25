@@ -503,6 +503,11 @@ class bitfinex2(bitfinex):
         return result
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         labels = [
             'pub:list:currency',
             'pub:map:currency:sym',  # maps symbols to their API symbols, BAB > BCH

@@ -1014,6 +1014,11 @@ class bitget(Exchange):
         return self.parse_markets(data)
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.publicSpotGetPublicCurrencies(params)
         #
         #     {

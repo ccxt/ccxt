@@ -1258,6 +1258,11 @@ class binance extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $fetchCurrenciesEnabled = $this->safe_value($this->options, 'fetchCurrencies');
         if (!$fetchCurrenciesEnabled) {
             return null;
