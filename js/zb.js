@@ -3516,10 +3516,6 @@ module.exports = class zb extends Exchange {
 
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
-        if (symbols !== undefined) {
-            market = this.market (symbols);
-        }
         const request = {
             'futuresAccountType': 1, // 1: USDT-M Perpetual Futures
             // 'symbol': market['id'],
@@ -3577,7 +3573,7 @@ module.exports = class zb extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parsePositions (data, market);
+        return this.parsePositions (data, symbols);
     }
 
     parsePosition (position, market = undefined) {
@@ -3624,7 +3620,8 @@ module.exports = class zb extends Exchange {
         //         "userId": "6896693805014120448"
         //     }
         //
-        market = this.safeMarket (this.safeString (position, 'marketName'), market);
+        const marketId = this.safeString (position, 'marketName');
+        market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const contracts = this.safeString (position, 'amount');
         const entryPrice = this.safeNumber (position, 'avgPrice');
@@ -3665,14 +3662,6 @@ module.exports = class zb extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-    }
-
-    parsePositions (positions) {
-        const result = [];
-        for (let i = 0; i < positions.length; i++) {
-            result.push (this.parsePosition (positions[i]));
-        }
-        return result;
     }
 
     parseLedgerEntryType (type) {

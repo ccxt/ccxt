@@ -3872,14 +3872,6 @@ module.exports = class gateio extends Exchange {
         };
     }
 
-    parsePositions (positions) {
-        const result = [];
-        for (let i = 0; i < positions.length; i++) {
-            result.push (this.parsePosition (positions[i]));
-        }
-        return result;
-    }
-
     async fetchPositions (symbols = undefined, params = {}) {
         /**
          * @method
@@ -3928,8 +3920,7 @@ module.exports = class gateio extends Exchange {
         //         }
         //     ]
         //
-        const result = this.parsePositions (response);
-        return this.filterByArray (result, 'symbol', symbols, false);
+        return this.parsePositions (response, symbols);
     }
 
     async fetchLeverageTiers (symbols = undefined, params = {}) {

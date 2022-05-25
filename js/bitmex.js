@@ -1792,6 +1792,7 @@ module.exports = class bitmex extends Exchange {
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetPosition (params);
+        //
         //     [
         //         {
         //             "account": 0,
@@ -1888,8 +1889,7 @@ module.exports = class bitmex extends Exchange {
         //         }
         //     ]
         //
-        const result = this.parsePositions (response);
-        return this.filterByArray (result, 'symbol', symbols, false);
+        return this.parsePositions (response, symbols);
     }
 
     parsePosition (position, market = undefined) {
@@ -2022,14 +2022,6 @@ module.exports = class bitmex extends Exchange {
             'marginRatio': undefined,
             'percentage': this.safeNumber (position, 'unrealisedPnlPcnt'),
         };
-    }
-
-    parsePositions (positions) {
-        const result = [];
-        for (let i = 0; i < positions.length; i++) {
-            result.push (this.parsePosition (positions[i]));
-        }
-        return result;
     }
 
     isFiat (currency) {
