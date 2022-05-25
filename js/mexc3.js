@@ -2353,6 +2353,8 @@ module.exports = class mexc3 extends Exchange {
             'NEW': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
+            'PARTIALLY_FILLED': 'open',
+            'PARTIALLY_CANCELED': 'canceled',
             // contracts v1
             // '1': 'uninformed', // TODO: wt?
             '2': 'open',
