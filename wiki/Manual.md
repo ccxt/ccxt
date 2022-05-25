@@ -722,7 +722,7 @@ In terms of the ccxt library, every exchange offers multiple **markets** within 
         'withdraw': { ... }, // withdrawal limits
         'deposit': {...},
     },
-    'network': {...}         // network structure
+    'networks': {...}        // network structures indexed by unified network identifiers (ERC20, TRC20, BSC, etc)
     'info': { ... },         // the original unparsed currency info from the exchange
 }
 ```
@@ -737,9 +737,9 @@ Each currency is an associative array (aka dictionary) with the following keys:
 - `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 - `precision`. Precision accepted in values by exchanges upon referencing this currency. The value of this property depends on [`exchange.precisionMode`](#precision-mode).
 - `limits`. The minimums and maximums for amounts (volumes), withdrawals and deposits.
-- `networks`. Object that contains each [network structure](#network-structure) of the currency, where the unified network code is the key.
 
 ## Network structure
+
 ```JavaScript
 {
     'id':       'tron',         // string literal for referencing within an exchange
@@ -772,7 +772,6 @@ Each network is an associative array (aka dictionary) with the following keys:
 - `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 - `precision`. Precision accepted in values by exchanges upon referencing this currency. The value of this property depends on [`exchange.precisionMode`](#precision-mode).
 - `limits`. The minimums and maximums for amounts (volumes), withdrawals and deposits.
-
 
 ## Market Structure
 
