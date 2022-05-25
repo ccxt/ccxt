@@ -470,12 +470,13 @@ class bybit(Exchange):
             'precisionMode': TICK_SIZE,
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
-                'defaultType': 'swap',  # 'swap', 'future', 'option'
+                'defaultType': 'swap',  # 'swap', 'future', 'option', 'spot'
+                'defaultSubType': 'linear',  # 'linear', 'inverse'
+                'defaultSettle': 'USDT',  # USDC for USDC settled markets
                 'code': 'BTC',
                 'recvWindow': 5 * 1000,  # 5 sec default
                 'timeDifference': 0,  # the difference between system clock and exchange server clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
-                'defaultSettle': 'USDT',  # USDC for USDC settled markets
                 'brokerId': 'CCXT',
             },
             'fees': {
@@ -498,6 +499,11 @@ class bybit(Exchange):
         return self.milliseconds() - self.options['timeDifference']
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.publicGetV2PublicTime(params)
         #
         #     {
@@ -519,6 +525,11 @@ class bybit(Exchange):
         return self.safe_string(networksById, networkId, networkId)
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         if not self.check_required_credentials(False):
             return None
         response = await self.privateGetAssetV1PrivateCoinInfoQuery(params)
@@ -675,6 +686,7 @@ class bybit(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             active = self.safe_value(market, 'showStatus')
+            quotePrecision = self.safe_number(market, 'quotePrecision')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -703,7 +715,7 @@ class bybit(Exchange):
                 'optionType': None,
                 'precision': {
                     'amount': self.safe_number(market, 'basePrecision'),
-                    'price': self.safe_number(market, 'quotePrecision'),
+                    'price': self.safe_number(market, 'minPricePrecision', quotePrecision),
                 },
                 'limits': {
                     'leverage': {
@@ -840,6 +852,8 @@ class bybit(Exchange):
                 expiryDatetime = artificial8601Date
                 expiry = self.parse8601(expiryDatetime)
                 symbol = symbol + '-' + self.yymmdd(expiry)
+            inverse = not linear
+            contractSize = self.safe_number(lotSizeFilter, 'min_trading_qty') if inverse else None
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -858,10 +872,10 @@ class bybit(Exchange):
                 'active': active,
                 'contract': True,
                 'linear': linear,
-                'inverse': not linear,
+                'inverse': inverse,
                 'taker': self.safe_number(market, 'taker_fee'),
                 'maker': self.safe_number(market, 'maker_fee'),
-                'contractSize': None,  # todo
+                'contractSize': contractSize,
                 'expiry': expiry,
                 'expiryDatetime': expiryDatetime,
                 'strike': None,
@@ -2451,7 +2465,7 @@ class bybit(Exchange):
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        timestamp = self.parse8601(self.safe_string_2(order, 'created_at', 'created_time'))
+        timestamp = self.parse8601(self.safe_string_n(order, ['created_at', 'created_time', 'create_time', 'timestamp']))
         if timestamp is None:
             timestamp = self.safe_number_2(order, 'time', 'transactTime')
             if timestamp is None:
@@ -2461,14 +2475,14 @@ class bybit(Exchange):
         price = self.safe_string_2(order, 'price', 'orderPrice')
         average = self.safe_string_2(order, 'average_price', 'avgPrice')
         amount = self.safe_string_n(order, ['qty', 'origQty', 'orderQty'])
-        cost = self.safe_string(order, 'cum_exec_value')
-        filled = self.safe_string_2(order, 'cum_exec_qty', 'executedQty')
-        remaining = self.safe_string(order, 'leaves_qty')
+        cost = self.safe_string_2(order, 'cum_exec_value', 'cumExecValue')
+        filled = self.safe_string_n(order, ['cum_exec_qty', 'executedQty', 'cumExecQty'])
+        remaining = self.safe_string_2(order, 'leaves_qty', 'leavesQty')
         lastTradeTimestamp = self.safe_timestamp(order, 'last_exec_time')
         if lastTradeTimestamp == 0:
             lastTradeTimestamp = None
         elif lastTradeTimestamp is None:
-            lastTradeTimestamp = self.parse8601(self.safe_string_2(order, 'updated_time', 'updated_at'))
+            lastTradeTimestamp = self.parse8601(self.safe_string_n(order, ['updated_time', 'updated_at', 'update_time']))
             if lastTradeTimestamp is None:
                 lastTradeTimestamp = self.safe_number(order, 'updateTime')
         raw_status = self.safe_string_n(order, ['order_status', 'stop_order_status', 'status', 'orderStatus'])
@@ -2477,7 +2491,7 @@ class bybit(Exchange):
         fee = None
         isContract = self.safe_value(market, 'contract')
         if isContract:
-            feeCostString = self.safe_string(order, 'cum_exec_fee')
+            feeCostString = self.safe_string_2(order, 'cum_exec_fee', 'cumExecFee')
             if feeCostString is not None:
                 feeCurrency = market['quote'] if market['linear'] else market['base']
                 fee = {
@@ -2588,7 +2602,7 @@ class bybit(Exchange):
         if type == 'limit' or type == 'limit_maker':
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder requires a price argument for a ' + type + ' order')
-            request['price'] = price
+            request['price'] = self.price_to_precision(symbol, price)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'orderLinkId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
@@ -2950,9 +2964,11 @@ class bybit(Exchange):
                 method = 'privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder'
                 request['orderFilter'] = 'StopOrder' if isConditional else 'Order'
         elif market['linear']:
+            # linear futures and linear swaps
             method = 'privatePostPrivateLinearStopOrderCancel' if isConditional else 'privatePostPrivateLinearOrderCancel'
-        elif market['future']:
-            method = 'privatePostFuturesPrivateStopOrderCancel' if isConditional else 'privatePostFuturesPrivateOrderCancel'
+        elif market['swap']:
+            # inverse swaps
+            method = 'privatePostV2PrivateStopOrderCancel' if isConditional else 'privatePostV2PrivateOrderCancel'
         else:
             # inverse futures
             method = 'privatePostFuturesPrivateStopOrderCancel' if isConditional else 'privatePostFuturesPrivateOrderCancel'
@@ -3001,6 +3017,7 @@ class bybit(Exchange):
         return self.parse_order(result, market)
 
     async def cancel_all_orders(self, symbol=None, params={}):
+        await self.load_markets()
         market = None
         isUsdcSettled = None
         if symbol is not None:
@@ -3015,7 +3032,6 @@ class bybit(Exchange):
         type, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
         if not isUsdcSettled and symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument for ' + type + ' markets')
-        await self.load_markets()
         request = {}
         if not isUsdcSettled:
             request['symbol'] = market['id']

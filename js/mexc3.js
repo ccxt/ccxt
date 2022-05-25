@@ -414,6 +414,13 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name mexc3#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {dict} params extra parameters specific to the mexc3 api endpoint
+         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
         let response = undefined;
         let status = undefined;
@@ -439,6 +446,13 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name mexc3#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the mexc3 api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         let response = undefined;
         if (marketType === 'spot') {
@@ -457,6 +471,13 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name mexc3#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the mexc3 api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.spot2PublicGetMarketCoinList (params);
         //
         //     {
@@ -1508,6 +1529,14 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchBidsAsks (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc3#fetchBidsAsks
+         * @description fetches the bid and ask price and volume for multiple markets
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {dict} params extra parameters specific to the mexc3 api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         let isSingularMarket = false;

@@ -296,6 +296,11 @@ class coinflex(Exchange):
         })
 
     async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = await self.publicGetV2Ping(params)
         #
         #     {"success": "true"}
@@ -462,6 +467,11 @@ class coinflex(Exchange):
         return result
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.publicGetV3Assets(params)
         #
         #     {

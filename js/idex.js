@@ -689,6 +689,13 @@ module.exports = class idex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name idex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the idex api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         // [
         //   {
         //     name: 'Ether',

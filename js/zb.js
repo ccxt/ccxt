@@ -696,6 +696,13 @@ module.exports = class zb extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name zb#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the zb api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.spotV1PublicGetGetFeeInfo (params);
         //
         //     {

@@ -927,6 +927,11 @@ class huobi extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $options = $this->safe_value($this->options, 'fetchTime', array());
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $type = $this->safe_string($options, 'type', $defaultType);
@@ -2361,6 +2366,11 @@ class huobi extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = yield $this->spotPublicGetV2ReferenceCurrencies ();
         //     {
         //       "code" => 200,

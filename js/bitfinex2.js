@@ -377,6 +377,13 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name bitfinex2#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {dict} params extra parameters specific to the bitfinex2 api endpoint
+         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
         //
         //    [1] // operative
         //    [0] // maintenance
@@ -495,6 +502,13 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name bitfinex2#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the bitfinex2 api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const labels = [
             'pub:list:currency',
             'pub:map:currency:sym', // maps symbols to their API symbols, BAB > BCH

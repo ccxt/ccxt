@@ -782,6 +782,13 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.generalGetTime (params);
         //
         //     {
@@ -1093,6 +1100,13 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         // despite that their docs say these endpoints are public:
         //     https://www.okex.com/api/account/v3/withdrawal/fee
         //     https://www.okex.com/api/account/v3/currencies

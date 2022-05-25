@@ -341,6 +341,11 @@ class huobijp(Exchange):
         })
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the huobijp api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = self.publicGetCommonTimestamp(params)
         return self.safe_integer(response, 'data')
 
@@ -923,6 +928,11 @@ class huobijp(Exchange):
         return response['data']
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the huobijp api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         request = {
             'language': self.options['language'],
         }

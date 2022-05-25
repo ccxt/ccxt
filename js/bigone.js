@@ -418,6 +418,13 @@ module.exports = class bigone extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name bigone#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the bigone api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetPing (params);
         //
         //     {

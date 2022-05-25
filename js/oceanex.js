@@ -530,6 +530,13 @@ module.exports = class oceanex extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name oceanex#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the oceanex api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetTimestamp (params);
         //
         //     {"code":0,"message":"Operation successful","data":1559433420}

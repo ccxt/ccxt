@@ -338,6 +338,13 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPublicGetCommonTimestamp',
@@ -364,6 +371,13 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
         const response = await this.spotPublicGetCommonPing (params);
         //
         //     { "code":200 }
@@ -380,6 +394,13 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.spotPublicGetMarketCoinList (params);
         //
         //     {

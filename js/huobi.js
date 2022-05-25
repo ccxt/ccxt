@@ -919,6 +919,13 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const options = this.safeValue (this.options, 'fetchTime', {});
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         let type = this.safeString (options, 'type', defaultType);
@@ -2365,6 +2372,13 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.spotPublicGetV2ReferenceCurrencies ();
         //     {
         //       "code": 200,

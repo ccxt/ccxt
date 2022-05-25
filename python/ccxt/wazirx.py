@@ -24,7 +24,7 @@ class wazirx(Exchange):
             'name': 'WazirX',
             'countries': ['IN'],
             'version': 'v2',
-            'rateLimit': 100,
+            'rateLimit': 1000,
             'has': {
                 'CORS': False,
                 'spot': True,
@@ -410,6 +410,11 @@ class wazirx(Exchange):
         }, market)
 
     def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the wazirx api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = self.publicGetSystemStatus(params)
         #
         #     {
@@ -427,6 +432,11 @@ class wazirx(Exchange):
         }
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the wazirx api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = self.publicGetTime(params)
         #
         #     {

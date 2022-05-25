@@ -937,6 +937,11 @@ class huobi(Exchange):
         })
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         options = self.safe_value(self.options, 'fetchTime', {})
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
         type = self.safe_string(options, 'type', defaultType)
@@ -2266,6 +2271,11 @@ class huobi(Exchange):
         return self.safe_string(account, 'id')
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.spotPublicGetV2ReferenceCurrencies()
         #     {
         #       "code": 200,

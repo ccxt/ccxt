@@ -731,6 +731,11 @@ class okx(Exchange):
         return self.safe_string(exchangeTypes, type, type)
 
     async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = await self.publicGetSystemStatus(params)
         #
         # Note, if there is no maintenance around, the 'data' array is empty
@@ -771,6 +776,11 @@ class okx(Exchange):
         return update
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.publicGetPublicTime(params)
         #
         #     {
@@ -1043,6 +1053,11 @@ class okx(Exchange):
         return self.safe_string(networksById, networkId, networkId)
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         # self endpoint requires authentication
         # while fetchCurrencies is a public API method by design
         # therefore we check the keys here

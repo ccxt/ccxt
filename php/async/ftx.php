@@ -414,6 +414,11 @@ class ftx extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {dict} $params extra parameters specific to the ftx api endpoint
+         * @return {dict} an associative dictionary of $currencies
+         */
         $response = yield $this->publicGetCoins ($params);
         $currencies = $this->safe_value($response, 'result', array());
         //

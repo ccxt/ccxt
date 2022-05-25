@@ -1239,6 +1239,11 @@ class binance extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $defaultType = $this->safe_string_2($this->options, 'fetchTime', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit($params, 'type');
@@ -1253,6 +1258,11 @@ class binance extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $fetchCurrenciesEnabled = $this->safe_value($this->options, 'fetchCurrencies');
         if (!$fetchCurrenciesEnabled) {
             return null;
@@ -2112,6 +2122,11 @@ class binance extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure status structure}
+         */
         $response = yield $this->sapiGetSystemStatus ($params);
         //
         //     {
@@ -2156,6 +2171,12 @@ class binance extends Exchange {
     }
 
     public function fetch_bids_asks($symbols = null, $params = array ()) {
+        /**
+         * fetches the bid and ask price and volume for multiple markets
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
         yield $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchBidsAsks', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);

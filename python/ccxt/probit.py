@@ -343,6 +343,11 @@ class probit(Exchange):
         return result
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.publicGetCurrencyWithPlatform(params)
         #
         #     {
@@ -784,6 +789,11 @@ class probit(Exchange):
         }, market)
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = self.publicGetTime(params)
         #
         #     {"data":"2020-04-12T18:54:25.390Z"}

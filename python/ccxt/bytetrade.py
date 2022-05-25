@@ -163,6 +163,11 @@ class bytetrade(Exchange):
         })
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the bytetrade api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         currencies = self.publicGetCurrencies(params)
         result = {}
         for i in range(0, len(currencies)):
@@ -516,6 +521,12 @@ class bytetrade(Exchange):
         return self.parse_ticker(response, market)
 
     def fetch_bids_asks(self, symbols=None, params={}):
+        """
+        fetches the bid and ask price and volume for multiple markets
+        :param [str]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        :param dict params: extra parameters specific to the bytetrade api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         response = self.marketGetDepth(params)
         return self.parse_tickers(response, symbols)

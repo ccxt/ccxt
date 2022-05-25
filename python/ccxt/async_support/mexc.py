@@ -352,6 +352,11 @@ class mexc(Exchange):
         })
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         marketType, query = self.handle_market_type_and_params('fetchTime', None, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPublicGetCommonTimestamp',
@@ -377,6 +382,11 @@ class mexc(Exchange):
         return self.safe_integer(response, 'data')
 
     async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = await self.spotPublicGetCommonPing(params)
         #
         #     {"code":200}
@@ -392,6 +402,11 @@ class mexc(Exchange):
         }
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.spotPublicGetMarketCoinList(params)
         #
         #     {

@@ -449,6 +449,11 @@ class kucoin extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the kucoin api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = $this->publicGetTimestamp ($params);
         //
         //     {
@@ -461,6 +466,11 @@ class kucoin extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {dict} $params extra parameters specific to the kucoin api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-$status-structure $status structure}
+         */
         $response = $this->publicGetStatus ($params);
         //
         //     {
@@ -626,6 +636,11 @@ class kucoin extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the kucoin api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = $this->publicGetCurrencies ($params);
         //
         //     {

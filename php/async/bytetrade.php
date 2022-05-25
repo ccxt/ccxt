@@ -162,6 +162,11 @@ class bytetrade extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {dict} $params extra parameters specific to the bytetrade api endpoint
+         * @return {dict} an associative dictionary of $currencies
+         */
         $currencies = yield $this->publicGetCurrencies ($params);
         $result = array();
         for ($i = 0; $i < count($currencies); $i++) {
@@ -537,6 +542,12 @@ class bytetrade extends Exchange {
     }
 
     public function fetch_bids_asks($symbols = null, $params = array ()) {
+        /**
+         * fetches the bid and ask price and volume for multiple markets
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {dict} $params extra parameters specific to the bytetrade api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
         yield $this->load_markets();
         $response = yield $this->marketGetDepth ($params);
         return $this->parse_tickers($response, $symbols);
