@@ -2104,14 +2104,6 @@ class deribit extends Exchange {
         return $this->parse_position($result);
     }
 
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
-    }
-
     public function fetch_positions($symbols = null, $params = array ()) {
         $this->load_markets();
         $code = null;
@@ -2165,7 +2157,7 @@ class deribit extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result');
-        return $this->parse_positions($result);
+        return $this->parse_positions($result, $symbols);
     }
 
     public function fetch_historical_volatility($code, $params = array ()) {

@@ -3677,12 +3677,6 @@ class gateio(Exchange):
             'percentage': self.parse_number(percentage),
         }
 
-    def parse_positions(self, positions):
-        result = []
-        for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i]))
-        return result
-
     def fetch_positions(self, symbols=None, params={}):
         """
         Fetch trades positions
@@ -3729,8 +3723,7 @@ class gateio(Exchange):
         #         }
         #     ]
         #
-        result = self.parse_positions(response)
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.parse_positions(response, symbols)
 
     def fetch_leverage_tiers(self, symbols=None, params={}):
         self.load_markets()

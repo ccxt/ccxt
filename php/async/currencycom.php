@@ -1727,15 +1727,7 @@ class currencycom extends Exchange {
         // }
         //
         $data = $this->safe_value($response, 'positions', array());
-        return $this->parse_positions($data);
-    }
-
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
+        return $this->parse_positions($data, $symbols);
     }
 
     public function parse_position($position, $market = null) {

@@ -97,6 +97,7 @@ class Transpiler {
             [ /\.parseJson\s/g, '.parse_json'],
             [ /\.parseAccountPosition\s/g, '.parse_account_position' ],
             [ /\.parsePositionRisk\s/g, '.parse_position_risk' ],
+            [ /\.parsePositions\s/g, '.parse_positions' ],
             [ /\.parseIncome\s/g, '.parse_income' ],
             [ /\.parseIncomes\s/g, '.parse_incomes' ],
             [ /\.parseFundingRate\s/g, '.parse_funding_rate' ],

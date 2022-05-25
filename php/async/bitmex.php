@@ -1784,6 +1784,7 @@ class bitmex extends Exchange {
     public function fetch_positions($symbols = null, $params = array ()) {
         yield $this->load_markets();
         $response = yield $this->privateGetPosition ($params);
+        //
         //     array(
         //         {
         //             "account" => 0,
@@ -1880,8 +1881,7 @@ class bitmex extends Exchange {
         //         }
         //     )
         //
-        $result = $this->parse_positions($response);
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
+        return $this->parse_positions($response, $symbols);
     }
 
     public function parse_position($position, $market = null) {
@@ -2014,14 +2014,6 @@ class bitmex extends Exchange {
             'marginRatio' => null,
             'percentage' => $this->safe_number($position, 'unrealisedPnlPcnt'),
         );
-    }
-
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
     }
 
     public function is_fiat($currency) {

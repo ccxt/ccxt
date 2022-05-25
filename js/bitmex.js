@@ -1792,6 +1792,7 @@ module.exports = class bitmex extends Exchange {
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetPosition (params);
+        //
         //     [
         //         {
         //             "account": 0,
@@ -1888,8 +1889,7 @@ module.exports = class bitmex extends Exchange {
         //         }
         //     ]
         //
-        const result = this.parsePositions (response);
-        return this.filterByArray (result, 'symbol', symbols, false);
+        return this.parsePositions (response, symbols);
     }
 
     parsePosition (position, market = undefined) {

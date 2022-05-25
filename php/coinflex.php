@@ -1591,15 +1591,7 @@ class coinflex extends Exchange {
         // response sample inside `getAccountData` method
         $this->targetAccount = $this->safe_value($data, 0);
         $positions = $this->safe_value($this->targetAccount, 'positions', array());
-        return $this->parse_positions($positions);
-    }
-
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
+        return $this->parse_positions($positions, $symbols);
     }
 
     public function parse_position($position, $market = null) {

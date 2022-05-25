@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.84.3';
+$version = '1.84.5';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.84.3';
+    const VERSION = '1.84.5';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -407,6 +407,7 @@ class Exchange {
         'createStopLimitOrder' => 'create_stop_limit_order',
         'createStopMarketOrder' => 'create_stop_market_order',
         'checkOrderArguments' => 'check_order_arguments',
+        'parsePositions' => 'parse_positions',
         'parseBorrowInterests' => 'parse_borrow_interests',
         'parseFundingRateHistories' => 'parse_funding_rate_histories',
         'fetchFundingRate' => 'fetch_funding_rate',
@@ -4040,6 +4041,16 @@ class Exchange {
         if ($amount <= 0) {
             throw new ArgumentsRequired ($this->id + ' create_order() amount should be above 0');
         }
+    }
+
+    public function parse_positions($positions, $symbols = null, $params = array()) {
+        $symbols = $this->market_symbols($symbols);
+        $array = is_array($positions) ? array_values($positions) : array();
+        $result = array();
+        foreach ($array as $position) {
+            $result[] = $this->merge($this->parse_trade($position), $params);
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 
     public function parse_borrow_interests($response, $market = null) {

@@ -3366,7 +3366,7 @@ class mexc3 extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_positions($data);
+        return $this->parse_positions($data, $symbols);
     }
 
     public function parse_position($position, $market = null) {
@@ -3429,14 +3429,6 @@ class mexc3 extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         );
-    }
-
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
     }
 
     public function fetch_transfer($id, $since = null, $limit = null, $params = array ()) {

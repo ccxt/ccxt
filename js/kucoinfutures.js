@@ -880,15 +880,8 @@ module.exports = class kucoinfutures extends kucoin {
         //        ]
         //    }
         //
-        return this.parsePositions (this.safeValue (response, 'data'));
-    }
-
-    parsePositions (positions) {
-        const result = [];
-        for (let i = 0; i < positions.length; i++) {
-            result.push (this.parsePosition (positions[i]));
-        }
-        return result;
+        const data = this.safeValue (response, 'data');
+        return this.parsePositions (data, symbols);
     }
 
     parsePosition (position, market = undefined) {

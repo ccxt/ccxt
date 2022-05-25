@@ -1705,6 +1705,7 @@ class bitmex(Exchange):
     async def fetch_positions(self, symbols=None, params={}):
         await self.load_markets()
         response = await self.privateGetPosition(params)
+        #
         #     [
         #         {
         #             "account": 0,
@@ -1801,8 +1802,7 @@ class bitmex(Exchange):
         #         }
         #     ]
         #
-        result = self.parse_positions(response)
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.parse_positions(response, symbols)
 
     def parse_position(self, position, market=None):
         #
@@ -1933,12 +1933,6 @@ class bitmex(Exchange):
             'marginRatio': None,
             'percentage': self.safe_number(position, 'unrealisedPnlPcnt'),
         }
-
-    def parse_positions(self, positions):
-        result = []
-        for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i]))
-        return result
 
     def is_fiat(self, currency):
         if currency == 'EUR':
