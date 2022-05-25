@@ -3506,14 +3506,10 @@ class zb extends Exchange {
 
     public function fetch_positions($symbols = null, $params = array ()) {
         $this->load_markets();
-        $market = null;
-        if ($symbols !== null) {
-            $market = $this->market($symbols);
-        }
         $request = array(
             'futuresAccountType' => 1, // 1 => USDT-M Perpetual Futures
-            // 'symbol' => $market['id'],
-            // 'marketId' => $market['id'],
+            // 'symbol' => market['id'],
+            // 'marketId' => market['id'],
             // 'side' => $params['side'],
         );
         $response = $this->contractV2PrivateGetPositionsGetPositions (array_merge($request, $params));
@@ -3567,7 +3563,7 @@ class zb extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_positions($data, $market);
+        return $this->parse_positions($data, $symbols);
     }
 
     public function parse_position($position, $market = null) {
@@ -3614,7 +3610,8 @@ class zb extends Exchange {
         //         "userId" => "6896693805014120448"
         //     }
         //
-        $market = $this->safe_market($this->safe_string($position, 'marketName'), $market);
+        $marketId = $this->safe_string($position, 'marketName');
+        $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $contracts = $this->safe_string($position, 'amount');
         $entryPrice = $this->safe_number($position, 'avgPrice');
@@ -3655,14 +3652,6 @@ class zb extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         );
-    }
-
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
     }
 
     public function parse_ledger_entry_type($type) {

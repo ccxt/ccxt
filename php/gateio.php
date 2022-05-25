@@ -3843,14 +3843,6 @@ class gateio extends Exchange {
         );
     }
 
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
-    }
-
     public function fetch_positions($symbols = null, $params = array ()) {
         /**
          * Fetch trades positions
@@ -3897,8 +3889,7 @@ class gateio extends Exchange {
         //         }
         //     )
         //
-        $result = $this->parse_positions($response);
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
+        return $this->parse_positions($response, $symbols);
     }
 
     public function fetch_leverage_tiers($symbols = null, $params = array ()) {

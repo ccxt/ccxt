@@ -3174,7 +3174,7 @@ class mexc3(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_positions(data)
+        return self.parse_positions(data, symbols)
 
     def parse_position(self, position, market=None):
         #
@@ -3236,12 +3236,6 @@ class mexc3(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-
-    def parse_positions(self, positions):
-        result = []
-        for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i]))
-        return result
 
     def fetch_transfer(self, id, since=None, limit=None, params={}):
         marketType, query = self.handle_market_type_and_params('fetchTransfer', None, params)
