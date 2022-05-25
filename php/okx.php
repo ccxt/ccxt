@@ -4847,10 +4847,10 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_open_interest_history($code, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_interest_history($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
         /**
          * Retrieves the open interest history of a $currency
-         * @param {str} $code Unified CCXT $currency $code
+         * @param {str} $symbol Unified CCXT $currency code instead of a unified $symbol
          * @param {str} $timeframe "5m", "1h", or "1d"
          * @param {int} $since The time in ms of the earliest record to retrieve as a unix timestamp
          * @param {int} $limit Not used by okx, but parsed internally by CCXT
@@ -4865,7 +4865,7 @@ class okx extends Exchange {
             throw new BadRequest($this->id . ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe');
         }
         $this->load_markets();
-        $currency = $this->currency($code);
+        $currency = $this->currency($symbol);
         $request = array(
             'ccy' => $currency['id'],
             'period' => $timeframe,
@@ -4880,7 +4880,7 @@ class okx extends Exchange {
         $response = $this->publicGetRubikStatContractsOpenInterestVolume (array_merge($request, $params));
         //
         //    {
-        //        $code => '0',
+        //        code => '0',
         //        $data => array(
         //            array(
         //                '1648221300000',  // timestamp

@@ -4621,10 +4621,10 @@ class okx(Exchange):
             'info': info,
         }
 
-    async def fetch_open_interest_history(self, code, timeframe='5m', since=None, limit=None, params={}):
+    async def fetch_open_interest_history(self, symbol, timeframe='5m', since=None, limit=None, params={}):
         """
         Retrieves the open interest history of a currency
-        :param str code: Unified CCXT currency code
+        :param str symbol: Unified CCXT currency code instead of a unified symbol
         :param str timeframe: "5m", "1h", or "1d"
         :param int since: The time in ms of the earliest record to retrieve as a unix timestamp
         :param int limit: Not used by okx, but parsed internally by CCXT
@@ -4638,7 +4638,7 @@ class okx(Exchange):
         if timeframe != '5m' and timeframe != '1H' and timeframe != '1D':
             raise BadRequest(self.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe')
         await self.load_markets()
-        currency = self.currency(code)
+        currency = self.currency(symbol)
         request = {
             'ccy': currency['id'],
             'period': timeframe,
