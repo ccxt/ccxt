@@ -683,6 +683,7 @@ class bybit extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $active = $this->safe_value($market, 'showStatus');
+            $quotePrecision = $this->safe_number($market, 'quotePrecision');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -711,7 +712,7 @@ class bybit extends Exchange {
                 'optionType' => null,
                 'precision' => array(
                     'amount' => $this->safe_number($market, 'basePrecision'),
-                    'price' => $this->safe_number($market, 'quotePrecision'),
+                    'price' => $this->safe_number($market, 'minPricePrecision', $quotePrecision),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -2699,7 +2700,7 @@ class bybit extends Exchange {
             if ($price === null) {
                 throw new InvalidOrder($this->id . ' createOrder requires a $price argument for a ' . $type . ' order');
             }
-            $request['price'] = $price;
+            $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'orderLinkId');
         if ($clientOrderId !== null) {

@@ -681,6 +681,7 @@ class bybit(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             active = self.safe_value(market, 'showStatus')
+            quotePrecision = self.safe_number(market, 'quotePrecision')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -709,7 +710,7 @@ class bybit(Exchange):
                 'optionType': None,
                 'precision': {
                     'amount': self.safe_number(market, 'basePrecision'),
-                    'price': self.safe_number(market, 'quotePrecision'),
+                    'price': self.safe_number(market, 'minPricePrecision', quotePrecision),
                 },
                 'limits': {
                     'leverage': {
@@ -2596,7 +2597,7 @@ class bybit(Exchange):
         if type == 'limit' or type == 'limit_maker':
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder requires a price argument for a ' + type + ' order')
-            request['price'] = price
+            request['price'] = self.price_to_precision(symbol, price)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'orderLinkId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
