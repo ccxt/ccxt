@@ -4530,7 +4530,7 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v2PublicGetOpenInterest (this.extend (request, params));
+        const response = await this.publicGetV2PublicOpenInterest (this.extend (request, params));
         //
         //    {
         //        "ret_code": 0,
