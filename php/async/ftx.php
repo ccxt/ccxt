@@ -2153,11 +2153,7 @@ class ftx extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        $results = array();
-        for ($i = 0; $i < count($result); $i++) {
-            $results[] = $this->parse_position($result[$i]);
-        }
-        return $this->filter_by_array($results, 'symbol', $symbols, false);
+        return $this->parse_positions($result, $symbols);
     }
 
     public function parse_position($position, $market = null) {
@@ -2197,18 +2193,20 @@ class ftx extends Exchange {
         $unrealizedPnlString = $this->safe_string($position, 'recentPnl');
         $percentage = $this->parse_number(Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMargin, 4), '100'));
         $entryPriceString = $this->safe_string($position, 'recentAverageOpenPrice');
-        $difference = null;
-        $collateral = null;
         $marginRatio = null;
+        $collateral = $this->safe_string($position, 'collateralUsed');
         if (($entryPriceString !== null) && (Precise::string_gt($liquidationPriceString, '0'))) {
-            // $collateral = maintenanceMargin ± ((markPrice - liquidationPrice) * size)
-            if ($side === 'long') {
-                $difference = Precise::string_sub($markPriceString, $liquidationPriceString);
-            } else {
-                $difference = Precise::string_sub($liquidationPriceString, $markPriceString);
+            if ($collateral === null) {
+                $difference = null;
+                // $collateral = maintenanceMargin ± ((markPrice - liquidationPrice) * size)
+                if ($side === 'long') {
+                    $difference = Precise::string_sub($markPriceString, $liquidationPriceString);
+                } else {
+                    $difference = Precise::string_sub($liquidationPriceString, $markPriceString);
+                }
+                $loss = Precise::string_mul($difference, $contractsString);
+                $collateral = Precise::string_add($loss, $maintenanceMarginString);
             }
-            $loss = Precise::string_mul($difference, $contractsString);
-            $collateral = Precise::string_add($loss, $maintenanceMarginString);
             $marginRatio = $this->parse_number(Precise::string_div($maintenanceMarginString, $collateral, 4));
         }
         // ftx has a weird definition of realizedPnl
