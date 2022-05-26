@@ -23,21 +23,27 @@ module.exports = class bitmex extends Exchange {
                 'CORS': undefined,
                 'spot': false,
                 'margin': false,
-                'swap': undefined, // has but not fully implemented
-                'future': undefined, // has but not fully implemented
-                'option': undefined, // has but not fully implemented
+                'swap': true,
+                'future': true,
+                'option': false,
+                'addMargin': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRateHistory': true,
+                'fetchFundingRate': false,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
+                'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -46,7 +52,9 @@ module.exports = class bitmex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
                 'fetchPositions': true,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -54,8 +62,11 @@ module.exports = class bitmex extends Exchange {
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'reduceMargin': undefined,
                 'setLeverage': true,
+                'setMargin': undefined,
                 'setMarginMode': true,
+                'setPositionMode': false,
                 'transfer': false,
                 'withdraw': true,
             },
@@ -1661,12 +1672,21 @@ module.exports = class bitmex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const orderType = this.capitalize (type);
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        if (reduceOnly !== undefined) {
+            if ((market['type'] !== 'swap') && (market['type'] !== 'future')) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only');
+            }
+        }
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
-            'orderQty': parseFloat (this.amountToPrecision (symbol, amount)),
+            'orderQty': parseFloat (this.amountToPrecision (symbol, amount)), // lot size multiplied by the number of contracts
             'ordType': orderType,
         };
+        if (reduceOnly) {
+            request['execInst'] = 'ReduceOnly';
+        }
         if ((orderType === 'Stop') || (orderType === 'StopLimit') || (orderType === 'MarketIfTouched') || (orderType === 'LimitIfTouched')) {
             const stopPrice = this.safeNumber2 (params, 'stopPx', 'stopPrice');
             if (stopPrice === undefined) {
