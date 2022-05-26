@@ -2134,7 +2134,19 @@ module.exports = class okx extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrders (ids, symbol = undefined, params = {}) { // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
+    parseIds (ids) {
+        /**
+         * @ignore
+         * @method
+         * @name okx#parseIds
+         * @param {[str]|str} ids order ids
+         * @returns {[str]} list of order ids
+         */
+        return (typeof ids === 'string') ? ids.split (',') : ids;
+    }
+
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
@@ -2144,57 +2156,44 @@ module.exports = class okx extends Exchange {
         const options = this.safeValue (this.options, 'cancelOrders', {});
         const defaultMethod = this.safeString (options, 'method', 'privatePostTradeCancelBatchOrders');
         let method = this.safeString (params, 'method', defaultMethod);
-        const clientOrderId = this.safeValue2 (params, 'clOrdId', 'clientOrderId');
-        const algoId = this.safeValue (params, 'algoId');
+        const clientOrderIds = this.parseIds (this.safeValue2 (params, 'clOrdId', 'clientOrderId'));
+        const algoIds = this.parseIds (this.safeValue2 (params, 'algoId'));
         const stop = this.safeValue (params, 'stop');
-        if (clientOrderId === undefined) {
-            if (stop || algoId !== undefined) {
-                method = 'privatePostTradeCancelAlgos';
-                if (Array.isArray (algoId)) {
-                    for (let i = 0; i < algoId.length; i++) {
-                        request.push ({
-                            'instId': market['id'],
-                            'algoId': algoId[i],
-                        });
-                    }
-                } else if (typeof algoId === 'string') {
+        if (stop) {
+            method = 'privatePostTradeCancelAlgos';
+        }
+        if (clientOrderIds === undefined) {
+            ids = this.parseIds (ids);
+            if (algoIds !== undefined) {
+                for (let i = 0; i < algoIds.length; i++) {
                     request.push ({
+                        'algoId': algoIds[i],
                         'instId': market['id'],
-                        'algoId': algoId,
                     });
                 }
-            } else {
-                if (typeof ids === 'string') {
-                    const orderIds = ids.split (',');
-                    for (let i = 0; i < orderIds.length; i++) {
-                        request.push ({
-                            'instId': market['id'],
-                            'ordId': orderIds[i],
-                        });
-                    }
+            }
+            for (let i = 0; i < ids.length; i++) {
+                if (stop) {
+                    request.push ({
+                        'algoId': ids[i],
+                        'instId': market['id'],
+                    });
                 } else {
-                    for (let i = 0; i < ids.length; i++) {
-                        request.push ({
-                            'instId': market['id'],
-                            'ordId': ids[i],
-                        });
-                    }
+                    request.push ({
+                        'ordId': ids[i],
+                        'instId': market['id'],
+                    });
                 }
             }
-        } else if (Array.isArray (clientOrderId)) {
-            for (let i = 0; i < clientOrderId.length; i++) {
+        } else {
+            for (let i = 0; i < clientOrderIds.length; i++) {
                 request.push ({
                     'instId': market['id'],
-                    'clOrdId': clientOrderId[i],
+                    'clOrdId': clientOrderIds[i],
                 });
             }
-        } else if (typeof clientOrderId === 'string') {
-            request.push ({
-                'instId': market['id'],
-                'clOrdId': clientOrderId,
-            });
         }
-        const response = await this[method] (request); // dont extend with params, otherwise ARRAY will be turned into OBJECT
+        const response = await this[method] (request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         //
         //     {
         //         "code": "0",
