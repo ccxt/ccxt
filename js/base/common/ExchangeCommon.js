@@ -10,6 +10,8 @@
 // Warning: Every time a method is added, don't forget to add it to module.exports as well
 // -----------------------------------------------------------------------------------------------------------------------------
 
+const { ArgumentsRequired, BadSymbol, NotSupported, NullResponse } = require ('../errors');
+
 function handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
     const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
     const methodOptions = this.safeValue (this.options, methodName);
@@ -84,6 +86,84 @@ async function createStopMarketOrder (symbol, side, amount, stopPrice, params = 
     return this.createOrder (symbol, 'market', side, amount, undefined, query);
 }
 
+async function fetchFundingRate (symbol, params = {}) {
+    if (this.has['fetchFundingRates']) {
+        const market = await this.market (symbol);
+        if (!market['contract']) {
+            throw new BadSymbol (this.id + ' fetchFundingRate() supports contract markets only');
+        }
+        const rates = await this.fetchFundingRates ([ symbol ], params);
+        const rate = this.safeValue (rates, symbol);
+        if (rate === undefined) {
+            throw new NullResponse (this.id + ' fetchFundingRate () returned no data for ' + symbol);
+        } else {
+            return rate;
+        }
+    } else {
+        throw new NotSupported (this.id + ' fetchFundingRate () is not supported yet');
+    }
+}
+
+async function fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    /**
+     * @description fetches historical mark price candlestick data containing the open, high, low, and close price of a market
+     * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {str} timeframe the length of time each candle represents
+     * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+     * @param {int|undefined} limit the maximum amount of candles to fetch
+     * @param {dict} params extra parameters specific to the exchange api endpoint
+     * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
+     */
+    if (this.has['fetchMarkOHLCV']) {
+        const request = {
+            'price': 'mark',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    } else {
+        throw new NotSupported (this.id + ' fetchMarkOHLCV () is not supported yet');
+    }
+}
+
+async function fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    /**
+     * @description fetches historical index price candlestick data containing the open, high, low, and close price of a market
+     * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {str} timeframe the length of time each candle represents
+     * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+     * @param {int|undefined} limit the maximum amount of candles to fetch
+     * @param {dict} params extra parameters specific to the exchange api endpoint
+     * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
+     */
+    if (this.has['fetchIndexOHLCV']) {
+        const request = {
+            'price': 'index',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    } else {
+        throw new NotSupported (this.id + ' fetchIndexOHLCV () is not supported yet');
+    }
+}
+
+async function fetchPremiumIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    /**
+     * @description fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
+     * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {str} timeframe the length of time each candle represents
+     * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+     * @param {int|undefined} limit the maximum amount of candles to fetch
+     * @param {dict} params extra parameters specific to the exchange api endpoint
+     * @return {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
+     */
+    if (this.has['fetchPremiumIndexOHLCV']) {
+        const request = {
+            'price': 'premiumIndex',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    } else {
+        throw new NotSupported (this.id + ' fetchPremiumIndexOHLCV () is not supported yet');
+    }
+}
+
 module.exports = {
     handleMarketTypeAndParams,
     handleWithdrawTagAndParams,
@@ -92,4 +172,8 @@ module.exports = {
     createStopOrder,
     createStopLimitOrder,
     createStopMarketOrder,
+    fetchMarkOHLCV,
+    fetchIndexOHLCV,
+    fetchPremiumIndexOHLCV,
+    fetchFundingRate,
 };

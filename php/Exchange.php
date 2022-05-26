@@ -274,6 +274,10 @@ class Exchange {
         'createStopOrder' => 'create_stop_order',
         'createStopLimitOrder' => 'create_stop_limit_order',
         'createStopMarketOrder' => 'create_stop_market_order',
+        'fetchMarkOHLCV' => 'fetch_mark_ohlcv',
+        'fetchIndexOHLCV' => 'fetch_index_ohlcv',
+        'fetchPremiumIndexOHLCV' => 'fetch_premium_index_ohlcv',
+        'fetchFundingRate' => 'fetch_funding_rate',
         'fetchImplementation' => 'fetch_implementation',
         'executeRestRequest' => 'execute_rest_request',
         'encodeURIComponent' => 'encode_uri_component',
@@ -414,10 +418,6 @@ class Exchange {
         'checkOrderArguments' => 'check_order_arguments',
         'parseBorrowInterests' => 'parse_borrow_interests',
         'parseFundingRateHistories' => 'parse_funding_rate_histories',
-        'fetchFundingRate' => 'fetch_funding_rate',
-        'fetchMarkOHLCV' => 'fetch_mark_ohlcv',
-        'fetchIndexOHLCV' => 'fetch_index_ohlcv',
-        'fetchPremiumIndexOHLCV' => 'fetch_premium_index_ohlcv',
     );
 
     public static function split($string, $delimiters = array(' ')) {

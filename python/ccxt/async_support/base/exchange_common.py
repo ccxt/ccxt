@@ -35,49 +35,49 @@ def handle_withdraw_tag_and_params(self, tag, params):
     return [tag, params]
 
 
-def create_post_only_order(self, symbol, type, side, amount, price, params={}):
+async def create_post_only_order(self, symbol, type, side, amount, price, params={}):
     if not self.has['createPostOnlyOrder']:
         raise NotSupported(self.id + 'createPostOnlyOrder() is not supported yet')
     query = self.extend(params, {'postOnly': True})
-    return self.create_order(symbol, type, side, amount, price, query)
+    return await self.create_order(symbol, type, side, amount, price, query)
 
 
-def create_reduce_only_order(self, symbol, type, side, amount, price, params={}):
+async def create_reduce_only_order(self, symbol, type, side, amount, price, params={}):
     if not self.has['createReduceOnlyOrder']:
         raise NotSupported(self.id + 'createReduceOnlyOrder() is not supported yet')
     query = self.extend(params, {'reduceOnly': True})
-    return self.create_order(symbol, type, side, amount, price, query)
+    return await self.create_order(symbol, type, side, amount, price, query)
 
 
-def create_stop_order(self, symbol, type, side, amount, price=None, stopPrice=None, params={}):
+async def create_stop_order(self, symbol, type, side, amount, price=None, stopPrice=None, params={}):
     if not self.has['createStopOrder']:
         raise NotSupported(self.id + ' createStopOrder() is not supported yet')
     if stopPrice is None:
         raise ArgumentsRequired(self.id + ' create_stop_order() requires a stopPrice argument')
     query = self.extend(params, {'stopPrice': stopPrice})
-    return self.create_order(symbol, type, side, amount, price, query)
+    return await self.create_order(symbol, type, side, amount, price, query)
 
 
-def create_stop_limit_order(self, symbol, side, amount, price, stopPrice, params={}):
+async def create_stop_limit_order(self, symbol, side, amount, price, stopPrice, params={}):
     if not self.has['createStopLimitOrder']:
         raise NotSupported(self.id + ' createStopLimitOrder() is not supported yet')
     query = self.extend(params, {'stopPrice': stopPrice})
     return self.create_order(symbol, 'limit', side, amount, price, query)
 
 
-def create_stop_market_order(self, symbol, side, amount, stopPrice, params={}):
+async def create_stop_market_order(self, symbol, side, amount, stopPrice, params={}):
     if not self.has['createStopMarketOrder']:
         raise NotSupported(self.id + ' createStopMarketOrder() is not supported yet')
     query = self.extend(params, {'stopPrice': stopPrice})
     return self.create_order(symbol, 'market', side, amount, None, query)
 
 
-def fetch_funding_rate(self, symbol, params={}):
+async def fetch_funding_rate(self, symbol, params={}):
     if self.has['fetchFundingRates']:
-        market = self.market(symbol)
+        market = await self.market(symbol)
         if not market['contract']:
             raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
-        rates = self.fetchFundingRates([symbol], params)
+        rates = await self.fetchFundingRates([symbol], params)
         rate = self.safe_value(rates, symbol)
         if rate is None:
             raise NullResponse(self.id + ' fetchFundingRate() returned no data for ' + symbol)
@@ -87,7 +87,7 @@ def fetch_funding_rate(self, symbol, params={}):
         raise NotSupported(self.id + ' fetchFundingRate() is not supported yet')
 
 
-def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+async def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
     """
     fetches historical mark price candlestick data containing the open, high, low, and close price of a market
     :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -101,12 +101,12 @@ def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, param
         request = {
             'price': 'mark',
         }
-        return self.fetchOHLCV(symbol, timeframe, since, limit, self.extend(request, params))
+        return await self.fetchOHLCV(symbol, timeframe, since, limit, self.extend(request, params))
     else:
         raise NotSupported(self.id + ' fetchMarkOHLCV() is not supported yet')
 
 
-def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
     """
     fetches historical index price candlestick data containing the open, high, low, and close price of a market
     :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -120,12 +120,12 @@ def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, para
         request = {
             'price': 'index',
         }
-        return self.fetchOHLCV(symbol, timeframe, since, limit, self.extend(request, params))
+        return await self.fetchOHLCV(symbol, timeframe, since, limit, self.extend(request, params))
     else:
         raise NotSupported(self.id + ' fetchIndexOHLCV() is not supported yet')
 
 
-def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+async def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
     """
     fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
     :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -139,6 +139,6 @@ def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=No
         request = {
             'price': 'premiumIndex',
         }
-        return self.fetchOHLCV(symbol, timeframe, since, limit, self.extend(request, params))
+        return await self.fetchOHLCV(symbol, timeframe, since, limit, self.extend(request, params))
     else:
         raise NotSupported(self.id + ' fetchPremiumIndexOHLCV() is not supported yet')
