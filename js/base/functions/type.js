@@ -14,7 +14,7 @@ const isNumber          = Number.isFinite
 
 /*  .............................................   */
 
-const prop = (o, k) => (isObject (o) ? o[k] : undefined)
+const prop = (o, k) => ((isObject (o) && (o[k] !== '') && (o[k] !== null)) ? o[k] : undefined)
     , prop2 = (o, k1, k2) => (!isObject (o) ? undefined : (((k1 in o) && (o[k1] !== null) && o[k1] !== '') ? o[k1] : o[k2]))
     , getValueFromKeysInArray = (object, array) => object[array.find (k => prop (object,k) !== undefined)]
 
