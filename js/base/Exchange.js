@@ -2202,10 +2202,10 @@ module.exports = class Exchange {
             if (this.safeString (order, 'type') === 'market') {
                 timeInForce = 'IOC';
             }
-        }
-        // allow postOnly override
-        if (this.safeValue (order, 'postOnly', false)) {
-            timeInForce = 'PO';
+            // allow postOnly override
+            if (this.safeValue (order, 'postOnly', false)) {
+                timeInForce = 'PO';
+            }
         }
         return this.extend (order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
