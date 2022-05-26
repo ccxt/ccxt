@@ -470,7 +470,7 @@ class Exchange {
 
     public static function safe_string_2($object, $key1, $key2, $default_value = null) {
         $value = static::safe_string($object, $key1);
-        return isset($value) ? $value : static::safe_string($object, $key2, $default_value);
+        return isset($value) && $value !== '' ? $value : static::safe_string($object, $key2, $default_value);
     }
 
     public static function safe_string_lower_2($object, $key1, $key2, $default_value = null) {
