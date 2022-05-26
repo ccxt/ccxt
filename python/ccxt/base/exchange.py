@@ -2877,9 +2877,9 @@ class Exchange(object):
         if timeInForce is None:
             if self.safe_string(order, 'type') == 'market':
                 timeInForce = 'IOC'
-        # allow postOnly override
-        if self.safe_value(order, 'postOnly', False):
-            timeInForce = 'PO'
+            # allow postOnly override
+            if self.safe_value(order, 'postOnly', False):
+                timeInForce = 'PO'
         return self.extend(order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
             'price': self.parse_number(price),
