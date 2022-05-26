@@ -2215,14 +2215,14 @@ module.exports = class ftx extends Exchange {
         let marginRatio = undefined;
         let collateral = this.safeString (position, 'collateralUsed');
         if ((entryPriceString !== undefined) && (Precise.stringGt (liquidationPriceString, '0'))) {
-            let difference = undefined;
-            // collateral = maintenanceMargin ± ((markPrice - liquidationPrice) * size)
-            if (side === 'long') {
-                difference = Precise.stringSub (markPriceString, liquidationPriceString);
-            } else {
-                difference = Precise.stringSub (liquidationPriceString, markPriceString);
-            }
             if (collateral === undefined) {
+                let difference = undefined;
+                // collateral = maintenanceMargin ± ((markPrice - liquidationPrice) * size)
+                if (side === 'long') {
+                    difference = Precise.stringSub (markPriceString, liquidationPriceString);
+                } else {
+                    difference = Precise.stringSub (liquidationPriceString, markPriceString);
+                }
                 const loss = Precise.stringMul (difference, contractsString);
                 collateral = Precise.stringAdd (loss, maintenanceMarginString);
             }
