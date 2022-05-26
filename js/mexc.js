@@ -1922,7 +1922,7 @@ module.exports = class mexc extends Exchange {
             // supported order types
             //
             //     1 limit
-            //     2 post only postOnly (PO)
+            //     2 post only maker (PO)
             //     3 transact or cancel instantly (IOC)
             //     4 transact completely or cancel completely (FOK)
             //     5 market orders
