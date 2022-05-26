@@ -1400,6 +1400,7 @@ class Transpiler {
             let part = methods[i].trim ()
             let lines = part.split ("\n")
             let signature = lines[0].trim ()
+            signature = signature.replace('function ', '')
             let methodSignatureRegex = /(async |)([\S]+)\s\(([^)]*)\)\s*{/ // signature line
             let matches = methodSignatureRegex.exec (signature)
 
