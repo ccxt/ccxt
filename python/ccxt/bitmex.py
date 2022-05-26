@@ -1908,6 +1908,8 @@ class bitmex(Exchange):
         notional = None
         if market['quote'] == 'USDT':
             notional = Precise.string_mul(self.safe_string(position, 'foreignNotional'), '-1')
+        maintenanceMargin = self.safe_number(position, 'maintMargin')
+        unrealisedPnl = self.safe_number(position, 'unrealisedPnl')
         return {
             'info': position,
             'id': self.safe_string(position, 'account'),
@@ -1925,14 +1927,25 @@ class bitmex(Exchange):
             'collateral': None,
             'initialMargin': None,
             'initialMarginPercentage': self.safe_number(position, 'initMarginReq'),
-            'maintenanceMargin': None,
+            'maintenanceMargin': self.convert_value(maintenanceMargin, market),
             'maintenanceMarginPercentage': None,
-            'unrealizedPnl': None,
+            'unrealizedPnl': self.convert_value(unrealisedPnl, market),
             'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
             'marginMode': marginMode,
             'marginRatio': None,
             'percentage': self.safe_number(position, 'unrealisedPnlPcnt'),
         }
+
+    def convert_value(self, value, market=None):
+        if (value is None) or (market is None):
+            return value
+        resultValue = None
+        value = self.number_to_string(value)
+        if (market['quote'] == 'USD') or (market['quote'] == 'EUR'):
+            resultValue = Precise.string_mul(value, '0.00000001')
+        if market['quote'] == 'USDT':
+            resultValue = Precise.string_mul(value, '0.000001')
+        return float(resultValue)
 
     def is_fiat(self, currency):
         if currency == 'EUR':

@@ -2434,6 +2434,7 @@ class huobi(Exchange):
         if market['contract']:
             if limit is None:
                 limit = 2000
+            request['size'] = limit
             if price is None:
                 duration = self.parse_timeframe(timeframe)
                 if since is None:

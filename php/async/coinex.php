@@ -528,7 +528,7 @@ class coinex extends Exchange {
                 'swap' => true,
                 'future' => false,
                 'option' => false,
-                'active' => $this->safe_string($entry, 'available'),
+                'active' => $this->safe_value($entry, 'available'),
                 'contract' => true,
                 'linear' => $linear,
                 'inverse' => $inverse,
