@@ -2416,14 +2416,14 @@ module.exports = class okx extends Exchange {
         /**
          * @method
          * @name okx#fetchOrder
-         * @description Fetch an order by the id
-         * @param {string} id The order id
-         * @param {string} symbol Unified market symbol
-         * @param {dict} params Extra and exchange specific parameters
-         * @param {integer} params.till Timestamp in ms of the latest time to retrieve orders for
-         * @param {boolean} params.stop True if fetching trigger orders
+         * @description fetch an order by the id
+         * @param {string} id the order id
+         * @param {string} symbol unified market symbol
+         * @param {dict} params extra and exchange specific parameters
+         * @param {integer} params.till timestamp in ms of the latest time to retrieve orders for
+         * @param {boolean} params.stop true if fetching trigger orders, params.ordtype set to "trigger" if true
          * @param {string} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
-         * @returns [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns [an order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
@@ -2450,9 +2450,6 @@ module.exports = class okx extends Exchange {
         const ordType = this.safeString (params, 'ordType');
         const stop = this.safeValue (params, 'stop');
         if (stop || (ordType in algoOrderTypes)) {
-            if (ordType === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrder() requires an ordType parameter');
-            }
             method = 'privateGetTradeOrdersAlgoHistory';
             request['algoId'] = id;
             if (stop) {
