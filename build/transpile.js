@@ -1349,7 +1349,7 @@ class Transpiler {
         contents = this.regexAll (contents, [
             [ /\'use strict\';?\s+/g, '' ],
             [ /^\/\/.*$/gm, '' ],
-            [ /module\.exports = {[^\}]+}\n*/gm, '' ],
+            [ /module\.exports = {[^\}]+};\n*/gm, '' ],
         ])
 
         let methods = contents.trim ().split (/\n\s*\n/)
@@ -1974,7 +1974,7 @@ class Transpiler {
 
         //*
 
-        this.transpileExchangeCommonFiles('./js/base', 'ExchangeCommon.js', 'Exchange', options) 
+        this.transpileExchangeCommonFiles('./js/base/common', 'ExchangeCommon.js', 'Exchange', options) 
 
         const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern, force)
 
