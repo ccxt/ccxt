@@ -2112,7 +2112,8 @@ module.exports = class okx extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         const stop = this.safeValue (params, 'stop');
         if (stop) {
-            return await this.cancelOrders ([ id ], symbol, params);
+            const order = await this.cancelOrders ([ id ], symbol, params);
+            return this.safeValue (order, 0);
         }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
