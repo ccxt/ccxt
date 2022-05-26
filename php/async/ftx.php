@@ -2193,20 +2193,18 @@ class ftx extends Exchange {
         $unrealizedPnlString = $this->safe_string($position, 'recentPnl');
         $percentage = $this->parse_number(Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMargin, 4), '100'));
         $entryPriceString = $this->safe_string($position, 'recentAverageOpenPrice');
+        $difference = null;
+        $collateral = null;
         $marginRatio = null;
-        $collateral = $this->safe_string($position, 'collateralUsed');
         if (($entryPriceString !== null) && (Precise::string_gt($liquidationPriceString, '0'))) {
-            if ($collateral === null) {
-                $difference = null;
-                // $collateral = maintenanceMargin ± ((markPrice - liquidationPrice) * size)
-                if ($side === 'long') {
-                    $difference = Precise::string_sub($markPriceString, $liquidationPriceString);
-                } else {
-                    $difference = Precise::string_sub($liquidationPriceString, $markPriceString);
-                }
-                $loss = Precise::string_mul($difference, $contractsString);
-                $collateral = Precise::string_add($loss, $maintenanceMarginString);
+            // $collateral = maintenanceMargin ± ((markPrice - liquidationPrice) * size)
+            if ($side === 'long') {
+                $difference = Precise::string_sub($markPriceString, $liquidationPriceString);
+            } else {
+                $difference = Precise::string_sub($liquidationPriceString, $markPriceString);
             }
+            $loss = Precise::string_mul($difference, $contractsString);
+            $collateral = Precise::string_add($loss, $maintenanceMarginString);
             $marginRatio = $this->parse_number(Precise::string_div($maintenanceMarginString, $collateral, 4));
         }
         // ftx has a weird definition of realizedPnl
