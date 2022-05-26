@@ -2026,14 +2026,6 @@ module.exports = class bitmex extends Exchange {
         };
     }
 
-    parsePositions (positions) {
-        const result = [];
-        for (let i = 0; i < positions.length; i++) {
-            result.push (this.parsePosition (positions[i]));
-        }
-        return result;
-    }
-
     convertValue (value, market = undefined) {
         if ((value === undefined) || (market === undefined)) {
             return value;
