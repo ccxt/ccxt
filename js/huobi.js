@@ -5688,7 +5688,7 @@ module.exports = class huobi extends Exchange {
             //                 "trade_partition": "USDT",
             //                 "position_mode": "dual_side"
             //             },
-            //             ... other side position can be present here too (if hedge)
+            //             ... opposite side position can be present here too (if hedge)
             //         ],
             //         "ts": 1653605008286
             //     }
@@ -5723,7 +5723,7 @@ module.exports = class huobi extends Exchange {
             //                     "trade_partition": "USDT",
             //                     "position_mode": "dual_side"
             //                 },
-            //                 ... other side position can be present here too (if hedge)
+            //                 ... opposite side position can be present here too (if hedge)
             //             ],
             //             "futures_contract_detail": [
             //                 {
@@ -5803,7 +5803,8 @@ module.exports = class huobi extends Exchange {
             //             "lever_rate": 5,
             //             "adjust_factor": 0.075000000000000000,
             //             "margin_static": 12.022979096123276562,
-            //             "positions": [{
+            //             "positions": [
+            //                 {
             //                     "symbol": "XRP",
             //                     "contract_code": "XRP-USD",
             //                     // "contract_type": "this_week", // only present in future
@@ -5819,7 +5820,8 @@ module.exports = class huobi extends Exchange {
             //                     "direction": "buy",
             //                     "profit": 0.163382354575000020,
             //                     "last_price": 0.39712
-            //                 }
+            //                 },
+            //                 ... opposite side position can be present here too (if hedge)
             //             ]
             //         }
             //       ],
