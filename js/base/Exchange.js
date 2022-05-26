@@ -2199,11 +2199,13 @@ module.exports = class Exchange {
         // timeInForceHandling
         let timeInForce = this.safeString (order, 'timeInForce');
         if (timeInForce === undefined) {
-            if (this.safeValue (order, 'postOnly', false)) {
-                timeInForce = 'PO';
-            } else if (this.safeString (order, 'type') === 'market') {
+            if (this.safeString (order, 'type') === 'market') {
                 timeInForce = 'IOC';
             }
+        }
+        // allow postOnly override
+        if (this.safeValue (order, 'postOnly', false)) {
+            timeInForce = 'PO';
         }
         return this.extend (order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
