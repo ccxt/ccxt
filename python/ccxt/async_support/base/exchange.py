@@ -26,13 +26,12 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NullResponse
 from ccxt.base.errors import BadRequest
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base.exchange import Exchange as BaseExchange, ArgumentsRequired
+from ccxt.base.exchange import Exchange as BaseExchange
 
 # -----------------------------------------------------------------------------
 

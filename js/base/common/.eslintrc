@@ -13,7 +13,6 @@
       "indent": ["error", 4],
       "init-declarations": "error",
       "no-undef-init": "off",
-      "no-undef": "off",
       "comma-dangle": ["error", {
           "arrays": "always-multiline",
           "objects": "always-multiline",
