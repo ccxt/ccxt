@@ -3797,10 +3797,10 @@ class Exchange {
             if ($this->safe_string($order, 'type') === 'market') {
                  $timeInForce = 'IOC';
             }
-        }
-        // allow postOnly override
-        if ($this->safe_value($order, 'postOnly', false)) {
-            $timeInForce = 'PO';
+            // allow postOnly override
+            if ($this->safe_value($order, 'postOnly', false)) {
+                $timeInForce = 'PO';
+            }
         }
         return array_merge($order, array(
             'lastTradeTimestamp' => $lastTradeTimeTimestamp,
