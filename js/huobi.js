@@ -2528,6 +2528,7 @@ module.exports = class huobi extends Exchange {
             if (limit === undefined) {
                 limit = 2000;
             }
+            request['size'] = limit;
             if (price === undefined) {
                 const duration = this.parseTimeframe (timeframe);
                 if (since === undefined) {
