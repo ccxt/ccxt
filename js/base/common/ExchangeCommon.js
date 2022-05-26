@@ -2,8 +2,8 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 // This file contains all methods part of the Exchange instance that do not have an exchange-specific implementation
-// thus they can be transpiled to the other languages. Since they are part of the Exchange instance (at runtime), 
-// they can make use of the 'this' and access everything that is part of the Exchange instance (options, defined method, etc).
+// thus can be transpiled to the other languages. Since they are part of the Exchange instance (at runtime),
+// they can make use of the 'this' and access everything that defined in the Exchange class (options, methods, etc).
 //
 // Warning: Every method here needs to have the 'function' identifier in the signature.
 // Warning: Do not declare classes or global variables in here
@@ -41,7 +41,15 @@ function handleWithdrawTagAndParams (tag, params) {
     return [ tag, params ];
 }
 
+async function testAsync () {
+    const markets = await this.loadMarkets ();
+    const market = markets['BTC/USDT'];
+    const limit = market['limits'];
+    return limit;
+}
+
 module.exports = {
     handleMarketTypeAndParams,
-    handleWithdrawTagAndParams
-}
+    handleWithdrawTagAndParams,
+    testAsync,
+};

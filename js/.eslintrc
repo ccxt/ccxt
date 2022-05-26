@@ -7,7 +7,12 @@
     "sourceType": "script"
   },
   "extends": ["eslint:recommended", "airbnb-base"],
-  "ignorePatterns": ["test/*", "base/*", "static_dependencies/*"],
+  "ignorePatterns": [
+      "test/*",
+      "static_dependencies/*",
+      "base/*.js",
+      "base/functions/*"
+  ],
   "rules": {
     "strict": "off",
     "semi": "error",
