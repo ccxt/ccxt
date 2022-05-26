@@ -1997,6 +1997,8 @@ module.exports = class bitmex extends Exchange {
         if (market['quote'] === 'USDT') {
             notional = Precise.stringMul (this.safeString (position, 'foreignNotional'), '-1');
         }
+        const maintenanceMargin = this.safeNumber (position, 'maintMargin');
+        const unrealisedPnl = this.safeNumber (position, 'unrealisedPnl');
         return {
             'info': position,
             'id': this.safeString (position, 'account'),
@@ -2014,14 +2016,29 @@ module.exports = class bitmex extends Exchange {
             'collateral': undefined,
             'initialMargin': undefined,
             'initialMarginPercentage': this.safeNumber (position, 'initMarginReq'),
-            'maintenanceMargin': undefined,
+            'maintenanceMargin': this.convertValue (maintenanceMargin, market),
             'maintenanceMarginPercentage': undefined,
-            'unrealizedPnl': undefined,
+            'unrealizedPnl': this.convertValue (unrealisedPnl, market),
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'marginMode': marginMode,
             'marginRatio': undefined,
             'percentage': this.safeNumber (position, 'unrealisedPnlPcnt'),
         };
+    }
+
+    convertValue (value, market = undefined) {
+        if ((value === undefined) || (market === undefined)) {
+            return value;
+        }
+        let resultValue = undefined;
+        value = this.numberToString (value);
+        if ((market['quote'] === 'USD') || (market['quote'] === 'EUR')) {
+            resultValue = Precise.stringMul (value, '0.00000001');
+        }
+        if (market['quote'] === 'USDT') {
+            resultValue = Precise.stringMul (value, '0.000001');
+        }
+        return parseFloat (resultValue);
     }
 
     isFiat (currency) {
