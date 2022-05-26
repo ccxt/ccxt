@@ -41,15 +41,55 @@ function handleWithdrawTagAndParams (tag, params) {
     return [ tag, params ];
 }
 
-async function testAsync () {
-    const markets = await this.loadMarkets ();
-    const market = markets['BTC/USDT'];
-    const limit = market['limits'];
-    return limit;
+async function createPostOnlyOrder (symbol, type, side, amount, price, params = {}) {
+    if (!this.has['createPostOnlyOrder']) {
+        throw new NotSupported (this.id + 'createPostOnlyOrder() is not supported yet');
+    }
+    const query = this.extend (params, { 'postOnly': true });
+    return await this.createOrder (symbol, type, side, amount, price, query);
+}
+
+async function createReduceOnlyOrder (symbol, type, side, amount, price, params = {}) {
+    if (!this.has['createReduceOnlyOrder']) {
+        throw new NotSupported (this.id + 'createReduceOnlyOrder() is not supported yet');
+    }
+    const query = this.extend (params, { 'reduceOnly': true });
+    return await this.createOrder (symbol, type, side, amount, price, query);
+}
+
+async function createStopOrder (symbol, type, side, amount, price = undefined, stopPrice = undefined, params = {}) {
+    if (!this.has['createStopOrder']) {
+        throw new NotSupported (this.id + ' createStopOrder() is not supported yet');
+    }
+    if (stopPrice === undefined) {
+        throw new ArgumentsRequired (this.id + ' create_stop_order() requires a stopPrice argument');
+    }
+    const query = this.extend (params, { 'stopPrice': stopPrice });
+    return await this.createOrder (symbol, type, side, amount, price, query);
+}
+
+async function createStopLimitOrder (symbol, side, amount, price, stopPrice, params = {}) {
+    if (!this.has['createStopLimitOrder']) {
+        throw new NotSupported (this.id + ' createStopLimitOrder() is not supported yet');
+    }
+    const query = this.extend (params, { 'stopPrice': stopPrice });
+    return this.createOrder (symbol, 'limit', side, amount, price, query);
+}
+
+async function createStopMarketOrder (symbol, side, amount, stopPrice, params = {}) {
+    if (!this.has['createStopMarketOrder']) {
+        throw new NotSupported (this.id + ' createStopMarketOrder() is not supported yet');
+    }
+    const query = this.extend (params, { 'stopPrice': stopPrice });
+    return this.createOrder (symbol, 'market', side, amount, undefined, query);
 }
 
 module.exports = {
     handleMarketTypeAndParams,
     handleWithdrawTagAndParams,
-    testAsync,
+    createPostOnlyOrder,
+    createReduceOnlyOrder,
+    createStopOrder,
+    createStopLimitOrder,
+    createStopMarketOrder,
 };
