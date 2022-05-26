@@ -10,7 +10,7 @@
 // Warning: Every time a method is added, don't forget to add it to module.exports as well
 // -----------------------------------------------------------------------------------------------------------------------------
 
-const { ArgumentsRequired, BadSymbol, NotSupported, NullResponse } = require ('../errors');
+const { ArgumentsRequired, BadSymbol, NotSupported, NullResponse, InvalidOrder } = require ('../errors');
 
 function handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
     const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
@@ -164,6 +164,39 @@ async function fetchPremiumIndexOHLCV (symbol, timeframe = '1m', since = undefin
     }
 }
 
+function isPostOnly (type, timeInForce = undefined, exchangeSpecificOption = undefined, params = {}) {
+    /**
+     * @ignore
+     * @method
+     * @param {string} type Order type
+     * @param {string} timeInForce
+     * @param {boolean} exchangeSpecificOption True if the exchange specific post only setting is set
+     * @param {dict} params Exchange specific params
+     * @returns {boolean} true if a post only order, false otherwise
+     */
+    let postOnly = this.safeValue2 (params, 'postOnly', 'post_only', false);
+    params = this.omit (params, [ 'post_only', 'postOnly' ]);
+    const timeInForceUpper = (timeInForce !== undefined) ? timeInForce.toUpperCase () : undefined;
+    const typeLower = type.toLowerCase ();
+    const ioc = timeInForceUpper === 'IOC';
+    const fok = timeInForceUpper === 'FOK';
+    const timeInForcePostOnly = timeInForceUpper === 'PO';
+    const isMarket = typeLower === 'market';
+    postOnly = postOnly || (typeLower === 'postonly') || timeInForcePostOnly || exchangeSpecificOption;
+    if (postOnly) {
+        if (ioc || fok) {
+            throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
+        } else if (isMarket) {
+            throw new InvalidOrder (this.id + ' postOnly orders cannot have type ' + type);
+        } else {
+            timeInForce = timeInForcePostOnly ? undefined : timeInForce;
+            return [ 'limit', true, timeInForce, params ];
+        }
+    } else {
+        return [ type, false, timeInForce, params ];
+    }
+}
+
 module.exports = {
     handleMarketTypeAndParams,
     handleWithdrawTagAndParams,
@@ -176,4 +209,5 @@ module.exports = {
     fetchIndexOHLCV,
     fetchPremiumIndexOHLCV,
     fetchFundingRate,
+    isPostOnly,
 };

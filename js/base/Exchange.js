@@ -2329,39 +2329,6 @@ module.exports = class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    isPostOnly (type, timeInForce = undefined, exchangeSpecificOption = undefined, params = {}) {
-        /**
-         * @ignore
-         * @method
-         * @param {string} type Order type
-         * @param {string} timeInForce
-         * @param {boolean} exchangeSpecificOption True if the exchange specific post only setting is set
-         * @param {dict} params Exchange specific params
-         * @returns {boolean} true if a post only order, false otherwise
-         */
-        let postOnly = this.safeValue2 (params, 'postOnly', 'post_only', false);
-        params = this.omit (params, [ 'post_only', 'postOnly' ]);
-        const timeInForceUpper = (timeInForce !== undefined) ? timeInForce.toUpperCase () : undefined;
-        const typeLower = type.toLowerCase ();
-        const ioc = timeInForceUpper === 'IOC';
-        const fok = timeInForceUpper === 'FOK';
-        const timeInForcePostOnly = timeInForceUpper === 'PO';
-        const isMarket = typeLower === 'market';
-        postOnly = postOnly || (typeLower === 'postonly') || timeInForcePostOnly || exchangeSpecificOption;
-        if (postOnly) {
-            if (ioc || fok) {
-                throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
-            } else if (isMarket) {
-                throw new InvalidOrder (this.id + ' postOnly orders cannot have type ' + type);
-            } else {
-                timeInForce = timeInForcePostOnly ? undefined : timeInForce;
-                return [ 'limit', true, timeInForce, params ];
-            }
-        } else {
-            return [ type, false, timeInForce, params ];
-        }
-    }
-
     checkOrderArguments (market, type, side, amount, price, params) {
         if (price === undefined) {
             if (type === 'limit') {
