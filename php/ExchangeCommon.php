@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadSymbol;
 use \ccxt\NullResponse;
+use \ccxt\InvalidOrder;
 use \ccxt\NotSupported;
 
 trait ExchangeCommon {
@@ -162,6 +163,38 @@ trait ExchangeCommon {
             return $this->fetchOHLCV ($symbol, $timeframe, $since, $limit, array_merge($request, $params));
         } else {
             throw new NotSupported($this->id . ' fetchPremiumIndexOHLCV () is not supported yet');
+        }
+    }
+
+    public function is_post_only($type, $timeInForce = null, $exchangeSpecificOption = null, $params = array ()) {
+        /**
+         * @ignore
+         * @param {string} $type Order $type
+         * @param {string} $timeInForce
+         * @param {boolean} $exchangeSpecificOption True if the exchange specific post only setting is set
+         * @param {dict} $params Exchange specific $params
+         * @return {boolean} true if a post only order, false otherwise
+         */
+        $postOnly = $this->safe_value_2($params, 'postOnly', 'post_only', false);
+        $params = $this->omit ($params, array( 'post_only', 'postOnly' ));
+        $timeInForceUpper = ($timeInForce !== null) ? strtoupper($timeInForce) : null;
+        $typeLower = strtolower($type);
+        $ioc = $timeInForceUpper === 'IOC';
+        $fok = $timeInForceUpper === 'FOK';
+        $timeInForcePostOnly = $timeInForceUpper === 'PO';
+        $isMarket = $typeLower === 'market';
+        $postOnly = $postOnly || ($typeLower === 'postonly') || $timeInForcePostOnly || $exchangeSpecificOption;
+        if ($postOnly) {
+            if ($ioc || $fok) {
+                throw new InvalidOrder($this->id . ' $postOnly orders cannot have $timeInForce equal to ' . $timeInForce);
+            } else if ($isMarket) {
+                throw new InvalidOrder($this->id . ' $postOnly orders cannot have $type ' . $type);
+            } else {
+                $timeInForce = $timeInForcePostOnly ? null : $timeInForce;
+                return array( 'limit', true, $timeInForce, $params );
+            }
+        } else {
+            return array( $type, false, $timeInForce, $params );
         }
     }
 }

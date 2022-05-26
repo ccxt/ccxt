@@ -6,6 +6,7 @@
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NullResponse
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
 
 
@@ -142,3 +143,33 @@ async def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, li
         return await self.fetchOHLCV(symbol, timeframe, since, limit, self.extend(request, params))
     else:
         raise NotSupported(self.id + ' fetchPremiumIndexOHLCV() is not supported yet')
+
+
+def is_post_only(self, type, timeInForce=None, exchangeSpecificOption=None, params={}):
+    """
+     * @ignore
+    :param string type: Order type
+    :param string timeInForce:
+    :param boolean exchangeSpecificOption: True if the exchange specific post only setting is set
+    :param dict params: Exchange specific params
+    :returns boolean: True if a post only order, False otherwise
+    """
+    postOnly = self.safe_value_2(params, 'postOnly', 'post_only', False)
+    params = self.omit(params, ['post_only', 'postOnly'])
+    timeInForceUpper = timeInForce.upper() if (timeInForce is not None) else None
+    typeLower = type.lower()
+    ioc = timeInForceUpper == 'IOC'
+    fok = timeInForceUpper == 'FOK'
+    timeInForcePostOnly = timeInForceUpper == 'PO'
+    isMarket = typeLower == 'market'
+    postOnly = postOnly or (typeLower == 'postonly') or timeInForcePostOnly or exchangeSpecificOption
+    if postOnly:
+        if ioc or fok:
+            raise InvalidOrder(self.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce)
+        elif isMarket:
+            raise InvalidOrder(self.id + ' postOnly orders cannot have type ' + type)
+        else:
+            timeInForce = None if timeInForcePostOnly else timeInForce
+            return ['limit', True, timeInForce, params]
+    else:
+        return [type, False, timeInForce, params]
