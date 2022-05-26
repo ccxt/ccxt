@@ -3004,38 +3004,6 @@ class Exchange(object):
         else:
             return [type, False, time_in_force, params]
 
-    def create_post_only_order(self, symbol, type, side, amount, price, params={}):
-        if not self.has['createPostOnlyOrder']:
-            raise NotSupported(self.id + ' create_post_only_order() is not supported yet')
-        query = self.extend(params, {'postOnly': True})
-        return self.create_order(symbol, type, side, amount, price, query)
-
-    def create_reduce_only_order(self, symbol, type, side, amount, price, params={}):
-        if not self.has['createReduceOnlyOrder']:
-            raise NotSupported(self.id + ' create_reduce_only_order() is not supported yet')
-        query = self.extend(params, {'reduceOnly': True})
-        return self.create_order(symbol, type, side, amount, price, query)
-
-    def create_stop_order(self, symbol, type, side, amount, price=None, stopPrice=None, params={}):
-        if not self.has['createStopOrder']:
-            raise NotSupported(self.id + 'create_stop_order() is not supported yet')
-        if stopPrice is None:
-            raise ArgumentsRequired(self.id + ' create_stop_order() requires a stopPrice argument')
-        query = self.extend(params, {'stopPrice': stopPrice})
-        return self.create_order(symbol, type, side, amount, price, query)
-
-    def create_stop_limit_order(self, symbol, side, amount, price, stopPrice, params={}):
-        if not self.has['createStopLimitOrder']:
-            raise NotSupported(self.id + ' create_stop_limit_order() is not supported yet')
-        query = self.extend(params, {'stopPrice': stopPrice})
-        return self.create_order(symbol, 'limit', side, amount, price, query)
-
-    def create_stop_market_order(self, symbol, side, amount, stopPrice, params={}):
-        if not self.has['createStopMarketOrder']:
-            raise NotSupported(self.id + ' create_stop_market_order() is not supported yet')
-        query = self.extend(params, {'stopPrice': stopPrice})
-        return self.create_order(symbol, 'market', side, amount, None, query)
-
     def check_order_arguments(self, market, type, side, amount, price, params):
         if price is None:
             if type == 'limit':

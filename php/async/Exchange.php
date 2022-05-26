@@ -388,45 +388,6 @@ class Exchange extends \ccxt\Exchange {
         });
     }
 
-    public function create_post_only_order($symbol, $type, $side, $amount, $price, $params = array()) {
-        if (!$this->has['createPostOnlyOrder']) {
-            throw new NotSupported($this->id . ' create_post_only_order() is not supported yet');
-        }
-        $array = array('postOnly' => true);
-        $query = $this->extend($params, $array);
-        return yield $this->create_order($symbol, $type, $side, $amount, $price, $params);
-    }
-
-    public function create_stop_order($symbol, $type, $side, $amount, $price = null, $stopPrice = null, $params = array()) {
-        if (!$this->has['createStopOrder']) {
-            throw new NotSupported($this->id . ' create_stop_order() is not supported yet');
-        }
-        if ($stopPrice === null) {
-            throw new ArgumentsRequired($this->id . ' create_stop_order() requires a stopPrice argument');
-        }
-        $array = array('stopPrice' => $stopPrice);
-        $query = $this->extend($params, $array);
-        return yield $this->create_order($symbol, $type, $side, $amount, $price, $query);
-    }
-
-    public function create_stop_limit_order($symbol, $side, $amount, $price, $stopPrice, $params = array()) {
-        if (!$this->has['createStopLimitOrder']) {
-            throw new NotSupported($this->id . ' create_stop_limit_order() is not supported yet');
-        }
-        $array = array('stopPrice' => $stopPrice);
-        $query = $this->extend($params, $array);
-        return yield $this->create_order($symbol, 'limit', $side, $amount, $price, $query);
-    }
-
-    public function create_stop_market_order($symbol, $side, $amount, $stopPrice, $params = array()) {
-        if (!$this->has['createStopMarketOrder']) {
-            throw new NotSupported($this->id . ' create_stop_market_order() is not supported yet');
-        }
-        $array = array('stopPrice' => $stopPrice);
-        $query = $this->extend($params, $array);
-        return yield $this->create_order($symbol, 'market', $side, $amount, null, $query);
-    }
-
     public function fetch_funding_rate($symbol, $params = array ()) {
         if ($this->has['fetchFundingRates']) {
             $market = $this->market($symbol);

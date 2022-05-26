@@ -267,6 +267,9 @@ class Exchange {
         'buildOHLCVC' => 'build_ohlcvc',
         'implodeParams' => 'implode_params',
         'extractParams' => 'extract_params',
+        'handleMarketTypeAndParams' => 'handle_market_type_and_params',
+        'handleWithdrawTagAndParams' => 'handle_withdraw_tag_and_params',
+        'testAsync' => 'test_async',
         'fetchImplementation' => 'fetch_implementation',
         'executeRestRequest' => 'execute_rest_request',
         'encodeURIComponent' => 'encode_uri_component',
@@ -397,10 +400,8 @@ class Exchange {
         'safeNumber2' => 'safe_number2',
         'safeNumberN' => 'safe_number_n',
         'parsePrecision' => 'parse_precision',
-        'handleWithdrawTagAndParams' => 'handle_withdraw_tag_and_params',
         'getSupportedMapping' => 'get_supported_mapping',
         'fetchBorrowRate' => 'fetch_borrow_rate',
-        'handleMarketTypeAndParams' => 'handle_market_type_and_params',
         'loadTimeDifference' => 'load_time_difference',
         'parseLeverageTiers' => 'parse_leverage_tiers',
         'fetchMarketLeverageTiers' => 'fetch_market_leverage_tiers',
@@ -3859,20 +3860,6 @@ class Exchange {
         return $string_number;
     }
 
-    public function handle_withdraw_tag_and_params($tag, $params) {
-        if (gettype($tag) === 'array') {
-            $params = array_merge($tag, $params);
-            $tag = null;
-        }
-        if ($tag === null) {
-            $tag = $this->safe_string($params, 'tag');
-            if ($tag !== null) {
-                $params = $this->omit($params, 'tag');
-            }
-        }
-        return array($tag, $params);
-    }
-
     public function get_supported_mapping($key, $mapping = array()) {
         // Takes a key and a dictionary, and returns the dictionary's value for that key
         // :throws:
@@ -3895,23 +3882,6 @@ class Exchange {
             throw new ExchangeError($this->id . ' fetchBorrowRate() could not find the borrow rate for currency code ' . $code);
         }
         return $rate;
-    }
-
-    public function handle_market_type_and_params($method_name, $market=null, $params = array()) {
-        $default_type = $this->safe_string_2($this->options, 'defaultType', 'type', 'spot');
-        $method_options = $this->safe_value($this->options, $method_name);
-        $method_type = $default_type;
-        if (isset($method_options)) {
-            if (is_string($method_options)) {
-                $method_type = $method_options;
-            } else {
-                $method_type = $this->safe_string_2($method_options, 'defaultType', 'type', $method_type);
-            }
-        }
-        $market_type = isset($market) ? $market['type'] : $method_type;
-        $type = $this->safe_string_2($params, 'defaultType', 'type', $market_type);
-        $params = $this->omit($params, [ 'defaultType', 'type' ]);
-        return array($type, $params);
     }
 
     public function load_time_difference($params = array()) {
@@ -3986,54 +3956,6 @@ class Exchange {
         } else {
             return array( $type, false, $time_in_force, $params );
         }
-    }
-
-    public function create_post_only_order($symbol, $type, $side, $amount, $price, $params = array()) {
-        if (!$this->has['createPostOnlyOrder']) {
-            throw new NotSupported($this->id . ' create_post_only_order() is not supported yet');
-        }
-        $array = array('postOnly' => true);
-        $query = $this->extend($params, $array);
-        return $this->create_order($symbol, $type, $side, $amount, $price, $query);
-    }
-
-    public function create_reduce_only_order($symbol, $type, $side, $amount, $price, $params = array()) {
-        if (!$this->has['createReduceOnlyOrder']) {
-            throw new NotSupported($this->id . ' create_reduce_only_order() is not supported yet');
-        }
-        $array = array('reduceOnly' => true);
-        $query = $this->extend($params, $array);
-        return $this->create_order($symbol, $type, $side, $amount, $price, $params);
-    }
-
-    public function create_stop_order($symbol, $type, $side, $amount, $price = null, $stopPrice = null, $params = array()) {
-        if (!$this->has['createStopOrder']) {
-            throw new NotSupported($this->id . ' create_stop_order() is not supported yet');
-        }
-        if ($stopPrice === null) {
-            throw new ArgumentsRequired($this->id . ' create_stop_order() requires a stopPrice argument');
-        }
-        $array = array('stopPrice' => $stopPrice);
-        $query = $this->extend($params, $array);
-        return $this->create_order($symbol, $type, $side, $amount, $price, $query);
-    }
-
-    public function create_stop_limit_order($symbol, $side, $amount, $price, $stopPrice, $params = array()) {
-        if (!$this->has['createStopLimitOrder']) {
-            throw new NotSupported($this->id . ' create_stop_limit_order() is not supported yet');
-        }
-        $array = array('stopPrice' => $stopPrice);
-        $query = $this->extend($params, $array);
-        return $this->create_order($symbol, 'limit', $side, $amount, $price, $query);
-    }
-
-    public function create_stop_market_order($symbol, $side, $amount, $stopPrice, $params = array()) {
-        if (!$this->has['createStopMarketOrder']) {
-            throw new NotSupported($this->id . ' create_stop_market_order() is not supported yet');
-        }
-        $array = array('stopPrice' => $stopPrice);
-        $query = $this->extend($params, $array);
-        return $this->create_order($symbol, 'market', $side, $amount, null, $query);
     }
 
     public function check_order_arguments ($market, $type, $side, $amount, $price, $params) {
