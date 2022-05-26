@@ -1936,7 +1936,7 @@ module.exports = class mexc extends Exchange {
             // 'triggerType': 1, // Required for trigger order 1: more than or equal, 2: less than or equal
             // 'executeCycle': 1, // Required for trigger order 1: 24 hours,2: 7 days
             // 'trend': 1, // Required for trigger order 1: latest price, 2: fair price, 3: index price
-            // 'orderType': 1, // Required for trigger order 1: limit order,2:Post Only postOnly,3: close or cancel instantly ,4: close or cancel completely,5: Market order
+            // 'orderType': 1, // Required for trigger order 1: limit order,2:Post Only Maker,3: close or cancel instantly ,4: close or cancel completely,5: Market order
         };
         let method = 'contractPrivatePostOrderSubmit';
         const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
