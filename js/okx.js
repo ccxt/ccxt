@@ -2165,7 +2165,7 @@ module.exports = class okx extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'privatePostTradeCancelBatchOrders');
         let method = this.safeString (params, 'method', defaultMethod);
         const clientOrderIds = this.parseIds (this.safeValue2 (params, 'clOrdId', 'clientOrderId'));
-        const algoIds = this.parseIds (this.safeValue2 (params, 'algoId'));
+        const algoIds = this.parseIds (this.safeValue (params, 'algoId'));
         const stop = this.safeValue (params, 'stop');
         if (stop) {
             method = 'privatePostTradeCancelAlgos';
