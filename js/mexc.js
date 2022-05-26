@@ -1848,11 +1848,11 @@ module.exports = class mexc extends Exchange {
         if (orderType === 'LIMIT') {
             orderType = 'LIMIT_ORDER';
         }
-        const postOnly = this.safeValue (params, 'postOnly', false);
-        const timeInForce = this.safeString (params, 'timeInForce');
-        const maker = (postOnly || (timeInForce === 'PO'));
+        let timeInForce = this.safeString (params, 'timeInForce');
+        let postOnly = false;
+        [ type, postOnly, timeInForce, params ] = this.isPostOnly (type, timeInForce, undefined, params);
         const ioc = (timeInForce === 'IOC');
-        if (maker) {
+        if (postOnly) {
             orderType = 'POST_ONLY';
         } else if (ioc) {
             orderType = 'IMMEDIATE_OR_CANCEL';
@@ -1892,10 +1892,10 @@ module.exports = class mexc extends Exchange {
         if ((type !== 'limit') && (type !== 'market') && (type !== 1) && (type !== 2) && (type !== 3) && (type !== 4) && (type !== 5) && (type !== 6)) {
             throw new InvalidOrder (this.id + ' createSwapOrder () order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
-        const timeInForce = this.safeString (params, 'timeInForce');
-        const postOnly = this.safeValue (params, 'postOnly', false);
-        const maker = ((timeInForce === 'PO') || (postOnly));
-        if (maker) {
+        let timeInForce = this.safeString (params, 'timeInForce');
+        let postOnly = false;
+        [ type, postOnly, timeInForce, params ] = this.isPostOnly (type, timeInForce, undefined, params);
+        if (postOnly) {
             type = 2;
         } else if (type === 'limit') {
             type = 1;
@@ -1922,7 +1922,7 @@ module.exports = class mexc extends Exchange {
             // supported order types
             //
             //     1 limit
-            //     2 post only maker (PO)
+            //     2 post only postOnly (PO)
             //     3 transact or cancel instantly (IOC)
             //     4 transact completely or cancel completely (FOK)
             //     5 market orders
@@ -1936,7 +1936,7 @@ module.exports = class mexc extends Exchange {
             // 'triggerType': 1, // Required for trigger order 1: more than or equal, 2: less than or equal
             // 'executeCycle': 1, // Required for trigger order 1: 24 hours,2: 7 days
             // 'trend': 1, // Required for trigger order 1: latest price, 2: fair price, 3: index price
-            // 'orderType': 1, // Required for trigger order 1: limit order,2:Post Only Maker,3: close or cancel instantly ,4: close or cancel completely,5: Market order
+            // 'orderType': 1, // Required for trigger order 1: limit order,2:Post Only postOnly,3: close or cancel instantly ,4: close or cancel completely,5: Market order
         };
         let method = 'contractPrivatePostOrderSubmit';
         const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
@@ -1962,7 +1962,7 @@ module.exports = class mexc extends Exchange {
         if (clientOrderId !== undefined) {
             request['externalOid'] = clientOrderId;
         }
-        params = this.omit (params, [ 'clientOrderId', 'externalOid', 'postOnly' ]);
+        params = this.omit (params, [ 'clientOrderId', 'externalOid' ]);
         const response = await this[method] (this.extend (request, params));
         //
         // Swap
