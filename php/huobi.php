@@ -2520,6 +2520,7 @@ class huobi extends Exchange {
             if ($limit === null) {
                 $limit = 2000;
             }
+            $request['size'] = $limit;
             if ($price === null) {
                 $duration = $this->parse_timeframe($timeframe);
                 if ($since === null) {

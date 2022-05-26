@@ -345,7 +345,7 @@ class bytetrade(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': self.safe_string(market, 'active'),
+                'active': self.safe_value(market, 'active'),
                 'contract': False,
                 'linear': None,
                 'inverse': None,

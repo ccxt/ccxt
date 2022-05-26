@@ -354,7 +354,7 @@ class bytetrade extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'active' => $this->safe_string($market, 'active'),
+                'active' => $this->safe_value($market, 'active'),
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
