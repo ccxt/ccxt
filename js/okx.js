@@ -2146,7 +2146,11 @@ module.exports = class okx extends Exchange {
          * @param {[str]|str} ids order ids
          * @returns {[str]} list of order ids
          */
-        return (typeof ids === 'string') ? ids.split (',') : ids;
+        if (typeof ids === 'string') {
+            return ids.split (',');
+        } else {
+            return ids;
+        }
     }
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
