@@ -36,6 +36,10 @@ from ccxt.base.exchange import Exchange as BaseExchange, ArgumentsRequired
 
 # -----------------------------------------------------------------------------
 
+import ccxt.async_support.base.exchange_common as exchange_common
+
+# -----------------------------------------------------------------------------
+
 __all__ = [
     'BaseExchange',
     'Exchange',
@@ -492,3 +496,12 @@ class Exchange(BaseExchange):
             return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
         else:
             raise NotSupported(self.id + ' fetchPremiumIndexOHLCV() is not supported yet')
+
+
+# -----------------------------------------------------------------------------
+# exchange_common : set imported common methods as part of the class
+# needs to be done again here to assign the async version of the method
+# -----------------------------------------------------------------------------
+common_methods = list((n for n in dir(exchange_common) if n[:1] != "_"))
+for method in common_methods:
+    setattr(Exchange, method, getattr(exchange_common, method))
