@@ -2945,12 +2945,6 @@ class Exchange(object):
             raise ExchangeError(self.id + 'fetchBorrowRate() could not find the borrow rate for currency code ' + code)
         return rate
 
-    def load_time_difference(self, params={}):
-        server_time = self.fetch_time(params)
-        after = self.milliseconds()
-        self.options['timeDifference'] = after - server_time
-        return self.options['timeDifference']
-
     def parse_leverage_tiers(self, response, symbols, market_id_key):
         tiers = {}
         for item in response:

@@ -278,6 +278,8 @@ class Exchange {
         'fetchIndexOHLCV' => 'fetch_index_ohlcv',
         'fetchPremiumIndexOHLCV' => 'fetch_premium_index_ohlcv',
         'fetchFundingRate' => 'fetch_funding_rate',
+        'isPostOnly' => 'is_post_only',
+        'loadTimeDifference' => 'load_time_difference',
         'fetchImplementation' => 'fetch_implementation',
         'executeRestRequest' => 'execute_rest_request',
         'encodeURIComponent' => 'encode_uri_component',
@@ -410,11 +412,9 @@ class Exchange {
         'parsePrecision' => 'parse_precision',
         'getSupportedMapping' => 'get_supported_mapping',
         'fetchBorrowRate' => 'fetch_borrow_rate',
-        'loadTimeDifference' => 'load_time_difference',
         'parseLeverageTiers' => 'parse_leverage_tiers',
         'fetchMarketLeverageTiers' => 'fetch_market_leverage_tiers',
         'parseOpenInterests' => 'parse_open_interests',
-        'isPostOnly' => 'is_post_only',
         'checkOrderArguments' => 'check_order_arguments',
         'parseBorrowInterests' => 'parse_borrow_interests',
         'parseFundingRateHistories' => 'parse_funding_rate_histories',
@@ -3881,13 +3881,6 @@ class Exchange {
             throw new ExchangeError($this->id . ' fetchBorrowRate() could not find the borrow rate for currency code ' . $code);
         }
         return $rate;
-    }
-
-    public function load_time_difference($params = array()) {
-        $server_time = $this->fetch_time($params);
-        $after = $this->milliseconds();
-        $this->options['timeDifference'] = $after - $server_time;
-        return $this->options['timeDifference'];
     }
 
     public function parse_leverage_tiers($response, $symbols, $market_id_key){

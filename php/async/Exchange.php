@@ -357,13 +357,6 @@ class Exchange extends \ccxt\Exchange {
         }
     }
 
-    public function load_time_difference($params = array()) {
-        $server_time = yield $this->fetch_time($params);
-        $after = $this->milliseconds();
-        $this->options['timeDifference'] = $after - $server_time;
-        return $this->options['timeDifference'];
-    }
-
     public function fetch_market_leverage_tiers($symbol, $params = array()) {
         if ($this->has['fetchLeverageTiers']) {
             $market = yield $this->market($symbol);

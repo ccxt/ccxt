@@ -197,4 +197,11 @@ trait ExchangeCommon {
             return array( $type, false, $timeInForce, $params );
         }
     }
+
+    public function load_time_difference($params = array ()) {
+        $serverTime = yield $this->fetchTime ($params);
+        $after = $this->milliseconds ();
+        $this->options['timeDifference'] = $after - $serverTime;
+        return $this->options['timeDifference'];
+    }
 }

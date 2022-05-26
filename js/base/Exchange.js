@@ -2277,13 +2277,6 @@ module.exports = class Exchange {
         return rate;
     }
 
-    async loadTimeDifference (params = {}) {
-        const serverTime = await this.fetchTime (params);
-        const after = this.milliseconds ();
-        this.options['timeDifference'] = after - serverTime;
-        return this.options['timeDifference'];
-    }
-
     parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
         // * marketIdKey should only be undefined when response is a dictionary
         const tiers = {};

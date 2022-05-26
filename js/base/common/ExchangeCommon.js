@@ -197,6 +197,13 @@ function isPostOnly (type, timeInForce = undefined, exchangeSpecificOption = und
     }
 }
 
+async function loadTimeDifference (params = {}) {
+    const serverTime = await this.fetchTime (params);
+    const after = this.milliseconds ();
+    this.options['timeDifference'] = after - serverTime;
+    return this.options['timeDifference'];
+}
+
 module.exports = {
     handleMarketTypeAndParams,
     handleWithdrawTagAndParams,
@@ -210,4 +217,5 @@ module.exports = {
     fetchPremiumIndexOHLCV,
     fetchFundingRate,
     isPostOnly,
+    loadTimeDifference,
 };

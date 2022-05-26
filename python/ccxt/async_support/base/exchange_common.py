@@ -173,3 +173,10 @@ def is_post_only(self, type, timeInForce=None, exchangeSpecificOption=None, para
             return ['limit', True, timeInForce, params]
     else:
         return [type, False, timeInForce, params]
+
+
+async def load_time_difference(self, params={}):
+    serverTime = await self.fetchTime(params)
+    after = self.milliseconds()
+    self.options['timeDifference'] = after - serverTime
+    return self.options['timeDifference']
