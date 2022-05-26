@@ -1757,11 +1757,11 @@ class mexc(Exchange):
             raise InvalidOrder(self.id + ' createOrder() does not support market orders, only limit orders are allowed')
         if orderType == 'LIMIT':
             orderType = 'LIMIT_ORDER'
-        postOnly = self.safe_value(params, 'postOnly', False)
         timeInForce = self.safe_string(params, 'timeInForce')
-        maker = (postOnly or (timeInForce == 'PO'))
+        postOnly = False
+        type, postOnly, timeInForce, params = self.is_post_only(type, timeInForce, None, params)
         ioc = (timeInForce == 'IOC')
-        if maker:
+        if postOnly:
             orderType = 'POST_ONLY'
         elif ioc:
             orderType = 'IMMEDIATE_OR_CANCEL'
@@ -1795,9 +1795,9 @@ class mexc(Exchange):
         if (type != 'limit') and (type != 'market') and (type != 1) and (type != 2) and (type != 3) and (type != 4) and (type != 5) and (type != 6):
             raise InvalidOrder(self.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price')
         timeInForce = self.safe_string(params, 'timeInForce')
-        postOnly = self.safe_value(params, 'postOnly', False)
-        maker = ((timeInForce == 'PO') or (postOnly))
-        if maker:
+        postOnly = False
+        type, postOnly, timeInForce, params = self.is_post_only(type, timeInForce, None, params)
+        if postOnly:
             type = 2
         elif type == 'limit':
             type = 1
@@ -1856,7 +1856,7 @@ class mexc(Exchange):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'externalOid')
         if clientOrderId is not None:
             request['externalOid'] = clientOrderId
-        params = self.omit(params, ['clientOrderId', 'externalOid', 'postOnly'])
+        params = self.omit(params, ['clientOrderId', 'externalOid'])
         response = getattr(self, method)(self.extend(request, params))
         #
         # Swap

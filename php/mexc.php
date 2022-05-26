@@ -1833,11 +1833,11 @@ class mexc extends Exchange {
         if ($orderType === 'LIMIT') {
             $orderType = 'LIMIT_ORDER';
         }
-        $postOnly = $this->safe_value($params, 'postOnly', false);
         $timeInForce = $this->safe_string($params, 'timeInForce');
-        $maker = ($postOnly || ($timeInForce === 'PO'));
+        $postOnly = false;
+        list($type, $postOnly, $timeInForce, $params) = $this->is_post_only($type, $timeInForce, null, $params);
         $ioc = ($timeInForce === 'IOC');
-        if ($maker) {
+        if ($postOnly) {
             $orderType = 'POST_ONLY';
         } else if ($ioc) {
             $orderType = 'IMMEDIATE_OR_CANCEL';
@@ -1878,9 +1878,9 @@ class mexc extends Exchange {
             throw new InvalidOrder($this->id . ' createSwapOrder () order $type must either limit, $market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for $market orders or 6 to convert $market $price to current price');
         }
         $timeInForce = $this->safe_string($params, 'timeInForce');
-        $postOnly = $this->safe_value($params, 'postOnly', false);
-        $maker = (($timeInForce === 'PO') || ($postOnly));
-        if ($maker) {
+        $postOnly = false;
+        list($type, $postOnly, $timeInForce, $params) = $this->is_post_only($type, $timeInForce, null, $params);
+        if ($postOnly) {
             $type = 2;
         } else if ($type === 'limit') {
             $type = 1;
@@ -1907,7 +1907,7 @@ class mexc extends Exchange {
             // supported order types
             //
             //     1 limit
-            //     2 post only $maker (PO)
+            //     2 post only maker (PO)
             //     3 transact or cancel instantly (IOC)
             //     4 transact completely or cancel completely (FOK)
             //     5 $market orders
@@ -1947,7 +1947,7 @@ class mexc extends Exchange {
         if ($clientOrderId !== null) {
             $request['externalOid'] = $clientOrderId;
         }
-        $params = $this->omit($params, array( 'clientOrderId', 'externalOid', 'postOnly' ));
+        $params = $this->omit($params, array( 'clientOrderId', 'externalOid' ));
         $response = $this->$method (array_merge($request, $params));
         //
         // Swap
