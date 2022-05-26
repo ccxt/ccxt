@@ -30,6 +30,8 @@ include 'Throttle.php';
 
 $version = '1.83.91';
 
+require_once "ExchangeCommon.php";
+
 class Exchange extends \ccxt\Exchange {
 
     const VERSION = '1.83.91';
