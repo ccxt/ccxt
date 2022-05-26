@@ -20,6 +20,7 @@
     "coinegg":       { "skip": true },
     "coinfalcon":    { "skip": true },
     "coingi":        { "skip": true },
+    "coinbase":      { "skip": true },
     "coinmarketcap": { "skip": true },
     "coinmate":      { "skip": true },
     "coinone":       { "skip": true },
