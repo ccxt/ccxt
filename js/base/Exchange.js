@@ -4,7 +4,7 @@
 
 const functions = require ('./functions')
 
-const baseFunctions = require('./ExchangeCommon')
+const baseFunctions = require('./common/ExchangeCommon')
 
 const {
     isNode
