@@ -2212,18 +2212,20 @@ module.exports = class ftx extends Exchange {
         const unrealizedPnlString = this.safeString (position, 'recentPnl');
         const percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMargin, 4), '100'));
         const entryPriceString = this.safeString (position, 'recentAverageOpenPrice');
-        let difference = undefined;
-        let collateral = undefined;
         let marginRatio = undefined;
+        let collateral = this.safeString (position, 'collateralUsed');
         if ((entryPriceString !== undefined) && (Precise.stringGt (liquidationPriceString, '0'))) {
+            let difference = undefined;
             // collateral = maintenanceMargin ± ((markPrice - liquidationPrice) * size)
             if (side === 'long') {
                 difference = Precise.stringSub (markPriceString, liquidationPriceString);
             } else {
                 difference = Precise.stringSub (liquidationPriceString, markPriceString);
             }
-            const loss = Precise.stringMul (difference, contractsString);
-            collateral = Precise.stringAdd (loss, maintenanceMarginString);
+            if (collateral === undefined) {
+                const loss = Precise.stringMul (difference, contractsString);
+                collateral = Precise.stringAdd (loss, maintenanceMarginString);
+            }
             marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateral, 4));
         }
         // ftx has a weird definition of realizedPnl
