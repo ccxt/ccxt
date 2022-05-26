@@ -1989,6 +1989,8 @@ class bitmex extends Exchange {
         if ($market['quote'] === 'USDT') {
             $notional = Precise::string_mul($this->safe_string($position, 'foreignNotional'), '-1');
         }
+        $maintenanceMargin = $this->safe_number($position, 'maintMargin');
+        $unrealisedPnl = $this->safe_number($position, 'unrealisedPnl');
         return array(
             'info' => $position,
             'id' => $this->safe_string($position, 'account'),
@@ -2006,14 +2008,29 @@ class bitmex extends Exchange {
             'collateral' => null,
             'initialMargin' => null,
             'initialMarginPercentage' => $this->safe_number($position, 'initMarginReq'),
-            'maintenanceMargin' => null,
+            'maintenanceMargin' => $this->convert_value($maintenanceMargin, $market),
             'maintenanceMarginPercentage' => null,
-            'unrealizedPnl' => null,
+            'unrealizedPnl' => $this->convert_value($unrealisedPnl, $market),
             'liquidationPrice' => $this->safe_number($position, 'liquidationPrice'),
             'marginMode' => $marginMode,
             'marginRatio' => null,
             'percentage' => $this->safe_number($position, 'unrealisedPnlPcnt'),
         );
+    }
+
+    public function convert_value($value, $market = null) {
+        if (($value === null) || ($market === null)) {
+            return $value;
+        }
+        $resultValue = null;
+        $value = $this->number_to_string($value);
+        if (($market['quote'] === 'USD') || ($market['quote'] === 'EUR')) {
+            $resultValue = Precise::string_mul($value, '0.00000001');
+        }
+        if ($market['quote'] === 'USDT') {
+            $resultValue = Precise::string_mul($value, '0.000001');
+        }
+        return floatval($resultValue);
     }
 
     public function is_fiat($currency) {
