@@ -2253,20 +2253,6 @@ module.exports = class Exchange {
         return '1e' + Precise.stringNeg (precision)
     }
 
-    handleWithdrawTagAndParams (tag, params) {
-        if (typeof tag === 'object') {
-            params = this.extend (tag, params)
-            tag = undefined
-        }
-        if (tag === undefined) {
-            tag = this.safeString (params, 'tag')
-            if (tag !== undefined) {
-                params = this.omit (params, 'tag');
-            }
-        }
-        return [ tag, params ]
-    }
-
     getSupportedMapping (key, mapping = {}) {
         // Takes a key and a dictionary, and returns the dictionary's value for that key
         // :throws:
@@ -2289,23 +2275,6 @@ module.exports = class Exchange {
             throw new ExchangeError (this.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code);
         }
         return rate;
-    }
-
-    handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
-        const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
-        const methodOptions = this.safeValue (this.options, methodName);
-        let methodType = defaultType;
-        if (methodOptions !== undefined) {
-            if (typeof methodOptions === 'string') {
-                methodType = methodOptions;
-            } else {
-                methodType = this.safeString2 (methodOptions, 'defaultType', 'type', methodType);
-            }
-        }
-        const marketType = (market === undefined) ? methodType : market['type'];
-        const type = this.safeString2 (params, 'defaultType', 'type', marketType);
-        params = this.omit (params, [ 'defaultType', 'type' ]);
-        return [ type, params ];
     }
 
     async loadTimeDifference (params = {}) {

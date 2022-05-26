@@ -2927,16 +2927,6 @@ class Exchange(object):
             return None
         return string_number
 
-    def handle_withdraw_tag_and_params(self, tag, params):
-        if isinstance(tag, dict):
-            params = self.extend(tag, params)
-            tag = None
-        if tag is None:
-            tag = self.safe_string(params, 'tag')
-            if tag is not None:
-                params = self.omit(params, 'tag')
-        return [tag, params]
-
     def get_supported_mapping(self, key, mapping={}):
         # Takes a key and a dictionary, and returns the dictionary's value for that key
         # :throws:
@@ -2956,19 +2946,19 @@ class Exchange(object):
             raise ExchangeError(self.id + 'fetchBorrowRate() could not find the borrow rate for currency code ' + code)
         return rate
 
-    def handle_market_type_and_params(self, method_name, market=None, params={}):
-        default_type = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
-        method_options = self.safe_value(self.options, method_name)
-        method_type = default_type
-        if method_options is not None:
-            if isinstance(method_options, str):
-                method_type = method_options
-            else:
-                method_type = self.safe_string_2(method_options, 'defaultType', 'type', method_type)
-        market_type = method_type if market is None else market['type']
-        type = self.safe_string_2(params, 'defaultType', 'type', market_type)
-        params = self.omit(params, ['defaultType', 'type'])
-        return [type, params]
+    # def handle_market_type_and_params(self, method_name, market=None, params={}):
+    #     default_type = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
+    #     method_options = self.safe_value(self.options, method_name)
+    #     method_type = default_type
+    #     if method_options is not None:
+    #         if isinstance(method_options, str):
+    #             method_type = method_options
+    #         else:
+    #             method_type = self.safe_string_2(method_options, 'defaultType', 'type', method_type)
+    #     market_type = method_type if market is None else market['type']
+    #     type = self.safe_string_2(params, 'defaultType', 'type', market_type)
+    #     params = self.omit(params, ['defaultType', 'type'])
+    #     return [type, params]
 
     def load_time_difference(self, params={}):
         server_time = self.fetch_time(params)
@@ -3161,10 +3151,10 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + ' fetchPremiumIndexOHLCV() is not supported yet')
 
+
 # -----------------------------------------------------------------------------
+# exchange_common : set imported common methods as part of the class
 # -----------------------------------------------------------------------------
-# Hack-y thing, set imported common methods as part of the class
 common_methods = list((n for n in dir(exchange_common) if n[:1] != "_"))
 for method in common_methods:
     setattr(Exchange, method, getattr(exchange_common, method))
-# -----------------------------------------------------------------------------

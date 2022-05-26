@@ -27,6 +27,21 @@ function handleMarketTypeAndParams (methodName, market = undefined, params = {})
     return [ type, params ];
 }
 
+function handleWithdrawTagAndParams (tag, params) {
+    if (typeof tag === 'object') {
+        params = this.extend (tag, params);
+        tag = undefined;
+    }
+    if (tag === undefined) {
+        tag = this.safeString (params, 'tag');
+        if (tag !== undefined) {
+            params = this.omit (params, 'tag');
+        }
+    }
+    return [ tag, params ];
+}
+
 module.exports = {
-    handleMarketTypeAndParams
+    handleMarketTypeAndParams,
+    handleWithdrawTagAndParams
 }
