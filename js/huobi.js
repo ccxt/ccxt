@@ -83,7 +83,7 @@ module.exports = class huobi extends Exchange {
                 'fetchOrderBooks': undefined,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
-                'fetchPosition': false,
+                'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': true,
@@ -5661,51 +5661,120 @@ module.exports = class huobi extends Exchange {
                 'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo',
             });
             //
+            // isolated
+            //
             //     {
-            //       status: 'ok',
-            //       data: [
-            //         {
-            //           positions: [
+            //         "status": "ok",
+            //         "data": [
             //             {
-            //               symbol: 'BTC',
-            //               contract_code: 'BTC-USDT',
-            //               volume: 1,
-            //               available: 1,
-            //               frozen: 0,
-            //               cost_open: 47027.1,
-            //               cost_hold: 47324.4,
-            //               profit_unreal: 0.1705,
-            //               profit_rate: -0.269631765513927,
-            //               lever_rate: 100,
-            //               position_margin: 0.471539,
-            //               direction: 'sell',
-            //               profit: -0.1268,
-            //               last_price: 47153.9,
-            //               margin_asset: 'USDT',
-            //               margin_mode: 'isolated',
-            //               margin_account: 'BTC-USDT'
-            //             }
-            //           ],
-            //           symbol: 'BTC',
-            //           margin_balance: 8.01274699,
-            //           margin_position: 0.471539,
-            //           margin_frozen: 0,
-            //           margin_available: 7.54120799,
-            //           profit_real: 0,
-            //           profit_unreal: 0.1705,
-            //           risk_rate: 16.442755615124092,
-            //           withdraw_available: 7.37070799,
-            //           liquidation_price: 54864.89009448036,
-            //           lever_rate: 100,
-            //           adjust_factor: 0.55,
-            //           margin_static: 7.84224699,
-            //           contract_code: 'BTC-USDT',
-            //           margin_asset: 'USDT',
-            //           margin_mode: 'isolated',
-            //           margin_account: 'BTC-USDT'
-            //         }
-            //       ],
-            //       ts: 1641162539767
+            //                 "positions": [],
+            //                 "symbol": "BTC",
+            //                 "margin_balance": 1.949728350000000000,
+            //                 "margin_position": 0,
+            //                 "margin_frozen": 0E-18,
+            //                 "margin_available": 1.949728350000000000,
+            //                 "profit_real": -0.050271650000000000,
+            //                 "profit_unreal": 0,
+            //                 "risk_rate": null,
+            //                 "withdraw_available": 1.949728350000000000,
+            //                 "liquidation_price": null,
+            //                 "lever_rate": 20,
+            //                 "adjust_factor": 0.150000000000000000,
+            //                 "margin_static": 1.949728350000000000,
+            //                 "contract_code": "BTC-USDT",
+            //                 "margin_asset": "USDT",
+            //                 "margin_mode": "isolated",
+            //                 "margin_account": "BTC-USDT",
+            //                 "trade_partition": "USDT",
+            //                 "position_mode": "dual_side"
+            //             },
+            //             ... other side position can be present here too (if hedge)
+            //         ],
+            //         "ts": 1653605008286
+            //     }
+            //
+            // cross
+            //
+            //     {
+            //         "status": "ok",
+            //         "data": {
+            //             "positions": [
+            //                 {
+            //                     "symbol": "BTC",
+            //                     "contract_code": "BTC-USDT",
+            //                     "volume": "1.000000000000000000",
+            //                     "available": "1.000000000000000000",
+            //                     "frozen": "0E-18",
+            //                     "cost_open": "29530.000000000000000000",
+            //                     "cost_hold": "29530.000000000000000000",
+            //                     "profit_unreal": "-0.010000000000000000",
+            //                     "profit_rate": "-0.016931933626820200",
+            //                     "lever_rate": "50",
+            //                     "position_margin": "0.590400000000000000",
+            //                     "direction": "buy",
+            //                     "profit": "-0.010000000000000000",
+            //                     "last_price": "29520",
+            //                     "margin_asset": "USDT",
+            //                     "margin_mode": "cross",
+            //                     "margin_account": "USDT",
+            //                     "contract_type": "swap",
+            //                     "pair": "BTC-USDT",
+            //                     "business_type": "swap",
+            //                     "trade_partition": "USDT",
+            //                     "position_mode": "dual_side"
+            //                 },
+            //                 ... other side position can be present here too (if hedge)
+            //             ],
+            //             "futures_contract_detail": [
+            //                 {
+            //                     "symbol": "BTC",
+            //                     "contract_code": "BTC-USDT-220624",
+            //                     "margin_position": "0",
+            //                     "margin_frozen": "0E-18",
+            //                     "margin_available": "1.497799766913531118",
+            //                     "profit_unreal": "0",
+            //                     "liquidation_price": null,
+            //                     "lever_rate": "30",
+            //                     "adjust_factor": "0.250000000000000000",
+            //                     "contract_type": "quarter",
+            //                     "pair": "BTC-USDT",
+            //                     "business_type": "futures",
+            //                     "trade_partition": "USDT"
+            //                 },
+            //                 ... other items listed with different expiration (contract_code)
+            //             ],
+            //             "margin_mode": "cross",
+            //             "margin_account": "USDT",
+            //             "margin_asset": "USDT",
+            //             "margin_balance": "2.088199766913531118",
+            //             "margin_static": "2.098199766913531118",
+            //             "margin_position": "0.590400000000000000",
+            //             "margin_frozen": "0E-18",
+            //             "profit_real": "-0.016972710000000000",
+            //             "profit_unreal": "-0.010000000000000000",
+            //             "withdraw_available": "1.497799766913531118",
+            //             "risk_rate": "9.105496355562965147",
+            //             "contract_detail": [
+            //                {
+            //                     "symbol": "BTC",
+            //                     "contract_code": "BTC-USDT",
+            //                     "margin_position": "0.590400000000000000",
+            //                     "margin_frozen": "0E-18",
+            //                     "margin_available": "1.497799766913531118",
+            //                     "profit_unreal": "-0.010000000000000000",
+            //                     "liquidation_price": "27625.176468365024050352",
+            //                     "lever_rate": "50",
+            //                     "adjust_factor": "0.350000000000000000",
+            //                     "contract_type": "swap",
+            //                     "pair": "BTC-USDT",
+            //                     "business_type": "swap",
+            //                     "trade_partition": "USDT"
+            //                 },
+            //                 ... all symbols listed
+            //             ],
+            //             "position_mode": "dual_side"
+            //         },
+            //         "ts": "1653604697466"
             //     }
             //
         } else {
