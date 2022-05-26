@@ -815,7 +815,7 @@ class Transpiler {
     }
 
     createPHPTraitDeclaration (className) {
-        return 'Trait ' + className + ' {'
+        return 'trait ' + className + ' {'
     }
 
     createPHPClassHeader (className, baseClass, bodyAsString, namespace, useException = true) {

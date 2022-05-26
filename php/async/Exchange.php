@@ -34,6 +34,8 @@ require_once "ExchangeCommon.php";
 
 class Exchange extends \ccxt\Exchange {
 
+    use ExchangeCommon;
+
     const VERSION = '1.83.91';
 
     public static $loop;
