@@ -668,6 +668,42 @@ class Transpiler {
 
     createPythonClass (className, baseClass, body, methods, async = false) {
 
+        let bodyAsString = body.join ("\n")
+
+        const {
+            imports,
+            asyncioImports,
+            libraries,
+            errorImports,
+            precisionImports
+        } = this.createPythonImports(baseClass, bodyAsString, async)
+
+        let header = this.createPythonClassHeader (imports, bodyAsString)
+
+        header = header.concat (asyncioImports, libraries, errorImports, precisionImports)
+
+        methods = methods.concat (this.getPythonBaseMethods ())
+
+        for (let method of methods) {
+            const regex = new RegExp ('self\\.(' + method + ')([^a-zA-Z0-9_])', 'g')
+            bodyAsString = bodyAsString.replace (regex,
+                (match, p1, p2) => ('self.' + unCamelCase (p1) + p2))
+        }
+
+        header.push ("\n\n" + this.createPythonClassDeclaration (className, baseClass))
+
+        const footer = [
+            '', // footer (last empty line)
+        ]
+
+        const result = header.join ("\n") + "\n" + bodyAsString + "\n" + footer.join ('\n')
+        return result
+    }
+
+    createPythonImports (baseClass, bodyAsString, async = false) {
+
+        async = (async ? '.async_support' : '')
+
         const pythonStandardLibraries = {
             'hashlib': 'hashlib',
             'math': 'math',
@@ -675,17 +711,7 @@ class Transpiler {
             'sys': 'sys',
         }
 
-        const baseClasses = {
-            'Exchange': 'base.exchange',
-        }
-
-        async = (async ? '.async_support' : '')
-
         const imports = this.createPythonClassImports (baseClass, async)
-
-        let bodyAsString = body.join ("\n")
-
-        let header = this.createPythonClassHeader (imports, bodyAsString)
 
         const libraries = []
 
@@ -695,7 +721,7 @@ class Transpiler {
                 libraries.push ('import ' + pythonStandardLibraries[library])
         }
 
-        if (body.indexOf ('numbers') >= 0) {
+        if (bodyAsString.indexOf ('numbers.') >= 0) {
             libraries.push ('import numbers')
         }
 
@@ -723,40 +749,39 @@ class Transpiler {
             asyncioImports.push ('import asyncio')
         }
 
-        header = header.concat (asyncioImports, libraries, errorImports, precisionImports)
-
-        methods = methods.concat (this.getPythonBaseMethods ())
-
-        for (let method of methods) {
-            const regex = new RegExp ('self\\.(' + method + ')([^a-zA-Z0-9_])', 'g')
-            bodyAsString = bodyAsString.replace (regex,
-                (match, p1, p2) => ('self.' + unCamelCase (p1) + p2))
+        return {
+            imports,
+            asyncioImports,
+            libraries,
+            errorImports,
+            precisionImports
         }
-
-        header.push ("\n\n" + this.createPythonClassDeclaration (className, baseClass))
-
-        const footer = [
-            '', // footer (last empty line)
-        ]
-
-        const result = header.join ("\n") + "\n" + bodyAsString + "\n" + footer.join ('\n')
-        return result
     }
 
-    createPythonCommonFile(body) {
+    createPythonCommonFile(className, body, async = false) {
 
         let header = this.createPythonHeader ()
 
-        let pythonFile = body.join('\n')
+        let pythonFile = body.join ('\n')
 
         // comply with flake8 E302
         // two blank lines between functions
-        pythonFile = pythonFile.replace(/^\s*\n/gm, '\n\n')
+        pythonFile = pythonFile.replace (/^\s*\n/gm, '\n\n')
 
         // add W292 : newline at end of file
         pythonFile+= '\n'
 
-        const result = header.join ("\n") + pythonFile
+        const {
+            _,
+            asyncioImports,
+            libraries,
+            errorImports,
+            precisionImports
+        } = this.createPythonImports (className, pythonFile, async)
+
+        header = header.concat (asyncioImports, libraries, errorImports, precisionImports)
+
+        const result = header.join ("\n") + '\n' + pythonFile
 
         return result;
     }
@@ -878,6 +903,23 @@ class Transpiler {
 
         const result = header.join ("\n") + "\n" + bodyAsString + "\n" + footer.join ('\n')
         return result
+    }
+
+    createPHPImports (bodyAsString) {
+        const errorImports = []
+
+        for (let error in errors) {
+            const regex = new RegExp ("[^'\"]" + error + "[^'\"]")
+            if (bodyAsString.match (regex)) {
+                errorImports.push ('use \\ccxt\\' + error + ';')
+            }
+        }
+
+        const precisionImports = []
+
+        if (async && bodyAsString.match (/[\s(]Precise/)) {
+            precisionImports.push ('use \\ccxt\\Precise;')
+        }
     }
 
     createPHPTrait (className, body, methods, async = false) {
@@ -1262,6 +1304,7 @@ class Transpiler {
     // ========================================================================
 
     transpileExchangeCommonFiles(jsFolder, filename, className, options ) {
+        // return;
         const jsPath = jsFolder + '/' + filename
         const { python2Folder, python3Folder, phpFolder, phpAsyncFolder } = options
 
@@ -1270,10 +1313,11 @@ class Transpiler {
 
         let contents = fs.readFileSync (jsPath, 'utf8')
 
-        // remove preamble, use strict and module.exports
+        // remove preamble, use strict, module.exports and imports
         contents = this.regexAll (contents, [
             [ /\'use strict\';?\s+/g, '' ],
             [ /^\/\/.*$/gm, '' ],
+            [ /^const.*$/gm, '' ],
             [ /module\.exports = {[^\}]+};\n*/gm, '' ],
         ])
 
@@ -1284,6 +1328,7 @@ class Transpiler {
             python3,
             php,
             phpAsync,
+            methodNames
         } = this.transpileMethodsToAllLanguages(className, methods, true, true)
 
         log.cyan ('Transpiling common Exchange methods')
@@ -1293,10 +1338,10 @@ class Transpiler {
         const pythonFilename = snakeFilename + '.py'
         const phpFilename = extensionLessFilename + '.php'
 
-        const python2File = this.createPythonCommonFile (python2)
-        const python3File = this.createPythonCommonFile (python3)
-        const phpFile = this.createPHPTrait (extensionLessFilename, php, methods)
-        const phpAsyncFile = this.createPHPTrait (extensionLessFilename, phpAsync, methods, true)
+        const python2File = this.createPythonCommonFile (className, python2, false)
+        const python3File = this.createPythonCommonFile (className, python3, true)
+        const phpFile = this.createPHPTrait (extensionLessFilename, php, methodNames)
+        const phpAsyncFile = this.createPHPTrait (extensionLessFilename, phpAsync, methodNames, true)
 
         ;[
             [ python2FolderBase, pythonFilename, python2File ],
