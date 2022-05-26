@@ -1324,7 +1324,7 @@ class Transpiler {
             python3,
             php,
             phpAsync,
-        } = this.transpileMethodsToAllLanguages(className, methods, true)
+        } = this.transpileMethodsToAllLanguages(className, methods, true, true)
 
         log.cyan ('Transpiling common Exchange methods')
 
@@ -1343,8 +1343,8 @@ class Transpiler {
         python2File = python2File.replaceAll(/^\s*\n/gm, '\n\n')
         python2File+= '\n'
 
-        const phpFile = this.createPHPTrait(className, php, methods)
-        const phpAsyncFile = this.createPHPTrait(className, php, methods, true)
+        const phpFile = this.createPHPTrait(extensionLessFilename, php, methods)
+        const phpAsyncFile = this.createPHPTrait(extensionLessFilename, php, methods, true)
 
         ;[
             [ python2FolderBase, pythonFilename, python2File ],
@@ -1361,7 +1361,7 @@ class Transpiler {
 
     // ========================================================================
 
-    transpileMethodsToAllLanguages(className, methods, firstLevel = false) {
+    transpileMethodsToAllLanguages(className, methods, pyFirstLevel = false, phpIdentBody = false) {
         let python2 = []
         let python3 = []
         let php = []
@@ -1424,7 +1424,7 @@ class Transpiler {
             // compile signature + body for Python sync
             python2.push ('');
             
-            const identation = firstLevel ? '' : '    '
+            const identation = pyFirstLevel ? '' : '    '
             python2.push (identation + pythonString);
             python2.push (python2Body);
 
@@ -1434,15 +1434,27 @@ class Transpiler {
             python3.push (python3Body);
 
             // compile signature + body for PHP
+            if (phpIdentBody) {
+                // while transpiling exchange common methos
+                // we need to add identation because they were 
+                // not inside a class
+                const bodyIdent = '    '
+                const phpParts = phpBody.split ('\n')
+                const phpIdented = phpParts.map(line => bodyIdent + line)
+                phpBody = phpIdented.join ('\n')
+                const phpAsyncParts = phpBody.split ('\n')
+                const phpAyncIdented = phpAsyncParts.map(line => bodyIdent + line)
+                phpAsync = phpAyncIdented.join ('\n')
+            }
             php.push ('');
-            php.push (identation + 'public function ' + method + '(' + phpArgs + ') {');
+            php.push ('    ' + 'public function ' + method + '(' + phpArgs + ') {');
             php.push (phpBody);
-            php.push (identation + '}')
+            php.push ('    ' + '}')
 
             phpAsync.push ('');
-            phpAsync.push (identation + 'public function ' + method + '(' + phpArgs + ') {');
+            phpAsync.push ('    ' + 'public function ' + method + '(' + phpArgs + ') {');
             phpAsync.push (phpAsyncBody);
-            phpAsync.push (identation + '}')
+            phpAsync.push ('    ' + '}')
         }
 
         return {
