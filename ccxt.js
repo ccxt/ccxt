@@ -148,6 +148,7 @@ const exchanges = {
     'qtrade':                  require ('./js/qtrade.js'),
     'ripio':                   require ('./js/ripio.js'),
     'stex':                    require ('./js/stex.js'),
+    'scallop':                 require ('./js/scallop.js'),
     'therock':                 require ('./js/therock.js'),
     'tidebit':                 require ('./js/tidebit.js'),
     'tidex':                   require ('./js/tidex.js'),
