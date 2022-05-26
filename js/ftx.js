@@ -2168,11 +2168,7 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', []);
-        const results = [];
-        for (let i = 0; i < result.length; i++) {
-            results.push (this.parsePosition (result[i]));
-        }
-        return this.filterByArray (results, 'symbol', symbols, false);
+        return this.parsePositions (result, symbols);
     }
 
     parsePosition (position, market = undefined) {
