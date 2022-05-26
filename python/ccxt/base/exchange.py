@@ -2874,10 +2874,11 @@ class Exchange(object):
             entry['fee'] = fee
         # timeInForceHandling
         timeInForce = self.safe_string(order, 'timeInForce')
-        if self.safe_value(order, 'postOnly', False):
-            timeInForce = 'PO'
-        elif self.safe_string(order, 'type') == 'market':
-            timeInForce = 'IOC'
+        if timeInForce is None:
+            if self.safe_value(order, 'postOnly', False):
+                timeInForce = 'PO'
+            elif self.safe_string(order, 'type') == 'market':
+                timeInForce = 'IOC'
         return self.extend(order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
             'price': self.parse_number(price),
