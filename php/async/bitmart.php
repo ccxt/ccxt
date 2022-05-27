@@ -352,6 +352,11 @@ class bitmart extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the bitmart api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = yield $this->publicSystemGetTime ($params);
         //
         //     {
@@ -368,6 +373,11 @@ class bitmart extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {dict} $params extra parameters specific to the bitmart api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-$status-structure $status structure}
+         */
         $options = $this->safe_value($this->options, 'fetchStatus', array());
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $type = $this->safe_string($options, 'type', $defaultType);
@@ -881,6 +891,11 @@ class bitmart extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {dict} $params extra parameters specific to the bitmart api endpoint
+         * @return {dict} an associative dictionary of $currencies
+         */
         $response = yield $this->publicAccountGetCurrencies ($params);
         //
         //     {

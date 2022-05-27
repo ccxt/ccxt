@@ -294,6 +294,13 @@ module.exports = class stex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name stex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the stex api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetCurrencies (params);
         //
         //     {
@@ -546,6 +553,13 @@ module.exports = class stex extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name stex#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the stex api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetPing (params);
         //
         //     {

@@ -310,6 +310,11 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-$status-structure $status structure}
+         */
         $response = $this->futuresPublicGetStatus ($params);
         //
         //     {
@@ -491,6 +496,11 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = $this->futuresPublicGetTimestamp ($params);
         //
         //    {
@@ -860,15 +870,8 @@ class kucoinfutures extends kucoin {
         //        )
         //    }
         //
-        return $this->parse_positions($this->safe_value($response, 'data'));
-    }
-
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_positions($data, $symbols);
     }
 
     public function parse_position($position, $market = null) {

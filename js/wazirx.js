@@ -11,7 +11,7 @@ module.exports = class wazirx extends Exchange {
             'name': 'WazirX',
             'countries': [ 'IN' ],
             'version': 'v2',
-            'rateLimit': 100,
+            'rateLimit': 1000,
             'has': {
                 'CORS': false,
                 'spot': true,
@@ -420,6 +420,13 @@ module.exports = class wazirx extends Exchange {
     }
 
     async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name wazirx#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {dict} params extra parameters specific to the wazirx api endpoint
+         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
         const response = await this.publicGetSystemStatus (params);
         //
         //     {
@@ -438,6 +445,13 @@ module.exports = class wazirx extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name wazirx#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the wazirx api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetTime (params);
         //
         //     {

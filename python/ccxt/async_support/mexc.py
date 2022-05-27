@@ -352,6 +352,11 @@ class mexc(Exchange):
         })
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         marketType, query = self.handle_market_type_and_params('fetchTime', None, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPublicGetCommonTimestamp',
@@ -377,6 +382,11 @@ class mexc(Exchange):
         return self.safe_integer(response, 'data')
 
     async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = await self.spotPublicGetCommonPing(params)
         #
         #     {"code":200}
@@ -392,6 +402,11 @@ class mexc(Exchange):
         }
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.spotPublicGetMarketCoinList(params)
         #
         #     {
@@ -1274,24 +1289,6 @@ class mexc(Exchange):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'premiumIndex',
-        }
-        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
-
-    async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'index',
-        }
-        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
-
-    async def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'mark',
-        }
-        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
-
     async def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1674,7 +1671,7 @@ class mexc(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_positions(data)
+        return self.parse_positions(data, symbols)
 
     def parse_position(self, position, market=None):
         #
@@ -1738,12 +1735,6 @@ class mexc(Exchange):
             'datetime': self.iso8601(timestamp),
         }
 
-    def parse_positions(self, positions):
-        result = []
-        for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i]))
-        return result
-
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
@@ -1766,11 +1757,12 @@ class mexc(Exchange):
             raise InvalidOrder(self.id + ' createOrder() does not support market orders, only limit orders are allowed')
         if orderType == 'LIMIT':
             orderType = 'LIMIT_ORDER'
-        postOnly = self.safe_value(params, 'postOnly', False)
         timeInForce = self.safe_string(params, 'timeInForce')
-        maker = (postOnly or (timeInForce == 'PO'))
+        postOnly = False
+        isPostOnlyOrderType = (orderType == 'POST_ONLY')
+        type, postOnly, timeInForce, params = self.is_post_only(type, timeInForce, isPostOnlyOrderType, params)
         ioc = (timeInForce == 'IOC')
-        if maker:
+        if postOnly:
             orderType = 'POST_ONLY'
         elif ioc:
             orderType = 'IMMEDIATE_OR_CANCEL'
@@ -1804,9 +1796,9 @@ class mexc(Exchange):
         if (type != 'limit') and (type != 'market') and (type != 1) and (type != 2) and (type != 3) and (type != 4) and (type != 5) and (type != 6):
             raise InvalidOrder(self.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price')
         timeInForce = self.safe_string(params, 'timeInForce')
-        postOnly = self.safe_value(params, 'postOnly', False)
-        maker = ((timeInForce == 'PO') or (postOnly))
-        if maker:
+        postOnly = False
+        type, postOnly, timeInForce, params = self.is_post_only(type, timeInForce, None, params)
+        if postOnly:
             type = 2
         elif type == 'limit':
             type = 1
@@ -1865,7 +1857,7 @@ class mexc(Exchange):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'externalOid')
         if clientOrderId is not None:
             request['externalOid'] = clientOrderId
-        params = self.omit(params, ['clientOrderId', 'externalOid', 'postOnly'])
+        params = self.omit(params, ['clientOrderId', 'externalOid'])
         response = await getattr(self, method)(self.extend(request, params))
         #
         # Swap

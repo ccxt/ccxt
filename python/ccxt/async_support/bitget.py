@@ -768,6 +768,11 @@ class bitget(Exchange):
         })
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.publicSpotGetPublicTime(params)
         #
         #     {
@@ -1009,6 +1014,11 @@ class bitget(Exchange):
         return self.parse_markets(data)
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.publicSpotGetPublicCurrencies(params)
         #
         #     {

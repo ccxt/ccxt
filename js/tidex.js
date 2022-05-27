@@ -157,6 +157,13 @@ module.exports = class tidex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name tidex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the tidex api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.webGetCurrency (params);
         //
         //     [

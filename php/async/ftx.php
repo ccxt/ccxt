@@ -350,6 +350,7 @@ class ftx extends Exchange {
                     'Account does not have enough balances' => '\\ccxt\\InsufficientFunds', // array("success":false,"error":"Account does not have enough balances")
                     'Not authorized for subaccount-specific access' => '\\ccxt\\PermissionDenied', // array("success":false,"error":"Not authorized for subaccount-specific access")
                     'Not approved to trade this product' => '\\ccxt\\PermissionDenied', // array("success":false,"error":"Not approved to trade this product")
+                    'Internal Error' => '\\ccxt\\ExchangeNotAvailable', // array("success":false,"error":"Internal Error")
                 ),
                 'broad' => array(
                     // array("error":"Not logged in","success":false)
@@ -414,6 +415,11 @@ class ftx extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {dict} $params extra parameters specific to the ftx api endpoint
+         * @return {dict} an associative dictionary of $currencies
+         */
         $response = yield $this->publicGetCoins ($params);
         $currencies = $this->safe_value($response, 'result', array());
         //
@@ -978,13 +984,6 @@ class ftx extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
-    }
-
-    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'index',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function parse_trade($trade, $market = null) {
@@ -2154,11 +2153,7 @@ class ftx extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        $results = array();
-        for ($i = 0; $i < count($result); $i++) {
-            $results[] = $this->parse_position($result[$i]);
-        }
-        return $this->filter_by_array($results, 'symbol', $symbols, false);
+        return $this->parse_positions($result, $symbols);
     }
 
     public function parse_position($position, $market = null) {

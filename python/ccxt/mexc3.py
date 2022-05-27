@@ -423,6 +423,11 @@ class mexc3(Exchange):
         })
 
     def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         marketType, query = self.handle_market_type_and_params('fetchStatus', None, params)
         response = None
         status = None
@@ -446,6 +451,11 @@ class mexc3(Exchange):
         }
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         marketType, query = self.handle_market_type_and_params('fetchTime', None, params)
         response = None
         if marketType == 'spot':
@@ -462,6 +472,11 @@ class mexc3(Exchange):
             return self.safe_integer(response, 'data')
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.spot2PublicGetMarketCoinList(params)
         #
         #     {
@@ -1165,12 +1180,6 @@ class mexc3(Exchange):
             candles = self.convert_trading_view_to_ohlcv(data, 'time', 'open', 'high', 'low', 'close', 'vol')
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend({'price': 'index'}, params))
-
-    def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend({'price': 'mark'}, params))
-
     def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.safe_integer(ohlcv, 0),
@@ -1445,6 +1454,12 @@ class mexc3(Exchange):
         }, market, False)
 
     def fetch_bids_asks(self, symbols=None, params={}):
+        """
+        fetches the bid and ask price and volume for multiple markets
+        :param [str]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = None
         isSingularMarket = False
@@ -2202,6 +2217,8 @@ class mexc3(Exchange):
             'NEW': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
+            'PARTIALLY_FILLED': 'open',
+            'PARTIALLY_CANCELED': 'canceled',
             # contracts v1
             # '1': 'uninformed',  # TODO: wt?
             '2': 'open',
@@ -3157,7 +3174,7 @@ class mexc3(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_positions(data)
+        return self.parse_positions(data, symbols)
 
     def parse_position(self, position, market=None):
         #
@@ -3219,12 +3236,6 @@ class mexc3(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-
-    def parse_positions(self, positions):
-        result = []
-        for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i]))
-        return result
 
     def fetch_transfer(self, id, since=None, limit=None, params={}):
         marketType, query = self.handle_market_type_and_params('fetchTransfer', None, params)

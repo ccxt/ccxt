@@ -1218,6 +1218,11 @@ class gateio extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         // sandbox/testnet only supports future markets
         $apiBackup = $this->safe_value($this->urls, 'apiBackup');
         if ($apiBackup !== null) {
@@ -2183,13 +2188,6 @@ class gateio extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'mark',
-        );
-        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
-    }
-
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical funding rate prices
@@ -2233,13 +2231,6 @@ class gateio extends Exchange {
         }
         $sorted = $this->sort_by($rates, 'timestamp');
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
-    }
-
-    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'index',
-        );
-        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -3852,14 +3843,6 @@ class gateio extends Exchange {
         );
     }
 
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
-    }
-
     public function fetch_positions($symbols = null, $params = array ()) {
         /**
          * Fetch trades positions
@@ -3906,8 +3889,7 @@ class gateio extends Exchange {
         //         }
         //     )
         //
-        $result = $this->parse_positions($response);
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
+        return $this->parse_positions($response, $symbols);
     }
 
     public function fetch_leverage_tiers($symbols = null, $params = array ()) {

@@ -344,6 +344,11 @@ class mexc extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the mexc api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTime', null, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotPublicGetCommonTimestamp',
@@ -370,6 +375,11 @@ class mexc extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {dict} $params extra parameters specific to the mexc api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-$status-structure $status structure}
+         */
         $response = yield $this->spotPublicGetCommonPing ($params);
         //
         //     array( "code":200 )
@@ -386,6 +396,11 @@ class mexc extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the mexc api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = yield $this->spotPublicGetMarketCoinList ($params);
         //
         //     {
@@ -1314,27 +1329,6 @@ class mexc extends Exchange {
         ];
     }
 
-    public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'premiumIndex',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
-    }
-
-    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'index',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
-    }
-
-    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'mark',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
-    }
-
     public function fetch_balance($params = array ()) {
         /**
          * $query for $balance and get the amount of funds available for trading or funds locked in orders
@@ -1747,7 +1741,7 @@ class mexc extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_positions($data);
+        return $this->parse_positions($data, $symbols);
     }
 
     public function parse_position($position, $market = null) {
@@ -1813,14 +1807,6 @@ class mexc extends Exchange {
         );
     }
 
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
-    }
-
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -1848,11 +1834,12 @@ class mexc extends Exchange {
         if ($orderType === 'LIMIT') {
             $orderType = 'LIMIT_ORDER';
         }
-        $postOnly = $this->safe_value($params, 'postOnly', false);
         $timeInForce = $this->safe_string($params, 'timeInForce');
-        $maker = ($postOnly || ($timeInForce === 'PO'));
+        $postOnly = false;
+        $isPostOnlyOrderType = ($orderType === 'POST_ONLY');
+        list($type, $postOnly, $timeInForce, $params) = $this->is_post_only($type, $timeInForce, $isPostOnlyOrderType, $params);
         $ioc = ($timeInForce === 'IOC');
-        if ($maker) {
+        if ($postOnly) {
             $orderType = 'POST_ONLY';
         } else if ($ioc) {
             $orderType = 'IMMEDIATE_OR_CANCEL';
@@ -1893,9 +1880,9 @@ class mexc extends Exchange {
             throw new InvalidOrder($this->id . ' createSwapOrder () order $type must either limit, $market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for $market orders or 6 to convert $market $price to current price');
         }
         $timeInForce = $this->safe_string($params, 'timeInForce');
-        $postOnly = $this->safe_value($params, 'postOnly', false);
-        $maker = (($timeInForce === 'PO') || ($postOnly));
-        if ($maker) {
+        $postOnly = false;
+        list($type, $postOnly, $timeInForce, $params) = $this->is_post_only($type, $timeInForce, null, $params);
+        if ($postOnly) {
             $type = 2;
         } else if ($type === 'limit') {
             $type = 1;
@@ -1922,7 +1909,7 @@ class mexc extends Exchange {
             // supported order types
             //
             //     1 limit
-            //     2 post only $maker (PO)
+            //     2 post only maker (PO)
             //     3 transact or cancel instantly (IOC)
             //     4 transact completely or cancel completely (FOK)
             //     5 $market orders
@@ -1962,7 +1949,7 @@ class mexc extends Exchange {
         if ($clientOrderId !== null) {
             $request['externalOid'] = $clientOrderId;
         }
-        $params = $this->omit($params, array( 'clientOrderId', 'externalOid', 'postOnly' ));
+        $params = $this->omit($params, array( 'clientOrderId', 'externalOid' ));
         $response = yield $this->$method (array_merge($request, $params));
         //
         // Swap

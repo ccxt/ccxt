@@ -31,18 +31,25 @@ class exmo(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,  # has but unimplemented
+                'margin': True,
                 'swap': False,
                 'future': False,
                 'option': False,
+                'addMargin': True,
                 'cancelOrder': True,
+                'cancelOrders': False,
+                'createDepositAddress': False,
                 'createOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
+                'fetchAccounts': False,
                 'fetchBalance': True,
+                'fetchCanceledOrders': True,
                 'fetchCurrencies': True,
+                'fetchDeposit': True,
                 'fetchDepositAddress': True,
+                'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -68,7 +75,10 @@ class exmo(Exchange):
                 'fetchTransactions': True,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': True,
+                'setMargin': False,
                 'transfer': False,
                 'withdraw': True,
             },
@@ -186,6 +196,9 @@ class exmo(Exchange):
                 'fetchTradingFees': {
                     'method': 'fetchPrivateTradingFees',  # or 'fetchPublicTradingFees'
                 },
+                'margin': {
+                    'fillResponseFromRequest': True,
+                },
             },
             'commonCurrencies': {
                 'GMT': 'GMT Token',
@@ -216,6 +229,50 @@ class exmo(Exchange):
                 },
             },
         })
+
+    async def modify_margin_helper(self, symbol, amount, type, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'position_id': market['id'],
+            'quantity': amount,
+        }
+        method = None
+        if type == 'add':
+            method = 'privatePostMarginUserPositionMarginAdd'
+        elif type == 'reduce':
+            method = 'privatePostMarginUserPositionMarginReduce'
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #      {}
+        #
+        margin = self.parse_margin_modification(response, market)
+        options = self.safe_value(self.options, 'margin', {})
+        fillResponseFromRequest = self.safe_value(options, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            margin['type'] = type
+            margin['amount'] = amount
+        return margin
+
+    def parse_margin_modification(self, data, market=None):
+        #
+        #      {}
+        #
+        return {
+            'info': data,
+            'type': None,
+            'amount': None,
+            'code': self.safe_value(market, 'quote'),
+            'symbol': self.safe_symbol(None, market),
+            'total': None,
+            'status': 'ok',
+        }
+
+    async def reduce_margin(self, symbol, amount, params={}):
+        return await self.modify_margin_helper(symbol, amount, 'reduce', params)
+
+    async def add_margin(self, symbol, amount, params={}):
+        return await self.modify_margin_helper(symbol, amount, 'add', params)
 
     async def fetch_trading_fees(self, params={}):
         method = self.safe_string(params, 'method')
@@ -396,6 +453,11 @@ class exmo(Exchange):
         return result
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the exmo api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         #
         currencyList = await self.publicGetCurrencyListExtended(params)
         #
@@ -552,7 +614,7 @@ class exmo(Exchange):
                 'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': False,
+                'margin': True,
                 'swap': False,
                 'future': False,
                 'option': False,
@@ -1153,7 +1215,7 @@ class exmo(Exchange):
 
     def parse_order(self, order, market=None):
         #
-        # fetchOrders, fetchOpenOrders, fetchClosedOrders
+        # fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         #
         #     {
         #         "order_id": "14",
@@ -1191,17 +1253,16 @@ class exmo(Exchange):
         timestamp = self.safe_timestamp(order, 'created')
         symbol = None
         side = self.safe_string(order, 'type')
-        if market is None:
-            marketId = None
-            if 'pair' in order:
-                marketId = order['pair']
-            elif ('in_currency' in order) and ('out_currency' in order):
-                if side == 'buy':
-                    marketId = order['in_currency'] + '_' + order['out_currency']
-                else:
-                    marketId = order['out_currency'] + '_' + order['in_currency']
-            if (marketId is not None) and (marketId in self.markets_by_id):
-                market = self.markets_by_id[marketId]
+        marketId = None
+        if 'pair' in order:
+            marketId = order['pair']
+        elif ('in_currency' in order) and ('out_currency' in order):
+            if side == 'buy':
+                marketId = order['in_currency'] + '_' + order['out_currency']
+            else:
+                marketId = order['out_currency'] + '_' + order['in_currency']
+        if (marketId is not None) and (marketId in self.markets_by_id):
+            market = self.markets_by_id[marketId]
         amount = self.safe_number(order, 'quantity')
         if amount is None:
             amountField = 'in_amount' if (side == 'buy') else 'out_amount'
@@ -1280,6 +1341,31 @@ class exmo(Exchange):
             'fee': fee,
             'info': order,
         }
+
+    async def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {}
+        if since is not None:
+            request['offset'] = limit
+        if limit is not None:
+            request['limit'] = limit
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        response = await self.privatePostUserCancelledOrders(self.extend(request, params))
+        #
+        #     [{
+        #         "order_id": "27056153840",
+        #         "client_id": "0",
+        #         "created": "1653428646",
+        #         "type": "buy",
+        #         "pair": "BTC_USDT",
+        #         "quantity": "0.1",
+        #         "price": "10",
+        #         "amount": "1"
+        #     }]
+        #
+        return self.parse_orders(response, market, since, limit, params)
 
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
@@ -1536,7 +1622,131 @@ class exmo(Exchange):
         #         "count": 23
         #     }
         #
-        return self.parse_transactions(response['items'], currency, since, limit)
+        items = self.safe_value(response, 'items', [])
+        return self.parse_transactions(items, currency, since, limit)
+
+    async def fetch_withdrawal(self, id, code=None, params={}):
+        await self.load_markets()
+        currency = None
+        request = {
+            'order_id': id,
+            'type': 'withdraw',
+        }
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        response = await self.privatePostWalletOperations(self.extend(request, params))
+        #
+        #     {
+        #         "items": [
+        #         {
+        #             "operation_id": 47412538520634344,
+        #             "created": 1573760013,
+        #             "updated": 1573760013,
+        #             "type": "deposit",
+        #             "currency": "DOGE",
+        #             "status": "Paid",
+        #             "amount": "300",
+        #             "provider": "DOGE",
+        #             "commission": "0",
+        #             "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        #             "order_id": 69670170,
+        #             "extra": {
+        #                 "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        #                 "excode": "",
+        #                 "invoice": ""
+        #             },
+        #             "error": ""
+        #         },
+        #     ],
+        #         "count": 23
+        #     }
+        #
+        items = self.safe_value(response, 'items', [])
+        first = self.safe_value(items, 0, {})
+        return self.parse_transaction(first, currency)
+
+    async def fetch_deposit(self, id=None, code=None, params={}):
+        await self.load_markets()
+        currency = None
+        request = {
+            'order_id': id,
+            'type': 'deposit',
+        }
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        response = await self.privatePostWalletOperations(self.extend(request, params))
+        #
+        #     {
+        #         "items": [
+        #         {
+        #             "operation_id": 47412538520634344,
+        #             "created": 1573760013,
+        #             "updated": 1573760013,
+        #             "type": "deposit",
+        #             "currency": "DOGE",
+        #             "status": "Paid",
+        #             "amount": "300",
+        #             "provider": "DOGE",
+        #             "commission": "0",
+        #             "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        #             "order_id": 69670170,
+        #             "extra": {
+        #                 "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        #                 "excode": "",
+        #                 "invoice": ""
+        #             },
+        #             "error": ""
+        #         },
+        #     ],
+        #         "count": 23
+        #     }
+        #
+        items = self.safe_value(response, 'items', [])
+        first = self.safe_value(items, 0, {})
+        return self.parse_transaction(first, currency)
+
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        currency = None
+        request = {
+            'type': 'deposit',
+        }
+        if limit is not None:
+            request['limit'] = limit  # default: 100, maximum: 100
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        response = await self.privatePostWalletOperations(self.extend(request, params))
+        #
+        #     {
+        #         "items": [
+        #         {
+        #             "operation_id": 47412538520634344,
+        #             "created": 1573760013,
+        #             "updated": 1573760013,
+        #             "type": "deposit",
+        #             "currency": "DOGE",
+        #             "status": "Paid",
+        #             "amount": "300",
+        #             "provider": "DOGE",
+        #             "commission": "0",
+        #             "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        #             "order_id": 69670170,
+        #             "extra": {
+        #                 "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        #                 "excode": "",
+        #                 "invoice": ""
+        #             },
+        #             "error": ""
+        #         },
+        #     ],
+        #         "count": 23
+        #     }
+        #
+        items = self.safe_value(response, 'items', [])
+        return self.parse_transactions(items, currency, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/'

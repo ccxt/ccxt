@@ -441,6 +441,11 @@ class bittrex extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = yield $this->publicGetCurrencies ($params);
         //
         //     array(
@@ -700,6 +705,11 @@ class bittrex extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = yield $this->publicGetPing ($params);
         //
         //     {

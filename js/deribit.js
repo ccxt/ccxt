@@ -379,6 +379,13 @@ module.exports = class deribit extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name deribit#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the deribit api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetGetTime (params);
         //
         //     {
@@ -401,6 +408,13 @@ module.exports = class deribit extends Exchange {
     }
 
     async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name deribit#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {dict} params extra parameters specific to the deribit api endpoint
+         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
         const response = await this.publicGetStatus (params);
         //
         //     {
@@ -2105,14 +2119,6 @@ module.exports = class deribit extends Exchange {
         return this.parsePosition (result);
     }
 
-    parsePositions (positions) {
-        const result = [];
-        for (let i = 0; i < positions.length; i++) {
-            result.push (this.parsePosition (positions[i]));
-        }
-        return result;
-    }
-
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let code = undefined;
@@ -2166,7 +2172,7 @@ module.exports = class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result');
-        return this.parsePositions (result);
+        return this.parsePositions (result, symbols);
     }
 
     async fetchHistoricalVolatility (code, params = {}) {

@@ -1248,6 +1248,11 @@ class binance(Exchange):
         return self.milliseconds() - self.options['timeDifference']
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         defaultType = self.safe_string_2(self.options, 'fetchTime', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
@@ -1260,6 +1265,11 @@ class binance(Exchange):
         return self.safe_integer(response, 'serverTime')
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         fetchCurrenciesEnabled = self.safe_value(self.options, 'fetchCurrencies')
         if not fetchCurrenciesEnabled:
             return None
@@ -2084,6 +2094,11 @@ class binance(Exchange):
         }, market, False)
 
     async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = await self.sapiGetSystemStatus(params)
         #
         #     {
@@ -2124,6 +2139,12 @@ class binance(Exchange):
         return self.parse_ticker(response, market)
 
     async def fetch_bids_asks(self, symbols=None, params={}):
+        """
+        fetches the bid and ask price and volume for multiple markets
+        :param [str]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchBidsAsks', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
@@ -2268,18 +2289,6 @@ class binance(Exchange):
         #     ]
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
-
-    async def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'mark',
-        }
-        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
-
-    async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'index',
-        }
-        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def parse_trade(self, trade, market=None):
         if 'isDustTrade' in trade:

@@ -34,21 +34,27 @@ class bitmex(Exchange):
                 'CORS': None,
                 'spot': False,
                 'margin': False,
-                'swap': None,  # has but not fully implemented
-                'future': None,  # has but not fully implemented
-                'option': None,  # has but not fully implemented
+                'swap': True,
+                'future': True,
+                'option': False,
+                'addMargin': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchFundingHistory': False,
+                'fetchFundingRate': False,
                 'fetchFundingRateHistory': True,
+                'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
                 'fetchLedger': True,
+                'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -57,7 +63,9 @@ class bitmex(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
                 'fetchPositions': True,
+                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -65,6 +73,11 @@ class bitmex(Exchange):
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'reduceMargin': None,
+                'setLeverage': True,
+                'setMargin': None,
+                'setMarginMode': True,
+                'setPositionMode': False,
                 'transfer': False,
                 'withdraw': True,
             },
@@ -1589,12 +1602,18 @@ class bitmex(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         orderType = self.capitalize(type)
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        if reduceOnly is not None:
+            if (market['type'] != 'swap') and (market['type'] != 'future'):
+                raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only')
         request = {
             'symbol': market['id'],
             'side': self.capitalize(side),
-            'orderQty': float(self.amount_to_precision(symbol, amount)),
+            'orderQty': float(self.amount_to_precision(symbol, amount)),  # lot size multiplied by the number of contracts
             'ordType': orderType,
         }
+        if reduceOnly:
+            request['execInst'] = 'ReduceOnly'
         if (orderType == 'Stop') or (orderType == 'StopLimit') or (orderType == 'MarketIfTouched') or (orderType == 'LimitIfTouched'):
             stopPrice = self.safe_number_2(params, 'stopPx', 'stopPrice')
             if stopPrice is None:
@@ -1703,6 +1722,7 @@ class bitmex(Exchange):
     async def fetch_positions(self, symbols=None, params={}):
         await self.load_markets()
         response = await self.privateGetPosition(params)
+        #
         #     [
         #         {
         #             "account": 0,
@@ -1799,8 +1819,7 @@ class bitmex(Exchange):
         #         }
         #     ]
         #
-        result = self.parse_positions(response)
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.parse_positions(response, symbols)
 
     def parse_position(self, position, market=None):
         #
@@ -1906,6 +1925,8 @@ class bitmex(Exchange):
         notional = None
         if market['quote'] == 'USDT':
             notional = Precise.string_mul(self.safe_string(position, 'foreignNotional'), '-1')
+        maintenanceMargin = self.safe_number(position, 'maintMargin')
+        unrealisedPnl = self.safe_number(position, 'unrealisedPnl')
         return {
             'info': position,
             'id': self.safe_string(position, 'account'),
@@ -1923,20 +1944,25 @@ class bitmex(Exchange):
             'collateral': None,
             'initialMargin': None,
             'initialMarginPercentage': self.safe_number(position, 'initMarginReq'),
-            'maintenanceMargin': None,
+            'maintenanceMargin': self.convert_value(maintenanceMargin, market),
             'maintenanceMarginPercentage': None,
-            'unrealizedPnl': None,
+            'unrealizedPnl': self.convert_value(unrealisedPnl, market),
             'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
             'marginMode': marginMode,
             'marginRatio': None,
             'percentage': self.safe_number(position, 'unrealisedPnlPcnt'),
         }
 
-    def parse_positions(self, positions):
-        result = []
-        for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i]))
-        return result
+    def convert_value(self, value, market=None):
+        if (value is None) or (market is None):
+            return value
+        resultValue = None
+        value = self.number_to_string(value)
+        if (market['quote'] == 'USD') or (market['quote'] == 'EUR'):
+            resultValue = Precise.string_mul(value, '0.00000001')
+        if market['quote'] == 'USDT':
+            resultValue = Precise.string_mul(value, '0.000001')
+        return float(resultValue)
 
     def is_fiat(self, currency):
         if currency == 'EUR':
@@ -2292,6 +2318,38 @@ class bitmex(Exchange):
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
         }
+
+    async def set_leverage(self, leverage, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        if (leverage < 0.01) or (leverage > 100):
+            raise BadRequest(self.id + ' leverage should be between 0.01 and 100')
+        await self.load_markets()
+        market = self.market(symbol)
+        if market['type'] != 'swap' and market['type'] != 'future':
+            raise BadSymbol(self.id + ' setLeverage() supports future and swap contracts only')
+        request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        }
+        return await self.privatePostPositionLeverage(self.extend(request, params))
+
+    async def set_margin_mode(self, marginMode, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        marginMode = marginMode.lower()
+        if marginMode != 'isolated' and marginMode != 'cross':
+            raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
+        await self.load_markets()
+        market = self.market(symbol)
+        if (market['type'] != 'swap') and (market['type'] != 'future'):
+            raise BadSymbol(self.id + ' setMarginMode() supports swap and future contracts only')
+        enabled = False if (marginMode == 'cross') else True
+        request = {
+            'symbol': market['id'],
+            'enabled': enabled,
+        }
+        return await self.privatePostPositionIsolate(self.extend(request, params))
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

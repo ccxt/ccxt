@@ -310,6 +310,11 @@ class bkex(Exchange):
         return result
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the bkex api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.publicGetCommonCurrencys(params)
         #
         # {
@@ -361,6 +366,11 @@ class bkex(Exchange):
         return result
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the bkex api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.publicGetCommonTimestamp(params)
         #
         # {
@@ -373,6 +383,11 @@ class bkex(Exchange):
         return self.safe_integer(response, 'data')
 
     async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the bkex api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = await self.publicGetCommonTimestamp(params)
         #
         #     {
