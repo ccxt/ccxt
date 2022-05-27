@@ -2777,12 +2777,13 @@ module.exports = class gateio extends Exchange {
         const contract = market['contract'];
         const stopPrice = this.safeNumber (params, 'stopPrice');
         let methodTail = 'Orders';
-        const reduceOnly = this.safeValue2 (params, 'reduce_only', 'reduceOnly');
-        const defaultTimeInForce = this.safeValue2 (params, 'tif', 'time_in_force', 'gtc');
-        let timeInForce = this.safeValue (params, 'timeInForce', defaultTimeInForce);
-        let postOnly = false;
-        [ type, postOnly, timeInForce, params ] = this.isPostOnly (type, timeInForce, undefined, params);
-        params = this.omit (params, [ 'stopPrice', 'reduce_only', 'reduceOnly', 'tif', 'time_in_force', 'timeInForce' ]);
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        const unifiedTimeInForce = this.safeStringUpper (params, 'timeInForce');
+        const postOnly = this.isPostOnly (type, unifiedTimeInForce, params);
+        // we only omit the unified params here
+        // this is because the other params will get extended into the request
+        params = this.omit (params, [ 'stopPrice', 'reduceOnly', 'timeInForce', 'postOnly' ]);
+        let timeInForce = undefined;
         if (postOnly) {
             timeInForce = 'poc';
         }
