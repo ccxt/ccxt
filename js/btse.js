@@ -26,6 +26,7 @@ module.exports = class btse extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
+                'fetchCancelOrders': false,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': true,
@@ -1183,6 +1184,60 @@ module.exports = class btse extends Exchange {
             'average': average,
             'trades': [],
         }, market);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a `symbol` argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'orderID': id,
+        };
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'spotPrivateGetUserOpenOrders',
+            'future': 'futurePrivateGetUserOpenOrders',
+            'swap': 'futurePrivateGetUserOpenOrders',
+        });
+        const response = await this[method] (this.extend (request, query));
+        // spot/future open orders
+        // [
+        //     {
+        //        "orderType":"76",
+        //        "price":"5.0",
+        //        "size":"10.0",
+        //        "side":"BUY",
+        //        "orderValue":"50.0",
+        //        "filledSize":"0.0",
+        //        "pegPriceMin":"0.0",
+        //        "pegPriceMax":"0.0",
+        //        "pegPriceDeviation":"0.0",
+        //        "cancelDuration":"0",
+        //        "timestamp":"1643630075180",
+        //        "orderID":"8da33067-150f-4525-a40b-991d249bd5a4",
+        //        "triggerOrder":false,
+        //        "triggerPrice":"0.0",
+        //        "triggerOriginalPrice":"0.0",
+        //        "triggerOrderType":"0",
+        //        "triggerTrailingStopDeviation":"0.0",
+        //        "triggerStopPrice":"0.0",
+        //        "symbol":"NEAR-USD",
+        //        "trailValue":"0.0",
+        //        "averageFillPrice":"0.0",
+        //        "fillSize":"0.0",
+        //        "clOrderID":"_utachng1643630074970",
+        //        "orderState":"STATUS_ACTIVE",
+        //        "triggered":false
+        //        "triggerUseLastPrice":false, // future only
+        //        "reduceOnly":false, // future only
+        //        "stealth":"1.0", // future only
+        //     }
+        //  ]
+        //
+        return this.parseOrder (this.safeValue (response, 0), market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
