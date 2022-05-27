@@ -950,23 +950,24 @@ module.exports = class bytex extends Exchange {
          * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
          * @param {dict} params  Extra parameters specific to the exchange API endpoint
          * @param {float} params.stopPrice The price at which a trigger order is triggered at
-         * @param {dict} params.meta Object with other options such as post_only
+         * @param {dict} params.postOnly true for postOnly orders
          * @returns [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const stopPrice = this.safeFloat2 (params, 'stopPrice', 'stop');
-        params = this.omit (params, [ 'stopPrice', 'stop' ]);
-        const meta = this.safeString (params, 'meta');
-        const metaPostOnly = this.safeValue (meta, 'post_only');
-        const [ exchangeType, postOnly, timeInForce, query ] = this.isPostOnly (type, undefined, metaPostOnly, params);
+        const stopPrice = this.safeFloat (params, 'stopPrice');
+        const postOnly = this.isPostOnly (type, params);
+        params = this.omit (params, [ 'stopPrice', 'postOnly', 'timeInForce' ]);
         const request = {
             'symbol': market['id'],
             'side': side,
             'size': amount,
-            'type': exchangeType,
+            'type': type,
         };
         if (type !== 'market') {
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for ' + type + ' orders');
+            }
             request['price'] = price;
         }
         if (stopPrice !== undefined) {
@@ -977,10 +978,7 @@ module.exports = class bytex extends Exchange {
                 'post_only': true,
             };
         }
-        if (timeInForce !== undefined) {
-            params = this.omit (params, 'timeInForce'); // here to prevent unused variable error // TODO: check if time_in_force can go in meta
-        }
-        const response = await this.privatePostOrder (this.deepExtend (request, query));
+        const response = await this.privatePostOrder (this.deepExtend (request, params));
         //
         //     {
         //         "fee": 0,
