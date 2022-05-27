@@ -1669,23 +1669,6 @@ module.exports = class Exchange {
         return this.filterBySinceLimit (sorted, since, limit, 0, tail)
     }
 
-    editLimitBuyOrder (id, symbol, ...args) {
-        return this.editLimitOrder (id, symbol, 'buy', ...args)
-    }
-
-    editLimitSellOrder (id, symbol, ...args) {
-        return this.editLimitOrder (id, symbol, 'sell', ...args)
-    }
-
-    editLimitOrder (id, symbol, ...args) {
-        return this.editOrder (id, symbol, 'limit', ...args)
-    }
-
-    async editOrder (id, symbol, ...args) {
-        await this.cancelOrder (id, symbol);
-        return this.createOrder (symbol, ...args)
-    }
-
     costToPrecision (symbol, cost) {
         const market = this.market (symbol)
         return decimalToPrecision (cost, TRUNCATE, market.precision.price, this.precisionMode, this.paddingMode)
@@ -2284,17 +2267,5 @@ module.exports = class Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchMarketLeverageTiers() is not supported yet');
         }
-    }
-
-    parseOpenInterests (response, market = undefined, since = undefined, limit = undefined) {
-        const interests = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const interest = this.parseOpenInterest (entry, market);
-            interests.push (interest);
-        }
-        const sorted = this.sortBy (interests, 'timestamp');
-        const symbol = this.safeString (market, 'symbol');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 }

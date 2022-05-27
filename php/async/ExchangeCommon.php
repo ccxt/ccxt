@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadSymbol;
 use \ccxt\NullResponse;
@@ -43,6 +44,50 @@ trait ExchangeCommon {
             }
         }
         return array( $tag, $params );
+    }
+
+    public function edit_limit_buy_order($id, $symbol, $amount, $price, $params = array ()) {
+        return yield $this->edit_limit_order($id, $symbol, 'buy', $amount, $price, $params);
+    }
+
+    public function edit_limit_sell_order($id, $symbol, $amount, $price, $params = array ()) {
+        return yield $this->edit_limit_order($id, $symbol, 'sell', $amount, $price, $params);
+    }
+
+    public function edit_limit_order($id, $symbol, $amount, $price, $params = array ()) {
+        return $this->edit_order($id, $symbol, 'limit', $amount, $price, $params);
+    }
+
+    public function edit_order($id, $symbol, $type, $side, $amount, $price, $params = array ()) {
+        if (!$this->enableRateLimit) {
+            throw new ExchangeError($this->id . ' editOrder() requires enableRateLimit = true');
+        }
+        yield $this->cancelOrder ($id, $symbol);
+        return yield $this->create_order($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    public function create_limit_order($symbol, $side, $amount, $price, $params = array ()) {
+        return yield $this->create_order($symbol, 'limit', $side, $amount, $price, $params);
+    }
+
+    public function create_market_order($symbol, $side, $amount, $price, $params = array ()) {
+        return yield $this->create_order($symbol, 'market', $side, $amount, $price, $params);
+    }
+
+    public function create_limit_buy_order($symbol, $amount, $price, $params = array ()) {
+        return yield $this->create_order($symbol, 'limit', 'buy', $amount, $price, $params);
+    }
+
+    public function create_limit_sell_order($symbol, $amount, $price, $params = array ()) {
+        return yield $this->create_order($symbol, 'limit', 'sell', $amount, $price, $params);
+    }
+
+    public function create_market_buy_order($symbol, $amount, $params = array ()) {
+        return yield $this->create_order($symbol, 'market', 'buy', $amount, null, $params);
+    }
+
+    public function create_market_sell_order($symbol, $amount, $params = array ()) {
+        return yield $this->create_order($symbol, 'market', 'sell', $amount, null, $params);
     }
 
     public function create_post_only_order($symbol, $type, $side, $amount, $price, $params = array ()) {
@@ -203,5 +248,48 @@ trait ExchangeCommon {
         $after = $this->milliseconds ();
         $this->options['timeDifference'] = $after - $serverTime;
         return $this->options['timeDifference'];
+    }
+
+    public function check_order_arguments($market, $type, $side, $amount, $price, $params) {
+        if ($price === null) {
+            if ($type === 'limit') {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for a limit order');
+            }
+        }
+        if ($amount <= 0) {
+            throw new ArgumentsRequired($this->id . ' createOrder() $amount should be above 0');
+        }
+    }
+
+    public function parse_borrow_interests($response, $market = null) {
+        $interest = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $row = $response[$i];
+            $interest[] = $this->parseBorrowInterest ($row, $market);
+        }
+        return $interest;
+    }
+
+    public function parse_funding_rate_histories($response, $market = null, $since = null, $limit = null) {
+        $rates = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $rates[] = $this->parseFundingRateHistory ($entry, $market);
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        $symbol = ($market === null) ? null : $market['symbol'];
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function parse_open_interests($response, $market = null, $since = null, $limit = null) {
+        $interests = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $interest = $this->parseOpenInterest ($entry, $market);
+            $interests[] = $interest;
+        }
+        $sorted = $this->sort_by($interests, 'timestamp');
+        $symbol = $this->safe_string($market, 'symbol');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 }

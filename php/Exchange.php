@@ -269,6 +269,16 @@ class Exchange {
         'extractParams' => 'extract_params',
         'handleMarketTypeAndParams' => 'handle_market_type_and_params',
         'handleWithdrawTagAndParams' => 'handle_withdraw_tag_and_params',
+        'editLimitBuyOrder' => 'edit_limit_buy_order',
+        'editLimitSellOrder' => 'edit_limit_sell_order',
+        'editLimitOrder' => 'edit_limit_order',
+        'editOrder' => 'edit_order',
+        'createLimitOrder' => 'create_limit_order',
+        'createMarketOrder' => 'create_market_order',
+        'createLimitBuyOrder' => 'create_limit_buy_order',
+        'createLimitSellOrder' => 'create_limit_sell_order',
+        'createMarketBuyOrder' => 'create_market_buy_order',
+        'createMarketSellOrder' => 'create_market_sell_order',
         'createPostOnlyOrder' => 'create_post_only_order',
         'createReduceOnlyOrder' => 'create_reduce_only_order',
         'createStopOrder' => 'create_stop_order',
@@ -283,6 +293,7 @@ class Exchange {
         'checkOrderArguments' => 'check_order_arguments',
         'parseBorrowInterests' => 'parse_borrow_interests',
         'parseFundingRateHistories' => 'parse_funding_rate_histories',
+        'parseOpenInterests' => 'parse_open_interests',
         'fetchImplementation' => 'fetch_implementation',
         'executeRestRequest' => 'execute_rest_request',
         'encodeURIComponent' => 'encode_uri_component',
@@ -407,10 +418,6 @@ class Exchange {
         'fetchBorrowRate' => 'fetch_borrow_rate',
         'parseLeverageTiers' => 'parse_leverage_tiers',
         'fetchMarketLeverageTiers' => 'fetch_market_leverage_tiers',
-        'parseOpenInterests' => 'parse_open_interests',
-        'checkOrderArguments' => 'check_order_arguments',
-        'parseBorrowInterests' => 'parse_borrow_interests',
-        'parseFundingRateHistories' => 'parse_funding_rate_histories',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -2791,25 +2798,8 @@ class Exchange {
         return $result;
     }
 
-    public function edit_limit_buy_order($id, $symbol, $amount, $price, $params = array()) {
-        return $this->edit_limit_order($id, $symbol, 'buy', $amount, $price, $params);
-    }
-
-    public function edit_limit_sell_order($id, $symbol, $amount, $price, $params = array()) {
-        return $this->edit_limit_order($id, $symbol, 'sell', $amount, $price, $params);
-    }
-
-    public function edit_limit_order($id, $symbol, $side, $amount, $price, $params = array()) {
-        return $this->edit_order($id, $symbol, 'limit', $side, $amount, $price, $params);
-    }
-
     public function cancel_order($id, $symbol = null, $params = array()) {
         throw new NotSupported($this->id . ' cancel_order() is not supported yet');
-    }
-
-    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array()) {
-        $this->cancel_order($id, $symbol, $params);
-        return $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
 
     public function cancel_unified_order($order, $params = array()) {
@@ -2818,30 +2808,6 @@ class Exchange {
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array()) {
         throw new NotSupported($this->id . ' create_order() is not supported yet');
-    }
-
-    public function create_limit_order($symbol, $side, $amount, $price, $params = array()) {
-        return $this->create_order($symbol, 'limit', $side, $amount, $price, $params);
-    }
-
-    public function create_market_order($symbol, $side, $amount, $price = null, $params = array()) {
-        return $this->create_order($symbol, 'market', $side, $amount, $price, $params);
-    }
-
-    public function create_limit_buy_order($symbol, $amount, $price, $params = array()) {
-        return $this->create_order($symbol, 'limit', 'buy', $amount, $price, $params);
-    }
-
-    public function create_limit_sell_order($symbol, $amount, $price, $params = array()) {
-        return $this->create_order($symbol, 'limit', 'sell', $amount, $price, $params);
-    }
-
-    public function create_market_buy_order($symbol, $amount, $params = array()) {
-        return $this->create_order($symbol, 'market', 'buy', $amount, null, $params);
-    }
-
-    public function create_market_sell_order($symbol, $amount, $params = array()) {
-        return $this->create_order($symbol, 'market', 'sell', $amount, null, $params);
     }
 
     public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array()) {
@@ -3910,18 +3876,6 @@ class Exchange {
 
     public function sleep($milliseconds) {
         sleep($milliseconds / 1000);
-    }
-
-    public function parse_open_interests($response, $market = null, $since = null, $limit = null) {
-        $interests = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $entry = &$response[$i];
-            $interest = $this->parseOpenInterest($entry, $market);
-            array_push($interests, $interest);
-        }
-        $sorted = $this->sortBy ($interests, 'timestamp');
-        $symbol = $this->safeString ($market, 'symbol');
-        return $this->filterBySymbolSinceLimit ($sorted, $symbol, $since, $limit);
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
