@@ -1237,22 +1237,18 @@ module.exports = class btcex extends Exchange {
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const unifiedTimeInForce = this.safeStringUpper (params, 'timeInForce');
-        const exchangeTimeInForce = this.safeString (params, 'time_in_force');
-        let timeInForce = undefined;
-        if (exchangeTimeInForce === undefined) {
-            if (unifiedTimeInForce === 'GTC') {
-                timeInForce = 'good_till_cancelled';
-            } else if (unifiedTimeInForce === 'FOK') {
-                timeInForce = 'fill_or_kill';
-            } else if (unifiedTimeInForce === '') {
-
-            }
-        } else {
-            timeInForce = exchangeTimeInForce;
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
+        if (timeInForce === 'GTC') {
+            request['time_in_force'] = 'good_till_cancelled';
+        } else if (timeInForce === 'FOK') {
+            request['time_in_force'] = 'fill_or_kill';
+        } else if (timeInForce === 'IOC') {
+            request['time_in_force'] = 'immmediate_or_cancel';
         }
-        let postOnly = false;
-        [ type, postOnly, unif, params ] = this.isPostOnly (type, unifiedTimeInForce, undefined, params);
+        const postOnly = this.isPostOnly (type, params);
+        if (postOnly) {
+            request['post_only'] = true;
+        }
         const method = 'privatePost' + this.capitalize (side);
         const response = await this[method] (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
