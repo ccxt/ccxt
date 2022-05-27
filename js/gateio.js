@@ -665,6 +665,7 @@ module.exports = class gateio extends ccxt.gateio {
 
     handleBalanceMessage (client, message) {
         //
+        // spot order fill
         //   {
         //       time: 1653664351,
         //       channel: 'spot.balances',
@@ -682,15 +683,56 @@ module.exports = class gateio extends ccxt.gateio {
         //       ]
         //   }
         //
+        // account transfer
+        //
+        //    {
+        //        id: null,
+        //        time: 1653665088,
+        //        channel: 'futures.balances',
+        //        event: 'update',
+        //        error: null,
+        //        result: [
+        //          {
+        //            balance: 25.035008537,
+        //            change: 25,
+        //            text: '-',
+        //            time: 1653665088,
+        //            time_ms: 1653665088286,
+        //            type: 'dnw',
+        //            user: '10406147'
+        //          }
+        //        ]
+        //   }
+        //
+        // swap order fill
+        //   {
+        //       id: null,
+        //       time: 1653665311,
+        //       channel: 'futures.balances',
+        //       event: 'update',
+        //       error: null,
+        //       result: [
+        //         {
+        //           balance: 20.031873037,
+        //           change: -0.0031355,
+        //           text: 'LTC_USDT:165551103273',
+        //           time: 1653665311,
+        //           time_ms: 1653665311437,
+        //           type: 'fee',
+        //           user: '10406147'
+        //         }
+        //       ]
+        //   }
+        //
         const channel = this.safeString (message, 'channel');
         const result = this.safeValue (message, 'result', []);
         for (let i = 0; i < result.length; i++) {
             const rawBalance = result[i];
             const account = this.account ();
-            const currencyId = this.safeString (rawBalance, 'currency');
+            const currencyId = this.safeString (rawBalance, 'currency', 'USDT'); // when not present it is USDT
             const code = this.safeCurrencyCode (currencyId);
             account['free'] = this.safeString (rawBalance, 'available');
-            account['total'] = this.safeString (rawBalance, 'total');
+            account['total'] = this.safeString2 (rawBalance, 'total', 'balance');
             this.balance[code] = account;
         }
         this.balance = this.safeBalance (this.balance);
@@ -855,19 +897,43 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     handleBalanceSubscription (client, message, subscription) {
-        this.spawn (this.fetchBalanceSnapshot);
+        this.spawn (this.fetchBalanceSnapshot, client, message);
+    }
+
+    async fetchBalanceSnapshot (client, message) {
+        //
+        //  {
+        //     id: 1,
+        //     time: 1653665810,
+        //     channel: 'futures.balances',
+        //     event: 'subscribe',
+        //     auth: {
+        //     },
+        //     payload: [ '10406147' ]
+        //   }
+        //
+        await this.loadMarkets ();
+        const channel = this.safeString (message, 'channel', '');
+        const parts = channel.split ('.');
+        const exchangeType = this.safeString (parts, 0);
+        let type = exchangeType;
+        if (exchangeType === 'futures') {
+            type = 'future';
+        } else if (type === 'options') {
+            type = 'option';
+        }
+        const params = {
+            'type': type,
+        };
+        const snapshot = await this.fetchBalance (params);
+        this.balance = snapshot;
+        client.resolve (this.balance, channel);
     }
 
     handleSubscriptionStatus (client, message) {
-        const messageId = this.safeInteger (message, 'id');
-        if (messageId !== undefined) {
-            const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-            const subscription = this.safeValue (subscriptionsById, messageId, {});
-            const method = this.safeValue (subscription, 'method');
-            if (method !== undefined) {
-                method.call (this, client, message, subscription);
-            }
-            client.resolve (message, messageId);
+        const channel = this.safeString (message, 'channel', '');
+        if (channel.indexOf ('balance') >= 0) {
+            this.handleBalanceSubscription (client, message);
         }
     }
 
