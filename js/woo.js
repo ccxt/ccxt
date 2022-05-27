@@ -98,7 +98,6 @@ module.exports = class woo extends Exchange {
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
                 },
-                // TEST (stating) api ( https://support.woo.org/hc/en-001/articles/4406352945305--Institutional-Account-Welcome-Packet-V-2) doesn't work at this moment, even thou
                 'test': {
                     'pub': 'https://api-pub.staging.woo.org',
                     'public': 'https://api.staging.woo.org',
