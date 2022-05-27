@@ -2361,7 +2361,7 @@ module.exports = class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    isPostOnly (type, timeInForce = undefined, exchangeSpecificOption = undefined, params = {}) {
+    isPostOnly (type, timeInForce, params = {}) {
         /**
          * @ignore
          * @method
@@ -2372,25 +2372,23 @@ module.exports = class Exchange {
          * @returns {boolean} true if a post only order, false otherwise
          */
         let postOnly = this.safeValue2 (params, 'postOnly', 'post_only', false);
-        params = this.omit (params, [ 'post_only', 'postOnly' ]);
-        const timeInForceUpper = (timeInForce !== undefined) ? timeInForce.toUpperCase () : undefined;
         const typeLower = type.toLowerCase ();
-        const ioc = timeInForceUpper === 'IOC';
-        const fok = timeInForceUpper === 'FOK';
-        const timeInForcePostOnly = timeInForceUpper === 'PO';
+        // we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
+        const ioc = timeInForce === 'IOC';
+        const fok = timeInForce === 'FOK';
+        const timeInForcePostOnly = timeInForce === 'PO';
         const isMarket = typeLower === 'market';
-        postOnly = postOnly || (typeLower === 'postonly') || timeInForcePostOnly || exchangeSpecificOption;
+        postOnly = postOnly || timeInForcePostOnly || (typeLower === 'postonly') || (typeLower === 'post_only');
         if (postOnly) {
             if (ioc || fok) {
                 throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
             } else if (isMarket) {
                 throw new InvalidOrder (this.id + ' postOnly orders cannot have type ' + type);
             } else {
-                timeInForce = timeInForcePostOnly ? undefined : timeInForce;
-                return [ 'limit', true, timeInForce, params ];
+                return true;
             }
         } else {
-            return [ type, false, timeInForce, params ];
+            return false;
         }
     }
 
