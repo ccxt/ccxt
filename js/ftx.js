@@ -751,7 +751,7 @@ module.exports = class ftx extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': this.safeString (ticker, 'quoteVolume24h'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

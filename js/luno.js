@@ -486,7 +486,7 @@ module.exports = class luno extends Exchange {
             'baseVolume': this.safeString (ticker, 'rolling_24_hour_volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

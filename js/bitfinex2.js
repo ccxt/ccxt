@@ -944,7 +944,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'baseVolume': this.safeString (ticker, length - 3),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
