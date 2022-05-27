@@ -641,7 +641,7 @@ module.exports = class crex24 extends Exchange {
             'baseVolume': this.safeString (ticker, 'baseVolume'),
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

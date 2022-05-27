@@ -320,7 +320,7 @@ module.exports = class bibox extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': this.safeString (ticker, 'amount'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

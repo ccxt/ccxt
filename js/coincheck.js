@@ -307,7 +307,7 @@ module.exports = class coincheck extends Exchange {
             'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

@@ -688,7 +688,7 @@ module.exports = class stex extends Exchange {
             'baseVolume': this.safeString (ticker, 'volumeQuote'),
             'quoteVolume': this.safeString (ticker, 'volume'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

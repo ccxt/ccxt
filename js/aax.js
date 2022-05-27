@@ -706,7 +706,7 @@ module.exports = class aax extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async setMargin (symbol, amount, params = {}) {

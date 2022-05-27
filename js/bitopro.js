@@ -390,7 +390,7 @@ module.exports = class bitopro extends Exchange {
             'baseVolume': this.safeString (ticker, 'volume24hr'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

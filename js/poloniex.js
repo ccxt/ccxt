@@ -558,7 +558,7 @@ module.exports = class poloniex extends Exchange {
             'baseVolume': this.safeString (ticker, 'quoteVolume'),
             'quoteVolume': this.safeString (ticker, 'baseVolume'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

@@ -1261,7 +1261,7 @@ module.exports = class okcoin extends Exchange {
             'baseVolume': this.safeString (ticker, 'base_volume_24h'),
             'quoteVolume': this.safeString (ticker, 'quote_volume_24h'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

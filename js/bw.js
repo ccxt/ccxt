@@ -396,7 +396,7 @@ module.exports = class bw extends Exchange {
             'baseVolume': this.safeString (ticker, 4),
             'quoteVolume': this.safeString (ticker, 9),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

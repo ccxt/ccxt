@@ -202,7 +202,7 @@ module.exports = class bl3p extends Exchange {
             'baseVolume': this.safeString (volume, '24h'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
