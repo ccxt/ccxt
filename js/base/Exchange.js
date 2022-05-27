@@ -2364,7 +2364,7 @@ module.exports = class Exchange {
          * @returns {boolean} true if a post only order, false otherwise
          */
         let postOnly = this.safeValue2 (params, 'postOnly', 'post_only', false);
-        params = this.omit (params, [ 'post_only', 'postOnly' ]);
+        params = this.omit (params, [ 'postOnly', 'post_only' ]);
         const timeInForceUpper = (timeInForce !== undefined) ? timeInForce.toUpperCase () : undefined;
         const typeLower = type.toLowerCase ();
         const ioc = timeInForceUpper === 'IOC';
@@ -2378,11 +2378,10 @@ module.exports = class Exchange {
             } else if (isMarket) {
                 throw new InvalidOrder (this.id + ' postOnly orders cannot have type ' + type);
             } else {
-                timeInForce = timeInForcePostOnly ? undefined : timeInForce;
-                return [ 'limit', true, timeInForce, params ];
+                return [ 'limit', true, timeInForceUpper, params ];
             }
         } else {
-            return [ type, false, timeInForce, params ];
+            return [ type, false, timeInForceUpper, params ];
         }
     }
 

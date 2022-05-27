@@ -2998,7 +2998,7 @@ class Exchange(object):
         :returns: {boolean} True if a post only order, False otherwise
         """
         post_only = self.safe_value_2(params, 'postOnly', 'post_only', False)
-        params = self.omit(params, ['post_only', 'postOnly'])
+        params = self.omit(params, ['postOnly', 'post_only' ])
         time_in_force_upper = time_in_force.upper() if (time_in_force is not None) else None
         type_lower = type.lower()
         ioc = time_in_force_upper == 'IOC'
@@ -3012,10 +3012,9 @@ class Exchange(object):
             elif is_market:
                 raise InvalidOrder(self.id + ' postOnly orders cannot have type ' + type)
             else:
-                time_in_force = None if time_in_force_post_only else time_in_force
-                return ['limit', True, time_in_force, params]
+                return ['limit', True, time_in_force_upper, params]
         else:
-            return [type, False, time_in_force, params]
+            return [type, False, time_in_force_upper, params]
 
     def create_post_only_order(self, symbol, type, side, amount, price, params={}):
         if not self.has['createPostOnlyOrder']:

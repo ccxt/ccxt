@@ -3949,7 +3949,7 @@ class Exchange {
          * @return {boolean} true if a post only order, false otherwise
          */
         $post_only = $this->safe_value_2($params, 'postOnly', 'post_only', false);
-        $params = $this->omit($params, array( 'post_only', 'postOnly' ));
+        $params = $this->omit($params, array( 'postOnly', 'post_only' ));
         $time_in_force_upper = ($time_in_force !== null) ? strtoupper($time_in_force) : null;
         $type_lower = strtolower($type);
         $ioc = $time_in_force_upper === 'IOC';
@@ -3963,11 +3963,10 @@ class Exchange {
             } else if ($is_market) {
                 throw new InvalidOrder($this->id . ' postOnly orders cannot have $type ' . $type);
             } else {
-                $time_in_force = $time_in_force_post_only ? null : $time_in_force;
-                return array( 'limit', true, $time_in_force, $params );
+                return array( 'limit', true, $time_in_force_upper, $params );
             }
         } else {
-            return array( $type, false, $time_in_force, $params );
+            return array( $type, false, $time_in_force_upper, $params );
         }
     }
 
@@ -4018,7 +4017,7 @@ class Exchange {
         $query = $this->extend($params, $array);
         return $this->create_order($symbol, 'market', $side, $amount, null, $query);
     }
-    
+
     public function check_order_arguments ($market, $type, $side, $amount, $price, $params) {
         if ($price === null) {
             if ($type === 'limit') {
