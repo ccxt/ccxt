@@ -471,7 +471,7 @@ class buda(Exchange):
             'baseVolume': self.safe_string(baseVolume, 0),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         """

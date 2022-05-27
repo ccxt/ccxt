@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.83.85'
+__version__ = '1.84.19'
 
 # -----------------------------------------------------------------------------
 
@@ -2006,99 +2006,52 @@ class Exchange(object):
         offset = timestamp % ms
         return timestamp - offset + (ms if direction == ROUND_UP else 0)
 
-    def safe_ticker(self, ticker, market=None, legacy=True):
-        if legacy:
-            symbol = self.safe_value(ticker, 'symbol')
-            if symbol is None:
-                symbol = self.safe_symbol(None, market)
-            timestamp = self.safe_integer(ticker, 'timestamp')
-            baseVolume = self.safe_value(ticker, 'baseVolume')
-            quoteVolume = self.safe_value(ticker, 'quoteVolume')
-            vwap = self.safe_value(ticker, 'vwap')
-            if vwap is None:
-                vwap = self.vwap(baseVolume, quoteVolume)
-            open = self.safe_value(ticker, 'open')
-            close = self.safe_value(ticker, 'close')
-            last = self.safe_value(ticker, 'last')
-            change = self.safe_value(ticker, 'change')
-            percentage = self.safe_value(ticker, 'percentage')
-            average = self.safe_value(ticker, 'average')
-            if (last is not None) and (close is None):
-                close = last
-            elif (last is None) and (close is not None):
-                last = close
-            if (last is not None) and (open is not None):
-                if change is None:
-                    change = last - open
-                if average is None:
-                    average = self.sum(last, open) / 2
-            if (percentage is None) and (change is not None) and (open is not None) and (open > 0):
-                percentage = change / open * 100
-            if (change is None) and (percentage is not None) and (last is not None):
-                change = percentage / 100 * last
-            if (open is None) and (last is not None) and (change is not None):
-                open = last - change
-            if (vwap is not None) and (baseVolume is not None) and (quoteVolume is None):
-                quoteVolume = vwap / baseVolume
-            if (vwap is not None) and (quoteVolume is not None) and (baseVolume is None):
-                baseVolume = quoteVolume / vwap
-            ticker['symbol'] = symbol
-            ticker['timestamp'] = timestamp
-            ticker['datetime'] = self.iso8601(timestamp)
-            ticker['open'] = open
-            ticker['close'] = close
-            ticker['last'] = last
-            ticker['vwap'] = vwap
-            ticker['change'] = change
-            ticker['percentage'] = percentage
-            ticker['average'] = average
-            return ticker
-        else:
-            open = self.safe_value(ticker, 'open')
-            close = self.safe_value(ticker, 'close')
-            last = self.safe_value(ticker, 'last')
-            change = self.safe_value(ticker, 'change')
-            percentage = self.safe_value(ticker, 'percentage')
-            average = self.safe_value(ticker, 'average')
-            vwap = self.safe_value(ticker, 'vwap')
-            baseVolume = self.safe_value(ticker, 'baseVolume')
-            quoteVolume = self.safe_value(ticker, 'quoteVolume')
-            if vwap is None:
-                vwap = Precise.string_div(quoteVolume, baseVolume)
-            if (last is not None) and (close is None):
-                close = last
-            elif (last is None) and (close is not None):
-                last = close
-            if (last is not None) and (open is not None):
-                if change is None:
-                    change = Precise.string_sub(last, open)
-                if average is None:
-                    average = Precise.string_div(Precise.string_add(last, open), '2')
-            if (percentage is None) and (change is not None) and (open is not None) and (Precise.string_gt(open, '0')):
-                percentage = Precise.string_mul(Precise.string_div(change, open), '100')
-            if (change is None) and (percentage is not None) and (last is not None):
-                change = Precise.string_div(Precise.string_mul(percentage, last), '100')
-            if (open is None) and (last is not None) and (change is not None):
-                open = Precise.string_sub(last, change)
-            # timestamp and symbol operations don't belong in safeTicker
-            # they should be done in the derived classes
-            return self.extend(ticker, {
-                'bid': self.safe_number(ticker, 'bid'),
-                'bidVolume': self.safe_number(ticker, 'bidVolume'),
-                'ask': self.safe_number(ticker, 'ask'),
-                'askVolume': self.safe_number(ticker, 'askVolume'),
-                'high': self.safe_number(ticker, 'high'),
-                'low': self.safe_number(ticker, 'low'),
-                'open': self.parse_number(open),
-                'close': self.parse_number(close),
-                'last': self.parse_number(last),
-                'change': self.parse_number(change),
-                'percentage': self.parse_number(percentage),
-                'average': self.parse_number(average),
-                'vwap': self.parse_number(vwap),
-                'baseVolume': self.parse_number(baseVolume),
-                'quoteVolume': self.parse_number(quoteVolume),
-            })
+    def safe_ticker(self, ticker, market=None):
+        open = self.safe_value(ticker, 'open')
+        close = self.safe_value(ticker, 'close')
+        last = self.safe_value(ticker, 'last')
+        change = self.safe_value(ticker, 'change')
+        percentage = self.safe_value(ticker, 'percentage')
+        average = self.safe_value(ticker, 'average')
+        vwap = self.safe_value(ticker, 'vwap')
+        baseVolume = self.safe_value(ticker, 'baseVolume')
+        quoteVolume = self.safe_value(ticker, 'quoteVolume')
+        if vwap is None:
+            vwap = Precise.string_div(quoteVolume, baseVolume)
+        if (last is not None) and (close is None):
+            close = last
+        elif (last is None) and (close is not None):
+            last = close
+        if (last is not None) and (open is not None):
+            if change is None:
+                change = Precise.string_sub(last, open)
+            if average is None:
+                average = Precise.string_div(Precise.string_add(last, open), '2')
+        if (percentage is None) and (change is not None) and (open is not None) and (Precise.string_gt(open, '0')):
+            percentage = Precise.string_mul(Precise.string_div(change, open), '100')
+        if (change is None) and (percentage is not None) and (open is not None):
+            change = Precise.string_div(Precise.string_mul(percentage, open), '100')
+        if (open is None) and (last is not None) and (change is not None):
+            open = Precise.string_sub(last, change)
+        # timestamp and symbol operations don't belong in safeTicker
+        # they should be done in the derived classes
+        return self.extend(ticker, {
+            'bid': self.safe_number(ticker, 'bid'),
+            'bidVolume': self.safe_number(ticker, 'bidVolume'),
+            'ask': self.safe_number(ticker, 'ask'),
+            'askVolume': self.safe_number(ticker, 'askVolume'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'open': self.parse_number(open),
+            'close': self.parse_number(close),
+            'last': self.parse_number(last),
+            'change': self.parse_number(change),
+            'percentage': self.parse_number(percentage),
+            'average': self.parse_number(average),
+            'vwap': self.parse_number(vwap),
+            'baseVolume': self.parse_number(baseVolume),
+            'quoteVolume': self.parse_number(quoteVolume),
+        })
 
     def parse_accounts(self, accounts, params={}):
         array = self.to_array(accounts)
@@ -2874,10 +2827,12 @@ class Exchange(object):
             entry['fee'] = fee
         # timeInForceHandling
         timeInForce = self.safe_string(order, 'timeInForce')
-        if self.safe_value(order, 'postOnly', False):
-            timeInForce = 'PO'
-        elif self.safe_string(order, 'type') == 'market':
-            timeInForce = 'IOC'
+        if timeInForce is None:
+            if self.safe_string(order, 'type') == 'market':
+                timeInForce = 'IOC'
+            # allow postOnly override
+            if self.safe_value(order, 'postOnly', False):
+                timeInForce = 'PO'
         return self.extend(order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
             'price': self.parse_number(price),
@@ -2996,33 +2951,31 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + 'fetch_market_leverage_tiers() is not supported yet')
 
-    def is_post_only(self, type, time_in_force=None, exchange_specific_option=None, params={}):
+    def is_post_only(self, type, params={}):
         """
+         * @ignore
         :param string type: Order type
-        :param string time_in_force:
-        :param boolean exchange_specific_option: True if the exchange specific post only setting is set
         :param dict params: Exchange specific params
-        :returns: {boolean} True if a post only order, False otherwise
+        :returns boolean: True if a post only order, False otherwise
         """
-        post_only = self.safe_value_2(params, 'postOnly', 'post_only', False)
-        params = self.omit(params, ['post_only', 'postOnly'])
-        time_in_force_upper = time_in_force.upper() if (time_in_force is not None) else None
-        type_lower = type.lower()
-        ioc = time_in_force_upper == 'IOC'
-        fok = time_in_force_upper == 'FOK'
-        time_in_force_post_only = time_in_force_upper == 'PO'
-        is_market = type_lower == 'market'
-        post_only = post_only or (type_lower == 'postonly') or time_in_force_post_only or exchange_specific_option
-        if post_only:
+        timeInForce = self.safe_string_upper(params, 'timeInForce')
+        postOnly = self.safe_value_2(params, 'postOnly', 'post_only', False)
+        # we assume timeInForce is uppercase from safeStringUpper(params, 'timeInForce')
+        ioc = timeInForce == 'IOC'
+        fok = timeInForce == 'FOK'
+        timeInForcePostOnly = timeInForce == 'PO'
+        typeLower = type.lower()
+        isMarket = typeLower == 'market'
+        postOnly = postOnly or timeInForcePostOnly
+        if postOnly:
             if ioc or fok:
-                raise InvalidOrder(self.id + ' postOnly orders cannot have timeInForce equal to ' + time_in_force)
-            elif is_market:
+                raise InvalidOrder(self.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce)
+            elif isMarket:
                 raise InvalidOrder(self.id + ' postOnly orders cannot have type ' + type)
             else:
-                time_in_force = None if time_in_force_post_only else time_in_force
-                return ['limit', True, time_in_force, params]
+                return True
         else:
-            return [type, False, time_in_force, params]
+            return False
 
     def create_post_only_order(self, symbol, type, side, amount, price, params={}):
         if not self.has['createPostOnlyOrder']:
@@ -3063,6 +3016,12 @@ class Exchange(object):
         if amount <= 0:
             raise ArgumentsRequired(self.id + ' create_order() amount should be above 0')
 
+    def parse_positions(self, positions, symbols=None, params={}):
+        symbols = self.market_symbols(symbols)
+        array = self.to_array(positions)
+        array = [self.merge(self.parse_position(position), params) for position in array]
+        return self.filter_by_array(array, 'symbol', symbols, False)
+
     def parse_borrow_interests(self, response, market=None):
         interest = []
         for i in range(len(response)):
@@ -3102,3 +3061,57 @@ class Exchange(object):
                 return rate
         else:
             raise NotSupported(self.id + ' fetch_funding_rate() is not supported yet')
+
+    def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical mark price candlestick data containing the open, high, low, and close price of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [[int|float]] A: list of candles ordered as timestamp, open, high, low, close, None
+        """
+        if self.has['fetchMarkOHLCV']:
+            request = {
+                'price': 'mark',
+            }
+            return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchMarkOHLCV() is not supported yet')
+
+    def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical index price candlestick data containing the open, high, low, and close price of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [[int|float]] A: list of candles ordered as timestamp, open, high, low, close, None
+        """
+        if self.has['fetchIndexOHLCV']:
+            request = {
+                'price': 'index',
+            }
+            return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchIndexOHLCV() is not supported yet')
+
+    def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [[int|float]] A: list of candles ordered as timestamp, open, high, low, close, None
+        """
+        if self.has['fetchPremiumIndexOHLCV']:
+            request = {
+                'price': 'premiumIndex',
+            }
+            return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchPremiumIndexOHLCV() is not supported yet')

@@ -820,7 +820,7 @@ class bitfinex2 extends bitfinex {
             if (!$isDerivativeCode) {
                 $currencyId = $currencyId . 'F0';
             }
-        } else if ($type !== 'margin') {
+        } elseif ($type !== 'margin') {
             $currencyId = $this->safe_string($underlying, 1, $transferId);
         } else {
             $currencyId = $transferId;
@@ -940,7 +940,7 @@ class bitfinex2 extends bitfinex {
             'baseVolume' => $this->safe_string($ticker, $length - 3),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -1404,14 +1404,14 @@ class bitfinex2 extends bitfinex {
             $request['price'] = $this->price_to_precision($symbol, $stopPrice);
             if ($stopMarket) {
                 $request['type'] = 'EXCHANGE STOP';
-            } else if ($stopLimit) {
+            } elseif ($stopLimit) {
                 $request['type'] = 'EXCHANGE STOP LIMIT';
                 $request['price_aux_limit'] = $this->price_to_precision($symbol, $price);
             }
         }
         if ($ioc) {
             $request['type'] = 'EXCHANGE IOC';
-        } else if ($fok) {
+        } elseif ($fok) {
             $request['type'] = 'EXCHANGE FOK';
         }
         // flag values may be summed to combine $flags
@@ -1841,7 +1841,7 @@ class bitfinex2 extends bitfinex {
             }
             $tag = $this->safe_string($data, 3);
             $type = 'withdrawal';
-        } else if ($transactionLength === 22) {
+        } elseif ($transactionLength === 22) {
             $id = $this->safe_string($transaction, 0);
             $currencyId = $this->safe_string($transaction, 1);
             $code = $this->safe_currency_code($currencyId, $currency);
@@ -1982,7 +1982,7 @@ class bitfinex2 extends bitfinex {
             if (is_array($fiat) && array_key_exists($market['quote'], $fiat)) {
                 $fee['maker'] = $makerFeeFiat;
                 $fee['taker'] = $takerFeeFiat;
-            } else if ($market['contract']) {
+            } elseif ($market['contract']) {
                 $fee['maker'] = $makerFeeDeriv;
                 $fee['taker'] = $takerFeeDeriv;
             } else { // TODO check if stable coin
@@ -2191,7 +2191,7 @@ class bitfinex2 extends bitfinex {
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
                 throw new ExchangeError($this->id . ' ' . $body);
             }
-        } else if ($response === '') {
+        } elseif ($response === '') {
             throw new ExchangeError($this->id . ' returned empty response');
         }
         if ($statusCode === 500) {
@@ -2210,17 +2210,17 @@ class bitfinex2 extends bitfinex {
     public function parse_ledger_entry_type($type) {
         if ($type === null) {
             return null;
-        } else if (mb_strpos($type, 'fee') !== false || mb_strpos($type, 'charged') !== false) {
+        } elseif (mb_strpos($type, 'fee') !== false || mb_strpos($type, 'charged') !== false) {
             return 'fee';
-        } else if (mb_strpos($type, 'exchange') !== false || mb_strpos($type, 'position') !== false) {
+        } elseif (mb_strpos($type, 'exchange') !== false || mb_strpos($type, 'position') !== false) {
             return 'trade';
-        } else if (mb_strpos($type, 'rebate') !== false) {
+        } elseif (mb_strpos($type, 'rebate') !== false) {
             return 'rebate';
-        } else if (mb_strpos($type, 'deposit') !== false || mb_strpos($type, 'withdrawal') !== false) {
+        } elseif (mb_strpos($type, 'deposit') !== false || mb_strpos($type, 'withdrawal') !== false) {
             return 'transaction';
-        } else if (mb_strpos($type, 'transfer') !== false) {
+        } elseif (mb_strpos($type, 'transfer') !== false) {
             return 'transfer';
-        } else if (mb_strpos($type, 'payment') !== false) {
+        } elseif (mb_strpos($type, 'payment') !== false) {
             return 'payout';
         } else {
             return $type;

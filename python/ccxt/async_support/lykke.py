@@ -401,7 +401,7 @@ class lykke(Exchange):
             'baseVolume': self.safe_string(ticker, 'volumeBase'),
             'quoteVolume': self.safe_string(ticker, 'volumeQuote'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         """

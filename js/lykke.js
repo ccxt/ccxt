@@ -404,7 +404,7 @@ module.exports = class lykke extends Exchange {
             'baseVolume': this.safeString (ticker, 'volumeBase'),
             'quoteVolume': this.safeString (ticker, 'volumeQuote'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

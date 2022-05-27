@@ -569,7 +569,7 @@ class hollaex extends Exchange {
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -1469,9 +1469,9 @@ class hollaex extends Exchange {
         $rejected = $this->safe_value($transaction, 'rejected');
         if ($status) {
             $status = 'ok';
-        } else if ($dismissed) {
+        } elseif ($dismissed) {
             $status = 'canceled';
-        } else if ($rejected) {
+        } elseif ($rejected) {
             $status = 'failed';
         } else {
             $status = 'pending';

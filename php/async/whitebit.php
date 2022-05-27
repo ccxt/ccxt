@@ -556,7 +556,7 @@ class whitebit extends Exchange {
             'baseVolume' => $this->safe_string_2($ticker, 'base_volume', 'volume'),
             'quoteVolume' => $this->safe_string_2($ticker, 'quote_volume', 'deal'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -848,7 +848,7 @@ class whitebit extends Exchange {
             if ($type === 'limit' || $type === 'stopLimit') {
                 // it's a stop-limit-order
                 $method = 'v4PrivateOPostOrderStopLimit';
-            } else if ($type === 'market' || $type === 'stopMarket') {
+            } elseif ($type === 'market' || $type === 'stopMarket') {
                 // it's a stop-$market-order
                 $method = 'v4PrivatePostOrderStopMarket';
             }
@@ -879,7 +879,7 @@ class whitebit extends Exchange {
                         if ($cost === null) {
                             $cost = $amount * $price;
                         }
-                    } else if ($cost === null) {
+                    } elseif ($cost === null) {
                         throw new InvalidOrder($this->id . " createOrder() requires the $price argument for $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total $cost value in the 'amount' argument or in the 'cost' extra parameter (the exchange-specific behaviour)");
                     }
                 } else {
@@ -1239,7 +1239,7 @@ class whitebit extends Exchange {
         $type = null;
         if ($fromAccountId === 'main' && $toAccountId === 'trade') {
             $type = 'deposit';
-        } else if ($fromAccountId === 'trade' && $toAccountId === 'main') {
+        } elseif ($fromAccountId === 'trade' && $toAccountId === 'main') {
             $type = 'withdraw';
         }
         if ($type === null) {

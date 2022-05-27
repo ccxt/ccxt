@@ -28,6 +28,9 @@ module.exports = class lbank2 extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -388,7 +391,7 @@ module.exports = class lbank2 extends Exchange {
             'baseVolume': this.safeString (tickerData, 'vol'),
             'quoteVolume': this.safeString (tickerData, 'turnover'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

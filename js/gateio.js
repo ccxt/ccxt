@@ -1936,7 +1936,7 @@ module.exports = class gateio extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -2201,13 +2201,6 @@ module.exports = class gateio extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'mark',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
-    }
-
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -2253,13 +2246,6 @@ module.exports = class gateio extends Exchange {
         }
         const sorted = this.sortBy (rates, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
-    }
-
-    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'index',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -2791,12 +2777,12 @@ module.exports = class gateio extends Exchange {
         const contract = market['contract'];
         const stopPrice = this.safeNumber (params, 'stopPrice');
         let methodTail = 'Orders';
-        const reduceOnly = this.safeValue2 (params, 'reduce_only', 'reduceOnly');
-        const defaultTimeInForce = this.safeValue2 (params, 'tif', 'time_in_force', 'gtc');
-        let timeInForce = this.safeValue (params, 'timeInForce', defaultTimeInForce);
-        let postOnly = false;
-        [ type, postOnly, timeInForce, params ] = this.isPostOnly (type, timeInForce, undefined, params);
-        params = this.omit (params, [ 'stopPrice', 'reduce_only', 'reduceOnly', 'tif', 'time_in_force', 'timeInForce' ]);
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        const postOnly = this.isPostOnly (type, params);
+        // we only omit the unified params here
+        // this is because the other params will get extended into the request
+        params = this.omit (params, [ 'stopPrice', 'reduceOnly', 'timeInForce', 'postOnly' ]);
+        let timeInForce = undefined;
         if (postOnly) {
             timeInForce = 'poc';
         }
@@ -3886,14 +3872,6 @@ module.exports = class gateio extends Exchange {
         };
     }
 
-    parsePositions (positions) {
-        const result = [];
-        for (let i = 0; i < positions.length; i++) {
-            result.push (this.parsePosition (positions[i]));
-        }
-        return result;
-    }
-
     async fetchPositions (symbols = undefined, params = {}) {
         /**
          * @method
@@ -3942,8 +3920,7 @@ module.exports = class gateio extends Exchange {
         //         }
         //     ]
         //
-        const result = this.parsePositions (response);
-        return this.filterByArray (result, 'symbol', symbols, false);
+        return this.parsePositions (response, symbols);
     }
 
     async fetchLeverageTiers (symbols = undefined, params = {}) {

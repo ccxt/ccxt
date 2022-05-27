@@ -97,6 +97,7 @@ class Transpiler {
             [ /\.parseJson\s/g, '.parse_json'],
             [ /\.parseAccountPosition\s/g, '.parse_account_position' ],
             [ /\.parsePositionRisk\s/g, '.parse_position_risk' ],
+            [ /\.parsePositions\s/g, '.parse_positions' ],
             [ /\.parseIncome\s/g, '.parse_income' ],
             [ /\.parseIncomes\s/g, '.parse_incomes' ],
             [ /\.parseFundingRate\s/g, '.parse_funding_rate' ],
@@ -440,6 +441,7 @@ class Transpiler {
             [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'number\'/g, "!(is_float($1) || is_int($1))" ],
 
             [ /undefined/g, 'null' ],
+            [ /\} else if/g, '} elseif' ],
             [ /this\.extend\s/g, 'array_merge' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /this\.stringToBase64\s/g, 'base64_encode' ],

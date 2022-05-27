@@ -583,7 +583,7 @@ class bitpanda extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1804,7 +1804,7 @@ class bitpanda extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             $this->check_required_credentials();
             $headers = array(
                 'Accept' => 'application/json',

@@ -256,7 +256,7 @@ class bit2c(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """

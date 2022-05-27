@@ -65,11 +65,13 @@ class zb extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
+                'fetchIndexOHLCV' => true,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -959,7 +961,7 @@ class zb extends Exchange {
         $marginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', $defaultMargin);
         if ($marginMode === 'isolated') {
             $marginMethod = 'spotV1PrivateGetGetLeverAssetsInfo';
-        } else if ($marginMode === 'cross') {
+        } elseif ($marginMode === 'cross') {
             $marginMethod = 'spotV1PrivateGetGetCrossAssets';
         }
         $method = $this->get_supported_mapping($marketType, array(
@@ -1133,7 +1135,7 @@ class zb extends Exchange {
         // $permissions = $response['result']['base'];
         if ($swap) {
             return $this->parse_swap_balance($response);
-        } else if ($margin) {
+        } elseif ($margin) {
             return $this->parse_margin_balance($response, $marginMode);
         } else {
             return $this->parse_balance($response);
@@ -1171,7 +1173,7 @@ class zb extends Exchange {
         $memo = $this->safe_string($depositAddress, 'memo');
         if ($memo !== null) {
             $tag = $memo;
-        } else if (mb_strpos($address, '_') !== false) {
+        } elseif (mb_strpos($address, '_') !== false) {
             $parts = explode('_', $address);
             $address = $parts[0];  // WARNING => MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIES!!
             $tag = $parts[1];
@@ -1470,7 +1472,7 @@ class zb extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -1551,10 +1553,10 @@ class zb extends Exchange {
         if ($swap) {
             if ($price === 'mark') {
                 $method = 'contractV1PublicGetMarkKline';
-            } else if ($price === 'index') {
+            } elseif ($price === 'index') {
                 $method = 'contractV1PublicGetIndexKline';
             }
-        } else if ($spot) {
+        } elseif ($spot) {
             if ($since !== null) {
                 $request['since'] = $since;
             }
@@ -1616,20 +1618,6 @@ class zb extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'mark',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
-    }
-
-    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'index',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
-    }
-
     public function parse_trade($trade, $market = null) {
         //
         // Spot
@@ -1671,11 +1659,11 @@ class zb extends Exchange {
         } else {
             if ($side === '3') {
                 $side = 'sell'; // close long
-            } else if ($side === '4') {
+            } elseif ($side === '4') {
                 $side = 'buy'; // close short
-            } else if ($side === '1') {
+            } elseif ($side === '1') {
                 $side = 'buy'; // open long
-            } else if ($side === '2') {
+            } elseif ($side === '2') {
                 $side = 'sell'; // open short
             }
         }
@@ -1833,22 +1821,22 @@ class zb extends Exchange {
             $request['symbol'] = $market['id'];
             if ($side === 'sell' && $reduceOnly) {
                 $request['side'] = 3; // close long
-            } else if ($side === 'buy' && $reduceOnly) {
+            } elseif ($side === 'buy' && $reduceOnly) {
                 $request['side'] = 4; // close short
-            } else if ($side === 'buy') {
+            } elseif ($side === 'buy') {
                 $request['side'] = 1; // open long
-            } else if ($side === 'sell') {
+            } elseif ($side === 'sell') {
                 $request['side'] = 2; // open short
-            } else if ($side === 5) {
+            } elseif ($side === 5) {
                 $request['side'] = 5; // one way position buy
-            } else if ($side === 6) {
+            } elseif ($side === 6) {
                 $request['side'] = 6; // one way position sell
-            } else if ($side === 0) {
+            } elseif ($side === 0) {
                 $request['side'] = 0; // one way position close only
             }
             if ($type === 'trigger' || $orderType === 1) {
                 $request['orderType'] = 1;
-            } else if ($type === 'stop loss' || $type === 'take profit' || $orderType === 2 || $priceType || $bizType) {
+            } elseif ($type === 'stop loss' || $type === 'take profit' || $orderType === 2 || $priceType || $bizType) {
                 $request['orderType'] = 2;
                 $request['priceType'] = $priceType;
                 $request['bizType'] = $bizType;
@@ -1865,29 +1853,29 @@ class zb extends Exchange {
                 if ($timeInForce !== null) {
                     if ($timeInForce === 'PO') {
                         $request['orderType'] = 1;
-                    } else if ($timeInForce === 'IOC') {
+                    } elseif ($timeInForce === 'IOC') {
                         $request['orderType'] = 2;
                     } else {
                         throw new InvalidOrder($this->id . ' createOrder() on ' . $market['type'] . ' markets does not allow ' . $timeInForce . ' orders');
                     }
                 }
-            } else if ($swap) {
+            } elseif ($swap) {
                 if ($side === 'sell' && $reduceOnly) {
                     $request['side'] = 3; // close long
-                } else if ($side === 'buy' && $reduceOnly) {
+                } elseif ($side === 'buy' && $reduceOnly) {
                     $request['side'] = 4; // close short
-                } else if ($side === 'buy') {
+                } elseif ($side === 'buy') {
                     $request['side'] = 1; // open long
-                } else if ($side === 'sell') {
+                } elseif ($side === 'sell') {
                     $request['side'] = 2; // open short
                 }
                 if ($type === 'limit') {
                     $request['action'] = 1;
-                } else if ($timeInForce === 'IOC') {
+                } elseif ($timeInForce === 'IOC') {
                     $request['action'] = 3;
-                } else if ($timeInForce === 'PO') {
+                } elseif ($timeInForce === 'PO') {
                     $request['action'] = 4;
-                } else if ($timeInForce === 'FOK') {
+                } elseif ($timeInForce === 'FOK') {
                     $request['action'] = 5;
                 } else {
                     $request['action'] = $type;
@@ -2053,22 +2041,22 @@ class zb extends Exchange {
             $bizType = $this->safe_integer($params, 'bizType');
             if ($side === 'sell' && $reduceOnly) {
                 $request['side'] = 3; // close long
-            } else if ($side === 'buy' && $reduceOnly) {
+            } elseif ($side === 'buy' && $reduceOnly) {
                 $request['side'] = 4; // close short
-            } else if ($side === 'buy') {
+            } elseif ($side === 'buy') {
                 $request['side'] = 1; // open long
-            } else if ($side === 'sell') {
+            } elseif ($side === 'sell') {
                 $request['side'] = 2; // open short
-            } else if ($side === 5) {
+            } elseif ($side === 5) {
                 $request['side'] = 5; // one way position buy
-            } else if ($side === 6) {
+            } elseif ($side === 6) {
                 $request['side'] = 6; // one way position sell
-            } else if ($side === 0) {
+            } elseif ($side === 0) {
                 $request['side'] = 0; // one way position close only
             }
             if ($orderType === 1) {
                 $request['orderType'] = 1;
-            } else if ($orderType === 2 || $bizType) {
+            } elseif ($orderType === 2 || $bizType) {
                 $request['orderType'] = 2;
                 $request['bizType'] = $bizType;
             }
@@ -2233,22 +2221,22 @@ class zb extends Exchange {
             $bizType = $this->safe_integer($params, 'bizType');
             if ($side === 'sell' && $reduceOnly) {
                 $request['side'] = 3; // close long
-            } else if ($side === 'buy' && $reduceOnly) {
+            } elseif ($side === 'buy' && $reduceOnly) {
                 $request['side'] = 4; // close short
-            } else if ($side === 'buy') {
+            } elseif ($side === 'buy') {
                 $request['side'] = 1; // open long
-            } else if ($side === 'sell') {
+            } elseif ($side === 'sell') {
                 $request['side'] = 2; // open short
-            } else if ($side === 5) {
+            } elseif ($side === 5) {
                 $request['side'] = 5; // one way position buy
-            } else if ($side === 6) {
+            } elseif ($side === 6) {
                 $request['side'] = 6; // one way position sell
-            } else if ($side === 0) {
+            } elseif ($side === 0) {
                 $request['side'] = 0; // one way position close only
             }
             if ($orderType === 1) {
                 $request['orderType'] = 1;
-            } else if ($orderType === 2 || $bizType) {
+            } elseif ($orderType === 2 || $bizType) {
                 $request['orderType'] = 2;
                 $request['bizType'] = $bizType;
             }
@@ -2405,22 +2393,22 @@ class zb extends Exchange {
             $bizType = $this->safe_integer($params, 'bizType');
             if ($side === 'sell' && $reduceOnly) {
                 $request['side'] = 3; // close long
-            } else if ($side === 'buy' && $reduceOnly) {
+            } elseif ($side === 'buy' && $reduceOnly) {
                 $request['side'] = 4; // close short
-            } else if ($side === 'buy') {
+            } elseif ($side === 'buy') {
                 $request['side'] = 1; // open long
-            } else if ($side === 'sell') {
+            } elseif ($side === 'sell') {
                 $request['side'] = 2; // open short
-            } else if ($side === 5) {
+            } elseif ($side === 5) {
                 $request['side'] = 5; // one way position buy
-            } else if ($side === 6) {
+            } elseif ($side === 6) {
                 $request['side'] = 6; // one way position sell
-            } else if ($side === 0) {
+            } elseif ($side === 0) {
                 $request['side'] = 0; // one way position close only
             }
             if ($orderType === 1) {
                 $request['orderType'] = 1;
-            } else if ($orderType === 2 || $bizType) {
+            } elseif ($orderType === 2 || $bizType) {
                 $request['orderType'] = 2;
                 $request['bizType'] = $bizType;
             }
@@ -2555,22 +2543,22 @@ class zb extends Exchange {
             $bizType = $this->safe_integer($params, 'bizType');
             if ($side === 'sell' && $reduceOnly) {
                 $request['side'] = 3; // close long
-            } else if ($side === 'buy' && $reduceOnly) {
+            } elseif ($side === 'buy' && $reduceOnly) {
                 $request['side'] = 4; // close short
-            } else if ($side === 'buy') {
+            } elseif ($side === 'buy') {
                 $request['side'] = 1; // open long
-            } else if ($side === 'sell') {
+            } elseif ($side === 'sell') {
                 $request['side'] = 2; // open short
-            } else if ($side === 5) {
+            } elseif ($side === 5) {
                 $request['side'] = 5; // one way position buy
-            } else if ($side === 6) {
+            } elseif ($side === 6) {
                 $request['side'] = 6; // one way position sell
-            } else if ($side === 0) {
+            } elseif ($side === 0) {
                 $request['side'] = 0; // one way position close only
             }
             if ($orderType === 1) {
                 $request['orderType'] = 1;
-            } else if ($orderType === 2 || $bizType) {
+            } elseif ($orderType === 2 || $bizType) {
                 $request['orderType'] = 2;
                 $request['bizType'] = $bizType;
             }
@@ -2693,22 +2681,22 @@ class zb extends Exchange {
             $bizType = $this->safe_integer($params, 'bizType');
             if ($side === 'sell' && $reduceOnly) {
                 $request['side'] = 3; // close long
-            } else if ($side === 'buy' && $reduceOnly) {
+            } elseif ($side === 'buy' && $reduceOnly) {
                 $request['side'] = 4; // close short
-            } else if ($side === 'buy') {
+            } elseif ($side === 'buy') {
                 $request['side'] = 1; // open long
-            } else if ($side === 'sell') {
+            } elseif ($side === 'sell') {
                 $request['side'] = 2; // open short
-            } else if ($side === 5) {
+            } elseif ($side === 5) {
                 $request['side'] = 5; // one way position buy
-            } else if ($side === 6) {
+            } elseif ($side === 6) {
                 $request['side'] = 6; // one way position sell
-            } else if ($side === 0) {
+            } elseif ($side === 0) {
                 $request['side'] = 0; // one way position close only
             }
             if ($orderType === 1) {
                 $request['orderType'] = 1;
-            } else if ($orderType === 2 || $bizType) {
+            } elseif ($orderType === 2 || $bizType) {
                 $request['orderType'] = 2;
                 $request['bizType'] = $bizType;
             }
@@ -3180,7 +3168,7 @@ class zb extends Exchange {
         $params = $this->omit($params, array( 'endTime', 'till' ));
         if ($till !== null) {
             $request['endTime'] = $till;
-        } else if ($endTime !== null) {
+        } elseif ($endTime !== null) {
             $request['endTime'] = $endTime;
         }
         if ($limit !== null) {
@@ -3519,14 +3507,10 @@ class zb extends Exchange {
 
     public function fetch_positions($symbols = null, $params = array ()) {
         yield $this->load_markets();
-        $market = null;
-        if ($symbols !== null) {
-            $market = $this->market($symbols);
-        }
         $request = array(
             'futuresAccountType' => 1, // 1 => USDT-M Perpetual Futures
-            // 'symbol' => $market['id'],
-            // 'marketId' => $market['id'],
+            // 'symbol' => market['id'],
+            // 'marketId' => market['id'],
             // 'side' => $params['side'],
         );
         $response = yield $this->contractV2PrivateGetPositionsGetPositions (array_merge($request, $params));
@@ -3580,7 +3564,7 @@ class zb extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_positions($data, $market);
+        return $this->parse_positions($data, $symbols);
     }
 
     public function parse_position($position, $market = null) {
@@ -3627,7 +3611,8 @@ class zb extends Exchange {
         //         "userId" => "6896693805014120448"
         //     }
         //
-        $market = $this->safe_market($this->safe_string($position, 'marketName'), $market);
+        $marketId = $this->safe_string($position, 'marketName');
+        $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $contracts = $this->safe_string($position, 'amount');
         $entryPrice = $this->safe_number($position, 'avgPrice');
@@ -3668,14 +3653,6 @@ class zb extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         );
-    }
-
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
     }
 
     public function parse_ledger_entry_type($type) {
@@ -3864,7 +3841,7 @@ class zb extends Exchange {
                     $marginMethod = 'spotV1PrivateGetTransferOutLever';
                 }
                 $request['marketName'] = $this->safe_string($params, 'marketName');
-            } else if ($marginMode === 'cross') {
+            } elseif ($marginMode === 'cross') {
                 if ($fromAccount === 'spot' || $toAccount === 'cross') {
                     $marginMethod = 'spotV1PrivateGetTransferInCross';
                 } else {
@@ -4103,7 +4080,7 @@ class zb extends Exchange {
             if ($params) {
                 $url .= '?' . $this->urlencode($params);
             }
-        } else if ($section === 'contract') {
+        } elseif ($section === 'contract') {
             $timestamp = $this->milliseconds();
             $iso8601 = $this->iso8601($timestamp);
             $signedString = $iso8601 . $method . '/Server/api/' . $version . '/' . $path;

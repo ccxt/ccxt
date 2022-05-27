@@ -434,7 +434,7 @@ class mexc3 extends Exchange {
             //     array()
             //
             $status = $response ? $this->json($response) : 'ok';
-        } else if ($marketType === 'swap') {
+        } elseif ($marketType === 'swap') {
             $response = $this->contractPublicGetPing ($query);
             //
             //     array("success":true,"code":"0","data":"1648124374985")
@@ -463,7 +463,7 @@ class mexc3 extends Exchange {
             //     array("serverTime" => "1647519277579")
             //
             return $this->safe_integer($response, 'serverTime');
-        } else if ($marketType === 'swap') {
+        } elseif ($marketType === 'swap') {
             $response = $this->contractPublicGetPing ($query);
             //
             //     array("success":true,"code":"0","data":"1648124374985")
@@ -871,7 +871,7 @@ class mexc3 extends Exchange {
             //
             $orderbook = $this->parse_order_book($response, $symbol);
             $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
-        } else if ($market['swap']) {
+        } elseif ($market['swap']) {
             $response = $this->contractPublicGetDepthSymbol (array_merge($request, $params));
             //
             //     {
@@ -954,7 +954,7 @@ class mexc3 extends Exchange {
             //         ),
             //     )
             //
-        } else if ($market['swap']) {
+        } elseif ($market['swap']) {
             $response = $this->contractPublicGetDealsSymbol (array_merge($request, $params));
             //
             //     {
@@ -1190,7 +1190,7 @@ class mexc3 extends Exchange {
             //     )
             //
             $candles = $response;
-        } else if ($market['swap']) {
+        } elseif ($market['swap']) {
             if ($since !== null) {
                 $request['start'] = intval($since / 1000);
             }
@@ -1221,14 +1221,6 @@ class mexc3 extends Exchange {
             $candles = $this->convert_trading_view_to_ohlcv($data, 'time', 'open', 'high', 'low', 'close', 'vol');
         }
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
-    }
-
-    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge(array( 'price' => 'index' ), $params));
-    }
-
-    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge(array( 'price' => 'mark' ), $params));
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -1290,7 +1282,7 @@ class mexc3 extends Exchange {
             //         }
             //     )
             //
-        } else if ($marketType === 'swap') {
+        } elseif ($marketType === 'swap') {
             $response = $this->contractPublicGetTicker (array_merge($request, $query));
             //
             //     {
@@ -1366,7 +1358,7 @@ class mexc3 extends Exchange {
             //         "count" => null
             //     }
             //
-        } else if ($marketType === 'swap') {
+        } elseif ($marketType === 'swap') {
             $response = $this->contractPublicGetTicker (array_merge($request, $query));
             //
             //     {
@@ -1513,7 +1505,7 @@ class mexc3 extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_bids_asks($symbols = null, $params = array ()) {
@@ -1546,7 +1538,7 @@ class mexc3 extends Exchange {
             //       ),
             //     )
             //
-        } else if ($marketType === 'swap') {
+        } elseif ($marketType === 'swap') {
             throw new NotSupported($this->id . ' fetchBidsAsks() is not available for ' . $marketType . ' markets');
         }
         // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
@@ -1561,7 +1553,7 @@ class mexc3 extends Exchange {
         $market = $this->market($symbol);
         if ($market['spot']) {
             return $this->create_spot_order($market, $type, $side, $amount, $price, $params);
-        } else if ($market['swap']) {
+        } elseif ($market['swap']) {
             return $this->create_swap_order($market, $type, $side, $amount, $price, $params);
         }
     }
@@ -1578,7 +1570,7 @@ class mexc3 extends Exchange {
             $quoteOrderQty = $this->safe_number($params, 'quoteOrderQty');
             if ($quoteOrderQty !== null) {
                 $amount = $quoteOrderQty;
-            } else if ($this->options['createMarketBuyOrderRequiresPrice']) {
+            } elseif ($this->options['createMarketBuyOrderRequiresPrice']) {
                 if ($price === null) {
                     throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
                 } else {
@@ -1628,7 +1620,7 @@ class mexc3 extends Exchange {
         if ($marginType !== null) {
             if ($marginType === 'cross') {
                 $openType = 2;
-            } else if ($marginType === 'isolated') {
+            } elseif ($marginType === 'isolated') {
                 $openType = 1;
             } else {
                 throw new ArgumentsRequired($this->id . ' createSwapOrder() margin parameter should be either "cross" or "isolated"');
@@ -1642,9 +1634,9 @@ class mexc3 extends Exchange {
         $postOnly = $this->safe_value($params, 'postOnly', false);
         if ($postOnly) {
             $type = 2;
-        } else if ($type === 'limit') {
+        } elseif ($type === 'limit') {
             $type = 1;
-        } else if ($type === 'market') {
+        } elseif ($type === 'market') {
             $type = 6;
         }
         // TODO => $side not unified
@@ -1755,7 +1747,7 @@ class mexc3 extends Exchange {
             //         "origQuoteOrderQty" => "6"
             //     }
             //
-        } else if ($market['swap']) {
+        } elseif ($market['swap']) {
             $request['order_id'] = $id;
             $response = $this->contractPrivateGetOrderGetOrderId (array_merge($request, $params));
             //
@@ -2347,6 +2339,8 @@ class mexc3 extends Exchange {
             'NEW' => 'open',
             'FILLED' => 'closed',
             'CANCELED' => 'canceled',
+            'PARTIALLY_FILLED' => 'open',
+            'PARTIALLY_CANCELED' => 'canceled',
             // contracts v1
             // '1' => 'uninformed', // TODO => wt?
             '2' => 'open',
@@ -2397,7 +2391,7 @@ class mexc3 extends Exchange {
             //         )
             //     }
             //
-        } else if ($type === 'swap') {
+        } elseif ($type === 'swap') {
             $response = $this->contractPrivateGetAccountAssets ($params);
             //
             //     {
@@ -2486,7 +2480,7 @@ class mexc3 extends Exchange {
                 $account['used'] = $this->safe_string($entry, 'locked');
                 $result[$code] = $account;
             }
-        } else if ($marketType === 'swap') {
+        } elseif ($marketType === 'swap') {
             $response = $this->contractPrivateGetAccountAssets ($query);
             //
             //     {
@@ -3372,7 +3366,7 @@ class mexc3 extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_positions($data);
+        return $this->parse_positions($data, $symbols);
     }
 
     public function parse_position($position, $market = null) {
@@ -3437,14 +3431,6 @@ class mexc3 extends Exchange {
         );
     }
 
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
-    }
-
     public function fetch_transfer($id, $since = null, $limit = null, $params = array ()) {
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTransfer', null, $params);
         $this->load_markets();
@@ -3468,7 +3454,7 @@ class mexc3 extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             return $this->parse_transfer($data);
-        } else if ($marketType === 'swap') {
+        } elseif ($marketType === 'swap') {
             throw new BadRequest($this->id . ' fetchTransfer() is not supported for ' . $marketType);
         }
     }
@@ -3515,7 +3501,7 @@ class mexc3 extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $resultList = $this->safe_value($data, 'result_list', array());
-        } else if ($marketType === 'swap') {
+        } elseif ($marketType === 'swap') {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
@@ -3720,7 +3706,7 @@ class mexc3 extends Exchange {
             if ($method === 'POST') {
                 $headers['Content-Type'] = 'application/json';
             }
-        } else if ($section === 'contract' || $section === 'spot2') {
+        } elseif ($section === 'contract' || $section === 'spot2') {
             $url = $this->urls['api'][$section][$access] . '/' . $this->implode_params($path, $params);
             $params = $this->omit($params, $this->extract_params($path));
             if ($access === 'public') {

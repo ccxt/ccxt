@@ -544,7 +544,7 @@ class bittrex(Exchange):
             'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         """

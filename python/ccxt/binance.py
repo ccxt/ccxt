@@ -238,7 +238,7 @@ class binance(Exchange):
                         'margin/isolatedMarginTier': 0.1,
                         'margin/rateLimit/order': 2,
                         'loan/income': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
-                        'fiat/orders': 0.1,
+                        'fiat/orders': 20,
                         'fiat/payments': 0.1,
                         'futures/transfer': 1,
                         'futures/loan/borrow/history': 1,
@@ -2091,7 +2091,7 @@ class binance(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_status(self, params={}):
         """
@@ -2289,18 +2289,6 @@ class binance(Exchange):
         #     ]
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
-
-    def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'mark',
-        }
-        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
-
-    def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'index',
-        }
-        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def parse_trade(self, trade, market=None):
         if 'isDustTrade' in trade:

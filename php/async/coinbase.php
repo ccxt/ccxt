@@ -882,7 +882,7 @@ class coinbase extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_balance($params = array ()) {
@@ -1333,7 +1333,7 @@ class coinbase extends Exchange {
                     'Authorization' => $authorization,
                     'Content-Type' => 'application/json',
                 );
-            } else if ($this->token) {
+            } elseif ($this->token) {
                 $headers = array(
                     'Authorization' => 'Bearer ' . $this->token,
                     'Content-Type' => 'application/json',

@@ -509,7 +509,7 @@ module.exports = class wazirx extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     parseBalance (response) {

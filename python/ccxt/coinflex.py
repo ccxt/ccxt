@@ -901,7 +901,7 @@ class coinflex(Exchange):
             'baseVolume': self.safe_string(ticker, 'currencyVolume24h'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1523,13 +1523,7 @@ class coinflex(Exchange):
         # response sample inside `getAccountData` method
         self.targetAccount = self.safe_value(data, 0)
         positions = self.safe_value(self.targetAccount, 'positions', [])
-        return self.parse_positions(positions)
-
-    def parse_positions(self, positions):
-        result = []
-        for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i]))
-        return result
+        return self.parse_positions(positions, symbols)
 
     def parse_position(self, position, market=None):
         #

@@ -21,10 +21,10 @@ module.exports = class coinbasepro extends Exchange {
             'has': {
                 'CORS': true,
                 'spot': true,
-                'margin': undefined, // has but not fully inplemented
-                'swap': undefined, // has but not fully inplemented
-                'future': undefined, // has but not fully inplemented
-                'option': undefined,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createDepositAddress': true,
@@ -577,7 +577,7 @@ module.exports = class coinbasepro extends Exchange {
             'baseVolume': volume,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

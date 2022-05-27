@@ -345,7 +345,7 @@ class bytetrade(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': self.safe_string(market, 'active'),
+                'active': self.safe_value(market, 'active'),
                 'contract': False,
                 'linear': None,
                 'inverse': None,
@@ -477,7 +477,7 @@ class bytetrade(Exchange):
             'baseVolume': self.safe_string(ticker, 'baseVolume'),
             'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         """

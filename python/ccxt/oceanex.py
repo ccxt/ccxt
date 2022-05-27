@@ -342,7 +342,7 @@ class oceanex(Exchange):
             'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         """

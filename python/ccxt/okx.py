@@ -92,6 +92,7 @@ class okx(Exchange):
                 'fetchMySells': None,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': True,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -368,7 +369,7 @@ class okx(Exchange):
                     '50023': ExchangeError,  # Funding fee frozen. Operation restricted
                     '50024': BadRequest,  # Parameter {0} and {1} can not exist at the same time
                     '50025': ExchangeError,  # Parameter {0} count exceeds the limit {1}
-                    '50026': ExchangeError,  # System error
+                    '50026': ExchangeNotAvailable,  # System error, please try again later.
                     '50027': PermissionDenied,  # The account is restricted from trading
                     '50028': ExchangeError,  # Unable to take the order, please reach out to support center for details
                     # API Class
@@ -614,6 +615,7 @@ class okx(Exchange):
                     '63999': ExchangeError,  # Internal system error
                 },
                 'broad': {
+                    'server error': ExchangeNotAvailable,  # {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249"}
                 },
             },
             'httpExceptions': {
@@ -634,6 +636,16 @@ class okx(Exchange):
                 'layerTwo': {
                     'Lightning': True,
                     'Liquid': True,
+                },
+                'fetchOpenInterestHistory': {
+                    'timeframes': {
+                        '5m': '5m',
+                        '1h': '1H',
+                        '1d': '1D',
+                        '5M': '5m',
+                        '1H': '1H',
+                        '1D': '1D',
+                    },
                 },
                 'fetchOHLCV': {
                     # 'type': 'Candles',  # Candles or HistoryCandles, IndexCandles, MarkPriceCandles
@@ -1273,7 +1285,7 @@ class okx(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """
@@ -1608,18 +1620,6 @@ class okx(Exchange):
             })
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
-
-    def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'index',
-        }
-        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
-
-    def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'mark',
-        }
-        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def parse_balance_by_type(self, type, response):
         if type == 'funding':
@@ -4618,6 +4618,70 @@ class okx(Exchange):
             'timestamp': timestamp,  # Interest accrued time
             'datetime': self.iso8601(timestamp),
             'info': info,
+        }
+
+    def fetch_open_interest_history(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+        """
+        Retrieves the open interest history of a currency
+        :param str symbol: Unified CCXT currency code instead of a unified symbol
+        :param str timeframe: "5m", "1h", or "1d"
+        :param int since: The time in ms of the earliest record to retrieve as a unix timestamp
+        :param int limit: Not used by okx, but parsed internally by CCXT
+        :param dict params: Exchange specific parameters
+        :param int params['till']: The time in ms of the latest record to retrieve as a unix timestamp
+        :returns: An array of open interest structures
+        """
+        options = self.safe_value(self.options, 'fetchOpenInterestHistory', {})
+        timeframes = self.safe_value(options, 'timeframes', {})
+        timeframe = self.safe_string(timeframes, timeframe, timeframe)
+        if timeframe != '5m' and timeframe != '1H' and timeframe != '1D':
+            raise BadRequest(self.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe')
+        self.load_markets()
+        currency = self.currency(symbol)
+        request = {
+            'ccy': currency['id'],
+            'period': timeframe,
+        }
+        if since is not None:
+            request['begin'] = since
+        till = self.safe_integer_2(params, 'till', 'end')
+        if till is not None:
+            request['end'] = till
+        response = self.publicGetRubikStatContractsOpenInterestVolume(self.extend(request, params))
+        #
+        #    {
+        #        code: '0',
+        #        data: [
+        #            [
+        #                '1648221300000',  # timestamp
+        #                '2183354317.945',  # open interest(USD)
+        #                '74285877.617',  # volume(USD)
+        #            ],
+        #            ...
+        #        ],
+        #        msg: ''
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_open_interests(data, None, since, limit)
+
+    def parse_open_interest(self, interest, market=None):
+        #
+        #    [
+        #        '1648221300000',  # timestamp
+        #        '2183354317.945',  # open interest(USD)
+        #        '74285877.617',  # volume(USD)
+        #    ]
+        #
+        timestamp = self.safe_number(interest, 0)
+        openInterest = self.safe_number(interest, 1)
+        return {
+            'symbol': None,
+            'baseVolume': None,
+            'quoteVolume': openInterest,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': interest,
         }
 
     def set_sandbox_mode(self, enable):

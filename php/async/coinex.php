@@ -32,10 +32,15 @@ class coinex extends Exchange {
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'createDepositAddress' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
+                'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
+                'fetchDepositAddressByNetwork' => false,
+                'fetchDepositAddresses' => false,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
@@ -62,7 +67,11 @@ class coinex extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
+                'fetchTransactionFee:' => false,
+                'fetchTransactoinFees' => false,
+                'fetchTransfer' => false,
                 'fetchTransfers' => true,
+                'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
                 'setLeverage' => true,
@@ -256,11 +265,103 @@ class coinex extends Exchange {
                 'defaultType' => 'spot', // spot, swap, margin
                 'defaultSubType' => 'linear', // linear, inverse
                 'defaultMarginMode' => 'isolated', // isolated, cross
+                'fetchDepositAddress' => array(
+                    'fillResponseFromRequest' => true,
+                ),
             ),
             'commonCurrencies' => array(
                 'ACM' => 'Actinium',
             ),
         ));
+    }
+
+    public function fetch_currencies($params = array ()) {
+        $response = yield $this->publicGetCommonAssetConfig ($params);
+        //
+        //     {
+        //         $code => 0,
+        //         $data => {
+        //           'CET-CSC' => array(
+        //               asset => 'CET',
+        //               chain => 'CSC',
+        //               withdrawal_precision => 8,
+        //               can_deposit => true,
+        //               can_withdraw => true,
+        //               deposit_least_amount => '0.026',
+        //               withdraw_least_amount => '20',
+        //               withdraw_tx_fee => '0.026'
+        //           ),
+        //           ...
+        //           message => 'Success',
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $coins = is_array($data) ? array_keys($data) : array();
+        $result = array();
+        for ($i = 0; $i < count($coins); $i++) {
+            $coin = $coins[$i];
+            $currency = $data[$coin];
+            $currencyId = $this->safe_string($currency, 'asset');
+            $networkId = $this->safe_string($currency, 'chain');
+            $code = $this->safe_currency_code($currencyId);
+            if ($this->safe_value($result, $code) === null) {
+                $result[$code] = array(
+                    'id' => $currencyId,
+                    'numericId' => null,
+                    'code' => $code,
+                    'info' => $currency,
+                    'name' => null,
+                    'active' => true,
+                    'deposit' => $this->safe_value($currency, 'can_deposit'),
+                    'withdraw' => $this->safe_value($currency, 'can_withdraw'),
+                    'fee' => $this->safe_number($currency, 'withdraw_tx_fee'),
+                    'precision' => $this->safe_number($currency, 'withdrawal_precision'),
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => $this->safe_number($currency, 'deposit_least_amount'),
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->safe_number($currency, 'withdraw_least_amount'),
+                            'max' => null,
+                        ),
+                    ),
+                );
+            }
+            $networks = $this->safe_value($result[$code], 'networks', array());
+            $network = array(
+                'info' => $currency,
+                'id' => $networkId,
+                'network' => $networkId,
+                'name' => null,
+                'limits' => array(
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($currency, 'deposit_least_amount'),
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => $this->safe_number($currency, 'withdraw_least_amount'),
+                        'max' => null,
+                    ),
+                ),
+                'active' => true,
+                'deposit' => $this->safe_value($currency, 'can_deposit'),
+                'withdraw' => $this->safe_value($currency, 'can_withdraw'),
+                'fee' => $this->safe_number($currency, 'withdraw_tx_fee'),
+                'precision' => $this->safe_number($currency, 'withdrawal_precision'),
+            );
+            $networks[$networkId] = $network;
+            $result[$code]['networks'] = $networks;
+        }
+        return $result;
     }
 
     public function fetch_markets($params = array ()) {
@@ -273,7 +374,7 @@ class coinex extends Exchange {
         list($type, $query) = $this->handle_market_type_and_params('fetchMarkets', null, $params);
         if ($type === 'spot' || $type === 'margin') {
             $result = yield $this->fetch_spot_markets($query);
-        } else if ($type === 'swap') {
+        } elseif ($type === 'swap') {
             $result = yield $this->fetch_contract_markets($query);
         } else {
             throw new ExchangeError($this->id . " does not support the '" . $type . "' market $type, set exchange.options['defaultType'] to 'spot', 'margin' or 'swap'");
@@ -427,7 +528,7 @@ class coinex extends Exchange {
                 'swap' => true,
                 'future' => false,
                 'option' => false,
-                'active' => $this->safe_string($entry, 'available'),
+                'active' => $this->safe_value($entry, 'available'),
                 'contract' => true,
                 'linear' => $linear,
                 'inverse' => $inverse,
@@ -532,7 +633,7 @@ class coinex extends Exchange {
             'baseVolume' => $this->safe_string_2($ticker, 'vol', 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -871,7 +972,7 @@ class coinex extends Exchange {
         $takerOrMaker = $this->safe_string($trade, 'role');
         if ($takerOrMaker === '1') {
             $takerOrMaker = 'maker';
-        } else if ($takerOrMaker === '2') {
+        } elseif ($takerOrMaker === '2') {
             $takerOrMaker = 'taker';
         }
         $side = null;
@@ -879,7 +980,7 @@ class coinex extends Exchange {
             $side = $this->safe_integer($trade, 'side');
             if ($side === 1) {
                 $side = 'sell';
-            } else if ($side === 2) {
+            } elseif ($side === 2) {
                 $side = 'buy';
             }
             if ($side === null) {
@@ -1099,7 +1200,7 @@ class coinex extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $marketId = $market['id'];
-        } else if ($marketId === null) {
+        } elseif ($marketId === null) {
             throw new ArgumentsRequired($this->id . ' fetchMarginBalance() fetching a margin account requires a $market parameter or a $symbol parameter');
         }
         $params = $this->omit($params, array( 'symbol', 'market' ));
@@ -1247,7 +1348,7 @@ class coinex extends Exchange {
         $params = $this->omit($params, 'type');
         if ($accountType === 'margin') {
             return yield $this->fetch_margin_balance($params);
-        } else if ($accountType === 'swap') {
+        } elseif ($accountType === 'swap') {
             return yield $this->fetch_swap_balance($params);
         } else {
             return yield $this->fetch_spot_balance($params);
@@ -1505,7 +1606,7 @@ class coinex extends Exchange {
         $side = $this->safe_integer($order, 'side');
         if ($side === 1) {
             $side = 'sell';
-        } else if ($side === 2) {
+        } elseif ($side === 2) {
             $side = 'buy';
         } else {
             $side = $this->safe_string($order, 'type');
@@ -1515,7 +1616,7 @@ class coinex extends Exchange {
             $type = $this->safe_integer($order, 'type');
             if ($type === 1) {
                 $type = 'limit';
-            } else if ($type === 2) {
+            } elseif ($type === 2) {
                 $type = 'market';
             }
         }
@@ -1581,7 +1682,7 @@ class coinex extends Exchange {
                 if ($type === 'limit') {
                     $method = 'perpetualPrivatePostOrderPutStopLimit';
                     $request['price'] = $this->price_to_precision($symbol, $price);
-                } else if ($type === 'market') {
+                } elseif ($type === 'market') {
                     $method = 'perpetualPrivatePostOrderPutStopMarket';
                 }
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
@@ -1597,7 +1698,7 @@ class coinex extends Exchange {
                     } else {
                         if ($timeInForce === 'IOC') {
                             $timeInForce = 2;
-                        } else if ($timeInForce === 'FOK') {
+                        } elseif ($timeInForce === 'FOK') {
                             $timeInForce = 3;
                         } else {
                             $timeInForce = 1;
@@ -1617,7 +1718,7 @@ class coinex extends Exchange {
                 }
                 $request['price'] = $this->price_to_precision($symbol, $price);
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
-            } else if ($type === 'market' && $stopPrice === null) {
+            } elseif ($type === 'market' && $stopPrice === null) {
                 if ($reduceOnly) {
                     $method = 'perpetualPrivatePostOrderCloseMarket';
                     $request['position_id'] = $positionId;
@@ -1653,7 +1754,7 @@ class coinex extends Exchange {
                 $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
                 if ($type === 'limit') {
                     $method = 'privatePostOrderStopLimit';
-                } else if ($type === 'market') {
+                } elseif ($type === 'market') {
                     $method = 'privatePostOrderStopMarket';
                 }
             }
@@ -2262,6 +2363,108 @@ class coinex extends Exchange {
         return yield $this->fetch_orders_by_status('finished', $symbol, $since, $limit, $params);
     }
 
+    public function create_deposit_address($code, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'coin_type' => $currency['id'],
+        );
+        if (is_array($params) && array_key_exists('network', $params)) {
+            $network = $this->safe_string($params, 'network');
+            $params = $this->omit($params, 'network');
+            $request['smart_contract_name'] = $network;
+        }
+        $response = yield $this->privatePutBalanceDepositAddressCoinType (array_merge($request, $params));
+        //
+        //     {
+        //         $code => 0,
+        //         $data => array(
+        //             coin_address => 'TV639dSpb9iGRtoFYkCp4AoaaDYKrK1pw5',
+        //             is_bitcoin_cash => false
+        //         ),
+        //         message => 'Success'
+        //     }
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_deposit_address($data, $currency);
+    }
+
+    public function fetch_deposit_address($code, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'coin_type' => $currency['id'],
+        );
+        $networks = $this->safe_value($currency, 'networks', array());
+        $network = $this->safe_string($params, 'network');
+        $params = $this->omit($params, 'network');
+        $networksKeys = is_array($networks) ? array_keys($networks) : array();
+        $numOfNetworks = is_array($networksKeys) ? count($networksKeys) : 0;
+        if ($networks !== null && $numOfNetworks > 1) {
+            if ($network === null) {
+                throw new ArgumentsRequired($this->id . ' fetchDepositAddress() ' . $code . ' requires a $network parameter');
+            }
+            if (!(is_array($networks) && array_key_exists($network, $networks))) {
+                throw new ExchangeError($this->id . ' fetchDepositAddress() ' . $network . ' $network not supported for ' . $code);
+            }
+        }
+        if ($network !== null) {
+            $request['smart_contract_name'] = $network;
+        }
+        $response = yield $this->privateGetBalanceDepositAddressCoinType (array_merge($request, $params));
+        //
+        //      {
+        //          $code => 0,
+        //          $data => array(
+        //            coin_address => '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
+        //            is_bitcoin_cash => false
+        //          ),
+        //          message => 'Success'
+        //      }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $depositAddress = $this->parse_deposit_address($data, $currency);
+        $options = $this->safe_value($this->options, 'fetchDepositAddress', array());
+        $fillResponseFromRequest = $this->safe_value($options, 'fillResponseFromRequest', true);
+        if ($fillResponseFromRequest) {
+            $depositAddress['network'] = $this->safe_network_code($network, $currency);
+        }
+        return $depositAddress;
+    }
+
+    public function safe_network($networkId, $currency = null) {
+        $networks = $this->safe_value($currency, 'networks', array());
+        $networksCodes = is_array($networks) ? array_keys($networks) : array();
+        if ($networkId === null && strlen($networksCodes) === 1) {
+            return $networks[$networksCodes[0]];
+        }
+        return array(
+            'id' => $networkId,
+            'network' => ($networkId === null) ? null : strtoupper($networkId),
+        );
+    }
+
+    public function safe_network_code($networkId, $currency = null) {
+        $network = $this->safe_network($networkId, $currency);
+        return $network['network'];
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        //
+        //     {
+        //         coin_address => '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
+        //         is_bitcoin_cash => false
+        //     }
+        //
+        $address = $this->safe_string($depositAddress, 'coin_address');
+        return array(
+            'info' => $depositAddress,
+            'currency' => $this->safe_currency_code(null, $currency),
+            'address' => $address,
+            'tag' => null,
+            'network' => null,
+        );
+    }
+
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
@@ -2648,7 +2851,7 @@ class coinex extends Exchange {
         $defaultPositionType = null;
         if ($defaultMarginMode === 'isolated') {
             $defaultPositionType = 1;
-        } else if ($defaultMarginMode === 'cross') {
+        } elseif ($defaultMarginMode === 'cross') {
             $defaultPositionType = 2;
         }
         $leverage = $this->safe_integer($params, 'leverage');
@@ -2680,7 +2883,7 @@ class coinex extends Exchange {
         $defaultPositionType = null;
         if ($defaultMarginMode === 'isolated') {
             $defaultPositionType = 1;
-        } else if ($defaultMarginMode === 'cross') {
+        } elseif ($defaultMarginMode === 'cross') {
             $defaultPositionType = 2;
         }
         $positionType = $this->safe_integer($params, 'position_type', $defaultPositionType);
@@ -3252,7 +3455,7 @@ class coinex extends Exchange {
         $transfer = null;
         if (($fromAccount === 'spot') && ($toAccount === 'swap')) {
             $transfer = 'in';
-        } else if (($fromAccount === 'swap') && ($toAccount === 'spot')) {
+        } elseif (($fromAccount === 'swap') && ($toAccount === 'spot')) {
             $transfer = 'out';
         }
         $request = array(
@@ -3296,7 +3499,7 @@ class coinex extends Exchange {
         if ($transferType === 'transfer_out') {
             $fromAccount = 'swap';
             $toAccount = 'spot';
-        } else if ($transferType === 'transfer_in') {
+        } elseif ($transferType === 'transfer_in') {
             $fromAccount = 'spot';
             $toAccount = 'swap';
         }
@@ -3487,13 +3690,13 @@ class coinex extends Exchange {
                 'Authorization' => strtolower($signature),
                 'AccessId' => $this->apiKey,
             );
-            if (($method === 'GET')) {
+            if (($method === 'GET') || ($method === 'PUT')) {
                 $url .= '?' . $urlencoded;
             } else {
                 $headers['Content-Type'] = 'application/x-www-form-urlencoded';
                 $body = $urlencoded;
             }
-        } else if ($api === 'public' || $api === 'perpetualPublic') {
+        } elseif ($api === 'public' || $api === 'perpetualPublic') {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
@@ -3509,7 +3712,7 @@ class coinex extends Exchange {
                 'Authorization' => strtoupper($signature),
                 'Content-Type' => 'application/json',
             );
-            if (($method === 'GET') || ($method === 'DELETE')) {
+            if (($method === 'GET') || ($method === 'DELETE') || ($method === 'PUT')) {
                 $url .= '?' . $urlencoded;
             } else {
                 $body = $this->json($query);

@@ -876,7 +876,7 @@ class bitget extends Exchange {
             if ($typeId === 'UMCBL') {
                 $linear = true;
                 $inverse = false;
-            } else if ($typeId === 'DMCBL') {
+            } elseif ($typeId === 'DMCBL') {
                 $inverse = true;
                 $linear = false;
             }
@@ -1208,7 +1208,7 @@ class bitget extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1599,7 +1599,7 @@ class bitget extends Exchange {
             if ($since !== null) {
                 $request['after'] = $since;
             }
-        } else if ($market['type'] === 'swap') {
+        } elseif ($market['type'] === 'swap') {
             $request['granularity'] = $this->timeframes['swap'][$timeframe];
             $duration = $this->parse_timeframe($timeframe);
             $now = $this->milliseconds();
@@ -1775,7 +1775,7 @@ class bitget extends Exchange {
         $side = $this->safe_string_2($order, 'side', 'posSide');
         if (($side === 'open_long') || ($side === 'close_short')) {
             $side = 'buy';
-        } else if (($side === 'close_long') || ($side === 'open_short')) {
+        } elseif (($side === 'close_long') || ($side === 'open_short')) {
             $side = 'sell';
         }
         $clientOrderId = $this->safe_string_2($order, 'clientOrderId', 'clientOid');
@@ -1928,7 +1928,7 @@ class bitget extends Exchange {
             $jsonIds = $this->json($ids);
             $parts = explode('"', $jsonIds);
             $request['order_ids'] = implode('', $parts);
-        } else if ($type === 'swap') {
+        } elseif ($type === 'swap') {
             $method = 'swapPostOrderCancelBatchOrders';
             $request['symbol'] = $market['id'];
             $request['ids'] = $ids;
@@ -2515,13 +2515,13 @@ class bitget extends Exchange {
         $marginMode = $this->safe_string($position, 'marginMode');
         if ($marginMode === 'fixed') {
             $marginMode = 'isolated';
-        } else if ($marginMode === 'crossed') {
+        } elseif ($marginMode === 'crossed') {
             $marginMode = 'cross';
         }
         $hedged = $this->safe_string($position, 'holdMode');
         if ($hedged === 'double_hold') {
             $hedged = true;
-        } else if ($hedged === 'single_hold') {
+        } elseif ($hedged === 'single_hold') {
             $hedged = false;
         }
         $contracts = $this->safe_integer($position, 'openDelegateCount');

@@ -544,7 +544,7 @@ class poloniex(Exchange):
             'baseVolume': self.safe_string(ticker, 'quoteVolume'),
             'quoteVolume': self.safe_string(ticker, 'baseVolume'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         """

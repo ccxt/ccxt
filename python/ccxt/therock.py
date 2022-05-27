@@ -331,7 +331,7 @@ class therock(Exchange):
             'baseVolume': self.safe_string(ticker, 'volume_traded'),
             'quoteVolume': self.safe_string(ticker, 'volume'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         """

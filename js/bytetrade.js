@@ -353,7 +353,7 @@ module.exports = class bytetrade extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': this.safeString (market, 'active'),
+                'active': this.safeValue (market, 'active'),
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -497,7 +497,7 @@ module.exports = class bytetrade extends Exchange {
             'baseVolume': this.safeString (ticker, 'baseVolume'),
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

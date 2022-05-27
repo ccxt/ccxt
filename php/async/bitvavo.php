@@ -545,7 +545,7 @@ class bitvavo extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -940,15 +940,15 @@ class bitvavo extends Exchange {
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
             }
             $params = $this->omit($params, array( 'cost', 'amountQuote' ));
-        } else if ($type === 'limit') {
+        } elseif ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
             $request['amount'] = $this->amount_to_precision($symbol, $amount);
-        } else if ($isStopMarket || $isStopLimit) {
+        } elseif ($isStopMarket || $isStopLimit) {
             $stopPrice = $this->safe_number_2($params, 'stopPrice', 'triggerAmount');
             if ($stopPrice === null) {
                 if ($isStopLimit) {
                     throw new ArgumentsRequired($this->id . ' createOrder() requires a $stopPrice parameter for a ' . $type . ' order');
-                } else if ($isStopMarket) {
+                } elseif ($isStopMarket) {
                     if ($price === null) {
                         throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument or a $stopPrice parameter for a ' . $type . ' order');
                     } else {

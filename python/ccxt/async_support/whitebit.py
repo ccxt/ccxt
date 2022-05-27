@@ -553,7 +553,7 @@ class whitebit(Exchange):
             'baseVolume': self.safe_string_2(ticker, 'base_volume', 'volume'),
             'quoteVolume': self.safe_string_2(ticker, 'quote_volume', 'deal'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         """

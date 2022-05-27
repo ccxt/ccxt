@@ -567,7 +567,7 @@ class cex extends Exchange {
             'baseVolume' => $volume,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -830,7 +830,7 @@ class cex extends Exchange {
                     'rate' => $feeRate,
                     'cost' => $baseFeeCost,
                 );
-            } else if ((is_array($order) && array_key_exists($quoteFee, $order)) || (is_array($order) && array_key_exists($quoteTakerFee, $order))) {
+            } elseif ((is_array($order) && array_key_exists($quoteFee, $order)) || (is_array($order) && array_key_exists($quoteTakerFee, $order))) {
                 $quoteFeeCost = $this->safe_number_2($order, $quoteFee, $quoteTakerFee);
                 $fee = array(
                     'currency' => $market['quote'],

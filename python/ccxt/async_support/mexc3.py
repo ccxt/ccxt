@@ -1180,12 +1180,6 @@ class mexc3(Exchange):
             candles = self.convert_trading_view_to_ohlcv(data, 'time', 'open', 'high', 'low', 'close', 'vol')
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend({'price': 'index'}, params))
-
-    async def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend({'price': 'mark'}, params))
-
     def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.safe_integer(ohlcv, 0),
@@ -1457,7 +1451,7 @@ class mexc3(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_bids_asks(self, symbols=None, params={}):
         """
@@ -2223,6 +2217,8 @@ class mexc3(Exchange):
             'NEW': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
+            'PARTIALLY_FILLED': 'open',
+            'PARTIALLY_CANCELED': 'canceled',
             # contracts v1
             # '1': 'uninformed',  # TODO: wt?
             '2': 'open',
@@ -3178,7 +3174,7 @@ class mexc3(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_positions(data)
+        return self.parse_positions(data, symbols)
 
     def parse_position(self, position, market=None):
         #
@@ -3240,12 +3236,6 @@ class mexc3(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-
-    def parse_positions(self, positions):
-        result = []
-        for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i]))
-        return result
 
     async def fetch_transfer(self, id, since=None, limit=None, params={}):
         marketType, query = self.handle_market_type_and_params('fetchTransfer', None, params)

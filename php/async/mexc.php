@@ -535,7 +535,7 @@ class mexc extends Exchange {
         }
         if ($spot) {
             return yield $this->fetch_spot_markets($query);
-        } else if ($swap) {
+        } elseif ($swap) {
             return yield $this->fetch_contract_markets($query);
         }
     }
@@ -824,7 +824,7 @@ class mexc extends Exchange {
         $method = null;
         if ($market['spot']) {
             $method = 'spotPublicGetMarketTicker';
-        } else if ($market['swap']) {
+        } elseif ($market['swap']) {
             $method = 'contractPublicGetTicker';
         }
         $response = yield $this->$method (array_merge($request, $params));
@@ -879,7 +879,7 @@ class mexc extends Exchange {
             $data = $this->safe_value($response, 'data', array());
             $ticker = $this->safe_value($data, 0);
             return $this->parse_ticker($ticker, $market);
-        } else if ($market['swap']) {
+        } elseif ($market['swap']) {
             $data = $this->safe_value($response, 'data', array());
             return $this->parse_ticker($data, $market);
         }
@@ -955,7 +955,7 @@ class mexc extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -978,7 +978,7 @@ class mexc extends Exchange {
                 $limit = 100; // the spot api requires a $limit
             }
             $request['depth'] = $limit;
-        } else if ($market['swap']) {
+        } elseif ($market['swap']) {
             $method = 'contractPublicGetDepthSymbol';
             if ($limit !== null) {
                 $request['limit'] = $limit;
@@ -1055,7 +1055,7 @@ class mexc extends Exchange {
         $method = null;
         if ($market['spot']) {
             $method = 'spotPublicGetMarketDeals';
-        } else if ($market['swap']) {
+        } elseif ($market['swap']) {
             $method = 'contractPublicGetDealsSymbol';
         }
         $response = yield $this->$method (array_merge($request, $params));
@@ -1140,7 +1140,7 @@ class mexc extends Exchange {
         $side = $this->safe_string_2($trade, 'trade_type', 'T');
         if (($side === 'BID') || ($side === '1')) {
             $side = 'buy';
-        } else if (($side === 'ASK') || ($side === '2')) {
+        } elseif (($side === 'ASK') || ($side === '2')) {
             $side = 'sell';
         }
         $id = $this->safe_string_2($trade, 'id', 'trade_time');
@@ -1257,7 +1257,7 @@ class mexc extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 100
             }
-        } else if ($market['swap']) {
+        } elseif ($market['swap']) {
             $method = 'contractPublicGetKlineSymbol';
             if ($since !== null) {
                 $request['start'] = intval($since / 1000);
@@ -1296,7 +1296,7 @@ class mexc extends Exchange {
         if ($market['spot']) {
             $data = $this->safe_value($response, 'data', array());
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-        } else if ($market['swap']) {
+        } elseif ($market['swap']) {
             $data = $this->safe_value($response, 'data', array());
             $result = $this->convert_trading_view_to_ohlcv($data, 'time', 'open', 'high', 'low', 'close', 'vol');
             return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
@@ -1327,27 +1327,6 @@ class mexc extends Exchange {
             $this->safe_number($ohlcv, $market['spot'] ? 2 : 4),
             $this->safe_number($ohlcv, 5),
         ];
-    }
-
-    public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'premiumIndex',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
-    }
-
-    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'index',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
-    }
-
-    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'mark',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_balance($params = array ()) {
@@ -1762,7 +1741,7 @@ class mexc extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_positions($data);
+        return $this->parse_positions($data, $symbols);
     }
 
     public function parse_position($position, $market = null) {
@@ -1828,21 +1807,13 @@ class mexc extends Exchange {
         );
     }
 
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
-    }
-
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
         list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
         if ($marketType === 'spot') {
             return yield $this->create_spot_order($symbol, $type, $side, $amount, $price, $query);
-        } else if ($marketType === 'swap') {
+        } elseif ($marketType === 'swap') {
             return yield $this->create_swap_order($symbol, $type, $side, $amount, $price, $query);
         }
     }
@@ -1853,7 +1824,7 @@ class mexc extends Exchange {
         $orderSide = null;
         if ($side === 'buy') {
             $orderSide = 'BID';
-        } else if ($side === 'sell') {
+        } elseif ($side === 'sell') {
             $orderSide = 'ASK';
         }
         $orderType = strtoupper($type);
@@ -1863,13 +1834,12 @@ class mexc extends Exchange {
         if ($orderType === 'LIMIT') {
             $orderType = 'LIMIT_ORDER';
         }
-        $postOnly = $this->safe_value($params, 'postOnly', false);
-        $timeInForce = $this->safe_string($params, 'timeInForce');
-        $maker = ($postOnly || ($timeInForce === 'PO'));
+        $postOnly = $this->is_post_only($type, $params);
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $ioc = ($timeInForce === 'IOC');
-        if ($maker) {
+        if ($postOnly) {
             $orderType = 'POST_ONLY';
-        } else if ($ioc) {
+        } elseif ($ioc) {
             $orderType = 'IMMEDIATE_OR_CANCEL';
         }
         if ($timeInForce === 'FOK') {
@@ -1907,21 +1877,20 @@ class mexc extends Exchange {
         if (($type !== 'limit') && ($type !== 'market') && ($type !== 1) && ($type !== 2) && ($type !== 3) && ($type !== 4) && ($type !== 5) && ($type !== 6)) {
             throw new InvalidOrder($this->id . ' createSwapOrder () order $type must either limit, $market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for $market orders or 6 to convert $market $price to current price');
         }
-        $timeInForce = $this->safe_string($params, 'timeInForce');
-        $postOnly = $this->safe_value($params, 'postOnly', false);
-        $maker = (($timeInForce === 'PO') || ($postOnly));
-        if ($maker) {
+        $postOnly = $this->is_post_only($type, $params);
+        if ($postOnly) {
             $type = 2;
-        } else if ($type === 'limit') {
+        } elseif ($type === 'limit') {
             $type = 1;
-        } else if ($type === 'market') {
+        } elseif ($type === 'market') {
             $type = 6;
         }
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $ioc = ($timeInForce === 'IOC');
         $fok = ($timeInForce === 'FOK');
         if ($ioc) {
             $type = 3;
-        } else if ($fok) {
+        } elseif ($fok) {
             $type = 4;
         }
         if (($side !== 1) && ($side !== 2) && ($side !== 3) && ($side !== 4)) {
@@ -1937,7 +1906,7 @@ class mexc extends Exchange {
             // supported order types
             //
             //     1 limit
-            //     2 post only $maker (PO)
+            //     2 post only maker (PO)
             //     3 transact or cancel instantly (IOC)
             //     4 transact completely or cancel completely (FOK)
             //     5 $market orders
@@ -1977,7 +1946,7 @@ class mexc extends Exchange {
         if ($clientOrderId !== null) {
             $request['externalOid'] = $clientOrderId;
         }
-        $params = $this->omit($params, array( 'clientOrderId', 'externalOid', 'postOnly' ));
+        $params = $this->omit($params, array( 'clientOrderId', 'externalOid' ));
         $response = yield $this->$method (array_merge($request, $params));
         //
         // Swap
@@ -2009,7 +1978,7 @@ class mexc extends Exchange {
             } else {
                 $request['order_ids'] = $id;
             }
-        } else if ($stop) {
+        } elseif ($stop) {
             $method = 'contractPrivatePostPlanorderCancel';
             $request = array();
             if (gettype($id) === 'array' && count(array_filter(array_keys($id), 'is_string')) == 0) {
@@ -2019,13 +1988,13 @@ class mexc extends Exchange {
                         'orderId' => $id[$i],
                     );
                 }
-            } else if (gettype($id) === 'string') {
+            } elseif (gettype($id) === 'string') {
                 $request[] = array(
                     'symbol' => $market['id'],
                     'orderId' => $id,
                 );
             }
-        } else if ($market['type'] === 'swap') {
+        } elseif ($market['type'] === 'swap') {
             $method = 'contractPrivatePostOrderCancel';
             $request = array( $id );
         }
@@ -2073,7 +2042,7 @@ class mexc extends Exchange {
                 'CANCELED' => 'canceled',
                 'PARTIALLY_CANCELED' => 'canceled',
             );
-        } else if ($market['type'] === 'swap') {
+        } elseif ($market['type'] === 'swap') {
             $statuses = array(
                 '2' => 'open',
                 '3' => 'closed',
@@ -2226,16 +2195,16 @@ class mexc extends Exchange {
         $bidOrAsk = $this->safe_string($order, 'type');
         if ($bidOrAsk === 'BID') {
             $side = 'buy';
-        } else if ($bidOrAsk === 'ASK') {
+        } elseif ($bidOrAsk === 'ASK') {
             $side = 'sell';
         }
         if ($sideCheck === 1) {
             $side = 'open long';
-        } else if ($side === 2) {
+        } elseif ($side === 2) {
             $side = 'close short';
-        } else if ($side === 3) {
+        } elseif ($side === 3) {
             $side = 'open short';
-        } else if ($side === 4) {
+        } elseif ($side === 4) {
             $side = 'close long';
         }
         $status = $this->parse_order_status($state, $market);
@@ -2253,27 +2222,27 @@ class mexc extends Exchange {
             if ($rawOrderType === '1') {
                 $orderType = 'limit';
                 $timeInForce = 'GTC';
-            } else if ($rawOrderType === '2') {
+            } elseif ($rawOrderType === '2') {
                 $orderType = 'limit';
                 $timeInForce = 'PO';
                 $postOnly = true;
-            } else if ($rawOrderType === '3') {
+            } elseif ($rawOrderType === '3') {
                 $orderType = 'limit';
                 $timeInForce = 'IOC';
-            } else if ($rawOrderType === '4') {
+            } elseif ($rawOrderType === '4') {
                 $orderType = 'limit';
                 $timeInForce = 'FOK';
-            } else if (($rawOrderType === '5') || ($rawOrderType === '6')) {
+            } elseif (($rawOrderType === '5') || ($rawOrderType === '6')) {
                 $orderType = 'market';
                 $timeInForce = 'GTC';
-            } else if ($rawOrderType === 'LIMIT_ORDER') {
+            } elseif ($rawOrderType === 'LIMIT_ORDER') {
                 $orderType = 'limit';
                 $timeInForce = 'GTC';
-            } else if ($rawOrderType === 'POST_ONLY') {
+            } elseif ($rawOrderType === 'POST_ONLY') {
                 $orderType = 'limit';
                 $timeInForce = 'PO';
                 $postOnly = true;
-            } else if ($rawOrderType === 'IMMEDIATE_OR_CANCEL') {
+            } elseif ($rawOrderType === 'IMMEDIATE_OR_CANCEL') {
                 $orderType = 'limit';
                 $timeInForce = 'IOC';
             }
@@ -2545,7 +2514,7 @@ class mexc extends Exchange {
         $state = 'CANCELED';
         if ($market['type'] === 'swap') {
             $state = '4';
-        } else if ($stop) {
+        } elseif ($stop) {
             $state = '2';
         }
         return yield $this->fetch_orders_by_state($state, $symbol, $since, $limit, $params);

@@ -185,7 +185,7 @@ class btcbox extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'vol'),
             'quoteVolume' => $this->safe_string($ticker, 'volume'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

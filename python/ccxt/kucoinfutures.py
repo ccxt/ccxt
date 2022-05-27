@@ -738,7 +738,7 @@ class kucoinfutures(kucoin):
             'baseVolume': None,
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         #
@@ -854,13 +854,8 @@ class kucoinfutures(kucoin):
         #        ]
         #    }
         #
-        return self.parse_positions(self.safe_value(response, 'data'))
-
-    def parse_positions(self, positions):
-        result = []
-        for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i]))
-        return result
+        data = self.safe_value(response, 'data')
+        return self.parse_positions(data, symbols)
 
     def parse_position(self, position, market=None):
         #

@@ -216,7 +216,7 @@ module.exports = class binance extends Exchange {
                         'margin/isolatedMarginTier': 0.1,
                         'margin/rateLimit/order': 2,
                         'loan/income': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
-                        'fiat/orders': 0.1,
+                        'fiat/orders': 20,
                         'fiat/payments': 0.1,
                         'futures/transfer': 1,
                         'futures/loan/borrow/history': 1,
@@ -2120,7 +2120,7 @@ module.exports = class binance extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchStatus (params = {}) {
@@ -2345,20 +2345,6 @@ module.exports = class binance extends Exchange {
         //     ]
         //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
-    }
-
-    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'mark',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
-    }
-
-    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'index',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     parseTrade (trade, market = undefined) {

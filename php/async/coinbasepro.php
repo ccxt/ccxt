@@ -26,10 +26,10 @@ class coinbasepro extends Exchange {
             'has' => array(
                 'CORS' => true,
                 'spot' => true,
-                'margin' => null, // has but not fully inplemented
-                'swap' => null, // has but not fully inplemented
-                'future' => null, // has but not fully inplemented
-                'option' => null,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
@@ -574,7 +574,7 @@ class coinbasepro extends Exchange {
             'baseVolume' => $volume,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -1063,7 +1063,7 @@ class coinbasepro extends Exchange {
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
             $request['size'] = $this->amount_to_precision($symbol, $amount);
-        } else if ($type === 'market') {
+        } elseif ($type === 'market') {
             $cost = $this->safe_number_2($params, 'cost', 'funds');
             if ($cost === null) {
                 if ($price !== null) {
@@ -1158,7 +1158,7 @@ class coinbasepro extends Exchange {
         if (is_array($params) && array_key_exists('payment_method_id', $params)) {
             // deposit from a payment_method, like a bank account
             $method .= 'PaymentMethod';
-        } else if (is_array($params) && array_key_exists('coinbase_account_id', $params)) {
+        } elseif (is_array($params) && array_key_exists('coinbase_account_id', $params)) {
             // deposit into Coinbase Pro account from a Coinbase account
             $method .= 'CoinbaseAccount';
         } else {
@@ -1189,7 +1189,7 @@ class coinbasepro extends Exchange {
         $method = 'privatePostWithdrawals';
         if (is_array($params) && array_key_exists('payment_method_id', $params)) {
             $method .= 'PaymentMethod';
-        } else if (is_array($params) && array_key_exists('coinbase_account_id', $params)) {
+        } elseif (is_array($params) && array_key_exists('coinbase_account_id', $params)) {
             $method .= 'CoinbaseAccount';
         } else {
             $method .= 'Crypto';
@@ -1382,7 +1382,7 @@ class coinbasepro extends Exchange {
         $completed = $this->safe_value($transaction, 'completed_at');
         if ($completed) {
             return 'ok';
-        } else if ($processed && !$completed) {
+        } elseif ($processed && !$completed) {
             return 'failed';
         } else {
             return 'pending';

@@ -373,7 +373,7 @@ Here's an overview of generic exchange properties with values added for example:
         'createDepositAddress': false,
         'createOrder': true,
         'fetchBalance': true,
-        'fetchCancelledOrders': false,
+        'fetchCanceledOrders': false,
         'fetchClosedOrder': false,
         'fetchClosedOrders': false,
         'fetchCurrencies': false,
@@ -502,7 +502,7 @@ See this section on [Overriding exchange properties](#overriding-exchange-proper
         'createDepositAddress': false,
         'createOrder': true,
         'fetchBalance': true,
-        'fetchCancelledOrders': false,
+        'fetchCanceledOrders': false,
         'fetchClosedOrder': false,
         'fetchClosedOrders': false,
         'fetchCurrencies': false,
@@ -712,14 +712,18 @@ In terms of the ccxt library, every exchange offers multiple **markets** within 
     'active':    true,       // boolean, currency status (tradeable and withdrawable)
     'fee':       0.123,      // withdrawal fee, flat
     'precision': 8,          // number of decimal digits "after the dot" (depends on exchange.precisionMode)
+    'deposit':   true        // boolean, deposits are available
+    'withdraw':  true        // boolean, withdraws are available
     'limits': {              // value limits when placing orders on this market
         'amount': {
             'min': 0.01,     // order amount should be > min
             'max': 1000,     // order amount should be < max
         },
         'withdraw': { ... }, // withdrawal limits
+        'deposit': {...},
     },
-    'info': { ... }, // the original unparsed currency info from the exchange
+    'networks': {...}        // network structures indexed by unified network identifiers (ERC20, TRC20, BSC, etc)
+    'info': { ... },         // the original unparsed currency info from the exchange
 }
 ```
 
@@ -732,7 +736,42 @@ Each currency is an associative array (aka dictionary) with the following keys:
 - `active`. A boolean indicating whether trading or funding (depositing or withdrawing) for this currency is currently possible, more about it here: [`active` status](#active-status).
 - `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 - `precision`. Precision accepted in values by exchanges upon referencing this currency. The value of this property depends on [`exchange.precisionMode`](#precision-mode).
-- `limits`. The minimums and maximums for amounts (volumes) and withdrawals.
+- `limits`. The minimums and maximums for amounts (volumes), withdrawals and deposits.
+
+## Network structure
+
+```JavaScript
+{
+    'id':       'tron',         // string literal for referencing within an exchange
+    'network':  'TRC20'         // unified network
+    'name':     'Tron Network', // string, human-readable name, if specified
+    'active':    true,          // boolean, currency status (tradeable and withdrawable)
+    'fee':       0.123,         // withdrawal fee, flat
+    'precision': 8,             // number of decimal digits "after the dot" (depends on exchange.precisionMode)
+    'deposit':   true           // boolean, deposits are available
+    'withdraw':  true           // boolean, withdraws are available
+    'limits': {                 // value limits when placing orders on this market
+        'amount': {
+            'min': 0.01,        // order amount should be > min
+            'max': 1000,        // order amount should be < max
+        },
+        'withdraw': { ... },    // withdrawal limits
+        'deposit': {...},       // deposit limits
+    },
+    'info': { ... },            // the original unparsed currency info from the exchange
+}
+```
+
+Each network is an associative array (aka dictionary) with the following keys:
+
+- `id`. The string or numeric ID of the network within the exchange. Network ids are used inside exchanges internally to identify networks during the request/response process.
+- `network`. An uppercase string representation of a particular network. Networks are used to reference networks within the ccxt library.
+- `name`. A human-readable name of the network (can be a mix of uppercase & lowercase characters).
+- `fee`. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchnange does not specify it via public endpoints, the `fee` can be `undefined/None/null` or missing.
+- `active`. A boolean indicating whether trading or funding (depositing or withdrawing) for this currency is currently possible, more about it here: [`active` status](#active-status).
+- `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
+- `precision`. Precision accepted in values by exchanges upon referencing this currency. The value of this property depends on [`exchange.precisionMode`](#precision-mode).
+- `limits`. The minimums and maximums for amounts (volumes), withdrawals and deposits.
 
 ## Market Structure
 
@@ -1571,7 +1610,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchOrder (id[, symbol[, params]])`
 - `fetchOrders ([symbol[, since[, limit[, params]]]])`
 - `fetchOpenOrders ([symbol[, since, limit, params]]]])`
-- `fetchCancelledOrders ([symbol[, since[, limit[, params]]]])`
+- `fetchCanceledOrders ([symbol[, since[, limit[, params]]]])`
 - `fetchClosedOrders ([symbol[, since[, limit[, params]]]])`
 - `fetchMyTrades ([symbol[, since[, limit[, params]]]])`
 - ...
@@ -2829,6 +2868,8 @@ Parameters
 - **limit** (Integer) The maximum number of [open interest structures](#open-interest-structures) to retrieve (e.g. `10`)
 - **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
+**Note for OKX users:** instead of a unified symbol okx.fetchOpenInterestHistory expects a unified currency code in the **symbol** argument (e.g. `'BTC'`).
+
 Returns
 
 - An array of [open interest structures](#open-interest-structure)
@@ -2923,7 +2964,7 @@ In order to be able to access your user account, perform algorithmic trading by 
 The exchanges' private APIs will usually allow the following types of interaction:
 
 - the current state of the user's account balance can be obtained with the `fetchBalance()` method as described in the [Account Balance](#account-balance) section
-- the user can place and cancel orders with `createOrder()`, `cancelOrder()`, as well as fetch current open orders and the past order history with methods like `fetchOrder`, `fetchOrders()`, `fetchOpenOrder()`, `fetchOpenOrders()`, `fetchCancelledOrders`, `fetchClosedOrder`, `fetchClosedOrders`, as described in the section on [Orders](#orders)
+- the user can place and cancel orders with `createOrder()`, `cancelOrder()`, as well as fetch current open orders and the past order history with methods like `fetchOrder`, `fetchOrders()`, `fetchOpenOrder()`, `fetchOpenOrders()`, `fetchCanceledOrders`, `fetchClosedOrder`, `fetchClosedOrders`, as described in the section on [Orders](#orders)
 - the user can query the history of past trades executed with their account using `fetchMyTrades`, as described in the [My Trades](#my-trades) section, also see [How Orders Are Related To Trades](https://docs.ccxt.com/en/latest/manual.html#how-orders-are-related-to-trades)
 - the user can query their positions with `fetchPositions()` and `fetchPosition()` as described in the [Positions](#positions) section
 - the user can fetch the history of their transactions (on-chain _transactions_ which are either _deposits_ to the exchange account or _withdrawals_ from the exchange account) with `fetchTransactions()`, or with `fetchDeposit()`, `fetchDeposits()` `fetchWithdrawal()`, and `fetchWithdrawals()` separately, depending on what is available from the exchange API
@@ -3191,11 +3232,13 @@ The `fetchAccounts()` method will return a structure like shown below:
     {
         id: "s32kj302lasli3930",
         type: "main",
+        name: "main",
         code: "USDT",
         info: { ... }
     },
     {
         id: "20f0sdlri34lf90",
+        name: "customAccount",
         type: "margin",
         code: "USDT",
         info: { ... }
@@ -3203,6 +3246,7 @@ The `fetchAccounts()` method will return a structure like shown below:
     {
         id: "4oidfk40dadeg4328",
         type: "spot",
+        name: "spotAccount32",
         code: "BTC",
         info: { ... }
     },

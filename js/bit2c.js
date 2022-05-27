@@ -259,7 +259,7 @@ module.exports = class bit2c extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

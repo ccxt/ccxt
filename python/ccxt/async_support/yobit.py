@@ -505,7 +505,7 @@ class yobit(Exchange):
             'baseVolume': self.safe_string(ticker, 'vol_cur'),
             'quoteVolume': self.safe_string(ticker, 'vol'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         """

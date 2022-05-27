@@ -401,7 +401,7 @@ class lykke extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volumeBase'),
             'quoteVolume' => $this->safe_string($ticker, 'volumeQuote'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1154,7 +1154,7 @@ class lykke extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             if (($method === 'GET') || ($method === 'DELETE')) {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);

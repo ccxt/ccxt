@@ -800,7 +800,7 @@ class bitrue extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'baseVolume'),
             'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -862,7 +862,7 @@ class bitrue extends Exchange {
         $method = null;
         if ($type === 'future') {
             $method = 'fapiPublicGetTickerBookTicker';
-        } else if ($type === 'delivery') {
+        } elseif ($type === 'delivery') {
             $method = 'dapiPublicGetTickerBookTicker';
         } else {
             $method = 'publicGetTickerBookTicker';
@@ -973,9 +973,9 @@ class bitrue extends Exchange {
         $orderId = $this->safe_string($trade, 'orderId');
         if (is_array($trade) && array_key_exists('m', $trade)) {
             $side = $trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
-        } else if (is_array($trade) && array_key_exists('isBuyerMaker', $trade)) {
+        } elseif (is_array($trade) && array_key_exists('isBuyerMaker', $trade)) {
             $side = $trade['isBuyerMaker'] ? 'sell' : 'buy';
-        } else if (is_array($trade) && array_key_exists('side', $trade)) {
+        } elseif (is_array($trade) && array_key_exists('side', $trade)) {
             $side = $this->safe_string_lower($trade, 'side');
         } else {
             if (is_array($trade) && array_key_exists('isBuyer', $trade)) {
@@ -1127,9 +1127,9 @@ class bitrue extends Exchange {
         $lastTradeTimestamp = null;
         if (is_array($order) && array_key_exists('time', $order)) {
             $timestamp = $this->safe_integer($order, 'time');
-        } else if (is_array($order) && array_key_exists('transactTime', $order)) {
+        } elseif (is_array($order) && array_key_exists('transactTime', $order)) {
             $timestamp = $this->safe_integer($order, 'transactTime');
-        } else if (is_array($order) && array_key_exists('updateTime', $order)) {
+        } elseif (is_array($order) && array_key_exists('updateTime', $order)) {
             if ($status === 'open') {
                 if (Precise::string_gt($filled, '0')) {
                     $lastTradeTimestamp = $this->safe_integer($order, 'updateTime');
@@ -1794,7 +1794,7 @@ class bitrue extends Exchange {
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
         if ((is_array($config) && array_key_exists('noSymbol', $config)) && !(is_array($params) && array_key_exists('symbol', $params))) {
             return $config['noSymbol'];
-        } else if ((is_array($config) && array_key_exists('byLimit', $config)) && (is_array($params) && array_key_exists('limit', $params))) {
+        } elseif ((is_array($config) && array_key_exists('byLimit', $config)) && (is_array($params) && array_key_exists('limit', $params))) {
             $limit = $params['limit'];
             $byLimit = $config['byLimit'];
             for ($i = 0; $i < count($byLimit); $i++) {

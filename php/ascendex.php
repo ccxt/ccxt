@@ -872,7 +872,7 @@ class ascendex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1000,7 +1000,7 @@ class ascendex extends Exchange {
                 $limit = min ($limit, $defaultLimit);
             }
             $request['to'] = $this->sum($since, $limit * $duration * 1000, 1);
-        } else if ($limit !== null) {
+        } elseif ($limit !== null) {
             $request['n'] = $limit; // max 500
         }
         $response = $this->v1PublicGetBarhist (array_merge($request, $params));

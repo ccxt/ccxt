@@ -699,7 +699,7 @@ class aax(Exchange):
             'baseVolume': None,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def set_margin(self, symbol, amount, params={}):
         await self.load_markets()

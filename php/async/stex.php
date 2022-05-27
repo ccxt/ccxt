@@ -682,7 +682,7 @@ class stex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volumeQuote'),
             'quoteVolume' => $this->safe_string($ticker, 'volume'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -1959,13 +1959,13 @@ class stex extends Exchange {
         if ($fromAccount === 'referal' && $toAccount === 'spot') {
             $request['currencyId'] = $currency['id'];
             $method = 'profilePostReferralBonusTransferCurrencyId';
-        } else if ($toAccount === 'hold') {
+        } elseif ($toAccount === 'hold') {
             $request['walletId'] = $fromAccount;
             $amount = $this->currency_to_precision($code, $amount);
             $amount = Precise::string_neg($amount);
             $request['amount'] = $amount;
             $method = 'profilePostWalletsWalletIdHoldAmount';
-        } else if ($fromAccount === 'hold') {
+        } elseif ($fromAccount === 'hold') {
             $request['walletId'] = $toAccount;
             $request['amount'] = $amount;
             $method = 'profilePostWalletsWalletIdHoldAmount';

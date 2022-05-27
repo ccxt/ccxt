@@ -913,10 +913,10 @@ class okcoin extends Exchange {
             $baseId = $this->safe_string($parts, 0);
             $quoteId = $this->safe_string($parts, 1);
             $marketType = 'option';
-        } else if ($future) {
+        } elseif ($future) {
             $baseId = $this->safe_string($market, 'underlying_index');
             $marketType = 'futures';
-        } else if ($swap) {
+        } elseif ($swap) {
             $marketType = 'swap';
         }
         $base = $this->safe_currency_code($baseId);
@@ -1035,7 +1035,7 @@ class okcoin extends Exchange {
                 $result = $this->array_concat($result, $response);
             }
             return $this->parse_markets($result);
-        } else if (($type === 'spot') || ($type === 'futures') || ($type === 'swap')) {
+        } elseif (($type === 'spot') || ($type === 'futures') || ($type === 'swap')) {
             $method = $type . 'GetInstruments';
             $response = $this->$method ($params);
             //
@@ -1258,7 +1258,7 @@ class okcoin extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'base_volume_24h'),
             'quoteVolume' => $this->safe_string($ticker, 'quote_volume_24h'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1387,7 +1387,7 @@ class okcoin extends Exchange {
             $symbol = $market['symbol'];
             $base = $market['base'];
             $quote = $market['quote'];
-        } else if ($marketId !== null) {
+        } elseif ($marketId !== null) {
             $parts = explode('-', $marketId);
             $numParts = is_array($parts) ? count($parts) : 0;
             if ($numParts === 2) {
@@ -1411,7 +1411,7 @@ class okcoin extends Exchange {
         $takerOrMaker = $this->safe_string_2($trade, 'exec_type', 'liquidity');
         if ($takerOrMaker === 'M') {
             $takerOrMaker = 'maker';
-        } else if ($takerOrMaker === 'T') {
+        } elseif ($takerOrMaker === 'T') {
             $takerOrMaker = 'taker';
         }
         $side = $this->safe_string($trade, 'side');
@@ -1587,7 +1587,7 @@ class okcoin extends Exchange {
                     $request['end'] = $this->iso8601($now);
                 }
             }
-        } else if ($type === 'HistoryCandles') {
+        } elseif ($type === 'HistoryCandles') {
             if ($market['option']) {
                 throw new NotSupported($this->id . ' fetchOHLCV() does not have ' . $type . ' for ' . $market['type'] . ' markets');
             }
@@ -2061,11 +2061,11 @@ class okcoin extends Exchange {
     public function parse_balance_by_type($type, $response) {
         if (($type === 'account') || ($type === 'spot')) {
             return $this->parse_account_balance($response);
-        } else if ($type === 'margin') {
+        } elseif ($type === 'margin') {
             return $this->parse_margin_balance($response);
-        } else if ($type === 'futures') {
+        } elseif ($type === 'futures') {
             return $this->parse_futures_balance($response);
-        } else if ($type === 'swap') {
+        } elseif ($type === 'swap') {
             return $this->parse_swap_balance($response);
         }
         throw new NotSupported($this->id . " fetchBalance does not support the '" . $type . "' $type (the $type must be one of 'account', 'spot', 'margin', 'futures', 'swap')");
@@ -2114,7 +2114,7 @@ class okcoin extends Exchange {
             if ($type === 'limit') {
                 $request['price'] = $this->price_to_precision($symbol, $price);
                 $request['size'] = $this->amount_to_precision($symbol, $amount);
-            } else if ($type === 'market') {
+            } elseif ($type === 'market') {
                 // for $market buy it requires the $amount of quote currency to spend
                 if ($side === 'buy') {
                     $notional = $this->safe_number($params, 'notional');
@@ -2124,7 +2124,7 @@ class okcoin extends Exchange {
                             if ($notional === null) {
                                 $notional = $amount * $price;
                             }
-                        } else if ($notional === null) {
+                        } elseif ($notional === null) {
                             throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter (the exchange-specific behaviour)");
                         }
                     } else {
@@ -2664,12 +2664,12 @@ class okcoin extends Exchange {
             $request['type'] = '1';
             $request['sub_account'] = $toId;
             $request['to'] = '0';
-        } else if ($toId === 'main') {
+        } elseif ($toId === 'main') {
             $request['type'] = '2';
             $request['sub_account'] = $fromId;
             $request['from'] = '0';
             $request['to'] = '6';
-        } else if ($fromId === '5' || $toId === '5') {
+        } elseif ($fromId === '5' || $toId === '5') {
             $marketId = $this->safe_string_2($params, 'instrument_id', 'to_instrument_id');
             if ($marketId === null) {
                 $symbol = $this->safe_string($params, 'symbol');
@@ -2755,9 +2755,9 @@ class okcoin extends Exchange {
         );
         if (is_array($params) && array_key_exists('password', $params)) {
             $request['trade_pwd'] = $params['password'];
-        } else if (is_array($params) && array_key_exists('trade_pwd', $params)) {
+        } elseif (is_array($params) && array_key_exists('trade_pwd', $params)) {
             $request['trade_pwd'] = $params['trade_pwd'];
-        } else if ($this->password) {
+        } elseif ($this->password) {
             $request['trade_pwd'] = $this->password;
         }
         $query = $this->omit($params, array( 'fee', 'password', 'trade_pwd' ));
@@ -3003,7 +3003,7 @@ class okcoin extends Exchange {
                     'currency' => $feeCurrencyCodeFirst,
                 );
             }
-        } else if (($feeCostSecondString !== null) && !Precise::string_equals($feeCostSecondString, '0')) {
+        } elseif (($feeCostSecondString !== null) && !Precise::string_equals($feeCostSecondString, '0')) {
             $fee = array(
                 'cost' => Precise::string_neg($feeCostSecondString),
                 'currency' => $feeCurrencyCodeSecond,
@@ -3051,7 +3051,7 @@ class okcoin extends Exchange {
         $takerOrMaker = $this->safe_string_2($userTrade, 'exec_type', 'liquidity');
         if ($takerOrMaker === 'M') {
             $takerOrMaker = 'maker';
-        } else if ($takerOrMaker === 'T') {
+        } elseif ($takerOrMaker === 'T') {
             $takerOrMaker = 'taker';
         }
         $orderId = $this->safe_string($userTrade, 'order_id');
@@ -3214,7 +3214,7 @@ class okcoin extends Exchange {
         $type = $market['type'];
         if (($type === 'futures') || ($type === 'swap')) {
             $method = $type . 'GetInstrumentIdPosition';
-        } else if ($type === 'option') {
+        } elseif ($type === 'option') {
             $underlying = $this->safe_string($params, 'underlying');
             if ($underlying === null) {
                 throw new ArgumentsRequired($this->id . ' fetchPosition() requires an $underlying parameter for ' . $type . ' $market ' . $symbol);
@@ -3409,7 +3409,7 @@ class okcoin extends Exchange {
         $type = $this->safe_string($params, 'type', $defaultType);
         if (($type === 'futures') || ($type === 'swap')) {
             $method = $type . 'GetPosition';
-        } else if ($type === 'option') {
+        } elseif ($type === 'option') {
             $underlying = $this->safe_string($params, 'underlying');
             if ($underlying === null) {
                 throw new ArgumentsRequired($this->id . ' fetchPositions() requires an $underlying parameter for ' . $type . ' markets');
@@ -3493,7 +3493,7 @@ class okcoin extends Exchange {
             $argument = 'Currency';
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
-        } else if ($type === 'futures') {
+        } elseif ($type === 'futures') {
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . " fetchLedger() requires an underlying symbol for '" . $type . "' markets");
             }
@@ -3505,7 +3505,7 @@ class okcoin extends Exchange {
             $currency = $this->currency($settlementCurrencyCode);
             $underlyingId = $this->safe_string($marketInfo, 'underlying');
             $request['underlying'] = $underlyingId;
-        } else if (($type === 'margin') || ($type === 'swap')) {
+        } elseif (($type === 'margin') || ($type === 'swap')) {
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . " fetchLedger() requires a $code $argument (a $market symbol) for '" . $type . "' markets");
             }
@@ -3543,7 +3543,7 @@ class okcoin extends Exchange {
             //         $request['type'] = 'number'; // All types will be returned if this filed is left blank
             //     }
             //
-        } else if ($type === 'account') {
+        } elseif ($type === 'account') {
             if ($code !== null) {
                 $currency = $this->currency($code);
                 $request['currency'] = $currency['id'];
@@ -3829,7 +3829,7 @@ class okcoin extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($type === 'private') {
+        } elseif ($type === 'private') {
             $this->check_required_credentials();
             $timestamp = $this->iso8601($this->milliseconds());
             $headers = array(

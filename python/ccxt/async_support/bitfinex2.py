@@ -920,7 +920,7 @@ class bitfinex2(bitfinex):
             'baseVolume': self.safe_string(ticker, length - 3),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         """

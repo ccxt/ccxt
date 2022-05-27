@@ -10,6 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\BadSymbol;
+use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
 use \ccxt\DDoSProtection;
 
@@ -28,21 +29,27 @@ class bitmex extends Exchange {
                 'CORS' => null,
                 'spot' => false,
                 'margin' => false,
-                'swap' => null, // has but not fully implemented
-                'future' => null, // has but not fully implemented
-                'option' => null, // has but not fully implemented
+                'swap' => true,
+                'future' => true,
+                'option' => false,
+                'addMargin' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => true,
+                'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
+                'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -51,7 +58,9 @@ class bitmex extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
                 'fetchPositions' => true,
+                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -59,8 +68,11 @@ class bitmex extends Exchange {
                 'fetchTransactions' => 'emulated',
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'reduceMargin' => null,
                 'setLeverage' => true,
+                'setMargin' => null,
                 'setMarginMode' => true,
+                'setPositionMode' => false,
                 'transfer' => false,
                 'withdraw' => true,
             ),
@@ -351,11 +363,11 @@ class bitmex extends Exchange {
             $active = $status !== 'Unlisted';
             if ($swap) {
                 $type = 'swap';
-            } else if (mb_strpos($id, 'B_') !== false) {
+            } elseif (mb_strpos($id, 'B_') !== false) {
                 $prediction = true;
                 $type = 'prediction';
                 $symbol = $id;
-            } else if ($expiry !== null) {
+            } elseif ($expiry !== null) {
                 $future = true;
                 $type = 'future';
                 $symbol = $symbol . '-' . $this->yymmdd($expiry);
@@ -1274,7 +1286,7 @@ class bitmex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'homeNotional24h'),
             'quoteVolume' => $this->safe_string($ticker, 'foreignNotional24h'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -1652,12 +1664,21 @@ class bitmex extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $orderType = $this->capitalize($type);
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        if ($reduceOnly !== null) {
+            if (($market['type'] !== 'swap') && ($market['type'] !== 'future')) {
+                throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $market['type'] . ' orders, $reduceOnly orders are supported for swap and future markets only');
+            }
+        }
         $request = array(
             'symbol' => $market['id'],
             'side' => $this->capitalize($side),
-            'orderQty' => floatval($this->amount_to_precision($symbol, $amount)),
+            'orderQty' => floatval($this->amount_to_precision($symbol, $amount)), // lot size multiplied by the number of contracts
             'ordType' => $orderType,
         );
+        if ($reduceOnly) {
+            $request['execInst'] = 'ReduceOnly';
+        }
         if (($orderType === 'Stop') || ($orderType === 'StopLimit') || ($orderType === 'MarketIfTouched') || ($orderType === 'LimitIfTouched')) {
             $stopPrice = $this->safe_number_2($params, 'stopPx', 'stopPrice');
             if ($stopPrice === null) {
@@ -1783,6 +1804,7 @@ class bitmex extends Exchange {
     public function fetch_positions($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privateGetPosition ($params);
+        //
         //     array(
         //         {
         //             "account" => 0,
@@ -1879,8 +1901,7 @@ class bitmex extends Exchange {
         //         }
         //     )
         //
-        $result = $this->parse_positions($response);
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
+        return $this->parse_positions($response, $symbols);
     }
 
     public function parse_position($position, $market = null) {
@@ -1988,6 +2009,8 @@ class bitmex extends Exchange {
         if ($market['quote'] === 'USDT') {
             $notional = Precise::string_mul($this->safe_string($position, 'foreignNotional'), '-1');
         }
+        $maintenanceMargin = $this->safe_number($position, 'maintMargin');
+        $unrealisedPnl = $this->safe_number($position, 'unrealisedPnl');
         return array(
             'info' => $position,
             'id' => $this->safe_string($position, 'account'),
@@ -2005,9 +2028,9 @@ class bitmex extends Exchange {
             'collateral' => null,
             'initialMargin' => null,
             'initialMarginPercentage' => $this->safe_number($position, 'initMarginReq'),
-            'maintenanceMargin' => null,
+            'maintenanceMargin' => $this->convert_value($maintenanceMargin, $market),
             'maintenanceMarginPercentage' => null,
-            'unrealizedPnl' => null,
+            'unrealizedPnl' => $this->convert_value($unrealisedPnl, $market),
             'liquidationPrice' => $this->safe_number($position, 'liquidationPrice'),
             'marginMode' => $marginMode,
             'marginRatio' => null,
@@ -2015,12 +2038,19 @@ class bitmex extends Exchange {
         );
     }
 
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
+    public function convert_value($value, $market = null) {
+        if (($value === null) || ($market === null)) {
+            return $value;
         }
-        return $result;
+        $resultValue = null;
+        $value = $this->number_to_string($value);
+        if (($market['quote'] === 'USD') || ($market['quote'] === 'EUR')) {
+            $resultValue = Precise::string_mul($value, '0.00000001');
+        }
+        if ($market['quote'] === 'USDT') {
+            $resultValue = Precise::string_mul($value, '0.000001');
+        }
+        return floatval($resultValue);
     }
 
     public function is_fiat($currency) {
@@ -2334,7 +2364,7 @@ class bitmex extends Exchange {
         if (is_array($this->currencies) && array_key_exists($symbol, $this->currencies)) {
             $code = $this->currency($symbol);
             $request['symbol'] = $code['id'];
-        } else if ($symbol !== null) {
+        } elseif ($symbol !== null) {
             $splitSymbol = explode(':', $symbol);
             $splitSymbolLength = is_array($splitSymbol) ? count($splitSymbol) : 0;
             $timeframes = array( 'nearest', 'daily', 'weekly', 'monthly', 'quarterly', 'biquarterly', 'perpetual' );

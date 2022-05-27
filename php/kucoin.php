@@ -853,7 +853,7 @@ class kucoin extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -998,7 +998,7 @@ class kucoin extends Exchange {
                 $limit = $this->safe_integer($this->options, 'fetchOHLCVLimit', 1500);
             }
             $endAt = $this->sum($since, $limit * $duration);
-        } else if ($limit !== null) {
+        } elseif ($limit !== null) {
             $since = $endAt - $limit * $duration;
             $request['startAt'] = intval((int) floor($since / 1000));
         }
@@ -1221,7 +1221,7 @@ class kucoin extends Exchange {
             $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
             $request['stop'] = 'loss';
             $method = 'privatePostStopOrder';
-        } else if ($tradeType === 'MARGIN_TRADE') {
+        } elseif ($tradeType === 'MARGIN_TRADE') {
             $method = 'privatePostMarginOrder';
         }
         $response = $this->$method (array_merge($request, $params));
@@ -1336,7 +1336,7 @@ class kucoin extends Exchange {
         $lowercaseStatus = strtolower($status);
         if ($lowercaseStatus === 'open') {
             $lowercaseStatus = 'active';
-        } else if ($lowercaseStatus === 'closed') {
+        } elseif ($lowercaseStatus === 'closed') {
             $lowercaseStatus = 'done';
         }
         $request = array(
@@ -1610,12 +1610,12 @@ class kucoin extends Exchange {
                 // only returns $trades up to one week after the $since param
                 $request['startAt'] = $since;
             }
-        } else if ($method === 'private_get_limit_fills') {
+        } elseif ($method === 'private_get_limit_fills') {
             // does not return $trades earlier than 2019-02-18T00:00:00Z
             // takes no $params
             // only returns first 1000 $trades (not only "in the last 24 hours" as stated in the docs)
             $parseResponseData = true;
-        } else if ($method === 'private_get_hist_orders') {
+        } elseif ($method === 'private_get_hist_orders') {
             // despite that this endpoint is called `HistOrders`
             // it returns historical $trades instead of orders
             // returns $trades earlier than 2019-02-18T00:00:00Z only
@@ -2540,9 +2540,9 @@ class kucoin extends Exchange {
         $version = $this->safe_string($params, 'version', $defaultVersion);
         if ($version === 'v3' && (is_array($config) && array_key_exists('v3', $config))) {
             return $config['v3'];
-        } else if ($version === 'v2' && (is_array($config) && array_key_exists('v2', $config))) {
+        } elseif ($version === 'v2' && (is_array($config) && array_key_exists('v2', $config))) {
             return $config['v2'];
-        } else if ($version === 'v1' && (is_array($config) && array_key_exists('v1', $config))) {
+        } elseif ($version === 'v1' && (is_array($config) && array_key_exists('v1', $config))) {
             return $config['v1'];
         }
         return $this->safe_integer($config, 'cost', 1);

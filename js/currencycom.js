@@ -849,7 +849,7 @@ module.exports = class currencycom extends Exchange {
             'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -1741,15 +1741,7 @@ module.exports = class currencycom extends Exchange {
         // }
         //
         const data = this.safeValue (response, 'positions', []);
-        return this.parsePositions (data);
-    }
-
-    parsePositions (positions) {
-        const result = [];
-        for (let i = 0; i < positions.length; i++) {
-            result.push (this.parsePosition (positions[i]));
-        }
-        return result;
+        return this.parsePositions (data, symbols);
     }
 
     parsePosition (position, market = undefined) {

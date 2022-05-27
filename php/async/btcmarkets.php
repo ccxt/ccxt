@@ -589,7 +589,7 @@ class btcmarkets extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -667,7 +667,7 @@ class btcmarkets extends Exchange {
         $side = $this->safe_string($trade, 'side');
         if ($side === 'Bid') {
             $side = 'buy';
-        } else if ($side === 'Ask') {
+        } elseif ($side === 'Ask') {
             $side = 'sell';
         }
         $id = $this->safe_string($trade, 'id');
@@ -755,15 +755,15 @@ class btcmarkets extends Exchange {
         $triggerPriceIsRequired = false;
         if ($lowercaseType === 'limit') {
             $priceIsRequired = true;
-        // } else if ($lowercaseType === 'market') {
+        // } elseif ($lowercaseType === 'market') {
         //     ...
         // }
-        } else if ($lowercaseType === 'stop limit') {
+        } elseif ($lowercaseType === 'stop limit') {
             $triggerPriceIsRequired = true;
             $priceIsRequired = true;
-        } else if ($lowercaseType === 'take profit') {
+        } elseif ($lowercaseType === 'take profit') {
             $triggerPriceIsRequired = true;
-        } else if ($lowercaseType === 'stop') {
+        } elseif ($lowercaseType === 'stop') {
             $triggerPriceIsRequired = true;
         }
         if ($priceIsRequired) {
@@ -890,7 +890,7 @@ class btcmarkets extends Exchange {
         $side = $this->safe_string($order, 'side');
         if ($side === 'Bid') {
             $side = 'buy';
-        } else if ($side === 'Ask') {
+        } elseif ($side === 'Ask') {
             $side = 'sell';
         }
         $type = $this->safe_string_lower($order, 'type');
@@ -1076,7 +1076,7 @@ class btcmarkets extends Exchange {
                 'BM-AUTH-TIMESTAMP' => $nonce,
                 'BM-AUTH-SIGNATURE' => $signature,
             );
-        } else if ($api === 'public') {
+        } elseif ($api === 'public') {
             if ($query) {
                 $request .= '?' . $this->urlencode($query);
             }

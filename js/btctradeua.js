@@ -246,7 +246,7 @@ module.exports = class btctradeua extends Exchange {
             result['last'] = this.safeString (ticker[last], 4);
             result['close'] = result['last'];
         }
-        return this.safeTicker (result, market, false);
+        return this.safeTicker (result, market);
     }
 
     async fetchTicker (symbol, params = {}) {

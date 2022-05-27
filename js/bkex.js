@@ -586,7 +586,7 @@ module.exports = class bkex extends Exchange {
             'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

@@ -345,7 +345,7 @@ class oceanex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -495,7 +495,7 @@ class oceanex extends Exchange {
         $side = $this->safe_value($trade, 'side');
         if ($side === 'bid') {
             $side = 'buy';
-        } else if ($side === 'ask') {
+        } elseif ($side === 'ask') {
             $side = 'sell';
         }
         $marketId = $this->safe_value($trade, 'market');
@@ -833,10 +833,10 @@ class oceanex extends Exchange {
                     $request .= 'limit=' . $limit;
                 }
                 $url .= $request;
-            } else if ($query) {
+            } elseif ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             $this->check_required_credentials();
             $request = array(
                 'uid' => $this->apiKey,

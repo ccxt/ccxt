@@ -324,22 +324,21 @@ class novadax(Exchange):
         timestamp = self.safe_integer(ticker, 'timestamp')
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
-        open = self.safe_number(ticker, 'open24h')
-        last = self.safe_number(ticker, 'lastPrice')
-        baseVolume = self.safe_number(ticker, 'baseVolume24h')
-        quoteVolume = self.safe_number(ticker, 'quoteVolume24h')
-        vwap = self.vwap(baseVolume, quoteVolume)
+        open = self.safe_string(ticker, 'open24h')
+        last = self.safe_string(ticker, 'lastPrice')
+        baseVolume = self.safe_string(ticker, 'baseVolume24h')
+        quoteVolume = self.safe_string(ticker, 'quoteVolume24h')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high24h'),
-            'low': self.safe_number(ticker, 'low24h'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high24h'),
+            'low': self.safe_string(ticker, 'low24h'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': open,
             'close': last,
             'last': last,

@@ -608,7 +608,7 @@ class huobijp extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -1699,9 +1699,9 @@ class huobijp extends Exchange {
         $url = '/';
         if ($api === 'market') {
             $url .= $api;
-        } else if (($api === 'public') || ($api === 'private')) {
+        } elseif (($api === 'public') || ($api === 'private')) {
             $url .= $this->version;
-        } else if (($api === 'v2Public') || ($api === 'v2Private')) {
+        } elseif (($api === 'v2Public') || ($api === 'v2Private')) {
             $url .= 'v2';
         }
         $url .= '/' . $this->implode_params($path, $params);

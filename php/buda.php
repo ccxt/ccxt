@@ -484,7 +484,7 @@ class buda extends Exchange {
             'baseVolume' => $this->safe_string($baseVolume, 0),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

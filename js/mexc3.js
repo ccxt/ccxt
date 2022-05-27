@@ -1231,14 +1231,6 @@ module.exports = class mexc3 extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend ({ 'price': 'index' }, params));
-    }
-
-    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend ({ 'price': 'mark' }, params));
-    }
-
     parseOHLCV (ohlcv, market = undefined) {
         return [
             this.safeInteger (ohlcv, 0),
@@ -1525,7 +1517,7 @@ module.exports = class mexc3 extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchBidsAsks (symbols = undefined, params = {}) {
@@ -2361,6 +2353,8 @@ module.exports = class mexc3 extends Exchange {
             'NEW': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
+            'PARTIALLY_FILLED': 'open',
+            'PARTIALLY_CANCELED': 'canceled',
             // contracts v1
             // '1': 'uninformed', // TODO: wt?
             '2': 'open',
@@ -3390,7 +3384,7 @@ module.exports = class mexc3 extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parsePositions (data);
+        return this.parsePositions (data, symbols);
     }
 
     parsePosition (position, market = undefined) {
@@ -3453,14 +3447,6 @@ module.exports = class mexc3 extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-    }
-
-    parsePositions (positions) {
-        const result = [];
-        for (let i = 0; i < positions.length; i++) {
-            result.push (this.parsePosition (positions[i]));
-        }
-        return result;
     }
 
     async fetchTransfer (id, since = undefined, limit = undefined, params = {}) {

@@ -302,7 +302,7 @@ function test_accounts($exchange) {
     $method = 'fetchAccounts';
     if ($exchange->has[$method]) {
         dump(green($exchange->id), 'executing ' . $method . '()');
-        $accounts = $exchange->{$method}($symbol);
+        $accounts = $exchange->{$method}();
         foreach ($accounts as $account) {
             test_account($exchange, $account);
         }

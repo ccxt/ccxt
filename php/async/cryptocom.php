@@ -1493,7 +1493,7 @@ class cryptocom extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'v'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -1538,7 +1538,7 @@ class cryptocom extends Exchange {
             $feeCurrency = null;
             if ($market['spot']) {
                 $feeCurrency = $this->safe_string($trade, 'fee_currency');
-            } else if ($market['linear']) {
+            } elseif ($market['linear']) {
                 $feeCurrency = $market['quote'];
             }
             $fee = array(
