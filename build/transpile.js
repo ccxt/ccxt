@@ -441,6 +441,8 @@ class Transpiler {
             [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'number\'/g, "!(is_float($1) || is_int($1))" ],
 
             [ /undefined/g, 'null' ],
+            [ /\} else if/g, '} elseif' ],
+            [ /else if/g, 'elseif' ],
             [ /this\.extend\s/g, 'array_merge' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /this\.stringToBase64\s/g, 'base64_encode' ],
