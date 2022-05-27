@@ -3957,7 +3957,7 @@ class Exchange {
         sleep($milliseconds / 1000);
     }
 
-    public function is_post_only($type, $timeInForce, $params = array ()) {
+    public function is_post_only($type, $params = array ()) {
         /**
          * @ignore
          * @param {string} $type Order $type
@@ -3965,14 +3965,15 @@ class Exchange {
          * @param {dict} $params Exchange specific $params
          * @return {boolean} true if a post only order, false otherwise
          */
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $postOnly = $this->safe_value_2($params, 'postOnly', 'post_only', false);
-        $typeLower = strtolower($type);
         // we assume $timeInForce is uppercase from safeStringUpper ($params, 'timeInForce')
         $ioc = $timeInForce === 'IOC';
         $fok = $timeInForce === 'FOK';
         $timeInForcePostOnly = $timeInForce === 'PO';
+        $typeLower = strtolower($type);
         $isMarket = $typeLower === 'market';
-        $postOnly = $postOnly || $timeInForcePostOnly || ($typeLower === 'postonly') || ($typeLower === 'post_only');
+        $postOnly = $postOnly || $timeInForcePostOnly;
         if ($postOnly) {
             if ($ioc || $fok) {
                 throw new InvalidOrder($this->id . ' $postOnly orders cannot have $timeInForce equal to ' . $timeInForce);

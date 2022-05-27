@@ -2361,7 +2361,7 @@ module.exports = class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    isPostOnly (type, timeInForce, params = {}) {
+    isPostOnly (type, params = {}) {
         /**
          * @ignore
          * @method
@@ -2370,14 +2370,15 @@ module.exports = class Exchange {
          * @param {dict} params Exchange specific params
          * @returns {boolean} true if a post only order, false otherwise
          */
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
         let postOnly = this.safeValue2 (params, 'postOnly', 'post_only', false);
-        const typeLower = type.toLowerCase ();
         // we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
         const ioc = timeInForce === 'IOC';
         const fok = timeInForce === 'FOK';
         const timeInForcePostOnly = timeInForce === 'PO';
+        const typeLower = type.toLowerCase ();
         const isMarket = typeLower === 'market';
-        postOnly = postOnly || timeInForcePostOnly || (typeLower === 'postonly') || (typeLower === 'post_only');
+        postOnly = postOnly || timeInForcePostOnly;
         if (postOnly) {
             if (ioc || fok) {
                 throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
