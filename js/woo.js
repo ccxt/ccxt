@@ -94,13 +94,15 @@ module.exports = class woo extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg',
                 'api': {
+                    'pub': 'https://api-pub.staging.woo.org',
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
                 },
                 // TEST (stating) api ( https://support.woo.org/hc/en-001/articles/4406352945305--Institutional-Account-Welcome-Packet-V-2) doesn't work at this moment, even thou
                 'test': {
-                    'public': 'http://api.staging.woo.org',
-                    'private': 'http://api.staging.woo.org',
+                    'pub': 'https://api-pub.staging.woo.org',
+                    'public': 'https://api.staging.woo.org',
+                    'private': 'https://api.staging.woo.org',
                 },
                 'www': 'https://woo.org/',
                 'doc': [
@@ -113,6 +115,11 @@ module.exports = class woo extends Exchange {
             },
             'api': {
                 'v1': {
+                    'pub': {
+                        'get': {
+                            'hist/kline': 10,
+                        },
+                    },
                     'public': {
                         'get': {
                             'info': 1,
