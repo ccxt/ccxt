@@ -1191,6 +1191,11 @@ class gateio(Exchange):
         return self.safe_value(fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle)
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the gateio api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         # sandbox/testnet only supports future markets
         apiBackup = self.safe_value(self.urls, 'apiBackup')
         if apiBackup is not None:
@@ -2109,12 +2114,6 @@ class gateio(Exchange):
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'mark',
-        }
-        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
-
     def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         """
         fetches historical funding rate prices
@@ -2154,12 +2153,6 @@ class gateio(Exchange):
             })
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
-
-    def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'index',
-        }
-        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -3684,12 +3677,6 @@ class gateio(Exchange):
             'percentage': self.parse_number(percentage),
         }
 
-    def parse_positions(self, positions):
-        result = []
-        for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i]))
-        return result
-
     def fetch_positions(self, symbols=None, params={}):
         """
         Fetch trades positions
@@ -3736,8 +3723,7 @@ class gateio(Exchange):
         #         }
         #     ]
         #
-        result = self.parse_positions(response)
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.parse_positions(response, symbols)
 
     def fetch_leverage_tiers(self, symbols=None, params={}):
         self.load_markets()

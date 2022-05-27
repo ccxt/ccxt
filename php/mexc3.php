@@ -420,6 +420,11 @@ class mexc3 extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {dict} $params extra parameters specific to the mexc3 api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-$status-structure $status structure}
+         */
         list($marketType, $query) = $this->handle_market_type_and_params('fetchStatus', null, $params);
         $response = null;
         $status = null;
@@ -445,6 +450,11 @@ class mexc3 extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the mexc3 api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTime', null, $params);
         $response = null;
         if ($marketType === 'spot') {
@@ -463,6 +473,11 @@ class mexc3 extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the mexc3 api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = $this->spot2PublicGetMarketCoinList ($params);
         //
         //     {
@@ -1208,14 +1223,6 @@ class mexc3 extends Exchange {
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge(array( 'price' => 'index' ), $params));
-    }
-
-    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge(array( 'price' => 'mark' ), $params));
-    }
-
     public function parse_ohlcv($ohlcv, $market = null) {
         return array(
             $this->safe_integer($ohlcv, 0),
@@ -1502,6 +1509,12 @@ class mexc3 extends Exchange {
     }
 
     public function fetch_bids_asks($symbols = null, $params = array ()) {
+        /**
+         * fetches the bid and ask price and volume for multiple markets
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {dict} $params extra parameters specific to the mexc3 api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
         $this->load_markets();
         $market = null;
         $isSingularMarket = false;
@@ -2326,6 +2339,8 @@ class mexc3 extends Exchange {
             'NEW' => 'open',
             'FILLED' => 'closed',
             'CANCELED' => 'canceled',
+            'PARTIALLY_FILLED' => 'open',
+            'PARTIALLY_CANCELED' => 'canceled',
             // contracts v1
             // '1' => 'uninformed', // TODO => wt?
             '2' => 'open',
@@ -3351,7 +3366,7 @@ class mexc3 extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_positions($data);
+        return $this->parse_positions($data, $symbols);
     }
 
     public function parse_position($position, $market = null) {
@@ -3414,14 +3429,6 @@ class mexc3 extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         );
-    }
-
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
     }
 
     public function fetch_transfer($id, $since = null, $limit = null, $params = array ()) {

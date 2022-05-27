@@ -1075,6 +1075,10 @@ module.exports = class Exchange {
         return symbols.map ((symbol) => this.marketId (symbol))
     }
 
+    marketSymbols (symbols) {
+        return (symbols === undefined) ? symbols : symbols.map ((symbol) => this.symbol (symbol))
+    }
+
     symbol (symbol) {
         return this.market (symbol).symbol || symbol
     }
@@ -2194,10 +2198,14 @@ module.exports = class Exchange {
         }
         // timeInForceHandling
         let timeInForce = this.safeString (order, 'timeInForce');
-        if (this.safeValue (order, 'postOnly', false)) {
-            timeInForce = 'PO';
-        } else if (this.safeString (order, 'type') === 'market') {
-            timeInForce = 'IOC';
+        if (timeInForce === undefined) {
+            if (this.safeString (order, 'type') === 'market') {
+                timeInForce = 'IOC';
+            }
+            // allow postOnly override
+            if (this.safeValue (order, 'postOnly', false)) {
+                timeInForce = 'PO';
+            }
         }
         return this.extend (order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
@@ -2439,6 +2447,12 @@ module.exports = class Exchange {
         }
     }
 
+    parsePositions (positions, symbols = undefined, params = {}) {
+        symbols = this.marketSymbols (symbols);
+        const result = Object.values (positions || []).map ((position) => this.merge (this.parsePosition (position), params));
+        return this.filterByArray (result, 'symbol', symbols, false);
+    }
+
     parseBorrowInterests (response, market = undefined) {
         const interest = [];
         for (let i = 0; i < response.length; i++) {
@@ -2474,6 +2488,72 @@ module.exports = class Exchange {
             }
         } else {
             throw new NotSupported (this.id + ' fetchFundingRate () is not supported yet');
+        }
+    }
+
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchMarkOHLCV
+         * @description fetches historical mark price candlestick data containing the open, high, low, and close price of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
+         */
+        if (this.has['fetchMarkOHLCV']) {
+            const request = {
+                'price': 'mark',
+            };
+            return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchMarkOHLCV () is not supported yet');
+        }
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchIndexOHLCV
+         * @description fetches historical index price candlestick data containing the open, high, low, and close price of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
+         */
+        if (this.has['fetchIndexOHLCV']) {
+            const request = {
+                'price': 'index',
+            };
+            return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchIndexOHLCV () is not supported yet');
+        }
+    }
+
+    async fetchPremiumIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchPremiumIndexOHLCV
+         * @description fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
+         */
+        if (this.has['fetchPremiumIndexOHLCV']) {
+            const request = {
+                'price': 'premiumIndex',
+            };
+            return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchPremiumIndexOHLCV () is not supported yet');
         }
     }
 }

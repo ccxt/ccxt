@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { TICK_SIZE, PAD_WITH_ZERO } = require ('./base/functions/number');
+const { TICK_SIZE, PAD_WITH_ZERO, ROUND, TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 const { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
@@ -163,6 +163,19 @@ module.exports = class idex extends Exchange {
         });
     }
 
+    priceToPrecision (symbol, price) {
+        //
+        // we override priceToPrecision to fix the following issue
+        // https://github.com/ccxt/ccxt/issues/13367
+        // {"code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\": all quantities and prices must be below 100 billion, above 0, need to be provided as strings, and always require 4 decimals ending with 4 zeroes"}
+        //
+        const market = this.market (symbol);
+        const info = this.safeValue (market, 'info', {});
+        const quoteAssetPrecision = this.safeInteger (info, 'quoteAssetPrecision');
+        price = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode);
+        return this.decimalToPrecision (price, TRUNCATE, quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO);
+    }
+
     async fetchMarkets (params = {}) {
         /**
          * @method
@@ -239,7 +252,7 @@ module.exports = class idex extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': (status === 'active'),
+                'active': (status !== 'inactive'),
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -676,6 +689,13 @@ module.exports = class idex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name idex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the idex api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         // [
         //   {
         //     name: 'Ether',

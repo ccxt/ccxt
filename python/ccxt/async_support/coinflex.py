@@ -296,6 +296,11 @@ class coinflex(Exchange):
         })
 
     async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = await self.publicGetV2Ping(params)
         #
         #     {"success": "true"}
@@ -462,6 +467,11 @@ class coinflex(Exchange):
         return result
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.publicGetV3Assets(params)
         #
         #     {
@@ -1513,13 +1523,7 @@ class coinflex(Exchange):
         # response sample inside `getAccountData` method
         self.targetAccount = self.safe_value(data, 0)
         positions = self.safe_value(self.targetAccount, 'positions', [])
-        return self.parse_positions(positions)
-
-    def parse_positions(self, positions):
-        result = []
-        for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i]))
-        return result
+        return self.parse_positions(positions, symbols)
 
     def parse_position(self, position, market=None):
         #

@@ -76,6 +76,7 @@ class okx extends Exchange {
                 'fetchMySells' => null,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => true,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -352,7 +353,7 @@ class okx extends Exchange {
                     '50023' => '\\ccxt\\ExchangeError', // Funding fee frozen. Operation restricted
                     '50024' => '\\ccxt\\BadRequest', // Parameter {0} and {1} can not exist at the same time
                     '50025' => '\\ccxt\\ExchangeError', // Parameter {0} count exceeds the limit {1}
-                    '50026' => '\\ccxt\\ExchangeError', // System error
+                    '50026' => '\\ccxt\\ExchangeNotAvailable', // System error, please try again later.
                     '50027' => '\\ccxt\\PermissionDenied', // The account is restricted from trading
                     '50028' => '\\ccxt\\ExchangeError', // Unable to take the order, please reach out to support center for details
                     // API Class
@@ -598,6 +599,7 @@ class okx extends Exchange {
                     '63999' => '\\ccxt\\ExchangeError', // Internal system error
                 ),
                 'broad' => array(
+                    'server error' => '\\ccxt\\ExchangeNotAvailable', // array("code":500,"data":array(),"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249")
                 ),
             ),
             'httpExceptions' => array(
@@ -618,6 +620,16 @@ class okx extends Exchange {
                 'layerTwo' => array(
                     'Lightning' => true,
                     'Liquid' => true,
+                ),
+                'fetchOpenInterestHistory' => array(
+                    'timeframes' => array(
+                        '5m' => '5m',
+                        '1h' => '1H',
+                        '1d' => '1D',
+                        '5M' => '5m',
+                        '1H' => '1H',
+                        '1D' => '1D',
+                    ),
                 ),
                 'fetchOHLCV' => array(
                     // 'type' => 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
@@ -718,6 +730,11 @@ class okx extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure status structure}
+         */
         $response = yield $this->publicGetSystemStatus ($params);
         //
         // Note, if there is no maintenance around, the 'data' array is empty
@@ -761,6 +778,11 @@ class okx extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = yield $this->publicGetPublicTime ($params);
         //
         //     {
@@ -1051,6 +1073,11 @@ class okx extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
@@ -1640,20 +1667,6 @@ class okx extends Exchange {
         }
         $sorted = $this->sort_by($rates, 'timestamp');
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
-    }
-
-    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'index',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
-    }
-
-    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'mark',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function parse_balance_by_type($type, $response) {
@@ -4834,6 +4847,75 @@ class okx extends Exchange {
             'timestamp' => $timestamp,  // Interest accrued time
             'datetime' => $this->iso8601($timestamp),
             'info' => $info,
+        );
+    }
+
+    public function fetch_open_interest_history($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * Retrieves the open interest history of a $currency
+         * @param {str} $symbol Unified CCXT $currency code instead of a unified $symbol
+         * @param {str} $timeframe "5m", "1h", or "1d"
+         * @param {int} $since The time in ms of the earliest record to retrieve as a unix timestamp
+         * @param {int} $limit Not used by okx, but parsed internally by CCXT
+         * @param {dict} $params Exchange specific parameters
+         * @param {int} $params->till The time in ms of the latest record to retrieve as a unix timestamp
+         * @return An array of open interest structures
+         */
+        $options = $this->safe_value($this->options, 'fetchOpenInterestHistory', array());
+        $timeframes = $this->safe_value($options, 'timeframes', array());
+        $timeframe = $this->safe_string($timeframes, $timeframe, $timeframe);
+        if ($timeframe !== '5m' && $timeframe !== '1H' && $timeframe !== '1D') {
+            throw new BadRequest($this->id . ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe');
+        }
+        yield $this->load_markets();
+        $currency = $this->currency($symbol);
+        $request = array(
+            'ccy' => $currency['id'],
+            'period' => $timeframe,
+        );
+        if ($since !== null) {
+            $request['begin'] = $since;
+        }
+        $till = $this->safe_integer_2($params, 'till', 'end');
+        if ($till !== null) {
+            $request['end'] = $till;
+        }
+        $response = yield $this->publicGetRubikStatContractsOpenInterestVolume (array_merge($request, $params));
+        //
+        //    {
+        //        code => '0',
+        //        $data => array(
+        //            array(
+        //                '1648221300000',  // timestamp
+        //                '2183354317.945',  // open interest (USD)
+        //                '74285877.617',  // volume (USD)
+        //            ),
+        //            ...
+        //        ),
+        //        msg => ''
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_open_interests($data, null, $since, $limit);
+    }
+
+    public function parse_open_interest($interest, $market = null) {
+        //
+        //    array(
+        //        '1648221300000',  // $timestamp
+        //        '2183354317.945',  // open $interest (USD)
+        //        '74285877.617',  // volume (USD)
+        //    )
+        //
+        $timestamp = $this->safe_number($interest, 0);
+        $openInterest = $this->safe_number($interest, 1);
+        return array(
+            'symbol' => null,
+            'baseVolume' => null,
+            'quoteVolume' => $openInterest,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $interest,
         );
     }
 

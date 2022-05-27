@@ -160,9 +160,23 @@ class idex extends Exchange {
                 'apiKey' => true,
                 'secret' => true,
             ),
+            'precisionMode' => TICK_SIZE,
             'paddingMode' => PAD_WITH_ZERO,
             'commonCurrencies' => array(),
         ));
+    }
+
+    public function price_to_precision($symbol, $price) {
+        //
+        // we override priceToPrecision to fix the following issue
+        // https://github.com/ccxt/ccxt/issues/13367
+        // array("code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\" => all quantities and prices must be below 100 billion, above 0, need to be provided as strings, and always require 4 decimals ending with 4 zeroes")
+        //
+        $market = $this->market($symbol);
+        $info = $this->safe_value($market, 'info', array());
+        $quoteAssetPrecision = $this->safe_integer($info, 'quoteAssetPrecision');
+        $price = $this->decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode);
+        return $this->decimal_to_precision($price, TRUNCATE, $quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO);
     }
 
     public function fetch_markets($params = array ()) {
@@ -197,7 +211,8 @@ class idex extends Exchange {
         //     "takerFeeRate" => "0.002",
         //     "makerTradeMinimum" => "0.15000000",
         //     "takerTradeMinimum" => "0.05000000",
-        //     "withdrawalMinimum" => "0.04000000"
+        //     "withdrawalMinimum" => "0.04000000",
+        //     "tickSize":"0.00001000"
         // }
         //
         $maker = $this->safe_number($response2, 'makerFeeRate');
@@ -215,8 +230,9 @@ class idex extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $basePrecisionString = $this->safe_string($entry, 'baseAssetPrecision');
             $quotePrecisionString = $this->safe_string($entry, 'quoteAssetPrecision');
-            $basePrecision = $this->parse_precision($basePrecisionString);
-            $quotePrecision = $this->parse_precision($quotePrecisionString);
+            $basePrecision = $this->parse_number($this->parse_precision($basePrecisionString));
+            $quotePrecision = $this->parse_number($this->parse_precision($quotePrecisionString));
+            $quotePrecision = $this->safe_number($entry, 'tickSize', $quotePrecision);
             $status = $this->safe_string($entry, 'status');
             $minCost = null;
             if ($quote === 'ETH') {
@@ -237,7 +253,7 @@ class idex extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'active' => ($status === 'active'),
+                'active' => ($status !== 'inactive'),
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
@@ -249,8 +265,8 @@ class idex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => intval($basePrecisionString),
-                    'price' => intval($quotePrecisionString),
+                    'amount' => $basePrecision,
+                    'price' => $quotePrecision,
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -258,11 +274,11 @@ class idex extends Exchange {
                         'max' => null,
                     ),
                     'amount' => array(
-                        'min' => $this->parse_number($basePrecision),
+                        'min' => $basePrecision,
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => $this->parse_number($quotePrecision),
+                        'min' => $quotePrecision,
                         'max' => null,
                     ),
                     'cost' => array(
@@ -664,6 +680,11 @@ class idex extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the idex api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         // array(
         //   array(
         //     $name => 'Ether',

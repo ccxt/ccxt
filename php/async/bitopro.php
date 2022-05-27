@@ -20,6 +20,7 @@ class bitopro extends Exchange {
             'countries' => array( 'TW' ), // Taiwan
             'version' => 'v3',
             'rateLimit' => 100,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -198,6 +199,11 @@ class bitopro extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {dict} $params extra parameters specific to the bitopro api endpoint
+         * @return {dict} an associative dictionary of $currencies
+         */
         $response = yield $this->publicGetProvisioningCurrencies ($params);
         $currencies = $this->safe_value($response, 'data', array());
         //

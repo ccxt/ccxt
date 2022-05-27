@@ -16,6 +16,7 @@ module.exports = class bitopro extends Exchange {
             'countries': [ 'TW' ], // Taiwan
             'version': 'v3',
             'rateLimit': 100,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -194,6 +195,13 @@ module.exports = class bitopro extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name bitopro#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the bitopro api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetProvisioningCurrencies (params);
         const currencies = this.safeValue (response, 'data', []);
         //

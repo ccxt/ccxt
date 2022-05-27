@@ -77,11 +77,13 @@ class zb(Exchange):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
+                'fetchIndexOHLCV': True,
                 'fetchLedger': True,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -710,6 +712,11 @@ class zb(Exchange):
         return result
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.spotV1PublicGetGetFeeInfo(params)
         #
         #     {
@@ -1576,18 +1583,6 @@ class zb(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
-
-    def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'mark',
-        }
-        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
-
-    def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'index',
-        }
-        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def parse_trade(self, trade, market=None):
         #
@@ -3351,9 +3346,6 @@ class zb(Exchange):
 
     def fetch_positions(self, symbols=None, params={}):
         self.load_markets()
-        market = None
-        if symbols is not None:
-            market = self.market(symbols)
         request = {
             'futuresAccountType': 1,  # 1: USDT-M Perpetual Futures
             # 'symbol': market['id'],
@@ -3411,7 +3403,7 @@ class zb(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_positions(data, market)
+        return self.parse_positions(data, symbols)
 
     def parse_position(self, position, market=None):
         #
@@ -3457,7 +3449,8 @@ class zb(Exchange):
         #         "userId": "6896693805014120448"
         #     }
         #
-        market = self.safe_market(self.safe_string(position, 'marketName'), market)
+        marketId = self.safe_string(position, 'marketName')
+        market = self.safe_market(marketId, market)
         symbol = market['symbol']
         contracts = self.safe_string(position, 'amount')
         entryPrice = self.safe_number(position, 'avgPrice')
@@ -3498,12 +3491,6 @@ class zb(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-
-    def parse_positions(self, positions):
-        result = []
-        for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i]))
-        return result
 
     def parse_ledger_entry_type(self, type):
         types = {

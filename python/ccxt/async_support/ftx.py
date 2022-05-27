@@ -360,6 +360,7 @@ class ftx(Exchange):
                     'Account does not have enough balances': InsufficientFunds,  # {"success":false,"error":"Account does not have enough balances"}
                     'Not authorized for subaccount-specific access': PermissionDenied,  # {"success":false,"error":"Not authorized for subaccount-specific access"}
                     'Not approved to trade self product': PermissionDenied,  # {"success":false,"error":"Not approved to trade self product"}
+                    'Internal Error': ExchangeNotAvailable,  # {"success":false,"error":"Internal Error"}
                 },
                 'broad': {
                     # {"error":"Not logged in","success":false}
@@ -423,6 +424,11 @@ class ftx(Exchange):
         })
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.publicGetCoins(params)
         currencies = self.safe_value(response, 'result', [])
         #
@@ -793,6 +799,7 @@ class ftx(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetMarkets(params)
         #
         #     {
@@ -961,12 +968,6 @@ class ftx(Exchange):
         #
         result = self.safe_value(response, 'result', [])
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
-
-    async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'index',
-        }
-        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def parse_trade(self, trade, market=None):
         #
@@ -2061,10 +2062,7 @@ class ftx(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', [])
-        results = []
-        for i in range(0, len(result)):
-            results.append(self.parse_position(result[i]))
-        return self.filter_by_array(results, 'symbol', symbols, False)
+        return self.parse_positions(result, symbols)
 
     def parse_position(self, position, market=None):
         #

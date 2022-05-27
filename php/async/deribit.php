@@ -383,6 +383,11 @@ class deribit extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the deribit api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = yield $this->publicGetGetTime ($params);
         //
         //     {
@@ -405,6 +410,11 @@ class deribit extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {dict} $params extra parameters specific to the deribit api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure status structure}
+         */
         $response = yield $this->publicGetStatus ($params);
         //
         //     {
@@ -2095,14 +2105,6 @@ class deribit extends Exchange {
         return $this->parse_position($result);
     }
 
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
-    }
-
     public function fetch_positions($symbols = null, $params = array ()) {
         yield $this->load_markets();
         $code = null;
@@ -2156,7 +2158,7 @@ class deribit extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result');
-        return $this->parse_positions($result);
+        return $this->parse_positions($result, $symbols);
     }
 
     public function fetch_historical_volatility($code, $params = array ()) {

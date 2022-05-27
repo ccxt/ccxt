@@ -31,18 +31,25 @@ class cex(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,  # has but unimplemented
+                'margin': False,  # has but not through api
                 'swap': False,
                 'future': False,
                 'option': False,
+                'addMargin': False,
                 'cancelOrder': True,
+                'cancelOrders': False,
+                'createDepositAddress': False,
                 'createOrder': True,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDeposit': False,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
                 'fetchDeposits': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
@@ -63,10 +70,16 @@ class cex(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransactions': False,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': False,
+                'fetchWithdrawalWhitelist': False,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMargin': False,
+                'setMarginMode': False,
                 'transfer': False,
                 'withdraw': False,
             },
@@ -199,6 +212,11 @@ class cex(Exchange):
         return self.safe_value(self.options['fetchCurrencies'], 'response')
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the cex api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.fetch_currencies_from_cache(params)
         self.options['currencies'] = {
             'timestamp': self.milliseconds(),

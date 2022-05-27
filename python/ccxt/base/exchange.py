@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.83.47'
+__version__ = '1.84.12'
 
 # -----------------------------------------------------------------------------
 
@@ -2341,9 +2341,16 @@ class Exchange(object):
     def market_ids(self, symbols):
         return [self.market_id(symbol) for symbol in symbols]
 
+    def market_symbols(self, symbols):
+        return [self.symbol(symbol) for symbol in symbols] if symbols else symbols
+
     def market_id(self, symbol):
         market = self.market(symbol)
         return market['id'] if type(market) is dict else symbol
+
+    def symbol(self, symbol):
+        market = self.market(symbol)
+        return market['symbol'] if type(market) is dict else symbol
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
@@ -2867,10 +2874,12 @@ class Exchange(object):
             entry['fee'] = fee
         # timeInForceHandling
         timeInForce = self.safe_string(order, 'timeInForce')
-        if self.safe_value(order, 'postOnly', False):
-            timeInForce = 'PO'
-        elif self.safe_string(order, 'type') == 'market':
-            timeInForce = 'IOC'
+        if timeInForce is None:
+            if self.safe_string(order, 'type') == 'market':
+                timeInForce = 'IOC'
+            # allow postOnly override
+            if self.safe_value(order, 'postOnly', False):
+                timeInForce = 'PO'
         return self.extend(order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
             'price': self.parse_number(price),
@@ -3055,6 +3064,12 @@ class Exchange(object):
         if amount <= 0:
             raise ArgumentsRequired(self.id + ' create_order() amount should be above 0')
 
+    def parse_positions(self, positions, symbols=None, params={}):
+        symbols = self.market_symbols(symbols)
+        array = self.to_array(positions)
+        array = [self.merge(self.parse_position(position), params) for position in array]
+        return self.filter_by_array(array, 'symbol', symbols, False)
+
     def parse_borrow_interests(self, response, market=None):
         interest = []
         for i in range(len(response)):
@@ -3078,7 +3093,8 @@ class Exchange(object):
             interest = self.parseOpenInterest(entry, market)
             interests.append(interest)
         sorted = self.sortBy(interests, 'timestamp')
-        return self.filterBySymbolSinceLimit(sorted, market, since, limit)
+        symbol = this.safeString(market, 'symbol')
+        return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
 
     def fetch_funding_rate(self, symbol, params={}):
         if self.has['fetchFundingRates']:
@@ -3093,3 +3109,57 @@ class Exchange(object):
                 return rate
         else:
             raise NotSupported(self.id + ' fetch_funding_rate() is not supported yet')
+
+    def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical mark price candlestick data containing the open, high, low, and close price of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [[int|float]] A: list of candles ordered as timestamp, open, high, low, close, None
+        """
+        if self.has['fetchMarkOHLCV']:
+            request = {
+                'price': 'mark',
+            }
+            return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchMarkOHLCV() is not supported yet')
+
+    def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical index price candlestick data containing the open, high, low, and close price of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [[int|float]] A: list of candles ordered as timestamp, open, high, low, close, None
+        """
+        if self.has['fetchIndexOHLCV']:
+            request = {
+                'price': 'index',
+            }
+            return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchIndexOHLCV() is not supported yet')
+
+    def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [[int|float]] A: list of candles ordered as timestamp, open, high, low, close, None
+        """
+        if self.has['fetchPremiumIndexOHLCV']:
+            request = {
+                'price': 'premiumIndex',
+            }
+            return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchPremiumIndexOHLCV() is not supported yet')

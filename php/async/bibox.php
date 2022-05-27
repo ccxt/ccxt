@@ -501,6 +501,11 @@ class bibox extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the bibox api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         if ($this->check_required_credentials(false)) {
             return yield $this->fetch_currencies_private($params);
         } else {

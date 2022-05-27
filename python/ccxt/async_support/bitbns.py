@@ -154,6 +154,11 @@ class bitbns(Exchange):
         })
 
     async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the bitbns api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = await self.v1GetPlatformStatus(params)
         #
         #     {
@@ -425,12 +430,14 @@ class bitbns(Exchange):
             numParts = len(parts)
             if numParts > 1:
                 currencyId = self.safe_string(parts, 1)
-                if currencyId != 'Money':
-                    code = self.safe_currency_code(currencyId)
-                    account = self.account()
-                    account['free'] = self.safe_string(data, key)
-                    account['used'] = self.safe_string(data, 'inorder' + currencyId)
-                    result[code] = account
+                # note that "Money" stands for INR - the only fiat in bitbns
+                if currencyId == 'Money':
+                    currencyId = 'INR'
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['free'] = self.safe_string(data, key)
+                account['used'] = self.safe_string(data, 'inorder' + currencyId)
+                result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
@@ -444,10 +451,10 @@ class bitbns(Exchange):
         #
         #     {
         #         "data":{
-        #             "availableorderMoney":0,
+        #             "availableorderMoney":12.34,  # INR
         #             "availableorderBTC":0,
         #             "availableorderXRP":0,
-        #             "inorderMoney":0,
+        #             "inorderMoney":0,  # INR
         #             "inorderBTC":0,
         #             "inorderXRP":0,
         #             "inorderNEO":0,
@@ -457,6 +464,7 @@ class bitbns(Exchange):
         #         "code":200
         #     }
         #
+        # note that "Money" stands for INR - the only fiat in bitbns
         return self.parse_balance(response)
 
     def parse_order_status(self, status):

@@ -293,6 +293,11 @@ class coinflex extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-$status-structure $status structure}
+         */
         $response = yield $this->publicGetV2Ping ($params);
         //
         //     array( "success" => "true" )
@@ -464,6 +469,11 @@ class coinflex extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = yield $this->publicGetV3Assets ($params);
         //
         //     {
@@ -1582,15 +1592,7 @@ class coinflex extends Exchange {
         // response sample inside `getAccountData` method
         $this->targetAccount = $this->safe_value($data, 0);
         $positions = $this->safe_value($this->targetAccount, 'positions', array());
-        return $this->parse_positions($positions);
-    }
-
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
+        return $this->parse_positions($positions, $symbols);
     }
 
     public function parse_position($position, $market = null) {

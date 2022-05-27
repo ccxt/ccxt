@@ -347,6 +347,11 @@ class bitrue(Exchange):
         return self.milliseconds() - self.options['timeDifference']
 
     async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = await self.v1PublicGetPing(params)
         #
         # empty means working status.
@@ -365,6 +370,11 @@ class bitrue(Exchange):
         }
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.v1PublicGetTime(params)
         #
         #     {
@@ -445,6 +455,11 @@ class bitrue(Exchange):
         return self.safe_string_2(networksById, networkId, uppercaseNetworkId, networkId)
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.v1PublicGetExchangeInfo(params)
         #
         #     {
@@ -825,6 +840,12 @@ class bitrue(Exchange):
         return self.parse_ticker(ticker, market)
 
     async def fetch_bids_asks(self, symbols=None, params={}):
+        """
+        fetches the bid and ask price and volume for multiple markets
+        :param [str]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchBidsAsks', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)

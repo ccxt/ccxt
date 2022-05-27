@@ -37,10 +37,15 @@ class coinex(Exchange):
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'createDepositAddress': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchCurrencies': True,
+                'fetchDepositAddress': True,
+                'fetchDepositAddressByNetwork': False,
+                'fetchDepositAddresses': False,
                 'fetchDeposits': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
@@ -63,10 +68,15 @@ class coinex(Exchange):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
+                'fetchTransactionFee:': False,
+                'fetchTransactoinFees': False,
+                'fetchTransfer': False,
                 'fetchTransfers': True,
+                'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
                 'setLeverage': True,
@@ -260,11 +270,100 @@ class coinex(Exchange):
                 'defaultType': 'spot',  # spot, swap, margin
                 'defaultSubType': 'linear',  # linear, inverse
                 'defaultMarginMode': 'isolated',  # isolated, cross
+                'fetchDepositAddress': {
+                    'fillResponseFromRequest': True,
+                },
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',
             },
         })
+
+    def fetch_currencies(self, params={}):
+        response = self.publicGetCommonAssetConfig(params)
+        #
+        #     {
+        #         code: 0,
+        #         data: {
+        #           'CET-CSC': {
+        #               asset: 'CET',
+        #               chain: 'CSC',
+        #               withdrawal_precision: 8,
+        #               can_deposit: True,
+        #               can_withdraw: True,
+        #               deposit_least_amount: '0.026',
+        #               withdraw_least_amount: '20',
+        #               withdraw_tx_fee: '0.026'
+        #           },
+        #           ...
+        #           message: 'Success',
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        coins = list(data.keys())
+        result = {}
+        for i in range(0, len(coins)):
+            coin = coins[i]
+            currency = data[coin]
+            currencyId = self.safe_string(currency, 'asset')
+            networkId = self.safe_string(currency, 'chain')
+            code = self.safe_currency_code(currencyId)
+            if self.safe_value(result, code) is None:
+                result[code] = {
+                    'id': currencyId,
+                    'numericId': None,
+                    'code': code,
+                    'info': currency,
+                    'name': None,
+                    'active': True,
+                    'deposit': self.safe_value(currency, 'can_deposit'),
+                    'withdraw': self.safe_value(currency, 'can_withdraw'),
+                    'fee': self.safe_number(currency, 'withdraw_tx_fee'),
+                    'precision': self.safe_number(currency, 'withdrawal_precision'),
+                    'limits': {
+                        'amount': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': self.safe_number(currency, 'deposit_least_amount'),
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': self.safe_number(currency, 'withdraw_least_amount'),
+                            'max': None,
+                        },
+                    },
+                }
+            networks = self.safe_value(result[code], 'networks', {})
+            network = {
+                'info': currency,
+                'id': networkId,
+                'network': networkId,
+                'name': None,
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': self.safe_number(currency, 'deposit_least_amount'),
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': self.safe_number(currency, 'withdraw_least_amount'),
+                        'max': None,
+                    },
+                },
+                'active': True,
+                'deposit': self.safe_value(currency, 'can_deposit'),
+                'withdraw': self.safe_value(currency, 'can_withdraw'),
+                'fee': self.safe_number(currency, 'withdraw_tx_fee'),
+                'precision': self.safe_number(currency, 'withdrawal_precision'),
+            }
+            networks[networkId] = network
+            result[code]['networks'] = networks
+        return result
 
     def fetch_markets(self, params={}):
         """
@@ -425,7 +524,7 @@ class coinex(Exchange):
                 'swap': True,
                 'future': False,
                 'option': False,
-                'active': self.safe_string(entry, 'available'),
+                'active': self.safe_value(entry, 'available'),
                 'contract': True,
                 'linear': linear,
                 'inverse': inverse,
@@ -685,6 +784,22 @@ class coinex(Exchange):
             ticker['symbol'] = symbol
             result[symbol] = ticker
         return self.filter_by_array(result, 'symbol', symbols)
+
+    def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the coinex api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
+        response = self.perpetualPublicGetTime(params)
+        #
+        #     {
+        #         code: '0',
+        #         data: '1653261274414',
+        #         message: 'OK'
+        #     }
+        #
+        return self.safe_number(response, 'data')
 
     def fetch_order_book(self, symbol, limit=20, params={}):
         """
@@ -2156,6 +2271,96 @@ class coinex(Exchange):
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         return self.fetch_orders_by_status('finished', symbol, since, limit, params)
 
+    def create_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin_type': currency['id'],
+        }
+        if 'network' in params:
+            network = self.safe_string(params, 'network')
+            params = self.omit(params, 'network')
+            request['smart_contract_name'] = network
+        response = self.privatePutBalanceDepositAddressCoinType(self.extend(request, params))
+        #
+        #     {
+        #         code: 0,
+        #         data: {
+        #             coin_address: 'TV639dSpb9iGRtoFYkCp4AoaaDYKrK1pw5',
+        #             is_bitcoin_cash: False
+        #         },
+        #         message: 'Success'
+        #     }
+        data = self.safe_value(response, 'data', {})
+        return self.parse_deposit_address(data, currency)
+
+    def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin_type': currency['id'],
+        }
+        networks = self.safe_value(currency, 'networks', {})
+        network = self.safe_string(params, 'network')
+        params = self.omit(params, 'network')
+        networksKeys = list(networks.keys())
+        numOfNetworks = len(networksKeys)
+        if networks is not None and numOfNetworks > 1:
+            if network is None:
+                raise ArgumentsRequired(self.id + ' fetchDepositAddress() ' + code + ' requires a network parameter')
+            if not (network in networks):
+                raise ExchangeError(self.id + ' fetchDepositAddress() ' + network + ' network not supported for ' + code)
+        if network is not None:
+            request['smart_contract_name'] = network
+        response = self.privateGetBalanceDepositAddressCoinType(self.extend(request, params))
+        #
+        #      {
+        #          code: 0,
+        #          data: {
+        #            coin_address: '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
+        #            is_bitcoin_cash: False
+        #          },
+        #          message: 'Success'
+        #      }
+        #
+        data = self.safe_value(response, 'data', {})
+        depositAddress = self.parse_deposit_address(data, currency)
+        options = self.safe_value(self.options, 'fetchDepositAddress', {})
+        fillResponseFromRequest = self.safe_value(options, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            depositAddress['network'] = self.safe_network_code(network, currency)
+        return depositAddress
+
+    def safe_network(self, networkId, currency=None):
+        networks = self.safe_value(currency, 'networks', {})
+        networksCodes = list(networks.keys())
+        if networkId is None and len(networksCodes) == 1:
+            return networks[networksCodes[0]]
+        return {
+            'id': networkId,
+            'network': None if (networkId is None) else networkId.upper(),
+        }
+
+    def safe_network_code(self, networkId, currency=None):
+        network = self.safe_network(networkId, currency)
+        return network['network']
+
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        #     {
+        #         coin_address: '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
+        #         is_bitcoin_cash: False
+        #     }
+        #
+        address = self.safe_string(depositAddress, 'coin_address')
+        return {
+            'info': depositAddress,
+            'currency': self.safe_currency_code(None, currency),
+            'address': address,
+            'tag': None,
+            'network': None,
+        }
+
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
@@ -3303,7 +3508,7 @@ class coinex(Exchange):
                 'Authorization': signature.lower(),
                 'AccessId': self.apiKey,
             }
-            if (method == 'GET'):
+            if (method == 'GET') or (method == 'PUT'):
                 url += '?' + urlencoded
             else:
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
@@ -3323,7 +3528,7 @@ class coinex(Exchange):
                 'Authorization': signature.upper(),
                 'Content-Type': 'application/json',
             }
-            if (method == 'GET') or (method == 'DELETE'):
+            if (method == 'GET') or (method == 'DELETE') or (method == 'PUT'):
                 url += '?' + urlencoded
             else:
                 body = self.json(query)

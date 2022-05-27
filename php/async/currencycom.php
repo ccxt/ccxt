@@ -295,6 +295,11 @@ class currencycom extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the currencycom api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = yield $this->publicGetV2Time ($params);
         //
         //     {
@@ -305,6 +310,11 @@ class currencycom extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the currencycom api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         // requires authentication
         if (!$this->check_required_credentials(false)) {
             return null;
@@ -1717,15 +1727,7 @@ class currencycom extends Exchange {
         // }
         //
         $data = $this->safe_value($response, 'positions', array());
-        return $this->parse_positions($data);
-    }
-
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
+        return $this->parse_positions($data, $symbols);
     }
 
     public function parse_position($position, $market = null) {

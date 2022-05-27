@@ -309,6 +309,13 @@ module.exports = class bkex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name bkex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the bkex api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetCommonCurrencys (params);
         //
         // {
@@ -362,6 +369,13 @@ module.exports = class bkex extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name bkex#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the bkex api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetCommonTimestamp (params);
         //
         // {
@@ -375,6 +389,13 @@ module.exports = class bkex extends Exchange {
     }
 
     async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name bkex#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {dict} params extra parameters specific to the bkex api endpoint
+         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
         const response = await this.publicGetCommonTimestamp (params);
         //
         //     {

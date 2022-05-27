@@ -24,6 +24,7 @@ class bitopro(Exchange):
             'countries': ['TW'],  # Taiwan
             'version': 'v3',
             'rateLimit': 100,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -201,6 +202,11 @@ class bitopro(Exchange):
         })
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the bitopro api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.publicGetProvisioningCurrencies(params)
         currencies = self.safe_value(response, 'data', [])
         #

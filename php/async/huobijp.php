@@ -332,6 +332,11 @@ class huobijp extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the huobijp api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = yield $this->publicGetCommonTimestamp ($params);
         return $this->safe_integer($response, 'data');
     }
@@ -953,6 +958,11 @@ class huobijp extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {dict} $params extra parameters specific to the huobijp api endpoint
+         * @return {dict} an associative dictionary of $currencies
+         */
         $request = array(
             'language' => $this->options['language'],
         );

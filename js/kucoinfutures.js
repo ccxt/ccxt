@@ -308,6 +308,13 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
         const response = await this.futuresPublicGetStatus (params);
         //
         //     {
@@ -491,6 +498,13 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.futuresPublicGetTimestamp (params);
         //
         //    {
@@ -866,15 +880,8 @@ module.exports = class kucoinfutures extends kucoin {
         //        ]
         //    }
         //
-        return this.parsePositions (this.safeValue (response, 'data'));
-    }
-
-    parsePositions (positions) {
-        const result = [];
-        for (let i = 0; i < positions.length; i++) {
-            result.push (this.parsePosition (positions[i]));
-        }
-        return result;
+        const data = this.safeValue (response, 'data');
+        return this.parsePositions (data, symbols);
     }
 
     parsePosition (position, market = undefined) {

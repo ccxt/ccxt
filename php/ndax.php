@@ -306,6 +306,11 @@ class ndax extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the ndax api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $request = array(
             'omsId' => $omsId,

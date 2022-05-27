@@ -148,6 +148,13 @@ module.exports = class bitbns extends Exchange {
     }
 
     async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name bitbns#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {dict} params extra parameters specific to the bitbns api endpoint
+         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
         const response = await this.v1GetPlatformStatus (params);
         //
         //     {
@@ -431,14 +438,16 @@ module.exports = class bitbns extends Exchange {
             const parts = key.split ('availableorder');
             const numParts = parts.length;
             if (numParts > 1) {
-                const currencyId = this.safeString (parts, 1);
-                if (currencyId !== 'Money') {
-                    const code = this.safeCurrencyCode (currencyId);
-                    const account = this.account ();
-                    account['free'] = this.safeString (data, key);
-                    account['used'] = this.safeString (data, 'inorder' + currencyId);
-                    result[code] = account;
+                let currencyId = this.safeString (parts, 1);
+                // note that "Money" stands for INR - the only fiat in bitbns
+                if (currencyId === 'Money') {
+                    currencyId = 'INR';
                 }
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (data, key);
+                account['used'] = this.safeString (data, 'inorder' + currencyId);
+                result[code] = account;
             }
         }
         return this.safeBalance (result);
@@ -457,10 +466,10 @@ module.exports = class bitbns extends Exchange {
         //
         //     {
         //         "data":{
-        //             "availableorderMoney":0,
+        //             "availableorderMoney":12.34, // INR
         //             "availableorderBTC":0,
         //             "availableorderXRP":0,
-        //             "inorderMoney":0,
+        //             "inorderMoney":0, // INR
         //             "inorderBTC":0,
         //             "inorderXRP":0,
         //             "inorderNEO":0,
@@ -470,6 +479,7 @@ module.exports = class bitbns extends Exchange {
         //         "code":200
         //     }
         //
+        // note that "Money" stands for INR - the only fiat in bitbns
         return this.parseBalance (response);
     }
 

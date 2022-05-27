@@ -393,6 +393,11 @@ class deribit(Exchange):
         })
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the deribit api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.publicGetGetTime(params)
         #
         #     {
@@ -413,6 +418,11 @@ class deribit(Exchange):
         return self.safe_value(params, 'code', code)
 
     async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the deribit api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = await self.publicGetStatus(params)
         #
         #     {
@@ -2028,12 +2038,6 @@ class deribit(Exchange):
         result = self.safe_value(response, 'result')
         return self.parse_position(result)
 
-    def parse_positions(self, positions):
-        result = []
-        for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i]))
-        return result
-
     async def fetch_positions(self, symbols=None, params={}):
         await self.load_markets()
         code = None
@@ -2084,7 +2088,7 @@ class deribit(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result')
-        return self.parse_positions(result)
+        return self.parse_positions(result, symbols)
 
     async def fetch_historical_volatility(self, code, params={}):
         await self.load_markets()

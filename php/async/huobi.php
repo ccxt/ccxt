@@ -83,6 +83,7 @@ class huobi extends Exchange {
                 'fetchMySells' => null,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => true,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -94,7 +95,7 @@ class huobi extends Exchange {
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => true,
-                'fetchStatus' => null,
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -140,11 +141,23 @@ class huobi extends Exchange {
                 'hostnames' => array(
                     'contract' => 'api.hbdm.com',
                     'spot' => 'api.huobi.pro',
+                    'status' => array(
+                        'spot' => 'status.huobigroup.com',
+                        'future' => array(
+                            'inverse' => 'status-dm.huobigroup.com',
+                            'linear' => 'status-linear-swap.huobigroup.com', // USDT-Margined Contracts
+                        ),
+                        'swap' => array(
+                            'inverse' => 'status-swap.huobigroup.com',
+                            'linear' => 'status-linear-swap.huobigroup.com', // USDT-Margined Contracts
+                        ),
+                    ),
                     // recommended for AWS
                     // 'contract' => 'api.hbdm.vn',
                     // 'spot' => 'api-aws.huobi.pro',
                 ),
                 'api' => array(
+                    'status' => 'https://{hostname}',
                     'contract' => 'https://{hostname}',
                     'spot' => 'https://{hostname}',
                     'market' => 'https://{hostname}',
@@ -317,6 +330,39 @@ class huobi extends Exchange {
                 // 'https://status-dm.huobigroup.com/api/v2/summary.json' => 1,
                 // 'https://status-swap.huobigroup.com/api/v2/summary.json' => 1,
                 // 'https://status-linear-swap.huobigroup.com/api/v2/summary.json' => 1,
+                'status' => array(
+                    'public' => array(
+                        'spot' => array(
+                            'get' => array(
+                                'api/v2/summary.json' => 1,
+                            ),
+                        ),
+                        'future' => array(
+                            'inverse' => array(
+                                'get' => array(
+                                    'api/v2/summary.json' => 1,
+                                ),
+                            ),
+                            'linear' => array(
+                                'get' => array(
+                                    'api/v2/summary.json' => 1,
+                                ),
+                            ),
+                        ),
+                        'swap' => array(
+                            'inverse' => array(
+                                'get' => array(
+                                    'api/v2/summary.json' => 1,
+                                ),
+                            ),
+                            'linear' => array(
+                                'get' => array(
+                                    'api/v2/summary.json' => 1,
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
                 'spot' => array(
                     'public' => array(
                         'get' => array(
@@ -449,6 +495,7 @@ class huobi extends Exchange {
                     'public' => array(
                         'get' => array(
                             'api/v1/timestamp' => 1,
+                            'heartbeat/' => 1, // backslash is not a typo
                             // Future Market Data interface
                             'api/v1/contract_contract_info' => 1,
                             'api/v1/contract_index' => 1,
@@ -865,12 +912,12 @@ class huobi extends Exchange {
                     'margin' => 'margin',
                     'otc' => 'otc',
                     'point' => 'point',
-                    'super-margin' => 'margin',
-                    'investment' => 'spot',
+                    'super-margin' => 'super-margin',
+                    'investment' => 'investment',
                     'borrow' => 'borrow',
-                    'grid-trading' => 'spot',
-                    'deposit-earning' => 'funding',
-                    'otc-options' => 'otc',
+                    'grid-trading' => 'grid-trading',
+                    'deposit-earning' => 'deposit-earning',
+                    'otc-options' => 'otc-options',
                 ),
                 'typesByAccount' => array(
                     'pro' => 'spot',
@@ -926,7 +973,222 @@ class huobi extends Exchange {
         ));
     }
 
+    public function fetch_status($params = array ()) {
+        yield $this->load_markets();
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', null, $params);
+        $method = 'statusPublicSpotGetApiV2SummaryJson';
+        if ($marketType !== 'spot') {
+            $subType = $this->safe_string($params, 'subType', $this->options['defaultSubType']);
+            if ($marketType === 'swap') {
+                if ($subType === 'linear') {
+                    $method = 'statusPublicSwapLinearGetApiV2SummaryJson';
+                } else if ($subType === 'inverse') {
+                    $method = 'statusPublicSwapInverseGetApiV2SummaryJson';
+                }
+            } else if ($marketType === 'future') {
+                if ($subType === 'linear') {
+                    $method = 'statusPublicFutureLinearGetApiV2SummaryJson';
+                } else if ($subType === 'inverse') {
+                    $method = 'statusPublicFutureInverseGetApiV2SummaryJson';
+                }
+            } else if ($marketType === 'contract') {
+                $method = 'contractPublicGetHeartbeat';
+            }
+        }
+        $response = yield $this->$method ();
+        //
+        // statusPublicSpotGetApiV2SummaryJson, statusPublicSwapInverseGetApiV2SummaryJson, statusPublicFutureLinearGetApiV2SummaryJson, statusPublicFutureInverseGetApiV2SummaryJson
+        //
+        //      {
+        //          "page" => array(
+        //              "id":"mn7l2lw8pz4p",
+        //              "name":"Huobi Futures-USDT-margined Swaps",
+        //              "url":"https://status-linear-swap.huobigroup.com",
+        //              "time_zone":"Asia/Singapore",
+        //              "updated_at":"2022-04-29T12:47:21.319+08:00"),
+        //              "components" => array(
+        //                  array(
+        //                      "id":"lrv093qk3yp5",
+        //                      "name":"market data",
+        //                      "status":"operational",
+        //                      "created_at":"2020-10-29T14:08:59.427+08:00",
+        //                      "updated_at":"2020-10-29T14:08:59.427+08:00",
+        //                      "position":1,"description":null,
+        //                      "showcase":false,
+        //                      "start_date":null,
+        //                      "group_id":null,
+        //                      "page_id":"mn7l2lw8pz4p",
+        //                      "group":true,
+        //                      "only_show_if_degraded":false,
+        //                      "components" => array(
+        //                          "82k5jxg7ltxd" // list of related components
+        //                      )
+        //                  ),
+        //              ),
+        //              "incidents" => array( // empty array if there are no issues
+        //                  {
+        //                      "id" => "rclfxz2g21ly",  // incident id
+        //                      "name" => "Market data is delayed",  // incident name
+        //                      "status" => "investigating",  // incident $status
+        //                      "created_at" => "2020-02-11T03:15:01.913Z",  // incident create time
+        //                      "updated_at" => "2020-02-11T03:15:02.003Z",   // incident update time
+        //                      "monitoring_at" => null,
+        //                      "resolved_at" => null,
+        //                      "impact" => "minor",  // incident impact
+        //                      "shortlink" => "http://stspg.io/pkvbwp8jppf9",
+        //                      "started_at" => "2020-02-11T03:15:01.906Z",
+        //                      "page_id" => "p0qjfl24znv5",
+        //                      "incident_updates" => array(
+        //                          {
+        //                              "id" => "dwfsk5ttyvtb",
+        //                              "status" => "investigating",
+        //                              "body" => "Market data is delayed",
+        //                              "incident_id" => "rclfxz2g21ly",
+        //                              "created_at" => "2020-02-11T03:15:02.000Z",
+        //                              "updated_at" => "2020-02-11T03:15:02.000Z",
+        //                              "display_at" => "2020-02-11T03:15:02.000Z",
+        //                              "affected_components" => array(
+        //                                  {
+        //                                      "code" => "nctwm9tghxh6",
+        //                                      "name" => "Market data",
+        //                                      "old_status" => "operational",
+        //                                      "new_status" => "degraded_performance"
+        //                                  }
+        //                              ),
+        //                              "deliver_notifications" => true,
+        //                              "custom_tweet" => null,
+        //                              "tweet_id" => null
+        //                          }
+        //                      ),
+        //                      "components" => array(
+        //                          array(
+        //                              "id" => "nctwm9tghxh6",
+        //                              "name" => "Market data",
+        //                              "status" => "degraded_performance",
+        //                              "created_at" => "2020-01-13T09:34:48.284Z",
+        //                              "updated_at" => "2020-02-11T03:15:01.951Z",
+        //                              "position" => 8,
+        //                              "description" => null,
+        //                              "showcase" => false,
+        //                              "group_id" => null,
+        //                              "page_id" => "p0qjfl24znv5",
+        //                              "group" => false,
+        //                              "only_show_if_degraded" => false
+        //                          }
+        //                      )
+        //                  ), ...
+        //              ),
+        //              "scheduled_maintenances":array( // empty array if there are no scheduled maintenances
+        //                  {
+        //                      "id" => "k7g299zl765l", // incident id
+        //                      "name" => "Schedule maintenance", // incident name
+        //                      "status" => "scheduled", // incident $status
+        //                      "created_at" => "2020-02-11T03:16:31.481Z",  // incident create time
+        //                      "updated_at" => "2020-02-11T03:16:31.530Z",  // incident update time
+        //                      "monitoring_at" => null,
+        //                      "resolved_at" => null,
+        //                      "impact" => "maintenance",  // incident impact
+        //                      "shortlink" => "http://stspg.io/md4t4ym7nytd",
+        //                      "started_at" => "2020-02-11T03:16:31.474Z",
+        //                      "page_id" => "p0qjfl24znv5",
+        //                      "incident_updates" => array(
+        //                          {
+        //                              "id" => "8whgr3rlbld8",
+        //                              "status" => "scheduled",
+        //                              "body" => "We will be undergoing scheduled maintenance during this time.",
+        //                              "incident_id" => "k7g299zl765l",
+        //                              "created_at" => "2020-02-11T03:16:31.527Z",
+        //                              "updated_at" => "2020-02-11T03:16:31.527Z",
+        //                              "display_at" => "2020-02-11T03:16:31.527Z",
+        //                              "affected_components" => array(
+        //                                  {
+        //                                      "code" => "h028tnzw1n5l",
+        //                                      "name" => "Deposit And Withdraw - Deposit",
+        //                                      "old_status" => "operational",
+        //                                      "new_status" => "operational"
+        //                                  }
+        //                              ),
+        //                              "deliver_notifications" => true,
+        //                              "custom_tweet" => null,
+        //                              "tweet_id" => null
+        //                          }
+        //                      ),
+        //                      "components" => array(
+        //                          {
+        //                              "id" => "h028tnzw1n5l",
+        //                              "name" => "Deposit",
+        //                              "status" => "operational",
+        //                              "created_at" => "2019-12-05T02:07:12.372Z",
+        //                              "updated_at" => "2020-02-10T12:34:52.970Z",
+        //                              "position" => 1,
+        //                              "description" => null,
+        //                              "showcase" => false,
+        //                              "group_id" => "gtd0nyr3pf0k",
+        //                              "page_id" => "p0qjfl24znv5",
+        //                              "group" => false,
+        //                              "only_show_if_degraded" => false
+        //                          }
+        //                      ),
+        //                      "scheduled_for" => "2020-02-15T00:00:00.000Z",  // scheduled maintenance start time
+        //                      "scheduled_until" => "2020-02-15T01:00:00.000Z"  // scheduled maintenance end time
+        //                  }
+        //              ),
+        //              "status" => {
+        //                  "indicator":"none", // none, minor, major, critical, maintenance
+        //                  "description":"all systems operational" // All Systems Operational, Minor Service Outage, Partial System Outage, Partially Degraded Service, Service Under Maintenance
+        //              }
+        //          }
+        //
+        //
+        // contractPublicGetHeartbeat
+        //
+        //      {
+        //          "status" => "ok", // 'ok', 'error'
+        //          "data" => array(
+        //              "heartbeat" => 1, // future 1 => available, 0 => maintenance with service suspended
+        //              "estimated_recovery_time" => null, // estimated recovery time in milliseconds
+        //              "swap_heartbeat" => 1,
+        //              "swap_estimated_recovery_time" => null,
+        //              "option_heartbeat" => 1,
+        //              "option_estimated_recovery_time" => null,
+        //              "linear_swap_heartbeat" => 1,
+        //              "linear_swap_estimated_recovery_time" => null
+        //          ),
+        //          "ts" => 1557714418033
+        //      }
+        //
+        $status = null;
+        $updated = null;
+        $url = null;
+        if ($method === 'contractPublicGetHeartbeat') {
+            $statusRaw = $this->safe_string($response, 'status');
+            $status = ($statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
+            $updated = $this->safe_string($response, 'ts');
+        } else {
+            $statusData = $this->safe_value($response, 'status', array());
+            $statusRaw = $this->safe_string($statusData, 'indicator');
+            $status = ($statusRaw === 'none') ? 'ok' : 'maintenance'; // none, minor, major, critical, maintenance
+            $pageData = $this->safe_value($response, 'page', array());
+            $datetime = $this->safe_string($pageData, 'updated_at');
+            $updated = $this->parse8601($datetime);
+            $url = $this->safe_string($pageData, 'url');
+        }
+        return array(
+            'status' => $status,
+            'updated' => $updated,
+            'eta' => null,
+            'url' => $url,
+            'info' => $response,
+        );
+    }
+
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $options = $this->safe_value($this->options, 'fetchTime', array());
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $type = $this->safe_string($options, 'type', $defaultType);
@@ -2260,6 +2522,7 @@ class huobi extends Exchange {
             if ($limit === null) {
                 $limit = 2000;
             }
+            $request['size'] = $limit;
             if ($price === null) {
                 $duration = $this->parse_timeframe($timeframe);
                 if ($since === null) {
@@ -2289,27 +2552,6 @@ class huobi extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-    }
-
-    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'index',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
-    }
-
-    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'mark',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
-    }
-
-    public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'premiumIndex',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_accounts($params = array ()) {
@@ -2361,6 +2603,11 @@ class huobi extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = yield $this->spotPublicGetV2ReferenceCurrencies ();
         //     {
         //       "code" => 200,
@@ -3060,11 +3307,14 @@ class huobi extends Exchange {
         //                     "liquidation_type" => "0",
         //                     "is_tpsl" => 0,
         //                     "real_profit" => 0
-        //                     "pair" => "BTC-USDT",
-        //                     "business_type" => "futures",
         //                     "margin_asset" => "USDT",
         //                     "margin_mode" => "cross",
         //                     "margin_account" => "USDT",
+        //                     "trade_partition" => "USDT", // only in isolated & cross of linear
+        //                     "reduce_only" => "1", // only in isolated & cross of linear
+        //                     "contract_type" => "quarter", // only in cross-margin (inverse & linear)
+        //                     "pair" => "BTC-USDT", // only in cross-margin (inverse & linear)
+        //                     "business_type" => "futures" // only in cross-margin (inverse & linear)
         //                 }
         //             ),
         //             "total_page" => 19,
@@ -3375,60 +3625,95 @@ class huobi extends Exchange {
         // contracts fetchOrder detailed
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => {
-        //             "symbol" => "BTC",
-        //             "contract_code" => "BTC-USDT",
-        //             "instrument_price" => 0,
-        //             "final_interest" => 0,
-        //             "adjust_value" => 0,
-        //             "lever_rate" => 10,
-        //             "direction" => "sell",
-        //             "offset" => "open",
-        //             "volume" => 1.000000000000000000,
-        //             "price" => 13059.800000000000000000,
-        //             "created_at" => 1603703614712,
-        //             "canceled_at" => 0,
-        //             "order_source" => "api",
-        //             "order_price_type" => "opponent",
-        //             "margin_frozen" => 0,
-        //             "profit" => 0,
-        //             "trades" => array(
-        //                 array(
-        //                     "trade_id" => 131560927,
-        //                     "trade_price" => 13059.800000000000000000,
-        //                     "trade_volume" => 1.000000000000000000,
-        //                     "trade_turnover" => 13.059800000000000000,
-        //                     "trade_fee" => -0.005223920000000000,
-        //                     "created_at" => 1603703614715,
-        //                     "role" => "taker",
-        //                     "fee_asset" => "USDT",
-        //                     "profit" => 0,
-        //                     "real_profit" => 0,
-        //                     "id" => "131560927-770334322963152896-1"
-        //                 }
-        //             ),
-        //             "total_page" => 1,
-        //             "current_page" => 1,
-        //             "total_size" => 1,
-        //             "liquidation_type" => "0",
-        //             "fee_asset" => "USDT",
-        //             "fee" => -0.005223920000000000,
-        //             "order_id" => 770334322963152896,
-        //             "order_id_str" => "770334322963152896",
-        //             "client_order_id" => 57012021045,
-        //             "order_type" => "1",
-        //             "status" => 6,
-        //             "trade_avg_price" => 13059.800000000000000000,
-        //             "trade_turnover" => 13.059800000000000000,
-        //             "trade_volume" => 1.000000000000000000,
-        //             "margin_asset" => "USDT",
-        //             "margin_mode" => "isolated",
-        //             "margin_account" => "BTC-USDT",
-        //             "real_profit" => 0,
-        //             "is_tpsl" => 0
+        //         "symbol" => "BTC",
+        //         "contract_code" => "BTC-USDT",
+        //         "instrument_price" => 0,
+        //         "final_interest" => 0,
+        //         "adjust_value" => 0,
+        //         "lever_rate" => 10,
+        //         "direction" => "sell",
+        //         "offset" => "open",
+        //         "volume" => 1.000000000000000000,
+        //         "price" => 13059.800000000000000000,
+        //         "created_at" => 1603703614712,
+        //         "canceled_at" => 0,
+        //         "order_source" => "api",
+        //         "order_price_type" => "opponent",
+        //         "margin_frozen" => 0,
+        //         "profit" => 0,
+        //         "trades" => array(
+        //             {
+        //                 "trade_id" => 131560927,
+        //                 "trade_price" => 13059.800000000000000000,
+        //                 "trade_volume" => 1.000000000000000000,
+        //                 "trade_turnover" => 13.059800000000000000,
+        //                 "trade_fee" => -0.005223920000000000,
+        //                 "created_at" => 1603703614715,
+        //                 "role" => "taker",
+        //                 "fee_asset" => "USDT",
+        //                 "profit" => 0,
+        //                 "real_profit" => 0,
+        //                 "id" => "131560927-770334322963152896-1"
+        //             }
         //         ),
-        //         "ts" => 1603703678477
+        //         "total_page" => 1,
+        //         "current_page" => 1,
+        //         "total_size" => 1,
+        //         "liquidation_type" => "0",
+        //         "fee_asset" => "USDT",
+        //         "fee" => -0.005223920000000000,
+        //         "order_id" => 770334322963152896,
+        //         "order_id_str" => "770334322963152896",
+        //         "client_order_id" => 57012021045,
+        //         "order_type" => "1",
+        //         "status" => 6,
+        //         "trade_avg_price" => 13059.800000000000000000,
+        //         "trade_turnover" => 13.059800000000000000,
+        //         "trade_volume" => 1.000000000000000000,
+        //         "margin_asset" => "USDT",
+        //         "margin_mode" => "isolated",
+        //         "margin_account" => "BTC-USDT",
+        //         "real_profit" => 0,
+        //         "is_tpsl" => 0
+        //     }
+        //
+        // fetchOrders
+        //
+        //     {
+        //         "order_id" => 773131315209248768,
+        //         "contract_code" => "ADA201225",
+        //         "symbol" => "ADA",
+        //         "lever_rate" => 20,
+        //         "direction" => "buy",
+        //         "offset" => "close",
+        //         "volume" => 1,
+        //         "price" => 0.0925,
+        //         "create_date" => 1604370469629,
+        //         "update_time" => 1603704221118,
+        //         "order_source" => "web",
+        //         "order_price_type" => 6,
+        //         "order_type" => 1,
+        //         "margin_frozen" => 0,
+        //         "profit" => 0,
+        //         "contract_type" => "quarter",
+        //         "trade_volume" => 0,
+        //         "trade_turnover" => 0,
+        //         "fee" => 0,
+        //         "trade_avg_price" => 0,
+        //         "status" => 3,
+        //         "order_id_str" => "773131315209248768",
+        //         "fee_asset" => "ADA",
+        //         "liquidation_type" => "0",
+        //         "is_tpsl" => 0,
+        //         "real_profit" => 0
+        //         "margin_asset" => "USDT",
+        //         "margin_mode" => "cross",
+        //         "margin_account" => "USDT",
+        //         "trade_partition" => "USDT", // only in isolated & cross of linear
+        //         "reduce_only" => "1", // only in isolated & cross of linear
+        //         "contract_type" => "quarter", // only in cross-margin (inverse & linear)
+        //         "pair" => "BTC-USDT", // only in cross-margin (inverse & linear)
+        //         "business_type" => "futures" // only in cross-margin (inverse & linear)
         //     }
         //
         $id = $this->safe_string_2($order, 'id', 'order_id_str');
@@ -3442,7 +3727,7 @@ class huobi extends Exchange {
         $status = $this->parse_order_status($this->safe_string_2($order, 'state', 'status'));
         $marketId = $this->safe_string_2($order, 'contract_code', 'symbol');
         $market = $this->safe_market($marketId, $market);
-        $timestamp = $this->safe_integer_2($order, 'created_at', 'created-at');
+        $timestamp = $this->safe_integer_n($order, array( 'created_at', 'created-at', 'create_date' ));
         $clientOrderId = $this->safe_string_2($order, 'client_order_id', 'client-$order-id');
         $amount = $this->safe_string_2($order, 'volume', 'amount');
         $filled = $this->safe_string_2($order, 'filled-amount', 'field-amount'); // typo in their API, $filled $amount
@@ -4834,7 +5119,7 @@ class huobi extends Exchange {
             'account' => ($marginMode === 'isolated') ? $symbol : 'cross',  // deprecated
             'symbol' => $symbol,
             'marginMode' => $marginMode,
-            'marginType' => $marginMode,
+            'marginType' => $marginMode, // deprecated
             'currency' => $this->safe_currency_code($this->safe_string($info, 'currency')),
             'interest' => $this->safe_number($info, 'interest-amount'),
             'interestRate' => $this->safe_number($info, 'interest-rate'),
@@ -4900,8 +5185,18 @@ class huobi extends Exchange {
             // list($type, $access) = $api;
             $type = $this->safe_string($api, 0);
             $access = $this->safe_string($api, 1);
+            $levelOneNestedPath = $this->safe_string($api, 2);
+            $levelTwoNestedPath = $this->safe_string($api, 3);
+            $hostname = null;
+            $hostnames = $this->safe_value($this->urls['hostnames'], $type);
+            if (gettype($hostnames) !== 'string') {
+                $hostnames = $this->safe_value($hostnames, $levelOneNestedPath);
+                if ((gettype($hostname) !== 'string') && ($levelTwoNestedPath !== null)) {
+                    $hostnames = $this->safe_value($hostnames, $levelTwoNestedPath);
+                }
+            }
+            $hostname = $hostnames;
             $url .= $this->implode_params($path, $params);
-            $hostname = $this->safe_string($this->urls['hostnames'], $type);
             if ($access === 'public') {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);
@@ -5800,5 +6095,139 @@ class huobi extends Exchange {
             }
         }
         return $result;
+    }
+
+    public function fetch_open_interest_history($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {
+        /**
+         * Retrieves the open intestest history of a currency
+         * @param {str} $symbol Unified CCXT $market $symbol
+         * @param {str} $timeframe '1h', '4h', '12h', or '1d'
+         * @param {int|null} $since Not used by huobi api, but $response parsed by CCXT
+         * @param {int|null} $limit Default：48，Data Range [1,200]
+         * @param {dict} $params Exchange specific parameters
+         * @param {int} $params->amount_type *required* Open interest unit. 1-cont，2-cryptocurrenty
+         * @param {int|null} $params->pair eg BTC-USDT *Only for USDT-M*
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#open-interest-structure open interest structures}
+         */
+        if ($timeframe !== '1h' && $timeframe !== '4h' && $timeframe !== '12h' && $timeframe !== '1d') {
+            throw new BadRequest($this->id . ' fetchOpenInterestHistory cannot only use the 1h, 4h, 12h and 1d timeframe');
+        }
+        yield $this->load_markets();
+        $timeframes = array(
+            '1h' => '60min',
+            '4h' => '4hour',
+            '12h' => '12hour',
+            '1d' => '1day',
+        );
+        $market = $this->market($symbol);
+        $amountType = $this->safe_number_2($params, 'amount_type', 'amountType');
+        if ($amountType === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOpenInterestHistory requires parameter $params->amountType to be either 1 (cont), or 2 (cryptocurrenty)');
+        }
+        $request = array(
+            'period' => $timeframes[$timeframe],
+            'amount_type' => $amountType,
+        );
+        $method = null;
+        if ($market['future']) {
+            $request['contract_type'] = $this->safe_string($market['info'], 'contract_type');
+            $request['symbol'] = $market['baseId'];  // currency code on coin-m futures
+            $method = 'contractPublicGetApiV1ContractHisOpenInterest'; // coin-m futures
+        } else if ($market['linear']) {
+            $request['contract_type'] = 'swap';
+            $request['contract_code'] = $market['id'];
+            $request['contract_code'] = $market['id'];
+            $method = 'contractPublicGetLinearSwapApiV1SwapHisOpenInterest'; // USDT-M
+        } else {
+            $request['contract_code'] = $market['id'];
+            $method = 'contractPublicGetSwapApiV1SwapHisOpenInterest'; // coin-m swaps
+        }
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        //  contractPublicGetlinearSwapApiV1SwapHisOpenInterest
+        //    {
+        //        status => 'ok',
+        //        $data => array(
+        //            $symbol => 'BTC',
+        //            $tick => array(
+        //                array(
+        //                    volume => '4385.4350000000000000',
+        //                    amount_type => '2',
+        //                    ts => '1648220400000',
+        //                    value => '194059884.1850000000000000'
+        //                ),
+        //                ...
+        //            ),
+        //            contract_code => 'BTC-USDT',
+        //            business_type => 'swap',
+        //            pair => 'BTC-USDT',
+        //            contract_type => 'swap',
+        //            trade_partition => 'USDT'
+        //        ),
+        //        ts => '1648223733007'
+        //    }
+        //
+        //  contractPublicGetSwapApiV1SwapHisOpenInterest
+        //    {
+        //        "status" => "ok",
+        //        "data" => array(
+        //            "symbol" => "CRV",
+        //            "tick" => array(
+        //                array(
+        //                    "volume" => 19174.0000000000000000,
+        //                    "amount_type" => 1,
+        //                    "ts" => 1648224000000
+        //                ),
+        //                ...
+        //            ),
+        //            "contract_code" => "CRV-USD"
+        //        ),
+        //        "ts" => 1648226554260
+        //    }
+        //
+        //  contractPublicGetApiV1ContractHisOpenInterest
+        //    {
+        //         "status" => "ok",
+        //         "data" => array(
+        //             "symbol" => "BTC",
+        //             "contract_type" => "this_week",
+        //             "tick" => array(
+        //                array(
+        //                     "volume" => "48419.0000000000000000",
+        //                     "amount_type" => 1,
+        //                     "ts" => 1648224000000
+        //                ),
+        //                ...
+        //            )
+        //        ),
+        //        "ts" => 1648227062944
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        $tick = $this->safe_value($data, 'tick');
+        return $this->parse_open_interests($tick, null, $since, $limit);
+    }
+
+    public function parse_open_interest($interest, $market = null) {
+        //
+        //    {
+        //        volume => '4385.4350000000000000',
+        //        amount_type => '2',
+        //        ts => '1648220400000',
+        //        value => '194059884.1850000000000000'
+        //    }
+        //
+        $timestamp = $this->safe_number($interest, 'ts');
+        return array(
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'baseVolume' => $this->safe_number($interest, 'volume'),
+            'quoteVolume' => $this->safe_value($interest, 'value'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $interest,
+        );
     }
 }

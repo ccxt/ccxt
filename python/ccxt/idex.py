@@ -14,6 +14,10 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO
 from ccxt.base.precise import Precise
 
@@ -167,9 +171,22 @@ class idex(Exchange):
                 'apiKey': True,
                 'secret': True,
             },
+            'precisionMode': TICK_SIZE,
             'paddingMode': PAD_WITH_ZERO,
             'commonCurrencies': {},
         })
+
+    def price_to_precision(self, symbol, price):
+        #
+        # we override priceToPrecision to fix the following issue
+        # https://github.com/ccxt/ccxt/issues/13367
+        # {"code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\": all quantities and prices must be below 100 billion, above 0, need to be provided as strings, and always require 4 decimals ending with 4 zeroes"}
+        #
+        market = self.market(symbol)
+        info = self.safe_value(market, 'info', {})
+        quoteAssetPrecision = self.safe_integer(info, 'quoteAssetPrecision')
+        price = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode)
+        return self.decimal_to_precision(price, TRUNCATE, quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO)
 
     def fetch_markets(self, params={}):
         """
@@ -203,7 +220,8 @@ class idex(Exchange):
         #     "takerFeeRate": "0.002",
         #     "makerTradeMinimum": "0.15000000",
         #     "takerTradeMinimum": "0.05000000",
-        #     "withdrawalMinimum": "0.04000000"
+        #     "withdrawalMinimum": "0.04000000",
+        #     "tickSize":"0.00001000"
         # }
         #
         maker = self.safe_number(response2, 'makerFeeRate')
@@ -221,8 +239,9 @@ class idex(Exchange):
             quote = self.safe_currency_code(quoteId)
             basePrecisionString = self.safe_string(entry, 'baseAssetPrecision')
             quotePrecisionString = self.safe_string(entry, 'quoteAssetPrecision')
-            basePrecision = self.parse_precision(basePrecisionString)
-            quotePrecision = self.parse_precision(quotePrecisionString)
+            basePrecision = self.parse_number(self.parse_precision(basePrecisionString))
+            quotePrecision = self.parse_number(self.parse_precision(quotePrecisionString))
+            quotePrecision = self.safe_number(entry, 'tickSize', quotePrecision)
             status = self.safe_string(entry, 'status')
             minCost = None
             if quote == 'ETH':
@@ -242,7 +261,7 @@ class idex(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': (status == 'active'),
+                'active': (status != 'inactive'),
                 'contract': False,
                 'linear': None,
                 'inverse': None,
@@ -254,8 +273,8 @@ class idex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': int(basePrecisionString),
-                    'price': int(quotePrecisionString),
+                    'amount': basePrecision,
+                    'price': quotePrecision,
                 },
                 'limits': {
                     'leverage': {
@@ -263,11 +282,11 @@ class idex(Exchange):
                         'max': None,
                     },
                     'amount': {
-                        'min': self.parse_number(basePrecision),
+                        'min': basePrecision,
                         'max': None,
                     },
                     'price': {
-                        'min': self.parse_number(quotePrecision),
+                        'min': quotePrecision,
                         'max': None,
                     },
                     'cost': {
@@ -648,6 +667,11 @@ class idex(Exchange):
         return self.sort_by(result, 0, descending)
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the idex api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         # [
         #   {
         #     name: 'Ether',

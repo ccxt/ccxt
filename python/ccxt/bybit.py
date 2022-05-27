@@ -12,6 +12,7 @@ from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
@@ -52,6 +53,10 @@ class bybit(Exchange):
                 'fetchBorrowRate': False,
                 'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
+                'fetchCurrencies': True,
+                'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
@@ -79,6 +84,7 @@ class bybit(Exchange):
                 'fetchWithdrawals': True,
                 'setLeverage': True,
                 'setMarginMode': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -119,7 +125,7 @@ class bybit(Exchange):
                     'https://github.com/bybit-exchange',
                 ],
                 'fees': 'https://help.bybit.com/hc/en-us/articles/360039261154',
-                'referral': 'https://www.bybit.com/app/register?ref=X7Prm',
+                'referral': 'https://partner.bybit.com/b/ccxt',
             },
             'api': {
                 'public': {
@@ -181,6 +187,8 @@ class bybit(Exchange):
                         'perpetual/usdc/openapi/public/v1/account-ratio': 1,
                         'perpetual/usdc/openapi/public/v1/prev-funding-rate': 1,
                         'perpetual/usdc/openapi/public/v1/risk-limit/list': 1,
+                        # account
+                        'asset/v1/public/deposit/allowed-deposit-list': 1,
                     },
                 },
                 'private': {
@@ -229,10 +237,19 @@ class bybit(Exchange):
                         'spot/v1/open-orders': 2.5,
                         'spot/v1/history-orders': 2.5,
                         'spot/v1/myTrades': 2.5,
+                        'spot/v1/cross-margin/order': 10,
+                        'spot/v1/cross-margin/accounts/balance': 10,
+                        'spot/v1/cross-margin/loan-info': 10,
+                        'spot/v1/cross-margin/repay/history': 10,
                         # account
                         'asset/v1/private/transfer/list': 50,  # 60 per minute = 1 per second => cost = 50 / 1 = 50
                         'asset/v1/private/sub-member/transfer/list': 50,
                         'asset/v1/private/sub-member/member-ids': 50,
+                        'asset/v1/private/deposit/record/query': 50,
+                        'asset/v1/private/withdraw/record/query': 25,
+                        'asset/v1/private/coin-info/query': 25,
+                        'asset/v1/private/asset-info/query': 50,
+                        'asset/v1/private/deposit/address': 100,
                     },
                     'post': {
                         # inverse swap
@@ -286,9 +303,13 @@ class bybit(Exchange):
                         'futures/private/position/risk-limit': 2.5,
                         # spot
                         'spot/v1/order': 2.5,
+                        'spot/v1/cross-margin/loan': 10,
+                        'spot/v1/cross-margin/repay': 10,
                         # account
                         'asset/v1/private/transfer': 150,  # 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
                         'asset/v1/private/sub-member/transfer': 150,
+                        'asset/v1/private/withdraw': 50,
+                        'asset/v1/private/withdraw/cancel': 50,
                         # USDC endpoints
                         # option USDC
                         'option/usdc/openapi/private/v1/place-order': 2.5,
@@ -319,6 +340,7 @@ class bybit(Exchange):
                         'option/usdc/openapi/private/v1/session-settlement': 2.5,
                         'perpetual/usdc/openapi/public/v1/risk-limit/list': 2.5,
                         'perpetual/usdc/openapi/private/v1/position/set-risk-limit': 2.5,
+                        # 'perpetual/usdc/openapi/private/v1/predicted-funding': 2.5,
                     },
                     'delete': {
                         # spot
@@ -448,12 +470,14 @@ class bybit(Exchange):
             'precisionMode': TICK_SIZE,
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
-                'defaultType': 'swap',  # 'swap', 'future', 'option'
+                'defaultType': 'swap',  # 'swap', 'future', 'option', 'spot'
+                'defaultSubType': 'linear',  # 'linear', 'inverse'
+                'defaultSettle': 'USDT',  # USDC for USDC settled markets
                 'code': 'BTC',
                 'recvWindow': 5 * 1000,  # 5 sec default
                 'timeDifference': 0,  # the difference between system clock and exchange server clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
-                'defaultSettle': 'USDT',  # USDC for USDC settled markets
+                'brokerId': 'CCXT',
             },
             'fees': {
                 'trading': {
@@ -475,6 +499,11 @@ class bybit(Exchange):
         return self.milliseconds() - self.options['timeDifference']
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = self.publicGetV2PublicTime(params)
         #
         #     {
@@ -487,6 +516,117 @@ class bybit(Exchange):
         #     }
         #
         return self.safe_timestamp(response, 'time_now')
+
+    def safe_network(self, networkId):
+        networksById = {
+            'ETH': 'ERC20',
+            'TRX': 'TRC20',
+        }
+        return self.safe_string(networksById, networkId, networkId)
+
+    def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        if not self.check_required_credentials(False):
+            return None
+        response = self.privateGetAssetV1PrivateCoinInfoQuery(params)
+        #
+        #     {
+        #         "ret_code":0,
+        #         "ret_msg":"OK",
+        #         "ext_code":"",
+        #         "result":{
+        #             "rows":[
+        #                 {
+        #                     "name":"BUSD",
+        #                     "coin":"BUSD",
+        #                     "remain_amount":"7500000",
+        #                     "chains":[
+        #                         {"chain_type":"BSC(BEP20)","confirmation":"20","withdraw_fee":"0.8","deposit_min":"0","withdraw_min":"1.6","chain":"BSC"},
+        #                         {"chain_type":"ERC20","confirmation":"12","withdraw_fee":"30","deposit_min":"0","withdraw_min":"30","chain":"ETH"},
+        #                     ],
+        #                 },
+        #                 {
+        #                     "name":"USDT",
+        #                     "coin":"USDT",
+        #                     "remain_amount":"15000000",
+        #                     "chains":[
+        #                         {"chain_type":"ERC20","confirmation":"12","withdraw_fee":"10","deposit_min":"0","withdraw_min":"20","chain":"ETH"},
+        #                         {"chain_type":"TRC20","confirmation":"100","withdraw_fee":"1","deposit_min":"0","withdraw_min":"10","chain":"TRX"},
+        #                         {"chain_type":"Arbitrum One","confirmation":"12","withdraw_fee":"10","deposit_min":"0","withdraw_min":"20","chain":"ARBI"},
+        #                         {"chain_type":"SOL","confirmation":"300","withdraw_fee":"1","deposit_min":"0","withdraw_min":"10","chain":"SOL"},
+        #                         {"chain_type":"BSC(BEP20)","confirmation":"20","withdraw_fee":"2","deposit_min":"0","withdraw_min":"10","chain":"BSC"},
+        #                         {"chain_type":"Zksync","confirmation":"1","withdraw_fee":"3","deposit_min":"0","withdraw_min":"3","chain":"ZKSYNC"},
+        #                         {"chain_type":"MATIC","confirmation":"128","withdraw_fee":"0.3","deposit_min":"0","withdraw_min":"0.3","chain":"MATIC"},
+        #                         {"chain_type":"OMNI","confirmation":"1","withdraw_fee":"","deposit_min":"0","withdraw_min":"","chain":"OMNI"},
+        #                     ],
+        #                 },
+        #             ],
+        #         },
+        #         "ext_info":null,
+        #         "time_now":1653312027278,
+        #         "rate_limit_status":119,
+        #         "rate_limit_reset_ms":1653312027278,
+        #         "rate_limit":1,
+        #     }
+        #
+        data = self.safe_value(response, 'result', [])
+        rows = self.safe_value(data, 'rows', [])
+        result = {}
+        precision = self.parse_number('0.00000001')
+        for i in range(0, len(rows)):
+            currency = rows[i]
+            currencyId = self.safe_string(currency, 'coin')
+            code = self.safe_currency_code(currencyId)
+            name = self.safe_string(currency, 'name')
+            chains = self.safe_value(currency, 'chains')
+            networks = {}
+            for j in range(0, len(chains)):
+                chain = chains[j]
+                networkId = self.safe_string(chain, 'chain')
+                network = self.safe_network(networkId)
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
+                    'fee': self.safe_number(chain, 'withdraw_fee'),
+                    'precision': None,
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(chain, 'withdraw_min'),
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': self.safe_number(chain, 'deposit_min'),
+                            'max': None,
+                        },
+                    },
+                }
+            result[code] = {
+                'info': currency,
+                'code': code,
+                'id': currencyId,
+                'name': name,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': None,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'networks': networks,
+            }
+        return result
 
     def fetch_markets(self, params={}):
         """
@@ -546,6 +686,7 @@ class bybit(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             active = self.safe_value(market, 'showStatus')
+            quotePrecision = self.safe_number(market, 'quotePrecision')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -574,7 +715,7 @@ class bybit(Exchange):
                 'optionType': None,
                 'precision': {
                     'amount': self.safe_number(market, 'basePrecision'),
-                    'price': self.safe_number(market, 'quotePrecision'),
+                    'price': self.safe_number(market, 'minPricePrecision', quotePrecision),
                 },
                 'limits': {
                     'leverage': {
@@ -711,6 +852,8 @@ class bybit(Exchange):
                 expiryDatetime = artificial8601Date
                 expiry = self.parse8601(expiryDatetime)
                 symbol = symbol + '-' + self.yymmdd(expiry)
+            inverse = not linear
+            contractSize = self.safe_number(lotSizeFilter, 'min_trading_qty') if inverse else None
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -729,10 +872,10 @@ class bybit(Exchange):
                 'active': active,
                 'contract': True,
                 'linear': linear,
-                'inverse': not linear,
+                'inverse': inverse,
                 'taker': self.safe_number(market, 'taker_fee'),
                 'maker': self.safe_number(market, 'maker_fee'),
-                'contractSize': None,  # todo
+                'contractSize': contractSize,
                 'expiry': expiry,
                 'expiryDatetime': expiryDatetime,
                 'strike': None,
@@ -920,7 +1063,7 @@ class bybit(Exchange):
                 'strike': strike,
                 'optionType': optionType,
                 'precision': {
-                    'amount': self.safe_number(market, 'minOrderSizeIncrement'),
+                    'amount': self.safe_number_2(market, 'minOrderSizeIncrement', 'qtyStep'),
                     'price': self.safe_number(market, 'tickSize'),
                 },
                 'limits': {
@@ -929,12 +1072,12 @@ class bybit(Exchange):
                         'max': self.safe_number(leverage, 'maxLeverage', 1),
                     },
                     'amount': {
-                        'min': self.safe_number(market, 'minOrderSize'),
-                        'max': self.safe_number(market, 'maxOrderSize'),
+                        'min': self.safe_number_2(market, 'minOrderSize', 'minTradingQty'),
+                        'max': self.safe_number_2(market, 'maxOrderSize', 'maxTradingQty'),
                     },
                     'price': {
-                        'min': self.safe_number(market, 'minOrderPrice'),
-                        'max': self.safe_number(market, 'maxOrderPrice'),
+                        'min': self.safe_number_2(market, 'minOrderPrice', 'minPrice'),
+                        'max': self.safe_number_2(market, 'maxOrderPrice', 'maxPrice'),
                     },
                     'cost': {
                         'min': None,
@@ -1713,7 +1856,7 @@ class bybit(Exchange):
         costString = self.safe_string(trade, 'exec_value')
         timestamp = self.parse8601(self.safe_string(trade, 'time'))
         if timestamp is None:
-            timestamp = self.safe_number_2(trade, 'trade_time_ms', 'time')
+            timestamp = self.safe_integer_2(trade, 'trade_time_ms', 'time')
         side = self.safe_string_lower(trade, 'side')
         if side is None:
             isBuyer = self.safe_value(trade, 'isBuyer')
@@ -2322,7 +2465,7 @@ class bybit(Exchange):
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        timestamp = self.parse8601(self.safe_string_2(order, 'created_at', 'created_time'))
+        timestamp = self.parse8601(self.safe_string_n(order, ['created_at', 'created_time', 'create_time', 'timestamp']))
         if timestamp is None:
             timestamp = self.safe_number_2(order, 'time', 'transactTime')
             if timestamp is None:
@@ -2332,14 +2475,14 @@ class bybit(Exchange):
         price = self.safe_string_2(order, 'price', 'orderPrice')
         average = self.safe_string_2(order, 'average_price', 'avgPrice')
         amount = self.safe_string_n(order, ['qty', 'origQty', 'orderQty'])
-        cost = self.safe_string(order, 'cum_exec_value')
-        filled = self.safe_string_2(order, 'cum_exec_qty', 'executedQty')
-        remaining = self.safe_string(order, 'leaves_qty')
+        cost = self.safe_string_2(order, 'cum_exec_value', 'cumExecValue')
+        filled = self.safe_string_n(order, ['cum_exec_qty', 'executedQty', 'cumExecQty'])
+        remaining = self.safe_string_2(order, 'leaves_qty', 'leavesQty')
         lastTradeTimestamp = self.safe_timestamp(order, 'last_exec_time')
         if lastTradeTimestamp == 0:
             lastTradeTimestamp = None
         elif lastTradeTimestamp is None:
-            lastTradeTimestamp = self.parse8601(self.safe_string_2(order, 'updated_time', 'updated_at'))
+            lastTradeTimestamp = self.parse8601(self.safe_string_n(order, ['updated_time', 'updated_at', 'update_time']))
             if lastTradeTimestamp is None:
                 lastTradeTimestamp = self.safe_number(order, 'updateTime')
         raw_status = self.safe_string_n(order, ['order_status', 'stop_order_status', 'status', 'orderStatus'])
@@ -2348,7 +2491,7 @@ class bybit(Exchange):
         fee = None
         isContract = self.safe_value(market, 'contract')
         if isContract:
-            feeCostString = self.safe_string(order, 'cum_exec_fee')
+            feeCostString = self.safe_string_2(order, 'cum_exec_fee', 'cumExecFee')
             if feeCostString is not None:
                 feeCurrency = market['quote'] if market['linear'] else market['base']
                 fee = {
@@ -2459,11 +2602,14 @@ class bybit(Exchange):
         if type == 'limit' or type == 'limit_maker':
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder requires a price argument for a ' + type + ' order')
-            request['price'] = price
+            request['price'] = self.price_to_precision(symbol, price)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'orderLinkId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
         params = self.omit(params, ['clientOrderId', 'orderLinkId'])
+        brokerId = self.safe_string(self.options, 'brokerId')
+        if brokerId is not None:
+            request['agentSource'] = brokerId
         response = self.privatePostSpotV1Order(self.extend(request, params))
         #    {
         #        "ret_code":0,
@@ -2529,6 +2675,9 @@ class bybit(Exchange):
                 request['triggerPrice'] = self.price_to_precision(symbol, stopPx)
             else:
                 request['orderFilter'] = 'Order'
+        reduceOnly = self.safe_value_2(params, 'reduce_only', 'reduceOnly', False)
+        request['reduceOnly'] = reduceOnly
+        params = self.omit(params, ['reduce_only', 'reduceOnly'])
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'orderLinkId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
@@ -2614,7 +2763,7 @@ class bybit(Exchange):
             if basePrice is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires both the stop_px and base_price params for a conditional ' + type + ' order')
             request['stop_px'] = float(self.price_to_precision(symbol, stopPx))
-            request['base_price'] = float(self.price_to_precision(symbol, basePrice, 'basePrice'))
+            request['base_price'] = float(self.price_to_precision(symbol, basePrice))
             triggerBy = self.safe_string_2(params, 'trigger_by', 'triggerBy', 'LastPrice')
             request['trigger_by'] = triggerBy
             params = self.omit(params, ['stop_px', 'stopPrice', 'base_price', 'triggerBy', 'trigger_by'])
@@ -2669,7 +2818,7 @@ class bybit(Exchange):
         #    }
         #
         order = self.safe_value(response, 'result', {})
-        return self.parse_order(order)
+        return self.parse_order(order, market)
 
     def edit_usdc_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         self.load_markets()
@@ -2815,9 +2964,11 @@ class bybit(Exchange):
                 method = 'privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder'
                 request['orderFilter'] = 'StopOrder' if isConditional else 'Order'
         elif market['linear']:
+            # linear futures and linear swaps
             method = 'privatePostPrivateLinearStopOrderCancel' if isConditional else 'privatePostPrivateLinearOrderCancel'
-        elif market['future']:
-            method = 'privatePostFuturesPrivateStopOrderCancel' if isConditional else 'privatePostFuturesPrivateOrderCancel'
+        elif market['swap']:
+            # inverse swaps
+            method = 'privatePostV2PrivateStopOrderCancel' if isConditional else 'privatePostV2PrivateOrderCancel'
         else:
             # inverse futures
             method = 'privatePostFuturesPrivateStopOrderCancel' if isConditional else 'privatePostFuturesPrivateOrderCancel'
@@ -2866,6 +3017,7 @@ class bybit(Exchange):
         return self.parse_order(result, market)
 
     def cancel_all_orders(self, symbol=None, params={}):
+        self.load_markets()
         market = None
         isUsdcSettled = None
         if symbol is not None:
@@ -2880,7 +3032,6 @@ class bybit(Exchange):
         type, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
         if not isUsdcSettled and symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument for ' + type + ' markets')
-        self.load_markets()
         request = {}
         if not isUsdcSettled:
             request['symbol'] = market['id']
@@ -3386,6 +3537,92 @@ class bybit(Exchange):
             result = self.safe_value_2(result, 'trade_list', 'data', [])
         return self.parse_trades(result, market, since, limit)
 
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        #     {
+        #         chain_type: 'Arbitrum One',
+        #         address_deposit: '0x83a127952d266A6eA306c40Ac62A4a70668FE3BE',
+        #         tag_deposit: '',
+        #         chain: 'ARBI'
+        #     }
+        #
+        address = self.safe_string(depositAddress, 'address_deposit')
+        tag = self.safe_string(depositAddress, 'tag_deposit')
+        if tag == '':
+            tag = None
+        code = self.safe_string(currency, 'code')
+        chain = self.safe_string(depositAddress, 'chain')
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'network': chain,
+            'info': depositAddress,
+        }
+
+    def fetch_deposit_addresses_by_network(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+        }
+        response = self.privateGetAssetV1PrivateDepositAddress(self.extend(request, params))
+        #
+        #     {
+        #         ret_code: '0',
+        #         ret_msg: 'OK',
+        #         ext_code: '',
+        #         result: {
+        #             coin: 'ETH',
+        #             chains: [
+        #                 {
+        #                     chain_type: 'Arbitrum One',
+        #                     address_deposit: 'bybitisthebest',
+        #                     tag_deposit: '',
+        #                     chain: 'ARBI'
+        #                 }
+        #             ]
+        #         },
+        #         ext_info: null,
+        #         time_now: '1653141635426'
+        #     }
+        #
+        result = self.safe_value(response, 'result', [])
+        chains = self.safe_value(result, 'chains', [])
+        coin = self.safe_string(result, 'coin')
+        currency = self.currency(coin)
+        parsed = self.parse_deposit_addresses(chains, [code], False, {
+            'currency': currency['id'],
+        })
+        return self.index_by(parsed, 'network')
+
+    def fetch_deposit_address(self, code, params={}):
+        rawNetwork = self.safe_string_upper(params, 'network')
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string(networks, rawNetwork, rawNetwork)
+        params = self.omit(params, 'network')
+        response = self.fetch_deposit_addresses_by_network(code, params)
+        result = None
+        if network is None:
+            result = self.safe_value(response, code)
+            if result is None:
+                alias = self.safe_string(networks, code, code)
+                result = self.safe_value(response, alias)
+                if result is None:
+                    defaultNetwork = self.safe_string(self.options, 'defaultNetwork', 'ERC20')
+                    result = self.safe_value(response, defaultNetwork)
+                    if result is None:
+                        values = list(response.values())
+                        result = self.safe_value(values, 0)
+                        if result is None:
+                            raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find deposit address for ' + code)
+            return result
+        result = self.safe_value(response, network)
+        if result is None:
+            raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code)
+        return result
+
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {
@@ -3686,6 +3923,40 @@ class bybit(Exchange):
             'ExchangeOrderDeposit': 'transaction',
         }
         return self.safe_string(types, type, type)
+
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        self.load_markets()
+        self.check_address(address)
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+            'amount': self.number_to_string(amount),
+            'address': address,
+        }
+        if tag is not None:
+            request['tag'] = tag
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_upper(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['chain'] = network
+            params = self.omit(params, 'network')
+        response = self.privatePostAssetV1PrivateWithdraw(self.extend(request, params))
+        #
+        #     {
+        #         "ret_code":0,
+        #         "ret_msg":"OK"
+        #         "ext_code":"",
+        #         "result":{
+        #             "id":"bybitistheone"
+        #         },
+        #         "ext_info":null,
+        #         "time_now":1653149296617
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        return self.parse_transaction(result, currency)
 
     def fetch_positions(self, symbols=None, params={}):
         self.load_markets()
@@ -3994,29 +4265,30 @@ class bybit(Exchange):
         return getattr(self, method)(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = None
-        if isinstance(api, list):
-            type = self.safe_string(api, 0)
-            section = self.safe_string(api, 1)
-            if type == 'spot':
-                if section == 'public':
-                    section = 'v1'
+        url = self.implode_hostname(self.urls['api'][api]) + '/' + path
+        if api == 'public':
+            if params:
+                url += '?' + self.rawencode(params)
+        elif api == 'private':
+            self.check_required_credentials()
+            isOpenapi = url.find('openapi') >= 0
+            timestamp = str(self.milliseconds())
+            if isOpenapi:
+                if params:
+                    body = self.json(params)
                 else:
-                    section += '/v1'
-            url = self.implode_hostname(self.urls['api'][type])
-            request = '/' + type + '/' + section + '/' + path
-            if (type == 'spot') or (type == 'quote'):
-                if params:
-                    request += '?' + self.rawencode(params)
-            elif section == 'public':
-                if params:
-                    request += '?' + self.rawencode(params)
-            elif type == 'public':
-                if params:
-                    request += '?' + self.rawencode(params)
+                    # self fix for PHP is required otherwise it generates
+                    # '[]' on empty arrays even when forced to use objects
+                    body = '{}'
+                payload = timestamp + self.apiKey + body
+                signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'hex')
+                headers = {
+                    'Content-Type': 'application/json',
+                    'X-BAPI-API-KEY': self.apiKey,
+                    'X-BAPI-TIMESTAMP': timestamp,
+                    'X-BAPI-SIGN': signature,
+                }
             else:
-                self.check_required_credentials()
-                timestamp = self.nonce()
                 query = self.extend(params, {
                     'api_key': self.apiKey,
                     'recv_window': self.options['recvWindow'],
@@ -4026,63 +4298,25 @@ class bybit(Exchange):
                 auth = self.rawencode(sortedQuery)
                 signature = self.hmac(self.encode(auth), self.encode(self.secret))
                 if method == 'POST':
-                    body = self.json(self.extend(query, {
+                    isSpot = url.find('spot') >= 0
+                    extendedQuery = self.extend(query, {
                         'sign': signature,
-                    }))
-                    headers = {
-                        'Content-Type': 'application/json',
-                    }
-                else:
-                    request += '?' + self.urlencode(sortedQuery) + '&sign=' + signature
-            url += request
-        else:
-            url = self.implode_hostname(self.urls['api'][api]) + '/' + path
-            if api == 'public':
-                if params:
-                    url += '?' + self.rawencode(params)
-            elif api == 'private':
-                self.check_required_credentials()
-                isOpenapi = url.find('openapi') >= 0
-                timestamp = str(self.milliseconds())
-                if isOpenapi:
-                    if params:
-                        body = self.json(params)
-                    else:
-                        # self fix for PHP is required otherwise it generates
-                        # '[]' on empty arrays even when forced to use objects
-                        body = '{}'
-                    payload = timestamp + self.apiKey + body
-                    signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'hex')
-                    headers = {
-                        'Content-Type': 'application/json',
-                        'X-BAPI-API-KEY': self.apiKey,
-                        'X-BAPI-TIMESTAMP': timestamp,
-                        'X-BAPI-SIGN': signature,
-                    }
-                else:
-                    query = self.extend(params, {
-                        'api_key': self.apiKey,
-                        'recv_window': self.options['recvWindow'],
-                        'timestamp': timestamp,
                     })
-                    sortedQuery = self.keysort(query)
-                    auth = self.rawencode(sortedQuery)
-                    signature = self.hmac(self.encode(auth), self.encode(self.secret))
-                    if method == 'POST':
-                        isSpot = url.find('spot') >= 0
-                        extendedQuery = self.extend(query, {
-                            'sign': signature,
-                        })
-                        if not isSpot:
-                            body = self.json(extendedQuery)
-                            headers = {
-                                'Content-Type': 'application/json',
-                            }
-                        else:
-                            body = self.urlencode(extendedQuery)
-                            headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+                    if isSpot:
+                        body = self.urlencode(extendedQuery)
+                        headers = {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        }
                     else:
-                        url += '?' + self.urlencode(sortedQuery) + '&sign=' + signature
+                        body = self.json(extendedQuery)
+                        headers = {
+                            'Content-Type': 'application/json',
+                        }
+                        brokerId = self.safe_string(self.options, 'brokerId')
+                        if brokerId is not None:
+                            headers['Referer'] = brokerId
+                else:
+                    url += '?' + self.urlencode(sortedQuery) + '&sign=' + signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
