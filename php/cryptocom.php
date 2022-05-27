@@ -1537,7 +1537,7 @@ class cryptocom extends Exchange {
             $feeCurrency = null;
             if ($market['spot']) {
                 $feeCurrency = $this->safe_string($trade, 'fee_currency');
-            } else if ($market['linear']) {
+            } elseif ($market['linear']) {
                 $feeCurrency = $market['quote'];
             }
             $fee = array(

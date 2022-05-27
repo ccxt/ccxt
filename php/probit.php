@@ -835,7 +835,7 @@ class probit extends Exchange {
                 $month = (string) $month;
             }
             return $year . '-' . $month . '-01T00:00:00.000Z';
-        } else if ($timeframe === '1w') {
+        } elseif ($timeframe === '1w') {
             $timestamp = intval($timestamp / 1000);
             $firstSunday = 259200; // 1970-01-04T00:00:00.000Z
             $difference = $timestamp - $firstSunday;
@@ -1104,7 +1104,7 @@ class probit extends Exchange {
         if ($type === 'limit') {
             $request['limit_price'] = $this->price_to_precision($symbol, $price);
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-        } else if ($type === 'market') {
+        } elseif ($type === 'market') {
             // for $market buy it requires the $amount of quote currency to spend
             if ($side === 'buy') {
                 $cost = $this->safe_number($params, 'cost');
@@ -1114,7 +1114,7 @@ class probit extends Exchange {
                         if ($cost === null) {
                             $cost = $amount * $price;
                         }
-                    } else if ($cost === null) {
+                    } elseif ($cost === null) {
                         throw new InvalidOrder($this->id . " createOrder() requires the $price argument for $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total $cost value in the 'amount' argument or in the 'cost' extra parameter (the exchange-specific behaviour)");
                     }
                 } else {
@@ -1350,7 +1350,7 @@ class probit extends Exchange {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);
                 }
-            } else if ($api === 'private') {
+            } elseif ($api === 'private') {
                 $now = $this->milliseconds();
                 $this->check_required_credentials();
                 $expires = $this->safe_integer($this->options, 'expires');
@@ -1366,7 +1366,7 @@ class probit extends Exchange {
                     if ($query) {
                         $url .= '?' . $this->urlencode($query);
                     }
-                } else if ($query) {
+                } elseif ($query) {
                     $body = $this->json($query);
                     $headers['Content-Type'] = 'application/json';
                 }

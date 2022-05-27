@@ -1155,7 +1155,7 @@ class lykke extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             if (($method === 'GET') || ($method === 'DELETE')) {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);

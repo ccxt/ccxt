@@ -1353,7 +1353,7 @@ class hitbtc extends Exchange {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);
                 }
-            } else if ($query) {
+            } elseif ($query) {
                 $body = $this->json($query);
             }
             $payload = $this->encode($this->apiKey . ':' . $this->secret);

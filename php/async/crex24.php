@@ -1063,7 +1063,7 @@ class crex24 extends Exchange {
         $stopPriceIsRequired = false;
         if ($type === 'limit') {
             $priceIsRequired = true;
-        } else if ($type === 'stopLimit') {
+        } elseif ($type === 'stopLimit') {
             $priceIsRequired = true;
             $stopPriceIsRequired = true;
         }
@@ -1679,17 +1679,17 @@ class crex24 extends Exchange {
         $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
         if ($code === 400) {
             throw new BadRequest($feedback);
-        } else if ($code === 401) {
+        } elseif ($code === 401) {
             throw new AuthenticationError($feedback);
-        } else if ($code === 403) {
+        } elseif ($code === 403) {
             throw new AuthenticationError($feedback);
-        } else if ($code === 429) {
+        } elseif ($code === 429) {
             throw new DDoSProtection($feedback);
-        } else if ($code === 500) {
+        } elseif ($code === 500) {
             throw new ExchangeError($feedback);
-        } else if ($code === 503) {
+        } elseif ($code === 503) {
             throw new ExchangeNotAvailable($feedback);
-        } else if ($code === 504) {
+        } elseif ($code === 504) {
             throw new RequestTimeout($feedback);
         }
         throw new ExchangeError($feedback); // unknown message

@@ -1055,7 +1055,7 @@ class ripio extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             $this->check_required_credentials();
             if ($method === 'POST') {
                 $body = $this->json($query);

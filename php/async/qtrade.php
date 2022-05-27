@@ -652,7 +652,7 @@ class qtrade extends Exchange {
         $numericId = $this->safe_value($params, 'market_id');
         if ($numericId !== null) {
             $request['market_id'] = $numericId; // mutually exclusive with market_string
-        } else if ($symbol !== null) {
+        } elseif ($symbol !== null) {
             $market = $this->market($symbol);
             $request['market_string'] = $market['id'];
         }
@@ -997,7 +997,7 @@ class qtrade extends Exchange {
         $status = null;
         if ($open) {
             $status = 'open';
-        } else if ($closeReason === 'canceled') {
+        } elseif ($closeReason === 'canceled') {
             $status = 'canceled';
         } else {
             $status = 'closed';
@@ -1088,7 +1088,7 @@ class qtrade extends Exchange {
         $numericId = $this->safe_value($params, 'market_id');
         if ($numericId !== null) {
             $request['market_id'] = $numericId; // mutually exclusive with market_string
-        } else if ($symbol !== null) {
+        } elseif ($symbol !== null) {
             $market = $this->market($symbol);
             $request['market_string'] = $market['id'];
         }
@@ -1568,7 +1568,7 @@ class qtrade extends Exchange {
         $statusCode = $this->safe_string($transaction, 'code');
         if ($cancelRequested) {
             $status = 'canceled';
-        } else if ($status === null) {
+        } elseif ($status === null) {
             $status = $this->parse_transaction_status($statusCode);
         }
         $fee = null;

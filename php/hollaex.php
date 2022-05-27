@@ -1468,9 +1468,9 @@ class hollaex extends Exchange {
         $rejected = $this->safe_value($transaction, 'rejected');
         if ($status) {
             $status = 'ok';
-        } else if ($dismissed) {
+        } elseif ($dismissed) {
             $status = 'canceled';
-        } else if ($rejected) {
+        } elseif ($rejected) {
             $status = 'failed';
         } else {
             $status = 'pending';

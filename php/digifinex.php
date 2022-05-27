@@ -881,7 +881,7 @@ class digifinex extends Exchange {
                 $duration = $this->parse_timeframe($timeframe);
                 $request['end_time'] = $this->sum($startTime, $limit * $duration);
             }
-        } else if ($limit !== null) {
+        } elseif ($limit !== null) {
             $endTime = $this->seconds();
             $duration = $this->parse_timeframe($timeframe);
             $request['startTime'] = $this->sum($endTime, -$limit * $duration);
@@ -1610,7 +1610,7 @@ class digifinex extends Exchange {
                 if ($urlencoded) {
                     $url .= '?' . $urlencoded;
                 }
-            } else if ($method === 'POST') {
+            } elseif ($method === 'POST') {
                 $headers = array(
                     'Content-Type' => 'application/x-www-form-urlencoded',
                 );

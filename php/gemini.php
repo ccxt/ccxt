@@ -929,7 +929,7 @@ class gemini extends Exchange {
         $type = $this->safe_string($order, 'type');
         if ($type === 'exchange limit') {
             $type = 'limit';
-        } else if ($type === 'market buy' || $type === 'market sell') {
+        } elseif ($type === 'market buy' || $type === 'market sell') {
             $type = 'market';
         } else {
             $type = $order['type'];
@@ -947,9 +947,9 @@ class gemini extends Exchange {
         if ($option !== null) {
             if ($option === 'immediate-or-cancel') {
                 $timeInForce = 'IOC';
-            } else if ($option === 'fill-or-kill') {
+            } elseif ($option === 'fill-or-kill') {
                 $timeInForce = 'FOK';
-            } else if ($option === 'maker-or-cancel') {
+            } elseif ($option === 'maker-or-cancel') {
                 $timeInForce = 'PO';
                 $postOnly = true;
             }
@@ -1084,9 +1084,9 @@ class gemini extends Exchange {
             if ($timeInForce !== null) {
                 if (($timeInForce === 'IOC') || ($timeInForce === 'immediate-or-cancel')) {
                     $request['options'] = array( 'immediate-or-cancel' );
-                } else if (($timeInForce === 'FOK') || ($timeInForce === 'fill-or-kill')) {
+                } elseif (($timeInForce === 'FOK') || ($timeInForce === 'fill-or-kill')) {
                     $request['options'] = array( 'fill-or-kill' );
-                } else if ($timeInForce === 'PO') {
+                } elseif ($timeInForce === 'PO') {
                     $request['options'] = array( 'maker-or-cancel' );
                 }
             }

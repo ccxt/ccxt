@@ -328,7 +328,7 @@ class xena extends Exchange {
                     $symbol = $symbol . '-' . $this->yymmdd($expiryTimestamp);
                     $type = 'future';
                     $future = true;
-                } else if ($marginType === 'XenaListedPerpetual') {
+                } elseif ($marginType === 'XenaListedPerpetual') {
                     $type = 'swap';
                     $swap = true;
                 }
@@ -765,7 +765,7 @@ class xena extends Exchange {
         $side = $this->safe_string_lower_2($trade, 'side', 'aggressorSide');
         if ($side === '1') {
             $side = 'buy';
-        } else if ($side === '2') {
+        } elseif ($side === '2') {
             $side = 'sell';
         }
         $orderId = $this->safe_string($trade, 'orderId');
@@ -1050,17 +1050,17 @@ class xena extends Exchange {
         $side = $this->safe_string($order, 'side');
         if ($side === '1') {
             $side = 'buy';
-        } else if ($side === '2') {
+        } elseif ($side === '2') {
             $side = 'sell';
         }
         $type = $this->safe_string($order, 'ordType');
         if ($type === '1') {
             $type = 'market';
-        } else if ($type === '2') {
+        } elseif ($type === '2') {
             $type = 'limit';
-        } else if ($type === '3') {
+        } elseif ($type === '3') {
             $type = 'stop';
-        } else if ($type === '4') {
+        } elseif ($type === '4') {
             $type = 'stop-limit';
         }
         return $this->safe_order(array(
@@ -1960,7 +1960,7 @@ class xena extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce();
             // php does not format it properly
@@ -1982,7 +1982,7 @@ class xena extends Exchange {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);
                 }
-            } else if ($method === 'POST') {
+            } elseif ($method === 'POST') {
                 $body = $this->json($query);
                 $headers['Content-Type'] = 'application/json';
             }

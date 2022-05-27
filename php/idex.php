@@ -1089,10 +1089,10 @@ class idex extends Exchange {
         if (is_array($limitTypeEnums) && array_key_exists($type, $limitTypeEnums)) {
             $typeEnum = $limitTypeEnums[$type];
             $priceString = $this->price_to_precision($symbol, $price);
-        } else if (is_array($stopLossTypeEnums) && array_key_exists($type, $stopLossTypeEnums)) {
+        } elseif (is_array($stopLossTypeEnums) && array_key_exists($type, $stopLossTypeEnums)) {
             $typeEnum = $stopLossTypeEnums[$type];
             $priceString = $this->price_to_precision($symbol, $price);
-        } else if ($type === 'market') {
+        } elseif ($type === 'market') {
             $typeEnum = 0;
         } else {
             throw new BadRequest($this->id . ' ' . $type . ' is not a valid order type');
@@ -1424,7 +1424,7 @@ class idex extends Exchange {
         $type = null;
         if (is_array($transaction) && array_key_exists('depositId', $transaction)) {
             $type = 'deposit';
-        } else if ((is_array($transaction) && array_key_exists('withdrawId', $transaction)) || (is_array($transaction) && array_key_exists('withdrawalId', $transaction))) {
+        } elseif ((is_array($transaction) && array_key_exists('withdrawId', $transaction)) || (is_array($transaction) && array_key_exists('withdrawalId', $transaction))) {
             $type = 'withdrawal';
         }
         $id = $this->safe_string_2($transaction, 'depositId', 'withdrawId');

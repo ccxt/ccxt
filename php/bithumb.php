@@ -804,7 +804,7 @@ class bithumb extends Exchange {
         if ($remaining === null) {
             if ($status === 'closed') {
                 $remaining = '0';
-            } else if ($status !== 'canceled') {
+            } elseif ($status !== 'canceled') {
                 $remaining = $amount;
             }
         }
@@ -928,7 +928,7 @@ class bithumb extends Exchange {
             $destination = $this->safe_string($params, 'destination');
             if (($tag === null) && ($destination === null)) {
                 throw new ArgumentsRequired($this->id . ' ' . $code . ' withdraw() requires a $tag argument or an extra $destination param');
-            } else if ($tag !== null) {
+            } elseif ($tag !== null) {
                 $request['destination'] = $tag;
             }
         }
@@ -1014,7 +1014,7 @@ class bithumb extends Exchange {
             if ($status !== null) {
                 if ($status === '0000') {
                     return; // no error
-                } else if ($message === '거래 진행중인 내역이 존재하지 않습니다') {
+                } elseif ($message === '거래 진행중인 내역이 존재하지 않습니다') {
                     // https://github.com/ccxt/ccxt/issues/9017
                     return; // no error
                 }

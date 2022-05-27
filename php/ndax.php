@@ -1100,7 +1100,7 @@ class ndax extends Exchange {
         if ($credit > 0) {
             $amount = $credit;
             $direction = 'in';
-        } else if ($debit > 0) {
+        } elseif ($debit > 0) {
             $amount = $debit;
             $direction = 'out';
         }
@@ -1109,7 +1109,7 @@ class ndax extends Exchange {
         $after = $this->safe_number($item, 'Balance');
         if ($direction === 'out') {
             $before = $this->sum($after, $amount);
-        } else if ($direction === 'in') {
+        } elseif ($direction === 'in') {
             $before = max (0, $after - $amount);
         }
         $status = 'ok';
@@ -2074,7 +2074,7 @@ class ndax extends Exchange {
         if (is_array($transaction) && array_key_exists('DepositId', $transaction)) {
             $id = $this->safe_string($transaction, 'DepositId');
             $type = 'deposit';
-        } else if (is_array($transaction) && array_key_exists('WithdrawId', $transaction)) {
+        } elseif (is_array($transaction) && array_key_exists('WithdrawId', $transaction)) {
             $id = $this->safe_string($transaction, 'WithdrawId');
             $type = 'withdrawal';
         }
@@ -2217,7 +2217,7 @@ class ndax extends Exchange {
                     'Authorization' => 'Basic ' . $this->decode($auth64),
                     // 'Content-Type' => 'application/json',
                 );
-            } else if ($path === 'Authenticate2FA') {
+            } elseif ($path === 'Authenticate2FA') {
                 $pending2faToken = $this->safe_string($this->options, 'pending2faToken');
                 if ($pending2faToken !== null) {
                     $headers = array(
@@ -2230,7 +2230,7 @@ class ndax extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             $this->check_required_credentials();
             $sessionToken = $this->safe_string($this->options, 'sessionToken');
             if ($sessionToken === null) {

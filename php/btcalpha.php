@@ -683,7 +683,7 @@ class btcalpha extends Exchange {
                 $headers['Content-Type'] = 'application/x-www-form-urlencoded';
                 $body = $query;
                 $payload .= $body;
-            } else if (strlen($query)) {
+            } elseif (strlen($query)) {
                 $url .= '?' . $query;
             }
             $headers['X-KEY'] = $this->apiKey;
@@ -708,7 +708,7 @@ class btcalpha extends Exchange {
         }
         if ($code === 401 || $code === 403) {
             throw new AuthenticationError($feedback);
-        } else if ($code === 429) {
+        } elseif ($code === 429) {
             throw new DDoSProtection($feedback);
         }
         if ($code < 400) {

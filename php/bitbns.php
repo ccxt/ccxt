@@ -600,7 +600,7 @@ class bitbns extends Exchange {
         $method = 'v2PostOrders';
         if ($type === 'limit') {
             $request['rate'] = $this->price_to_precision($symbol, $price);
-        } else if ($type === 'market') {
+        } elseif ($type === 'market') {
             $method = 'v1PostPlaceMarketOrderQntySymbol';
             $request['market'] = $market['quoteId'];
         } else {
@@ -752,7 +752,7 @@ class bitbns extends Exchange {
         if ($side !== null) {
             if (mb_strpos($side, 'buy') !== false) {
                 $side = 'buy';
-            } else if (mb_strpos($side, 'sell') !== false) {
+            } elseif (mb_strpos($side, 'sell') !== false) {
                 $side = 'sell';
             }
         }
@@ -987,7 +987,7 @@ class bitbns extends Exchange {
             if (mb_strpos($type, 'deposit') !== false) {
                 $type = 'deposit';
                 $status = 'ok';
-            } else if (mb_strpos($type, 'withdraw') !== false) {
+            } elseif (mb_strpos($type, 'withdraw') !== false) {
                 $type = 'withdrawal';
             }
         }
@@ -1073,7 +1073,7 @@ class bitbns extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($method === 'POST') {
+        } elseif ($method === 'POST') {
             if ($query) {
                 $body = $this->json($query);
             } else {
