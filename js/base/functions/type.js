@@ -19,10 +19,10 @@ const prop = (o, k) => (isObject (o) && o[k] !== '' && o[k] !== null ? o[k] : un
         !isObject (o)
         ? undefined
         : (
-            o[k] !== undefined && o[k] !== '' && o[k] !== null
+            o[k1] !== undefined && o[k1] !== '' && o[k1] !== null
             ? o[k1]
             : (
-                o[k] !== '' && o[k] !== null
+                o[k2] !== '' && o[k2] !== null
                 ? o[k2]
                 : undefined
             )
