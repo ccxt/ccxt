@@ -58,7 +58,7 @@ module.exports = class gateio extends ccxt.gateio {
                     'interval': '100ms',
                 },
                 'watchBalance': {
-                    'settle': 'usdt', // or btx
+                    'settle': 'usdt', // or btc
                     'spot': 'spot.balances', // spot.margin_balances, spot.funding_balances or spot.cross_balances
                 },
             },
