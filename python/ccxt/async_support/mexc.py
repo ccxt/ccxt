@@ -1759,7 +1759,8 @@ class mexc(Exchange):
             orderType = 'LIMIT_ORDER'
         timeInForce = self.safe_string(params, 'timeInForce')
         postOnly = False
-        type, postOnly, timeInForce, params = self.is_post_only(type, timeInForce, None, params)
+        isPostOnlyOrderType = (orderType == 'POST_ONLY')
+        type, postOnly, timeInForce, params = self.is_post_only(type, timeInForce, isPostOnlyOrderType, params)
         ioc = (timeInForce == 'IOC')
         if postOnly:
             orderType = 'POST_ONLY'

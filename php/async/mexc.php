@@ -1836,7 +1836,8 @@ class mexc extends Exchange {
         }
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $postOnly = false;
-        list($type, $postOnly, $timeInForce, $params) = $this->is_post_only($type, $timeInForce, null, $params);
+        $isPostOnlyOrderType = ($orderType === 'POST_ONLY');
+        list($type, $postOnly, $timeInForce, $params) = $this->is_post_only($type, $timeInForce, $isPostOnlyOrderType, $params);
         $ioc = ($timeInForce === 'IOC');
         if ($postOnly) {
             $orderType = 'POST_ONLY';
