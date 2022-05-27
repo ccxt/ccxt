@@ -11,7 +11,7 @@ const isNumber          = Number.isFinite
     , isRegExp          = o => (o instanceof RegExp)
     , isDictionary      = o => (isObject (o) && (Object.getPrototypeOf (o) === Object.prototype) && !isArray (o) && !isRegExp (o))
     , isStringCoercible = x => ((hasProps (x) && x.toString) || isNumber (x))
-    , contains           = (o, k) => o[k] || o[k] === 0 || o[k] === false
+    , contains           = (o, k) => k in o && o[k] !== undefined && o[k] !== '' && o[k] !== null
 
 /*  .............................................   */
 
