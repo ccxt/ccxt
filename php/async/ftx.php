@@ -1282,7 +1282,7 @@ class ftx extends Exchange {
         for ($i = 0; $i < count($result); $i++) {
             $entry = $result[$i];
             $marketId = $this->safe_string($entry, 'future');
-            $timestamp = $this->parse8601($this->safe_string($result[$i], 'time'));
+            $timestamp = $this->parse8601($this->safe_string($entry, 'time'));
             $rates[] = array(
                 'info' => $entry,
                 'symbol' => $this->safe_symbol($marketId),

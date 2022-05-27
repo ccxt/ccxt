@@ -29,7 +29,7 @@ class hitbtc(Exchange):
             'countries': ['HK'],
             # 300 requests per second => 1000ms / 300 = 3.333ms between requests on average(Trading)
             # 100 requests per second =>( 1000ms / rateLimit ) / 100 => cost = 3.0003(Market Data)
-            # 10 requests per second =>( 1000ms / rateLimit ) / 10 => cost = 30.003(Other Requests)
+            # 20 requests per second =>( 1000ms / rateLimit ) / 20 => cost = 15.0015(Other Requests)
             'rateLimit': 3.333,
             'version': '2',
             'pro': True,
@@ -143,32 +143,32 @@ class hitbtc(Exchange):
                 },
                 'private': {
                     'get': {
-                        'trading/balance': 30,  # Get trading balance
-                        'order': 30,  # List your current open orders
-                        'order/{clientOrderId}': 30,  # Get a single order by clientOrderId
-                        'trading/fee/all': 30,  # Get trading fee rate
-                        'trading/fee/{symbol}': 30,  # Get trading fee rate
-                        'margin/account': 30,
-                        'margin/account/{symbol}': 30,
-                        'margin/position': 30,
-                        'margin/position/{symbol}': 30,
-                        'margin/order': 30,
-                        'margin/order/{clientOrderId}': 30,
-                        'history/order': 30,  # Get historical orders
-                        'history/trades': 30,  # Get historical trades
-                        'history/order/{orderId}/trades': 30,  # Get historical trades by specified order
-                        'account/balance': 30,  # Get main acccount balance
-                        'account/crypto/address/{currency}': 30,  # Get current address
-                        'account/crypto/addresses/{currency}': 30,  # Get last 10 deposit addresses for currency
-                        'account/crypto/used-addresses/{currency}': 30,  # Get last 10 unique addresses used for withdraw by currency
-                        'account/crypto/estimate-withdraw': 30,
-                        'account/crypto/is-mine/{address}': 30,
-                        'account/transactions': 30,  # Get account transactions
-                        'account/transactions/{id}': 30,  # Get account transaction by id
-                        'sub-acc': 30,
-                        'sub-acc/acl': 30,
-                        'sub-acc/balance/{subAccountUserID}': 30,
-                        'sub-acc/deposit-address/{subAccountUserId}/{currency}': 30,
+                        'trading/balance': 15.0015,  # Get trading balance
+                        'order': 15.0015,  # List your current open orders
+                        'order/{clientOrderId}': 15.0015,  # Get a single order by clientOrderId
+                        'trading/fee/all': 15.0015,  # Get trading fee rate
+                        'trading/fee/{symbol}': 15.0015,  # Get trading fee rate
+                        'margin/account': 15.0015,
+                        'margin/account/{symbol}': 15.0015,
+                        'margin/position': 15.0015,
+                        'margin/position/{symbol}': 15.0015,
+                        'margin/order': 15.0015,
+                        'margin/order/{clientOrderId}': 15.0015,
+                        'history/order': 15.0015,  # Get historical orders
+                        'history/trades': 15.0015,  # Get historical trades
+                        'history/order/{orderId}/trades': 15.0015,  # Get historical trades by specified order
+                        'account/balance': 15.0015,  # Get main acccount balance
+                        'account/crypto/address/{currency}': 15.0015,  # Get current address
+                        'account/crypto/addresses/{currency}': 15.0015,  # Get last 10 deposit addresses for currency
+                        'account/crypto/used-addresses/{currency}': 15.0015,  # Get last 10 unique addresses used for withdraw by currency
+                        'account/crypto/estimate-withdraw': 15.0015,
+                        'account/crypto/is-mine/{address}': 15.0015,
+                        'account/transactions': 15.0015,  # Get account transactions
+                        'account/transactions/{id}': 15.0015,  # Get account transaction by id
+                        'sub-acc': 15.0015,
+                        'sub-acc/acl': 15.0015,
+                        'sub-acc/balance/{subAccountUserID}': 15.0015,
+                        'sub-acc/deposit-address/{subAccountUserId}/{currency}': 15.0015,
                     },
                     'post': {
                         'order': 1,  # Create new order

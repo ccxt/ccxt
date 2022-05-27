@@ -1293,7 +1293,7 @@ module.exports = class ftx extends Exchange {
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const marketId = this.safeString (entry, 'future');
-            const timestamp = this.parse8601 (this.safeString (result[i], 'time'));
+            const timestamp = this.parse8601 (this.safeString (entry, 'time'));
             rates.push ({
                 'info': entry,
                 'symbol': this.safeSymbol (marketId),
