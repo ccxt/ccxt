@@ -1259,7 +1259,7 @@ class okcoin extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'base_volume_24h'),
             'quoteVolume' => $this->safe_string($ticker, 'quote_volume_24h'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

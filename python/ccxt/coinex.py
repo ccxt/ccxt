@@ -627,7 +627,7 @@ class coinex(Exchange):
             'baseVolume': self.safe_string_2(ticker, 'vol', 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """

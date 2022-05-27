@@ -917,7 +917,7 @@ class deribit extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => $this->safe_string($stats, 'volume'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

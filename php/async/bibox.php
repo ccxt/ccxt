@@ -323,7 +323,7 @@ class bibox extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $this->safe_string($ticker, 'amount'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

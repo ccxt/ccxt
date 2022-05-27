@@ -483,7 +483,7 @@ class luno extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'rolling_24_hour_volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

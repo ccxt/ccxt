@@ -1428,7 +1428,7 @@ class cryptocom(Exchange):
             'baseVolume': self.safe_string(ticker, 'v'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def parse_trade(self, trade, market=None):
         #

@@ -569,7 +569,7 @@ class coinbasepro(Exchange):
             'baseVolume': volume,
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         """

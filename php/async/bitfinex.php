@@ -826,7 +826,7 @@ class bitfinex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function parse_trade($trade, $market = null) {

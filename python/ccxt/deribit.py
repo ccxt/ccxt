@@ -913,7 +913,7 @@ class deribit(Exchange):
             'baseVolume': None,
             'quoteVolume': self.safe_string(stats, 'volume'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """

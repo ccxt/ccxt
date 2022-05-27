@@ -367,7 +367,7 @@ class bitflyer extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volume_by_product'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

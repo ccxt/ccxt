@@ -532,7 +532,7 @@ class cdax extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

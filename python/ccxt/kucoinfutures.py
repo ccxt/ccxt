@@ -738,7 +738,7 @@ class kucoinfutures(kucoin):
             'baseVolume': None,
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         #

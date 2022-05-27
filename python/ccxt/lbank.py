@@ -263,7 +263,7 @@ class lbank(Exchange):
             'baseVolume': self.safe_string(ticker, 'vol'),
             'quoteVolume': self.safe_string(ticker, 'turnover'),
             'info': info,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """

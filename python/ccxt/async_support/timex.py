@@ -1103,7 +1103,7 @@ class timex(Exchange):
             'average': None,
             'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': self.safe_string(ticker, 'volumeQuote'),
-        }, market, False)
+        }, market)
 
     def parse_trade(self, trade, market=None):
         #

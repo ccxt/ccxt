@@ -849,7 +849,7 @@ class exmo(Exchange):
             'baseVolume': self.safe_string(ticker, 'vol'),
             'quoteVolume': self.safe_string(ticker, 'vol_curr'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         """

@@ -401,7 +401,7 @@ class lykke extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volumeBase'),
             'quoteVolume' => $this->safe_string($ticker, 'volumeQuote'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

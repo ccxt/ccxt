@@ -400,7 +400,7 @@ class idex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'baseVolume'),
             'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {

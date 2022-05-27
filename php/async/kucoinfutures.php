@@ -749,7 +749,7 @@ class kucoinfutures extends kucoin {
             'baseVolume' => null,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {

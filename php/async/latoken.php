@@ -594,7 +594,7 @@ class latoken extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => $this->safe_string($ticker, 'volume24h'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

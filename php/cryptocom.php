@@ -1492,7 +1492,7 @@ class cryptocom extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'v'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function parse_trade($trade, $market = null) {

@@ -633,7 +633,7 @@ class coinex extends Exchange {
             'baseVolume' => $this->safe_string_2($ticker, 'vol', 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

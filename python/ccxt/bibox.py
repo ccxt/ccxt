@@ -327,7 +327,7 @@ class bibox(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': self.safe_string(ticker, 'amount'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """

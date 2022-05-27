@@ -511,7 +511,7 @@ class yobit extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'vol_cur'),
             'quoteVolume' => $this->safe_string($ticker, 'vol'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
