@@ -474,7 +474,7 @@ class bitso extends Exchange {
                 $duration = $this->parse_timeframe($timeframe);
                 $request['end'] = $this->sum($since, $duration * $limit * 1000);
             }
-        } else if ($limit !== null) {
+        } elseif ($limit !== null) {
             $now = $this->milliseconds();
             $request['end'] = $now;
             $request['start'] = $now - $this->parse_timeframe($timeframe) * 1000 * $limit;

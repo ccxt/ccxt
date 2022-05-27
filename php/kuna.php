@@ -811,11 +811,11 @@ class kuna extends Exchange {
                     if ($params) {
                         $url .= '?' . $this->urlencode($params);
                     }
-                } else if (($method === 'POST') || ($method === 'PUT')) {
+                } elseif (($method === 'POST') || ($method === 'PUT')) {
                     $headers = array( 'Content-Type' => 'application/json' );
                     $body = $this->json($params);
                 }
-            } else if ($access === 'private') {
+            } elseif ($access === 'private') {
                 throw new NotSupported($this->id . ' private v3 API is not supported yet');
             }
         } else {

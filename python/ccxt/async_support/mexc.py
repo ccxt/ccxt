@@ -1671,7 +1671,7 @@ class mexc(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_positions(data)
+        return self.parse_positions(data, symbols)
 
     def parse_position(self, position, market=None):
         #
@@ -1735,12 +1735,6 @@ class mexc(Exchange):
             'datetime': self.iso8601(timestamp),
         }
 
-    def parse_positions(self, positions):
-        result = []
-        for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i]))
-        return result
-
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
@@ -1763,11 +1757,10 @@ class mexc(Exchange):
             raise InvalidOrder(self.id + ' createOrder() does not support market orders, only limit orders are allowed')
         if orderType == 'LIMIT':
             orderType = 'LIMIT_ORDER'
-        postOnly = self.safe_value(params, 'postOnly', False)
-        timeInForce = self.safe_string(params, 'timeInForce')
-        maker = (postOnly or (timeInForce == 'PO'))
+        postOnly = self.is_post_only(type, params)
+        timeInForce = self.safe_string_upper(params, 'timeInForce')
         ioc = (timeInForce == 'IOC')
-        if maker:
+        if postOnly:
             orderType = 'POST_ONLY'
         elif ioc:
             orderType = 'IMMEDIATE_OR_CANCEL'
@@ -1800,15 +1793,14 @@ class mexc(Exchange):
             raise ArgumentsRequired(self.id + ' createSwapOrder() requires an integer openType parameter, 1 for isolated margin, 2 for cross margin')
         if (type != 'limit') and (type != 'market') and (type != 1) and (type != 2) and (type != 3) and (type != 4) and (type != 5) and (type != 6):
             raise InvalidOrder(self.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price')
-        timeInForce = self.safe_string(params, 'timeInForce')
-        postOnly = self.safe_value(params, 'postOnly', False)
-        maker = ((timeInForce == 'PO') or (postOnly))
-        if maker:
+        postOnly = self.is_post_only(type, params)
+        if postOnly:
             type = 2
         elif type == 'limit':
             type = 1
         elif type == 'market':
             type = 6
+        timeInForce = self.safe_string_upper(params, 'timeInForce')
         ioc = (timeInForce == 'IOC')
         fok = (timeInForce == 'FOK')
         if ioc:
@@ -1862,7 +1854,7 @@ class mexc(Exchange):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'externalOid')
         if clientOrderId is not None:
             request['externalOid'] = clientOrderId
-        params = self.omit(params, ['clientOrderId', 'externalOid', 'postOnly'])
+        params = self.omit(params, ['clientOrderId', 'externalOid'])
         response = await getattr(self, method)(self.extend(request, params))
         #
         # Swap

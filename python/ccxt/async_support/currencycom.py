@@ -1651,13 +1651,7 @@ class currencycom(Exchange):
         # }
         #
         data = self.safe_value(response, 'positions', [])
-        return self.parse_positions(data)
-
-    def parse_positions(self, positions):
-        result = []
-        for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i]))
-        return result
+        return self.parse_positions(data, symbols)
 
     def parse_position(self, position, market=None):
         market = self.safe_market(self.safe_string(position, 'symbol'), market)

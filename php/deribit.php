@@ -1284,13 +1284,13 @@ class deribit extends Exchange {
                     'maker' => $this->safe_number($fee, 'maker_fee'),
                     'taker' => $this->safe_number($fee, 'taker_fee'),
                 );
-            } else if ($instrumentType === 'perpetual') {
+            } elseif ($instrumentType === 'perpetual') {
                 $perpetualFee = array(
                     'info' => $fee,
                     'maker' => $this->safe_number($fee, 'maker_fee'),
                     'taker' => $this->safe_number($fee, 'taker_fee'),
                 );
-            } else if ($instrumentType === 'option') {
+            } elseif ($instrumentType === 'option') {
                 $optionFee = array(
                     'info' => $fee,
                     'maker' => $this->safe_number($fee, 'maker_fee'),
@@ -1312,9 +1312,9 @@ class deribit extends Exchange {
             );
             if ($market['swap']) {
                 $fee = array_merge($fee, $perpetualFee);
-            } else if ($market['future']) {
+            } elseif ($market['future']) {
                 $fee = array_merge($fee, $futureFee);
-            } else if ($market['option']) {
+            } elseif ($market['option']) {
                 $fee = array_merge($fee, $optionFee);
             }
             $parsedFees[$symbol] = $fee;
@@ -1561,7 +1561,7 @@ class deribit extends Exchange {
         $stopPriceIsRequired = false;
         if ($type === 'limit') {
             $priceIsRequired = true;
-        } else if ($type === 'stop_limit') {
+        } elseif ($type === 'stop_limit') {
             $priceIsRequired = true;
             $stopPriceIsRequired = true;
         }
@@ -2104,20 +2104,12 @@ class deribit extends Exchange {
         return $this->parse_position($result);
     }
 
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
-    }
-
     public function fetch_positions($symbols = null, $params = array ()) {
         $this->load_markets();
         $code = null;
         if ($symbols === null) {
             $code = $this->code_from_options('fetchPositions', $params);
-        } else if (gettype($symbols) === 'string') {
+        } elseif (gettype($symbols) === 'string') {
             $code = $symbols;
         } else {
             if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) == 0) {
@@ -2165,7 +2157,7 @@ class deribit extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result');
-        return $this->parse_positions($result);
+        return $this->parse_positions($result, $symbols);
     }
 
     public function fetch_historical_volatility($code, $params = array ()) {

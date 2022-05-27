@@ -545,7 +545,7 @@ class tidex extends Exchange {
         $side = $this->safe_string($trade, 'type');
         if ($side === 'ask') {
             $side = 'sell';
-        } else if ($side === 'bid') {
+        } elseif ($side === 'bid') {
             $side = 'buy';
         }
         $priceString = $this->safe_string_2($trade, 'rate', 'price');
@@ -913,7 +913,7 @@ class tidex extends Exchange {
                 'Key' => $this->apiKey,
                 'Sign' => $signature,
             );
-        } else if ($api === 'public') {
+        } elseif ($api === 'public') {
             $url .= '/' . $this->implode_params($path, $params);
             if ($query) {
                 $url .= '?' . $this->urlencode($query);

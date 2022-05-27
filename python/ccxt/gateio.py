@@ -2648,12 +2648,12 @@ class gateio(Exchange):
         contract = market['contract']
         stopPrice = self.safe_number(params, 'stopPrice')
         methodTail = 'Orders'
-        reduceOnly = self.safe_value_2(params, 'reduce_only', 'reduceOnly')
-        defaultTimeInForce = self.safe_value_2(params, 'tif', 'time_in_force', 'gtc')
-        timeInForce = self.safe_value(params, 'timeInForce', defaultTimeInForce)
-        postOnly = False
-        type, postOnly, timeInForce, params = self.is_post_only(type, timeInForce, None, params)
-        params = self.omit(params, ['stopPrice', 'reduce_only', 'reduceOnly', 'tif', 'time_in_force', 'timeInForce'])
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        postOnly = self.is_post_only(type, params)
+        # we only omit the unified params here
+        # self is because the other params will get extended into the request
+        params = self.omit(params, ['stopPrice', 'reduceOnly', 'timeInForce', 'postOnly'])
+        timeInForce = None
         if postOnly:
             timeInForce = 'poc'
         isLimitOrder = (type == 'limit')
@@ -3677,12 +3677,6 @@ class gateio(Exchange):
             'percentage': self.parse_number(percentage),
         }
 
-    def parse_positions(self, positions):
-        result = []
-        for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i]))
-        return result
-
     def fetch_positions(self, symbols=None, params={}):
         """
         Fetch trades positions
@@ -3729,8 +3723,7 @@ class gateio(Exchange):
         #         }
         #     ]
         #
-        result = self.parse_positions(response)
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.parse_positions(response, symbols)
 
     def fetch_leverage_tiers(self, symbols=None, params={}):
         self.load_markets()

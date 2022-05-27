@@ -943,7 +943,7 @@ class aax extends Exchange {
         $side = $this->safe_string($trade, 'side');
         if ($side === '1') {
             $side = 'buy';
-        } else if ($side === '2') {
+        } elseif ($side === '2') {
             $side = 'sell';
         }
         if ($side === null) {
@@ -957,7 +957,7 @@ class aax extends Exchange {
             $feeCurrency = null;
             if ($side === 'buy') {
                 $feeCurrency = $market['base'];
-            } else if ($side === 'sell') {
+            } elseif ($side === 'sell') {
                 $feeCurrency = $market['quote'];
             }
             $fee = array(
@@ -1249,7 +1249,7 @@ class aax extends Exchange {
         } else {
             if ($orderType === 'LIMIT') {
                 $orderType = 'STOP-LIMIT';
-            } else if ($orderType === 'MARKET') {
+            } elseif ($orderType === 'MARKET') {
                 $orderType = 'STOP';
             }
             $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
@@ -1262,7 +1262,7 @@ class aax extends Exchange {
         $method = null;
         if ($market['spot']) {
             $method = 'privatePostSpotOrders';
-        } else if ($market['contract']) {
+        } elseif ($market['contract']) {
             $method = 'privatePostFuturesOrders';
         }
         $response = yield $this->$method (array_merge($request, $params));
@@ -1373,7 +1373,7 @@ class aax extends Exchange {
         $method = null;
         if ($market['spot']) {
             $method = 'privatePutSpotOrders';
-        } else if ($market['contract']) {
+        } elseif ($market['contract']) {
             $method = 'privatePutFuturesOrders';
         }
         $response = yield $this->$method (array_merge($request, $params));
@@ -1572,7 +1572,7 @@ class aax extends Exchange {
         $method = null;
         if ($market['spot']) {
             $method = 'privateDeleteSpotOrdersCancelAll';
-        } else if ($market['contract']) {
+        } elseif ($market['contract']) {
             $method = 'privateDeleteFuturesOrdersCancelAll';
         }
         $response = yield $this->$method (array_merge($request, $params));
@@ -1976,7 +1976,7 @@ class aax extends Exchange {
         $side = $this->safe_string($order, 'side');
         if ($side === '1') {
             $side = 'buy';
-        } else if ($side === '2') {
+        } elseif ($side === '2') {
             $side = 'sell';
         }
         $id = $this->safe_string($order, 'orderID');
@@ -2005,7 +2005,7 @@ class aax extends Exchange {
             $feeCurrency = null;
             if ($side === 'buy') {
                 $feeCurrency = $market['base'];
-            } else if ($side === 'sell') {
+            } elseif ($side === 'sell') {
                 $feeCurrency = $market['quote'];
             }
             $fee = array(
@@ -2257,7 +2257,7 @@ class aax extends Exchange {
         if ($type === 'deposit') {
             $addressFrom = $address;
             $tagFrom = $tag;
-        } else if ($type === 'withdrawal') {
+        } elseif ($type === 'withdrawal') {
             $addressTo = $address;
             $tagTo = $tag;
         }
@@ -2448,7 +2448,7 @@ class aax extends Exchange {
         $params = $this->omit($params, array( 'endTime', 'till' ));
         if ($till !== null) {
             $request['endTime'] = intval($till / 1000);
-        } else if ($endTime !== null) {
+        } elseif ($endTime !== null) {
             $request['endTime'] = $endTime;
         }
         if ($limit !== null) {
@@ -2493,7 +2493,7 @@ class aax extends Exchange {
         }
         if ($limit === null) {
             $limit = 100; // Default
-        } else if ($limit > 1000) {
+        } elseif ($limit > 1000) {
             throw new BadRequest($this->id . ' fetchFundingHistory() $limit argument cannot exceed 1000');
         }
         $market = $this->market($symbol);
@@ -2681,7 +2681,7 @@ class aax extends Exchange {
         $side = null;
         if (Precise::string_gt($size, '0')) {
             $side = 'long';
-        } else if (Precise::string_lt($size, '0')) {
+        } elseif (Precise::string_lt($size, '0')) {
             $side = 'short';
         }
         $leverage = $this->safe_string($position, 'leverage');
@@ -2865,7 +2865,7 @@ class aax extends Exchange {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);
                 }
-            } else if ($api === 'private') {
+            } elseif ($api === 'private') {
                 $this->check_required_credentials();
                 $nonce = (string) $this->nonce();
                 $headers = array(

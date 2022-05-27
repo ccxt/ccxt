@@ -407,7 +407,7 @@ class bit2c extends Exchange {
         $side = $this->safe_value($order, 'type');
         if ($side === 0) {
             $side = 'buy';
-        } else if ($side === 1) {
+        } elseif ($side === 1) {
             $side = 'sell';
         }
         $id = $this->safe_string($order, 'id');
@@ -548,7 +548,7 @@ class bit2c extends Exchange {
             $side = $this->safe_integer($trade, 'action');
             if ($side === 0) {
                 $side = 'buy';
-            } else if ($side === 1) {
+            } elseif ($side === 1) {
                 $side = 'sell';
             }
             $feeCost = $this->safe_string($trade, 'feeAmount');

@@ -491,7 +491,7 @@ class bitforex extends Exchange {
     public function parse_side($sideId) {
         if ($sideId === 1) {
             return 'buy';
-        } else if ($sideId === 2) {
+        } elseif ($sideId === 2) {
             return 'sell';
         } else {
             return null;
@@ -581,7 +581,7 @@ class bitforex extends Exchange {
         $sideId = null;
         if ($side === 'buy') {
             $sideId = 1;
-        } else if ($side === 'sell') {
+        } elseif ($side === 'sell') {
             $sideId = 2;
         }
         $request = array(

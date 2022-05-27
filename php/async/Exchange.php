@@ -28,7 +28,7 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.83.91';
+$version = '1.84.13';
 
 require_once "ExchangeCommon.php";
 

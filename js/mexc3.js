@@ -2353,6 +2353,8 @@ module.exports = class mexc3 extends Exchange {
             'NEW': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
+            'PARTIALLY_FILLED': 'open',
+            'PARTIALLY_CANCELED': 'canceled',
             // contracts v1
             // '1': 'uninformed', // TODO: wt?
             '2': 'open',
@@ -3382,7 +3384,7 @@ module.exports = class mexc3 extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parsePositions (data);
+        return this.parsePositions (data, symbols);
     }
 
     parsePosition (position, market = undefined) {
@@ -3445,14 +3447,6 @@ module.exports = class mexc3 extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-    }
-
-    parsePositions (positions) {
-        const result = [];
-        for (let i = 0; i < positions.length; i++) {
-            result.push (this.parsePosition (positions[i]));
-        }
-        return result;
     }
 
     async fetchTransfer (id, since = undefined, limit = undefined, params = {}) {

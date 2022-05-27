@@ -403,7 +403,7 @@ class coinflex extends Exchange {
             $inverse = null;
             if ($type === 'SPOT') {
                 $marketType = 'spot';
-            } else if ($type === 'FUTURE') {
+            } elseif ($type === 'FUTURE') {
                 $inverse = false;
                 $linear = true;
                 if ($settlementTime === null) {
@@ -413,7 +413,7 @@ class coinflex extends Exchange {
                     $marketType = 'future';
                     $symbol .= ':' . $settle . '-' . $this->yymmdd($settlementTime);
                 }
-            } else if ($type === 'SPREAD' || $type === 'REPO') {
+            } elseif ($type === 'SPREAD' || $type === 'REPO') {
                 $symbol = $id;
             }
             $result[] = array(
@@ -1592,15 +1592,7 @@ class coinflex extends Exchange {
         // response sample inside `getAccountData` method
         $this->targetAccount = $this->safe_value($data, 0);
         $positions = $this->safe_value($this->targetAccount, 'positions', array());
-        return $this->parse_positions($positions);
-    }
-
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
+        return $this->parse_positions($positions, $symbols);
     }
 
     public function parse_position($position, $market = null) {
@@ -2011,7 +2003,7 @@ class coinflex extends Exchange {
         if ($orderTypeIsStop) {
             if (!$stopPriceIsDefined) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires $params["stopPrice"] for stop orders');
-            } else if ($limitPrice === null && $price === null) {
+            } elseif ($limitPrice === null && $price === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires "price" argument or $params["limitPrice"] as a limit $price for stop orders, as stop-$market orders are not supported on this exchange');
             }
         }

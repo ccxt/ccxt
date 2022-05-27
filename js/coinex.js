@@ -524,7 +524,7 @@ module.exports = class coinex extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'active': this.safeString (entry, 'available'),
+                'active': this.safeValue (entry, 'available'),
                 'contract': true,
                 'linear': linear,
                 'inverse': inverse,

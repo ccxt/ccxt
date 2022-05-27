@@ -2038,12 +2038,6 @@ class deribit(Exchange):
         result = self.safe_value(response, 'result')
         return self.parse_position(result)
 
-    def parse_positions(self, positions):
-        result = []
-        for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i]))
-        return result
-
     def fetch_positions(self, symbols=None, params={}):
         self.load_markets()
         code = None
@@ -2094,7 +2088,7 @@ class deribit(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result')
-        return self.parse_positions(result)
+        return self.parse_positions(result, symbols)
 
     def fetch_historical_volatility(self, code, params={}):
         self.load_markets()

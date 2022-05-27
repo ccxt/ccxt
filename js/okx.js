@@ -347,7 +347,7 @@ module.exports = class okx extends Exchange {
                     '50023': ExchangeError, // Funding fee frozen. Operation restricted
                     '50024': BadRequest, // Parameter {0} and {1} can not exist at the same time
                     '50025': ExchangeError, // Parameter {0} count exceeds the limit {1}
-                    '50026': ExchangeError, // System error
+                    '50026': ExchangeNotAvailable, // System error, please try again later.
                     '50027': PermissionDenied, // The account is restricted from trading
                     '50028': ExchangeError, // Unable to take the order, please reach out to support center for details
                     // API Class
@@ -593,6 +593,7 @@ module.exports = class okx extends Exchange {
                     '63999': ExchangeError, // Internal system error
                 },
                 'broad': {
+                    'server error': ExchangeNotAvailable, // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249"}
                 },
             },
             'httpExceptions': {
@@ -4874,12 +4875,12 @@ module.exports = class okx extends Exchange {
         };
     }
 
-    async fetchOpenInterestHistory (code, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+    async fetchOpenInterestHistory (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchOpenInterestHistory
          * @description Retrieves the open interest history of a currency
-         * @param {str} code Unified CCXT currency code
+         * @param {str} symbol Unified CCXT currency code instead of a unified symbol
          * @param {str} timeframe "5m", "1h", or "1d"
          * @param {int} since The time in ms of the earliest record to retrieve as a unix timestamp
          * @param {int} limit Not used by okx, but parsed internally by CCXT
@@ -4894,7 +4895,7 @@ module.exports = class okx extends Exchange {
             throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe');
         }
         await this.loadMarkets ();
-        const currency = this.currency (code);
+        const currency = this.currency (symbol);
         const request = {
             'ccy': currency['id'],
             'period': timeframe,

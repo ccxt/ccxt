@@ -2119,14 +2119,6 @@ module.exports = class deribit extends Exchange {
         return this.parsePosition (result);
     }
 
-    parsePositions (positions) {
-        const result = [];
-        for (let i = 0; i < positions.length; i++) {
-            result.push (this.parsePosition (positions[i]));
-        }
-        return result;
-    }
-
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let code = undefined;
@@ -2180,7 +2172,7 @@ module.exports = class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result');
-        return this.parsePositions (result);
+        return this.parsePositions (result, symbols);
     }
 
     async fetchHistoricalVolatility (code, params = {}) {

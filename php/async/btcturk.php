@@ -563,7 +563,7 @@ class btcturk extends Exchange {
         }
         if (is_array($params) && array_key_exists('clientOrderId', $params)) {
             $request['newClientOrderId'] = $params['clientOrderId'];
-        } else if (!(is_array($params) && array_key_exists('newClientOrderId', $params))) {
+        } elseif (!(is_array($params) && array_key_exists('newClientOrderId', $params))) {
             $request['newClientOrderId'] = $this->uuid();
         }
         $response = yield $this->privatePostOrder (array_merge($request, $params));

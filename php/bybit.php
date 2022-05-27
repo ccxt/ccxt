@@ -1046,7 +1046,7 @@ class bybit extends Exchange {
                 $symbol = $symbol . '-' . $this->yymmdd($expiry) . ':' . $strike . ':' . $optionLetter;
                 if ($optionLetter === 'P') {
                     $optionType = 'put';
-                } else if ($optionLetter === 'C') {
+                } elseif ($optionLetter === 'C') {
                     $optionType = 'call';
                 }
             }
@@ -1247,10 +1247,10 @@ class bybit extends Exchange {
         $isUsdcSettled = $market['settle'] === 'USDC';
         if ($market['spot']) {
             $method = 'publicGetSpotQuoteV1Ticker24hr';
-        } else if (!$isUsdcSettled) {
+        } elseif (!$isUsdcSettled) {
             // inverse perpetual // usdt linear // inverse futures
             $method = 'publicGetV2PublicTickers';
-        } else if ($market['option']) {
+        } elseif ($market['option']) {
             // usdc option
             $method = 'publicGetOptionUsdcOpenapiPublicV1Tick';
         } else {
@@ -1368,7 +1368,7 @@ class bybit extends Exchange {
         $method = null;
         if ($type === 'spot') {
             $method = 'publicGetSpotQuoteV1Ticker24hr';
-        } else if (!$isUsdcSettled) {
+        } elseif (!$isUsdcSettled) {
             // inverse perpetual // usdt linear // inverse futures
             $method = 'publicGetV2PublicTickers';
         } else {
@@ -1505,7 +1505,7 @@ class bybit extends Exchange {
         $isUsdcSettled = $market['settle'] === 'USDC';
         if ($market['spot']) {
             $method = 'publicGetSpotQuoteV1Kline';
-        } else if ($market['contract'] && !$isUsdcSettled) {
+        } elseif ($market['contract'] && !$isUsdcSettled) {
             if ($market['linear']) {
                 // linear swaps/futures
                 $methods = array(
@@ -1909,7 +1909,7 @@ class bybit extends Exchange {
         $costString = $this->safe_string($trade, 'exec_value');
         $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
         if ($timestamp === null) {
-            $timestamp = $this->safe_number_2($trade, 'trade_time_ms', 'time');
+            $timestamp = $this->safe_integer_2($trade, 'trade_time_ms', 'time');
         }
         $side = $this->safe_string_lower($trade, 'side');
         if ($side === null) {
@@ -1971,7 +1971,7 @@ class bybit extends Exchange {
         $isUsdcSettled = $market['settle'] === 'USDC';
         if ($market['type'] === 'spot') {
             $method = 'publicGetSpotQuoteV1Trades';
-        } else if (!$isUsdcSettled) {
+        } elseif (!$isUsdcSettled) {
             // inverse perpetual // usdt linear // inverse futures
             $method = $market['linear'] ? 'publicGetPublicLinearRecentTradingRecords' : 'publicGetV2PublicTradingRecords';
         } else {
@@ -2041,7 +2041,7 @@ class bybit extends Exchange {
             $side = $this->safe_string($bidask, 'side');
             if ($side === 'Buy') {
                 $bids[] = $this->parse_bid_ask($bidask, $priceKey, $amountKey);
-            } else if ($side === 'Sell') {
+            } elseif ($side === 'Sell') {
                 $asks[] = $this->parse_bid_ask($bidask, $priceKey, $amountKey);
             } else {
                 throw new ExchangeError($this->id . ' parseOrderBook() encountered an unrecognized $bidask format => ' . $this->json($bidask));
@@ -2074,7 +2074,7 @@ class bybit extends Exchange {
         $method = null;
         if ($market['spot']) {
             $method = 'publicGetSpotQuoteV1Depth';
-        } else if (!$isUsdcSettled) {
+        } elseif (!$isUsdcSettled) {
             // inverse perpetual // usdt linear // inverse futures
             $method = 'publicGetV2PublicOrderBookL2';
         } else {
@@ -2565,7 +2565,7 @@ class bybit extends Exchange {
         $lastTradeTimestamp = $this->safe_timestamp($order, 'last_exec_time');
         if ($lastTradeTimestamp === 0) {
             $lastTradeTimestamp = null;
-        } else if ($lastTradeTimestamp === null) {
+        } elseif ($lastTradeTimestamp === null) {
             $lastTradeTimestamp = $this->parse8601($this->safe_string_n($order, array( 'updated_time', 'updated_at', 'update_time' )));
             if ($lastTradeTimestamp === null) {
                 $lastTradeTimestamp = $this->safe_number($order, 'updateTime');
@@ -2671,7 +2671,7 @@ class bybit extends Exchange {
         $isUsdcSettled = ($market['settle'] === 'USDC');
         if ($market['spot']) {
             return $this->create_spot_order($symbol, $type, $side, $amount, $price, $params);
-        } else if ($isUsdcSettled) {
+        } elseif ($isUsdcSettled) {
             return $this->create_usdc_order($symbol, $type, $side, $amount, $price, $params);
         } else {
             return $this->create_contract_order($symbol, $type, $side, $amount, $price, $params);
@@ -2794,7 +2794,7 @@ class bybit extends Exchange {
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'orderLinkId');
         if ($clientOrderId !== null) {
             $request['orderLinkId'] = $clientOrderId;
-        } else if ($market['option']) {
+        } elseif ($market['option']) {
             // mandatory field for options
             $request['orderLinkId'] = $this->uuid16();
         }
@@ -2896,7 +2896,7 @@ class bybit extends Exchange {
         $method = null;
         if ($market['future']) {
             $method = $isConditionalOrder ? 'privatePostFuturesPrivateStopOrderCreate' : 'privatePostFuturesPrivateOrderCreate';
-        } else if ($market['linear']) {
+        } elseif ($market['linear']) {
             $method = $isConditionalOrder ? 'privatePostPrivateLinearStopOrderCreate' : 'privatePostPrivateLinearOrderCreate';
         } else {
             // inverse swaps
@@ -3009,7 +3009,7 @@ class bybit extends Exchange {
         $method = null;
         if ($market['linear']) {
             $method = $isConditionalOrder ? 'privatePostPrivateLinearStopOrderReplace' : 'privatePostPrivateLinearOrderReplace';
-        } else if ($market['future']) {
+        } elseif ($market['future']) {
             $method = $isConditionalOrder ? 'privatePostFuturesPrivateStopOrderReplace' : 'privatePostFuturesPrivateOrderReplace';
         } else {
             // inverse swaps
@@ -3060,7 +3060,7 @@ class bybit extends Exchange {
         $isUsdcSettled = ($market['settle'] === 'USDC');
         if ($market['spot']) {
             throw new NotSupported($this->id . ' editOrder() does not support spot markets');
-        } else if ($isUsdcSettled) {
+        } elseif ($isUsdcSettled) {
             return $this->edit_usdc_order($id, $symbol, $type, $side, $amount, $price, $params);
         } else {
             return $this->edit_contract_order($id, $symbol, $type, $side, $amount, $price, $params);
@@ -3092,7 +3092,7 @@ class bybit extends Exchange {
         if ($market['spot']) {
             $method = 'privateDeleteSpotV1Order';
             $request['orderId'] = $id;
-        } else if ($isUsdcSettled) {
+        } elseif ($isUsdcSettled) {
             $request['orderId'] = $id;
             if ($market['option']) {
                 $method = 'privatePostOptionUsdcOpenapiPrivateV1CancelOrder';
@@ -3100,10 +3100,10 @@ class bybit extends Exchange {
                 $method = 'privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder';
                 $request['orderFilter'] = $isConditional ? 'StopOrder' : 'Order';
             }
-        } else if ($market['linear']) {
+        } elseif ($market['linear']) {
             // linear futures and linear swaps
             $method = $isConditional ? 'privatePostPrivateLinearStopOrderCancel' : 'privatePostPrivateLinearOrderCancel';
-        } else if ($market['swap']) {
+        } elseif ($market['swap']) {
             // inverse swaps
             $method = $isConditional ? 'privatePostV2PrivateStopOrderCancel' : 'privatePostV2PrivateOrderCancel';
         } else {
@@ -3186,11 +3186,11 @@ class bybit extends Exchange {
         $method = null;
         if ($type === 'spot') {
             $method = 'privateDeleteSpotOrderBatchCancel';
-        } else if ($isUsdcSettled) {
+        } elseif ($isUsdcSettled) {
             $method = ($type === 'option') ? 'privatePostOptionUsdcOpenapiPrivateV1CancelAll' : 'privatePostPerpetualUsdcOpenapiPrivateV1CancelAll';
-        } else if ($type === 'future') {
+        } elseif ($type === 'future') {
             $method = $isConditional ? 'privatePostFuturesPrivateStopOrderCancelAll' : 'privatePostFuturesPrivateOrderCancelAll';
-        } else if ($market['linear']) {
+        } elseif ($market['linear']) {
             // linear swap
             $method = $isConditional ? 'privatePostPrivateLinearStopOrderCancelAll' : 'privatePostPrivateLinearOrderCancelAll';
         } else {
@@ -3285,7 +3285,7 @@ class bybit extends Exchange {
         $params = $this->omit($params, array( 'orderType', 'stop', 'orderType' ));
         if ($market['linear']) {
             $method = $isConditionalOrder ? 'privateGetPrivateLinearStopOrderList' : 'privateGetPrivateLinearOrderList';
-        } else if ($market['future']) {
+        } elseif ($market['future']) {
             $method = $isConditionalOrder ? 'privateGetFuturesPrivateStopOrderList' : 'privateGetFuturesPrivateOrderList';
         } else {
             // inverse swap
@@ -3488,13 +3488,13 @@ class bybit extends Exchange {
             $params = $this->omit($params, array( 'stop', 'orderType' ));
             if ($market['future']) {
                 $method = $isConditional ? 'privateGetFuturesPrivateStopOrder' : 'privateGetFuturesPrivateOrder';
-            } else if ($market['linear']) {
+            } elseif ($market['linear']) {
                 $method = $isConditional ? 'privateGetPrivateLinearStopOrderSearch' : 'privateGetPrivateLinearOrderSearch';
             } else {
                 // inverse swap
                 $method = $isConditional ? 'privateGetV2PrivateStopOrder' : 'privateGetV2PrivateOrder';
             }
-        } else if ($type === 'spot') {
+        } elseif ($type === 'spot') {
             $method = 'privateGetSpotV1OpenOrders';
         } else {
             // usdc
@@ -3583,7 +3583,7 @@ class bybit extends Exchange {
         $method = null;
         if ($market['spot']) {
             $method = 'privateGetSpotV1MyTrades';
-        } else if ($market['future']) {
+        } elseif ($market['future']) {
             $method = 'privateGetFuturesPrivateExecutionList';
         } else {
             // linear and inverse swaps
@@ -4199,9 +4199,9 @@ class bybit extends Exchange {
         if ($isUsdcSettled) {
             $method = 'privatePostOptionUsdcOpenapiPrivateV1QueryPosition';
             $request['category'] = ($type === 'option') ? 'OPTION' : 'PERPETUAL';
-        } else if ($type === 'future') {
+        } elseif ($type === 'future') {
             $method = 'privateGetFuturesPrivatePositionList';
-        } else if ($isLinear) {
+        } elseif ($isLinear) {
             $method = 'privateGetPrivateLinearPositionList';
         } else {
             // inverse swaps
@@ -4426,7 +4426,7 @@ class bybit extends Exchange {
         $method = null;
         if ($market['future']) {
             $method = 'privatePostFuturesPrivatePositionSwitchIsolated';
-        } else if ($market['inverse']) {
+        } elseif ($market['inverse']) {
             $method = 'privatePostV2PrivatePositionSwitchIsolated';
         } else {
             // linear
@@ -4461,9 +4461,9 @@ class bybit extends Exchange {
         $method = null;
         if ($isUsdcSettled) {
             $method = 'privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave';
-        } else if ($market['future']) {
+        } elseif ($market['future']) {
             $method = 'privatePostFuturesPrivatePositionLeverageSave';
-        } else if ($market['linear']) {
+        } elseif ($market['linear']) {
             $method = 'privatePostPrivateLinearPositionSetLeverage';
         } else {
             // inverse swaps
@@ -4502,7 +4502,7 @@ class bybit extends Exchange {
             if ($params) {
                 $url .= '?' . $this->rawencode($params);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             $this->check_required_credentials();
             $isOpenapi = mb_strpos($url, 'openapi') !== false;
             $timestamp = (string) $this->milliseconds();
@@ -4611,7 +4611,7 @@ class bybit extends Exchange {
         $method = null;
         if ($isUsdcSettled) {
             $method = 'publicGetPerpetualUsdcOpenapiPublicV1RiskLimitList';
-        } else if ($market['linear']) {
+        } elseif ($market['linear']) {
             $method = 'publicGetPublicLinearRiskLimit';
         } else {
             $method = 'publicGetV2PublicRiskLimitList';

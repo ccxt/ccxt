@@ -1416,10 +1416,10 @@ class bibox extends Exchange {
         if ($api === 'public') {
             if ($method !== 'GET') {
                 $body = array( 'cmds' => $cmds );
-            } else if ($params) {
+            } elseif ($params) {
                 $url .= '?' . $this->urlencode($params);
             }
-        } else if ($api === 'v2private') {
+        } elseif ($api === 'v2private') {
             $this->check_required_credentials();
             $url = $this->implode_hostname($this->urls['api']) . '/v2/' . $path;
             $json_params = $this->json($params);

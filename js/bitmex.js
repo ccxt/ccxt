@@ -23,21 +23,27 @@ module.exports = class bitmex extends Exchange {
                 'CORS': undefined,
                 'spot': false,
                 'margin': false,
-                'swap': undefined, // has but not fully implemented
-                'future': undefined, // has but not fully implemented
-                'option': undefined, // has but not fully implemented
+                'swap': true,
+                'future': true,
+                'option': false,
+                'addMargin': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchFundingHistory': false,
+                'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
+                'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -46,7 +52,9 @@ module.exports = class bitmex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
                 'fetchPositions': true,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -54,8 +62,11 @@ module.exports = class bitmex extends Exchange {
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'reduceMargin': undefined,
                 'setLeverage': true,
+                'setMargin': undefined,
                 'setMarginMode': true,
+                'setPositionMode': false,
                 'transfer': false,
                 'withdraw': true,
             },
@@ -1661,12 +1672,21 @@ module.exports = class bitmex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const orderType = this.capitalize (type);
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        if (reduceOnly !== undefined) {
+            if ((market['type'] !== 'swap') && (market['type'] !== 'future')) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only');
+            }
+        }
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
-            'orderQty': parseFloat (this.amountToPrecision (symbol, amount)),
+            'orderQty': parseFloat (this.amountToPrecision (symbol, amount)), // lot size multiplied by the number of contracts
             'ordType': orderType,
         };
+        if (reduceOnly) {
+            request['execInst'] = 'ReduceOnly';
+        }
         if ((orderType === 'Stop') || (orderType === 'StopLimit') || (orderType === 'MarketIfTouched') || (orderType === 'LimitIfTouched')) {
             const stopPrice = this.safeNumber2 (params, 'stopPx', 'stopPrice');
             if (stopPrice === undefined) {
@@ -1792,6 +1812,7 @@ module.exports = class bitmex extends Exchange {
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetPosition (params);
+        //
         //     [
         //         {
         //             "account": 0,
@@ -1888,8 +1909,7 @@ module.exports = class bitmex extends Exchange {
         //         }
         //     ]
         //
-        const result = this.parsePositions (response);
-        return this.filterByArray (result, 'symbol', symbols, false);
+        return this.parsePositions (response, symbols);
     }
 
     parsePosition (position, market = undefined) {
@@ -1997,6 +2017,8 @@ module.exports = class bitmex extends Exchange {
         if (market['quote'] === 'USDT') {
             notional = Precise.stringMul (this.safeString (position, 'foreignNotional'), '-1');
         }
+        const maintenanceMargin = this.safeNumber (position, 'maintMargin');
+        const unrealisedPnl = this.safeNumber (position, 'unrealisedPnl');
         return {
             'info': position,
             'id': this.safeString (position, 'account'),
@@ -2014,9 +2036,9 @@ module.exports = class bitmex extends Exchange {
             'collateral': undefined,
             'initialMargin': undefined,
             'initialMarginPercentage': this.safeNumber (position, 'initMarginReq'),
-            'maintenanceMargin': undefined,
+            'maintenanceMargin': this.convertValue (maintenanceMargin, market),
             'maintenanceMarginPercentage': undefined,
-            'unrealizedPnl': undefined,
+            'unrealizedPnl': this.convertValue (unrealisedPnl, market),
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'marginMode': marginMode,
             'marginRatio': undefined,
@@ -2024,12 +2046,19 @@ module.exports = class bitmex extends Exchange {
         };
     }
 
-    parsePositions (positions) {
-        const result = [];
-        for (let i = 0; i < positions.length; i++) {
-            result.push (this.parsePosition (positions[i]));
+    convertValue (value, market = undefined) {
+        if ((value === undefined) || (market === undefined)) {
+            return value;
         }
-        return result;
+        let resultValue = undefined;
+        value = this.numberToString (value);
+        if ((market['quote'] === 'USD') || (market['quote'] === 'EUR')) {
+            resultValue = Precise.stringMul (value, '0.00000001');
+        }
+        if (market['quote'] === 'USDT') {
+            resultValue = Precise.stringMul (value, '0.000001');
+        }
+        return parseFloat (resultValue);
     }
 
     isFiat (currency) {

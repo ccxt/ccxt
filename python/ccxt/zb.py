@@ -3346,9 +3346,6 @@ class zb(Exchange):
 
     def fetch_positions(self, symbols=None, params={}):
         self.load_markets()
-        market = None
-        if symbols is not None:
-            market = self.market(symbols)
         request = {
             'futuresAccountType': 1,  # 1: USDT-M Perpetual Futures
             # 'symbol': market['id'],
@@ -3406,7 +3403,7 @@ class zb(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_positions(data, market)
+        return self.parse_positions(data, symbols)
 
     def parse_position(self, position, market=None):
         #
@@ -3452,7 +3449,8 @@ class zb(Exchange):
         #         "userId": "6896693805014120448"
         #     }
         #
-        market = self.safe_market(self.safe_string(position, 'marketName'), market)
+        marketId = self.safe_string(position, 'marketName')
+        market = self.safe_market(marketId, market)
         symbol = market['symbol']
         contracts = self.safe_string(position, 'amount')
         entryPrice = self.safe_number(position, 'avgPrice')
@@ -3493,12 +3491,6 @@ class zb(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-
-    def parse_positions(self, positions):
-        result = []
-        for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i]))
-        return result
 
     def parse_ledger_entry_type(self, type):
         types = {

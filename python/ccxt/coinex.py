@@ -524,7 +524,7 @@ class coinex(Exchange):
                 'swap': True,
                 'future': False,
                 'option': False,
-                'active': self.safe_string(entry, 'available'),
+                'active': self.safe_value(entry, 'available'),
                 'contract': True,
                 'linear': linear,
                 'inverse': inverse,

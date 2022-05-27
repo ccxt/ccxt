@@ -373,7 +373,7 @@ class coinex extends Exchange {
         list($type, $query) = $this->handle_market_type_and_params('fetchMarkets', null, $params);
         if ($type === 'spot' || $type === 'margin') {
             $result = $this->fetch_spot_markets($query);
-        } else if ($type === 'swap') {
+        } elseif ($type === 'swap') {
             $result = $this->fetch_contract_markets($query);
         } else {
             throw new ExchangeError($this->id . " does not support the '" . $type . "' market $type, set exchange.options['defaultType'] to 'spot', 'margin' or 'swap'");
@@ -527,7 +527,7 @@ class coinex extends Exchange {
                 'swap' => true,
                 'future' => false,
                 'option' => false,
-                'active' => $this->safe_string($entry, 'available'),
+                'active' => $this->safe_value($entry, 'available'),
                 'contract' => true,
                 'linear' => $linear,
                 'inverse' => $inverse,
@@ -971,7 +971,7 @@ class coinex extends Exchange {
         $takerOrMaker = $this->safe_string($trade, 'role');
         if ($takerOrMaker === '1') {
             $takerOrMaker = 'maker';
-        } else if ($takerOrMaker === '2') {
+        } elseif ($takerOrMaker === '2') {
             $takerOrMaker = 'taker';
         }
         $side = null;
@@ -979,7 +979,7 @@ class coinex extends Exchange {
             $side = $this->safe_integer($trade, 'side');
             if ($side === 1) {
                 $side = 'sell';
-            } else if ($side === 2) {
+            } elseif ($side === 2) {
                 $side = 'buy';
             }
             if ($side === null) {
@@ -1199,7 +1199,7 @@ class coinex extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $marketId = $market['id'];
-        } else if ($marketId === null) {
+        } elseif ($marketId === null) {
             throw new ArgumentsRequired($this->id . ' fetchMarginBalance() fetching a margin account requires a $market parameter or a $symbol parameter');
         }
         $params = $this->omit($params, array( 'symbol', 'market' ));
@@ -1347,7 +1347,7 @@ class coinex extends Exchange {
         $params = $this->omit($params, 'type');
         if ($accountType === 'margin') {
             return $this->fetch_margin_balance($params);
-        } else if ($accountType === 'swap') {
+        } elseif ($accountType === 'swap') {
             return $this->fetch_swap_balance($params);
         } else {
             return $this->fetch_spot_balance($params);
@@ -1605,7 +1605,7 @@ class coinex extends Exchange {
         $side = $this->safe_integer($order, 'side');
         if ($side === 1) {
             $side = 'sell';
-        } else if ($side === 2) {
+        } elseif ($side === 2) {
             $side = 'buy';
         } else {
             $side = $this->safe_string($order, 'type');
@@ -1615,7 +1615,7 @@ class coinex extends Exchange {
             $type = $this->safe_integer($order, 'type');
             if ($type === 1) {
                 $type = 'limit';
-            } else if ($type === 2) {
+            } elseif ($type === 2) {
                 $type = 'market';
             }
         }
@@ -1681,7 +1681,7 @@ class coinex extends Exchange {
                 if ($type === 'limit') {
                     $method = 'perpetualPrivatePostOrderPutStopLimit';
                     $request['price'] = $this->price_to_precision($symbol, $price);
-                } else if ($type === 'market') {
+                } elseif ($type === 'market') {
                     $method = 'perpetualPrivatePostOrderPutStopMarket';
                 }
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
@@ -1697,7 +1697,7 @@ class coinex extends Exchange {
                     } else {
                         if ($timeInForce === 'IOC') {
                             $timeInForce = 2;
-                        } else if ($timeInForce === 'FOK') {
+                        } elseif ($timeInForce === 'FOK') {
                             $timeInForce = 3;
                         } else {
                             $timeInForce = 1;
@@ -1717,7 +1717,7 @@ class coinex extends Exchange {
                 }
                 $request['price'] = $this->price_to_precision($symbol, $price);
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
-            } else if ($type === 'market' && $stopPrice === null) {
+            } elseif ($type === 'market' && $stopPrice === null) {
                 if ($reduceOnly) {
                     $method = 'perpetualPrivatePostOrderCloseMarket';
                     $request['position_id'] = $positionId;
@@ -1753,7 +1753,7 @@ class coinex extends Exchange {
                 $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
                 if ($type === 'limit') {
                     $method = 'privatePostOrderStopLimit';
-                } else if ($type === 'market') {
+                } elseif ($type === 'market') {
                     $method = 'privatePostOrderStopMarket';
                 }
             }
@@ -2850,7 +2850,7 @@ class coinex extends Exchange {
         $defaultPositionType = null;
         if ($defaultMarginMode === 'isolated') {
             $defaultPositionType = 1;
-        } else if ($defaultMarginMode === 'cross') {
+        } elseif ($defaultMarginMode === 'cross') {
             $defaultPositionType = 2;
         }
         $leverage = $this->safe_integer($params, 'leverage');
@@ -2882,7 +2882,7 @@ class coinex extends Exchange {
         $defaultPositionType = null;
         if ($defaultMarginMode === 'isolated') {
             $defaultPositionType = 1;
-        } else if ($defaultMarginMode === 'cross') {
+        } elseif ($defaultMarginMode === 'cross') {
             $defaultPositionType = 2;
         }
         $positionType = $this->safe_integer($params, 'position_type', $defaultPositionType);
@@ -3454,7 +3454,7 @@ class coinex extends Exchange {
         $transfer = null;
         if (($fromAccount === 'spot') && ($toAccount === 'swap')) {
             $transfer = 'in';
-        } else if (($fromAccount === 'swap') && ($toAccount === 'spot')) {
+        } elseif (($fromAccount === 'swap') && ($toAccount === 'spot')) {
             $transfer = 'out';
         }
         $request = array(
@@ -3498,7 +3498,7 @@ class coinex extends Exchange {
         if ($transferType === 'transfer_out') {
             $fromAccount = 'swap';
             $toAccount = 'spot';
-        } else if ($transferType === 'transfer_in') {
+        } elseif ($transferType === 'transfer_in') {
             $fromAccount = 'spot';
             $toAccount = 'swap';
         }
@@ -3695,7 +3695,7 @@ class coinex extends Exchange {
                 $headers['Content-Type'] = 'application/x-www-form-urlencoded';
                 $body = $urlencoded;
             }
-        } else if ($api === 'public' || $api === 'perpetualPublic') {
+        } elseif ($api === 'public' || $api === 'perpetualPublic') {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }

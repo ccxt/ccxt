@@ -1262,7 +1262,7 @@ class liquid extends Exchange {
         if ($tag !== null) {
             if ($code === 'XRP') {
                 $request['crypto_withdrawal']['payment_id'] = $tag;
-            } else if ($code === 'XLM') {
+            } elseif ($code === 'XLM') {
                 $request['crypto_withdrawal']['memo_type'] = 'text'; // overrideable via $params
                 $request['crypto_withdrawal']['memo_value'] = $tag;
             } else {
@@ -1451,7 +1451,7 @@ class liquid extends Exchange {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);
                 }
-            } else if ($query) {
+            } elseif ($query) {
                 $body = $this->json($query);
             }
             $nonce = $this->nonce();
@@ -1496,7 +1496,7 @@ class liquid extends Exchange {
             //  array( "message" => "Order not found" )
             //
             $this->throw_exactly_matched_exception($this->exceptions, $message, $feedback);
-        } else if ($errors !== null) {
+        } elseif ($errors !== null) {
             //
             //  array( "errors" => array( "user" => ["not_enough_free_balance"] ))
             //  array( "errors" => array( "quantity" => ["less_than_order_size"] ))

@@ -106,7 +106,7 @@ class huobi(Exchange):
                 'fetchPositions': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': True,
-                'fetchStatus': None,
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -152,11 +152,23 @@ class huobi(Exchange):
                 'hostnames': {
                     'contract': 'api.hbdm.com',
                     'spot': 'api.huobi.pro',
+                    'status': {
+                        'spot': 'status.huobigroup.com',
+                        'future': {
+                            'inverse': 'status-dm.huobigroup.com',
+                            'linear': 'status-linear-swap.huobigroup.com',  # USDT-Margined Contracts
+                        },
+                        'swap': {
+                            'inverse': 'status-swap.huobigroup.com',
+                            'linear': 'status-linear-swap.huobigroup.com',  # USDT-Margined Contracts
+                        },
+                    },
                     # recommended for AWS
                     # 'contract': 'api.hbdm.vn',
                     # 'spot': 'api-aws.huobi.pro',
                 },
                 'api': {
+                    'status': 'https://{hostname}',
                     'contract': 'https://{hostname}',
                     'spot': 'https://{hostname}',
                     'market': 'https://{hostname}',
@@ -329,6 +341,39 @@ class huobi(Exchange):
                 # 'https://status-dm.huobigroup.com/api/v2/summary.json': 1,
                 # 'https://status-swap.huobigroup.com/api/v2/summary.json': 1,
                 # 'https://status-linear-swap.huobigroup.com/api/v2/summary.json': 1,
+                'status': {
+                    'public': {
+                        'spot': {
+                            'get': {
+                                'api/v2/summary.json': 1,
+                            },
+                        },
+                        'future': {
+                            'inverse': {
+                                'get': {
+                                    'api/v2/summary.json': 1,
+                                },
+                            },
+                            'linear': {
+                                'get': {
+                                    'api/v2/summary.json': 1,
+                                },
+                            },
+                        },
+                        'swap': {
+                            'inverse': {
+                                'get': {
+                                    'api/v2/summary.json': 1,
+                                },
+                            },
+                            'linear': {
+                                'get': {
+                                    'api/v2/summary.json': 1,
+                                },
+                            },
+                        },
+                    },
+                },
                 'spot': {
                     'public': {
                         'get': {
@@ -461,6 +506,7 @@ class huobi(Exchange):
                     'public': {
                         'get': {
                             'api/v1/timestamp': 1,
+                            'heartbeat/': 1,  # backslash is not a typo
                             # Future Market Data interface
                             'api/v1/contract_contract_info': 1,
                             'api/v1/contract_index': 1,
@@ -936,6 +982,210 @@ class huobi(Exchange):
                 'BIFI': 'Bitcoin File',  # conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
             },
         })
+
+    def fetch_status(self, params={}):
+        self.load_markets()
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchMyTrades', None, params)
+        method = 'statusPublicSpotGetApiV2SummaryJson'
+        if marketType != 'spot':
+            subType = self.safe_string(params, 'subType', self.options['defaultSubType'])
+            if marketType == 'swap':
+                if subType == 'linear':
+                    method = 'statusPublicSwapLinearGetApiV2SummaryJson'
+                elif subType == 'inverse':
+                    method = 'statusPublicSwapInverseGetApiV2SummaryJson'
+            elif marketType == 'future':
+                if subType == 'linear':
+                    method = 'statusPublicFutureLinearGetApiV2SummaryJson'
+                elif subType == 'inverse':
+                    method = 'statusPublicFutureInverseGetApiV2SummaryJson'
+            elif marketType == 'contract':
+                method = 'contractPublicGetHeartbeat'
+        response = getattr(self, method)()
+        #
+        # statusPublicSpotGetApiV2SummaryJson, statusPublicSwapInverseGetApiV2SummaryJson, statusPublicFutureLinearGetApiV2SummaryJson, statusPublicFutureInverseGetApiV2SummaryJson
+        #
+        #      {
+        #          "page": {
+        #              "id":"mn7l2lw8pz4p",
+        #              "name":"Huobi Futures-USDT-margined Swaps",
+        #              "url":"https://status-linear-swap.huobigroup.com",
+        #              "time_zone":"Asia/Singapore",
+        #              "updated_at":"2022-04-29T12:47:21.319+08:00"},
+        #              "components": [
+        #                  {
+        #                      "id":"lrv093qk3yp5",
+        #                      "name":"market data",
+        #                      "status":"operational",
+        #                      "created_at":"2020-10-29T14:08:59.427+08:00",
+        #                      "updated_at":"2020-10-29T14:08:59.427+08:00",
+        #                      "position":1,"description":null,
+        #                      "showcase":false,
+        #                      "start_date":null,
+        #                      "group_id":null,
+        #                      "page_id":"mn7l2lw8pz4p",
+        #                      "group":true,
+        #                      "only_show_if_degraded":false,
+        #                      "components": [
+        #                          "82k5jxg7ltxd"  # list of related components
+        #                      ]
+        #                  },
+        #              ],
+        #              "incidents": [ # empty array if there are no issues
+        #                  {
+        #                      "id": "rclfxz2g21ly",  # incident id
+        #                      "name": "Market data is delayed",  # incident name
+        #                      "status": "investigating",  # incident status
+        #                      "created_at": "2020-02-11T03:15:01.913Z",  # incident create time
+        #                      "updated_at": "2020-02-11T03:15:02.003Z",   # incident update time
+        #                      "monitoring_at": null,
+        #                      "resolved_at": null,
+        #                      "impact": "minor",  # incident impact
+        #                      "shortlink": "http://stspg.io/pkvbwp8jppf9",
+        #                      "started_at": "2020-02-11T03:15:01.906Z",
+        #                      "page_id": "p0qjfl24znv5",
+        #                      "incident_updates": [
+        #                          {
+        #                              "id": "dwfsk5ttyvtb",
+        #                              "status": "investigating",
+        #                              "body": "Market data is delayed",
+        #                              "incident_id": "rclfxz2g21ly",
+        #                              "created_at": "2020-02-11T03:15:02.000Z",
+        #                              "updated_at": "2020-02-11T03:15:02.000Z",
+        #                              "display_at": "2020-02-11T03:15:02.000Z",
+        #                              "affected_components": [
+        #                                  {
+        #                                      "code": "nctwm9tghxh6",
+        #                                      "name": "Market data",
+        #                                      "old_status": "operational",
+        #                                      "new_status": "degraded_performance"
+        #                                  }
+        #                              ],
+        #                              "deliver_notifications": True,
+        #                              "custom_tweet": null,
+        #                              "tweet_id": null
+        #                          }
+        #                      ],
+        #                      "components": [
+        #                          {
+        #                              "id": "nctwm9tghxh6",
+        #                              "name": "Market data",
+        #                              "status": "degraded_performance",
+        #                              "created_at": "2020-01-13T09:34:48.284Z",
+        #                              "updated_at": "2020-02-11T03:15:01.951Z",
+        #                              "position": 8,
+        #                              "description": null,
+        #                              "showcase": False,
+        #                              "group_id": null,
+        #                              "page_id": "p0qjfl24znv5",
+        #                              "group": False,
+        #                              "only_show_if_degraded": False
+        #                          }
+        #                      ]
+        #                  }, ...
+        #              ],
+        #              "scheduled_maintenances":[ # empty array if there are no scheduled maintenances
+        #                  {
+        #                      "id": "k7g299zl765l",  # incident id
+        #                      "name": "Schedule maintenance",  # incident name
+        #                      "status": "scheduled",  # incident status
+        #                      "created_at": "2020-02-11T03:16:31.481Z",  # incident create time
+        #                      "updated_at": "2020-02-11T03:16:31.530Z",  # incident update time
+        #                      "monitoring_at": null,
+        #                      "resolved_at": null,
+        #                      "impact": "maintenance",  # incident impact
+        #                      "shortlink": "http://stspg.io/md4t4ym7nytd",
+        #                      "started_at": "2020-02-11T03:16:31.474Z",
+        #                      "page_id": "p0qjfl24znv5",
+        #                      "incident_updates": [
+        #                          {
+        #                              "id": "8whgr3rlbld8",
+        #                              "status": "scheduled",
+        #                              "body": "We will be undergoing scheduled maintenance during self time.",
+        #                              "incident_id": "k7g299zl765l",
+        #                              "created_at": "2020-02-11T03:16:31.527Z",
+        #                              "updated_at": "2020-02-11T03:16:31.527Z",
+        #                              "display_at": "2020-02-11T03:16:31.527Z",
+        #                              "affected_components": [
+        #                                  {
+        #                                      "code": "h028tnzw1n5l",
+        #                                      "name": "Deposit And Withdraw - Deposit",
+        #                                      "old_status": "operational",
+        #                                      "new_status": "operational"
+        #                                  }
+        #                              ],
+        #                              "deliver_notifications": True,
+        #                              "custom_tweet": null,
+        #                              "tweet_id": null
+        #                          }
+        #                      ],
+        #                      "components": [
+        #                          {
+        #                              "id": "h028tnzw1n5l",
+        #                              "name": "Deposit",
+        #                              "status": "operational",
+        #                              "created_at": "2019-12-05T02:07:12.372Z",
+        #                              "updated_at": "2020-02-10T12:34:52.970Z",
+        #                              "position": 1,
+        #                              "description": null,
+        #                              "showcase": False,
+        #                              "group_id": "gtd0nyr3pf0k",
+        #                              "page_id": "p0qjfl24znv5",
+        #                              "group": False,
+        #                              "only_show_if_degraded": False
+        #                          }
+        #                      ],
+        #                      "scheduled_for": "2020-02-15T00:00:00.000Z",  # scheduled maintenance start time
+        #                      "scheduled_until": "2020-02-15T01:00:00.000Z"  # scheduled maintenance end time
+        #                  }
+        #              ],
+        #              "status": {
+        #                  "indicator":"none",  # none, minor, major, critical, maintenance
+        #                  "description":"all systems operational"  # All Systems Operational, Minor Service Outage, Partial System Outage, Partially Degraded Service, Service Under Maintenance
+        #              }
+        #          }
+        #
+        #
+        # contractPublicGetHeartbeat
+        #
+        #      {
+        #          "status": "ok",  # 'ok', 'error'
+        #          "data": {
+        #              "heartbeat": 1,  # future 1: available, 0: maintenance with service suspended
+        #              "estimated_recovery_time": null,  # estimated recovery time in milliseconds
+        #              "swap_heartbeat": 1,
+        #              "swap_estimated_recovery_time": null,
+        #              "option_heartbeat": 1,
+        #              "option_estimated_recovery_time": null,
+        #              "linear_swap_heartbeat": 1,
+        #              "linear_swap_estimated_recovery_time": null
+        #          },
+        #          "ts": 1557714418033
+        #      }
+        #
+        status = None
+        updated = None
+        url = None
+        if method == 'contractPublicGetHeartbeat':
+            statusRaw = self.safe_string(response, 'status')
+            status = 'ok' if (statusRaw == 'ok') else 'maintenance'  # 'ok', 'error'
+            updated = self.safe_string(response, 'ts')
+        else:
+            statusData = self.safe_value(response, 'status', {})
+            statusRaw = self.safe_string(statusData, 'indicator')
+            status = 'ok' if (statusRaw == 'none') else 'maintenance'  # none, minor, major, critical, maintenance
+            pageData = self.safe_value(response, 'page', {})
+            datetime = self.safe_string(pageData, 'updated_at')
+            updated = self.parse8601(datetime)
+            url = self.safe_string(pageData, 'url')
+        return {
+            'status': status,
+            'updated': updated,
+            'eta': None,
+            'url': url,
+            'info': response,
+        }
 
     def fetch_time(self, params={}):
         """
@@ -2182,6 +2432,7 @@ class huobi(Exchange):
         if market['contract']:
             if limit is None:
                 limit = 2000
+            request['size'] = limit
             if price is None:
                 duration = self.parse_timeframe(timeframe)
                 if since is None:
@@ -2916,11 +3167,14 @@ class huobi(Exchange):
         #                     "liquidation_type": "0",
         #                     "is_tpsl": 0,
         #                     "real_profit": 0
-        #                     "pair": "BTC-USDT",
-        #                     "business_type": "futures",
         #                     "margin_asset": "USDT",
         #                     "margin_mode": "cross",
         #                     "margin_account": "USDT",
+        #                     "trade_partition": "USDT",  # only in isolated & cross of linear
+        #                     "reduce_only": "1",  # only in isolated & cross of linear
+        #                     "contract_type": "quarter",  # only in cross-margin(inverse & linear)
+        #                     "pair": "BTC-USDT",  # only in cross-margin(inverse & linear)
+        #                     "business_type": "futures"  # only in cross-margin(inverse & linear)
         #                 }
         #             ],
         #             "total_page": 19,
@@ -3209,60 +3463,95 @@ class huobi(Exchange):
         # contracts fetchOrder detailed
         #
         #     {
-        #         "status": "ok",
-        #         "data": {
-        #             "symbol": "BTC",
-        #             "contract_code": "BTC-USDT",
-        #             "instrument_price": 0,
-        #             "final_interest": 0,
-        #             "adjust_value": 0,
-        #             "lever_rate": 10,
-        #             "direction": "sell",
-        #             "offset": "open",
-        #             "volume": 1.000000000000000000,
-        #             "price": 13059.800000000000000000,
-        #             "created_at": 1603703614712,
-        #             "canceled_at": 0,
-        #             "order_source": "api",
-        #             "order_price_type": "opponent",
-        #             "margin_frozen": 0,
-        #             "profit": 0,
-        #             "trades": [
-        #                 {
-        #                     "trade_id": 131560927,
-        #                     "trade_price": 13059.800000000000000000,
-        #                     "trade_volume": 1.000000000000000000,
-        #                     "trade_turnover": 13.059800000000000000,
-        #                     "trade_fee": -0.005223920000000000,
-        #                     "created_at": 1603703614715,
-        #                     "role": "taker",
-        #                     "fee_asset": "USDT",
-        #                     "profit": 0,
-        #                     "real_profit": 0,
-        #                     "id": "131560927-770334322963152896-1"
-        #                 }
-        #             ],
-        #             "total_page": 1,
-        #             "current_page": 1,
-        #             "total_size": 1,
-        #             "liquidation_type": "0",
-        #             "fee_asset": "USDT",
-        #             "fee": -0.005223920000000000,
-        #             "order_id": 770334322963152896,
-        #             "order_id_str": "770334322963152896",
-        #             "client_order_id": 57012021045,
-        #             "order_type": "1",
-        #             "status": 6,
-        #             "trade_avg_price": 13059.800000000000000000,
-        #             "trade_turnover": 13.059800000000000000,
-        #             "trade_volume": 1.000000000000000000,
-        #             "margin_asset": "USDT",
-        #             "margin_mode": "isolated",
-        #             "margin_account": "BTC-USDT",
-        #             "real_profit": 0,
-        #             "is_tpsl": 0
-        #         },
-        #         "ts": 1603703678477
+        #         "symbol": "BTC",
+        #         "contract_code": "BTC-USDT",
+        #         "instrument_price": 0,
+        #         "final_interest": 0,
+        #         "adjust_value": 0,
+        #         "lever_rate": 10,
+        #         "direction": "sell",
+        #         "offset": "open",
+        #         "volume": 1.000000000000000000,
+        #         "price": 13059.800000000000000000,
+        #         "created_at": 1603703614712,
+        #         "canceled_at": 0,
+        #         "order_source": "api",
+        #         "order_price_type": "opponent",
+        #         "margin_frozen": 0,
+        #         "profit": 0,
+        #         "trades": [
+        #             {
+        #                 "trade_id": 131560927,
+        #                 "trade_price": 13059.800000000000000000,
+        #                 "trade_volume": 1.000000000000000000,
+        #                 "trade_turnover": 13.059800000000000000,
+        #                 "trade_fee": -0.005223920000000000,
+        #                 "created_at": 1603703614715,
+        #                 "role": "taker",
+        #                 "fee_asset": "USDT",
+        #                 "profit": 0,
+        #                 "real_profit": 0,
+        #                 "id": "131560927-770334322963152896-1"
+        #             }
+        #         ],
+        #         "total_page": 1,
+        #         "current_page": 1,
+        #         "total_size": 1,
+        #         "liquidation_type": "0",
+        #         "fee_asset": "USDT",
+        #         "fee": -0.005223920000000000,
+        #         "order_id": 770334322963152896,
+        #         "order_id_str": "770334322963152896",
+        #         "client_order_id": 57012021045,
+        #         "order_type": "1",
+        #         "status": 6,
+        #         "trade_avg_price": 13059.800000000000000000,
+        #         "trade_turnover": 13.059800000000000000,
+        #         "trade_volume": 1.000000000000000000,
+        #         "margin_asset": "USDT",
+        #         "margin_mode": "isolated",
+        #         "margin_account": "BTC-USDT",
+        #         "real_profit": 0,
+        #         "is_tpsl": 0
+        #     }
+        #
+        # fetchOrders
+        #
+        #     {
+        #         "order_id": 773131315209248768,
+        #         "contract_code": "ADA201225",
+        #         "symbol": "ADA",
+        #         "lever_rate": 20,
+        #         "direction": "buy",
+        #         "offset": "close",
+        #         "volume": 1,
+        #         "price": 0.0925,
+        #         "create_date": 1604370469629,
+        #         "update_time": 1603704221118,
+        #         "order_source": "web",
+        #         "order_price_type": 6,
+        #         "order_type": 1,
+        #         "margin_frozen": 0,
+        #         "profit": 0,
+        #         "contract_type": "quarter",
+        #         "trade_volume": 0,
+        #         "trade_turnover": 0,
+        #         "fee": 0,
+        #         "trade_avg_price": 0,
+        #         "status": 3,
+        #         "order_id_str": "773131315209248768",
+        #         "fee_asset": "ADA",
+        #         "liquidation_type": "0",
+        #         "is_tpsl": 0,
+        #         "real_profit": 0
+        #         "margin_asset": "USDT",
+        #         "margin_mode": "cross",
+        #         "margin_account": "USDT",
+        #         "trade_partition": "USDT",  # only in isolated & cross of linear
+        #         "reduce_only": "1",  # only in isolated & cross of linear
+        #         "contract_type": "quarter",  # only in cross-margin(inverse & linear)
+        #         "pair": "BTC-USDT",  # only in cross-margin(inverse & linear)
+        #         "business_type": "futures"  # only in cross-margin(inverse & linear)
         #     }
         #
         id = self.safe_string_2(order, 'id', 'order_id_str')
@@ -3275,7 +3564,7 @@ class huobi(Exchange):
         status = self.parse_order_status(self.safe_string_2(order, 'state', 'status'))
         marketId = self.safe_string_2(order, 'contract_code', 'symbol')
         market = self.safe_market(marketId, market)
-        timestamp = self.safe_integer_2(order, 'created_at', 'created-at')
+        timestamp = self.safe_integer_n(order, ['created_at', 'created-at', 'create_date'])
         clientOrderId = self.safe_string_2(order, 'client_order_id', 'client-order-id')
         amount = self.safe_string_2(order, 'volume', 'amount')
         filled = self.safe_string_2(order, 'filled-amount', 'field-amount')  # typo in their API, filled amount
@@ -4548,7 +4837,7 @@ class huobi(Exchange):
             'account': symbol if (marginMode == 'isolated') else 'cross',  # deprecated
             'symbol': symbol,
             'marginMode': marginMode,
-            'marginType': marginMode,
+            'marginType': marginMode,  # deprecated
             'currency': self.safe_currency_code(self.safe_string(info, 'currency')),
             'interest': self.safe_number(info, 'interest-amount'),
             'interestRate': self.safe_number(info, 'interest-rate'),
@@ -4608,8 +4897,16 @@ class huobi(Exchange):
             # type, access = api
             type = self.safe_string(api, 0)
             access = self.safe_string(api, 1)
+            levelOneNestedPath = self.safe_string(api, 2)
+            levelTwoNestedPath = self.safe_string(api, 3)
+            hostname = None
+            hostnames = self.safe_value(self.urls['hostnames'], type)
+            if not isinstance(hostnames, str):
+                hostnames = self.safe_value(hostnames, levelOneNestedPath)
+                if (not isinstance(hostname, str)) and (levelTwoNestedPath is not None):
+                    hostnames = self.safe_value(hostnames, levelTwoNestedPath)
+            hostname = hostnames
             url += self.implode_params(path, params)
-            hostname = self.safe_string(self.urls['hostnames'], type)
             if access == 'public':
                 if query:
                     url += '?' + self.urlencode(query)
