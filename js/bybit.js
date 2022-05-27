@@ -2679,8 +2679,6 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        amount = this.amountToPrecision (symbol, amount);
-        price = (price !== undefined) ? this.priceToPrecision (symbol, price) : undefined;
         const isUsdcSettled = (market['settle'] === 'USDC');
         if (market['spot']) {
             return await this.createSpotOrder (symbol, type, side, amount, price, params);
@@ -2711,7 +2709,7 @@ module.exports = class bybit extends Exchange {
             'side': this.capitalize (side),
             'type': type.toUpperCase (), // limit, market or limit_maker
             'timeInForce': 'GTC', // FOK, IOC
-            'qty': amount,
+            'qty': this.amountToPrecision (symbol, amount),
             // 'orderLinkId': 'string', // unique client order id, max 36 characters
         };
         if (type === 'limit' || type === 'limit_maker') {
