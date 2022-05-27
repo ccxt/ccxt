@@ -58,6 +58,7 @@ module.exports = class gateio extends ccxt.gateio {
                     'interval': '100ms',
                 },
                 'watchBalance': {
+                    'settle': 'usdt', // or btx
                     'spot': 'spot.balances', // spot.margin_balances, spot.funding_balances or spot.cross_balances
                 },
             },
@@ -925,6 +926,11 @@ module.exports = class gateio extends ccxt.gateio {
         const params = {
             'type': type,
         };
+        if (type === 'future' || type === 'swap') {
+            const options = this.safeValue (this.options, 'watchTicker', {});
+            const settle = this.safeString (options, 'settle', 'usdt');
+            params['settle'] = settle;
+        }
         const snapshot = await this.fetchBalance (params);
         this.balance = snapshot;
         client.resolve (this.balance, channel);
