@@ -616,7 +616,6 @@ module.exports = class ndax extends Exchange {
         const open = this.safeString (ticker, 'SessionOpen');
         const baseVolume = this.safeString (ticker, 'Rolling24HrVolume');
         const quoteVolume = this.safeString (ticker, 'Rolling24HrNotional');
-        const vwap = this.vwap (baseVolume, quoteVolume);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -627,7 +626,7 @@ module.exports = class ndax extends Exchange {
             'bidVolume': undefined, // this.safeNumber (ticker, 'BidQty'), always shows 0
             'ask': this.safeString (ticker, 'BestOffer'),
             'askVolume': undefined, // this.safeNumber (ticker, 'AskQty'), always shows 0
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
