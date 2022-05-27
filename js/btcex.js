@@ -285,7 +285,6 @@ module.exports = class btcex extends Exchange {
                     'BEP20': 'BEP20',
                     'BSC': 'BSC',
                 },
-                'fetchMarkets': [ 'spot', 'future', 'swap', 'option' ],
             },
             'commonCurrencies': {
             },
@@ -293,21 +292,6 @@ module.exports = class btcex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const types = this.safeValue (this.options, 'fetchMarkets');
-        const result = [];
-        let spotFutureOption = false;
-        for (let i = 0; i < types.length; i++) {
-            const marketType = types[i];
-            const isSpotFutureOption = (marketType === 'future') || (marketType === 'spot') || (marketType === 'option')
-            if (!spotFutureOption && isSpotFutureOption) {
-                continue;
-            }
-        }
-
-    }
-
-    async fetchMarketsHelper (params = {}) {
-        // by default this endpoint returns everything except perpetual markets
         const response = await this.publicGetGetInstruments (params);
         const markets = this.safeValue (response, 'result', []);
         //
@@ -350,33 +334,44 @@ module.exports = class btcex extends Exchange {
             const market = markets[i];
             const id = this.safeString (market, 'instrument_name');
             const type = this.safeString (market, 'kind');
-            const baseId = this.safeString (market, 'base_currency');
-            let quoteId = this.safeString (market, 'quote_currency');
-            const settlementPeriod = this.safeValue (market, 'settlement_period');
-            const swap = (settlementPeriod === 'perpetual');
+            let unifiedType = type;
+            if (type === 'perpetual') {
+                unifiedType = 'swap';
+            }
+            let baseId = this.safeString (market, 'quote_currency');
+            const quoteId = this.safeString (market, 'base_currency');
+            const swap = (type === 'perpetual');
             const spot = (type === 'spot');
-            const margin = false;
+            const margin = (type === 'margin');
             const option = (type === 'option');
-            const future = !swap && (type === 'future');
+            const future = (type === 'future');
             const contract = swap || future || option;
-            let contractSize = undefined;
             let expiry = undefined;
+            if (option || future) {
+                baseId = this.safeString (market, 'currency');
+                expiry = this.safeInteger (market, 'expiration_timestamp');
+            }
+            let contractSize = undefined;
             let settleId = undefined;
             let settle = undefined;
-            if (swap || future) {
+            if (contract) {
                 settleId = quoteId;
                 settle = this.safeCurrencyCode (settleId);
-                expiry = this.safeInteger (market, 'expiration_timestamp');
             }
             let optionType = undefined;
             let strike = undefined;
             if (option) {
                 optionType = this.safeString (market, 'option_type');
-                strike = this.safeString (market, 'strike');
+                strike = this.safeNumber (market, 'strike');
             }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            let symbol = quote + '/' + base;
+            let symbol = undefined;
+            if (margin) {
+                symbol = id;
+            } else {
+                symbol = base + '/' + quote;
+            }
             if (contract) {
                 contractSize = this.safeNumber (market, 'contract_size');
                 symbol = symbol + ':' + settle;
@@ -388,24 +383,26 @@ module.exports = class btcex extends Exchange {
                     }
                 }
             }
-            const minTradeAmount = this.safeString (market, 'min_trade_amount');
-            const tickSize = this.safeString (market, 'tick_size');
+            const minTradeAmount = this.safeNumber (market, 'min_trade_amount');
+            const tickSize = this.safeNumber (market, 'tick_size');
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': type,
+                'settle': settle,
+                'type': unifiedType,
+                'maker': this.safeNumber (market, 'maker_commission'),
+                'taker': this.safeNumber (market, 'taker_commission'),
                 'spot': spot,
                 'margin': margin,
                 'swap': swap,
                 'future': future,
                 'option': option,
-                'active': this.safeValue (market, 'enabled'),
+                'active': this.safeValue (market, 'is_active'),
                 'contract': contract,
                 'linear': contract ? true : undefined,
                 'inverse': contract ? false : undefined,
@@ -442,14 +439,6 @@ module.exports = class btcex extends Exchange {
         return result;
     }
 
-    async fetchSwapMarkets (params) {
-        const request = {
-            'currency': 'PERPETUAL',
-        };
-        const response = await this.fetchMarketsHelper (this.extend (request, params));
-        return response;
-    }
-
     parseTicker (ticker, market = undefined) {
         //
         //     {
@@ -466,6 +455,7 @@ module.exports = class btcex extends Exchange {
         //             "low":"40254.9",
         //             "price_change":"-0.0159",
         //             "volume":"3847.35240000000000005"
+        //             "turnover":"1109811189.67100102035328746"
         //         },
         //         "timestamp":"1647569486224"
         //     }
@@ -494,7 +484,7 @@ module.exports = class btcex extends Exchange {
             'percentage': this.safeString (stats, 'price_change'),
             'average': undefined,
             'baseVolume': this.safeString (stats, 'volume'),
-            'quoteVolume': undefined,
+            'quoteVolume': this.safeString (stats, 'turnover'),
             'info': ticker,
         }, market, false);
     }
@@ -589,23 +579,24 @@ module.exports = class btcex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (limit === undefined) {
-            limit = 500;
+            limit = 10;
         }
         const request = {
             'resolution': this.timeframes[timeframe],
-            'instrument_name': market['id'],
             // 'start_timestamp': 0,
             // 'end_timestamp': 0,
         };
-        if (market['spot']) {
-            request['instrument_name'] = market['symbol'].replace ('/', '-');
+        let marketId = market['id'];
+        if (market['spot'] || market['margin']) {
+            marketId = market['baseId'] + '-' + market['quoteId'];
         }
-        const timeframeInSeconds = this.parseTimeframe (timeframe);
-        const timeframeInMilliseconds = timeframeInSeconds * 1000;
+        request['instrument_name'] = marketId;
         if (since === undefined) {
             request['end_timestamp'] = this.milliseconds ();
-            request['start_timestamp'] = request['end_timestamp'] - (limit * timeframeInMilliseconds);
+            request['start_timestamp'] = 0;
         } else {
+            const timeframeInSeconds = this.parseTimeframe (timeframe);
+            const timeframeInMilliseconds = timeframeInSeconds * 1000;
             request['start_timestamp'] = since;
             request['end_timestamp'] = this.sum (request['start_timestamp'], limit * timeframeInMilliseconds);
         }
@@ -683,8 +674,8 @@ module.exports = class btcex extends Exchange {
             };
         }
         return this.safeTrade ({
-            'id': id,
             'info': trade,
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -745,6 +736,10 @@ module.exports = class btcex extends Exchange {
     }
 
     async signIn (params = {}) {
+        let accessToken = this.safeString (this.options, 'accessToken');
+        if (accessToken !== undefined) {
+            return accessToken;
+        }
         this.checkRequiredCredentials ();
         const request = {
             'grant_type': 'client_credentials', // client_signature || refresh_token
@@ -770,12 +765,9 @@ module.exports = class btcex extends Exchange {
         //         }
         //     }
         //
-        const sessionToken = this.safeString (result, 'access_token');
-        if (sessionToken !== undefined) {
-            this.options['sessionToken'] = sessionToken;
-            return result;
-        }
-        return response;
+        accessToken = this.safeString (result, 'access_token');
+        this.options['accessToken'] = accessToken;
+        return accessToken;
     }
 
     parseBalance (response) {
@@ -932,15 +924,14 @@ module.exports = class btcex extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        await this.signIn ();
         await this.loadMarkets ();
         let assetType = this.safeValue (params, 'asset_type');
         if (assetType === undefined) {
-            assetType = [ 'ALL' ];
+            assetType = [ 'SPOT' ];
         }
         const request = {
             'asset_type': assetType,
-            // 'coin_type': 'BNB',
-            // 'coin_type': ['SPOT'],
         };
         const response = await this.privatePostGetAssetsInfo (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
@@ -1227,6 +1218,7 @@ module.exports = class btcex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.signIn ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1242,32 +1234,25 @@ module.exports = class btcex extends Exchange {
             // 'trail_price': false, // trail price, Tracking price change Delta. Available when condition_type is TRAILING
             // 'advanced': 'usd', // Advanced option order type, (Only for options), default: usdt. If set to iv，then the price field means iv value
         };
-        const conditionType = this.safeStringLower (params, 'condition_type');
         if (type === 'limit') {
-            if (price !== undefined) {
-                request['price'] = this.priceToPrecision (symbol, price);
-            } else {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
-            }
+            request['price'] = this.priceToPrecision (symbol, price);
         }
-        if (conditionType === 'stop' || conditionType === 'if_touched') {
-            const triggerPrice = this.safeNumber (params, 'trigger_price');
-            if (triggerPrice === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a trigger_price param for a ' + conditionType + ' order');
-            } else {
-                request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
+        const unifiedTimeInForce = this.safeStringUpper (params, 'timeInForce');
+        const exchangeTimeInForce = this.safeString (params, 'time_in_force');
+        let timeInForce = undefined;
+        if (exchangeTimeInForce === undefined) {
+            if (unifiedTimeInForce === 'GTC') {
+                timeInForce = 'good_till_cancelled';
+            } else if (unifiedTimeInForce === 'FOK') {
+                timeInForce = 'fill_or_kill';
+            } else if (unifiedTimeInForce === '') {
+
             }
-            params = this.omit (params, [ 'trigger_price', 'triggerPrice' ]);
+        } else {
+            timeInForce = exchangeTimeInForce;
         }
-        if (conditionType === 'trailing') {
-            const trailPrice = this.safeNumber (params, 'trail_price');
-            if (trailPrice === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a trail_price param for a ' + conditionType + ' order');
-            } else {
-                request['trail_price'] = this.priceToPrecision (symbol, trailPrice);
-            }
-            params = this.omit (params, [ 'trail_price', 'trailPrice' ]);
-        }
+        let postOnly = false;
+        [ type, postOnly, unif, params ] = this.isPostOnly (type, unifiedTimeInForce, undefined, params);
         const method = 'privatePost' + this.capitalize (side);
         const response = await this[method] (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
@@ -1972,9 +1957,9 @@ module.exports = class btcex extends Exchange {
                     request += '?' + this.urlencode (params);
                 }
             }
-            const sessionToken = this.safeString (this.options, 'sessionToken');
+            const sessionToken = this.safeString (this.options, 'accessToken');
             if (sessionToken === undefined) {
-                throw new AuthenticationError (this.id + ' sign() requires session token');
+                throw new AuthenticationError (this.id + ' sign() requires access token');
             }
             headers = {
                 'Authorization': 'bearer ' + sessionToken,
