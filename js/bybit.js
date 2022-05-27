@@ -2767,7 +2767,7 @@ module.exports = class bybit extends Exchange {
             'side': this.capitalize (side),
             'orderType': this.capitalize (type), // limit or market
             'timeInForce': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
-            'orderQty': amount,
+            'orderQty': this.amountToPrecision (symbol, amount),
             // 'takeProfit': 123.45, // take profit price, only take effect upon opening the position
             // 'stopLoss': 123.45, // stop loss price, only take effect upon opening the position
             // 'reduceOnly': false, // reduce only, required for linear orders
@@ -2783,7 +2783,7 @@ module.exports = class bybit extends Exchange {
             // 'mmp': false // market maker protection
         };
         if (price !== undefined) {
-            request['orderPrice'] = price;
+            request['orderPrice'] = this.priceToPrecision (symbol, price);
         }
         if (market['swap']) {
             const stopPx = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
