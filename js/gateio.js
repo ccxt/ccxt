@@ -977,7 +977,7 @@ module.exports = class gateio extends ccxt.gateio {
             'tickers': this.handleTicker,
             'trades': this.handleTrades,
             'order_book_update': this.handleOrderBook,
-            'spot.balances': this.handleBalanceMessage,
+            'balances': this.handleBalanceMessage,
         };
         const method = this.safeValue (v4Methods, channelType);
         if (method !== undefined) {
