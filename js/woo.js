@@ -47,7 +47,7 @@ module.exports = class woo extends Exchange {
                 'fetchDeposits': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
@@ -1829,6 +1829,55 @@ module.exports = class woo extends Exchange {
         const rows = this.safeValue (response, 'rows', {});
         const result = this.parseFundingRates (rows);
         return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start_t'] = parseInt (since / 1000);
+        }
+        const response = await this.v1PublicGetFundingRateHistory (this.extend (request, params));
+        //
+        //     {
+        //         "success":true,
+        //         "meta":{
+        //             "total":2464,
+        //             "records_per_page":25,
+        //             "current_page":1
+        //         },
+        //         "rows":[
+        //             {
+        //                 "symbol":"PERP_BTC_USDT",
+        //                 "funding_rate":0.00000629,
+        //                 "funding_rate_timestamp":1653638400000,
+        //                 "next_funding_time":1653642000000
+        //             }
+        //         ],
+        //         "timestamp":1653640814885
+        //     }
+        //
+        const result = this.safeValue (response, 'rows');
+        const rates = [];
+        for (let i = 0; i < result.length; i++) {
+            const entry = result[i];
+            const marketId = this.safeString (entry, 'symbol');
+            const timestamp = this.safeInteger (entry, 'funding_rate_timestamp');
+            rates.push ({
+                'info': entry,
+                'symbol': this.safeSymbol (marketId),
+                'fundingRate': this.safeNumber (entry, 'funding_rate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     defaultNetworkCodeForCurrency (code) { // TODO: can be moved into base as an unified method
