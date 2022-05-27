@@ -46,7 +46,7 @@ module.exports = class woo extends Exchange {
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': true,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
@@ -1783,6 +1783,28 @@ module.exports = class woo extends Exchange {
             'previousFundingTimestamp': lastFundingRateTimestamp,
             'previousFundingDatetime': this.safeNumber (fundingRate, 'est_funding_rate'),
         };
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.v1PublicGetFundingRateSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "success":true,
+        //         "timestamp":1653640572711,
+        //         "symbol":"PERP_BTC_USDT",
+        //         "est_funding_rate":0.00000738,
+        //         "est_funding_rate_timestamp":1653640559003,
+        //         "last_funding_rate":0.00000629,
+        //         "last_funding_rate_timestamp":1653638400000,
+        //         "next_funding_time":1653642000000
+        //     }
+        //
+        return this.parseFundingRate (response, market);
     }
 
     async fetchFundingRates (symbols, params = {}) {
