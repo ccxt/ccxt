@@ -48,7 +48,7 @@ module.exports = class woo extends Exchange {
                 'fetchFundingHistory': true,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
                 'fetchMarkets': true,
@@ -1746,6 +1746,67 @@ module.exports = class woo extends Exchange {
         //
         const result = this.safeValue (response, 'rows', []);
         return this.parseIncomes (result, market, since, limit);
+    }
+
+    parseFundingRate (fundingRate, market = undefined) {
+        //
+        //         {
+        //             "symbol":"PERP_AAVE_USDT",
+        //             "est_funding_rate":-0.00003447,
+        //             "est_funding_rate_timestamp":1653633959001,
+        //             "last_funding_rate":-0.00002094,
+        //             "last_funding_rate_timestamp":1653631200000,
+        //             "next_funding_time":1653634800000
+        //         }
+        //
+        //
+        const symbol = this.safeString (fundingRate, 'symbol');
+        const nextFundingTimestamp = this.safeInteger (fundingRate, 'next_funding_time');
+        const estFundingRateTimestamp = this.safeInteger (fundingRate, 'est_funding_rate_timestamp');
+        const lastFundingRateTimestamp = this.safeInteger (fundingRate, 'last_funding_rate_timestamp');
+        return {
+            'info': fundingRate,
+            'symbol': symbol,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': this.parseNumber ('0'),
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber (fundingRate, 'est_funding_rate'),
+            'fundingTimestamp': estFundingRateTimestamp,
+            'fundingDatetime': this.iso8601 (estFundingRateTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
+            'previousFundingRate': this.safeNumber (fundingRate, 'last_funding_rate'),
+            'previousFundingTimestamp': lastFundingRateTimestamp,
+            'previousFundingDatetime': this.safeNumber (fundingRate, 'est_funding_rate'),
+        };
+    }
+
+    async fetchFundingRates (symbols, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.v1PublicGetFundingRates (params);
+        //
+        //     {
+        //         "success":true,
+        //         "rows":[
+        //             {
+        //                 "symbol":"PERP_AAVE_USDT",
+        //                 "est_funding_rate":-0.00003447,
+        //                 "est_funding_rate_timestamp":1653633959001,
+        //                 "last_funding_rate":-0.00002094,
+        //                 "last_funding_rate_timestamp":1653631200000,
+        //                 "next_funding_time":1653634800000
+        //             }
+        //         ],
+        //         "timestamp":1653633985646
+        //     }
+        //
+        const rows = this.safeValue (response, 'rows', {});
+        const result = this.parseFundingRates (rows);
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     defaultNetworkCodeForCurrency (code) { // TODO: can be moved into base as an unified method
