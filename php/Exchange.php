@@ -2234,119 +2234,60 @@ class Exchange {
         return $result;
     }
 
-    public function safe_ticker($ticker, $market = null, $legacy = true) {
-        if ($legacy) {
-            $symbol = $this->safe_value($ticker, 'symbol');
-            if ($symbol === null) {
-                $symbol = $this->safe_symbol(null, $market);
-            }
-            $timestamp = $this->safe_integer($ticker, 'timestamp');
-            $baseVolume = $this->safe_value($ticker, 'baseVolume');
-            $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
-            $vwap = $this->safe_value($ticker, 'vwap');
-            if ($vwap === null) {
-                $vwap = $this->vwap($baseVolume, $quoteVolume);
-            }
-            $open = $this->safe_value($ticker, 'open');
-            $close = $this->safe_value($ticker, 'close');
-            $last = $this->safe_value($ticker, 'last');
-            $change = $this->safe_value($ticker, 'change');
-            $percentage = $this->safe_value($ticker, 'percentage');
-            $average = $this->safe_value($ticker, 'average');
-            if (($last !== null) && ($close === null)) {
-                $close = $last;
-            } elseif (($last === null) && ($close !== null)) {
-                $last = $close;
-            }
-            if (($last !== null) && ($open !== null)) {
-                if ($change === null) {
-                    $change = $last - $open;
-                }
-                if ($average === null) {
-                    $average = $this->sum($last, $open) / 2;
-                }
-            }
-            if (($percentage === null) && ($change !== null) && ($open !== null) && ($open > 0)) {
-                $percentage = $change / $open * 100;
-            }
-            if (($change === null) && ($percentage !== null) && ($last !== null)) {
-                $change = $percentage / 100 * $last;
-            }
-            if (($open === null) && ($last !== null) && ($change !== null)) {
-                $open = $last - $change;
-            }
-            if (($vwap !== null) && ($baseVolume !== null) && ($quoteVolume === null)) {
-                $quoteVolume = $vwap / $baseVolume;
-            }
-            if (($vwap !== null) && ($quoteVolume !== null) && ($baseVolume === null)) {
-                $baseVolume = $quoteVolume / $vwap;
-            }
-            $ticker['symbol'] = $symbol;
-            $ticker['timestamp'] = $timestamp;
-            $ticker['datetime'] = $this->iso8601($timestamp);
-            $ticker['open'] = $open;
-            $ticker['close'] = $close;
-            $ticker['last'] = $last;
-            $ticker['vwap'] = $vwap;
-            $ticker['change'] = $change;
-            $ticker['percentage'] = $percentage;
-            $ticker['average'] = $average;
-            return $ticker;
-        } else {
-            $open = $this->safe_value($ticker, 'open');
-            $close = $this->safe_value($ticker, 'close');
-            $last = $this->safe_value($ticker, 'last');
-            $change = $this->safe_value($ticker, 'change');
-            $percentage = $this->safe_value($ticker, 'percentage');
-            $average = $this->safe_value($ticker, 'average');
-            $vwap = $this->safe_value($ticker, 'vwap');
-            $baseVolume = $this->safe_value($ticker, 'baseVolume');
-            $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
-            if ($vwap === null) {
-                $vwap = Precise::string_div($quoteVolume, $baseVolume);
-            }
-            if (($last !== null) && ($close === null)) {
-                $close = $last;
-            } elseif (($last === null) && ($close !== null)) {
-                $last = $close;
-            }
-            if (($last !== null) && ($open !== null)) {
-                if ($change === null) {
-                    $change = Precise::string_sub($last, $open);
-                }
-                if ($average === null) {
-                    $average = Precise::string_div(Precise::string_add($last, $open), '2');
-                }
-            }
-            if (($percentage === null) && ($change !== null) && ($open !== null) && (Precise::string_gt($open, '0'))) {
-                $percentage = Precise::string_mul(Precise::string_div($change, $open), '100');
-            }
-            if (($change === null) && ($percentage !== null) && ($last !== null)) {
-                $change = Precise::string_div(Precise::string_mul($percentage, $last), '100');
-            }
-            if (($open === null) && ($last !== null) && ($change !== null)) {
-                $open = Precise::string_sub($last, $change);
-            }
-            // $timestamp and $symbol operations don't belong in safeTicker
-            // they should be done in the derived classes
-            return array_merge($ticker, array(
-                'bid' => $this->safe_number($ticker, 'bid'),
-                'bidVolume'=> $this->safe_number($ticker, 'bidVolume'),
-                'ask' => $this->safe_number($ticker, 'ask'),
-                'askVolume' => $this->safe_number($ticker, 'askVolume'),
-                'high' => $this->safe_number($ticker, 'high'),
-                'low' => $this->safe_number($ticker, 'low'),
-                'open' => $this->parse_number($open),
-                'close' =>$this->parse_number($close),
-                'last' => $this->parse_number($last),
-                'change' => $this->parse_number($change),
-                'percentage' => $this->parse_number($percentage),
-                'average' => $this->parse_number($average),
-                'vwap' => $this->parse_number($vwap),
-                'baseVolume' => $this->parse_number($baseVolume),
-                'quoteVolume' => $this->parse_number($quoteVolume),
-            ));
+    public function safe_ticker($ticker, $market = null) {
+        $open = $this->safe_value($ticker, 'open');
+        $close = $this->safe_value($ticker, 'close');
+        $last = $this->safe_value($ticker, 'last');
+        $change = $this->safe_value($ticker, 'change');
+        $percentage = $this->safe_value($ticker, 'percentage');
+        $average = $this->safe_value($ticker, 'average');
+        $vwap = $this->safe_value($ticker, 'vwap');
+        $baseVolume = $this->safe_value($ticker, 'baseVolume');
+        $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
+        if ($vwap === null) {
+            $vwap = Precise::string_div($quoteVolume, $baseVolume);
         }
+        if (($last !== null) && ($close === null)) {
+            $close = $last;
+        } elseif (($last === null) && ($close !== null)) {
+            $last = $close;
+        }
+        if (($last !== null) && ($open !== null)) {
+            if ($change === null) {
+                $change = Precise::string_sub($last, $open);
+            }
+            if ($average === null) {
+                $average = Precise::string_div(Precise::string_add($last, $open), '2');
+            }
+        }
+        if (($percentage === null) && ($change !== null) && ($open !== null) && (Precise::string_gt($open, '0'))) {
+            $percentage = Precise::string_mul(Precise::string_div($change, $open), '100');
+        }
+        if (($change === null) && ($percentage !== null) && ($last !== null)) {
+            $change = Precise::string_div(Precise::string_mul($percentage, $last), '100');
+        }
+        if (($open === null) && ($last !== null) && ($change !== null)) {
+            $open = Precise::string_sub($last, $change);
+        }
+        // $timestamp and $symbol operations don't belong in safeTicker
+        // they should be done in the derived classes
+        return array_merge($ticker, array(
+            'bid' => $this->safe_number($ticker, 'bid'),
+            'bidVolume'=> $this->safe_number($ticker, 'bidVolume'),
+            'ask' => $this->safe_number($ticker, 'ask'),
+            'askVolume' => $this->safe_number($ticker, 'askVolume'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'open' => $this->parse_number($open),
+            'close' =>$this->parse_number($close),
+            'last' => $this->parse_number($last),
+            'change' => $this->parse_number($change),
+            'percentage' => $this->parse_number($percentage),
+            'average' => $this->parse_number($average),
+            'vwap' => $this->parse_number($vwap),
+            'baseVolume' => $this->parse_number($baseVolume),
+            'quoteVolume' => $this->parse_number($quoteVolume),
+        ));
     }
 
     public function parse_accounts($accounts, $params = array()) {
