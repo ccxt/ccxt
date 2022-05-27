@@ -467,7 +467,7 @@ class bitfinex extends Exchange {
             if (is_array($fiat) && array_key_exists($market['quote'], $fiat)) {
                 $fee['maker'] = $makerFee2Fiat;
                 $fee['taker'] = $takerFee2Fiat;
-            } else if ($market['contract']) {
+            } elseif ($market['contract']) {
                 $fee['maker'] = $makerFee2Deriv;
                 $fee['taker'] = $takerFee2Deriv;
             } else {
@@ -723,7 +723,7 @@ class bitfinex extends Exchange {
         $isDerivativeCode = mb_substr($currencyId, $start) === 'F0';
         if (($type !== 'derivatives' && $type !== 'trading' && $type !== 'margin') && $isDerivativeCode) {
             $currencyId = mb_substr($currencyId, 0, $start - 0);
-        } else if ($type === 'derivatives' && !$isDerivativeCode) {
+        } elseif ($type === 'derivatives' && !$isDerivativeCode) {
             $currencyId = $currencyId . 'F0';
         }
         return $currencyId;
@@ -788,7 +788,7 @@ class bitfinex extends Exchange {
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
-        } else if (is_array($ticker) && array_key_exists('pair', $ticker)) {
+        } elseif (is_array($ticker) && array_key_exists('pair', $ticker)) {
             $marketId = $this->safe_string($ticker, 'pair');
             if ($marketId !== null) {
                 if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
@@ -1040,7 +1040,7 @@ class bitfinex extends Exchange {
         $status = null;
         if ($open) {
             $status = 'open';
-        } else if ($canceled) {
+        } elseif ($canceled) {
             $status = 'canceled';
         } else {
             $status = 'closed';

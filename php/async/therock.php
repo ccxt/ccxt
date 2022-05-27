@@ -1484,7 +1484,7 @@ class therock extends Exchange {
             $headers['X-TRT-KEY'] = $this->apiKey;
             $headers['X-TRT-NONCE'] = $nonce;
             $headers['X-TRT-SIGN'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha512');
-        } else if ($api === 'public') {
+        } elseif ($api === 'public') {
             if ($query) {
                 $url .= '?' . $this->rawencode($query);
             }

@@ -1014,7 +1014,7 @@ class currencycom extends Exchange {
         if (is_array($trade) && array_key_exists('m', $trade)) {
             $side = $trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally [TODO => needs reason to be mentioned]
             $takerOrMaker = 'taker'; // in public trades, it's always taker
-        } else if (is_array($trade) && array_key_exists('isBuyer', $trade)) {
+        } elseif (is_array($trade) && array_key_exists('isBuyer', $trade)) {
             $side = ($trade['isBuyer']) ? 'buy' : 'sell'; // this is a true $side
             $takerOrMaker = $trade['isMaker'] ? 'maker' : 'taker';
         }
@@ -1266,7 +1266,7 @@ class currencycom extends Exchange {
             if ($type === 'stop') {
                 $request['type'] = 'STOP';
                 $request['price'] = $this->price_to_precision($symbol, $price);
-            } else if ($type === 'market') {
+            } elseif ($type === 'market') {
                 $stopPrice = $this->safe_number($params, 'stopPrice');
                 $params = $this->omit($params, 'stopPrice');
                 if ($stopPrice !== null) {
@@ -1325,7 +1325,7 @@ class currencycom extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
-        } else if ($this->options['warnOnFetchOpenOrdersWithoutSymbol']) {
+        } elseif ($this->options['warnOnFetchOpenOrdersWithoutSymbol']) {
             $symbols = $this->symbols;
             $numSymbols = is_array($symbols) ? count($symbols) : 0;
             $fetchOpenOrdersRateLimit = intval($numSymbols / 2);

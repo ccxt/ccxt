@@ -697,7 +697,7 @@ class latoken extends Exchange {
         } else {
             if ($side === 'TRADE_DIRECTION_BUY') {
                 $side = 'buy';
-            } else if ($side === 'TRADE_DIRECTION_SELL') {
+            } elseif ($side === 'TRADE_DIRECTION_SELL') {
                 $side = 'sell';
             }
         }
@@ -968,7 +968,7 @@ class latoken extends Exchange {
         if ($message !== null) {
             if (mb_strpos($message, 'cancel') !== false) {
                 $status = 'canceled';
-            } else if (mb_strpos($message, 'accept') !== false) {
+            } elseif (mb_strpos($message, 'accept') !== false) {
                 $status = 'open';
             }
         }
@@ -1354,7 +1354,7 @@ class latoken extends Exchange {
         $method = null;
         if ($toAccount->includes ('@')) {
             $method = 'privatePostAuthTransferEmail';
-        } else if (strlen($toAccount) === 36) {
+        } elseif (strlen($toAccount) === 36) {
             $method = 'privatePostAuthTransferId';
         } else {
             $method = 'privatePostAuthTransferPhone';

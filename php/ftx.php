@@ -609,7 +609,7 @@ class ftx extends Exchange {
             if ($swap) {
                 $type = 'swap';
                 $symbol = $base . '/' . $quote . ':' . $settle;
-            } else if ($isFuture) {
+            } elseif ($isFuture) {
                 $type = 'future';
                 $expiry = $this->parse8601($expiryDatetime);
                 if ($expiry === null) {
@@ -1260,7 +1260,7 @@ class ftx extends Exchange {
         $params = $this->omit($params, array( 'end_time', 'till' ));
         if ($till !== null) {
             $request['end_time'] = intval($till / 1000);
-        } else if ($endTime !== null) {
+        } elseif ($endTime !== null) {
             $request['end_time'] = $endTime;
         }
         $response = $this->publicGetFundingRates (array_merge($request, $params));
@@ -1281,7 +1281,7 @@ class ftx extends Exchange {
         for ($i = 0; $i < count($result); $i++) {
             $entry = $result[$i];
             $marketId = $this->safe_string($entry, 'future');
-            $timestamp = $this->parse8601($this->safe_string($result[$i], 'time'));
+            $timestamp = $this->parse8601($this->safe_string($entry, 'time'));
             $rates[] = array(
                 'info' => $entry,
                 'symbol' => $this->safe_symbol($marketId),
@@ -1545,7 +1545,7 @@ class ftx extends Exchange {
             $method = 'privatePostOrders';
             if ($type === 'limit') {
                 $request['price'] = floatval($this->price_to_precision($symbol, $price));
-            } else if ($type === 'market') {
+            } elseif ($type === 'market') {
                 $request['price'] = null;
             }
             $timeInForce = $this->safe_string($params, 'timeInForce');
@@ -1567,7 +1567,7 @@ class ftx extends Exchange {
             if ($ioc) {
                 $request['ioc'] = true;
             }
-        } else if (($type === 'stop') || ($type === 'takeProfit') || ($stopPrice !== null)) {
+        } elseif (($type === 'stop') || ($type === 'takeProfit') || ($stopPrice !== null)) {
             $method = 'privatePostConditionalOrders';
             if ($stopPrice === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder () requires a $stopPrice parameter or a triggerPrice parameter for ' . $type . ' orders');
@@ -1584,7 +1584,7 @@ class ftx extends Exchange {
                 // default to stop orders for main argument
                 $request['type'] = 'stop';
             }
-        } else if ($type === 'trailingStop') {
+        } elseif ($type === 'trailingStop') {
             $trailValue = $this->safe_number($params, 'trailValue', $price);
             if ($trailValue === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder () requires a $trailValue parameter or a $price argument (negative or positive) for a ' . $type . ' order');

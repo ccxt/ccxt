@@ -548,12 +548,12 @@ class hitbtc3 extends Exchange {
                 $activeNetwork = $payinEnabledNetwork && $payoutEnabledNetwork;
                 if ($payinEnabledNetwork && !$depositEnabled) {
                     $depositEnabled = true;
-                } else if (!$payinEnabledNetwork) {
+                } elseif (!$payinEnabledNetwork) {
                     $depositEnabled = false;
                 }
                 if ($payoutEnabledNetwork && !$withdrawEnabled) {
                     $withdrawEnabled = true;
-                } else if (!$payoutEnabledNetwork) {
+                } elseif (!$payoutEnabledNetwork) {
                     $withdrawEnabled = false;
                 }
                 $networks[$network] = array(
@@ -665,9 +665,9 @@ class hitbtc3 extends Exchange {
         $response = null;
         if ($account === 'wallet') {
             $response = $this->privateGetWalletBalance ($params);
-        } else if ($account === 'spot') {
+        } elseif ($account === 'spot') {
             $response = $this->privateGetSpotBalance ($params);
-        } else if ($account === 'derivatives') {
+        } elseif ($account === 'derivatives') {
             $response = $this->privateGetFuturesBalance ($params);
         } else {
             $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
@@ -1225,9 +1225,9 @@ class hitbtc3 extends Exchange {
         $method = 'publicGetPublicCandles';
         if ($price === 'mark') {
             $method = 'publicGetPublicFuturesCandlesMarkPrice';
-        } else if ($price === 'index') {
+        } elseif ($price === 'index') {
             $method = 'publicGetPublicFuturesCandlesIndexPrice';
-        } else if ($price === 'premiumIndex') {
+        } elseif ($price === 'premiumIndex') {
             $method = 'publicGetPublicFuturesCandlesPremiumIndex';
         }
         $response = $this->$method (array_merge($request, $params));

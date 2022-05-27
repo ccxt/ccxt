@@ -718,7 +718,7 @@ class novadax extends Exchange {
         } else {
             if ($uppercaseType === 'LIMIT') {
                 $uppercaseType = 'STOP_LIMIT';
-            } else if ($uppercaseType === 'MARKET') {
+            } elseif ($uppercaseType === 'MARKET') {
                 $uppercaseType = 'STOP_MARKET';
             }
             $defaultOperator = ($uppercaseSide === 'BUY') ? 'LTE' : 'GTE';
@@ -729,10 +729,10 @@ class novadax extends Exchange {
         if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT')) {
             $request['price'] = $this->price_to_precision($symbol, $price);
             $request['amount'] = $this->amount_to_precision($symbol, $amount);
-        } else if (($uppercaseType === 'MARKET') || ($uppercaseType === 'STOP_MARKET')) {
+        } elseif (($uppercaseType === 'MARKET') || ($uppercaseType === 'STOP_MARKET')) {
             if ($uppercaseSide === 'SELL') {
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
-            } else if ($uppercaseSide === 'BUY') {
+            } elseif ($uppercaseSide === 'BUY') {
                 $value = $this->safe_number($params, 'value');
                 $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
                 if ($createMarketBuyOrderRequiresPrice) {
@@ -740,7 +740,7 @@ class novadax extends Exchange {
                         if ($value === null) {
                             $value = $amount * $price;
                         }
-                    } else if ($value === null) {
+                    } elseif ($value === null) {
                         throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost $value in the 'amount' argument or in the 'value' extra parameter (the exchange-specific behaviour)");
                     }
                 } else {
@@ -1237,7 +1237,7 @@ class novadax extends Exchange {
         $type = $this->safe_string($transaction, 'type');
         if ($type === 'COIN_IN') {
             $type = 'deposit';
-        } else if ($type === 'COIN_OUT') {
+        } elseif ($type === 'COIN_OUT') {
             $type = 'withdraw';
         }
         $amount = $this->safe_number($transaction, 'amount');
@@ -1329,7 +1329,7 @@ class novadax extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
             $headers = array(

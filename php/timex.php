@@ -491,7 +491,7 @@ class timex extends Exchange {
             if ($limit !== null) {
                 $request['till'] = $this->iso8601($this->sum($since, $this->sum($limit, 1) * $duration * 1000));
             }
-        } else if ($limit !== null) {
+        } elseif ($limit !== null) {
             $now = $this->milliseconds();
             $request['till'] = $this->iso8601($now);
             $request['from'] = $this->iso8601($now - $limit * $duration * 1000 - 1);
@@ -580,7 +580,7 @@ class timex extends Exchange {
             $expireIn = $this->safe_value($params, 'expireIn', $defaultExpireIn);
             if ($expireTime !== null) {
                 $request['expireTime'] = $expireTime;
-            } else if ($expireIn !== null) {
+            } elseif ($expireIn !== null) {
                 $request['expireIn'] = $expireIn;
             } else {
                 throw new InvalidOrder($this->id . ' createOrder() method requires a $expireTime or $expireIn param for a ' . $type . ' $order, you can also set the $expireIn exchange-wide option');
@@ -1270,7 +1270,7 @@ class timex extends Exchange {
         $status = null;
         if (Precise::string_equals($filled, $amount)) {
             $status = 'closed';
-        } else if ($canceledQuantity !== null) {
+        } elseif ($canceledQuantity !== null) {
             $status = 'canceled';
         } else {
             $status = 'open';

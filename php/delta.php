@@ -484,7 +484,7 @@ class delta extends Exchange {
                         if ($putOptions) {
                             $letter = 'P';
                             $optionType = 'put';
-                        } else if ($moveOptions) {
+                        } elseif ($moveOptions) {
                             $letter = 'M';
                             $optionType = 'move';
                         }
@@ -786,7 +786,7 @@ class delta extends Exchange {
         if ($side === null) {
             if ($sellerRole === 'taker') {
                 $side = 'sell';
-            } else if ($sellerRole === 'maker') {
+            } elseif ($sellerRole === 'maker') {
                 $side = 'buy';
             }
         }
@@ -1500,7 +1500,7 @@ class delta extends Exchange {
         $type = $this->safe_string($item, 'transaction_type');
         if (($type === 'deposit') || ($type === 'commission_rebate') || ($type === 'referral_bonus') || ($type === 'pnl') || ($type === 'withdrawal_cancellation') || ($type === 'promo_credit')) {
             $direction = 'in';
-        } else if (($type === 'withdrawal') || ($type === 'commission') || ($type === 'conversion') || ($type === 'perpetual_futures_funding')) {
+        } elseif (($type === 'withdrawal') || ($type === 'commission') || ($type === 'conversion') || ($type === 'perpetual_futures_funding')) {
             $direction = 'out';
         }
         $type = $this->parse_ledger_entry_type($type);
@@ -1574,7 +1574,7 @@ class delta extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->seconds();
             $headers = array(

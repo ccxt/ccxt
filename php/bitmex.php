@@ -363,11 +363,11 @@ class bitmex extends Exchange {
             $active = $status !== 'Unlisted';
             if ($swap) {
                 $type = 'swap';
-            } else if (mb_strpos($id, 'B_') !== false) {
+            } elseif (mb_strpos($id, 'B_') !== false) {
                 $prediction = true;
                 $type = 'prediction';
                 $symbol = $id;
-            } else if ($expiry !== null) {
+            } elseif ($expiry !== null) {
                 $future = true;
                 $type = 'future';
                 $symbol = $symbol . '-' . $this->yymmdd($expiry);
@@ -2364,7 +2364,7 @@ class bitmex extends Exchange {
         if (is_array($this->currencies) && array_key_exists($symbol, $this->currencies)) {
             $code = $this->currency($symbol);
             $request['symbol'] = $code['id'];
-        } else if ($symbol !== null) {
+        } elseif ($symbol !== null) {
             $splitSymbol = explode(':', $symbol);
             $splitSymbolLength = is_array($splitSymbol) ? count($splitSymbol) : 0;
             $timeframes = array( 'nearest', 'daily', 'weekly', 'monthly', 'quarterly', 'biquarterly', 'perpetual' );

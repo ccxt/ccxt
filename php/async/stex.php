@@ -1959,13 +1959,13 @@ class stex extends Exchange {
         if ($fromAccount === 'referal' && $toAccount === 'spot') {
             $request['currencyId'] = $currency['id'];
             $method = 'profilePostReferralBonusTransferCurrencyId';
-        } else if ($toAccount === 'hold') {
+        } elseif ($toAccount === 'hold') {
             $request['walletId'] = $fromAccount;
             $amount = $this->currency_to_precision($code, $amount);
             $amount = Precise::string_neg($amount);
             $request['amount'] = $amount;
             $method = 'profilePostWalletsWalletIdHoldAmount';
-        } else if ($fromAccount === 'hold') {
+        } elseif ($fromAccount === 'hold') {
             $request['walletId'] = $toAccount;
             $request['amount'] = $amount;
             $method = 'profilePostWalletsWalletIdHoldAmount';

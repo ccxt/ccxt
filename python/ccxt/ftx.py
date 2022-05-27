@@ -1254,7 +1254,7 @@ class ftx(Exchange):
         for i in range(0, len(result)):
             entry = result[i]
             marketId = self.safe_string(entry, 'future')
-            timestamp = self.parse8601(self.safe_string(result[i], 'time'))
+            timestamp = self.parse8601(self.safe_string(entry, 'time'))
             rates.append({
                 'info': entry,
                 'symbol': self.safe_symbol(marketId),

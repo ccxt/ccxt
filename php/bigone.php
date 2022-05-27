@@ -528,7 +528,7 @@ class bigone extends Exchange {
         } else {
             if ($side === 'BID') {
                 $side = 'buy';
-            } else if ($side === 'ASK') {
+            } elseif ($side === 'ASK') {
                 $side = 'sell';
             }
         }
@@ -541,7 +541,7 @@ class bigone extends Exchange {
             } else {
                 $orderId = $makerOrderId;
             }
-        } else if ($takerOrderId !== null) {
+        } elseif ($takerOrderId !== null) {
             $orderId = $takerOrderId;
         }
         $id = $this->safe_string($trade, 'id');
@@ -579,11 +579,11 @@ class bigone extends Exchange {
                     $takerCurrencyCode = $market['quote'];
                 }
             }
-        } else if ($side === 'SELF_TRADING') {
+        } elseif ($side === 'SELF_TRADING') {
             if ($takerSide === 'BID') {
                 $makerCurrencyCode = $market['quote'];
                 $takerCurrencyCode = $market['base'];
-            } else if ($takerSide === 'ASK') {
+            } elseif ($takerSide === 'ASK') {
                 $makerCurrencyCode = $market['base'];
                 $takerCurrencyCode = $market['quote'];
             }
@@ -599,7 +599,7 @@ class bigone extends Exchange {
             } else {
                 $result['fee'] = array( 'cost' => $makerFeeCost, 'currency' => $makerCurrencyCode );
             }
-        } else if ($takerFeeCost !== null) {
+        } elseif ($takerFeeCost !== null) {
             $result['fee'] = array( 'cost' => $takerFeeCost, 'currency' => $takerCurrencyCode );
         } else {
             $result['fee'] = null;
@@ -1067,7 +1067,7 @@ class bigone extends Exchange {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);
                 }
-            } else if ($method === 'POST') {
+            } elseif ($method === 'POST') {
                 $headers['Content-Type'] = 'application/json';
                 $body = $this->json($query);
             }

@@ -907,7 +907,7 @@ class vcc extends Exchange {
             $ceiling = $this->safe_value($params, 'ceiling');
             if ($ceiling !== null) {
                 $request['ceiling'] = $this->cost_to_precision($symbol, $ceiling);
-            } else if ($price !== null) {
+            } elseif ($price !== null) {
                 $request['ceiling'] = $this->cost_to_precision($symbol, $amount * $price);
             } else {
                 throw new InvalidOrder($this->id . ' createOrder() requires a $price argument or a $ceiling parameter for ' . $type . ' orders');

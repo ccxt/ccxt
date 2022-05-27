@@ -537,7 +537,7 @@ class kucoinfutures extends kucoin {
                 $limit = $this->safe_integer($this->options, 'fetchOHLCVLimit', 200);
             }
             $endAt = $this->sum($since, $limit * $duration);
-        } else if ($limit !== null) {
+        } elseif ($limit !== null) {
             $since = $endAt - $limit * $duration;
             $request['from'] = $since;
         }
@@ -929,7 +929,7 @@ class kucoinfutures extends kucoin {
         $side = null;
         if (Precise::string_gt($size, '0')) {
             $side = 'long';
-        } else if (Precise::string_lt($size, '0')) {
+        } elseif (Precise::string_lt($size, '0')) {
             $side = 'short';
         }
         $notional = Precise::string_abs($this->safe_string($position, 'posCost'));
@@ -1269,13 +1269,13 @@ class kucoinfutures extends kucoin {
         $params = $this->omit($params, 'stop');
         if ($status === 'closed') {
             $status = 'done';
-        } else if ($status === 'open') {
+        } elseif ($status === 'open') {
             $status = 'active';
         }
         $request = array();
         if (!$stop) {
             $request['status'] = $status;
-        } else if ($status !== 'active') {
+        } elseif ($status !== 'active') {
             throw new BadRequest($this->id . ' fetchOrdersByStatus() can only fetch untriggered $stop orders');
         }
         $market = null;

@@ -1552,7 +1552,7 @@ class woo extends Exchange {
         if ($movementDirection === 'withdraw') {
             $fromAccount = null;
             $toAccount = 'spot';
-        } else if ($movementDirection === 'deposit') {
+        } elseif ($movementDirection === 'deposit') {
             $fromAccount = 'spot';
             $toAccount = null;
         }

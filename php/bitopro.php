@@ -1459,7 +1459,7 @@ class bitopro extends Exchange {
                 $headers['X-BITOPRO-APIKEY'] = $this->apiKey;
                 $headers['X-BITOPRO-PAYLOAD'] = $payload;
                 $headers['X-BITOPRO-SIGNATURE'] = $signature;
-            } else if ($method === 'GET' || $method === 'DELETE') {
+            } elseif ($method === 'GET' || $method === 'DELETE') {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);
                 }
@@ -1474,7 +1474,7 @@ class bitopro extends Exchange {
                 $headers['X-BITOPRO-PAYLOAD'] = $payload;
                 $headers['X-BITOPRO-SIGNATURE'] = $signature;
             }
-        } else if ($api === 'public' && $method === 'GET') {
+        } elseif ($api === 'public' && $method === 'GET') {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }

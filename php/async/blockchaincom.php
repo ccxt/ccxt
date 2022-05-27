@@ -503,7 +503,7 @@ class blockchaincom extends Exchange {
         if ($stopPrice !== null) {
             if ($uppercaseOrderType === 'MARKET') {
                 $request['ordType'] = 'STOP';
-            } else if ($uppercaseOrderType === 'LIMIT') {
+            } elseif ($uppercaseOrderType === 'LIMIT') {
                 $request['ordType'] = 'STOPLIMIT';
             }
         }
@@ -743,7 +743,7 @@ class blockchaincom extends Exchange {
         if (is_array($transaction) && array_key_exists('depositId', $transaction)) {
             $type = 'deposit';
             $id = $this->safe_string($transaction, 'depositId');
-        } else if (is_array($transaction) && array_key_exists('withdrawalId', $transaction)) {
+        } elseif (is_array($transaction) && array_key_exists('withdrawalId', $transaction)) {
             $type = 'withdrawal';
             $id = $this->safe_string($transaction, 'withdrawalId');
         }
@@ -964,7 +964,7 @@ class blockchaincom extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             $this->check_required_credentials();
             $headers = array(
                 'X-API-Token' => $this->secret,

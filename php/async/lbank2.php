@@ -524,7 +524,7 @@ class lbank2 extends Exchange {
             if ($typePart !== null) {
                 if ($typePart === 'market') {
                     $type = 'market';
-                } else if ($typePart === 'maker') {
+                } elseif ($typePart === 'maker') {
                     $takerOrMaker = 'maker';
                 }
             }
@@ -888,16 +888,16 @@ class lbank2 extends Exchange {
             $request['amount'] = $this->amount_to_precision($symbol, $amount);
             if ($ioc) {
                 $request['type'] = $side . '_' . 'ioc';
-            } else if ($fok) {
+            } elseif ($fok) {
                 $request['type'] = $side . '_' . 'fok';
-            } else if ($maker) {
+            } elseif ($maker) {
                 $request['type'] = $side . '_' . 'maker';
             }
-        } else if ($type === 'market') {
+        } elseif ($type === 'market') {
             if ($side === 'sell') {
                 $request['type'] = $side . '_' . 'market';
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
-            } else if ($side === 'buy') {
+            } elseif ($side === 'buy') {
                 $request['type'] = $side . '_' . 'market';
                 if ($this->options['createMarketBuyOrderRequiresPrice']) {
                     if ($price === null) {
@@ -1857,7 +1857,7 @@ class lbank2 extends Exchange {
                     $pem = $this->convert_secret_to_pem($this->encode($this->secret));
                 }
                 $sign = $this->binary_to_base64($this->rsa($this->encode($uppercaseHash), $this->encode($pem), 'RS256'));
-            } else if ($signatureMethod === 'HmacSHA256') {
+            } elseif ($signatureMethod === 'HmacSHA256') {
                 $sign = $this->hmac($this->encode($uppercaseHash), $this->encode($this->secret));
             }
             $query['sign'] = $sign;

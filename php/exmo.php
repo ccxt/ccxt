@@ -233,7 +233,7 @@ class exmo extends Exchange {
         $method = null;
         if ($type === 'add') {
             $method = 'privatePostMarginUserPositionMarginAdd';
-        } else if ($type === 'reduce') {
+        } elseif ($type === 'reduce') {
             $method = 'privatePostMarginUserPositionMarginReduce';
         }
         $response = $this->$method (array_merge($request, $params));
@@ -553,13 +553,13 @@ class exmo extends Exchange {
                     if ($type === 'deposit') {
                         if ($activeProvider && !$depositEnabled) {
                             $depositEnabled = true;
-                        } else if (!$activeProvider) {
+                        } elseif (!$activeProvider) {
                             $depositEnabled = false;
                         }
-                    } else if ($type === 'withdraw') {
+                    } elseif ($type === 'withdraw') {
                         if ($activeProvider && !$withdrawEnabled) {
                             $withdrawEnabled = true;
-                        } else if (!$activeProvider) {
+                        } elseif (!$activeProvider) {
                             $withdrawEnabled = false;
                         }
                     }
@@ -1334,7 +1334,7 @@ class exmo extends Exchange {
         $marketId = null;
         if (is_array($order) && array_key_exists('pair', $order)) {
             $marketId = $order['pair'];
-        } else if ((is_array($order) && array_key_exists('in_currency', $order)) && (is_array($order) && array_key_exists('out_currency', $order))) {
+        } elseif ((is_array($order) && array_key_exists('in_currency', $order)) && (is_array($order) && array_key_exists('out_currency', $order))) {
             if ($side === 'buy') {
                 $marketId = $order['in_currency'] . '_' . $order['out_currency'];
             } else {
@@ -1605,7 +1605,7 @@ class exmo extends Exchange {
         $account = $this->safe_string($transaction, 'account');
         if ($type === 'deposit') {
             $comment = $account;
-        } else if ($type === 'withdrawal') {
+        } elseif ($type === 'withdrawal') {
             $address = $account;
             if ($address !== null) {
                 $parts = explode(':', $address);
@@ -1893,7 +1893,7 @@ class exmo extends Exchange {
             if ($params) {
                 $url .= '?' . $this->urlencode($params);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce();
             $body = $this->urlencode(array_merge(array( 'nonce' => $nonce ), $params));
