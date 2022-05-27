@@ -57,6 +57,9 @@ module.exports = class gateio extends ccxt.gateio {
                 'watchOrderBook': {
                     'interval': '100ms',
                 },
+                'watchBalance': {
+                    'spot': 'spot.balances', // spot.margin_balances, spot.funding_balances or spot.cross_balances
+                },
             },
             'exceptions': {
                 'ws': {
@@ -629,21 +632,30 @@ module.exports = class gateio extends ccxt.gateio {
 
     async watchBalance (params = {}) {
         await this.loadMarkets ();
-        this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws'];
-        await this.authenticate ();
-        const requestId = this.nonce ();
-        const method = 'balance.update';
-        const subscribeMessage = {
-            'id': requestId,
-            'method': 'balance.subscribe',
-            'params': [],
-        };
-        const subscription = {
-            'id': requestId,
-            'method': this.handleBalanceSubscription,
-        };
-        return await this.watch (url, method, subscribeMessage, method, subscription);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const messageHash = type + '.balance';
+        const options = this.safeValue (this.options, 'watchBalance', {});
+        let subType = this.safeValue (options, 'subType', 'linear');
+        subType = this.safeValue (params, 'subType', subType);
+        params = this.omit (params, 'subType');
+        const isInverse = (subType === 'inverse');
+        const url = this.getUrlByMarketType (type, isInverse);
+        const requiresUid = (type !== 'spot');
+        let channelType = 'spot';
+        if (type === 'future' || type === 'swap') {
+            channelType = 'futures';
+        } else if (type === 'option') {
+            channelType = 'options';
+        }
+        let channel = undefined;
+        if (type === 'spot') {
+            const options = this.safeValue (this.options, 'watchTicker', {});
+            channel = this.safeString (options, 'spot', 'spot.balances');
+        } else {
+            channel = channelType + '.balances';
+        }
+        return await this.subscribePrivate (url, channel, messageHash, undefined, requiresUid);
     }
 
     async fetchBalanceSnapshot () {
@@ -1025,7 +1037,7 @@ module.exports = class gateio extends ccxt.gateio {
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
-    async subscribePrivate (url, channel, messageHash, payload, requiresUid = false) {
+    async subscribePrivate (url, channel, messageHash, payload = undefined, requiresUid = false) {
         this.checkRequiredCredentials ();
         // uid is required for some subscriptions only so it's not a part of required credentials
         if (requiresUid) {
@@ -1050,9 +1062,11 @@ module.exports = class gateio extends ccxt.gateio {
             'time': time,
             'channel': channel,
             'event': 'subscribe',
-            'payload': payload,
             'auth': auth,
         };
+        if (payload !== undefined) {
+            request['payload'] = payload;
+        }
         const subscription = {
             'id': requestId,
             'messageHash': messageHash,
