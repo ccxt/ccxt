@@ -322,7 +322,6 @@ module.exports = class novadax extends Exchange {
         const last = this.safeString (ticker, 'lastPrice');
         const baseVolume = this.safeString (ticker, 'baseVolume24h');
         const quoteVolume = this.safeString (ticker, 'quoteVolume24h');
-        const vwap = this.vwap (baseVolume, quoteVolume);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -333,7 +332,7 @@ module.exports = class novadax extends Exchange {
             'bidVolume': undefined,
             'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
