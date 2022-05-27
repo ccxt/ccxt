@@ -2263,8 +2263,8 @@ class Exchange {
         if (($percentage === null) && ($change !== null) && ($open !== null) && (Precise::string_gt($open, '0'))) {
             $percentage = Precise::string_mul(Precise::string_div($change, $open), '100');
         }
-        if (($change === null) && ($percentage !== null) && ($last !== null)) {
-            $change = Precise::string_div(Precise::string_mul($percentage, $last), '100');
+        if (($change === null) && ($percentage !== null) && ($open !== null)) {
+            $change = Precise::string_div(Precise::string_mul($percentage, $open), '100');
         }
         if (($open === null) && ($last !== null) && ($change !== null)) {
             $open = Precise::string_sub($last, $change);

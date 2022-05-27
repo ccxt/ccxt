@@ -2029,8 +2029,8 @@ class Exchange(object):
                 average = Precise.string_div(Precise.string_add(last, open), '2')
         if (percentage is None) and (change is not None) and (open is not None) and (Precise.string_gt(open, '0')):
             percentage = Precise.string_mul(Precise.string_div(change, open), '100')
-        if (change is None) and (percentage is not None) and (last is not None):
-            change = Precise.string_div(Precise.string_mul(percentage, last), '100')
+        if (change is None) and (percentage is not None) and (open is not None):
+            change = Precise.string_div(Precise.string_mul(percentage, open), '100')
         if (open is None) and (last is not None) and (change is not None):
             open = Precise.string_sub(last, change)
         # timestamp and symbol operations don't belong in safeTicker

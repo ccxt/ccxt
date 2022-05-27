@@ -1327,8 +1327,8 @@ module.exports = class Exchange {
         if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && (Precise.stringGt (open, '0'))) {
             percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
         }
-        if ((change === undefined) && (percentage !== undefined) && (last !== undefined)) {
-            change = Precise.stringDiv (Precise.stringMul (percentage, last), '100');
+        if ((change === undefined) && (percentage !== undefined) && (open !== undefined)) {
+            change = Precise.stringDiv (Precise.stringMul (percentage, open), '100');
         }
         if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
             open = Precise.stringSub (last, change);
