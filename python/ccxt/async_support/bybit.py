@@ -2569,8 +2569,6 @@ class bybit(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        amount = self.amount_to_precision(symbol, amount)
-        price = self.price_to_precision(symbol, price) if (price is not None) else None
         isUsdcSettled = (market['settle'] == 'USDC')
         if market['spot']:
             return await self.create_spot_order(symbol, type, side, amount, price, params)
@@ -2596,7 +2594,7 @@ class bybit(Exchange):
             'side': self.capitalize(side),
             'type': type.upper(),  # limit, market or limit_maker
             'timeInForce': 'GTC',  # FOK, IOC
-            'qty': amount,
+            'qty': self.amount_to_precision(symbol, amount),
             # 'orderLinkId': 'string',  # unique client order id, max 36 characters
         }
         if type == 'limit' or type == 'limit_maker':
@@ -2647,7 +2645,7 @@ class bybit(Exchange):
             'side': self.capitalize(side),
             'orderType': self.capitalize(type),  # limit or market
             'timeInForce': 'GoodTillCancel',  # ImmediateOrCancel, FillOrKill, PostOnly
-            'orderQty': amount,
+            'orderQty': self.amount_to_precision(symbol, amount),
             # 'takeProfit': 123.45,  # take profit price, only take effect upon opening the position
             # 'stopLoss': 123.45,  # stop loss price, only take effect upon opening the position
             # 'reduceOnly': False,  # reduce only, required for linear orders
@@ -2663,7 +2661,7 @@ class bybit(Exchange):
             # 'mmp': False  # market maker protection
         }
         if price is not None:
-            request['orderPrice'] = price
+            request['orderPrice'] = self.price_to_precision(symbol, price)
         if market['swap']:
             stopPx = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
             params = self.omit(params, ['stopPrice', 'triggerPrice'])
