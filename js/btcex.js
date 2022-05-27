@@ -1243,12 +1243,13 @@ module.exports = class btcex extends Exchange {
         } else if (timeInForce === 'FOK') {
             request['time_in_force'] = 'fill_or_kill';
         } else if (timeInForce === 'IOC') {
-            request['time_in_force'] = 'immmediate_or_cancel';
+            request['time_in_force'] = 'immediate_or_cancel';
         }
         const postOnly = this.isPostOnly (type, params);
         if (postOnly) {
             request['post_only'] = true;
         }
+        params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
         const method = 'privatePost' + this.capitalize (side);
         const response = await this[method] (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
