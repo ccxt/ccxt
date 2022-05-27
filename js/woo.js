@@ -45,7 +45,7 @@ module.exports = class woo extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
-                'fetchFundingHistory': false,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
@@ -1663,6 +1663,89 @@ module.exports = class woo extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         }
+    }
+
+    parseIncome (income, market = undefined) {
+        //
+        //     {
+        //         "id":666666,
+        //         "symbol":"PERP_BTC_USDT",
+        //         "funding_rate":0.00001198,
+        //         "mark_price":28941.04000000,
+        //         "funding_fee":0.00069343,
+        //         "payment_type":"Pay",
+        //         "status":"COMPLETED",
+        //         "created_time":"1653616000.666",
+        //         "updated_time":"1653616000.605"
+        //     }
+        //
+        const marketId = this.safeString (income, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const amount = this.safeNumber (income, 'funding_fee');
+        const code = this.safeCurrencyCode ('USD');
+        const id = this.safeString (income, 'id');
+        const timestamp = this.safeTimestamp (income, 'updated_time');
+        const rate = this.safe_number (income, 'funding_rate');
+        return {
+            'info': income,
+            'symbol': symbol,
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': id,
+            'amount': amount,
+            'rate': rate,
+        };
+    }
+
+    parseIncomes (incomes, market = undefined, since = undefined, limit = undefined) {
+        const result = [];
+        for (let i = 0; i < incomes.length; i++) {
+            const entry = incomes[i];
+            const parsed = this.parseIncome (entry, market);
+            result.push (parsed);
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterBySinceLimit (sorted, since, limit, 'timestamp');
+    }
+
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start_t'] = since;
+        }
+        const response = await this.v1PrivateGetFundingFeeHistory (this.extend (request, params));
+        //
+        //     {
+        //         "rows":[
+        //             {
+        //                 "id":666666,
+        //                 "symbol":"PERP_BTC_USDT",
+        //                 "funding_rate":0.00001198,
+        //                 "mark_price":28941.04000000,
+        //                 "funding_fee":0.00069343,
+        //                 "payment_type":"Pay",
+        //                 "status":"COMPLETED",
+        //                 "created_time":"1653616000.666",
+        //                 "updated_time":"1653616000.605"
+        //             }
+        //         ],
+        //         "meta":{
+        //             "total":235,
+        //             "records_per_page":25,
+        //             "current_page":1
+        //         },
+        //         "success":true
+        //     }
+        //
+        const result = this.safeValue (response, 'rows', []);
+        return this.parseIncomes (result, market, since, limit);
     }
 
     defaultNetworkCodeForCurrency (code) { // TODO: can be moved into base as an unified method
