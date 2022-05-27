@@ -3962,7 +3962,6 @@ class Exchange {
          * @ignore
          * @param {string} $type Order $type
          * @param {string} $timeInForce
-         * @param {boolean} exchangeSpecificOption True if the exchange specific post only setting is set
          * @param {dict} $params Exchange specific $params
          * @return {boolean} true if a post only order, false otherwise
          */

@@ -2367,7 +2367,6 @@ module.exports = class Exchange {
          * @method
          * @param {string} type Order type
          * @param {string} timeInForce
-         * @param {boolean} exchangeSpecificOption True if the exchange specific post only setting is set
          * @param {dict} params Exchange specific params
          * @returns {boolean} true if a post only order, false otherwise
          */
