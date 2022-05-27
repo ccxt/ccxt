@@ -11,12 +11,23 @@ const isNumber          = Number.isFinite
     , isRegExp          = o => (o instanceof RegExp)
     , isDictionary      = o => (isObject (o) && (Object.getPrototypeOf (o) === Object.prototype) && !isArray (o) && !isRegExp (o))
     , isStringCoercible = x => ((hasProps (x) && x.toString) || isNumber (x))
-    , contains           = (o, k) => k in o && o[k] !== undefined && o[k] !== '' && o[k] !== null
 
 /*  .............................................   */
 
 const prop = (o, k) => (isObject (o) && o[k] !== '' && o[k] !== null ? o[k] : undefined)
-    , prop2 = (o, k1, k2) => (!isObject (o) ? undefined : (contains(o, k1) ? o[k1] : (contains(o, k2) ? o[k2] : undefined)))
+    , prop2 = (o, k1, k2) => (
+        !isObject (o)
+        ? undefined
+        : (
+            o[k] !== undefined && o[k] !== '' && o[k] !== null
+            ? o[k1]
+            : (
+                o[k] !== '' && o[k] !== null
+                ? o[k2]
+                : undefined
+            )
+        )
+    )
     , getValueFromKeysInArray = (object, array) => object[array.find (k => prop (object,k) !== undefined)]
 
 /*  .............................................   */
