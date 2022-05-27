@@ -2297,35 +2297,4 @@ module.exports = class Exchange {
         const symbol = this.safeString (market, 'symbol');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
-
-    checkOrderArguments (market, type, side, amount, price, params) {
-        if (price === undefined) {
-            if (type === 'limit') {
-                  throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a limit order');
-             }
-        }
-        if (amount <= 0) {
-            throw new ArgumentsRequired (this.id + ' createOrder() amount should be above 0');
-        }
-    }
-
-    parseBorrowInterests (response, market = undefined) {
-        const interest = [];
-        for (let i = 0; i < response.length; i++) {
-            const row = response[i];
-            interest.push (this.parseBorrowInterest (row, market));
-        }
-        return interest;
-    }
-
-    parseFundingRateHistories (response, market = undefined, since = undefined, limit = undefined) {
-        const rates = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            rates.push (this.parseFundingRateHistory (entry, market));
-        }
-        const sorted = this.sortBy (rates, 'timestamp');
-        const symbol = (market === undefined) ? undefined : market['symbol'];
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
-    }
 }

@@ -292,10 +292,6 @@ class Exchange(BaseExchange):
     async def fetch_full_tickers(self, symbols=None, params={}):
         return await self.fetch_tickers(symbols, params)
 
-    async def edit_order(self, id, symbol, *args):
-        await self.cancel_order(id, symbol)
-        return await self.create_order(symbol, *args)
-
     async def fetch_balance(self, params={}):
         raise NotSupported(self.id + ' fetch_balance() is not supported yet')
 

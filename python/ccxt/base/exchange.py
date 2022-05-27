@@ -2403,6 +2403,24 @@ class Exchange(object):
         self.cancel_order(id, symbol)
         return self.create_order(symbol, *args)
 
+    def create_limit_order(self, symbol, side, amount, price, params={}) -> dict:
+        return self.create_order(symbol, 'limit', side, amount, price, params)
+
+    def create_market_order(self, symbol, side, amount, price=None, params={}) -> dict:
+        return self.create_order(symbol, 'market', side, amount, price, params)
+
+    def create_limit_buy_order(self, symbol, amount, price, params={}) -> dict:
+        return self.create_order(symbol, 'limit', 'buy', amount, price, params)
+
+    def create_limit_sell_order(self, symbol, amount, price, params={}) -> dict:
+        return self.create_order(symbol, 'limit', 'sell', amount, price, params)
+
+    def create_market_buy_order(self, symbol, amount, params={}) -> dict:
+        return self.create_order(symbol, 'market', 'buy', amount, None, params)
+
+    def create_market_sell_order(self, symbol, amount, params={}) -> dict:
+        return self.create_order(symbol, 'market', 'sell', amount, None, params)
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         raise NotSupported(self.id + ' sign() pure method must be redefined in derived classes')
 
@@ -2950,29 +2968,6 @@ class Exchange(object):
             return self.safe_value(tiers, symbol)
         else:
             raise NotSupported(self.id + 'fetch_market_leverage_tiers() is not supported yet')
-
-    def check_order_arguments(self, market, type, side, amount, price, params):
-        if price is None:
-            if type == 'limit':
-                raise ArgumentsRequired(self.id + ' create_order() requires a price argument for a limit order')
-        if amount <= 0:
-            raise ArgumentsRequired(self.id + ' create_order() amount should be above 0')
-
-    def parse_borrow_interests(self, response, market=None):
-        interest = []
-        for i in range(len(response)):
-            row = response[i]
-            interest.append(self.parse_borrow_interest(row, market))
-        return interest
-
-    def parse_funding_rate_histories(self, response, market=None, since=None, limit=None):
-        rates = []
-        for i in range(0, len(response)):
-            entry = response[i]
-            rates.append(self.parse_funding_rate_history(entry, market))
-        sorted = self.sort_by(rates, 'timestamp')
-        symbol = None if (market is None) else market['symbol']
-        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def parse_open_interests(self, response, market=None, since=None, limit=None):
         interests = []

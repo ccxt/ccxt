@@ -204,28 +204,35 @@ async function loadTimeDifference (params = {}) {
     return this.options['timeDifference'];
 }
 
-function createLimitOrder (symbol, side, amount, price, params = {}) {
-    return this.createOrder (symbol, 'limit', side, amount, price, params);
+function checkOrderArguments (market, type, side, amount, price, params) {
+    if (price === undefined) {
+        if (type === 'limit') {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a limit order');
+        }
+    }
+    if (amount <= 0) {
+        throw new ArgumentsRequired (this.id + ' createOrder() amount should be above 0');
+    }
 }
 
-function createMarketOrder (symbol, side, amount, price, params = {}) {
-    return this.createOrder (symbol, 'market', side, amount, price, params);
+function parseBorrowInterests (response, market = undefined) {
+    const interest = [];
+    for (let i = 0; i < response.length; i++) {
+        const row = response[i];
+        interest.push (this.parseBorrowInterest (row, market));
+    }
+    return interest;
 }
 
-function createLimitBuyOrder (symbol, amount, price, params = {}) {
-    return this.createOrder (symbol, 'limit', 'buy', amount, price, params);
-}
-
-function createLimitSellOrder (symbol, amount, price, params = {}) {
-    return this.createOrder (symbol, 'limit', 'sell', amount, price, params);
-}
-
-function createMarketBuyOrder (symbol, amount, params = {}) {
-    return this.createOrder (symbol, 'market', 'buy', amount, undefined, params);
-}
-
-function createMarketSellOrder (symbol, amount, params = {}) {
-    return this.createOrder (symbol, 'market', 'sell', amount, undefined, params);
+function parseFundingRateHistories (response, market = undefined, since = undefined, limit = undefined) {
+    const rates = [];
+    for (let i = 0; i < response.length; i++) {
+        const entry = response[i];
+        rates.push (this.parseFundingRateHistory (entry, market));
+    }
+    const sorted = this.sortBy (rates, 'timestamp');
+    const symbol = (market === undefined) ? undefined : market['symbol'];
+    return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
 }
 
 module.exports = {
@@ -242,10 +249,7 @@ module.exports = {
     fetchFundingRate,
     isPostOnly,
     loadTimeDifference,
-    createLimitOrder,
-    createMarketOrder,
-    createLimitBuyOrder,
-    createLimitSellOrder,
-    createMarketBuyOrder,
-    createMarketSellOrder,
+    checkOrderArguments,
+    parseBorrowInterests,
+    parseFundingRateHistories,
 };
