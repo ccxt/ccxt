@@ -67,7 +67,7 @@ async function createLimitOrder (symbol, side, amount, price, params = {}) {
     return await this.createOrder (symbol, 'limit', side, amount, price, params);
 }
 
-async function createMarketOrder (symbol, side, amount, price, params = {}) {
+async function createMarketOrder (symbol, side, amount, price = undefined, params = {}) {
     return await this.createOrder (symbol, 'market', side, amount, price, params);
 }
 

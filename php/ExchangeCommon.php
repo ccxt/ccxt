@@ -70,7 +70,7 @@ trait ExchangeCommon {
         return $this->create_order($symbol, 'limit', $side, $amount, $price, $params);
     }
 
-    public function create_market_order($symbol, $side, $amount, $price, $params = array ()) {
+    public function create_market_order($symbol, $side, $amount, $price = null, $params = array ()) {
         return $this->create_order($symbol, 'market', $side, $amount, $price, $params);
     }
 
