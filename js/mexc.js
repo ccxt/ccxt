@@ -1850,7 +1850,8 @@ module.exports = class mexc extends Exchange {
         }
         let timeInForce = this.safeString (params, 'timeInForce');
         let postOnly = false;
-        [ type, postOnly, timeInForce, params ] = this.isPostOnly (type, timeInForce, undefined, params);
+        const isPostOnlyOrderType = (orderType === 'POST_ONLY');
+        [ type, postOnly, timeInForce, params ] = this.isPostOnly (type, timeInForce, isPostOnlyOrderType, params);
         const ioc = (timeInForce === 'IOC');
         if (postOnly) {
             orderType = 'POST_ONLY';
