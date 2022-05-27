@@ -280,6 +280,12 @@ class Exchange {
         'fetchFundingRate' => 'fetch_funding_rate',
         'isPostOnly' => 'is_post_only',
         'loadTimeDifference' => 'load_time_difference',
+        'createLimitOrder' => 'create_limit_order',
+        'createMarketOrder' => 'create_market_order',
+        'createLimitBuyOrder' => 'create_limit_buy_order',
+        'createLimitSellOrder' => 'create_limit_sell_order',
+        'createMarketBuyOrder' => 'create_market_buy_order',
+        'createMarketSellOrder' => 'create_market_sell_order',
         'fetchImplementation' => 'fetch_implementation',
         'executeRestRequest' => 'execute_rest_request',
         'encodeURIComponent' => 'encode_uri_component',
@@ -2825,30 +2831,6 @@ class Exchange {
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array()) {
         throw new NotSupported($this->id . ' create_order() is not supported yet');
-    }
-
-    public function create_limit_order($symbol, $side, $amount, $price, $params = array()) {
-        return $this->create_order($symbol, 'limit', $side, $amount, $price, $params);
-    }
-
-    public function create_market_order($symbol, $side, $amount, $price = null, $params = array()) {
-        return $this->create_order($symbol, 'market', $side, $amount, $price, $params);
-    }
-
-    public function create_limit_buy_order($symbol, $amount, $price, $params = array()) {
-        return $this->create_order($symbol, 'limit', 'buy', $amount, $price, $params);
-    }
-
-    public function create_limit_sell_order($symbol, $amount, $price, $params = array()) {
-        return $this->create_order($symbol, 'limit', 'sell', $amount, $price, $params);
-    }
-
-    public function create_market_buy_order($symbol, $amount, $params = array()) {
-        return $this->create_order($symbol, 'market', 'buy', $amount, null, $params);
-    }
-
-    public function create_market_sell_order($symbol, $amount, $params = array()) {
-        return $this->create_order($symbol, 'market', 'sell', $amount, null, $params);
     }
 
     public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array()) {

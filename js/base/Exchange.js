@@ -1686,30 +1686,6 @@ module.exports = class Exchange {
         return this.createOrder (symbol, ...args)
     }
 
-    createLimitOrder (symbol, side, amount, price, params = {}) {
-        return this.createOrder (symbol, 'limit', side, amount, price, params)
-    }
-
-    createMarketOrder (symbol, side, amount, price, params = {}) {
-        return this.createOrder (symbol, 'market', side, amount, price, params)
-    }
-
-    createLimitBuyOrder (symbol, amount, price, params = {}) {
-        return this.createOrder  (symbol, 'limit', 'buy', amount, price, params)
-    }
-
-    createLimitSellOrder (symbol, amount, price, params = {}) {
-        return this.createOrder (symbol, 'limit', 'sell', amount, price, params)
-    }
-
-    createMarketBuyOrder (symbol, amount, params = {}) {
-        return this.createOrder (symbol, 'market', 'buy', amount, undefined, params)
-    }
-
-    createMarketSellOrder (symbol, amount, params = {}) {
-        return this.createOrder (symbol, 'market', 'sell', amount, undefined, params)
-    }
-
     costToPrecision (symbol, cost) {
         const market = this.market (symbol)
         return decimalToPrecision (cost, TRUNCATE, market.precision.price, this.precisionMode, this.paddingMode)

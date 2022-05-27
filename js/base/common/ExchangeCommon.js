@@ -204,6 +204,30 @@ async function loadTimeDifference (params = {}) {
     return this.options['timeDifference'];
 }
 
+function createLimitOrder (symbol, side, amount, price, params = {}) {
+    return this.createOrder (symbol, 'limit', side, amount, price, params);
+}
+
+function createMarketOrder (symbol, side, amount, price, params = {}) {
+    return this.createOrder (symbol, 'market', side, amount, price, params);
+}
+
+function createLimitBuyOrder (symbol, amount, price, params = {}) {
+    return this.createOrder (symbol, 'limit', 'buy', amount, price, params);
+}
+
+function createLimitSellOrder (symbol, amount, price, params = {}) {
+    return this.createOrder (symbol, 'limit', 'sell', amount, price, params);
+}
+
+function createMarketBuyOrder (symbol, amount, params = {}) {
+    return this.createOrder (symbol, 'market', 'buy', amount, undefined, params);
+}
+
+function createMarketSellOrder (symbol, amount, params = {}) {
+    return this.createOrder (symbol, 'market', 'sell', amount, undefined, params);
+}
+
 module.exports = {
     handleMarketTypeAndParams,
     handleWithdrawTagAndParams,
@@ -218,4 +242,10 @@ module.exports = {
     fetchFundingRate,
     isPostOnly,
     loadTimeDifference,
+    createLimitOrder,
+    createMarketOrder,
+    createLimitBuyOrder,
+    createLimitSellOrder,
+    createMarketBuyOrder,
+    createMarketSellOrder,
 };
