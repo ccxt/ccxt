@@ -3002,7 +3002,6 @@ class Exchange(object):
         """
          * @ignore
         :param string type: Order type
-        :param string timeInForce:
         :param dict params: Exchange specific params
         :returns boolean: True if a post only order, False otherwise
         """

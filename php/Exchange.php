@@ -3960,8 +3960,7 @@ class Exchange {
     public function is_post_only($type, $params = array ()) {
         /**
          * @ignore
-         * @param {string} $type Order $type
-         * @param {string} $timeInForce
+         * @param {string} $type Order type
          * @param {dict} $params Exchange specific $params
          * @return {boolean} true if a post only order, false otherwise
          */
