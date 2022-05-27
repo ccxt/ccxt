@@ -1039,13 +1039,19 @@ module.exports = class gateio extends ccxt.gateio {
 
     async subscribePrivate (url, channel, messageHash, payload = undefined, requiresUid = false) {
         this.checkRequiredCredentials ();
+        // tmp remove this:
+        this.uid = '10406147';
         // uid is required for some subscriptions only so it's not a part of required credentials
         if (requiresUid) {
             if (this.uid === undefined || this.uid.length === 0) {
                 throw new ArgumentsRequired (this.id + ' requires uid to subscribe');
             }
-            const idArray = [this.uid];
-            payload = this.arrayConcat (idArray, payload);
+            const idArray = [ this.uid ];
+            if (payload === undefined) {
+                payload = idArray;
+            } else {
+                payload = this.arrayConcat (idArray, payload);
+            }
         }
         const time = this.seconds ();
         const event = 'subscribe';
