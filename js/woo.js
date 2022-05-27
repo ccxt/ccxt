@@ -98,10 +98,10 @@ module.exports = class woo extends Exchange {
                     'private': 'https://api.{hostname}',
                 },
                 // TEST (stating) api ( https://support.woo.org/hc/en-001/articles/4406352945305--Institutional-Account-Welcome-Packet-V-2) doesn't work at this moment, even thou
-                // 'test': {
-                //     'public': 'http://api.staging.woo.org',
-                //     'private': 'http://api.staging.woo.org',
-                // },
+                'test': {
+                    'public': 'http://api.staging.woo.org',
+                    'private': 'http://api.staging.woo.org',
+                },
                 'www': 'https://woo.org/',
                 'doc': [
                     'https://docs.woo.org/',
@@ -120,6 +120,11 @@ module.exports = class woo extends Exchange {
                             'market_trades': 1,
                             'token': 1,
                             'token_network': 1,
+                            'funding_rates': 1,
+                            'funding_rate/{symbol}': 1,
+                            'funding_rate_history': 1,
+                            'futures': 1,
+                            'futures/{symbol}': 1,
                         },
                     },
                     'private': {
@@ -142,11 +147,15 @@ module.exports = class woo extends Exchange {
                             'token_interest/{token}': 60,
                             'interest/history': 60,
                             'interest/repay': 60,
+                            'funding_fee/history': 30,
+                            'positions': 30,
                         },
                         'post': {
                             'order': 5, // 2 requests per 1 second per symbol
                             'asset/main_sub_transfer': 30, // 20 requests per 60 seconds
                             'asset/withdraw': 120,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'client/account_mode': 120,
+                            'client/leverage': 120,
                         },
                         'delete': {
                             'order': 1,
