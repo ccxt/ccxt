@@ -33,10 +33,10 @@ class coinbasepro(Exchange):
             'has': {
                 'CORS': True,
                 'spot': True,
-                'margin': None,  # has but not fully inplemented
-                'swap': None,  # has but not fully inplemented
-                'future': None,  # has but not fully inplemented
-                'option': None,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createDepositAddress': True,
