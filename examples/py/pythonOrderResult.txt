@@ -1,0 +1,8 @@
+Python v3.9.7
+CCXT v1.82.43
+bybit.fetchOpenOrders(LTC/USDT:USDT,None,None)
+
+fetch Request: bybit GET https://api.bybit.com/private/linear/order/search?api_key=cH4MQfkrFNKYiLfpVB&recv_window=5000&symbol=LTCUSDT&timestamp=1652534694975&sign=b13a4e911eea16ebed1623aacb4bbaecc899ee46c9b779b1b4b62ef59a05a0ea RequestHeaders: {'User-Agent': 'python-requests/2.26.0', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive'} RequestBody: None
+
+fetch Response: bybit GET https://api.bybit.com/private/linear/order/search?api_key=cH4MQfkrFNKYiLfpVB&recv_window=5000&symbol=LTCUSDT&timestamp=1652534694975&sign=b13a4e911eea16ebed1623aacb4bbaecc899ee46c9b779b1b4b62ef59a05a0ea 200 ResponseHeaders: {'Content-Type': 'application/json; charset=utf-8', 'Content-Length': '177', 'Expires': 'Sat, 14 May 2022 13:24:55 GMT', 'Cache-Control': 'max-age=0, no-cache, no-store', 'Pragma': 'no-cache', 'Date': 'Sat, 14 May 2022 13:24:55 GMT', 'Connection': 'keep-alive'} ResponseBody: {"ret_code":0,"ret_msg":"OK","ext_code":"","ext_info":"","result":[],"time_now":"1652534695.188658","rate_limit_status":597,"rate_limit_reset_ms":1652534695186,"rate_limit":600}
+[]
