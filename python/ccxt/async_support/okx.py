@@ -1853,74 +1853,68 @@ class okx(Exchange):
         market = self.market(symbol)
         request = {
             'instId': market['id'],
-            #
-            #     Simple:
-            #     - SPOT and OPTION buyer: cash
-            #
-            #     Single-currency margin:
-            #     - Isolated MARGIN: isolated
-            #     - Cross MARGIN: cross
-            #     - Cross SPOT: cash
-            #     - Cross FUTURES/SWAP/OPTION: cross
-            #     - Isolated FUTURES/SWAP/OPTION: isolated
-            #
-            #     Multi-currency margin:
-            #     - Isolated MARGIN: isolated
-            #     - Cross SPOT: cross
-            #     - Cross FUTURES/SWAP/OPTION: cross
-            #     - Isolated FUTURES/SWAP/OPTION: isolated
-            #
             # 'ccy': currency['id'],  # only applicable to cross MARGIN orders in single-currency margin
             # 'clOrdId': clientOrderId,  # up to 32 characters, must be unique
             # 'tag': tag,  # up to 8 characters
-            #
-            #     In long/short mode, side and posSide need to be combined
-            #
-            #     buy with long means open long
-            #     sell with long means close long
-            #     sell with short means open short
-            #     buy with short means close short
-            #
             'side': side,
-            # 'posSide': 'long',  # long, short,  # required in the long/short mode, and can only be long or short
-            'ordType': type,  # market, limit, post_only, fok, ioc,(trigger for stop orders)
-            #
-            #     for SPOT/MARGIN bought and sold at a limit price, sz refers to the amount of trading currency
-            #     for SPOT/MARGIN bought at a market price, sz refers to the amount of quoted currency
-            #     for SPOT/MARGIN sold at a market price, sz refers to the amount of trading currency
-            #     for FUTURES/SWAP/OPTION buying and selling, sz refers to the number of contracts
-            #
+            # 'posSide': 'long',  # long, short,  # required in the long/short mode, and can only be long or short(only for future or swap)
+            'ordType': type,
+            # 'ordType': type,  # privatePostTradeOrder: market, limit, post_only, fok, ioc, optimal_limit_ioc
+            # 'ordType': type,  # privatePostTradeOrderAlgo: conditional, oco, trigger, move_order_stop, iceberg, twap
             # 'sz': self.amount_to_precision(symbol, amount),
             # 'px': self.price_to_precision(symbol, price),  # limit orders only
             # 'reduceOnly': False,  # MARGIN orders only
-            # 'triggerPx': 10,  # Stop order trigger price
-            # 'orderPx': 10,  # Order price if -1, the order will be executed at the market price.
-            # 'triggerPxType': 'last',  # Conditional default is last, mark or index
             #
+            # 'triggerPx': 10,  # stopPrice(trigger orders)
+            # 'orderPx': 10,  # Order price if -1, the order will be executed at the market price.(trigger orders)
+            # 'triggerPxType': 'last',  # Conditional default is last, mark or index(trigger orders)
+            #
+            # 'tpTriggerPx': 10,  # takeProfitPrice(conditional orders)
+            # 'tpTriggerPxType': 'last',  # Conditional default is last, mark or index(conditional orders)
+            # 'tpOrdPx': 10,  # Order price for Take-Profit orders, if -1 will be executed at market price(conditional orders)
+            #
+            # 'slTriggerPx': 10,  # stopLossPrice(conditional orders)
+            # 'slTriggerPxType': 'last',  # Conditional default is last, mark or index(conditional orders)
+            # 'slOrdPx': 10,  # Order price for Stop-Loss orders, if -1 will be executed at market price(conditional orders)
         }
-        tdMode = self.safe_string_lower(params, 'tdMode')
-        if market['spot']:
+        spot = market['spot']
+        swap = market['swap']
+        future = market['future']
+        contract = market['contract']
+        stopPrice = self.safe_string_2(params, 'stopPrice', 'triggerPx')
+        timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
+        takeProfitPrice = self.safe_string_2(params, 'takeProfitPrice', 'tpTriggerPrice')
+        tpOrdPx = self.safe_string(params, 'tpOrdPx')
+        tpTriggerPxType = self.safe_string(params, 'tpTriggerPxType', 'last')
+        stopLossPrice = self.safe_string_2(params, 'stopLossPrice', 'slTriggerPx')
+        slOrdPx = self.safe_string(params, 'slOrdPx')
+        slTriggerPxType = self.safe_string(params, 'slTriggerPxType', 'last')
+        clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
+        tdMode = self.safe_string_lower(params, 'tdMode')  # not ommited so as to be extended into the request
+        if spot:
             request['tdMode'] = 'cash'
-        elif market['contract']:
+        elif contract:
             if tdMode is None:
                 raise ArgumentsRequired(self.id + ' params["tdMode"] is required to be either "isolated" or "cross"')
             elif (tdMode != 'isolated') and (tdMode != 'cross'):
                 raise BadRequest(self.id + ' params["tdMode"] must be either "isolated" or "cross"')
-        postOnly = self.safe_value(params, 'postOnly', False)
-        if postOnly:
-            request['ordType'] = 'post_only'
-            params = self.omit(params, ['postOnly'])
-        clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
-        if clientOrderId is None:
-            brokerId = self.safe_string(self.options, 'brokerId')
-            if brokerId is not None:
-                request['clOrdId'] = brokerId + self.uuid16()
-        else:
-            request['clOrdId'] = clientOrderId
-            params = self.omit(params, ['clOrdId', 'clientOrderId'])
+        postOnly = False
+        type, postOnly, timeInForce, params = self.is_post_only(type, timeInForce, None, params)
+        params = self.omit(params, ['timeInForce', 'stopPrice', 'triggerPx', 'cloOrdId', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slTriggerPx', 'tpTriggerPrice', 'tpOrdPx', 'slOrdPx', 'tpTriggerPxType', 'slTriggerPxType'])
+        ioc = ((timeInForce == 'IOC') or (type == 'ioc'))
+        fok = ((timeInForce == 'FOK') or (type == 'fok'))
+        trigger = ((stopPrice is not None) or (type == 'trigger'))
+        conditional = ((stopLossPrice is not None) or (takeProfitPrice is not None) or (type == 'conditional'))
+        marketIOC = (((type == 'market') and (ioc)) or (type == 'optimal_limit_ioc'))
+        defaultMethod = self.safe_string(self.options, 'createOrder', 'privatePostTradeBatchOrders')
+        method = defaultMethod
         request['sz'] = self.amount_to_precision(symbol, amount)
-        if type == 'market':
-            if market['type'] == 'spot' and side == 'buy':
+        if type == 'market' or (marketIOC):
+            if postOnly or ioc or fok:
+                if not marketIOC:
+                    raise InvalidOrder(self.id + ' createOrder() does not allow market orders to be IOC, FOK, or postOnly. Only limit IOC, FOK, and postOnly orders are allowed. The only exception is IOC market orders for swap or futures orders.')
+            request['ordType'] = 'market'
+            if (spot) and (side == 'buy'):
                 # spot market buy: "sz" can refer either to base currency units or to quote currency units
                 # see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 defaultTgtCcy = self.safe_string(self.options, 'tgtCcy', 'base_ccy')
@@ -1944,59 +1938,70 @@ class okx(Exchange):
                     # base_ccy: sz refers to units of base currency
                     request['tgtCcy'] = 'base_ccy'
                 params = self.omit(params, ['tgtCcy'])
+            if marketIOC:
+                if (not swap) and (not future):
+                    raise InvalidOrder(self.id + ' createOrder() does not not allow IOC market orders for spot or option markets, only swap and future IOC market orders are allowed.')
+                request['ordType'] = 'optimal_limit_ioc'
         else:
-            # non-market orders
-            request['px'] = self.price_to_precision(symbol, price)
-        extendedRequest = None
-        defaultMethod = self.safe_string(self.options, 'createOrder', 'privatePostTradeBatchOrders')  # or privatePostTradeOrder or privatePostTradeOrderAlgo
-        stopPrice = self.safe_number_2(params, 'triggerPx', 'stopPrice')
-        params = self.omit(params, ['triggerPx', 'stopPrice'])
-        if stopPrice:
-            defaultMethod = 'privatePostTradeOrderAlgo'
+            if (not trigger) and (not conditional):
+                request['px'] = self.price_to_precision(symbol, price)
+        if postOnly:
+            method = defaultMethod
+            request['ordType'] = 'post_only'
+        elif (ioc) and (not marketIOC):
+            method = defaultMethod
+            request['ordType'] = 'ioc'
+        elif fok:
+            method = defaultMethod
+            request['ordType'] = 'fok'
+        elif trigger:
+            method = 'privatePostTradeOrderAlgo'
             request['ordType'] = 'trigger'
             request['triggerPx'] = self.price_to_precision(symbol, stopPrice)
             if type == 'market':
                 price = -1
             request['orderPx'] = self.price_to_precision(symbol, price)
-        if defaultMethod == 'privatePostTradeOrder' or defaultMethod == 'privatePostTradeOrderAlgo':
+        elif conditional:
+            method = 'privatePostTradeOrderAlgo'
+            request['ordType'] = 'conditional'
+            twoWayCondition = ((takeProfitPrice is not None) and (stopLossPrice is not None))
+            if type != 'market':
+                if (twoWayCondition) and ((not slOrdPx) or (not tpOrdPx)):
+                    raise InvalidOrder(self.id + ' createOrder() will cannot use the same price for two-way conditional orders to be created, please supply tpOrdPx and slOrdPx params')
+            # if TP and SL are sent together
+            # as ordType 'conditional' only stop-loss order will be applied
+            if twoWayCondition:
+                request['ordType'] = 'oco'
+            if takeProfitPrice is not None:
+                request['tpTriggerPx'] = self.price_to_precision(symbol, takeProfitPrice)
+                tpOrdPx = tpOrdPx if (tpOrdPx is not None) else price
+                request['tpOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, tpOrdPx)
+                request['tpTriggerPxType'] = tpTriggerPxType
+            if stopLossPrice is not None:
+                request['slTriggerPx'] = self.price_to_precision(symbol, stopLossPrice)
+                slOrdPx = slOrdPx if (slOrdPx is not None) else price
+                request['slOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, slOrdPx)
+                request['slTriggerPxType'] = slTriggerPxType
+        if (type == 'oco') or (type == 'move_order_stop') or (type == 'iceberg') or (type == 'twap'):
+            method = 'privatePostTradeOrderAlgo'
+        if clientOrderId is None:
+            brokerId = self.safe_string(self.options, 'brokerId')
+            if brokerId is not None:
+                request['clOrdId'] = brokerId + self.uuid16()
+        else:
+            request['clOrdId'] = clientOrderId
+            params = self.omit(params, ['clOrdId', 'clientOrderId'])
+        extendedRequest = None
+        if (method == 'privatePostTradeOrder') or (method == 'privatePostTradeOrderAlgo'):
             extendedRequest = self.extend(request, params)
-        elif defaultMethod == 'privatePostTradeBatchOrders':
+        elif method == 'privatePostTradeBatchOrders':
             # keep the request body the same
             # submit a single order in an array to the batch order endpoint
             # because it has a lower ratelimit
             extendedRequest = [self.extend(request, params)]
         else:
             raise ExchangeError(self.id + ' self.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder')
-        response = await getattr(self, defaultMethod)(extendedRequest)
-        #
-        #     {
-        #         "code": "0",
-        #         "msg": "",
-        #         "data": [
-        #             {
-        #                 "clOrdId": "oktswap6",
-        #                 "ordId": "312269865356374016",
-        #                 "tag": "",
-        #                 "sCode": "0",
-        #                 "sMsg": ""
-        #             }
-        #         ]
-        #     }
-        #
-        # Trigger Order
-        #
-        #     {
-        #         "code": "0",
-        #         "data": [
-        #             {
-        #                 "algoId": "422774258702659590",
-        #                 "sCode": "0",
-        #                 "sMsg": ""
-        #             }
-        #         ],
-        #         "msg": ""
-        #     }
-        #
+        response = await getattr(self, method)(extendedRequest)
         data = self.safe_value(response, 'data', [])
         first = self.safe_value(data, 0)
         order = self.parse_order(first, market)
