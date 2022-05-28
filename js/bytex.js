@@ -1045,7 +1045,7 @@ module.exports = class bytex extends Exchange {
          * @name bytex#createOrder
          * @description Create an order on the exchange
          * @param {str} symbol Unified CCXT market symbol
-         * @param {str} type "limit" or "market" *"market" is contract only*
+         * @param {str} type "limit" or "market"
          * @param {str} side "buy" or "sell"
          * @param {float} amount the amount of currency to trade
          * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
@@ -1057,15 +1057,13 @@ module.exports = class bytex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const stopPrice = this.safeFloat2 (params, 'stopPrice', 'stop');
-        params = this.omit (params, [ 'stopPrice', 'stop' ]);
-        const meta = this.safeString (params, 'meta');
-        const metaPostOnly = this.safeValue (meta, 'post_only');
-        const [ exchangeType, postOnly, query ] = this.isPostOnly (type, undefined, metaPostOnly, params);
+        const postOnly = this.isPostOnly (type, params);
+        params = this.omit (params, [ 'stopPrice', 'stop', 'postOnly', 'timeInForce' ]);
         const request = {
             'symbol': market['id'],
             'side': side,
             'size': amount,
-            'type': exchangeType,
+            'type': type,
         };
         if (type !== 'market') {
             if (price === undefined) {
@@ -1080,7 +1078,7 @@ module.exports = class bytex extends Exchange {
                 'post_only': true,
             };
         }
-        const response = await this.privatePostOrder (this.deepExtend (request, query));
+        const response = await this.privatePostOrder (this.deepExtend (request, params));
         //
         //     {
         //         "fee": 0,
