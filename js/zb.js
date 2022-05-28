@@ -1165,7 +1165,7 @@ module.exports = class zb extends Exchange {
         //         "canDeposit": true
         //     }
         //
-        let address = this.safeString2 (depositAddress, 'key', 'address', '');
+        let address = this.safeString2 (depositAddress, 'key', 'address');
         let tag = undefined;
         const memo = this.safeString (depositAddress, 'memo');
         if (memo !== undefined) {
@@ -1175,6 +1175,7 @@ module.exports = class zb extends Exchange {
             address = parts[0];  // WARNING: MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIES!!
             tag = parts[1];
         }
+        this.checkAddress (address);
         const currencyId = this.safeString (depositAddress, 'blockChain');
         const code = this.safeCurrencyCode (currencyId, currency);
         return {
