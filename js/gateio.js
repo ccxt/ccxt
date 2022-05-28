@@ -2792,7 +2792,7 @@ module.exports = class gateio extends Exchange {
             };
             tif = this.safeString (timeInForceMapping, timeInForce);
             if (tif === undefined) {
-                throw new ExchangeError (this.id + ' unsupported timeInForce "' + timeInForce + '"');
+                throw new ExchangeError (this.id + ' createOrder() does not support timeInForce "' + timeInForce + '"');
             }
         }
         params = this.omit (params, [ 'stopPrice', 'reduceOnly', 'timeInForce', 'postOnly' ]);
@@ -2810,7 +2810,7 @@ module.exports = class gateio extends Exchange {
             amount = parseInt (signedAmount);
             if (isMarketOrder) {
                 if ((tif === 'poc') || (tif === 'fok')) {
-                    throw new ExchangeError (this.id + ' timeInForce for market orders must be "IOC"');
+                    throw new ExchangeError (this.id + ' createOrder() timeInForce for market orders must be "IOC"');
                 }
                 tif = 'ioc';
                 price = 0;
