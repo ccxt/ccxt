@@ -1314,7 +1314,7 @@ module.exports = class bitfinex2 extends bitfinex {
             }
         }
         let status = undefined;
-        const statusString = this.safeString (order, 13, '');
+        const statusString = this.safeString (order, 13);
         if (statusString !== undefined) {
             const parts = statusString.split (' @ ');
             status = this.parseOrderStatus (this.safeString (parts, 0));
