@@ -2756,12 +2756,12 @@ class gateio extends Exchange {
         $contract = $market['contract'];
         $stopPrice = $this->safe_number($params, 'stopPrice');
         $methodTail = 'Orders';
-        $reduceOnly = $this->safe_value_2($params, 'reduce_only', 'reduceOnly');
-        $defaultTimeInForce = $this->safe_value_2($params, 'tif', 'time_in_force', 'gtc');
-        $timeInForce = $this->safe_value($params, 'timeInForce', $defaultTimeInForce);
-        $postOnly = false;
-        list($type, $postOnly, $timeInForce, $params) = $this->is_post_only($type, $timeInForce, null, $params);
-        $params = $this->omit($params, array( 'stopPrice', 'reduce_only', 'reduceOnly', 'tif', 'time_in_force', 'timeInForce' ));
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        $postOnly = $this->is_post_only($type, $params);
+        // we only omit the unified $params here
+        // this is because the other $params will get extended into the $request
+        $params = $this->omit($params, array( 'stopPrice', 'reduceOnly', 'timeInForce', 'postOnly' ));
+        $timeInForce = null;
         if ($postOnly) {
             $timeInForce = 'poc';
         }
