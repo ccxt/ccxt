@@ -1855,7 +1855,7 @@ module.exports = class btse extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const response = await this['spotPrivateGetUserWalletHistory'] (this.extend (request, params));
+        const response = await this.spotPrivateGetUserWalletHistory (this.extend (request, params));
         const transactions = [];
         for (let i = 0; i < response.length; i++) {
             const transaction = response[i];
@@ -1886,7 +1886,7 @@ module.exports = class btse extends Exchange {
             request['count'] = limit;
         }
         const filters = [ '105' ];
-        const response = await this['futurePrivateGetUserWalletHistory'] (this.extend (request, params));
+        const response = await this.futurePrivateGetUserWalletHistory (this.extend (request, params));
         const transfers = [];
         for (let i = 0; i < response.length; i++) {
             const transfer = response[i];
