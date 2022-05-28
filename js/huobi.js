@@ -5783,7 +5783,7 @@ module.exports = class huobi extends Exchange {
                 'swap': 'contractPrivatePostSwapApiV1SwapAccountPositionInfo',
             });
             //
-            // future & swap has almost same structure
+            // future, swap
             //
             //     {
             //       "status": "ok",
@@ -5829,31 +5829,27 @@ module.exports = class huobi extends Exchange {
             //     }
             //
             // cross usdt swap
-            // {
-            //     "status":"ok",
-            //     "data":{
-            //        "positions":[
-            //        ],
-            //        "futures_contract_detail":[
-            //            (...)
-            //        ]
-            //        "margin_mode":"cross",
-            //        "margin_account":"USDT",
-            //        "margin_asset":"USDT",
-            //        "margin_balance":"1.000000000000000000",
-            //        "margin_static":"1.000000000000000000",
-            //        "margin_position":"0",
-            //        "margin_frozen":"1.000000000000000000",
-            //        "profit_real":"0E-18",
-            //        "profit_unreal":"0",
-            //        "withdraw_available":"0",
-            //        "risk_rate":"15.666666666666666666",
-            //        "contract_detail":[
-            //          (...)
-            //        ]
-            //     },
-            //     "ts":"1645521118946"
-            //  }
+            //
+            //     {
+            //         "status":"ok",
+            //         "data":{
+            //             "positions":[],
+            //             "futures_contract_detail":[]
+            //             "margin_mode":"cross",
+            //             "margin_account":"USDT",
+            //             "margin_asset":"USDT",
+            //             "margin_balance":"1.000000000000000000",
+            //             "margin_static":"1.000000000000000000",
+            //             "margin_position":"0",
+            //             "margin_frozen":"1.000000000000000000",
+            //             "profit_real":"0E-18",
+            //             "profit_unreal":"0",
+            //             "withdraw_available":"0",
+            //             "risk_rate":"15.666666666666666666",
+            //             "contract_detail":[]
+            //         },
+            //         "ts":"1645521118946"
+            //     }
             //
         }
         const request = {};
