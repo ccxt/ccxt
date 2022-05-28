@@ -345,7 +345,7 @@ module.exports = class btcex extends Exchange {
             const margin = (type === 'margin');
             const option = (type === 'option');
             const future = (type === 'future');
-            const contract = swap || future || option;
+            const contract = swap || future;
             let expiry = undefined;
             if (option || future) {
                 baseId = this.safeString (market, 'currency');
@@ -1237,19 +1237,25 @@ module.exports = class btcex extends Exchange {
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const timeInForce = this.safeStringUpper (params, 'timeInForce');
-        if (timeInForce === 'GTC') {
-            request['time_in_force'] = 'good_till_cancelled';
-        } else if (timeInForce === 'FOK') {
-            request['time_in_force'] = 'fill_or_kill';
-        } else if (timeInForce === 'IOC') {
-            request['time_in_force'] = 'immediate_or_cancel';
+        if (market['contract']) {
+            const timeInForce = this.safeStringUpper (params, 'timeInForce');
+            if (timeInForce === 'GTC') {
+                request['time_in_force'] = 'good_till_cancelled';
+            } else if (timeInForce === 'FOK') {
+                request['time_in_force'] = 'fill_or_kill';
+            } else if (timeInForce === 'IOC') {
+                request['time_in_force'] = 'immediate_or_cancel';
+            }
+            const postOnly = this.isPostOnly (type, params);
+            if (postOnly) {
+                request['post_only'] = true;
+            }
+            const reduceOnly = this.safeValue (params, 'reduceOnly');
+            if (reduceOnly) {
+                request['reduce_only'] = true;
+            }
+            params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly' ]);
         }
-        const postOnly = this.isPostOnly (type, params);
-        if (postOnly) {
-            request['post_only'] = true;
-        }
-        params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
         const method = 'privatePost' + this.capitalize (side);
         const response = await this[method] (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
@@ -1273,6 +1279,7 @@ module.exports = class btcex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.signIn ();
         await this.loadMarkets ();
         const request = {
             'order_id': id,
