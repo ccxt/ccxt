@@ -342,6 +342,11 @@ class ascendex extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the ascendex api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $assets = yield $this->v1PublicGetAssets ($params);
         //
         //     {
@@ -868,7 +873,7 @@ class ascendex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -996,7 +1001,7 @@ class ascendex extends Exchange {
                 $limit = min ($limit, $defaultLimit);
             }
             $request['to'] = $this->sum($since, $limit * $duration * 1000, 1);
-        } else if ($limit !== null) {
+        } elseif ($limit !== null) {
             $request['n'] = $limit; // max 500
         }
         $response = yield $this->v1PublicGetBarhist (array_merge($request, $params));
@@ -2583,7 +2588,7 @@ class ascendex extends Exchange {
         //        )
         //    }
         //
-        $marginRequirements = $this->safe_value($info, 'marginRequirements');
+        $marginRequirements = $this->safe_value($info, 'marginRequirements', array());
         $id = $this->safe_string($info, 'symbol');
         $market = $this->safe_market($id, $market);
         $tiers = array();

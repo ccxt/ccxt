@@ -294,6 +294,11 @@ class currencycom extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the currencycom api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = $this->publicGetV2Time ($params);
         //
         //     {
@@ -304,6 +309,11 @@ class currencycom extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the currencycom api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         // requires authentication
         if (!$this->check_required_credentials(false)) {
             return null;
@@ -430,7 +440,7 @@ class currencycom extends Exchange {
         if ($this->options['adjustForTimeDifference']) {
             $this->load_time_difference();
         }
-        $markets = $this->safe_value($response, 'symbols');
+        $markets = $this->safe_value($response, 'symbols', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
@@ -832,7 +842,7 @@ class currencycom extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1003,7 +1013,7 @@ class currencycom extends Exchange {
         if (is_array($trade) && array_key_exists('m', $trade)) {
             $side = $trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally [TODO => needs reason to be mentioned]
             $takerOrMaker = 'taker'; // in public trades, it's always taker
-        } else if (is_array($trade) && array_key_exists('isBuyer', $trade)) {
+        } elseif (is_array($trade) && array_key_exists('isBuyer', $trade)) {
             $side = ($trade['isBuyer']) ? 'buy' : 'sell'; // this is a true $side
             $takerOrMaker = $trade['isMaker'] ? 'maker' : 'taker';
         }
@@ -1255,7 +1265,7 @@ class currencycom extends Exchange {
             if ($type === 'stop') {
                 $request['type'] = 'STOP';
                 $request['price'] = $this->price_to_precision($symbol, $price);
-            } else if ($type === 'market') {
+            } elseif ($type === 'market') {
                 $stopPrice = $this->safe_number($params, 'stopPrice');
                 $params = $this->omit($params, 'stopPrice');
                 if ($stopPrice !== null) {
@@ -1314,7 +1324,7 @@ class currencycom extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
-        } else if ($this->options['warnOnFetchOpenOrdersWithoutSymbol']) {
+        } elseif ($this->options['warnOnFetchOpenOrdersWithoutSymbol']) {
             $symbols = $this->symbols;
             $numSymbols = is_array($symbols) ? count($symbols) : 0;
             $fetchOpenOrdersRateLimit = intval($numSymbols / 2);
@@ -1716,15 +1726,7 @@ class currencycom extends Exchange {
         // }
         //
         $data = $this->safe_value($response, 'positions', array());
-        return $this->parse_positions($data);
-    }
-
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
+        return $this->parse_positions($data, $symbols);
     }
 
     public function parse_position($position, $market = null) {

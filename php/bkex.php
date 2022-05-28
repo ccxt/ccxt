@@ -250,7 +250,7 @@ class bkex extends Exchange {
         //     "status" => 0
         // }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
@@ -311,6 +311,11 @@ class bkex extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the bkex api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = $this->publicGetCommonCurrencys ($params);
         //
         // {
@@ -364,6 +369,11 @@ class bkex extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the bkex api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = $this->publicGetCommonTimestamp ($params);
         //
         // {
@@ -377,6 +387,11 @@ class bkex extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {dict} $params extra parameters specific to the bkex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure status structure}
+         */
         $response = $this->publicGetCommonTimestamp ($params);
         //
         //     {
@@ -561,7 +576,7 @@ class bkex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -737,7 +752,7 @@ class bkex extends Exchange {
         // }
         //
         $balances = $this->safe_value($response, 'data');
-        $wallets = $this->safe_value($balances, 'WALLET');
+        $wallets = $this->safe_value($balances, 'WALLET', array());
         $result = array( 'info' => $wallets );
         for ($i = 0; $i < count($wallets); $i++) {
             $wallet = $wallets[$i];

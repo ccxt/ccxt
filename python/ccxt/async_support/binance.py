@@ -238,7 +238,7 @@ class binance(Exchange):
                         'margin/isolatedMarginTier': 0.1,
                         'margin/rateLimit/order': 2,
                         'loan/income': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
-                        'fiat/orders': 0.1,
+                        'fiat/orders': 20,
                         'fiat/payments': 0.1,
                         'futures/transfer': 1,
                         'futures/loan/borrow/history': 1,
@@ -1248,6 +1248,11 @@ class binance(Exchange):
         return self.milliseconds() - self.options['timeDifference']
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         defaultType = self.safe_string_2(self.options, 'fetchTime', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
@@ -1260,6 +1265,11 @@ class binance(Exchange):
         return self.safe_integer(response, 'serverTime')
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         fetchCurrenciesEnabled = self.safe_value(self.options, 'fetchCurrencies')
         if not fetchCurrenciesEnabled:
             return None
@@ -1708,7 +1718,7 @@ class binance(Exchange):
                 account['used'] = self.safe_string(balance, 'locked')
                 result[code] = account
         elif type == 'savings':
-            positionAmountVos = self.safe_value(response, 'positionAmountVos')
+            positionAmountVos = self.safe_value(response, 'positionAmountVos', [])
             for i in range(0, len(positionAmountVos)):
                 entry = positionAmountVos[i]
                 currencyId = self.safe_string(entry, 'asset')
@@ -2081,9 +2091,14 @@ class binance(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = await self.sapiGetSystemStatus(params)
         #
         #     {
@@ -2124,6 +2139,12 @@ class binance(Exchange):
         return self.parse_ticker(response, market)
 
     async def fetch_bids_asks(self, symbols=None, params={}):
+        """
+        fetches the bid and ask price and volume for multiple markets
+        :param [str]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchBidsAsks', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
@@ -2268,18 +2289,6 @@ class binance(Exchange):
         #     ]
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
-
-    async def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'mark',
-        }
-        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
-
-    async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'index',
-        }
-        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def parse_trade(self, trade, market=None):
         if 'isDustTrade' in trade:
@@ -3853,7 +3862,7 @@ class binance(Exchange):
             entry = response[i]
             currencyId = self.safe_string(entry, 'coin')
             code = self.safe_currency_code(currencyId)
-            networkList = self.safe_value(entry, 'networkList')
+            networkList = self.safe_value(entry, 'networkList', [])
             withdrawFees[code] = {}
             for j in range(0, len(networkList)):
                 networkEntry = networkList[j]
@@ -4251,7 +4260,7 @@ class binance(Exchange):
 
     def parse_account_positions(self, account):
         positions = self.safe_value(account, 'positions')
-        assets = self.safe_value(account, 'assets')
+        assets = self.safe_value(account, 'assets', [])
         balances = {}
         for i in range(0, len(assets)):
             entry = assets[i]
@@ -4640,7 +4649,7 @@ class binance(Exchange):
                 entry = response[i]
                 marketId = self.safe_string(entry, 'symbol')
                 symbol = self.safe_symbol(marketId)
-                brackets = self.safe_value(entry, 'brackets')
+                brackets = self.safe_value(entry, 'brackets', [])
                 result = []
                 for j in range(0, len(brackets)):
                     bracket = brackets[j]
@@ -4726,7 +4735,7 @@ class binance(Exchange):
         marketId = self.safe_string(info, 'symbol')
         safeSymbol = self.safe_symbol(marketId)
         market = self.safe_market(safeSymbol, market)
-        brackets = self.safe_value(info, 'brackets')
+        brackets = self.safe_value(info, 'brackets', [])
         tiers = []
         for j in range(0, len(brackets)):
             bracket = brackets[j]

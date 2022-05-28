@@ -343,6 +343,11 @@ class probit(Exchange):
         return result
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.publicGetCurrencyWithPlatform(params)
         #
         #     {
@@ -400,7 +405,7 @@ class probit(Exchange):
         #         ]
         #     }
         #
-        currencies = self.safe_value(response, 'data')
+        currencies = self.safe_value(response, 'data', [])
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
@@ -463,7 +468,7 @@ class probit(Exchange):
             'timestamp': None,
             'datetime': None,
         }
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         for i in range(0, len(data)):
             balance = data[i]
             currencyId = self.safe_string(balance, 'currency_id')
@@ -630,7 +635,7 @@ class probit(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -784,6 +789,11 @@ class probit(Exchange):
         }, market)
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.publicGetTime(params)
         #
         #     {"data":"2020-04-12T18:54:25.390Z"}

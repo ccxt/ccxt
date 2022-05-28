@@ -552,7 +552,7 @@ class poloniex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'quoteVolume'),
             'quoteVolume' => $this->safe_string($ticker, 'baseVolume'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -587,6 +587,11 @@ class poloniex extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the poloniex api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = $this->publicGetReturnCurrencies ($params);
         //
         //     {

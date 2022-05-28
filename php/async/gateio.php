@@ -1194,9 +1194,9 @@ class gateio extends Exchange {
         $params = $this->omit($params, array( 'marginMode', 'account' ));
         if ($marginMode === 'cross') {
             $marginMode = 'cross_margin';
-        } else if ($marginMode === 'isolated') {
+        } elseif ($marginMode === 'isolated') {
             $marginMode = 'margin';
-        } else if ($marginMode === '') {
+        } elseif ($marginMode === '') {
             $marginMode = 'spot';
         }
         if ($stop) {
@@ -1219,6 +1219,11 @@ class gateio extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         // sandbox/testnet only supports future markets
         $apiBackup = $this->safe_value($this->urls, 'apiBackup');
         if ($apiBackup !== null) {
@@ -1923,7 +1928,7 @@ class gateio extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -2160,7 +2165,7 @@ class gateio extends Exchange {
             $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
             if ($market['future']) {
                 $method = 'publicDeliveryGetSettleCandlesticks';
-            } else if ($market['swap']) {
+            } elseif ($market['swap']) {
                 $method = 'publicFuturesGetSettleCandlesticks';
             }
             $isMark = ($price === 'mark');
@@ -2182,13 +2187,6 @@ class gateio extends Exchange {
         }
         $response = yield $this->$method (array_merge($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
-    }
-
-    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'mark',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -2234,13 +2232,6 @@ class gateio extends Exchange {
         }
         $sorted = $this->sort_by($rates, 'timestamp');
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
-    }
-
-    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'index',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -2702,7 +2693,7 @@ class gateio extends Exchange {
             // GateCode handling
             $type = Precise::string_gt($amount, '0') ? 'deposit' : 'withdrawal';
             $amount = Precise::string_abs($amount);
-        } else if ($id !== null) {
+        } elseif ($id !== null) {
             $type = $this->parse_transaction_type($id[0]);
         }
         $currencyId = $this->safe_string($transaction, 'currency');
@@ -2766,12 +2757,12 @@ class gateio extends Exchange {
         $contract = $market['contract'];
         $stopPrice = $this->safe_number($params, 'stopPrice');
         $methodTail = 'Orders';
-        $reduceOnly = $this->safe_value_2($params, 'reduce_only', 'reduceOnly');
-        $defaultTimeInForce = $this->safe_value_2($params, 'tif', 'time_in_force', 'gtc');
-        $timeInForce = $this->safe_value($params, 'timeInForce', $defaultTimeInForce);
-        $postOnly = false;
-        list($type, $postOnly, $timeInForce, $params) = $this->is_post_only($type, $timeInForce, null, $params);
-        $params = $this->omit($params, array( 'stopPrice', 'reduce_only', 'reduceOnly', 'tif', 'time_in_force', 'timeInForce' ));
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        $postOnly = $this->is_post_only($type, $params);
+        // we only omit the unified $params here
+        // this is because the other $params will get extended into the $request
+        $params = $this->omit($params, array( 'stopPrice', 'reduceOnly', 'timeInForce', 'postOnly' ));
+        $timeInForce = null;
         if ($postOnly) {
             $timeInForce = 'poc';
         }
@@ -2788,7 +2779,7 @@ class gateio extends Exchange {
                 $timeInForce = 'ioc';
                 $price = 0;
             }
-        } else if (!$isLimitOrder) {
+        } elseif (!$isLimitOrder) {
             // Gateio doesn't have $market orders for spot
             throw new InvalidOrder($this->id . ' createOrder() does not support ' . $type . ' orders for ' . $market['type'] . ' markets');
         }
@@ -3684,7 +3675,7 @@ class gateio extends Exchange {
         $accountsByType = $this->options['accountsByType'];
         if (is_array($accountsByType) && array_key_exists($account, $accountsByType)) {
             return $accountsByType[$account];
-        } else if (is_array($this->markets) && array_key_exists($account, $this->markets)) {
+        } elseif (is_array($this->markets) && array_key_exists($account, $this->markets)) {
             $market = $this->market($account);
             return $market['id'];
         } else {
@@ -3806,7 +3797,7 @@ class gateio extends Exchange {
         $side = null;
         if (Precise::string_gt($size, '0')) {
             $side = 'long';
-        } else if (Precise::string_lt($size, '0')) {
+        } elseif (Precise::string_lt($size, '0')) {
             $side = 'short';
         }
         $maintenanceRate = $this->safe_string($position, 'maintenance_rate');
@@ -3851,14 +3842,6 @@ class gateio extends Exchange {
             'side' => $side,
             'percentage' => $this->parse_number($percentage),
         );
-    }
-
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
@@ -3907,8 +3890,7 @@ class gateio extends Exchange {
         //         }
         //     )
         //
-        $result = $this->parse_positions($response);
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
+        return $this->parse_positions($response, $symbols);
     }
 
     public function fetch_leverage_tiers($symbols = null, $params = array ()) {

@@ -170,6 +170,13 @@ module.exports = class lykke extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name lykke#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the lykke api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetAssets (params);
         const currencies = this.safeValue (response, 'payload', []);
         //
@@ -397,7 +404,7 @@ module.exports = class lykke extends Exchange {
             'baseVolume': this.safeString (ticker, 'volumeBase'),
             'quoteVolume': this.safeString (ticker, 'volumeQuote'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

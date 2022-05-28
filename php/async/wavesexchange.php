@@ -676,7 +676,7 @@ class wavesexchange extends Exchange {
             if (strlen($queryString) > 0) {
                 $url .= '?' . $queryString;
             }
-        } else if ($api === 'matcher') {
+        } elseif ($api === 'matcher') {
             if ($method === 'POST') {
                 $headers = array(
                     'Accept' => 'application/json',
@@ -801,7 +801,7 @@ class wavesexchange extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1579,7 +1579,7 @@ class wavesexchange extends Exchange {
         $symbol = null;
         if ($assetPair !== null) {
             $symbol = $this->get_symbol_from_asset_pair($assetPair);
-        } else if ($market !== null) {
+        } elseif ($market !== null) {
             $symbol = $market['symbol'];
         }
         $amountCurrency = $this->safe_currency_code($this->safe_string($assetPair, 'amountAsset', 'WAVES'));
@@ -1695,7 +1695,7 @@ class wavesexchange extends Exchange {
         //     }
         //   )
         // }
-        $balances = $this->safe_value($totalBalance, 'balances');
+        $balances = $this->safe_value($totalBalance, 'balances', array());
         $result = array();
         $timestamp = null;
         $assetIds = array();
@@ -1726,7 +1726,7 @@ class wavesexchange extends Exchange {
                 'ids' => $assetIds,
             );
             $response = yield $this->publicGetAssets ($request);
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_value($response, 'data', array());
             for ($i = 0; $i < count($data); $i++) {
                 $entry = $data[$i];
                 $balance = $nonStandardBalances[$i];
@@ -2028,7 +2028,7 @@ class wavesexchange extends Exchange {
         $assetPair = $this->safe_value($order, 'assetPair');
         if ($assetPair !== null) {
             $symbol = $this->get_symbol_from_asset_pair($assetPair);
-        } else if ($market !== null) {
+        } elseif ($market !== null) {
             $symbol = $market['symbol'];
         }
         $side = $this->safe_string($order, 'orderType');

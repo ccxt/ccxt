@@ -260,7 +260,7 @@ class whitebit extends Exchange {
         //        )
         //    }
         //
-        $markets = $this->safe_value($response, 'result');
+        $markets = $this->safe_value($response, 'result', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
@@ -327,6 +327,11 @@ class whitebit extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the whitebit api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = $this->v4PublicGetAssets ($params);
         //
         //      "BTC" => array(
@@ -550,7 +555,7 @@ class whitebit extends Exchange {
             'baseVolume' => $this->safe_string_2($ticker, 'base_volume', 'volume'),
             'quoteVolume' => $this->safe_string_2($ticker, 'quote_volume', 'deal'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -790,6 +795,11 @@ class whitebit extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {dict} $params extra parameters specific to the whitebit api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-$status-structure $status structure}
+         */
         $response = $this->v4PublicGetPing ($params);
         //
         //      array(
@@ -807,6 +817,11 @@ class whitebit extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the whitebit api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = $this->v4PublicGetTime ($params);
         //
         //     {
@@ -832,7 +847,7 @@ class whitebit extends Exchange {
             if ($type === 'limit' || $type === 'stopLimit') {
                 // it's a stop-limit-order
                 $method = 'v4PrivateOPostOrderStopLimit';
-            } else if ($type === 'market' || $type === 'stopMarket') {
+            } elseif ($type === 'market' || $type === 'stopMarket') {
                 // it's a stop-$market-order
                 $method = 'v4PrivatePostOrderStopMarket';
             }
@@ -863,7 +878,7 @@ class whitebit extends Exchange {
                         if ($cost === null) {
                             $cost = $amount * $price;
                         }
-                    } else if ($cost === null) {
+                    } elseif ($cost === null) {
                         throw new InvalidOrder($this->id . " createOrder() requires the $price argument for $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total $cost value in the 'amount' argument or in the 'cost' extra parameter (the exchange-specific behaviour)");
                     }
                 } else {
@@ -1223,7 +1238,7 @@ class whitebit extends Exchange {
         $type = null;
         if ($fromAccountId === 'main' && $toAccountId === 'trade') {
             $type = 'deposit';
-        } else if ($fromAccountId === 'trade' && $toAccountId === 'main') {
+        } elseif ($fromAccountId === 'trade' && $toAccountId === 'main') {
             $type = 'withdraw';
         }
         if ($type === null) {

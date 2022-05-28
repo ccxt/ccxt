@@ -270,7 +270,7 @@ class eqonex extends Exchange {
             $inverse = !$linear;
             if ($swap) {
                 $type = 'swap';
-            } else if ($future) {
+            } elseif ($future) {
                 $symbol = $symbol . '-' . $this->yymmdd($expiry);
                 $type = 'future';
             } else {
@@ -331,6 +331,11 @@ class eqonex extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {dict} $params extra parameters specific to the eqonex api endpoint
+         * @return {dict} an associative dictionary of $currencies
+         */
         $response = yield $this->publicGetGetInstruments ($params);
         //
         //     {
@@ -624,7 +629,7 @@ class eqonex extends Exchange {
             $takerSide = $this->safe_integer($trade, 4);
             if ($takerSide === 1) {
                 $side = 'buy';
-            } else if ($takerSide === 2) {
+            } elseif ($takerSide === 2) {
                 $side = 'sell';
             }
         } else {
@@ -752,7 +757,7 @@ class eqonex extends Exchange {
         );
         if ($type === 'market') {
             $request['ordType'] = 1;
-        } else if ($type === 'limit') {
+        } elseif ($type === 'limit') {
             $request['ordType'] = 2;
             $priceScale = $this->get_scale($price);
             $request['price'] = $this->convert_to_scale($this->number_to_string($price), $priceScale);
@@ -767,14 +772,14 @@ class eqonex extends Exchange {
                     }
                     $request['ordType'] = 3;
                     $request['stopPx'] = $this->convert_to_scale($this->number_to_string($price), $this->get_scale($price));
-                } else if ($type === 'stop limit') {
+                } elseif ($type === 'stop limit') {
                     throw new ArgumentsRequired($this->id . ' createOrder() requires a $stopPrice parameter or a stopPx parameter for ' . $type . ' orders');
                 }
             } else {
                 if ($type === 'stop') {
                     $request['ordType'] = 3;
                     $request['stopPx'] = $this->convert_to_scale($this->number_to_string($stopPrice), $this->get_scale($stopPrice));
-                } else if ($type === 'stop limit') {
+                } elseif ($type === 'stop limit') {
                     $request['ordType'] = 4;
                     $priceScale = $this->get_scale($price);
                     $stopPriceScale = $this->get_scale($stopPrice);
@@ -851,7 +856,7 @@ class eqonex extends Exchange {
         );
         if ($type === 'market') {
             $request['ordType'] = 1;
-        } else if ($type === 'limit') {
+        } elseif ($type === 'limit') {
             $request['ordType'] = 2;
             $request['price'] = $this->convert_to_scale($this->number_to_string($price), $this->get_scale($price));
         } else {
@@ -864,14 +869,14 @@ class eqonex extends Exchange {
                     }
                     $request['ordType'] = 3;
                     $request['stopPx'] = $this->convert_to_scale($this->number_to_string($price), $this->get_scale($price));
-                } else if ($type === 'stop limit') {
+                } elseif ($type === 'stop limit') {
                     throw new ArgumentsRequired($this->id . ' editOrder() requires a $stopPrice parameter or a stopPx parameter for ' . $type . ' orders');
                 }
             } else {
                 if ($type === 'stop') {
                     $request['ordType'] = 3;
                     $request['stopPx'] = $this->convert_to_scale($this->number_to_string($stopPrice), $this->get_scale($stopPrice));
-                } else if ($type === 'stop limit') {
+                } elseif ($type === 'stop limit') {
                     $request['ordType'] = 4;
                     $priceScale = $this->get_scale($price);
                     $stopPriceScale = $this->get_scale($stopPrice);
@@ -1370,7 +1375,7 @@ class eqonex extends Exchange {
                 $fee['maker'] = $spotMakerFee;
                 $fee['taker'] = $spotTakerFee;
                 $fee['tiers'] = $spotTiers;
-            } else if ($this->safe_value($market, 'contract')) {
+            } elseif ($this->safe_value($market, 'contract')) {
                 $fee['maker'] = $futureMakerFee;
                 $fee['taker'] = $futureTakerFee;
                 $fee['tiers'] = $futureTiers;
@@ -1661,7 +1666,7 @@ class eqonex extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             // special case for getUserHistory
             $format = $this->safe_value($params, 'format');
             $type = $this->safe_value($params, 'type');

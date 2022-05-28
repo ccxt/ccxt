@@ -170,6 +170,11 @@ class tidex(Exchange):
         })
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the tidex api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.webGetCurrency(params)
         #
         #     [
@@ -475,7 +480,7 @@ class tidex(Exchange):
             'baseVolume': self.safe_string(ticker, 'vol_cur'),
             'quoteVolume': self.safe_string(ticker, 'vol'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         """

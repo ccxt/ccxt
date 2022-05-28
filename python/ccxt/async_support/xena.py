@@ -193,6 +193,11 @@ class xena(Exchange):
         })
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.publicGetMarketDataV2ServerTime(params)
         #
         #     {
@@ -380,6 +385,11 @@ class xena(Exchange):
         return result
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.publicGetCommonCurrencies(params)
         #
         #     {
@@ -487,7 +497,7 @@ class xena(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         """
@@ -590,7 +600,7 @@ class xena(Exchange):
         #         ]
         #     }
         #
-        accounts = self.safe_value(response, 'accounts')
+        accounts = self.safe_value(response, 'accounts', [])
         result = []
         for i in range(0, len(accounts)):
             account = accounts[i]

@@ -183,6 +183,13 @@ module.exports = class xena extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name xena#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the xena api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetMarketDataV2ServerTime (params);
         //
         //     {
@@ -377,6 +384,13 @@ module.exports = class xena extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name xena#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the xena api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetCommonCurrencies (params);
         //
         //     {
@@ -486,7 +500,7 @@ module.exports = class xena extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -603,7 +617,7 @@ module.exports = class xena extends Exchange {
         //         ]
         //     }
         //
-        const accounts = this.safeValue (response, 'accounts');
+        const accounts = this.safeValue (response, 'accounts', []);
         const result = [];
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];

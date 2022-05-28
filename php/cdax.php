@@ -258,6 +258,11 @@ class cdax extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the cdax api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = $this->publicGetCommonTimestamp ($params);
         return $this->safe_integer($response, 'data');
     }
@@ -375,7 +380,7 @@ class cdax extends Exchange {
         //        )
         //    }
         //
-        $markets = $this->safe_value($response, 'data');
+        $markets = $this->safe_value($response, 'data', array());
         $numMarkets = is_array($markets) ? count($markets) : 0;
         if ($numMarkets < 1) {
             throw new NetworkError($this->id . ' fetchMarkets() returned empty $response => ' . $this->json($markets));
@@ -527,7 +532,7 @@ class cdax extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -628,7 +633,7 @@ class cdax extends Exchange {
          */
         $this->load_markets();
         $response = $this->marketGetTickers ($params);
-        $tickers = $this->safe_value($response, 'data');
+        $tickers = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($response, 'ts');
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
@@ -817,7 +822,7 @@ class cdax extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $trades = $this->safe_value($data[$i], 'data', array());
@@ -896,6 +901,11 @@ class cdax extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {dict} $params extra parameters specific to the cdax api endpoint
+         * @return {dict} an associative dictionary of $currencies
+         */
         $request = array(
             'language' => $this->options['language'],
         );
@@ -940,7 +950,7 @@ class cdax extends Exchange {
         //         ]
         //     }
         //
-        $currencies = $this->safe_value($response, 'data');
+        $currencies = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $currencies[$i];
@@ -1622,9 +1632,9 @@ class cdax extends Exchange {
         $url = '/';
         if ($api === 'market') {
             $url .= $api;
-        } else if (($api === 'public') || ($api === 'private')) {
+        } elseif (($api === 'public') || ($api === 'private')) {
             $url .= $this->version;
-        } else if (($api === 'v2Public') || ($api === 'v2Private')) {
+        } elseif (($api === 'v2Public') || ($api === 'v2Private')) {
             $url .= 'v2';
         }
         $url .= '/' . $this->implode_params($path, $params);

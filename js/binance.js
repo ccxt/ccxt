@@ -216,7 +216,7 @@ module.exports = class binance extends Exchange {
                         'margin/isolatedMarginTier': 0.1,
                         'margin/rateLimit/order': 2,
                         'loan/income': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
-                        'fiat/orders': 0.1,
+                        'fiat/orders': 20,
                         'fiat/payments': 0.1,
                         'futures/transfer': 1,
                         'futures/loan/borrow/history': 1,
@@ -1231,6 +1231,13 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name binance#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const defaultType = this.safeString2 (this.options, 'fetchTime', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
@@ -1245,6 +1252,13 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name binance#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const fetchCurrenciesEnabled = this.safeValue (this.options, 'fetchCurrencies');
         if (!fetchCurrenciesEnabled) {
             return undefined;
@@ -1717,7 +1731,7 @@ module.exports = class binance extends Exchange {
                 result[code] = account;
             }
         } else if (type === 'savings') {
-            const positionAmountVos = this.safeValue (response, 'positionAmountVos');
+            const positionAmountVos = this.safeValue (response, 'positionAmountVos', []);
             for (let i = 0; i < positionAmountVos.length; i++) {
                 const entry = positionAmountVos[i];
                 const currencyId = this.safeString (entry, 'asset');
@@ -2106,10 +2120,17 @@ module.exports = class binance extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name binance#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
         const response = await this.sapiGetSystemStatus (params);
         //
         //     {
@@ -2156,6 +2177,14 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchBidsAsks (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchBidsAsks
+         * @description fetches the bid and ask price and volume for multiple markets
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBidsAsks', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
@@ -2316,20 +2345,6 @@ module.exports = class binance extends Exchange {
         //     ]
         //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
-    }
-
-    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'mark',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
-    }
-
-    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'index',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     parseTrade (trade, market = undefined) {
@@ -4038,7 +4053,7 @@ module.exports = class binance extends Exchange {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
-            const networkList = this.safeValue (entry, 'networkList');
+            const networkList = this.safeValue (entry, 'networkList', []);
             withdrawFees[code] = {};
             for (let j = 0; j < networkList.length; j++) {
                 const networkEntry = networkList[j];
@@ -4470,7 +4485,7 @@ module.exports = class binance extends Exchange {
 
     parseAccountPositions (account) {
         const positions = this.safeValue (account, 'positions');
-        const assets = this.safeValue (account, 'assets');
+        const assets = this.safeValue (account, 'assets', []);
         const balances = {};
         for (let i = 0; i < assets.length; i++) {
             const entry = assets[i];
@@ -4889,7 +4904,7 @@ module.exports = class binance extends Exchange {
                 const entry = response[i];
                 const marketId = this.safeString (entry, 'symbol');
                 const symbol = this.safeSymbol (marketId);
-                const brackets = this.safeValue (entry, 'brackets');
+                const brackets = this.safeValue (entry, 'brackets', []);
                 const result = [];
                 for (let j = 0; j < brackets.length; j++) {
                     const bracket = brackets[j];
@@ -4982,7 +4997,7 @@ module.exports = class binance extends Exchange {
         const marketId = this.safeString (info, 'symbol');
         const safeSymbol = this.safeSymbol (marketId);
         market = this.safeMarket (safeSymbol, market);
-        const brackets = this.safeValue (info, 'brackets');
+        const brackets = this.safeValue (info, 'brackets', []);
         const tiers = [];
         for (let j = 0; j < brackets.length; j++) {
             const bracket = brackets[j];

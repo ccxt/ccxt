@@ -271,6 +271,11 @@ class qtrade extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {dict} $params extra parameters specific to the qtrade api endpoint
+         * @return {dict} an associative dictionary of $currencies
+         */
         $response = yield $this->publicGetCurrencies ($params);
         //
         //     {
@@ -514,7 +519,7 @@ class qtrade extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -647,7 +652,7 @@ class qtrade extends Exchange {
         $numericId = $this->safe_value($params, 'market_id');
         if ($numericId !== null) {
             $request['market_id'] = $numericId; // mutually exclusive with market_string
-        } else if ($symbol !== null) {
+        } elseif ($symbol !== null) {
             $market = $this->market($symbol);
             $request['market_string'] = $market['id'];
         }
@@ -992,7 +997,7 @@ class qtrade extends Exchange {
         $status = null;
         if ($open) {
             $status = 'open';
-        } else if ($closeReason === 'canceled') {
+        } elseif ($closeReason === 'canceled') {
             $status = 'canceled';
         } else {
             $status = 'closed';
@@ -1083,7 +1088,7 @@ class qtrade extends Exchange {
         $numericId = $this->safe_value($params, 'market_id');
         if ($numericId !== null) {
             $request['market_id'] = $numericId; // mutually exclusive with market_string
-        } else if ($symbol !== null) {
+        } elseif ($symbol !== null) {
             $market = $this->market($symbol);
             $request['market_string'] = $market['id'];
         }
@@ -1563,7 +1568,7 @@ class qtrade extends Exchange {
         $statusCode = $this->safe_string($transaction, 'code');
         if ($cancelRequested) {
             $status = 'canceled';
-        } else if ($status === null) {
+        } elseif ($status === null) {
             $status = $this->parse_transaction_status($statusCode);
         }
         $fee = null;

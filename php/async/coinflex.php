@@ -293,6 +293,11 @@ class coinflex extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-$status-structure $status structure}
+         */
         $response = yield $this->publicGetV2Ping ($params);
         //
         //     array( "success" => "true" )
@@ -379,7 +384,7 @@ class coinflex extends Exchange {
         //         ),
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
@@ -398,7 +403,7 @@ class coinflex extends Exchange {
             $inverse = null;
             if ($type === 'SPOT') {
                 $marketType = 'spot';
-            } else if ($type === 'FUTURE') {
+            } elseif ($type === 'FUTURE') {
                 $inverse = false;
                 $linear = true;
                 if ($settlementTime === null) {
@@ -408,7 +413,7 @@ class coinflex extends Exchange {
                     $marketType = 'future';
                     $symbol .= ':' . $settle . '-' . $this->yymmdd($settlementTime);
                 }
-            } else if ($type === 'SPREAD' || $type === 'REPO') {
+            } elseif ($type === 'SPREAD' || $type === 'REPO') {
                 $symbol = $id;
             }
             $result[] = array(
@@ -464,6 +469,11 @@ class coinflex extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = yield $this->publicGetV3Assets ($params);
         //
         //     {
@@ -489,7 +499,7 @@ class coinflex extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
@@ -914,7 +924,7 @@ class coinflex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'currencyVolume24h'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1278,7 +1288,7 @@ class coinflex extends Exchange {
     }
 
     public function parse_balance($data) {
-        $balances = $this->safe_value($data, 'balances');
+        $balances = $this->safe_value($data, 'balances', array());
         $result = array();
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
@@ -1582,15 +1592,7 @@ class coinflex extends Exchange {
         // response sample inside `getAccountData` method
         $this->targetAccount = $this->safe_value($data, 0);
         $positions = $this->safe_value($this->targetAccount, 'positions', array());
-        return $this->parse_positions($positions);
-    }
-
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
+        return $this->parse_positions($positions, $symbols);
     }
 
     public function parse_position($position, $market = null) {
@@ -2001,7 +2003,7 @@ class coinflex extends Exchange {
         if ($orderTypeIsStop) {
             if (!$stopPriceIsDefined) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires $params["stopPrice"] for stop orders');
-            } else if ($limitPrice === null && $price === null) {
+            } elseif ($limitPrice === null && $price === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires "price" argument or $params["limitPrice"] as a limit $price for stop orders, as stop-$market orders are not supported on this exchange');
             }
         }

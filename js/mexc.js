@@ -338,6 +338,13 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPublicGetCommonTimestamp',
@@ -364,6 +371,13 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
         const response = await this.spotPublicGetCommonPing (params);
         //
         //     { "code":200 }
@@ -380,6 +394,13 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.spotPublicGetMarketCoinList (params);
         //
         //     {
@@ -940,7 +961,7 @@ module.exports = class mexc extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1318,27 +1339,6 @@ module.exports = class mexc extends Exchange {
             this.safeNumber (ohlcv, market['spot'] ? 2 : 4),
             this.safeNumber (ohlcv, 5),
         ];
-    }
-
-    async fetchPremiumIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'premiumIndex',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
-    }
-
-    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'index',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
-    }
-
-    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'mark',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     async fetchBalance (params = {}) {
@@ -1755,7 +1755,7 @@ module.exports = class mexc extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parsePositions (data);
+        return this.parsePositions (data, symbols);
     }
 
     parsePosition (position, market = undefined) {
@@ -1821,14 +1821,6 @@ module.exports = class mexc extends Exchange {
         };
     }
 
-    parsePositions (positions) {
-        const result = [];
-        for (let i = 0; i < positions.length; i++) {
-            result.push (this.parsePosition (positions[i]));
-        }
-        return result;
-    }
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1856,11 +1848,10 @@ module.exports = class mexc extends Exchange {
         if (orderType === 'LIMIT') {
             orderType = 'LIMIT_ORDER';
         }
-        const postOnly = this.safeValue (params, 'postOnly', false);
-        const timeInForce = this.safeString (params, 'timeInForce');
-        const maker = (postOnly || (timeInForce === 'PO'));
+        const postOnly = this.isPostOnly (type, params);
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
         const ioc = (timeInForce === 'IOC');
-        if (maker) {
+        if (postOnly) {
             orderType = 'POST_ONLY';
         } else if (ioc) {
             orderType = 'IMMEDIATE_OR_CANCEL';
@@ -1900,16 +1891,15 @@ module.exports = class mexc extends Exchange {
         if ((type !== 'limit') && (type !== 'market') && (type !== 1) && (type !== 2) && (type !== 3) && (type !== 4) && (type !== 5) && (type !== 6)) {
             throw new InvalidOrder (this.id + ' createSwapOrder () order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
-        const timeInForce = this.safeString (params, 'timeInForce');
-        const postOnly = this.safeValue (params, 'postOnly', false);
-        const maker = ((timeInForce === 'PO') || (postOnly));
-        if (maker) {
+        const postOnly = this.isPostOnly (type, params);
+        if (postOnly) {
             type = 2;
         } else if (type === 'limit') {
             type = 1;
         } else if (type === 'market') {
             type = 6;
         }
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
         const ioc = (timeInForce === 'IOC');
         const fok = (timeInForce === 'FOK');
         if (ioc) {
@@ -1970,7 +1960,7 @@ module.exports = class mexc extends Exchange {
         if (clientOrderId !== undefined) {
             request['externalOid'] = clientOrderId;
         }
-        params = this.omit (params, [ 'clientOrderId', 'externalOid', 'postOnly' ]);
+        params = this.omit (params, [ 'clientOrderId', 'externalOid' ]);
         const response = await this[method] (this.extend (request, params));
         //
         // Swap
@@ -3160,7 +3150,7 @@ module.exports = class mexc extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const result = this.safeValue (data, 'resultList');
+        const result = this.safeValue (data, 'resultList', []);
         const rates = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];

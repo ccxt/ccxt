@@ -441,6 +441,11 @@ class bittrex extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = $this->publicGetCurrencies ($params);
         //
         //     array(
@@ -544,7 +549,7 @@ class bittrex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -700,6 +705,11 @@ class bittrex extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = $this->publicGetPing ($params);
         //
         //     {
@@ -849,7 +859,7 @@ class bittrex extends Exchange {
                     $request['year'] = $sinceYear;
                 }
                 // $request['year'] = year;
-            } else if ($timeframe === '1h') {
+            } elseif ($timeframe === '1h') {
                 // if the $since argument is beyond 31 days into the past
                 if ($difference > 2678400000) {
                     $method = 'publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonth';
@@ -1006,7 +1016,7 @@ class bittrex extends Exchange {
                     if ($isCeilingLimit) {
                         $limit = $this->price_to_precision($symbol, $price);
                         $cost = $this->safe_number_2($params, 'ceiling', 'cost', $amount);
-                    } else if ($isCeilingMarket) {
+                    } elseif ($isCeilingMarket) {
                         $cost = $this->safe_number_2($params, 'ceiling', 'cost');
                         if ($cost === null) {
                             if ($price === null) {
@@ -1056,7 +1066,7 @@ class bittrex extends Exchange {
                 if ($isCeilingLimit) {
                     $request['limit'] = $this->price_to_precision($symbol, $price);
                     $cost = $this->safe_number_2($params, 'ceiling', 'cost', $amount);
-                } else if ($isCeilingMarket) {
+                } elseif ($isCeilingMarket) {
                     $cost = $this->safe_number_2($params, 'ceiling', 'cost');
                     if ($cost === null) {
                         if ($price === null) {
@@ -1338,13 +1348,13 @@ class bittrex extends Exchange {
             $responseStatus = $this->safe_string($transaction, 'status');
             if ($responseStatus === 'ERROR_INVALID_ADDRESS') {
                 $status = 'failed';
-            } else if ($responseStatus === 'CANCELLED') {
+            } elseif ($responseStatus === 'CANCELLED') {
                 $status = 'canceled';
-            } else if ($responseStatus === 'PENDING') {
+            } elseif ($responseStatus === 'PENDING') {
                 $status = 'pending';
-            } else if ($responseStatus === 'COMPLETED') {
+            } elseif ($responseStatus === 'COMPLETED') {
                 $status = 'ok';
-            } else if ($responseStatus === 'AUTHORIZED' && ($txid !== null)) {
+            } elseif ($responseStatus === 'AUTHORIZED' && ($txid !== null)) {
                 $status = 'ok';
             }
         }
@@ -1444,7 +1454,7 @@ class bittrex extends Exchange {
         $lastTradeTimestamp = null;
         if ($closedAt !== null) {
             $lastTradeTimestamp = $this->parse8601($closedAt);
-        } else if ($updatedAt) {
+        } elseif ($updatedAt) {
             $lastTradeTimestamp = $this->parse8601($updatedAt);
         }
         $timestamp = $this->parse8601($createdAt);

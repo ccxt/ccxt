@@ -795,6 +795,11 @@ class phemex(Exchange):
         return result
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the phemex api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.publicGetCfgV2Products(params)
         #
         #     {
@@ -1123,7 +1128,7 @@ class phemex(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """

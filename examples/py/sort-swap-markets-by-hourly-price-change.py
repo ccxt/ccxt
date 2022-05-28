@@ -3,8 +3,9 @@
 import os
 import sys
 import asyncio
+import time
 from pprint import pprint
-
+from datetime import datetime
 
 # -----------------------------------------------------------------------------
 
@@ -57,15 +58,24 @@ async def main():
     Gets the price change as a percent of every market matching type over the last timeframe matching timeframe and prints a sorted list.
     The most immediate candle is ignored because it is incomplete
     '''
+    start = time.time()
+
     await exchange.load_markets()
     allSwapSymbols = [symbol for symbol in exchange.symbols if exchange.market(symbol)['swap']]
     await asyncio.gather(*[fetchOHLCV(symbol) for symbol in allSwapSymbols])
     await exchange.close()
     priceChanges = [getPriceChangePercent(ohlcv) for ohlcv in ohlcvs]
     priceChanges.sort()
+
+    end = time.time()
+    duration = str(int((end - start) * 1000))
+    now = str(datetime.utcnow().isoformat())
+
+    print('python', sys.version)
+    print('CCXT Version:', ccxt.__version__)
+    print(now + ' iteration 0 passed in ' + duration + ' ms')
+    print()
     pprint(priceChanges)
 
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(main())
-loop.close()
+asyncio.run(main())

@@ -104,7 +104,7 @@ class bl3p extends Exchange {
 
     public function parse_balance($response) {
         $data = $this->safe_value($response, 'data', array());
-        $wallets = $this->safe_value($data, 'wallets');
+        $wallets = $this->safe_value($data, 'wallets', array());
         $result = array( 'info' => $data );
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
@@ -200,7 +200,7 @@ class bl3p extends Exchange {
             'baseVolume' => $this->safe_string($volume, '24h'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

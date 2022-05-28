@@ -270,6 +270,11 @@ class timex extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the timex api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = yield $this->publicGetCurrencies ($params);
         //
         //     array(
@@ -487,7 +492,7 @@ class timex extends Exchange {
             if ($limit !== null) {
                 $request['till'] = $this->iso8601($this->sum($since, $this->sum($limit, 1) * $duration * 1000));
             }
-        } else if ($limit !== null) {
+        } elseif ($limit !== null) {
             $now = $this->milliseconds();
             $request['till'] = $this->iso8601($now);
             $request['from'] = $this->iso8601($now - $limit * $duration * 1000 - 1);
@@ -576,7 +581,7 @@ class timex extends Exchange {
             $expireIn = $this->safe_value($params, 'expireIn', $defaultExpireIn);
             if ($expireTime !== null) {
                 $request['expireTime'] = $expireTime;
-            } else if ($expireIn !== null) {
+            } elseif ($expireIn !== null) {
                 $request['expireIn'] = $expireIn;
             } else {
                 throw new InvalidOrder($this->id . ' createOrder() method requires a $expireTime or $expireIn param for a ' . $type . ' $order, you can also set the $expireIn exchange-wide option');
@@ -1138,7 +1143,7 @@ class timex extends Exchange {
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => $this->safe_string($ticker, 'volumeQuote'),
-        ), $market, false);
+        ), $market);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -1266,7 +1271,7 @@ class timex extends Exchange {
         $status = null;
         if (Precise::string_equals($filled, $amount)) {
             $status = 'closed';
-        } else if ($canceledQuantity !== null) {
+        } elseif ($canceledQuantity !== null) {
             $status = 'canceled';
         } else {
             $status = 'open';

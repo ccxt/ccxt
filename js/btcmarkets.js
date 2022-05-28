@@ -406,6 +406,13 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name btcmarkets#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the btcmarkets api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetTime (params);
         //
         //     {
@@ -589,7 +596,7 @@ module.exports = class btcmarkets extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

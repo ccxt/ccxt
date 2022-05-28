@@ -192,6 +192,11 @@ class xena extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the xena api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = yield $this->publicGetMarketDataV2ServerTime ($params);
         //
         //     {
@@ -323,7 +328,7 @@ class xena extends Exchange {
                     $symbol = $symbol . '-' . $this->yymmdd($expiryTimestamp);
                     $type = 'future';
                     $future = true;
-                } else if ($marginType === 'XenaListedPerpetual') {
+                } elseif ($marginType === 'XenaListedPerpetual') {
                     $type = 'swap';
                     $swap = true;
                 }
@@ -384,6 +389,11 @@ class xena extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the xena api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = yield $this->publicGetCommonCurrencies ($params);
         //
         //     {
@@ -493,7 +503,7 @@ class xena extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -604,7 +614,7 @@ class xena extends Exchange {
         //         )
         //     }
         //
-        $accounts = $this->safe_value($response, 'accounts');
+        $accounts = $this->safe_value($response, 'accounts', array());
         $result = array();
         for ($i = 0; $i < count($accounts); $i++) {
             $account = $accounts[$i];
@@ -755,7 +765,7 @@ class xena extends Exchange {
         $side = $this->safe_string_lower_2($trade, 'side', 'aggressorSide');
         if ($side === '1') {
             $side = 'buy';
-        } else if ($side === '2') {
+        } elseif ($side === '2') {
             $side = 'sell';
         }
         $orderId = $this->safe_string($trade, 'orderId');
@@ -1040,17 +1050,17 @@ class xena extends Exchange {
         $side = $this->safe_string($order, 'side');
         if ($side === '1') {
             $side = 'buy';
-        } else if ($side === '2') {
+        } elseif ($side === '2') {
             $side = 'sell';
         }
         $type = $this->safe_string($order, 'ordType');
         if ($type === '1') {
             $type = 'market';
-        } else if ($type === '2') {
+        } elseif ($type === '2') {
             $type = 'limit';
-        } else if ($type === '3') {
+        } elseif ($type === '3') {
             $type = 'stop';
-        } else if ($type === '4') {
+        } elseif ($type === '4') {
             $type = 'stop-limit';
         }
         return $this->safe_order(array(
@@ -1950,7 +1960,7 @@ class xena extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce();
             // php does not format it properly
@@ -1972,7 +1982,7 @@ class xena extends Exchange {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);
                 }
-            } else if ($method === 'POST') {
+            } elseif ($method === 'POST') {
                 $body = $this->json($query);
                 $headers['Content-Type'] = 'application/json';
             }

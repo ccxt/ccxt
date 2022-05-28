@@ -352,7 +352,7 @@ class yobit(Exchange):
         #         },
         #     }
         #
-        markets = self.safe_value(response, 'pairs')
+        markets = self.safe_value(response, 'pairs', {})
         keys = list(markets.keys())
         result = []
         for i in range(0, len(keys)):
@@ -505,7 +505,7 @@ class yobit(Exchange):
             'baseVolume': self.safe_string(ticker, 'vol_cur'),
             'quoteVolume': self.safe_string(ticker, 'vol'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         """
@@ -683,7 +683,7 @@ class yobit(Exchange):
         #         },
         #     }
         #
-        pairs = self.safe_value(response, 'pairs')
+        pairs = self.safe_value(response, 'pairs', {})
         marketIds = list(pairs.keys())
         result = {}
         for i in range(0, len(marketIds)):

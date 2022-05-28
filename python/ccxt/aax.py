@@ -54,7 +54,7 @@ class aax(Exchange):
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'editOrder': True,
-                'fetchAccounts': None,
+                'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
                 'fetchBorrowRate': False,
@@ -328,6 +328,12 @@ class aax(Exchange):
                     'otc': 'F2CP',
                     'saving': 'VLTP',
                 },
+                'accountsById': {
+                    'SPTP': 'spot',
+                    'FUTP': 'future',
+                    'F2CP': 'otc',
+                    'VLTP': 'saving',
+                },
                 'networks': {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
@@ -340,6 +346,11 @@ class aax(Exchange):
         })
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = self.publicGetTime(params)
         #
         #    {
@@ -352,6 +363,11 @@ class aax(Exchange):
         return self.safe_integer(response, 'data')
 
     def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = self.publicGetAnnouncementMaintenance(params)
         #
         # note, when there is no maintenance, then data is `null`
@@ -479,7 +495,7 @@ class aax(Exchange):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             market = data[i]
@@ -568,6 +584,11 @@ class aax(Exchange):
         return result
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.publicGetCurrencies(params)
         #
         #     {
@@ -678,7 +699,7 @@ class aax(Exchange):
             'baseVolume': None,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def set_margin(self, symbol, amount, params={}):
         self.load_markets()
@@ -1065,6 +1086,51 @@ class aax(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
+    def fetch_accounts(self, params={}):
+        response = self.privateGetAccountBalances(params)
+        #
+        #     {
+        #         "code":1,
+        #         "data":[
+        #             {
+        #                 "purseType":"FUTP",
+        #                 "currency":"BTC",
+        #                 "available":"0.41000000",
+        #                 "unavailable":"0.00000000"
+        #             },
+        #             {
+        #                 "purseType":"FUTP",
+        #                 "currency":"USDT",
+        #                 "available":"0.21000000",
+        #                 "unvaliable":"0.00000000"
+        #             }
+        #         ]
+        #         "message":"success",
+        #         "ts":1573530401020
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_accounts(data)
+
+    def parse_account(self, account):
+        #
+        #    {
+        #        "purseType":"FUTP",
+        #        "currency":"USDT",
+        #        "available":"0.21000000",
+        #        "unvaliable":"0.00000000"
+        #    }
+        #
+        currencyId = self.safe_string(account, 'currency')
+        accountId = self.safe_string(account, 'purseType')
+        accountsById = self.safe_value(self.options, 'accountsById', {})
+        return {
+            'info': account,
+            'id': None,
+            'code': self.safe_currency_code(currencyId),
+            'type': self.safe_string(accountsById, accountId, accountId),
+        }
+
     def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1102,7 +1168,7 @@ class aax(Exchange):
         #         "ts":1573530401020
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         timestamp = self.safe_integer(response, 'ts')
         result = {
             'info': response,
@@ -2302,7 +2368,7 @@ class aax(Exchange):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         rates = []
         for i in range(0, len(data)):
             entry = data[i]

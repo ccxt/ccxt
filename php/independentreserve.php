@@ -293,7 +293,7 @@ class independentreserve extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -370,7 +370,7 @@ class independentreserve extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-        } else if ($market !== null) {
+        } elseif ($market !== null) {
             $symbol = $market['symbol'];
             $base = $market['base'];
             $quote = $market['quote'];
@@ -379,12 +379,12 @@ class independentreserve extends Exchange {
         $side = null;
         if (mb_strpos($orderType, 'Bid') !== false) {
             $side = 'buy';
-        } else if (mb_strpos($orderType, 'Offer') !== false) {
+        } elseif (mb_strpos($orderType, 'Offer') !== false) {
             $side = 'sell';
         }
         if (mb_strpos($orderType, 'Market') !== false) {
             $orderType = 'market';
-        } else if (mb_strpos($orderType, 'Limit') !== false) {
+        } elseif (mb_strpos($orderType, 'Limit') !== false) {
             $orderType = 'limit';
         }
         $timestamp = $this->parse8601($this->safe_string($order, 'CreatedTimestampUtc'));
@@ -532,7 +532,7 @@ class independentreserve extends Exchange {
         if ($side !== null) {
             if (mb_strpos($side, 'Bid') !== false) {
                 $side = 'buy';
-            } else if (mb_strpos($side, 'Offer') !== false) {
+            } elseif (mb_strpos($side, 'Offer') !== false) {
                 $side = 'sell';
             }
         }

@@ -304,6 +304,11 @@ class stex(Exchange):
         })
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the stex api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.publicGetCurrencies(params)
         #
         #     {
@@ -547,6 +552,11 @@ class stex(Exchange):
         return self.parse_ticker(ticker, market)
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the stex api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = self.publicGetPing(params)
         #
         #     {
@@ -670,7 +680,7 @@ class stex(Exchange):
             'baseVolume': self.safe_string(ticker, 'volumeQuote'),
             'quoteVolume': self.safe_string(ticker, 'volume'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         """

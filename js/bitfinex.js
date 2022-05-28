@@ -833,7 +833,7 @@ module.exports = class bitfinex extends Exchange {
             'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     parseTrade (trade, market = undefined) {

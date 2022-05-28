@@ -151,6 +151,11 @@ class bitbns extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {dict} $params extra parameters specific to the bitbns api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure status structure}
+         */
         $response = yield $this->v1GetPlatformStatus ($params);
         //
         //     {
@@ -367,7 +372,7 @@ class bitbns extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'baseVolume'),
             'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -429,13 +434,15 @@ class bitbns extends Exchange {
             $numParts = is_array($parts) ? count($parts) : 0;
             if ($numParts > 1) {
                 $currencyId = $this->safe_string($parts, 1);
-                if ($currencyId !== 'Money') {
-                    $code = $this->safe_currency_code($currencyId);
-                    $account = $this->account();
-                    $account['free'] = $this->safe_string($data, $key);
-                    $account['used'] = $this->safe_string($data, 'inorder' . $currencyId);
-                    $result[$code] = $account;
+                // note that "Money" stands for INR - the only fiat in bitbns
+                if ($currencyId === 'Money') {
+                    $currencyId = 'INR';
                 }
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['free'] = $this->safe_string($data, $key);
+                $account['used'] = $this->safe_string($data, 'inorder' . $currencyId);
+                $result[$code] = $account;
             }
         }
         return $this->safe_balance($result);
@@ -452,10 +459,10 @@ class bitbns extends Exchange {
         //
         //     {
         //         "data":array(
-        //             "availableorderMoney":0,
+        //             "availableorderMoney":12.34, // INR
         //             "availableorderBTC":0,
         //             "availableorderXRP":0,
-        //             "inorderMoney":0,
+        //             "inorderMoney":0, // INR
         //             "inorderBTC":0,
         //             "inorderXRP":0,
         //             "inorderNEO":0,
@@ -465,6 +472,7 @@ class bitbns extends Exchange {
         //         "code":200
         //     }
         //
+        // note that "Money" stands for INR - the only fiat in bitbns
         return $this->parse_balance($response);
     }
 
@@ -593,7 +601,7 @@ class bitbns extends Exchange {
         $method = 'v2PostOrders';
         if ($type === 'limit') {
             $request['rate'] = $this->price_to_precision($symbol, $price);
-        } else if ($type === 'market') {
+        } elseif ($type === 'market') {
             $method = 'v1PostPlaceMarketOrderQntySymbol';
             $request['market'] = $market['quoteId'];
         } else {
@@ -745,7 +753,7 @@ class bitbns extends Exchange {
         if ($side !== null) {
             if (mb_strpos($side, 'buy') !== false) {
                 $side = 'buy';
-            } else if (mb_strpos($side, 'sell') !== false) {
+            } elseif (mb_strpos($side, 'sell') !== false) {
                 $side = 'sell';
             }
         }
@@ -980,7 +988,7 @@ class bitbns extends Exchange {
             if (mb_strpos($type, 'deposit') !== false) {
                 $type = 'deposit';
                 $status = 'ok';
-            } else if (mb_strpos($type, 'withdraw') !== false) {
+            } elseif (mb_strpos($type, 'withdraw') !== false) {
                 $type = 'withdrawal';
             }
         }
@@ -1066,7 +1074,7 @@ class bitbns extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($method === 'POST') {
+        } elseif ($method === 'POST') {
             if ($query) {
                 $body = $this->json($query);
             } else {

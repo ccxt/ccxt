@@ -18,18 +18,25 @@ module.exports = class cex extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined, // has but unimplemented
+                'margin': false, // has but not through api
                 'swap': false,
                 'future': false,
                 'option': false,
+                'addMargin': false,
                 'cancelOrder': true,
+                'cancelOrders': false,
+                'createDepositAddress': false,
                 'createOrder': true,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
                 'fetchDeposits': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -50,10 +57,16 @@ module.exports = class cex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransactions': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': false,
+                'fetchWithdrawalWhitelist': false,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMargin': false,
+                'setMarginMode': false,
                 'transfer': false,
                 'withdraw': false,
             },
@@ -189,6 +202,13 @@ module.exports = class cex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name cex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.fetchCurrenciesFromCache (params);
         this.options['currencies'] = {
             'timestamp': this.milliseconds (),
@@ -551,7 +571,7 @@ module.exports = class cex extends Exchange {
             'baseVolume': volume,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

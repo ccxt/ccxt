@@ -311,6 +311,11 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-$status-structure $status structure}
+         */
         $response = yield $this->futuresPublicGetStatus ($params);
         //
         //     {
@@ -409,7 +414,7 @@ class kucoinfutures extends kucoin {
         //    }
         //
         $result = array();
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
             $id = $this->safe_string($market, 'symbol');
@@ -492,6 +497,11 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = yield $this->futuresPublicGetTimestamp ($params);
         //
         //    {
@@ -527,7 +537,7 @@ class kucoinfutures extends kucoin {
                 $limit = $this->safe_integer($this->options, 'fetchOHLCVLimit', 200);
             }
             $endAt = $this->sum($since, $limit * $duration);
-        } else if ($limit !== null) {
+        } elseif ($limit !== null) {
             $since = $endAt - $limit * $duration;
             $request['from'] = $since;
         }
@@ -739,7 +749,7 @@ class kucoinfutures extends kucoin {
             'baseVolume' => null,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -790,7 +800,7 @@ class kucoinfutures extends kucoin {
         //    }
         //
         $data = $this->safe_value($response, 'data');
-        $dataList = $this->safe_value($data, 'dataList');
+        $dataList = $this->safe_value($data, 'dataList', array());
         $fees = array();
         for ($i = 0; $i < count($dataList); $i++) {
             $listItem = $dataList[$i];
@@ -861,15 +871,8 @@ class kucoinfutures extends kucoin {
         //        )
         //    }
         //
-        return $this->parse_positions($this->safe_value($response, 'data'));
-    }
-
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_positions($data, $symbols);
     }
 
     public function parse_position($position, $market = null) {
@@ -926,7 +929,7 @@ class kucoinfutures extends kucoin {
         $side = null;
         if (Precise::string_gt($size, '0')) {
             $side = 'long';
-        } else if (Precise::string_lt($size, '0')) {
+        } elseif (Precise::string_lt($size, '0')) {
             $side = 'short';
         }
         $notional = Precise::string_abs($this->safe_string($position, 'posCost'));
@@ -1266,13 +1269,13 @@ class kucoinfutures extends kucoin {
         $params = $this->omit($params, 'stop');
         if ($status === 'closed') {
             $status = 'done';
-        } else if ($status === 'open') {
+        } elseif ($status === 'open') {
             $status = 'active';
         }
         $request = array();
         if (!$stop) {
             $request['status'] = $status;
-        } else if ($status !== 'active') {
+        } elseif ($status !== 'active') {
             throw new BadRequest($this->id . ' fetchOrdersByStatus() can only fetch untriggered $stop orders');
         }
         $market = null;
