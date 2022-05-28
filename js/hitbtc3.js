@@ -530,10 +530,7 @@ module.exports = class hitbtc3 extends Exchange {
             let withdrawEnabled = undefined;
             for (let j = 0; j < rawNetworks.length; j++) {
                 const rawNetwork = rawNetworks[j];
-                let networkId = this.safeString (rawNetwork, 'protocol');
-                if (networkId === undefined) {
-                    networkId = this.safeString (rawNetwork, 'network');
-                }
+                const networkId = this.safeString2 (rawNetwork, 'protocol', 'network');
                 const network = this.safeNetwork (networkId);
                 fee = this.safeNumber (rawNetwork, 'payout_fee');
                 const precision = this.safeNumber (rawNetwork, 'precision_payout');
