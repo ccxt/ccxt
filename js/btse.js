@@ -1974,7 +1974,7 @@ module.exports = class btse extends Exchange {
         // };
         const response = await this.spotPrivatePostUserWalletWithdraw (this.extend (request, params));
         if (!response || response['withdrawId'] === undefined) {
-            throw new BadRequest (`withdraw ${amount} ${currency['id']} to ${address} failed.`);
+            throw new BadRequest ('withdraw ' + amount + ' ' + currency['id'] + 'to ' + address + ' failed.');
         }
         //
         //  {
