@@ -2955,6 +2955,7 @@ class Exchange(object):
         """
          * @ignore
         :param string type: Order type
+        :param boolean exchangeSpecificParam: Exchange specific postOnly
         :param dict params: Exchange specific params
         :returns boolean: True if a post only order, False otherwise
         """

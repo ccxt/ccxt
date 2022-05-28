@@ -2307,8 +2307,8 @@ module.exports = class Exchange {
          * @ignore
          * @method
          * @param {string} type Order type
-         * @param {boolean} exchangeSpecificParam exchange specific isPostOnly
-         * @param {dict} params Exchange specific params
+         * @param {boolean} exchangeSpecificParam exchange specific postOnly
+         * @param {dict} params exchange specific params
          * @returns {boolean} true if a post only order, false otherwise
          */
         const timeInForce = this.safeStringUpper (params, 'timeInForce');

@@ -3902,8 +3902,8 @@ class Exchange {
         /**
          * @ignore
          * @param {string} $type Order type
-         * @param {boolean} exchangeSpecificParam exchange specific isPostOnly
-         * @param {dict} $params Exchange specific $params
+         * @param {boolean} exchangeSpecificParam exchange specific postOnly
+         * @param {dict} $params exchange specific $params
          * @return {boolean} true if a post only order, false otherwise
          */
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
