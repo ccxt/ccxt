@@ -1234,12 +1234,8 @@ module.exports = class ftx extends Exchange {
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             tradingFees[symbol] = {
-                'info': response,
-                'symbol': symbol,
                 'maker': maker,
                 'taker': taker,
-                'percentage': true,
-                'tierBased': true,
             };
         }
         return tradingFees;
