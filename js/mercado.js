@@ -289,7 +289,7 @@ module.exports = class mercado extends Exchange {
             'baseVolume': this.safeString (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

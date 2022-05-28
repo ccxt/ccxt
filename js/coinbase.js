@@ -889,7 +889,7 @@ module.exports = class coinbase extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchBalance (params = {}) {

@@ -1472,7 +1472,7 @@ class zb extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

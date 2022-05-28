@@ -264,7 +264,7 @@ module.exports = class bitbank extends Exchange {
             'baseVolume': this.safeString (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

@@ -1517,7 +1517,7 @@ module.exports = class mexc3 extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchBidsAsks (symbols = undefined, params = {}) {

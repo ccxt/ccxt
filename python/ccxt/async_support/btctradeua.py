@@ -228,7 +228,7 @@ class btctradeua(Exchange):
             last = tickerLength - 1
             result['last'] = self.safe_string(ticker[last], 4)
             result['close'] = result['last']
-        return self.safe_ticker(result, market, False)
+        return self.safe_ticker(result, market)
 
     async def fetch_ticker(self, symbol, params={}):
         """

@@ -901,7 +901,7 @@ class coinflex(Exchange):
             'baseVolume': self.safe_string(ticker, 'currencyVolume24h'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

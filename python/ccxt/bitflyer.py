@@ -354,7 +354,7 @@ class bitflyer(Exchange):
             'baseVolume': self.safe_string(ticker, 'volume_by_product'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """

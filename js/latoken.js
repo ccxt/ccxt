@@ -602,7 +602,7 @@ module.exports = class latoken extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': this.safeString (ticker, 'volume24h'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

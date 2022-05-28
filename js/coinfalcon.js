@@ -253,7 +253,7 @@ module.exports = class coinfalcon extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': this.safeString (ticker, 'volume'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

@@ -26,10 +26,10 @@ class coinbasepro extends Exchange {
             'has' => array(
                 'CORS' => true,
                 'spot' => true,
-                'margin' => null, // has but not fully inplemented
-                'swap' => null, // has but not fully inplemented
-                'future' => null, // has but not fully inplemented
-                'option' => null,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
@@ -574,7 +574,7 @@ class coinbasepro extends Exchange {
             'baseVolume' => $volume,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

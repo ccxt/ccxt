@@ -596,7 +596,7 @@ module.exports = class btcmarkets extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

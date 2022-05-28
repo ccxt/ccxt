@@ -641,7 +641,7 @@ class upbit extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'acc_trade_volume_24h'),
             'quoteVolume' => $this->safe_string($ticker, 'acc_trade_price_24h'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

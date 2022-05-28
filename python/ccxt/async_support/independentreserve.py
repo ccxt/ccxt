@@ -284,7 +284,7 @@ class independentreserve(Exchange):
             'baseVolume': self.safe_string(ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         """

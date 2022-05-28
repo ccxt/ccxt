@@ -1451,7 +1451,7 @@ class mexc3(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_bids_asks(self, symbols=None, params={}):
         """

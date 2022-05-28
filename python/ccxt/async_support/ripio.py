@@ -365,7 +365,7 @@ class ripio(Exchange):
             'baseVolume': None,
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         """

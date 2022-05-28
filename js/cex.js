@@ -571,7 +571,7 @@ module.exports = class cex extends Exchange {
             'baseVolume': volume,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

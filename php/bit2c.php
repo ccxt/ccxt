@@ -258,7 +258,7 @@ class bit2c extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

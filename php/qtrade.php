@@ -518,7 +518,7 @@ class qtrade extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

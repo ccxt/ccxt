@@ -486,7 +486,7 @@ module.exports = class buda extends Exchange {
             'baseVolume': this.safeString (baseVolume, 0),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

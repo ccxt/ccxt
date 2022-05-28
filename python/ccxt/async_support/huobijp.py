@@ -603,7 +603,7 @@ class huobijp(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         """

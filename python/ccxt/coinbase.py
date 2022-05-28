@@ -852,7 +852,7 @@ class coinbase(Exchange):
             'baseVolume': None,
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_balance(self, params={}):
         """

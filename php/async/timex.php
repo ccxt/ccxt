@@ -1143,7 +1143,7 @@ class timex extends Exchange {
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => $this->safe_string($ticker, 'volumeQuote'),
-        ), $market, false);
+        ), $market);
     }
 
     public function parse_trade($trade, $market = null) {

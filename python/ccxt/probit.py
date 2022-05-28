@@ -635,7 +635,7 @@ class probit(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

@@ -200,7 +200,7 @@ class bl3p extends Exchange {
             'baseVolume' => $this->safe_string($volume, '24h'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

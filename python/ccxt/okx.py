@@ -1285,7 +1285,7 @@ class okx(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """

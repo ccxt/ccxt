@@ -924,7 +924,7 @@ class coinflex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'currencyVolume24h'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {

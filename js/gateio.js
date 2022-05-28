@@ -1936,7 +1936,7 @@ module.exports = class gateio extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

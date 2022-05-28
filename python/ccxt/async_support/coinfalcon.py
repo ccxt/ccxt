@@ -252,7 +252,7 @@ class coinfalcon(Exchange):
             'baseVolume': None,
             'quoteVolume': self.safe_string(ticker, 'volume'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         """

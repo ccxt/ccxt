@@ -1449,7 +1449,7 @@ class zb(Exchange):
             'baseVolume': self.safe_string(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def parse_ohlcv(self, ohlcv, market=None):
         if market['swap']:

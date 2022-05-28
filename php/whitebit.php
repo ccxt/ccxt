@@ -555,7 +555,7 @@ class whitebit extends Exchange {
             'baseVolume' => $this->safe_string_2($ticker, 'base_volume', 'volume'),
             'quoteVolume' => $this->safe_string_2($ticker, 'quote_volume', 'deal'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

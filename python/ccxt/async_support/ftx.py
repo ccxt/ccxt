@@ -749,7 +749,7 @@ class ftx(Exchange):
             'baseVolume': None,
             'quoteVolume': self.safe_string(ticker, 'quoteVolume24h'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         """

@@ -52,5 +52,6 @@
     "vcc":           { "skip": true },
     "woo":           { "skip": true },
     "xbtce":         { "skip": true },
-    "zaif":          { "skip": true }
+    "zaif":          { "skip": true },
+    "zipmex":        { "skip": true }
 }

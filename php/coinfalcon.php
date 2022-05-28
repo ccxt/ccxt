@@ -252,7 +252,7 @@ class coinfalcon extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => $this->safe_string($ticker, 'volume'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

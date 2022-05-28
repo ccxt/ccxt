@@ -781,7 +781,7 @@ module.exports = class hitbtc3 extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

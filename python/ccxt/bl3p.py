@@ -194,7 +194,7 @@ class bl3p(Exchange):
             'baseVolume': self.safe_string(volume, '24h'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """

@@ -702,7 +702,7 @@ class aax extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function set_margin($symbol, $amount, $params = array ()) {

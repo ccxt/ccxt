@@ -1241,7 +1241,7 @@ class bitmex(Exchange):
             'baseVolume': self.safe_string(ticker, 'homeNotional24h'),
             'quoteVolume': self.safe_string(ticker, 'foreignNotional24h'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #

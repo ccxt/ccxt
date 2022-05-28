@@ -554,7 +554,7 @@ class cex(Exchange):
             'baseVolume': volume,
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         """

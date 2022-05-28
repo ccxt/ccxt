@@ -493,7 +493,7 @@ class wazirx(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def parse_balance(self, response):
         result = {}

@@ -680,7 +680,7 @@ class stex(Exchange):
             'baseVolume': self.safe_string(ticker, 'volumeQuote'),
             'quoteVolume': self.safe_string(ticker, 'volume'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         """

@@ -1231,7 +1231,7 @@ class bybit extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -2666,8 +2666,6 @@ class bybit extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
-        $amount = $this->amount_to_precision($symbol, $amount);
-        $price = ($price !== null) ? $this->price_to_precision($symbol, $price) : null;
         $isUsdcSettled = ($market['settle'] === 'USDC');
         if ($market['spot']) {
             return $this->create_spot_order($symbol, $type, $side, $amount, $price, $params);
@@ -2698,7 +2696,7 @@ class bybit extends Exchange {
             'side' => $this->capitalize($side),
             'type' => strtoupper($type), // limit, $market or limit_maker
             'timeInForce' => 'GTC', // FOK, IOC
-            'qty' => $amount,
+            'qty' => $this->amount_to_precision($symbol, $amount),
             // 'orderLinkId' => 'string', // unique client $order id, max 36 characters
         );
         if ($type === 'limit' || $type === 'limit_maker') {
@@ -2756,7 +2754,7 @@ class bybit extends Exchange {
             'side' => $this->capitalize($side),
             'orderType' => $this->capitalize($type), // limit or $market
             'timeInForce' => 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
-            'orderQty' => $amount,
+            'orderQty' => $this->amount_to_precision($symbol, $amount),
             // 'takeProfit' => 123.45, // take profit $price, only take effect upon opening the position
             // 'stopLoss' => 123.45, // stop loss $price, only take effect upon opening the position
             // 'reduceOnly' => false, // reduce only, required for linear orders
@@ -2772,7 +2770,7 @@ class bybit extends Exchange {
             // 'mmp' => false // $market maker protection
         );
         if ($price !== null) {
-            $request['orderPrice'] = $price;
+            $request['orderPrice'] = $this->price_to_precision($symbol, $price);
         }
         if ($market['swap']) {
             $stopPx = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');

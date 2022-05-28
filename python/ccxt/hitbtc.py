@@ -663,7 +663,7 @@ class hitbtc(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         """

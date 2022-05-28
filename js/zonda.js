@@ -567,7 +567,7 @@ module.exports = class zonda extends Exchange {
             'baseVolume': volume,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

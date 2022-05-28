@@ -751,7 +751,7 @@ class ftx extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => $this->safe_string($ticker, 'quoteVolume24h'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

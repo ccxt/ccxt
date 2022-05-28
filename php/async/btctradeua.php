@@ -245,7 +245,7 @@ class btctradeua extends Exchange {
             $result['last'] = $this->safe_string($ticker[$last], 4);
             $result['close'] = $result['last'];
         }
-        return $this->safe_ticker($result, $market, false);
+        return $this->safe_ticker($result, $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

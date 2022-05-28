@@ -1501,7 +1501,7 @@ module.exports = class cryptocom extends Exchange {
             'baseVolume': this.safeString (ticker, 'v'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     parseTrade (trade, market = undefined) {
