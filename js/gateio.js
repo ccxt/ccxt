@@ -2785,9 +2785,13 @@ module.exports = class gateio extends Exchange {
         const timeInForce = this.safeStringUpper (params, 'timeInForce'); // supported values GTC, IOC, PO
         let tif = undefined;
         if (timeInForce !== undefined) {
-            if ((timeInForce === 'FOK') || (timeInForce === 'IOC')) {
-                tif = timeInForce.toLowerCase ();
-            } else {
+            const timeInForceMapping = {
+                'IOC': 'ioc',
+                'FOK': 'fok',
+                'PO': 'poc',
+            };
+            tif = this.safeString (timeInForceMapping, timeInForce);
+            if (tif === undefined) {
                 throw new ExchangeError (this.id + ' unsupported timeInForce "' + timeInForce + '"');
             }
         }
