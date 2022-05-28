@@ -696,7 +696,7 @@ module.exports = class btse extends Exchange {
         if (trade['_btseCustomMode'] === 'fetchMyTrades') {
             return this.parseMyTrade (trade, market);
         }
-        if (!trade.orderid) {
+        if (!trade['orderid']) {
             return this.parsePublicTrade (trade, market);
         }
         //
