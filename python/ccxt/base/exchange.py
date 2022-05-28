@@ -2951,31 +2951,33 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + 'fetch_market_leverage_tiers() is not supported yet')
 
-    def is_post_only(self, type, params={}):
+    def is_post_only(self, type, time_in_force=None, exchange_specific_option=None, params={}):
         """
-         * @ignore
         :param string type: Order type
+        :param string time_in_force:
+        :param boolean exchange_specific_option: True if the exchange specific post only setting is set
         :param dict params: Exchange specific params
-        :returns boolean: True if a post only order, False otherwise
+        :returns: {boolean} True if a post only order, False otherwise
         """
-        timeInForce = self.safe_string_upper(params, 'timeInForce')
-        postOnly = self.safe_value_2(params, 'postOnly', 'post_only', False)
-        # we assume timeInForce is uppercase from safeStringUpper(params, 'timeInForce')
-        ioc = timeInForce == 'IOC'
-        fok = timeInForce == 'FOK'
-        timeInForcePostOnly = timeInForce == 'PO'
-        typeLower = type.lower()
-        isMarket = typeLower == 'market'
-        postOnly = postOnly or timeInForcePostOnly
-        if postOnly:
+        post_only = self.safe_value_2(params, 'postOnly', 'post_only', False)
+        params = self.omit(params, ['post_only', 'postOnly'])
+        time_in_force_upper = time_in_force.upper() if (time_in_force is not None) else None
+        type_lower = type.lower()
+        ioc = time_in_force_upper == 'IOC'
+        fok = time_in_force_upper == 'FOK'
+        time_in_force_post_only = time_in_force_upper == 'PO'
+        is_market = type_lower == 'market'
+        post_only = post_only or (type_lower == 'postonly') or time_in_force_post_only or exchange_specific_option
+        if post_only:
             if ioc or fok:
-                raise InvalidOrder(self.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce)
-            elif isMarket:
+                raise InvalidOrder(self.id + ' postOnly orders cannot have timeInForce equal to ' + time_in_force)
+            elif is_market:
                 raise InvalidOrder(self.id + ' postOnly orders cannot have type ' + type)
             else:
-                return True
+                time_in_force = None if time_in_force_post_only else time_in_force
+                return ['limit', True, time_in_force, params]
         else:
-            return False
+            return [type, False, time_in_force, params]
 
     def create_post_only_order(self, symbol, type, side, amount, price, params={}):
         if not self.has['createPostOnlyOrder']:

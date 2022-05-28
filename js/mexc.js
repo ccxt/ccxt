@@ -1848,8 +1848,10 @@ module.exports = class mexc extends Exchange {
         if (orderType === 'LIMIT') {
             orderType = 'LIMIT_ORDER';
         }
-        const postOnly = this.isPostOnly (type, params);
-        const timeInForce = this.safeStringUpper (params, 'timeInForce');
+        let timeInForce = this.safeString (params, 'timeInForce');
+        let postOnly = false;
+        const isPostOnlyOrderType = (orderType === 'POST_ONLY');
+        [ type, postOnly, timeInForce, params ] = this.isPostOnly (type, timeInForce, isPostOnlyOrderType, params);
         const ioc = (timeInForce === 'IOC');
         if (postOnly) {
             orderType = 'POST_ONLY';
@@ -1891,7 +1893,9 @@ module.exports = class mexc extends Exchange {
         if ((type !== 'limit') && (type !== 'market') && (type !== 1) && (type !== 2) && (type !== 3) && (type !== 4) && (type !== 5) && (type !== 6)) {
             throw new InvalidOrder (this.id + ' createSwapOrder () order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
-        const postOnly = this.isPostOnly (type, params);
+        let timeInForce = this.safeString (params, 'timeInForce');
+        let postOnly = false;
+        [ type, postOnly, timeInForce, params ] = this.isPostOnly (type, timeInForce, undefined, params);
         if (postOnly) {
             type = 2;
         } else if (type === 'limit') {
@@ -1899,7 +1903,6 @@ module.exports = class mexc extends Exchange {
         } else if (type === 'market') {
             type = 6;
         }
-        const timeInForce = this.safeStringUpper (params, 'timeInForce');
         const ioc = (timeInForce === 'IOC');
         const fok = (timeInForce === 'FOK');
         if (ioc) {
