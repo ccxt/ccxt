@@ -1834,8 +1834,10 @@ class mexc extends Exchange {
         if ($orderType === 'LIMIT') {
             $orderType = 'LIMIT_ORDER';
         }
-        $postOnly = $this->is_post_only($type, $params);
-        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
+        $timeInForce = $this->safe_string($params, 'timeInForce');
+        $postOnly = false;
+        $isPostOnlyOrderType = ($orderType === 'POST_ONLY');
+        list($type, $postOnly, $timeInForce, $params) = $this->is_post_only($type, $timeInForce, $isPostOnlyOrderType, $params);
         $ioc = ($timeInForce === 'IOC');
         if ($postOnly) {
             $orderType = 'POST_ONLY';
@@ -1877,7 +1879,9 @@ class mexc extends Exchange {
         if (($type !== 'limit') && ($type !== 'market') && ($type !== 1) && ($type !== 2) && ($type !== 3) && ($type !== 4) && ($type !== 5) && ($type !== 6)) {
             throw new InvalidOrder($this->id . ' createSwapOrder () order $type must either limit, $market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for $market orders or 6 to convert $market $price to current price');
         }
-        $postOnly = $this->is_post_only($type, $params);
+        $timeInForce = $this->safe_string($params, 'timeInForce');
+        $postOnly = false;
+        list($type, $postOnly, $timeInForce, $params) = $this->is_post_only($type, $timeInForce, null, $params);
         if ($postOnly) {
             $type = 2;
         } elseif ($type === 'limit') {
@@ -1885,7 +1889,6 @@ class mexc extends Exchange {
         } elseif ($type === 'market') {
             $type = 6;
         }
-        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $ioc = ($timeInForce === 'IOC');
         $fok = ($timeInForce === 'FOK');
         if ($ioc) {

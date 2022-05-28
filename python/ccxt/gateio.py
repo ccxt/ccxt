@@ -2648,12 +2648,12 @@ class gateio(Exchange):
         contract = market['contract']
         stopPrice = self.safe_number(params, 'stopPrice')
         methodTail = 'Orders'
-        reduceOnly = self.safe_value(params, 'reduceOnly')
-        postOnly = self.is_post_only(type, params)
-        # we only omit the unified params here
-        # self is because the other params will get extended into the request
-        params = self.omit(params, ['stopPrice', 'reduceOnly', 'timeInForce', 'postOnly'])
-        timeInForce = None
+        reduceOnly = self.safe_value_2(params, 'reduce_only', 'reduceOnly')
+        defaultTimeInForce = self.safe_value_2(params, 'tif', 'time_in_force', 'gtc')
+        timeInForce = self.safe_value(params, 'timeInForce', defaultTimeInForce)
+        postOnly = False
+        type, postOnly, timeInForce, params = self.is_post_only(type, timeInForce, None, params)
+        params = self.omit(params, ['stopPrice', 'reduce_only', 'reduceOnly', 'tif', 'time_in_force', 'timeInForce'])
         if postOnly:
             timeInForce = 'poc'
         isLimitOrder = (type == 'limit')
