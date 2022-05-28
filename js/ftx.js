@@ -1187,6 +1187,22 @@ module.exports = class ftx extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
+    async fetchCollateral(params = {}) {
+        await this.loadMarkets();
+        const response = await this.privateGetAccount(params);
+        const result = this.safeValue(response, 'result', {});
+        const collateral = this.safeNumber(result, 'collateral');
+        return collateral;
+    }
+
+    async fetchFreeCollateral(params = {}) {
+        await this.loadMarkets();
+        const response = await this.privateGetAccount(params);
+        const result = this.safeValue(response, 'result', {});
+        const collateral = this.safeNumber(result, 'freeCollateral');
+        return collateral;
+    }
+
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetAccount (params);
