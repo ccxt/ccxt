@@ -18,7 +18,7 @@ module.exports = class bytex extends Exchange {
             // 4 requests per second => 1000ms / 4 = 250 ms between requests
             'rateLimit': 250,
             'version': 'v2',
-            'pro': true,
+            'pro': false,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -99,8 +99,8 @@ module.exports = class bytex extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/95269948/144690731-06449847-55e4-4d67-ae14-3227d15b2719.png',
                 'api': {
-                   'rest': 'https://api.bytex.ca',
-                }, 
+                    'rest': 'https://api.bytex.ca',
+                },
                 'www': 'https://bytex.ca',
                 'doc': 'https://docs.bytex.ca',
                 'referral': 'https://bytex.ca/signup?affiliation_code=EREEF6',
@@ -193,7 +193,7 @@ module.exports = class bytex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-                /**
+        /**
          * @method
          * @name bytex#fetchMarkets
          * @description retrieves data on all markets for bytex
@@ -1055,6 +1055,20 @@ module.exports = class bytex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name bytex#createOrder
+         * @description Create an order on the exchange
+         * @param {str} symbol Unified CCXT market symbol
+         * @param {str} type "limit" or "market" *"market" is contract only*
+         * @param {str} side "buy" or "sell"
+         * @param {float} amount the amount of currency to trade
+         * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+         * @param {dict} params  Extra parameters specific to the exchange API endpoint
+         * @param {float} params.stopPrice The price at which a trigger order is triggered at
+         * @param {dict} params.postOnly true for postOnly orders
+         * @returns [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
