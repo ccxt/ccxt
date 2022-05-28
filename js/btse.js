@@ -24,6 +24,7 @@ module.exports = class btse extends Exchange {
                 'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchCancelOrders': false,
@@ -42,7 +43,6 @@ module.exports = class btse extends Exchange {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': false,
-                'editOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchPositions': false,
@@ -1375,7 +1375,8 @@ module.exports = class btse extends Exchange {
         };
         if (since === undefined) {
             // default since is before 7 days
-            request.startTime = Date.now () - (7 * 86400 * 1000);
+            // request.startTime = Date.now () - (7 * 86400 * 1000);
+            request['startTime'] = (Date.now ()) - 7 * 86400 * 1000;
         } else {
             request['startTime'] = since;
         }
