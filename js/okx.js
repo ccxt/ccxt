@@ -1956,7 +1956,7 @@ module.exports = class okx extends Exchange {
         const future = market['future'];
         const contract = market['contract'];
         const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPx');
-        let timeInForce = this.safeString (params, 'timeInForce', 'GTC');
+        const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
         const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'tpTriggerPrice');
         let tpOrdPx = this.safeString (params, 'tpOrdPx');
         const tpTriggerPxType = this.safeString (params, 'tpTriggerPxType', 'last');
@@ -1974,8 +1974,7 @@ module.exports = class okx extends Exchange {
                 throw new BadRequest (this.id + ' params["tdMode"] must be either "isolated" or "cross"');
             }
         }
-        let postOnly = false;
-        [ type, postOnly, timeInForce, params ] = this.isPostOnly (type, timeInForce, undefined, params);
+        const postOnly = this.isPostOnly (type, params);
         params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPx', 'cloOrdId', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slTriggerPx', 'tpTriggerPrice', 'tpOrdPx', 'slOrdPx', 'tpTriggerPxType', 'slTriggerPxType' ]);
         const ioc = ((timeInForce === 'IOC') || (type === 'ioc'));
         const fok = ((timeInForce === 'FOK') || (type === 'fok'));
