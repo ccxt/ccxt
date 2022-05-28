@@ -201,7 +201,7 @@ module.exports = class bitso extends Exchange {
         //             },
         //         ]
         //     }
-        const markets = this.safeValue (response, 'payload');
+        const markets = this.safeValue (response, 'payload', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -300,7 +300,7 @@ module.exports = class bitso extends Exchange {
 
     parseBalance (response) {
         const payload = this.safeValue (response, 'payload', {});
-        const balances = this.safeValue (payload, 'balances');
+        const balances = this.safeValue (payload, 'balances', []);
         const result = {
             'info': response,
             'timestamp': undefined,

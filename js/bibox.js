@@ -184,7 +184,7 @@ module.exports = class bibox extends Exchange {
         //         "ver":"1.1"
         //     }
         //
-        const markets = this.safeValue (response, 'result');
+        const markets = this.safeValue (response, 'result', []);
         const request2 = {
             'cmd': 'tradeLimit',
         };
@@ -549,7 +549,7 @@ module.exports = class bibox extends Exchange {
         //         "cmd":"currencies"
         //     }
         //
-        const currencies = this.safeValue (response, 'result');
+        const currencies = this.safeValue (response, 'result', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
@@ -647,7 +647,7 @@ module.exports = class bibox extends Exchange {
         //
         const outerResults = this.safeValue (response, 'result');
         const firstResult = this.safeValue (outerResults, 0, {});
-        const currencies = this.safeValue (firstResult, 'result');
+        const currencies = this.safeValue (firstResult, 'result', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];

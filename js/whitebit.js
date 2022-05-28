@@ -258,7 +258,7 @@ module.exports = class whitebit extends Exchange {
         //        ]
         //    }
         //
-        const markets = this.safeValue (response, 'result');
+        const markets = this.safeValue (response, 'result', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];

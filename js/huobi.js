@@ -1487,7 +1487,7 @@ module.exports = class huobi extends Exchange {
         //         "ts":1637474774467
         //     }
         //
-        const markets = this.safeValue (response, 'data');
+        const markets = this.safeValue (response, 'data', []);
         const numMarkets = markets.length;
         if (numMarkets < 1) {
             throw new NetworkError (this.id + ' fetchMarkets() returned an empty response: ' + this.json (markets));
@@ -2408,7 +2408,7 @@ module.exports = class huobi extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         let result = [];
         for (let i = 0; i < data.length; i++) {
             const trades = this.safeValue (data[i], 'data', []);
@@ -4762,13 +4762,13 @@ module.exports = class huobi extends Exchange {
         //     ]
         // }
         const timestamp = this.milliseconds ();
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const rates = {
             'info': response,
         };
         for (let i = 0; i < data.length; i++) {
             const rate = data[i];
-            const currencies = this.safeValue (rate, 'currencies');
+            const currencies = this.safeValue (rate, 'currencies', []);
             const symbolRates = {};
             for (let j = 0; j < currencies.length; j++) {
                 const currency = currencies[j];
@@ -4820,11 +4820,11 @@ module.exports = class huobi extends Exchange {
         //     ]
         // }
         const timestamp = this.milliseconds ();
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const rates = {};
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
-            const currencies = this.safeValue (market, 'currencies');
+            const currencies = this.safeValue (market, 'currencies', []);
             for (let j = 0; j < currencies.length; j++) {
                 const currency = currencies[j];
                 const currencyId = this.safeString (currency, 'currency');
@@ -4893,7 +4893,7 @@ module.exports = class huobi extends Exchange {
         // }
         //
         const data = this.safeValue (response, 'data');
-        const result = this.safeValue (data, 'data');
+        const result = this.safeValue (data, 'data', []);
         const rates = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
@@ -5634,7 +5634,7 @@ module.exports = class huobi extends Exchange {
             //
         }
         const response = await this[method] (params);
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const timestamp = this.safeInteger (response, 'ts');
         const result = [];
         for (let i = 0; i < data.length; i++) {

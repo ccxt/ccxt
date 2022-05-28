@@ -129,7 +129,7 @@ module.exports = class btctradeua extends Exchange {
 
     parseBalance (response) {
         const result = { 'info': response };
-        const balances = this.safeValue (response, 'accounts');
+        const balances = this.safeValue (response, 'accounts', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');

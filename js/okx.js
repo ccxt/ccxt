@@ -1668,7 +1668,7 @@ module.exports = class okx extends Exchange {
         //     }
         //
         const rates = [];
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const rate = data[i];
             const timestamp = this.safeNumber (rate, 'fundingTime');
@@ -4327,7 +4327,7 @@ module.exports = class okx extends Exchange {
         //        "type": "8"
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];

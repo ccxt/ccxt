@@ -230,7 +230,7 @@ module.exports = class tidebit extends Exchange {
     }
 
     parseBalance (response) {
-        const balances = this.safeValue (response, 'accounts');
+        const balances = this.safeValue (response, 'accounts', []);
         const result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];

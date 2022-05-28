@@ -1731,7 +1731,7 @@ module.exports = class binance extends Exchange {
                 result[code] = account;
             }
         } else if (type === 'savings') {
-            const positionAmountVos = this.safeValue (response, 'positionAmountVos');
+            const positionAmountVos = this.safeValue (response, 'positionAmountVos', []);
             for (let i = 0; i < positionAmountVos.length; i++) {
                 const entry = positionAmountVos[i];
                 const currencyId = this.safeString (entry, 'asset');
@@ -4053,7 +4053,7 @@ module.exports = class binance extends Exchange {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
-            const networkList = this.safeValue (entry, 'networkList');
+            const networkList = this.safeValue (entry, 'networkList', []);
             withdrawFees[code] = {};
             for (let j = 0; j < networkList.length; j++) {
                 const networkEntry = networkList[j];
@@ -4485,7 +4485,7 @@ module.exports = class binance extends Exchange {
 
     parseAccountPositions (account) {
         const positions = this.safeValue (account, 'positions');
-        const assets = this.safeValue (account, 'assets');
+        const assets = this.safeValue (account, 'assets', []);
         const balances = {};
         for (let i = 0; i < assets.length; i++) {
             const entry = assets[i];
@@ -4904,7 +4904,7 @@ module.exports = class binance extends Exchange {
                 const entry = response[i];
                 const marketId = this.safeString (entry, 'symbol');
                 const symbol = this.safeSymbol (marketId);
-                const brackets = this.safeValue (entry, 'brackets');
+                const brackets = this.safeValue (entry, 'brackets', []);
                 const result = [];
                 for (let j = 0; j < brackets.length; j++) {
                     const bracket = brackets[j];
@@ -4997,7 +4997,7 @@ module.exports = class binance extends Exchange {
         const marketId = this.safeString (info, 'symbol');
         const safeSymbol = this.safeSymbol (marketId);
         market = this.safeMarket (safeSymbol, market);
-        const brackets = this.safeValue (info, 'brackets');
+        const brackets = this.safeValue (info, 'brackets', []);
         const tiers = [];
         for (let j = 0; j < brackets.length; j++) {
             const bracket = brackets[j];

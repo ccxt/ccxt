@@ -1408,7 +1408,7 @@ module.exports = class zb extends Exchange {
         if (market['type'] === 'swap') {
             ticker = {};
             const data = this.safeValue (response, 'data');
-            const values = this.safeValue (data, market['id']);
+            const values = this.safeValue (data, market['id'], []);
             for (let i = 0; i < values.length; i++) {
                 ticker['open'] = this.safeValue (values, 0);
                 ticker['high'] = this.safeValue (values, 1);
@@ -3197,7 +3197,7 @@ module.exports = class zb extends Exchange {
         //         "desc": "操作成功"
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const rates = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -4057,7 +4057,7 @@ module.exports = class zb extends Exchange {
         //     }
         //
         const timestamp = this.milliseconds ();
-        const data = this.safeValue (response, 'result');
+        const data = this.safeValue (response, 'result', []);
         const rates = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
