@@ -1304,7 +1304,6 @@ class Transpiler {
     // ========================================================================
 
     transpileExchangeCommonFiles(jsFolder, filename, className, options ) {
-        // return;
         const jsPath = jsFolder + '/' + filename
         const { python2Folder, python3Folder, phpFolder, phpAsyncFolder } = options
 
