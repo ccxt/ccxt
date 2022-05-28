@@ -30,9 +30,10 @@ module.exports = class btse extends Exchange {
                 'fetchCancelOrders': false,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': false,
+                'fetchDeposit': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': false,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchFundingFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -53,9 +54,11 @@ module.exports = class btse extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
-                'fetchTransactions': false,
-                'fetchTransfers': false,
-                'fetchWithdrawals': false,
+                'fetchTransaction': false,
+                'fetchTransactions': true,
+                'fetchTransfers': true,
+                'fetchWithdrawal': false,
+                'fetchWithdrawals': true,
                 'setLeverage': true,
                 'transfer': true,
                 'withdraw': true,
@@ -1254,6 +1257,129 @@ module.exports = class btse extends Exchange {
         }, market);
     }
 
+    parseTransactionType (type) {
+        const types = {
+            'Deposit': 'deposit',
+            'Withdraw': 'withdraw',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'Pending': 'pending',
+            'Processing': 'pending',
+            'Completed': 'ok',
+            'Cancelled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        // {
+        //   username: 'tiancaidev',
+        //   orderId: '9a195f15-f998-4407-8f87-b7b2590bb871',
+        //   wallet: 'CROSS@',
+        //   currency: 'BTC',
+        //   type: '105',
+        //   amount: '-0.123',
+        //   fees: '0.0',
+        //   description: 'CROSS@->SPOT@',
+        //   timestamp: '1653710942'
+        // }
+        //
+        const id = this.safeString (transfer, 'orderId');
+        const created = this.safeInteger (transfer, 'timestamp');
+        const currencyId = this.safeString (transfer, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const amount = -this.safeNumber (transfer, 'amount');
+        let fromAccount = 'future';
+        if (this.safeString (transfer, 'wallet') === 'SPOT@') {
+            fromAccount = 'spot';
+        }
+        const description = this.safeString (transfer, 'description');
+        let toAccount = 'spot';
+        if (fromAccount === 'spot') {
+            toAccount = 'future';
+        } else if (description.indexOf ('SPOT@') < 0) {
+            toAccount = 'future';
+        }
+        return {
+            'info': transfer,
+            'id': id,
+            'timestamp': created,
+            'datetime': this.iso8601 (created),
+            'currency': code,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': 'ok',
+        };
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // Spot:
+        // [{
+        //   username: 'tiancaidev',
+        //   orderId: '2022052600000015',
+        //   wallet: 'SPOT@',
+        //   currency: 'BTC',
+        //   type: 'Transfer_Out',
+        //   amount: '1.0E-4',
+        //   fees: '0.0',
+        //   description: '',
+        //   timestamp: '1653579720995',
+        //   status: 'Completed',
+        //   txId: '',
+        //   toAddress: '',
+        //   currencyNetwork: '',
+        //   sourceCurrency: '',
+        //   sourceAmount: '0',
+        //   targetCurrency: 'BTC',
+        //   targetAmount: '0.00010',
+        //   rate: '1.0'
+        // }]
+        //
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const created = this.safeInteger (transaction, 'timestamp');
+        const txid = this.safeString (transaction, 'txId', '');
+        const id = this.safeString (transaction, 'orderId');
+        let addressTo = this.safeString (transaction, 'toAddress', '');
+        if (!addressTo) addressTo = undefined;
+        const type = this.parseTransactionType (this.safeString (transaction, 'type'));
+        const amount = this.safeNumber (transaction, 'amount');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const feeCost = this.safeNumber (transaction, 'fees');
+        const rate = this.safeNumber (transaction, 'rate');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = { 'currency': code, 'cost': feeCost, 'rate': rate };
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': created,
+            'datetime': this.iso8601 (created),
+            'addressFrom': undefined,
+            'address': addressTo,
+            'addressTo': addressTo,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': undefined,
+            'comment': undefined,
+            'fee': fee,
+        };
+    }
+
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder requires a `symbol` argument');
@@ -1714,6 +1840,74 @@ module.exports = class btse extends Exchange {
             'network': undefined,
             'info': response,
         };
+    }
+
+    async _fetchWalletHistory (filters, code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            request['currency'] = currency;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const response = await this['spotPrivateGetUserWalletHistory'] (this.extend (request, params));
+        const transactions = [];
+        for (let i = 0; i < response.length; i++) {
+            const transaction = response[i];
+            const type = this.safeString (transaction, 'type');
+            if (!filters.length || filters.indexOf (type) >= 0) {
+                transactions.push (transaction);
+            }
+        }
+        return transactions;
+    }
+
+    async _fetchTransactions (filters, code = undefined, since = undefined, limit = undefined, params = {}) {
+        const transactions = await this._fetchWalletHistory (filters, code, since, limit, params);
+        return this.parseTransactions (transactions);
+    }
+
+    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            request['currency'] = currency;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const filters = [ '105' ];
+        const response = await this['futurePrivateGetUserWalletHistory'] (this.extend (request, params));
+        const transfers = [];
+        for (let i = 0; i < response.length; i++) {
+            const transfer = response[i];
+            const type = this.safeString (transfer, 'type');
+            if (filters.indexOf (type) >= 0) {
+                transfers.push (transfer);
+            }
+        }
+        return this.parseTransfers (transfers);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this._fetchTransactions ([ 'Withdraw' ], code, since, limit, params);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this._fetchTransactions ([ 'Deposit' ], code, since, limit, params);
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this._fetchTransactions ([ 'Withdraw', 'Deposit' ], code, since, limit, params);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
