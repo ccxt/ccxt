@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.83.39';
+$version = '1.84.27';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.83.39';
+    const VERSION = '1.84.27';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -316,6 +316,7 @@ class Exchange {
         'commonCurrencyCode' => 'common_currency_code',
         'marketId' => 'market_id',
         'marketIds' => 'market_ids',
+        'marketSymbols' => 'market_symbols',
         'implodeHostname' => 'implode_hostname',
         'resolvePath' => 'resolve_path',
         'parseBidAsk' => 'parse_bid_ask',
@@ -342,6 +343,7 @@ class Exchange {
         'filterByCurrencySinceLimit' => 'filter_by_currency_since_limit',
         'filterByArray' => 'filter_by_array',
         'safeTicker' => 'safe_ticker',
+        'parseAccounts' => 'parse_accounts',
         'parseTickers' => 'parse_tickers',
         'parseDepositAddresses' => 'parse_deposit_addresses',
         'parseTrades' => 'parse_trades',
@@ -405,9 +407,13 @@ class Exchange {
         'createStopLimitOrder' => 'create_stop_limit_order',
         'createStopMarketOrder' => 'create_stop_market_order',
         'checkOrderArguments' => 'check_order_arguments',
+        'parsePositions' => 'parse_positions',
         'parseBorrowInterests' => 'parse_borrow_interests',
         'parseFundingRateHistories' => 'parse_funding_rate_histories',
         'fetchFundingRate' => 'fetch_funding_rate',
+        'fetchMarkOHLCV' => 'fetch_mark_ohlcv',
+        'fetchIndexOHLCV' => 'fetch_index_ohlcv',
+        'fetchPremiumIndexOHLCV' => 'fetch_premium_index_ohlcv',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -2228,119 +2234,69 @@ class Exchange {
         return $result;
     }
 
-    public function safe_ticker($ticker, $market = null, $legacy = true) {
-        if ($legacy) {
-            $symbol = $this->safe_value($ticker, 'symbol');
-            if ($symbol === null) {
-                $symbol = $this->safe_symbol(null, $market);
-            }
-            $timestamp = $this->safe_integer($ticker, 'timestamp');
-            $baseVolume = $this->safe_value($ticker, 'baseVolume');
-            $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
-            $vwap = $this->safe_value($ticker, 'vwap');
-            if ($vwap === null) {
-                $vwap = $this->vwap($baseVolume, $quoteVolume);
-            }
-            $open = $this->safe_value($ticker, 'open');
-            $close = $this->safe_value($ticker, 'close');
-            $last = $this->safe_value($ticker, 'last');
-            $change = $this->safe_value($ticker, 'change');
-            $percentage = $this->safe_value($ticker, 'percentage');
-            $average = $this->safe_value($ticker, 'average');
-            if (($last !== null) && ($close === null)) {
-                $close = $last;
-            } elseif (($last === null) && ($close !== null)) {
-                $last = $close;
-            }
-            if (($last !== null) && ($open !== null)) {
-                if ($change === null) {
-                    $change = $last - $open;
-                }
-                if ($average === null) {
-                    $average = $this->sum($last, $open) / 2;
-                }
-            }
-            if (($percentage === null) && ($change !== null) && ($open !== null) && ($open > 0)) {
-                $percentage = $change / $open * 100;
-            }
-            if (($change === null) && ($percentage !== null) && ($last !== null)) {
-                $change = $percentage / 100 * $last;
-            }
-            if (($open === null) && ($last !== null) && ($change !== null)) {
-                $open = $last - $change;
-            }
-            if (($vwap !== null) && ($baseVolume !== null) && ($quoteVolume === null)) {
-                $quoteVolume = $vwap / $baseVolume;
-            }
-            if (($vwap !== null) && ($quoteVolume !== null) && ($baseVolume === null)) {
-                $baseVolume = $quoteVolume / $vwap;
-            }
-            $ticker['symbol'] = $symbol;
-            $ticker['timestamp'] = $timestamp;
-            $ticker['datetime'] = $this->iso8601($timestamp);
-            $ticker['open'] = $open;
-            $ticker['close'] = $close;
-            $ticker['last'] = $last;
-            $ticker['vwap'] = $vwap;
-            $ticker['change'] = $change;
-            $ticker['percentage'] = $percentage;
-            $ticker['average'] = $average;
-            return $ticker;
-        } else {
-            $open = $this->safe_value($ticker, 'open');
-            $close = $this->safe_value($ticker, 'close');
-            $last = $this->safe_value($ticker, 'last');
-            $change = $this->safe_value($ticker, 'change');
-            $percentage = $this->safe_value($ticker, 'percentage');
-            $average = $this->safe_value($ticker, 'average');
-            $vwap = $this->safe_value($ticker, 'vwap');
-            $baseVolume = $this->safe_value($ticker, 'baseVolume');
-            $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
-            if ($vwap === null) {
-                $vwap = Precise::string_div($quoteVolume, $baseVolume);
-            }
-            if (($last !== null) && ($close === null)) {
-                $close = $last;
-            } elseif (($last === null) && ($close !== null)) {
-                $last = $close;
-            }
-            if (($last !== null) && ($open !== null)) {
-                if ($change === null) {
-                    $change = Precise::string_sub($last, $open);
-                }
-                if ($average === null) {
-                    $average = Precise::string_div(Precise::string_add($last, $open), '2');
-                }
-            }
-            if (($percentage === null) && ($change !== null) && ($open !== null) && (Precise::string_gt($open, '0'))) {
-                $percentage = Precise::string_mul(Precise::string_div($change, $open), '100');
-            }
-            if (($change === null) && ($percentage !== null) && ($last !== null)) {
-                $change = Precise::string_div(Precise::string_mul($percentage, $last), '100');
-            }
-            if (($open === null) && ($last !== null) && ($change !== null)) {
-                $open = Precise::string_sub($last, $change);
-            }
-            // $timestamp and $symbol operations don't belong in safeTicker
-            // they should be done in the derived classes
-            return array_merge($ticker, array(
-                'bid' => $this->safe_number($ticker, 'bid'),
-                'bidVolume'=> $this->safe_number($ticker, 'bidVolume'),
-                'ask' => $this->safe_number($ticker, 'ask'),
-                'askVolume' => $this->safe_number($ticker, 'askVolume'),
-                'high' => $this->safe_number($ticker, 'high'),
-                'low' => $this->safe_number($ticker, 'low'),
-                'open' => $this->parse_number($open),
-                'close' =>$this->parse_number($close),
-                'last' => $this->parse_number($last),
-                'change' => $this->parse_number($change),
-                'percentage' => $this->parse_number($percentage),
-                'average' => $this->parse_number($average),
-                'vwap' => $this->parse_number($vwap),
-                'baseVolume' => $this->parse_number($baseVolume),
-                'quoteVolume' => $this->parse_number($quoteVolume),
-            ));
+    public function safe_ticker($ticker, $market = null) {
+        $open = $this->safe_value($ticker, 'open');
+        $close = $this->safe_value($ticker, 'close');
+        $last = $this->safe_value($ticker, 'last');
+        $change = $this->safe_value($ticker, 'change');
+        $percentage = $this->safe_value($ticker, 'percentage');
+        $average = $this->safe_value($ticker, 'average');
+        $vwap = $this->safe_value($ticker, 'vwap');
+        $baseVolume = $this->safe_value($ticker, 'baseVolume');
+        $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
+        if ($vwap === null) {
+            $vwap = Precise::string_div($quoteVolume, $baseVolume);
         }
+        if (($last !== null) && ($close === null)) {
+            $close = $last;
+        } elseif (($last === null) && ($close !== null)) {
+            $last = $close;
+        }
+        if (($last !== null) && ($open !== null)) {
+            if ($change === null) {
+                $change = Precise::string_sub($last, $open);
+            }
+            if ($average === null) {
+                $average = Precise::string_div(Precise::string_add($last, $open), '2');
+            }
+        }
+        if (($percentage === null) && ($change !== null) && ($open !== null) && (Precise::string_gt($open, '0'))) {
+            $percentage = Precise::string_mul(Precise::string_div($change, $open), '100');
+        }
+        if (($change === null) && ($percentage !== null) && ($open !== null)) {
+            $change = Precise::string_div(Precise::string_mul($percentage, $open), '100');
+        }
+        if (($open === null) && ($last !== null) && ($change !== null)) {
+            $open = Precise::string_sub($last, $change);
+        }
+        // $timestamp and $symbol operations don't belong in safeTicker
+        // they should be done in the derived classes
+        return array_merge($ticker, array(
+            'bid' => $this->safe_number($ticker, 'bid'),
+            'bidVolume'=> $this->safe_number($ticker, 'bidVolume'),
+            'ask' => $this->safe_number($ticker, 'ask'),
+            'askVolume' => $this->safe_number($ticker, 'askVolume'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'open' => $this->parse_number($open),
+            'close' =>$this->parse_number($close),
+            'last' => $this->parse_number($last),
+            'change' => $this->parse_number($change),
+            'percentage' => $this->parse_number($percentage),
+            'average' => $this->parse_number($average),
+            'vwap' => $this->parse_number($vwap),
+            'baseVolume' => $this->parse_number($baseVolume),
+            'quoteVolume' => $this->parse_number($quoteVolume),
+        ));
+    }
+
+    public function parse_accounts($accounts, $params = array()) {
+        $array = is_array($accounts) ? array_values($accounts) : array();
+        $result = array();
+        foreach ($array as $account) {
+            $result[] = array_replace_recursive($this->parse_account($account), $params);
+        }
+        return $result;
     }
 
     public function parse_tickers($tickers, $symbols = null, $params = array()) {
@@ -2959,8 +2915,16 @@ class Exchange {
         return array_map(array($this, 'market_id'), $symbols);
     }
 
+    public function market_symbols($symbols) {
+        return is_array($symbols) ? array_map(array($this, 'symbol'), $symbols) : $symbols;
+    }
+
     public function market_id($symbol) {
         return (is_array($market = $this->market($symbol))) ? $market['id'] : $symbol;
+    }
+
+    public function symbol($symbol) {
+        return (is_array($market = $this->market($symbol))) ? $market['symbol'] : $symbol;
     }
 
     public function __call($function, $params) {
@@ -3770,10 +3734,14 @@ class Exchange {
         }
         // timeInForceHandling
         $timeInForce = $this->safe_string($order, 'timeInForce');
-        if ($this->safe_value($order, 'postOnly', false)) {
-            $timeInForce = 'PO';
-        } elseif ($this->safe_string($order, 'type') === 'market') {
-            $timeInForce = 'IOC';
+        if ($timeInForce === null) {
+            if ($this->safe_string($order, 'type') === 'market') {
+                 $timeInForce = 'IOC';
+            }
+            // allow postOnly override
+            if ($this->safe_value($order, 'postOnly', false)) {
+                $timeInForce = 'PO';
+            }
         }
         return array_merge($order, array(
             'lastTradeTimestamp' => $lastTradeTimeTimestamp,
@@ -3930,34 +3898,32 @@ class Exchange {
         sleep($milliseconds / 1000);
     }
 
-    public function is_post_only($type, $time_in_force = null, $exchange_specific_option = null, $params = array ()) {
+    public function is_post_only($type, $params = array ()) {
         /**
+         * @ignore
          * @param {string} $type Order type
-         * @param {string} $time_in_force
-         * @param {boolean} $exchange_specific_option True if the exchange specific post only setting is set
          * @param {dict} $params Exchange specific $params
          * @return {boolean} true if a post only order, false otherwise
          */
-        $post_only = $this->safe_value_2($params, 'postOnly', 'post_only', false);
-        $params = $this->omit($params, array( 'post_only', 'postOnly' ));
-        $time_in_force_upper = ($time_in_force !== null) ? strtoupper($time_in_force) : null;
-        $type_lower = strtolower($type);
-        $ioc = $time_in_force_upper === 'IOC';
-        $fok = $time_in_force_upper === 'FOK';
-        $time_in_force_post_only = $time_in_force_upper === 'PO';
-        $is_market = $type_lower === 'market';
-        $post_only = $post_only || ($type_lower === 'postonly') || $time_in_force_post_only || $exchange_specific_option;
-        if ($post_only) {
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
+        $postOnly = $this->safe_value_2($params, 'postOnly', 'post_only', false);
+        // we assume $timeInForce is uppercase from safeStringUpper ($params, 'timeInForce')
+        $ioc = $timeInForce === 'IOC';
+        $fok = $timeInForce === 'FOK';
+        $timeInForcePostOnly = $timeInForce === 'PO';
+        $typeLower = strtolower($type);
+        $isMarket = $typeLower === 'market';
+        $postOnly = $postOnly || $timeInForcePostOnly;
+        if ($postOnly) {
             if ($ioc || $fok) {
-                throw new InvalidOrder($this->id . ' postOnly orders cannot have $timeInForce equal to ' . $time_in_force);
-            } else if ($is_market) {
-                throw new InvalidOrder($this->id . ' postOnly orders cannot have $type ' . $type);
+                throw new InvalidOrder($this->id . ' $postOnly orders cannot have $timeInForce equal to ' . $timeInForce);
+            } elseif ($isMarket) {
+                throw new InvalidOrder($this->id . ' $postOnly orders cannot have $type ' . $type);
             } else {
-                $time_in_force = $time_in_force_post_only ? null : $time_in_force;
-                return array( 'limit', true, $time_in_force, $params );
+                return true;
             }
         } else {
-            return array( $type, false, $time_in_force, $params );
+            return false;
         }
     }
 
@@ -4008,7 +3974,7 @@ class Exchange {
         $query = $this->extend($params, $array);
         return $this->create_order($symbol, 'market', $side, $amount, null, $query);
     }
-    
+
     public function check_order_arguments ($market, $type, $side, $amount, $price, $params) {
         if ($price === null) {
             if ($type === 'limit') {
@@ -4018,6 +3984,16 @@ class Exchange {
         if ($amount <= 0) {
             throw new ArgumentsRequired ($this->id + ' create_order() amount should be above 0');
         }
+    }
+
+    public function parse_positions($positions, $symbols = null, $params = array()) {
+        $symbols = $this->market_symbols($symbols);
+        $array = is_array($positions) ? array_values($positions) : array();
+        $result = array();
+        foreach ($array as $position) {
+            $result[] = $this->merge($this->parse_trade($position), $params);
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 
     public function parse_borrow_interests($response, $market = null) {
@@ -4048,7 +4024,8 @@ class Exchange {
             array_push($interests, $interest);
         }
         $sorted = $this->sortBy ($interests, 'timestamp');
-        return $this->filterBySymbolSinceLimit ($sorted, $market, $since, $limit);
+        $symbol = $this->safeString ($market, 'symbol');
+        return $this->filterBySymbolSinceLimit ($sorted, $symbol, $since, $limit);
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
@@ -4066,6 +4043,66 @@ class Exchange {
             }
         } else {
             throw new NotSupported($this->id . ' fetch_funding_rate () is not supported yet');
+        }
+    }
+
+    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical mark price candlestick data containing the open, high, low, and close price of a market
+         * @param {str} $symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[[int|float]]} a list of candles ordered as timestamp, open, high, low, close, null
+         */
+        if ($this->has['fetchMarkOHLCV']) {
+            $request = array(
+                'price' => 'mark',
+            );
+            return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' fetchMarkOHLCV () is not supported yet');
+        }
+    }
+
+    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical index price candlestick data containing the open, high, low, and close price of a market
+         * @param {str} $symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[[int|float]]} a list of candles ordered as timestamp, open, high, low, close, null
+         */
+        if ($this->has['fetchIndexOHLCV']) {
+            $request = array(
+                'price' => 'index',
+            );
+            return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' fetchIndexOHLCV () is not supported yet');
+        }
+    }
+
+    public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
+         * @param {str} $symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[[int|float]]} a list of candles ordered as timestamp, open, high, low, close, null
+         */
+        if ($this->has['fetchPremiumIndexOHLCV']) {
+            $request = array(
+                'price' => 'premiumIndex',
+            );
+            return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' fetchPremiumIndexOHLCV () is not supported yet');
         }
     }
 }

@@ -25,10 +25,10 @@ class coinbasepro extends Exchange {
             'has' => array(
                 'CORS' => true,
                 'spot' => true,
-                'margin' => null, // has but not fully inplemented
-                'swap' => null, // has but not fully inplemented
-                'future' => null, // has but not fully inplemented
-                'option' => null,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
@@ -224,6 +224,11 @@ class coinbasepro extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the coinbasepro api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = $this->publicGetCurrencies ($params);
         //
         //     array(
@@ -404,20 +409,27 @@ class coinbasepro extends Exchange {
         //         ),
         //     )
         //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $account = $response[$i];
-            $accountId = $this->safe_string($account, 'id');
-            $currencyId = $this->safe_string($account, 'currency');
-            $code = $this->safe_currency_code($currencyId);
-            $result[] = array(
-                'id' => $accountId,
-                'type' => null,
-                'currency' => $code,
-                'info' => $account,
-            );
-        }
-        return $result;
+        return $this->parse_accounts($response, $params);
+    }
+
+    public function parse_account($account) {
+        //
+        //     {
+        //         id => '4aac9c60-cbda-4396-9da4-4aa71e95fba0',
+        //         currency => 'BTC',
+        //         balance => '0.0000000000000000',
+        //         available => '0',
+        //         hold => '0.0000000000000000',
+        //         profile_id => 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        //     }
+        //
+        $currencyId = $this->safe_string($account, 'currency');
+        return array(
+            'id' => $this->safe_string($account, 'id'),
+            'type' => null,
+            'code' => $this->safe_currency_code($currencyId),
+            'info' => $account,
+        );
     }
 
     public function parse_balance($response) {
@@ -561,7 +573,7 @@ class coinbasepro extends Exchange {
             'baseVolume' => $volume,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -846,6 +858,11 @@ class coinbasepro extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the coinbasepro api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = $this->publicGetTime ($params);
         //
         //     {
@@ -1045,7 +1062,7 @@ class coinbasepro extends Exchange {
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
             $request['size'] = $this->amount_to_precision($symbol, $amount);
-        } else if ($type === 'market') {
+        } elseif ($type === 'market') {
             $cost = $this->safe_number_2($params, 'cost', 'funds');
             if ($cost === null) {
                 if ($price !== null) {
@@ -1140,7 +1157,7 @@ class coinbasepro extends Exchange {
         if (is_array($params) && array_key_exists('payment_method_id', $params)) {
             // deposit from a payment_method, like a bank account
             $method .= 'PaymentMethod';
-        } else if (is_array($params) && array_key_exists('coinbase_account_id', $params)) {
+        } elseif (is_array($params) && array_key_exists('coinbase_account_id', $params)) {
             // deposit into Coinbase Pro account from a Coinbase account
             $method .= 'CoinbaseAccount';
         } else {
@@ -1171,7 +1188,7 @@ class coinbasepro extends Exchange {
         $method = 'privatePostWithdrawals';
         if (is_array($params) && array_key_exists('payment_method_id', $params)) {
             $method .= 'PaymentMethod';
-        } else if (is_array($params) && array_key_exists('coinbase_account_id', $params)) {
+        } elseif (is_array($params) && array_key_exists('coinbase_account_id', $params)) {
             $method .= 'CoinbaseAccount';
         } else {
             $method .= 'Crypto';
@@ -1364,7 +1381,7 @@ class coinbasepro extends Exchange {
         $completed = $this->safe_value($transaction, 'completed_at');
         if ($completed) {
             return 'ok';
-        } else if ($processed && !$completed) {
+        } elseif ($processed && !$completed) {
             return 'failed';
         } else {
             return 'pending';

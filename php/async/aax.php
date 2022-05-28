@@ -46,7 +46,7 @@ class aax extends Exchange {
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
                 'editOrder' => true,
-                'fetchAccounts' => null,
+                'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
                 'fetchBorrowRate' => false,
@@ -320,6 +320,12 @@ class aax extends Exchange {
                     'otc' => 'F2CP',
                     'saving' => 'VLTP',
                 ),
+                'accountsById' => array(
+                    'SPTP' => 'spot',
+                    'FUTP' => 'future',
+                    'F2CP' => 'otc',
+                    'VLTP' => 'saving',
+                ),
                 'networks' => array(
                     'ETH' => 'ERC20',
                     'TRX' => 'TRC20',
@@ -333,6 +339,11 @@ class aax extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the aax api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = yield $this->publicGetTime ($params);
         //
         //    {
@@ -346,6 +357,11 @@ class aax extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {dict} $params extra parameters specific to the aax api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-$status-structure $status structure}
+         */
         $response = yield $this->publicGetAnnouncementMaintenance ($params);
         //
         // note, when there is no maintenance, then $data is `null`
@@ -476,7 +492,7 @@ class aax extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
@@ -569,6 +585,11 @@ class aax extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the aax api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = yield $this->publicGetCurrencies ($params);
         //
         //     {
@@ -681,7 +702,7 @@ class aax extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function set_margin($symbol, $amount, $params = array ()) {
@@ -922,7 +943,7 @@ class aax extends Exchange {
         $side = $this->safe_string($trade, 'side');
         if ($side === '1') {
             $side = 'buy';
-        } else if ($side === '2') {
+        } elseif ($side === '2') {
             $side = 'sell';
         }
         if ($side === null) {
@@ -936,7 +957,7 @@ class aax extends Exchange {
             $feeCurrency = null;
             if ($side === 'buy') {
                 $feeCurrency = $market['base'];
-            } else if ($side === 'sell') {
+            } elseif ($side === 'sell') {
                 $feeCurrency = $market['quote'];
             }
             $fee = array(
@@ -1090,6 +1111,53 @@ class aax extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
+    public function fetch_accounts($params = array ()) {
+        $response = yield $this->privateGetAccountBalances ($params);
+        //
+        //     {
+        //         "code":1,
+        //         "data":array(
+        //             array(
+        //                 "purseType":"FUTP",
+        //                 "currency":"BTC",
+        //                 "available":"0.41000000",
+        //                 "unavailable":"0.00000000"
+        //             ),
+        //             {
+        //                 "purseType":"FUTP",
+        //                 "currency":"USDT",
+        //                 "available":"0.21000000",
+        //                 "unvaliable":"0.00000000"
+        //             }
+        //         )
+        //         "message":"success",
+        //         "ts":1573530401020
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_accounts($data);
+    }
+
+    public function parse_account($account) {
+        //
+        //    {
+        //        "purseType":"FUTP",
+        //        "currency":"USDT",
+        //        "available":"0.21000000",
+        //        "unvaliable":"0.00000000"
+        //    }
+        //
+        $currencyId = $this->safe_string($account, 'currency');
+        $accountId = $this->safe_string($account, 'purseType');
+        $accountsById = $this->safe_value($this->options, 'accountsById', array());
+        return array(
+            'info' => $account,
+            'id' => null,
+            'code' => $this->safe_currency_code($currencyId),
+            'type' => $this->safe_string($accountsById, $accountId, $accountId),
+        );
+    }
+
     public function fetch_balance($params = array ()) {
         /**
          * query for $balance and get the amount of funds available for trading or funds locked in orders
@@ -1127,7 +1195,7 @@ class aax extends Exchange {
         //         "ts":1573530401020
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($response, 'ts');
         $result = array(
             'info' => $response,
@@ -1181,7 +1249,7 @@ class aax extends Exchange {
         } else {
             if ($orderType === 'LIMIT') {
                 $orderType = 'STOP-LIMIT';
-            } else if ($orderType === 'MARKET') {
+            } elseif ($orderType === 'MARKET') {
                 $orderType = 'STOP';
             }
             $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
@@ -1194,7 +1262,7 @@ class aax extends Exchange {
         $method = null;
         if ($market['spot']) {
             $method = 'privatePostSpotOrders';
-        } else if ($market['contract']) {
+        } elseif ($market['contract']) {
             $method = 'privatePostFuturesOrders';
         }
         $response = yield $this->$method (array_merge($request, $params));
@@ -1305,7 +1373,7 @@ class aax extends Exchange {
         $method = null;
         if ($market['spot']) {
             $method = 'privatePutSpotOrders';
-        } else if ($market['contract']) {
+        } elseif ($market['contract']) {
             $method = 'privatePutFuturesOrders';
         }
         $response = yield $this->$method (array_merge($request, $params));
@@ -1504,7 +1572,7 @@ class aax extends Exchange {
         $method = null;
         if ($market['spot']) {
             $method = 'privateDeleteSpotOrdersCancelAll';
-        } else if ($market['contract']) {
+        } elseif ($market['contract']) {
             $method = 'privateDeleteFuturesOrdersCancelAll';
         }
         $response = yield $this->$method (array_merge($request, $params));
@@ -1908,7 +1976,7 @@ class aax extends Exchange {
         $side = $this->safe_string($order, 'side');
         if ($side === '1') {
             $side = 'buy';
-        } else if ($side === '2') {
+        } elseif ($side === '2') {
             $side = 'sell';
         }
         $id = $this->safe_string($order, 'orderID');
@@ -1937,7 +2005,7 @@ class aax extends Exchange {
             $feeCurrency = null;
             if ($side === 'buy') {
                 $feeCurrency = $market['base'];
-            } else if ($side === 'sell') {
+            } elseif ($side === 'sell') {
                 $feeCurrency = $market['quote'];
             }
             $fee = array(
@@ -2189,7 +2257,7 @@ class aax extends Exchange {
         if ($type === 'deposit') {
             $addressFrom = $address;
             $tagFrom = $tag;
-        } else if ($type === 'withdrawal') {
+        } elseif ($type === 'withdrawal') {
             $addressTo = $address;
             $tagTo = $tag;
         }
@@ -2380,7 +2448,7 @@ class aax extends Exchange {
         $params = $this->omit($params, array( 'endTime', 'till' ));
         if ($till !== null) {
             $request['endTime'] = intval($till / 1000);
-        } else if ($endTime !== null) {
+        } elseif ($endTime !== null) {
             $request['endTime'] = $endTime;
         }
         if ($limit !== null) {
@@ -2399,7 +2467,7 @@ class aax extends Exchange {
         //        )
         //    }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $rates = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
@@ -2425,7 +2493,7 @@ class aax extends Exchange {
         }
         if ($limit === null) {
             $limit = 100; // Default
-        } else if ($limit > 1000) {
+        } elseif ($limit > 1000) {
             throw new BadRequest($this->id . ' fetchFundingHistory() $limit argument cannot exceed 1000');
         }
         $market = $this->market($symbol);
@@ -2613,7 +2681,7 @@ class aax extends Exchange {
         $side = null;
         if (Precise::string_gt($size, '0')) {
             $side = 'long';
-        } else if (Precise::string_lt($size, '0')) {
+        } elseif (Precise::string_lt($size, '0')) {
             $side = 'short';
         }
         $leverage = $this->safe_string($position, 'leverage');
@@ -2797,7 +2865,7 @@ class aax extends Exchange {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);
                 }
-            } else if ($api === 'private') {
+            } elseif ($api === 'private') {
                 $this->check_required_credentials();
                 $nonce = (string) $this->nonce();
                 $headers = array(

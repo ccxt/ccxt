@@ -318,6 +318,11 @@ class kucoinfutures(kucoin):
         raise BadRequest(self.id + ' fetchAccounts() is not supported yet')
 
     async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = await self.futuresPublicGetStatus(params)
         #
         #     {
@@ -415,7 +420,7 @@ class kucoinfutures(kucoin):
         #    }
         #
         result = []
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         for i in range(0, len(data)):
             market = data[i]
             id = self.safe_string(market, 'symbol')
@@ -495,6 +500,11 @@ class kucoinfutures(kucoin):
         return result
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.futuresPublicGetTimestamp(params)
         #
         #    {
@@ -728,7 +738,7 @@ class kucoinfutures(kucoin):
             'baseVolume': None,
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         #
@@ -775,7 +785,7 @@ class kucoinfutures(kucoin):
         #    }
         #
         data = self.safe_value(response, 'data')
-        dataList = self.safe_value(data, 'dataList')
+        dataList = self.safe_value(data, 'dataList', [])
         fees = []
         for i in range(0, len(dataList)):
             listItem = dataList[i]
@@ -844,13 +854,8 @@ class kucoinfutures(kucoin):
         #        ]
         #    }
         #
-        return self.parse_positions(self.safe_value(response, 'data'))
-
-    def parse_positions(self, positions):
-        result = []
-        for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i]))
-        return result
+        data = self.safe_value(response, 'data')
+        return self.parse_positions(data, symbols)
 
     def parse_position(self, position, market=None):
         #

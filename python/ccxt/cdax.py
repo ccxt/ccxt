@@ -267,6 +267,11 @@ class cdax(Exchange):
         })
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the cdax api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = self.publicGetCommonTimestamp(params)
         return self.safe_integer(response, 'data')
 
@@ -377,7 +382,7 @@ class cdax(Exchange):
         #        ]
         #    }
         #
-        markets = self.safe_value(response, 'data')
+        markets = self.safe_value(response, 'data', [])
         numMarkets = len(markets)
         if numMarkets < 1:
             raise NetworkError(self.id + ' fetchMarkets() returned empty response: ' + self.json(markets))
@@ -522,7 +527,7 @@ class cdax(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         """
@@ -618,7 +623,7 @@ class cdax(Exchange):
         """
         self.load_markets()
         response = self.marketGetTickers(params)
-        tickers = self.safe_value(response, 'data')
+        tickers = self.safe_value(response, 'data', [])
         timestamp = self.safe_integer(response, 'ts')
         result = {}
         for i in range(0, len(tickers)):
@@ -794,7 +799,7 @@ class cdax(Exchange):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             trades = self.safe_value(data[i], 'data', [])
@@ -866,6 +871,11 @@ class cdax(Exchange):
         return response['data']
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the cdax api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         request = {
             'language': self.options['language'],
         }
@@ -910,7 +920,7 @@ class cdax(Exchange):
         #         ]
         #     }
         #
-        currencies = self.safe_value(response, 'data')
+        currencies = self.safe_value(response, 'data', [])
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]

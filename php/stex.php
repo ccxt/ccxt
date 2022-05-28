@@ -297,6 +297,11 @@ class stex extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {dict} $params extra parameters specific to the stex api endpoint
+         * @return {dict} an associative dictionary of $currencies
+         */
         $response = $this->publicGetCurrencies ($params);
         //
         //     {
@@ -545,6 +550,11 @@ class stex extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the stex api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = $this->publicGetPing ($params);
         //
         //     {
@@ -671,7 +681,7 @@ class stex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volumeQuote'),
             'quoteVolume' => $this->safe_string($ticker, 'volume'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -1948,13 +1958,13 @@ class stex extends Exchange {
         if ($fromAccount === 'referal' && $toAccount === 'spot') {
             $request['currencyId'] = $currency['id'];
             $method = 'profilePostReferralBonusTransferCurrencyId';
-        } else if ($toAccount === 'hold') {
+        } elseif ($toAccount === 'hold') {
             $request['walletId'] = $fromAccount;
             $amount = $this->currency_to_precision($code, $amount);
             $amount = Precise::string_neg($amount);
             $request['amount'] = $amount;
             $method = 'profilePostWalletsWalletIdHoldAmount';
-        } else if ($fromAccount === 'hold') {
+        } elseif ($fromAccount === 'hold') {
             $request['walletId'] = $toAccount;
             $request['amount'] = $amount;
             $method = 'profilePostWalletsWalletIdHoldAmount';

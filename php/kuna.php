@@ -294,6 +294,11 @@ class kuna extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the kuna api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = $this->publicGetTimestamp ($params);
         //
         //     1594911427
@@ -443,7 +448,7 @@ class kuna extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -623,7 +628,7 @@ class kuna extends Exchange {
     }
 
     public function parse_balance($response) {
-        $balances = $this->safe_value($response, 'accounts');
+        $balances = $this->safe_value($response, 'accounts', array());
         $result = array( 'info' => $balances );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
@@ -806,11 +811,11 @@ class kuna extends Exchange {
                     if ($params) {
                         $url .= '?' . $this->urlencode($params);
                     }
-                } else if (($method === 'POST') || ($method === 'PUT')) {
+                } elseif (($method === 'POST') || ($method === 'PUT')) {
                     $headers = array( 'Content-Type' => 'application/json' );
                     $body = $this->json($params);
                 }
-            } else if ($access === 'private') {
+            } elseif ($access === 'private') {
                 throw new NotSupported($this->id . ' private v3 API is not supported yet');
             }
         } else {

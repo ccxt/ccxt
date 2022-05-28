@@ -165,7 +165,7 @@ class oceanex extends Exchange {
         //    ),
         //
         $result = array();
-        $markets = $this->safe_value($response, 'data');
+        $markets = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $id = $this->safe_value($market, 'id');
@@ -295,7 +295,7 @@ class oceanex extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $ticker = $data[$i];
@@ -345,7 +345,7 @@ class oceanex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -495,7 +495,7 @@ class oceanex extends Exchange {
         $side = $this->safe_value($trade, 'side');
         if ($side === 'bid') {
             $side = 'buy';
-        } else if ($side === 'ask') {
+        } elseif ($side === 'ask') {
             $side = 'sell';
         }
         $marketId = $this->safe_value($trade, 'market');
@@ -524,6 +524,11 @@ class oceanex extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the oceanex api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = yield $this->publicGetTimestamp ($params);
         //
         //     array("code":0,"message":"Operation successful","data":1559433420)
@@ -533,7 +538,7 @@ class oceanex extends Exchange {
 
     public function fetch_trading_fees($params = array ()) {
         $response = yield $this->publicGetFeesTrading ($params);
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $group = $data[$i];
@@ -559,7 +564,7 @@ class oceanex extends Exchange {
 
     public function parse_balance($response) {
         $data = $this->safe_value($response, 'data');
-        $balances = $this->safe_value($data, 'accounts');
+        $balances = $this->safe_value($data, 'accounts', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
@@ -828,10 +833,10 @@ class oceanex extends Exchange {
                     $request .= 'limit=' . $limit;
                 }
                 $url .= $request;
-            } else if ($query) {
+            } elseif ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             $this->check_required_credentials();
             $request = array(
                 'uid' => $this->apiKey,

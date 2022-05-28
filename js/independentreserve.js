@@ -298,7 +298,7 @@ module.exports = class independentreserve extends Exchange {
             'baseVolume': this.safeString (ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

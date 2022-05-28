@@ -178,7 +178,7 @@ module.exports = class btcturk extends Exchange {
             const quoteId = this.safeString (entry, 'denominator');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const filters = this.safeValue (entry, 'filters');
+            const filters = this.safeValue (entry, 'filters', []);
             let minPrice = undefined;
             let maxPrice = undefined;
             let minAmount = undefined;
@@ -376,7 +376,7 @@ module.exports = class btcturk extends Exchange {
             'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

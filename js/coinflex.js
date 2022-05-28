@@ -288,6 +288,13 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
         const response = await this.publicGetV2Ping (params);
         //
         //     { "success": "true" }
@@ -376,7 +383,7 @@ module.exports = class coinflex extends Exchange {
         //         ],
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -461,6 +468,13 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetV3Assets (params);
         //
         //     {
@@ -486,7 +500,7 @@ module.exports = class coinflex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -917,7 +931,7 @@ module.exports = class coinflex extends Exchange {
             'baseVolume': this.safeString (ticker, 'currencyVolume24h'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1289,7 +1303,7 @@ module.exports = class coinflex extends Exchange {
     }
 
     parseBalance (data) {
-        const balances = this.safeValue (data, 'balances');
+        const balances = this.safeValue (data, 'balances', []);
         const result = {};
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -1593,15 +1607,7 @@ module.exports = class coinflex extends Exchange {
         // response sample inside `getAccountData` method
         this.targetAccount = this.safeValue (data, 0);
         const positions = this.safeValue (this.targetAccount, 'positions', []);
-        return this.parsePositions (positions);
-    }
-
-    parsePositions (positions) {
-        const result = [];
-        for (let i = 0; i < positions.length; i++) {
-            result.push (this.parsePosition (positions[i]));
-        }
-        return result;
+        return this.parsePositions (positions, symbols);
     }
 
     parsePosition (position, market = undefined) {

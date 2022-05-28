@@ -265,6 +265,13 @@ module.exports = class timex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name timex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the timex api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetCurrencies (params);
         //
         //     [
@@ -1145,7 +1152,7 @@ module.exports = class timex extends Exchange {
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': this.safeString (ticker, 'volumeQuote'),
-        }, market, false);
+        }, market);
     }
 
     parseTrade (trade, market = undefined) {

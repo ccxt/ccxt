@@ -33,10 +33,10 @@ class coinbasepro(Exchange):
             'has': {
                 'CORS': True,
                 'spot': True,
-                'margin': None,  # has but not fully inplemented
-                'swap': None,  # has but not fully inplemented
-                'future': None,  # has but not fully inplemented
-                'option': None,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createDepositAddress': True,
@@ -231,6 +231,11 @@ class coinbasepro(Exchange):
         })
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.publicGetCurrencies(params)
         #
         #     [
@@ -407,19 +412,26 @@ class coinbasepro(Exchange):
         #         },
         #     ]
         #
-        result = []
-        for i in range(0, len(response)):
-            account = response[i]
-            accountId = self.safe_string(account, 'id')
-            currencyId = self.safe_string(account, 'currency')
-            code = self.safe_currency_code(currencyId)
-            result.append({
-                'id': accountId,
-                'type': None,
-                'currency': code,
-                'info': account,
-            })
-        return result
+        return self.parse_accounts(response, params)
+
+    def parse_account(self, account):
+        #
+        #     {
+        #         id: '4aac9c60-cbda-4396-9da4-4aa71e95fba0',
+        #         currency: 'BTC',
+        #         balance: '0.0000000000000000',
+        #         available: '0',
+        #         hold: '0.0000000000000000',
+        #         profile_id: 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        #     }
+        #
+        currencyId = self.safe_string(account, 'currency')
+        return {
+            'id': self.safe_string(account, 'id'),
+            'type': None,
+            'code': self.safe_currency_code(currencyId),
+            'info': account,
+        }
 
     def parse_balance(self, response):
         result = {'info': response}
@@ -557,7 +569,7 @@ class coinbasepro(Exchange):
             'baseVolume': volume,
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         """
@@ -823,6 +835,11 @@ class coinbasepro(Exchange):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.publicGetTime(params)
         #
         #     {

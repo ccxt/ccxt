@@ -102,7 +102,7 @@ module.exports = class bl3p extends Exchange {
 
     parseBalance (response) {
         const data = this.safeValue (response, 'data', {});
-        const wallets = this.safeValue (data, 'wallets');
+        const wallets = this.safeValue (data, 'wallets', {});
         const result = { 'info': data };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
@@ -202,7 +202,7 @@ module.exports = class bl3p extends Exchange {
             'baseVolume': this.safeString (volume, '24h'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

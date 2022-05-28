@@ -289,7 +289,7 @@ class mercado extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -593,7 +593,7 @@ class mercado extends Exchange {
             if (!$account_ref) {
                 throw new ArgumentsRequired($this->id . ' withdraw() requires $account_ref parameter to withdraw ' . $code);
             }
-        } else if ($code !== 'LTC') {
+        } elseif ($code !== 'LTC') {
             $tx_fee = (is_array($params) && array_key_exists('tx_fee', $params));
             if (!$tx_fee) {
                 throw new ArgumentsRequired($this->id . ' withdraw() requires $tx_fee parameter to withdraw ' . $code);
@@ -701,10 +701,10 @@ class mercado extends Exchange {
         if ($limit !== null && $since !== null) {
             $request['from'] = intval($since / 1000);
             $request['to'] = $this->sum($request['from'], $limit * $this->parse_timeframe($timeframe));
-        } else if ($since !== null) {
+        } elseif ($since !== null) {
             $request['from'] = intval($since / 1000);
             $request['to'] = $this->sum($this->seconds(), 1);
-        } else if ($limit !== null) {
+        } elseif ($limit !== null) {
             $request['to'] = $this->seconds();
             $request['from'] = $request['to'] - ($limit * $this->parse_timeframe($timeframe));
         }

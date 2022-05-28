@@ -337,6 +337,13 @@ module.exports = class ascendex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name ascendex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the ascendex api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const assets = await this.v1PublicGetAssets (params);
         //
         //     {
@@ -869,7 +876,7 @@ module.exports = class ascendex extends Exchange {
             'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -2592,7 +2599,7 @@ module.exports = class ascendex extends Exchange {
         //        ]
         //    }
         //
-        const marginRequirements = this.safeValue (info, 'marginRequirements');
+        const marginRequirements = this.safeValue (info, 'marginRequirements', []);
         const id = this.safeString (info, 'symbol');
         market = this.safeMarket (id, market);
         const tiers = [];

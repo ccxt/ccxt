@@ -251,7 +251,7 @@ class bkex(Exchange):
         #     "status": 0
         # }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             market = data[i]
@@ -310,6 +310,11 @@ class bkex(Exchange):
         return result
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the bkex api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.publicGetCommonCurrencys(params)
         #
         # {
@@ -330,7 +335,7 @@ class bkex(Exchange):
         #     "status": 0
         # }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_value(response, 'data', [])
         result = {}
         for i in range(0, len(data)):
             currency = data[i]
@@ -361,6 +366,11 @@ class bkex(Exchange):
         return result
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the bkex api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.publicGetCommonTimestamp(params)
         #
         # {
@@ -373,6 +383,11 @@ class bkex(Exchange):
         return self.safe_integer(response, 'data')
 
     async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the bkex api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = await self.publicGetCommonTimestamp(params)
         #
         #     {
@@ -546,7 +561,7 @@ class bkex(Exchange):
             'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         """
@@ -707,7 +722,7 @@ class bkex(Exchange):
         # }
         #
         balances = self.safe_value(response, 'data')
-        wallets = self.safe_value(balances, 'WALLET')
+        wallets = self.safe_value(balances, 'WALLET', [])
         result = {'info': wallets}
         for i in range(0, len(wallets)):
             wallet = wallets[i]

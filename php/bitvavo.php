@@ -287,6 +287,11 @@ class bitvavo extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the bitvavo api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = $this->publicGetTime ($params);
         //
         //     array( "time" => 1590379519148 )
@@ -401,6 +406,11 @@ class bitvavo extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the bitvavo api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = $this->fetch_currencies_from_cache($params);
         //
         //     array(
@@ -535,7 +545,7 @@ class bitvavo extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -930,15 +940,15 @@ class bitvavo extends Exchange {
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
             }
             $params = $this->omit($params, array( 'cost', 'amountQuote' ));
-        } else if ($type === 'limit') {
+        } elseif ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
             $request['amount'] = $this->amount_to_precision($symbol, $amount);
-        } else if ($isStopMarket || $isStopLimit) {
+        } elseif ($isStopMarket || $isStopLimit) {
             $stopPrice = $this->safe_number_2($params, 'stopPrice', 'triggerAmount');
             if ($stopPrice === null) {
                 if ($isStopLimit) {
                     throw new ArgumentsRequired($this->id . ' createOrder() requires a $stopPrice parameter for a ' . $type . ' order');
-                } else if ($isStopMarket) {
+                } elseif ($isStopMarket) {
                     if ($price === null) {
                         throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument or a $stopPrice parameter for a ' . $type . ' order');
                     } else {

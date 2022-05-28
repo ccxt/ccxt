@@ -271,6 +271,11 @@ class qtrade(Exchange):
         return result
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the qtrade api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.publicGetCurrencies(params)
         #
         #     {
@@ -507,7 +512,7 @@ class qtrade(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         """

@@ -520,6 +520,11 @@ class kraken(Exchange):
         return result
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the kraken api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.publicGetAssets(params)
         #
         #     {
@@ -531,7 +536,7 @@ class kraken(Exchange):
         #         },
         #     }
         #
-        currencies = self.safe_value(response, 'result')
+        currencies = self.safe_value(response, 'result', {})
         ids = list(currencies.keys())
         result = {}
         for i in range(0, len(ids)):
@@ -723,7 +728,7 @@ class kraken(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         """
@@ -1800,6 +1805,11 @@ class kraken(Exchange):
         return self.parse_transactions_by_type('deposit', response['result'], code, since, limit)
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the kraken api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         # https://www.kraken.com/en-us/features/api#get-server-time
         response = self.publicGetTime(params)
         #

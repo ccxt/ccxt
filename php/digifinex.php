@@ -213,6 +213,11 @@ class digifinex extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the digifinex api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = $this->publicGetCurrencies ($params);
         //
         //     {
@@ -677,7 +682,7 @@ class digifinex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'vol'),
             'quoteVolume' => $this->safe_string($ticker, 'base_vol'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -747,6 +752,11 @@ class digifinex extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the digifinex api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = $this->publicGetTime ($params);
         //
         //     {
@@ -758,6 +768,11 @@ class digifinex extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {dict} $params extra parameters specific to the digifinex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-$status-structure $status structure}
+         */
         $response = $this->publicGetPing ($params);
         //
         //     {
@@ -866,7 +881,7 @@ class digifinex extends Exchange {
                 $duration = $this->parse_timeframe($timeframe);
                 $request['end_time'] = $this->sum($startTime, $limit * $duration);
             }
-        } else if ($limit !== null) {
+        } elseif ($limit !== null) {
             $endTime = $this->seconds();
             $duration = $this->parse_timeframe($timeframe);
             $request['startTime'] = $this->sum($endTime, -$limit * $duration);
@@ -1595,7 +1610,7 @@ class digifinex extends Exchange {
                 if ($urlencoded) {
                     $url .= '?' . $urlencoded;
                 }
-            } else if ($method === 'POST') {
+            } elseif ($method === 'POST') {
                 $headers = array(
                     'Content-Type' => 'application/x-www-form-urlencoded',
                 );

@@ -373,7 +373,10 @@ The CCXT library currently supports the following 117 cryptocurrency exchange ma
           :alt: API Version 3
      
      - 
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/51840849/87591171-9a377d80-c6f0-11ea-94ac-97a126eac3bc.jpg
           :target: https://www.bitpanda.com/en/pro
           :alt: bitpanda
@@ -591,11 +594,11 @@ The CCXT library currently supports the following 117 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg
-          :target: https://www.bybit.com/app/register?ref=X7Prm
+          :target: https://partner.bybit.com/b/ccxt
           :alt: bybit
      
      - bybit
-     - `Bybit <https://www.bybit.com/app/register?ref=X7Prm>`__
+     - `Bybit <https://partner.bybit.com/b/ccxt>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://bybit-exchange.github.io/docs/inverse/
           :alt: API Version 2
@@ -1831,7 +1834,7 @@ Here's an overview of generic exchange properties with values added for example:
            'createDepositAddress': false,
            'createOrder': true,
            'fetchBalance': true,
-           'fetchCancelledOrders': false,
+           'fetchCanceledOrders': false,
            'fetchClosedOrder': false,
            'fetchClosedOrders': false,
            'fetchCurrencies': false,
@@ -1994,7 +1997,7 @@ Exchange Metadata
            'createDepositAddress': false,
            'createOrder': true,
            'fetchBalance': true,
-           'fetchCancelledOrders': false,
+           'fetchCanceledOrders': false,
            'fetchClosedOrder': false,
            'fetchClosedOrders': false,
            'fetchCurrencies': false,
@@ -2210,14 +2213,18 @@ Currency Structure
        'active':    true,       // boolean, currency status (tradeable and withdrawable)
        'fee':       0.123,      // withdrawal fee, flat
        'precision': 8,          // number of decimal digits "after the dot" (depends on exchange.precisionMode)
+       'deposit':   true        // boolean, deposits are available
+       'withdraw':  true        // boolean, withdraws are available
        'limits': {              // value limits when placing orders on this market
            'amount': {
                'min': 0.01,     // order amount should be > min
                'max': 1000,     // order amount should be < max
            },
            'withdraw': { ... }, // withdrawal limits
+           'deposit': {...},
        },
-       'info': { ... }, // the original unparsed currency info from the exchange
+       'networks': {...}        // network structures indexed by unified network identifiers (ERC20, TRC20, BSC, etc)
+       'info': { ... },         // the original unparsed currency info from the exchange
    }
 
 Each currency is an associative array (aka dictionary) with the following keys:
@@ -2230,7 +2237,44 @@ Each currency is an associative array (aka dictionary) with the following keys:
  * ``active``. A boolean indicating whether trading or funding (depositing or withdrawing) for this currency is currently possible, more about it here: :ref:`\ ``active`` status <active status>`.
  * ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
  * ``precision``. Precision accepted in values by exchanges upon referencing this currency. The value of this property depends on :ref:`\ ``exchange.precisionMode`` <precision mode>`.
- * ``limits``. The minimums and maximums for amounts (volumes) and withdrawals.
+ * ``limits``. The minimums and maximums for amounts (volumes), withdrawals and deposits.
+
+Network structure
+-----------------
+
+.. code-block:: JavaScript
+
+   {
+       'id':       'tron',         // string literal for referencing within an exchange
+       'network':  'TRC20'         // unified network
+       'name':     'Tron Network', // string, human-readable name, if specified
+       'active':    true,          // boolean, currency status (tradeable and withdrawable)
+       'fee':       0.123,         // withdrawal fee, flat
+       'precision': 8,             // number of decimal digits "after the dot" (depends on exchange.precisionMode)
+       'deposit':   true           // boolean, deposits are available
+       'withdraw':  true           // boolean, withdraws are available
+       'limits': {                 // value limits when placing orders on this market
+           'amount': {
+               'min': 0.01,        // order amount should be > min
+               'max': 1000,        // order amount should be < max
+           },
+           'withdraw': { ... },    // withdrawal limits
+           'deposit': {...},       // deposit limits
+       },
+       'info': { ... },            // the original unparsed currency info from the exchange
+   }
+
+Each network is an associative array (aka dictionary) with the following keys:
+
+
+ * ``id``. The string or numeric ID of the network within the exchange. Network ids are used inside exchanges internally to identify networks during the request/response process.
+ * ``network``. An uppercase string representation of a particular network. Networks are used to reference networks within the ccxt library.
+ * ``name``. A human-readable name of the network (can be a mix of uppercase & lowercase characters).
+ * ``fee``. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchnange does not specify it via public endpoints, the ``fee`` can be ``undefined/None/null`` or missing.
+ * ``active``. A boolean indicating whether trading or funding (depositing or withdrawing) for this currency is currently possible, more about it here: :ref:`\ ``active`` status <active status>`.
+ * ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
+ * ``precision``. Precision accepted in values by exchanges upon referencing this currency. The value of this property depends on :ref:`\ ``exchange.precisionMode`` <precision mode>`.
+ * ``limits``. The minimums and maximums for amounts (volumes), withdrawals and deposits.
 
 Market Structure
 ----------------
@@ -2566,7 +2610,7 @@ In order to load markets manually beforehand call the ``loadMarkets ()`` / ``loa
    // JavaScript
    (async () => {
        let kraken = new ccxt.kraken ()
-       let markets = await kraken.load_markets ()
+       let markets = await kraken.loadMarkets ()
        console.log (kraken.id, markets)
    }) ()
 
@@ -2845,12 +2889,12 @@ When exchange markets are loaded, you can then access market information any tim
    // JavaScript
    (async () => {
        let kraken = new ccxt.kraken ({ verbose: true }) // log HTTP requests
-       await kraken.load_markets () // request markets
+       await kraken.loadMarkets () // request markets
        console.log (kraken.id, kraken.markets)    // output a full list of all loaded markets
        console.log (Object.keys (kraken.markets)) // output a short list of market symbols
        console.log (kraken.markets['BTC/USD'])    // output single market details
-       await kraken.load_markets () // return a locally cached version, no reload
-       let reloadedMarkets = await kraken.load_markets (true) // force HTTP reload = true
+       await kraken.loadMarkets () // return a locally cached version, no reload
+       let reloadedMarkets = await kraken.loadMarkets (true) // force HTTP reload = true
        console.log (reloadedMarkets['ETH/BTC'])
    }) ()
 
@@ -3143,7 +3187,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
  * ``fetchOrder (id[, symbol[, params]])``
  * ``fetchOrders ([symbol[, since[, limit[, params]]]])``
  * ``fetchOpenOrders ([symbol[, since, limit, params]]]])``
- * ``fetchCancelledOrders ([symbol[, since[, limit[, params]]]])``
+ * ``fetchCanceledOrders ([symbol[, since[, limit[, params]]]])``
  * ``fetchClosedOrders ([symbol[, since[, limit[, params]]]])``
  * ``fetchMyTrades ([symbol[, since[, limit[, params]]]])``
  * ...
@@ -4465,6 +4509,8 @@ Parameters
  * **limit** (Integer) The maximum number of :ref:`open interest structures <open interest structures>` to retrieve (e.g. ``10``\ )
  * **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. ``{"endTime": 1645807945000}``\ )
 
+ **Note for OKX users:** instead of a unified symbol okx.fetchOpenInterestHistory expects a unified currency code in the **symbol** argument (e.g. ``'BTC'``\ ).
+
 Returns
 
 
@@ -4550,7 +4596,7 @@ The exchanges' private APIs will usually allow the following types of interactio
 
 
  * the current state of the user's account balance can be obtained with the ``fetchBalance()`` method as described in the :ref:`Account Balance <account balance>` section
- * the user can place and cancel orders with ``createOrder()``\ , ``cancelOrder()``\ , as well as fetch current open orders and the past order history with methods like ``fetchOrder``\ , ``fetchOrders()``\ , ``fetchOpenOrder()``\ , ``fetchOpenOrders()``\ , ``fetchCancelledOrders``\ , ``fetchClosedOrder``\ , ``fetchClosedOrders``\ , as described in the section on :ref:`Orders <orders>`
+ * the user can place and cancel orders with ``createOrder()``\ , ``cancelOrder()``\ , as well as fetch current open orders and the past order history with methods like ``fetchOrder``\ , ``fetchOrders()``\ , ``fetchOpenOrder()``\ , ``fetchOpenOrders()``\ , ``fetchCanceledOrders``\ , ``fetchClosedOrder``\ , ``fetchClosedOrders``\ , as described in the section on :ref:`Orders <orders>`
  * the user can query the history of past trades executed with their account using ``fetchMyTrades``\ , as described in the :ref:`My Trades <my trades>` section, also see `How Orders Are Related To Trades <https://docs.ccxt.com/en/latest/manual.html#how-orders-are-related-to-trades>`__
  * the user can query their positions with ``fetchPositions()`` and ``fetchPosition()`` as described in the :ref:`Positions <positions>` section
  * the user can fetch the history of their transactions (on-chain *transactions* which are either *deposits* to the exchange account or *withdrawals* from the exchange account) with ``fetchTransactions()``\ , or with ``fetchDeposit()``\ , ``fetchDeposits()`` ``fetchWithdrawal()``\ , and ``fetchWithdrawals()`` separately, depending on what is available from the exchange API
@@ -4833,23 +4879,28 @@ The ``fetchAccounts()`` method will return a structure like shown below:
        {
            id: "s32kj302lasli3930",
            type: "main",
-           currency: "USDT",
+           name: "main",
+           code: "USDT",
            info: { ... }
        },
        {
            id: "20f0sdlri34lf90",
+           name: "customAccount",
            type: "margin",
-           currency: "USDT",
+           code: "USDT",
            info: { ... }
        },
        {
            id: "4oidfk40dadeg4328",
-           type: "trade",
-           currency: "BTC",
+           type: "spot",
+           name: "spotAccount32",
+           code: "BTC",
            info: { ... }
        },
        ...
    ]
+
+Types of account is one of the :ref:`unified account types <###Account-Balance>` or ``subaccount``
 
 Account Balance
 ---------------
@@ -6372,7 +6423,8 @@ Parameters
  * **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. ``{"endTime": 1645807945000}``\ )
  * **params.symbol** (String) Market symbol when transfering to or from a margin account (e.g. ``'BTC/USDT'``\ )
 
- **Account Types**
+Account Types
+^^^^^^^^^^^^^
 
 ``fromAccount`` and ``toAccount`` can accept the exchange account id or one of the following unified values:
 

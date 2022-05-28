@@ -103,7 +103,7 @@ class bl3p(Exchange):
 
     def parse_balance(self, response):
         data = self.safe_value(response, 'data', {})
-        wallets = self.safe_value(data, 'wallets')
+        wallets = self.safe_value(data, 'wallets', {})
         result = {'info': data}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
@@ -194,7 +194,7 @@ class bl3p(Exchange):
             'baseVolume': self.safe_string(volume, '24h'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """

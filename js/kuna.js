@@ -290,6 +290,13 @@ module.exports = class kuna extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the kuna api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetTimestamp (params);
         //
         //     1594911427
@@ -443,7 +450,7 @@ module.exports = class kuna extends Exchange {
             'baseVolume': this.safeString (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -631,7 +638,7 @@ module.exports = class kuna extends Exchange {
     }
 
     parseBalance (response) {
-        const balances = this.safeValue (response, 'accounts');
+        const balances = this.safeValue (response, 'accounts', []);
         const result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];

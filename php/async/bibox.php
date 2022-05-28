@@ -20,6 +20,8 @@ class bibox extends Exchange {
             'name' => 'Bibox',
             'countries' => array( 'CN', 'US', 'KR' ),
             'version' => 'v1',
+            // 30 requests per 5 seconds => 6 requests per second => rateLimit = 166.667 ms (166.6666...)
+            'rateLimit' => 166.667,
             'hostname' => 'bibox.com',
             'has' => array(
                 'CORS' => null,
@@ -80,27 +82,27 @@ class bibox extends Exchange {
                 'public' => array(
                     'post' => array(
                         // TODO => rework for full endpoint/cmd paths here
-                        'mdata',
+                        'mdata' => 1,
                     ),
                     'get' => array(
-                        'cquery',
-                        'mdata',
-                        'cdata',
-                        'orderpending',
+                        'cquery' => 1,
+                        'mdata' => 1,
+                        'cdata' => 1,
+                        'orderpending' => 1,
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'cquery',
-                        'ctrade',
-                        'user',
-                        'orderpending',
-                        'transfer',
+                        'cquery' => 1,
+                        'ctrade' => 1,
+                        'user' => 1,
+                        'orderpending' => 1,
+                        'transfer' => 1,
                     ),
                 ),
                 'v2private' => array(
                     'post' => array(
-                        'assets/transfer/spot',
+                        'assets/transfer/spot' => 1,
                     ),
                 ),
             ),
@@ -185,7 +187,7 @@ class bibox extends Exchange {
         //         "ver":"1.1"
         //     }
         //
-        $markets = $this->safe_value($response, 'result');
+        $markets = $this->safe_value($response, 'result', array());
         $request2 = array(
             'cmd' => 'tradeLimit',
         );
@@ -323,7 +325,7 @@ class bibox extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $this->safe_string($ticker, 'amount'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -501,6 +503,11 @@ class bibox extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the bibox api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         if ($this->check_required_credentials(false)) {
             return yield $this->fetch_currencies_private($params);
         } else {
@@ -533,7 +540,7 @@ class bibox extends Exchange {
         //         "cmd":"currencies"
         //     }
         //
-        $currencies = $this->safe_value($response, 'result');
+        $currencies = $this->safe_value($response, 'result', array());
         $result = array();
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $currencies[$i];
@@ -631,7 +638,7 @@ class bibox extends Exchange {
         //
         $outerResults = $this->safe_value($response, 'result');
         $firstResult = $this->safe_value($outerResults, 0, array());
-        $currencies = $this->safe_value($firstResult, 'result');
+        $currencies = $this->safe_value($firstResult, 'result', array());
         $result = array();
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $currencies[$i];
@@ -1411,10 +1418,10 @@ class bibox extends Exchange {
         if ($api === 'public') {
             if ($method !== 'GET') {
                 $body = array( 'cmds' => $cmds );
-            } else if ($params) {
+            } elseif ($params) {
                 $url .= '?' . $this->urlencode($params);
             }
-        } else if ($api === 'v2private') {
+        } elseif ($api === 'v2private') {
             $this->check_required_credentials();
             $url = $this->implode_hostname($this->urls['api']) . '/v2/' . $path;
             $json_params = $this->json($params);

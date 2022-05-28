@@ -42,7 +42,7 @@ module.exports = class aax extends Exchange {
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'editOrder': true,
-                'fetchAccounts': undefined,
+                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowRate': false,
@@ -316,6 +316,12 @@ module.exports = class aax extends Exchange {
                     'otc': 'F2CP',
                     'saving': 'VLTP',
                 },
+                'accountsById': {
+                    'SPTP': 'spot',
+                    'FUTP': 'future',
+                    'F2CP': 'otc',
+                    'VLTP': 'saving',
+                },
                 'networks': {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
@@ -329,6 +335,13 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name aax#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetTime (params);
         //
         //    {
@@ -342,6 +355,13 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name aax#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
         const response = await this.publicGetAnnouncementMaintenance (params);
         //
         // note, when there is no maintenance, then data is `null`
@@ -474,7 +494,7 @@ module.exports = class aax extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -567,6 +587,13 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name aax#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetCurrencies (params);
         //
         //     {
@@ -679,7 +706,7 @@ module.exports = class aax extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async setMargin (symbol, amount, params = {}) {
@@ -1096,6 +1123,53 @@ module.exports = class aax extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
+    async fetchAccounts (params = {}) {
+        const response = await this.privateGetAccountBalances (params);
+        //
+        //     {
+        //         "code":1,
+        //         "data":[
+        //             {
+        //                 "purseType":"FUTP",
+        //                 "currency":"BTC",
+        //                 "available":"0.41000000",
+        //                 "unavailable":"0.00000000"
+        //             },
+        //             {
+        //                 "purseType":"FUTP",
+        //                 "currency":"USDT",
+        //                 "available":"0.21000000",
+        //                 "unvaliable":"0.00000000"
+        //             }
+        //         ]
+        //         "message":"success",
+        //         "ts":1573530401020
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseAccounts (data);
+    }
+
+    parseAccount (account) {
+        //
+        //    {
+        //        "purseType":"FUTP",
+        //        "currency":"USDT",
+        //        "available":"0.21000000",
+        //        "unvaliable":"0.00000000"
+        //    }
+        //
+        const currencyId = this.safeString (account, 'currency');
+        const accountId = this.safeString (account, 'purseType');
+        const accountsById = this.safeValue (this.options, 'accountsById', {});
+        return {
+            'info': account,
+            'id': undefined,
+            'code': this.safeCurrencyCode (currencyId),
+            'type': this.safeString (accountsById, accountId, accountId),
+        };
+    }
+
     async fetchBalance (params = {}) {
         /**
          * @method
@@ -1135,7 +1209,7 @@ module.exports = class aax extends Exchange {
         //         "ts":1573530401020
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const timestamp = this.safeInteger (response, 'ts');
         const result = {
             'info': response,
@@ -2409,7 +2483,7 @@ module.exports = class aax extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const rates = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];

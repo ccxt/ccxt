@@ -194,6 +194,11 @@ class delta extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the delta api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = $this->publicGetSettings ($params);
         // full $response sample under `fetchStatus`
         $result = $this->safe_value($response, 'result', array());
@@ -201,6 +206,11 @@ class delta extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {dict} $params extra parameters specific to the delta api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-$status-structure $status structure}
+         */
         $response = $this->publicGetSettings ($params);
         //
         //     {
@@ -269,6 +279,11 @@ class delta extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {dict} $params extra parameters specific to the delta api endpoint
+         * @return {dict} an associative dictionary of $currencies
+         */
         $response = $this->publicGetAssets ($params);
         //
         //     {
@@ -469,7 +484,7 @@ class delta extends Exchange {
                         if ($putOptions) {
                             $letter = 'P';
                             $optionType = 'put';
-                        } else if ($moveOptions) {
+                        } elseif ($moveOptions) {
                             $letter = 'M';
                             $optionType = 'move';
                         }
@@ -588,7 +603,7 @@ class delta extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -771,7 +786,7 @@ class delta extends Exchange {
         if ($side === null) {
             if ($sellerRole === 'taker') {
                 $side = 'sell';
-            } else if ($sellerRole === 'maker') {
+            } elseif ($sellerRole === 'maker') {
                 $side = 'buy';
             }
         }
@@ -1485,7 +1500,7 @@ class delta extends Exchange {
         $type = $this->safe_string($item, 'transaction_type');
         if (($type === 'deposit') || ($type === 'commission_rebate') || ($type === 'referral_bonus') || ($type === 'pnl') || ($type === 'withdrawal_cancellation') || ($type === 'promo_credit')) {
             $direction = 'in';
-        } else if (($type === 'withdrawal') || ($type === 'commission') || ($type === 'conversion') || ($type === 'perpetual_futures_funding')) {
+        } elseif (($type === 'withdrawal') || ($type === 'commission') || ($type === 'conversion') || ($type === 'perpetual_futures_funding')) {
             $direction = 'out';
         }
         $type = $this->parse_ledger_entry_type($type);
@@ -1559,7 +1574,7 @@ class delta extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->seconds();
             $headers = array(

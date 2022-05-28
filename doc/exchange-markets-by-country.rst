@@ -201,11 +201,11 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
    * - British Virgin Islands
      - .. image:: https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg
-          :target: https://www.bybit.com/app/register?ref=X7Prm
+          :target: https://partner.bybit.com/b/ccxt
           :alt: bybit
      
      - bybit
-     - `Bybit <https://www.bybit.com/app/register?ref=X7Prm>`__
+     - `Bybit <https://partner.bybit.com/b/ccxt>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://bybit-exchange.github.io/docs/inverse/
           :alt: API Version 2

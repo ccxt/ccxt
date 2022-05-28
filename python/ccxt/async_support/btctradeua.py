@@ -129,7 +129,7 @@ class btctradeua(Exchange):
 
     def parse_balance(self, response):
         result = {'info': response}
-        balances = self.safe_value(response, 'accounts')
+        balances = self.safe_value(response, 'accounts', [])
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
@@ -228,7 +228,7 @@ class btctradeua(Exchange):
             last = tickerLength - 1
             result['last'] = self.safe_string(ticker[last], 4)
             result['close'] = result['last']
-        return self.safe_ticker(result, market, False)
+        return self.safe_ticker(result, market)
 
     async def fetch_ticker(self, symbol, params={}):
         """

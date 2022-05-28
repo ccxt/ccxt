@@ -1,4 +1,7 @@
-import numbers  # noqa: E402
+# -*- coding: utf-8 -*-
+
+
+import numbers  # noqa E402
 
 
 def test_trade(exchange, trade, symbol, now):

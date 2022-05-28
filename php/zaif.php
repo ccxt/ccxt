@@ -329,7 +329,7 @@ class zaif extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -633,13 +633,13 @@ class zaif extends Exchange {
         $url = $this->urls['api'] . '/';
         if ($api === 'public') {
             $url .= 'api/' . $this->version . '/' . $this->implode_params($path, $params);
-        } else if ($api === 'fapi') {
+        } elseif ($api === 'fapi') {
             $url .= 'fapi/' . $this->version . '/' . $this->implode_params($path, $params);
         } else {
             $this->check_required_credentials();
             if ($api === 'ecapi') {
                 $url .= 'ecapi';
-            } else if ($api === 'tlapi') {
+            } elseif ($api === 'tlapi') {
                 $url .= 'tlapi';
             } else {
                 $url .= 'tapi';

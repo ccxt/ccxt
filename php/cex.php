@@ -23,18 +23,25 @@ class cex extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null, // has but unimplemented
+                'margin' => false, // has but not through api
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'addMargin' => false,
                 'cancelOrder' => true,
+                'cancelOrders' => false,
+                'createDepositAddress' => false,
                 'createOrder' => true,
+                'createStopLimitOrder' => false,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => false,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
                 'fetchDeposits' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
@@ -55,10 +62,16 @@ class cex extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchTransactions' => false,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => false,
+                'fetchWithdrawalWhitelist' => false,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMargin' => false,
+                'setMarginMode' => false,
                 'transfer' => false,
                 'withdraw' => false,
             ),
@@ -194,6 +207,11 @@ class cex extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {dict} $params extra parameters specific to the cex api endpoint
+         * @return {dict} an associative dictionary of $currencies
+         */
         $response = $this->fetch_currencies_from_cache($params);
         $this->options['currencies'] = array(
             'timestamp' => $this->milliseconds(),
@@ -548,7 +566,7 @@ class cex extends Exchange {
             'baseVolume' => $volume,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -811,7 +829,7 @@ class cex extends Exchange {
                     'rate' => $feeRate,
                     'cost' => $baseFeeCost,
                 );
-            } else if ((is_array($order) && array_key_exists($quoteFee, $order)) || (is_array($order) && array_key_exists($quoteTakerFee, $order))) {
+            } elseif ((is_array($order) && array_key_exists($quoteFee, $order)) || (is_array($order) && array_key_exists($quoteTakerFee, $order))) {
                 $quoteFeeCost = $this->safe_number_2($order, $quoteFee, $quoteTakerFee);
                 $fee = array(
                     'currency' => $market['quote'],

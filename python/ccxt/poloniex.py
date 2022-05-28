@@ -544,7 +544,7 @@ class poloniex(Exchange):
             'baseVolume': self.safe_string(ticker, 'quoteVolume'),
             'quoteVolume': self.safe_string(ticker, 'baseVolume'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         """
@@ -575,6 +575,11 @@ class poloniex(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the poloniex api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.publicGetReturnCurrencies(params)
         #
         #     {

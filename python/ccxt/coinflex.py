@@ -296,6 +296,11 @@ class coinflex(Exchange):
         })
 
     def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = self.publicGetV2Ping(params)
         #
         #     {"success": "true"}
@@ -381,7 +386,7 @@ class coinflex(Exchange):
         #         ],
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             market = data[i]
@@ -462,6 +467,11 @@ class coinflex(Exchange):
         return result
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.publicGetV3Assets(params)
         #
         #     {
@@ -487,7 +497,7 @@ class coinflex(Exchange):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         result = {}
         for i in range(0, len(data)):
             entry = data[i]
@@ -891,7 +901,7 @@ class coinflex(Exchange):
             'baseVolume': self.safe_string(ticker, 'currencyVolume24h'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1226,7 +1236,7 @@ class coinflex(Exchange):
         return self.parse_balance(targetAccount)
 
     def parse_balance(self, data):
-        balances = self.safe_value(data, 'balances')
+        balances = self.safe_value(data, 'balances', [])
         result = {}
         for i in range(0, len(balances)):
             balance = balances[i]
@@ -1513,13 +1523,7 @@ class coinflex(Exchange):
         # response sample inside `getAccountData` method
         self.targetAccount = self.safe_value(data, 0)
         positions = self.safe_value(self.targetAccount, 'positions', [])
-        return self.parse_positions(positions)
-
-    def parse_positions(self, positions):
-        result = []
-        for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i]))
-        return result
+        return self.parse_positions(positions, symbols)
 
     def parse_position(self, position, market=None):
         #

@@ -366,7 +366,7 @@ class coinone extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -399,13 +399,13 @@ class coinone extends Exchange {
         if ($is_ask !== null) {
             if ($is_ask === '1') {
                 $side = 'sell';
-            } else if ($is_ask === '0') {
+            } elseif ($is_ask === '0') {
                 $side = 'buy';
             }
         } else {
             if ($side === 'ask') {
                 $side = 'sell';
-            } else if ($side === 'bid') {
+            } elseif ($side === 'bid') {
                 $side = 'buy';
             }
         }
@@ -586,7 +586,7 @@ class coinone extends Exchange {
         $side = $this->safe_string($order, 'type');
         if ($side === 'ask') {
             $side = 'sell';
-        } else if ($side === 'bid') {
+        } elseif ($side === 'bid') {
             $side = 'buy';
         }
         $remainingString = $this->safe_string($order, 'remainQty');

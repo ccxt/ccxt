@@ -50,6 +50,7 @@ class deribit(Exchange):
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'editOrder': True,
+                'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -392,6 +393,11 @@ class deribit(Exchange):
         })
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the deribit api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.publicGetGetTime(params)
         #
         #     {
@@ -412,6 +418,11 @@ class deribit(Exchange):
         return self.safe_value(params, 'code', code)
 
     async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the deribit api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = await self.publicGetStatus(params)
         #
         #     {
@@ -434,6 +445,68 @@ class deribit(Exchange):
             'eta': None,
             'url': None,
             'info': response,
+        }
+
+    async def fetch_accounts(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetGetSubaccounts(params)
+        #
+        #     {
+        #         jsonrpc: '2.0',
+        #         result: [{
+        #                 username: 'someusername',
+        #                 type: 'main',
+        #                 system_name: 'someusername',
+        #                 security_keys_enabled: False,
+        #                 security_keys_assignments: [],
+        #                 receive_notifications: False,
+        #                 login_enabled: True,
+        #                 is_password: True,
+        #                 id: '238216',
+        #                 email: 'pablo@abcdef.com'
+        #             },
+        #             {
+        #                 username: 'someusername_1',
+        #                 type: 'subaccount',
+        #                 system_name: 'someusername_1',
+        #                 security_keys_enabled: False,
+        #                 security_keys_assignments: [],
+        #                 receive_notifications: False,
+        #                 login_enabled: False,
+        #                 is_password: False,
+        #                 id: '245499',
+        #                 email: 'pablo@abcdef.com'
+        #             }
+        #         ],
+        #         usIn: '1652736468292006',
+        #         usOut: '1652736468292377',
+        #         usDiff: '371',
+        #         testnet: False
+        #     }
+        #
+        result = self.safe_value(response, 'result', [])
+        return self.parse_accounts(result)
+
+    def parse_account(self, account, currency=None):
+        #
+        #      {
+        #          username: 'someusername_1',
+        #          type: 'subaccount',
+        #          system_name: 'someusername_1',
+        #          security_keys_enabled: False,
+        #          security_keys_assignments: [],
+        #          receive_notifications: False,
+        #          login_enabled: False,
+        #          is_password: False,
+        #          id: '245499',
+        #          email: 'pablo@abcdef.com'
+        #      }
+        #
+        return {
+            'info': account,
+            'id': self.safe_string(account, 'id'),
+            'type': self.safe_string(account, 'type'),
+            'code': self.safe_currency_code(None, currency),
         }
 
     async def fetch_markets(self, params={}):
@@ -840,7 +913,7 @@ class deribit(Exchange):
             'baseVolume': None,
             'quoteVolume': self.safe_string(stats, 'volume'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         """
@@ -1894,15 +1967,13 @@ class deribit(Exchange):
         #
         contract = self.safe_string(position, 'instrument_name')
         market = self.safe_market(contract, market)
-        size = self.safe_string(position, 'size')
         side = self.safe_string(position, 'direction')
         side = 'long' if (side == 'buy') else 'short'
-        maintenanceRate = self.safe_string(position, 'maintenance_margin')
-        markPrice = self.safe_string(position, 'mark_price')
-        notionalString = Precise.string_mul(markPrice, size)
-        unrealisedPnl = self.safe_string(position, 'floating_profit_loss')
+        unrealizedPnl = self.safe_string(position, 'floating_profit_loss')
         initialMarginString = self.safe_string(position, 'initial_margin')
-        percentage = Precise.string_mul(Precise.string_div(unrealisedPnl, initialMarginString), '100')
+        notionalString = self.safe_string(position, 'size_currency')
+        maintenanceMarginString = self.safe_string(position, 'maintenance_margin')
+        percentage = Precise.string_mul(Precise.string_div(unrealizedPnl, initialMarginString), '100')
         currentTime = self.milliseconds()
         return {
             'info': position,
@@ -1910,18 +1981,18 @@ class deribit(Exchange):
             'timestamp': currentTime,
             'datetime': self.iso8601(currentTime),
             'initialMargin': self.parse_number(initialMarginString),
-            'initialMarginPercentage': self.parse_number(Precise.string_div(initialMarginString, notionalString)),
-            'maintenanceMargin': self.parse_number(Precise.string_mul(maintenanceRate, notionalString)),
-            'maintenanceMarginPercentage': self.parse_number(maintenanceRate),
-            'entryPrice': self.safe_string(position, 'average_price'),
+            'initialMarginPercentage': self.parse_number(Precise.string_mul(Precise.string_div(initialMarginString, notionalString), '100')),
+            'maintenanceMargin': self.parse_number(maintenanceMarginString),
+            'maintenanceMarginPercentage': self.parse_number(Precise.string_mul(Precise.string_div(maintenanceMarginString, notionalString), '100')),
+            'entryPrice': self.safe_number(position, 'average_price'),
             'notional': self.parse_number(notionalString),
-            'leverage': self.safe_number(position, 'leverage'),
-            'unrealizedPnl': self.parse_number(unrealisedPnl),
-            'contracts': self.parse_number(size),  # in USD for perpetuals on deribit
-            'contractSize': self.safe_value(market, 'contractSize'),
+            'leverage': self.safe_integer(position, 'leverage'),
+            'unrealizedPnl': self.parse_number(unrealizedPnl),
+            'contracts': None,
+            'contractSize': self.safe_number(market, 'contractSize'),
             'marginRatio': None,
             'liquidationPrice': self.safe_number(position, 'estimated_liquidation_price'),
-            'markPrice': markPrice,
+            'markPrice': self.safe_number(position, 'mark_price'),
             'collateral': None,
             'marginMode': None,
             'marginType': None,  # deprecated
@@ -1964,12 +2035,6 @@ class deribit(Exchange):
         #
         result = self.safe_value(response, 'result')
         return self.parse_position(result)
-
-    def parse_positions(self, positions):
-        result = []
-        for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i]))
-        return result
 
     async def fetch_positions(self, symbols=None, params={}):
         await self.load_markets()
@@ -2021,7 +2086,7 @@ class deribit(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result')
-        return self.parse_positions(result)
+        return self.parse_positions(result, symbols)
 
     async def fetch_historical_volatility(self, code, params={}):
         await self.load_markets()

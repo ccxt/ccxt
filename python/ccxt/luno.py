@@ -459,7 +459,7 @@ class luno(Exchange):
             'baseVolume': self.safe_string(ticker, 'rolling_24_hour_volume'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         """
