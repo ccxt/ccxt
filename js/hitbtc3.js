@@ -531,7 +531,7 @@ module.exports = class hitbtc3 extends Exchange {
             for (let j = 0; j < rawNetworks.length; j++) {
                 const rawNetwork = rawNetworks[j];
                 let networkId = this.safeString (rawNetwork, 'protocol');
-                if (networkId !== undefined) {
+                if (networkId === undefined) {
                     networkId = this.safeString (rawNetwork, 'network');
                 }
                 const network = this.safeNetwork (networkId);
