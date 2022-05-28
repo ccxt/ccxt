@@ -180,7 +180,7 @@ class btcturk(Exchange):
             quoteId = self.safe_string(entry, 'denominator')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            filters = self.safe_value(entry, 'filters')
+            filters = self.safe_value(entry, 'filters', [])
             minPrice = None
             maxPrice = None
             minAmount = None

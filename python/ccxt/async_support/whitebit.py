@@ -267,7 +267,7 @@ class whitebit(Exchange):
         #        ]
         #    }
         #
-        markets = self.safe_value(response, 'result')
+        markets = self.safe_value(response, 'result', [])
         result = []
         for i in range(0, len(markets)):
             market = markets[i]

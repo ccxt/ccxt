@@ -2340,7 +2340,7 @@ class mexc3(Exchange):
         response = None
         if marketType == 'spot':
             response = self.fetch_account_helper('spot', query)
-            balances = self.safe_value(response, 'balances')
+            balances = self.safe_value(response, 'balances', [])
             for i in range(0, len(balances)):
                 entry = balances[i]
                 currencyId = self.safe_string(entry, 'asset')
@@ -2727,7 +2727,7 @@ class mexc3(Exchange):
         #    }
         #
         data = self.safe_value(response, 'data')
-        result = self.safe_value(data, 'resultList')
+        result = self.safe_value(data, 'resultList', [])
         rates = []
         for i in range(0, len(result)):
             entry = result[i]

@@ -2587,7 +2587,7 @@ class ascendex extends Exchange {
         //        )
         //    }
         //
-        $marginRequirements = $this->safe_value($info, 'marginRequirements');
+        $marginRequirements = $this->safe_value($info, 'marginRequirements', array());
         $id = $this->safe_string($info, 'symbol');
         $market = $this->safe_market($id, $market);
         $tiers = array();

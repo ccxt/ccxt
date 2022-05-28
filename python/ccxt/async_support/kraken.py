@@ -536,7 +536,7 @@ class kraken(Exchange):
         #         },
         #     }
         #
-        currencies = self.safe_value(response, 'result')
+        currencies = self.safe_value(response, 'result', {})
         ids = list(currencies.keys())
         result = {}
         for i in range(0, len(ids)):

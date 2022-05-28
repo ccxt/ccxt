@@ -770,7 +770,7 @@ class coinex(Exchange):
         #
         data = self.safe_value(response, 'data')
         timestamp = self.safe_integer(data, 'date')
-        tickers = self.safe_value(data, 'ticker')
+        tickers = self.safe_value(data, 'ticker', {})
         marketIds = list(tickers.keys())
         result = {}
         for i in range(0, len(marketIds)):
@@ -3177,7 +3177,7 @@ class coinex(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data')
-        result = self.safe_value(data, 'records')
+        result = self.safe_value(data, 'records', [])
         rates = []
         for i in range(0, len(result)):
             entry = result[i]

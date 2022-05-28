@@ -251,7 +251,7 @@ class bkex(Exchange):
         #     "status": 0
         # }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             market = data[i]
@@ -335,7 +335,7 @@ class bkex(Exchange):
         #     "status": 0
         # }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_value(response, 'data', [])
         result = {}
         for i in range(0, len(data)):
             currency = data[i]
@@ -722,7 +722,7 @@ class bkex(Exchange):
         # }
         #
         balances = self.safe_value(response, 'data')
-        wallets = self.safe_value(balances, 'WALLET')
+        wallets = self.safe_value(balances, 'WALLET', [])
         result = {'info': wallets}
         for i in range(0, len(wallets)):
             wallet = wallets[i]

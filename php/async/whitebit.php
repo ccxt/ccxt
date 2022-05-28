@@ -261,7 +261,7 @@ class whitebit extends Exchange {
         //        )
         //    }
         //
-        $markets = $this->safe_value($response, 'result');
+        $markets = $this->safe_value($response, 'result', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];

@@ -225,7 +225,7 @@ class buda(Exchange):
         :returns [dict]: an array of objects representing market data
         """
         marketsResponse = self.publicGetMarkets(params)
-        markets = self.safe_value(marketsResponse, 'markets')
+        markets = self.safe_value(marketsResponse, 'markets', [])
         currenciesResponse = self.publicGetCurrencies()
         currencies = self.safe_value(currenciesResponse, 'currencies')
         result = []
@@ -585,7 +585,7 @@ class buda(Exchange):
 
     def parse_balance(self, response):
         result = {'info': response}
-        balances = self.safe_value(response, 'balances')
+        balances = self.safe_value(response, 'balances', [])
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'id')

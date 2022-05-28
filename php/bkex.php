@@ -250,7 +250,7 @@ class bkex extends Exchange {
         //     "status" => 0
         // }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
@@ -752,7 +752,7 @@ class bkex extends Exchange {
         // }
         //
         $balances = $this->safe_value($response, 'data');
-        $wallets = $this->safe_value($balances, 'WALLET');
+        $wallets = $this->safe_value($balances, 'WALLET', array());
         $result = array( 'info' => $wallets );
         for ($i = 0; $i < count($wallets); $i++) {
             $wallet = $wallets[$i];

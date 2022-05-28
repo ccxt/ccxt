@@ -177,7 +177,7 @@ class btcturk extends Exchange {
             $quoteId = $this->safe_string($entry, 'denominator');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $filters = $this->safe_value($entry, 'filters');
+            $filters = $this->safe_value($entry, 'filters', array());
             $minPrice = null;
             $maxPrice = null;
             $minAmount = null;

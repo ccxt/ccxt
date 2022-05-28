@@ -232,7 +232,7 @@ class tidebit extends Exchange {
     }
 
     public function parse_balance($response) {
-        $balances = $this->safe_value($response, 'accounts');
+        $balances = $this->safe_value($response, 'accounts', array());
         $result = array( 'info' => $balances );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];

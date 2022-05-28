@@ -352,7 +352,7 @@ class yobit(Exchange):
         #         },
         #     }
         #
-        markets = self.safe_value(response, 'pairs')
+        markets = self.safe_value(response, 'pairs', {})
         keys = list(markets.keys())
         result = []
         for i in range(0, len(keys)):
@@ -683,7 +683,7 @@ class yobit(Exchange):
         #         },
         #     }
         #
-        pairs = self.safe_value(response, 'pairs')
+        pairs = self.safe_value(response, 'pairs', {})
         marketIds = list(pairs.keys())
         result = {}
         for i in range(0, len(marketIds)):

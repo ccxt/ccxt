@@ -347,7 +347,7 @@ class yobit extends Exchange {
         //         ),
         //     }
         //
-        $markets = $this->safe_value($response, 'pairs');
+        $markets = $this->safe_value($response, 'pairs', array());
         $keys = is_array($markets) ? array_keys($markets) : array();
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -703,7 +703,7 @@ class yobit extends Exchange {
         //         ),
         //     }
         //
-        $pairs = $this->safe_value($response, 'pairs');
+        $pairs = $this->safe_value($response, 'pairs', array());
         $marketIds = is_array($pairs) ? array_keys($pairs) : array();
         $result = array();
         for ($i = 0; $i < count($marketIds); $i++) {

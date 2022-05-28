@@ -582,7 +582,7 @@ class bybit(Exchange):
             currencyId = self.safe_string(currency, 'coin')
             code = self.safe_currency_code(currencyId)
             name = self.safe_string(currency, 'name')
-            chains = self.safe_value(currency, 'chains')
+            chains = self.safe_value(currency, 'chains', [])
             networks = {}
             for j in range(0, len(chains)):
                 chain = chains[j]

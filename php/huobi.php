@@ -1489,7 +1489,7 @@ class huobi extends Exchange {
         //         "ts":1637474774467
         //     }
         //
-        $markets = $this->safe_value($response, 'data');
+        $markets = $this->safe_value($response, 'data', array());
         $numMarkets = is_array($markets) ? count($markets) : 0;
         if ($numMarkets < 1) {
             throw new NetworkError($this->id . ' fetchMarkets() returned an empty $response => ' . $this->json($markets));
@@ -2402,7 +2402,7 @@ class huobi extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $trades = $this->safe_value($data[$i], 'data', array());
@@ -4750,13 +4750,13 @@ class huobi extends Exchange {
         //     )
         // }
         $timestamp = $this->milliseconds();
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $rates = array(
             'info' => $response,
         );
         for ($i = 0; $i < count($data); $i++) {
             $rate = $data[$i];
-            $currencies = $this->safe_value($rate, 'currencies');
+            $currencies = $this->safe_value($rate, 'currencies', array());
             $symbolRates = array();
             for ($j = 0; $j < count($currencies); $j++) {
                 $currency = $currencies[$j];
@@ -4808,11 +4808,11 @@ class huobi extends Exchange {
         //     )
         // }
         $timestamp = $this->milliseconds();
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $rates = array();
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
-            $currencies = $this->safe_value($market, 'currencies');
+            $currencies = $this->safe_value($market, 'currencies', array());
             for ($j = 0; $j < count($currencies); $j++) {
                 $currency = $currencies[$j];
                 $currencyId = $this->safe_string($currency, 'currency');
@@ -4879,7 +4879,7 @@ class huobi extends Exchange {
         // }
         //
         $data = $this->safe_value($response, 'data');
-        $result = $this->safe_value($data, 'data');
+        $result = $this->safe_value($data, 'data', array());
         $rates = array();
         for ($i = 0; $i < count($result); $i++) {
             $entry = $result[$i];
@@ -5620,7 +5620,7 @@ class huobi extends Exchange {
             //
         }
         $response = $this->$method ($params);
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($response, 'ts');
         $result = array();
         for ($i = 0; $i < count($data); $i++) {

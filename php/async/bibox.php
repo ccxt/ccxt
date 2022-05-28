@@ -187,7 +187,7 @@ class bibox extends Exchange {
         //         "ver":"1.1"
         //     }
         //
-        $markets = $this->safe_value($response, 'result');
+        $markets = $this->safe_value($response, 'result', array());
         $request2 = array(
             'cmd' => 'tradeLimit',
         );
@@ -540,7 +540,7 @@ class bibox extends Exchange {
         //         "cmd":"currencies"
         //     }
         //
-        $currencies = $this->safe_value($response, 'result');
+        $currencies = $this->safe_value($response, 'result', array());
         $result = array();
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $currencies[$i];
@@ -638,7 +638,7 @@ class bibox extends Exchange {
         //
         $outerResults = $this->safe_value($response, 'result');
         $firstResult = $this->safe_value($outerResults, 0, array());
-        $currencies = $this->safe_value($firstResult, 'result');
+        $currencies = $this->safe_value($firstResult, 'result', array());
         $result = array();
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $currencies[$i];

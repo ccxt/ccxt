@@ -296,7 +296,7 @@ class zonda(Exchange):
         #     }
         #
         result = []
-        items = self.safe_value(response, 'items')
+        items = self.safe_value(response, 'items', {})
         keys = list(items.keys())
         for i in range(0, len(keys)):
             id = keys[i]

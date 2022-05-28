@@ -579,7 +579,7 @@ class bybit extends Exchange {
             $currencyId = $this->safe_string($currency, 'coin');
             $code = $this->safe_currency_code($currencyId);
             $name = $this->safe_string($currency, 'name');
-            $chains = $this->safe_value($currency, 'chains');
+            $chains = $this->safe_value($currency, 'chains', array());
             $networks = array();
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];

@@ -441,7 +441,7 @@ class currencycom extends Exchange {
         if ($this->options['adjustForTimeDifference']) {
             yield $this->load_time_difference();
         }
-        $markets = $this->safe_value($response, 'symbols');
+        $markets = $this->safe_value($response, 'symbols', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];

@@ -211,7 +211,7 @@ class vcc extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
-        $markets = $this->safe_value($data, 'symbols');
+        $markets = $this->safe_value($data, 'symbols', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $this->safe_value($markets, $i);
@@ -308,7 +308,7 @@ class vcc extends Exchange {
         //     }
         //
         $result = array();
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $ids = is_array($data) ? array_keys($data) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $this->safe_string_lower($ids, $i);
@@ -360,7 +360,7 @@ class vcc extends Exchange {
     }
 
     public function parse_balance($response) {
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -583,7 +583,7 @@ class vcc extends Exchange {
         //     }
         //
         $result = array();
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $marketIds = is_array($data) ? array_keys($data) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];

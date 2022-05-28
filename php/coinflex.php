@@ -383,7 +383,7 @@ class coinflex extends Exchange {
         //         ),
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
@@ -498,7 +498,7 @@ class coinflex extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
@@ -1287,7 +1287,7 @@ class coinflex extends Exchange {
     }
 
     public function parse_balance($data) {
-        $balances = $this->safe_value($data, 'balances');
+        $balances = $this->safe_value($data, 'balances', array());
         $result = array();
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];

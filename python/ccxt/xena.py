@@ -600,7 +600,7 @@ class xena(Exchange):
         #         ]
         #     }
         #
-        accounts = self.safe_value(response, 'accounts')
+        accounts = self.safe_value(response, 'accounts', [])
         result = []
         for i in range(0, len(accounts)):
             account = accounts[i]

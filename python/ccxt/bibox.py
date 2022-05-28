@@ -197,7 +197,7 @@ class bibox(Exchange):
         #         "ver":"1.1"
         #     }
         #
-        markets = self.safe_value(response, 'result')
+        markets = self.safe_value(response, 'result', [])
         request2 = {
             'cmd': 'tradeLimit',
         }
@@ -529,7 +529,7 @@ class bibox(Exchange):
         #         "cmd":"currencies"
         #     }
         #
-        currencies = self.safe_value(response, 'result')
+        currencies = self.safe_value(response, 'result', [])
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
@@ -624,7 +624,7 @@ class bibox(Exchange):
         #
         outerResults = self.safe_value(response, 'result')
         firstResult = self.safe_value(outerResults, 0, {})
-        currencies = self.safe_value(firstResult, 'result')
+        currencies = self.safe_value(firstResult, 'result', [])
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]

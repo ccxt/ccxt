@@ -896,7 +896,7 @@ class coinbase extends Exchange {
             'limit' => 100,
         );
         $response = yield $this->privateGetAccounts (array_merge($request, $params));
-        $balances = $this->safe_value($response, 'data');
+        $balances = $this->safe_value($response, 'data', array());
         $accounts = $this->safe_value($params, 'type', $this->options['accounts']);
         $result = array( 'info' => $response );
         for ($b = 0; $b < count($balances); $b++) {

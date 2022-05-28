@@ -613,7 +613,7 @@ class xena extends Exchange {
         //         )
         //     }
         //
-        $accounts = $this->safe_value($response, 'accounts');
+        $accounts = $this->safe_value($response, 'accounts', array());
         $result = array();
         for ($i = 0; $i < count($accounts); $i++) {
             $account = $accounts[$i];

@@ -286,7 +286,7 @@ class zonda extends Exchange {
         //     }
         //
         $result = array();
-        $items = $this->safe_value($response, 'items');
+        $items = $this->safe_value($response, 'items', array());
         $keys = is_array($items) ? array_keys($items) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $id = $keys[$i];

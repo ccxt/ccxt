@@ -1718,7 +1718,7 @@ class binance(Exchange):
                 account['used'] = self.safe_string(balance, 'locked')
                 result[code] = account
         elif type == 'savings':
-            positionAmountVos = self.safe_value(response, 'positionAmountVos')
+            positionAmountVos = self.safe_value(response, 'positionAmountVos', [])
             for i in range(0, len(positionAmountVos)):
                 entry = positionAmountVos[i]
                 currencyId = self.safe_string(entry, 'asset')
@@ -3862,7 +3862,7 @@ class binance(Exchange):
             entry = response[i]
             currencyId = self.safe_string(entry, 'coin')
             code = self.safe_currency_code(currencyId)
-            networkList = self.safe_value(entry, 'networkList')
+            networkList = self.safe_value(entry, 'networkList', [])
             withdrawFees[code] = {}
             for j in range(0, len(networkList)):
                 networkEntry = networkList[j]
@@ -4260,7 +4260,7 @@ class binance(Exchange):
 
     def parse_account_positions(self, account):
         positions = self.safe_value(account, 'positions')
-        assets = self.safe_value(account, 'assets')
+        assets = self.safe_value(account, 'assets', [])
         balances = {}
         for i in range(0, len(assets)):
             entry = assets[i]
@@ -4649,7 +4649,7 @@ class binance(Exchange):
                 entry = response[i]
                 marketId = self.safe_string(entry, 'symbol')
                 symbol = self.safe_symbol(marketId)
-                brackets = self.safe_value(entry, 'brackets')
+                brackets = self.safe_value(entry, 'brackets', [])
                 result = []
                 for j in range(0, len(brackets)):
                     bracket = brackets[j]
@@ -4735,7 +4735,7 @@ class binance(Exchange):
         marketId = self.safe_string(info, 'symbol')
         safeSymbol = self.safe_symbol(marketId)
         market = self.safe_market(safeSymbol, market)
-        brackets = self.safe_value(info, 'brackets')
+        brackets = self.safe_value(info, 'brackets', [])
         tiers = []
         for j in range(0, len(brackets)):
             bracket = brackets[j]

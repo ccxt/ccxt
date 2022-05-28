@@ -1249,7 +1249,7 @@ class ftx(Exchange):
         #        ]
         #      }
         #
-        result = self.safe_value(response, 'result')
+        result = self.safe_value(response, 'result', [])
         rates = []
         for i in range(0, len(result)):
             entry = result[i]

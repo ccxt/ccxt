@@ -203,7 +203,7 @@ class bitso(Exchange):
         #             },
         #         ]
         #     }
-        markets = self.safe_value(response, 'payload')
+        markets = self.safe_value(response, 'payload', [])
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -298,7 +298,7 @@ class bitso(Exchange):
 
     def parse_balance(self, response):
         payload = self.safe_value(response, 'payload', {})
-        balances = self.safe_value(payload, 'balances')
+        balances = self.safe_value(payload, 'balances', [])
         result = {
             'info': response,
             'timestamp': None,

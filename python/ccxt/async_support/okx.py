@@ -1610,7 +1610,7 @@ class okx(Exchange):
         #     }
         #
         rates = []
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         for i in range(0, len(data)):
             rate = data[i]
             timestamp = self.safe_number(rate, 'fundingTime')
@@ -4129,7 +4129,7 @@ class okx(Exchange):
         #        "type": "8"
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             entry = data[i]

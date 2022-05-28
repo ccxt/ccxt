@@ -1276,7 +1276,7 @@ class ftx extends Exchange {
         //        )
         //      }
         //
-        $result = $this->safe_value($response, 'result');
+        $result = $this->safe_value($response, 'result', array());
         $rates = array();
         for ($i = 0; $i < count($result); $i++) {
             $entry = $result[$i];

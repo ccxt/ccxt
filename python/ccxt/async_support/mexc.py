@@ -2963,7 +2963,7 @@ class mexc(Exchange):
         #    }
         #
         data = self.safe_value(response, 'data')
-        result = self.safe_value(data, 'resultList')
+        result = self.safe_value(data, 'resultList', [])
         rates = []
         for i in range(0, len(result)):
             entry = result[i]

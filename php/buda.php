@@ -226,7 +226,7 @@ class buda extends Exchange {
          * @return {[dict]} an array of objects representing $market data
          */
         $marketsResponse = $this->publicGetMarkets ($params);
-        $markets = $this->safe_value($marketsResponse, 'markets');
+        $markets = $this->safe_value($marketsResponse, 'markets', array());
         $currenciesResponse = $this->publicGetCurrencies ();
         $currencies = $this->safe_value($currenciesResponse, 'currencies');
         $result = array();
@@ -607,7 +607,7 @@ class buda extends Exchange {
 
     public function parse_balance($response) {
         $result = array( 'info' => $response );
-        $balances = $this->safe_value($response, 'balances');
+        $balances = $this->safe_value($response, 'balances', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'id');

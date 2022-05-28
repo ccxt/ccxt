@@ -1599,7 +1599,7 @@ class wavesexchange(Exchange):
         #     }
         #   ]
         # }
-        balances = self.safe_value(totalBalance, 'balances')
+        balances = self.safe_value(totalBalance, 'balances', [])
         result = {}
         timestamp = None
         assetIds = []
@@ -1627,7 +1627,7 @@ class wavesexchange(Exchange):
                 'ids': assetIds,
             }
             response = await self.publicGetAssets(request)
-            data = self.safe_value(response, 'data')
+            data = self.safe_value(response, 'data', [])
             for i in range(0, len(data)):
                 entry = data[i]
                 balance = nonStandardBalances[i]

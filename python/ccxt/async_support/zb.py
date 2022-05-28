@@ -1385,7 +1385,7 @@ class zb(Exchange):
         if market['type'] == 'swap':
             ticker = {}
             data = self.safe_value(response, 'data')
-            values = self.safe_value(data, market['id'])
+            values = self.safe_value(data, market['id'], [])
             for i in range(0, len(values)):
                 ticker['open'] = self.safe_value(values, 0)
                 ticker['high'] = self.safe_value(values, 1)
@@ -3045,7 +3045,7 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         rates = []
         for i in range(0, len(data)):
             entry = data[i]
@@ -3860,7 +3860,7 @@ class zb(Exchange):
         #     }
         #
         timestamp = self.milliseconds()
-        data = self.safe_value(response, 'result')
+        data = self.safe_value(response, 'result', [])
         rates = []
         for i in range(0, len(data)):
             entry = data[i]

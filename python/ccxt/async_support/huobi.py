@@ -1476,7 +1476,7 @@ class huobi(Exchange):
         #         "ts":1637474774467
         #     }
         #
-        markets = self.safe_value(response, 'data')
+        markets = self.safe_value(response, 'data', [])
         numMarkets = len(markets)
         if numMarkets < 1:
             raise NetworkError(self.id + ' fetchMarkets() returned an empty response: ' + self.json(markets))
@@ -2330,7 +2330,7 @@ class huobi(Exchange):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             trades = self.safe_value(data[i], 'data', [])
@@ -4492,13 +4492,13 @@ class huobi(Exchange):
         #     ]
         # }
         timestamp = self.milliseconds()
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         rates = {
             'info': response,
         }
         for i in range(0, len(data)):
             rate = data[i]
-            currencies = self.safe_value(rate, 'currencies')
+            currencies = self.safe_value(rate, 'currencies', [])
             symbolRates = {}
             for j in range(0, len(currencies)):
                 currency = currencies[j]
@@ -4547,11 +4547,11 @@ class huobi(Exchange):
         #     ]
         # }
         timestamp = self.milliseconds()
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         rates = {}
         for i in range(0, len(data)):
             market = data[i]
-            currencies = self.safe_value(market, 'currencies')
+            currencies = self.safe_value(market, 'currencies', [])
             for j in range(0, len(currencies)):
                 currency = currencies[j]
                 currencyId = self.safe_string(currency, 'currency')
@@ -4613,7 +4613,7 @@ class huobi(Exchange):
         # }
         #
         data = self.safe_value(response, 'data')
-        result = self.safe_value(data, 'data')
+        result = self.safe_value(data, 'data', [])
         rates = []
         for i in range(0, len(result)):
             entry = result[i]
@@ -5308,7 +5308,7 @@ class huobi(Exchange):
             #     }
             #
         response = await getattr(self, method)(params)
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         timestamp = self.safe_integer(response, 'ts')
         result = []
         for i in range(0, len(data)):

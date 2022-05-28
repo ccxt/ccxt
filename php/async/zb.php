@@ -1405,7 +1405,7 @@ class zb extends Exchange {
         if ($market['type'] === 'swap') {
             $ticker = array();
             $data = $this->safe_value($response, 'data');
-            $values = $this->safe_value($data, $market['id']);
+            $values = $this->safe_value($data, $market['id'], array());
             for ($i = 0; $i < count($values); $i++) {
                 $ticker['open'] = $this->safe_value($values, 0);
                 $ticker['high'] = $this->safe_value($values, 1);
@@ -3188,7 +3188,7 @@ class zb extends Exchange {
         //         "desc" => "操作成功"
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $rates = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
@@ -4048,7 +4048,7 @@ class zb extends Exchange {
         //     }
         //
         $timestamp = $this->milliseconds();
-        $data = $this->safe_value($response, 'result');
+        $data = $this->safe_value($response, 'result', array());
         $rates = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];

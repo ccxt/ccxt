@@ -441,7 +441,7 @@ class currencycom(Exchange):
         #
         if self.options['adjustForTimeDifference']:
             await self.load_time_difference()
-        markets = self.safe_value(response, 'symbols')
+        markets = self.safe_value(response, 'symbols', [])
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
