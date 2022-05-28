@@ -4105,4 +4105,9 @@ class Exchange {
             throw new NotSupported($this->id . ' fetchPremiumIndexOHLCV () is not supported yet');
         }
     }
+
+    public function omit_order_params($params) {
+        $unifiedOrderParams = array( 'clientOrderId', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly' );
+        return $this->omit($params, $unifiedOrderParams);
+    }
 }

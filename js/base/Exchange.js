@@ -2495,4 +2495,9 @@ module.exports = class Exchange {
             throw new NotSupported (this.id + ' fetchPremiumIndexOHLCV () is not supported yet');
         }
     }
+
+    omitOrderParams (params) {
+        const unifiedParams = [ 'clientOrderId', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly' ];
+        return this.omit (params, unifiedParams);
+    }
 }

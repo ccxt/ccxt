@@ -3115,3 +3115,7 @@ class Exchange(object):
             return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
         else:
             raise NotSupported(self.id + ' fetchPremiumIndexOHLCV() is not supported yet')
+
+    def omit_order_params(self, params):
+        unifiedParams = ['clientOrderId', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly']
+        return self.omit(params, unifiedParams)
