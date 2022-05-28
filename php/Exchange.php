@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.84.5';
+$version = '1.84.23';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.84.5';
+    const VERSION = '1.84.23';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -431,7 +431,7 @@ class Exchange {
     public static function valid_string($string) {
         return isset($string) && $string !== '';
     }
-    
+
     public static function valid_object_value($object, $key) {
         return isset($object[$key]) && $object[$key] !== '' && is_scalar($object[$key]);
     }
@@ -517,17 +517,17 @@ class Exchange {
     }
 
     public static function safe_string_n($object, $array, $default_value = null) {
-        $value = static::get_object_value_from_key_array($object, $array);
+        $value = static::get_string_value_from_key_array($object, $array);
         return (static::valid_string($value) && is_scalar($value)) ? strval($value) : $default_value;
     }
 
     public static function safe_string_lower_n($object, $array, $default_value = null) {
-        $value = static::get_object_value_from_key_array($object, $array);
+        $value = static::get_string_value_from_key_array($object, $array);
         return (static::valid_string($value) && is_scalar($value)) ? strtolower(strval($value)) : $default_value;
     }
 
     public static function safe_string_upper_n($object, $array, $default_value = null) {
-        $value = static::get_object_value_from_key_array($object, $array);
+        $value = static::get_string_value_from_key_array($object, $array);
         return (static::valid_string($value) && is_scalar($value)) ? strtoupper(strval($value)) : $default_value;
     }
 
@@ -548,6 +548,15 @@ class Exchange {
     public static function safe_value_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
         return (isset($value) && is_scalar($value)) ? $value : $default_value;
+    }
+
+    public static function get_string_value_from_key_array($object, $array) {
+        foreach($array as $key) {
+            if (isset($object[$key]) && ($object[$key] !== '')) {
+                return $object[$key];
+            }
+        }
+        return null;
     }
 
     public static function get_object_value_from_key_array($object, $array) {
@@ -2242,119 +2251,60 @@ class Exchange {
         return $result;
     }
 
-    public function safe_ticker($ticker, $market = null, $legacy = true) {
-        if ($legacy) {
-            $symbol = $this->safe_value($ticker, 'symbol');
-            if ($symbol === null) {
-                $symbol = $this->safe_symbol(null, $market);
-            }
-            $timestamp = $this->safe_integer($ticker, 'timestamp');
-            $baseVolume = $this->safe_value($ticker, 'baseVolume');
-            $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
-            $vwap = $this->safe_value($ticker, 'vwap');
-            if ($vwap === null) {
-                $vwap = $this->vwap($baseVolume, $quoteVolume);
-            }
-            $open = $this->safe_value($ticker, 'open');
-            $close = $this->safe_value($ticker, 'close');
-            $last = $this->safe_value($ticker, 'last');
-            $change = $this->safe_value($ticker, 'change');
-            $percentage = $this->safe_value($ticker, 'percentage');
-            $average = $this->safe_value($ticker, 'average');
-            if (($last !== null) && ($close === null)) {
-                $close = $last;
-            } elseif (($last === null) && ($close !== null)) {
-                $last = $close;
-            }
-            if (($last !== null) && ($open !== null)) {
-                if ($change === null) {
-                    $change = $last - $open;
-                }
-                if ($average === null) {
-                    $average = $this->sum($last, $open) / 2;
-                }
-            }
-            if (($percentage === null) && ($change !== null) && ($open !== null) && ($open > 0)) {
-                $percentage = $change / $open * 100;
-            }
-            if (($change === null) && ($percentage !== null) && ($last !== null)) {
-                $change = $percentage / 100 * $last;
-            }
-            if (($open === null) && ($last !== null) && ($change !== null)) {
-                $open = $last - $change;
-            }
-            if (($vwap !== null) && ($baseVolume !== null) && ($quoteVolume === null)) {
-                $quoteVolume = $vwap / $baseVolume;
-            }
-            if (($vwap !== null) && ($quoteVolume !== null) && ($baseVolume === null)) {
-                $baseVolume = $quoteVolume / $vwap;
-            }
-            $ticker['symbol'] = $symbol;
-            $ticker['timestamp'] = $timestamp;
-            $ticker['datetime'] = $this->iso8601($timestamp);
-            $ticker['open'] = $open;
-            $ticker['close'] = $close;
-            $ticker['last'] = $last;
-            $ticker['vwap'] = $vwap;
-            $ticker['change'] = $change;
-            $ticker['percentage'] = $percentage;
-            $ticker['average'] = $average;
-            return $ticker;
-        } else {
-            $open = $this->safe_value($ticker, 'open');
-            $close = $this->safe_value($ticker, 'close');
-            $last = $this->safe_value($ticker, 'last');
-            $change = $this->safe_value($ticker, 'change');
-            $percentage = $this->safe_value($ticker, 'percentage');
-            $average = $this->safe_value($ticker, 'average');
-            $vwap = $this->safe_value($ticker, 'vwap');
-            $baseVolume = $this->safe_value($ticker, 'baseVolume');
-            $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
-            if ($vwap === null) {
-                $vwap = Precise::string_div($quoteVolume, $baseVolume);
-            }
-            if (($last !== null) && ($close === null)) {
-                $close = $last;
-            } elseif (($last === null) && ($close !== null)) {
-                $last = $close;
-            }
-            if (($last !== null) && ($open !== null)) {
-                if ($change === null) {
-                    $change = Precise::string_sub($last, $open);
-                }
-                if ($average === null) {
-                    $average = Precise::string_div(Precise::string_add($last, $open), '2');
-                }
-            }
-            if (($percentage === null) && ($change !== null) && ($open !== null) && (Precise::string_gt($open, '0'))) {
-                $percentage = Precise::string_mul(Precise::string_div($change, $open), '100');
-            }
-            if (($change === null) && ($percentage !== null) && ($last !== null)) {
-                $change = Precise::string_div(Precise::string_mul($percentage, $last), '100');
-            }
-            if (($open === null) && ($last !== null) && ($change !== null)) {
-                $open = Precise::string_sub($last, $change);
-            }
-            // $timestamp and $symbol operations don't belong in safeTicker
-            // they should be done in the derived classes
-            return array_merge($ticker, array(
-                'bid' => $this->safe_number($ticker, 'bid'),
-                'bidVolume'=> $this->safe_number($ticker, 'bidVolume'),
-                'ask' => $this->safe_number($ticker, 'ask'),
-                'askVolume' => $this->safe_number($ticker, 'askVolume'),
-                'high' => $this->safe_number($ticker, 'high'),
-                'low' => $this->safe_number($ticker, 'low'),
-                'open' => $this->parse_number($open),
-                'close' =>$this->parse_number($close),
-                'last' => $this->parse_number($last),
-                'change' => $this->parse_number($change),
-                'percentage' => $this->parse_number($percentage),
-                'average' => $this->parse_number($average),
-                'vwap' => $this->parse_number($vwap),
-                'baseVolume' => $this->parse_number($baseVolume),
-                'quoteVolume' => $this->parse_number($quoteVolume),
-            ));
+    public function safe_ticker($ticker, $market = null) {
+        $open = $this->safe_value($ticker, 'open');
+        $close = $this->safe_value($ticker, 'close');
+        $last = $this->safe_value($ticker, 'last');
+        $change = $this->safe_value($ticker, 'change');
+        $percentage = $this->safe_value($ticker, 'percentage');
+        $average = $this->safe_value($ticker, 'average');
+        $vwap = $this->safe_value($ticker, 'vwap');
+        $baseVolume = $this->safe_value($ticker, 'baseVolume');
+        $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
+        if ($vwap === null) {
+            $vwap = Precise::string_div($quoteVolume, $baseVolume);
         }
+        if (($last !== null) && ($close === null)) {
+            $close = $last;
+        } elseif (($last === null) && ($close !== null)) {
+            $last = $close;
+        }
+        if (($last !== null) && ($open !== null)) {
+            if ($change === null) {
+                $change = Precise::string_sub($last, $open);
+            }
+            if ($average === null) {
+                $average = Precise::string_div(Precise::string_add($last, $open), '2');
+            }
+        }
+        if (($percentage === null) && ($change !== null) && ($open !== null) && (Precise::string_gt($open, '0'))) {
+            $percentage = Precise::string_mul(Precise::string_div($change, $open), '100');
+        }
+        if (($change === null) && ($percentage !== null) && ($open !== null)) {
+            $change = Precise::string_div(Precise::string_mul($percentage, $open), '100');
+        }
+        if (($open === null) && ($last !== null) && ($change !== null)) {
+            $open = Precise::string_sub($last, $change);
+        }
+        // $timestamp and $symbol operations don't belong in safeTicker
+        // they should be done in the derived classes
+        return array_merge($ticker, array(
+            'bid' => $this->safe_number($ticker, 'bid'),
+            'bidVolume'=> $this->safe_number($ticker, 'bidVolume'),
+            'ask' => $this->safe_number($ticker, 'ask'),
+            'askVolume' => $this->safe_number($ticker, 'askVolume'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'open' => $this->parse_number($open),
+            'close' =>$this->parse_number($close),
+            'last' => $this->parse_number($last),
+            'change' => $this->parse_number($change),
+            'percentage' => $this->parse_number($percentage),
+            'average' => $this->parse_number($average),
+            'vwap' => $this->parse_number($vwap),
+            'baseVolume' => $this->parse_number($baseVolume),
+            'quoteVolume' => $this->parse_number($quoteVolume),
+        ));
     }
 
     public function parse_accounts($accounts, $params = array()) {
@@ -3801,10 +3751,14 @@ class Exchange {
         }
         // timeInForceHandling
         $timeInForce = $this->safe_string($order, 'timeInForce');
-        if ($this->safe_value($order, 'postOnly', false)) {
-            $timeInForce = 'PO';
-        } elseif ($this->safe_string($order, 'type') === 'market') {
-            $timeInForce = 'IOC';
+        if ($timeInForce === null) {
+            if ($this->safe_string($order, 'type') === 'market') {
+                 $timeInForce = 'IOC';
+            }
+            // allow postOnly override
+            if ($this->safe_value($order, 'postOnly', false)) {
+                $timeInForce = 'PO';
+            }
         }
         return array_merge($order, array(
             'lastTradeTimestamp' => $lastTradeTimeTimestamp,
@@ -3961,34 +3915,32 @@ class Exchange {
         sleep($milliseconds / 1000);
     }
 
-    public function is_post_only($type, $time_in_force = null, $exchange_specific_option = null, $params = array ()) {
+    public function is_post_only($type, $params = array ()) {
         /**
+         * @ignore
          * @param {string} $type Order type
-         * @param {string} $time_in_force
-         * @param {boolean} $exchange_specific_option True if the exchange specific post only setting is set
          * @param {dict} $params Exchange specific $params
          * @return {boolean} true if a post only order, false otherwise
          */
-        $post_only = $this->safe_value_2($params, 'postOnly', 'post_only', false);
-        $params = $this->omit($params, array( 'post_only', 'postOnly' ));
-        $time_in_force_upper = ($time_in_force !== null) ? strtoupper($time_in_force) : null;
-        $type_lower = strtolower($type);
-        $ioc = $time_in_force_upper === 'IOC';
-        $fok = $time_in_force_upper === 'FOK';
-        $time_in_force_post_only = $time_in_force_upper === 'PO';
-        $is_market = $type_lower === 'market';
-        $post_only = $post_only || ($type_lower === 'postonly') || $time_in_force_post_only || $exchange_specific_option;
-        if ($post_only) {
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
+        $postOnly = $this->safe_value_2($params, 'postOnly', 'post_only', false);
+        // we assume $timeInForce is uppercase from safeStringUpper ($params, 'timeInForce')
+        $ioc = $timeInForce === 'IOC';
+        $fok = $timeInForce === 'FOK';
+        $timeInForcePostOnly = $timeInForce === 'PO';
+        $typeLower = strtolower($type);
+        $isMarket = $typeLower === 'market';
+        $postOnly = $postOnly || $timeInForcePostOnly;
+        if ($postOnly) {
             if ($ioc || $fok) {
-                throw new InvalidOrder($this->id . ' postOnly orders cannot have $timeInForce equal to ' . $time_in_force);
-            } else if ($is_market) {
-                throw new InvalidOrder($this->id . ' postOnly orders cannot have $type ' . $type);
+                throw new InvalidOrder($this->id . ' $postOnly orders cannot have $timeInForce equal to ' . $timeInForce);
+            } elseif ($isMarket) {
+                throw new InvalidOrder($this->id . ' $postOnly orders cannot have $type ' . $type);
             } else {
-                $time_in_force = $time_in_force_post_only ? null : $time_in_force;
-                return array( 'limit', true, $time_in_force, $params );
+                return true;
             }
         } else {
-            return array( $type, false, $time_in_force, $params );
+            return false;
         }
     }
 
