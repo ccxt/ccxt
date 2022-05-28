@@ -586,7 +586,7 @@ module.exports = class ftx extends Exchange {
         const allFuturesDict = this.indexBy (allFutures, 'name');
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const id = this.safeString (market, 'name');
+            const id = this.safeString (market, 'name', '');
             const future = this.safeValue (allFuturesDict, id);
             const marketType = this.safeString (market, 'type');
             const contract = (marketType === 'future');

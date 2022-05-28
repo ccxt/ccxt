@@ -205,7 +205,7 @@ module.exports = class bitso extends Exchange {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const id = this.safeString (market, 'book');
+            const id = this.safeString (market, 'book', '');
             const [ baseId, quoteId ] = id.split ('_');
             let base = baseId.toUpperCase ();
             let quote = quoteId.toUpperCase ();
@@ -880,7 +880,7 @@ module.exports = class bitso extends Exchange {
             'fund_currency': currency['id'],
         };
         const response = await this.privateGetFundingDestination (this.extend (request, params));
-        let address = this.safeString (response['payload'], 'account_identifier');
+        let address = this.safeString (response['payload'], 'account_identifier', '');
         let tag = undefined;
         if (address.indexOf ('?dt=') >= 0) {
             const parts = address.split ('?dt=');

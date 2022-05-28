@@ -907,7 +907,7 @@ module.exports = class okcoin extends Exchange {
         let quoteId = this.safeString (market, 'quote_currency');
         const settleId = this.safeString (market, 'settlement_currency');
         if (option) {
-            const underlying = this.safeString (market, 'underlying');
+            const underlying = this.safeString (market, 'underlying', '');
             const parts = underlying.split ('-');
             baseId = this.safeString (parts, 0);
             quoteId = this.safeString (parts, 1);
@@ -1763,7 +1763,7 @@ module.exports = class okcoin extends Exchange {
         };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
-            const marketId = this.safeString (balance, 'instrument_id');
+            const marketId = this.safeString (balance, 'instrument_id', '');
             const market = this.safeValue (this.markets_by_id, marketId);
             let symbol = undefined;
             if (market === undefined) {

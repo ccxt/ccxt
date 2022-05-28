@@ -3660,7 +3660,7 @@ module.exports = class binance extends Exchange {
                 tag = undefined;
             }
         }
-        let txid = this.safeString (transaction, 'txId');
+        let txid = this.safeString (transaction, 'txId', '');
         if ((txid !== undefined) && (txid.indexOf ('Internal transfer ') >= 0)) {
             txid = txid.slice (18);
         }

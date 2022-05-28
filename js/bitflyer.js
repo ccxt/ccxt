@@ -171,7 +171,7 @@ module.exports = class bitflyer extends Exchange {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const id = this.safeString (market, 'product_code');
+            const id = this.safeString (market, 'product_code', '');
             const currencies = id.split ('_');
             const marketType = this.safeString (market, 'market_type');
             const swap = (marketType === 'FX');

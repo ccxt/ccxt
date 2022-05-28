@@ -1165,7 +1165,7 @@ module.exports = class zb extends Exchange {
         //         "canDeposit": true
         //     }
         //
-        let address = this.safeString2 (depositAddress, 'key', 'address');
+        let address = this.safeString2 (depositAddress, 'key', 'address', '');
         let tag = undefined;
         const memo = this.safeString (depositAddress, 'memo');
         if (memo !== undefined) {

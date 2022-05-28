@@ -1502,7 +1502,7 @@ module.exports = class huobi extends Exchange {
             let lowercaseId = undefined;
             let lowercaseBaseId = undefined;
             if (contract) {
-                id = this.safeString (market, 'contract_code');
+                id = this.safeString (market, 'contract_code', '');
                 lowercaseId = id.toLowerCase ();
                 if (swap) {
                     const parts = id.split ('-');
@@ -1517,7 +1517,7 @@ module.exports = class huobi extends Exchange {
                         quoteId = 'USD';
                         settleId = baseId;
                     } else {
-                        const pair = this.safeString (market, 'pair');
+                        const pair = this.safeString (market, 'pair', '');
                         const parts = pair.split ('-');
                         quoteId = this.safeString (parts, 1);
                         settleId = quoteId;

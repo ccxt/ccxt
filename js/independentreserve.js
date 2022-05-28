@@ -382,7 +382,7 @@ module.exports = class independentreserve extends Exchange {
             base = market['base'];
             quote = market['quote'];
         }
-        let orderType = this.safeString2 (order, 'Type', 'OrderType');
+        let orderType = this.safeString2 (order, 'Type', 'OrderType', '');
         let side = undefined;
         if (orderType.indexOf ('Bid') >= 0) {
             side = 'buy';

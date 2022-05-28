@@ -843,7 +843,7 @@ module.exports = class bitget extends Exchange {
         //     }
         //
         //
-        const marketId = this.safeString (market, 'symbol');
+        const marketId = this.safeString (market, 'symbol', '');
         const quoteId = this.safeString (market, 'quoteCoin');
         const baseId = this.safeString (market, 'baseCoin');
         const quote = this.safeCurrencyCode (quoteId);

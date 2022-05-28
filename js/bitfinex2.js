@@ -415,7 +415,7 @@ module.exports = class bitfinex2 extends bitfinex {
         const result = [];
         for (let i = 0; i < v1response.length; i++) {
             const market = v1response[i];
-            const id = this.safeStringUpper (market, 'pair');
+            const id = this.safeStringUpper (market, 'pair', '');
             let spot = true;
             if (this.inArray (id, swapMarketIds)) {
                 spot = false;
@@ -1314,7 +1314,7 @@ module.exports = class bitfinex2 extends bitfinex {
             }
         }
         let status = undefined;
-        const statusString = this.safeString (order, 13);
+        const statusString = this.safeString (order, 13, '');
         if (statusString !== undefined) {
             const parts = statusString.split (' @ ');
             status = this.parseOrderStatus (this.safeString (parts, 0));

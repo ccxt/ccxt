@@ -190,7 +190,7 @@ module.exports = class tidebit extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString (market, 'id');
-            const symbol = this.safeString (market, 'name');
+            const symbol = this.safeString (market, 'name', '');
             const [ baseId, quoteId ] = symbol.split ('/');
             result.push ({
                 'id': id,
