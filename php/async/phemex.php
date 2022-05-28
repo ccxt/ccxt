@@ -796,6 +796,11 @@ class phemex extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {dict} $params extra parameters specific to the phemex api endpoint
+         * @return {dict} an associative dictionary of $currencies
+         */
         $response = yield $this->publicGetCfgV2Products ($params);
         //
         //     {
@@ -1054,7 +1059,7 @@ class phemex extends Exchange {
             // time ranges ending in the future are not accepted
             // https://github.com/ccxt/ccxt/issues/8050
             $request['to'] = min ($now, $this->sum($since, $duration * $limit));
-        } else if ($limit !== null) {
+        } elseif ($limit !== null) {
             $limit = min ($limit, 2000);
             $request['from'] = $now - $duration * $this->sum($limit, 1);
             $request['to'] = $now;
@@ -1153,7 +1158,7 @@ class phemex extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1976,7 +1981,7 @@ class phemex extends Exchange {
                 if ($this->options['createOrderByQuoteRequiresPrice']) {
                     if ($price !== null) {
                         $cost = $amount * $price;
-                    } else if ($cost === null) {
+                    } elseif ($cost === null) {
                         throw new ArgumentsRequired($this->id . ' createOrder() ' . $qtyType . ' requires a $price argument or a $cost parameter');
                     }
                 }
@@ -1987,7 +1992,7 @@ class phemex extends Exchange {
                 $amountString = (string) $amount;
                 $request['baseQtyEv'] = $this->to_ev($amountString, $market);
             }
-        } else if ($market['swap']) {
+        } elseif ($market['swap']) {
             if ($reduceOnly !== null) {
                 $request['reduceOnly'] = $reduceOnly;
             }
@@ -2124,7 +2129,7 @@ class phemex extends Exchange {
         $params = $this->omit($params, array( 'baseQtyEv' ));
         if ($finalQty !== null) {
             $request['baseQtyEV'] = $finalQty;
-        } else if ($amount !== null) {
+        } elseif ($amount !== null) {
             $request['baseQtyEV'] = $this->to_ev($amount, $market);
         }
         $stopPrice = $this->safe_string_2($params, 'stopPx', 'stopPrice');
@@ -3246,7 +3251,7 @@ class phemex extends Exchange {
         $transfer = null;
         if ($fromId === 'spot' && $toId === 'future') {
             $direction = 2;
-        } else if ($fromId === 'future' && $toId === 'spot') {
+        } elseif ($fromId === 'future' && $toId === 'spot') {
             $direction = 1;
         }
         if ($direction !== null) {
@@ -3388,7 +3393,7 @@ class phemex extends Exchange {
         if ($side === 1) {
             $fromId = 'swap';
             $toId = 'spot';
-        } else if ($side === 2) {
+        } elseif ($side === 2) {
             $fromId = 'spot';
             $toId = 'swap';
         }

@@ -256,6 +256,11 @@ class bw(Exchange):
         return result
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.publicGetExchangeConfigControllerWebsiteCurrencycontrollerGetCurrencyList(params)
         #
         #     {
@@ -389,7 +394,7 @@ class bw(Exchange):
             'baseVolume': self.safe_string(ticker, 4),
             'quoteVolume': self.safe_string(ticker, 9),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         """

@@ -244,11 +244,11 @@ class upbit extends Exchange {
         $active = true;
         if (($canWithdraw !== null) && !$canWithdraw) {
             $active = false;
-        } else if ($walletState !== 'working') {
+        } elseif ($walletState !== 'working') {
             $active = false;
-        } else if (($walletLocked !== null) && $walletLocked) {
+        } elseif (($walletLocked !== null) && $walletLocked) {
             $active = false;
-        } else if (($locked !== null) && $locked) {
+        } elseif (($locked !== null) && $locked) {
             $active = false;
         }
         $maxOnetimeWithdrawal = $this->safe_number($withdrawLimits, 'onetime');
@@ -640,7 +640,7 @@ class upbit extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'acc_trade_volume_24h'),
             'quoteVolume' => $this->safe_string($ticker, 'acc_trade_price_24h'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -754,7 +754,7 @@ class upbit extends Exchange {
         $askOrBid = $this->safe_string_lower_2($trade, 'ask_bid', 'side');
         if ($askOrBid === 'ask') {
             $side = 'sell';
-        } else if ($askOrBid === 'bid') {
+        } elseif ($askOrBid === 'bid') {
             $side = 'buy';
         }
         $cost = $this->safe_string($trade, 'funds');
@@ -996,7 +996,7 @@ class upbit extends Exchange {
         $orderSide = null;
         if ($side === 'buy') {
             $orderSide = 'bid';
-        } else if ($side === 'sell') {
+        } elseif ($side === 'sell') {
             $orderSide = 'ask';
         } else {
             throw new InvalidOrder($this->id . ' createOrder() allows buy or sell $side only!');
@@ -1011,11 +1011,11 @@ class upbit extends Exchange {
             $request['volume'] = $this->amount_to_precision($symbol, $amount);
             $request['price'] = $this->price_to_precision($symbol, $price);
             $request['ord_type'] = $type;
-        } else if ($type === 'market') {
+        } elseif ($type === 'market') {
             if ($side === 'buy') {
                 $request['ord_type'] = 'price';
                 $request['price'] = $this->price_to_precision($symbol, $amount);
-            } else if ($side === 'sell') {
+            } elseif ($side === 'sell') {
                 $request['ord_type'] = $type;
                 $request['volume'] = $this->amount_to_precision($symbol, $amount);
             }

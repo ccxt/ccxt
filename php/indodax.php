@@ -161,6 +161,11 @@ class indodax extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the indodax api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = $this->publicGetServerTime ($params);
         //
         //     {
@@ -385,7 +390,7 @@ class indodax extends Exchange {
             'baseVolume' => $this->safe_string($ticker, $baseVolume),
             'quoteVolume' => $this->safe_string($ticker, $quoteVolume),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

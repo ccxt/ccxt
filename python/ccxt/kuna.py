@@ -293,6 +293,11 @@ class kuna(Exchange):
         })
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = self.publicGetTimestamp(params)
         #
         #     1594911427
@@ -435,7 +440,7 @@ class kuna(Exchange):
             'baseVolume': self.safe_string(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         """
@@ -603,7 +608,7 @@ class kuna(Exchange):
         return result
 
     def parse_balance(self, response):
-        balances = self.safe_value(response, 'accounts')
+        balances = self.safe_value(response, 'accounts', [])
         result = {'info': balances}
         for i in range(0, len(balances)):
             balance = balances[i]

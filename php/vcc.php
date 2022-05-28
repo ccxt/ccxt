@@ -211,7 +211,7 @@ class vcc extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
-        $markets = $this->safe_value($data, 'symbols');
+        $markets = $this->safe_value($data, 'symbols', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $this->safe_value($markets, $i);
@@ -281,6 +281,11 @@ class vcc extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the vcc api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = $this->publicGetAssets ($params);
         //
         //     {
@@ -303,7 +308,7 @@ class vcc extends Exchange {
         //     }
         //
         $result = array();
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $ids = is_array($data) ? array_keys($data) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $this->safe_string_lower($ids, $i);
@@ -355,7 +360,7 @@ class vcc extends Exchange {
     }
 
     public function parse_balance($response) {
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -546,7 +551,7 @@ class vcc extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -578,7 +583,7 @@ class vcc extends Exchange {
         //     }
         //
         $result = array();
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $marketIds = is_array($data) ? array_keys($data) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
@@ -902,7 +907,7 @@ class vcc extends Exchange {
             $ceiling = $this->safe_value($params, 'ceiling');
             if ($ceiling !== null) {
                 $request['ceiling'] = $this->cost_to_precision($symbol, $ceiling);
-            } else if ($price !== null) {
+            } elseif ($price !== null) {
                 $request['ceiling'] = $this->cost_to_precision($symbol, $amount * $price);
             } else {
                 throw new InvalidOrder($this->id . ' createOrder() requires a $price argument or a $ceiling parameter for ' . $type . ' orders');

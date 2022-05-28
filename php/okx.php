@@ -75,6 +75,7 @@ class okx extends Exchange {
                 'fetchMySells' => null,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => true,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -351,7 +352,7 @@ class okx extends Exchange {
                     '50023' => '\\ccxt\\ExchangeError', // Funding fee frozen. Operation restricted
                     '50024' => '\\ccxt\\BadRequest', // Parameter {0} and {1} can not exist at the same time
                     '50025' => '\\ccxt\\ExchangeError', // Parameter {0} count exceeds the limit {1}
-                    '50026' => '\\ccxt\\ExchangeError', // System error
+                    '50026' => '\\ccxt\\ExchangeNotAvailable', // System error, please try again later.
                     '50027' => '\\ccxt\\PermissionDenied', // The account is restricted from trading
                     '50028' => '\\ccxt\\ExchangeError', // Unable to take the order, please reach out to support center for details
                     // API Class
@@ -597,6 +598,7 @@ class okx extends Exchange {
                     '63999' => '\\ccxt\\ExchangeError', // Internal system error
                 ),
                 'broad' => array(
+                    'server error' => '\\ccxt\\ExchangeNotAvailable', // array("code":500,"data":array(),"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249")
                 ),
             ),
             'httpExceptions' => array(
@@ -617,6 +619,16 @@ class okx extends Exchange {
                 'layerTwo' => array(
                     'Lightning' => true,
                     'Liquid' => true,
+                ),
+                'fetchOpenInterestHistory' => array(
+                    'timeframes' => array(
+                        '5m' => '5m',
+                        '1h' => '1H',
+                        '1d' => '1D',
+                        '5M' => '5m',
+                        '1H' => '1H',
+                        '1D' => '1D',
+                    ),
                 ),
                 'fetchOHLCV' => array(
                     // 'type' => 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
@@ -717,6 +729,11 @@ class okx extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure status structure}
+         */
         $response = $this->publicGetSystemStatus ($params);
         //
         // Note, if there is no maintenance around, the 'data' array is empty
@@ -760,6 +777,11 @@ class okx extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = $this->publicGetPublicTime ($params);
         //
         //     {
@@ -921,7 +943,7 @@ class okx extends Exchange {
             if ($future) {
                 $ymd = $this->yymmdd($expiry);
                 $symbol = $symbol . '-' . $ymd;
-            } else if ($option) {
+            } elseif ($option) {
                 $strikePrice = $this->safe_string($market, 'stk');
                 $optionType = $this->safe_string($market, 'optType');
                 $symbol = $symbol . '-' . $strikePrice . '-' . $optionType;
@@ -1049,6 +1071,11 @@ class okx extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
@@ -1105,12 +1132,12 @@ class okx extends Exchange {
                 $networkId = $this->safe_string($chain, 'chain');
                 if ($canDeposit && !$depositEnabled) {
                     $depositEnabled = true;
-                } else if (!$canDeposit) {
+                } elseif (!$canDeposit) {
                     $depositEnabled = false;
                 }
                 if ($canWithdraw && !$withdrawEnabled) {
                     $withdrawEnabled = true;
-                } else if (!$canWithdraw) {
+                } elseif (!$canWithdraw) {
                     $withdrawEnabled = false;
                 }
                 if (mb_strpos($networkId, '-') !== false) {
@@ -1282,7 +1309,7 @@ class okx extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1441,7 +1468,7 @@ class okx extends Exchange {
         $takerOrMaker = $this->safe_string($trade, 'execType');
         if ($takerOrMaker === 'T') {
             $takerOrMaker = 'taker';
-        } else if ($takerOrMaker === 'M') {
+        } elseif ($takerOrMaker === 'M') {
             $takerOrMaker = 'maker';
         }
         return $this->safe_trade(array(
@@ -1559,7 +1586,7 @@ class okx extends Exchange {
         $method = 'publicGetMarket' . $type;
         if ($price === 'mark') {
             $method = 'publicGetMarketMarkPriceCandles';
-        } else if ($price === 'index') {
+        } elseif ($price === 'index') {
             $method = 'publicGetMarketIndexCandles';
         }
         $response = $this->$method (array_merge($request, $params));
@@ -1625,7 +1652,7 @@ class okx extends Exchange {
         //     }
         //
         $rates = array();
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $rate = $data[$i];
             $timestamp = $this->safe_number($rate, 'fundingTime');
@@ -1638,20 +1665,6 @@ class okx extends Exchange {
         }
         $sorted = $this->sort_by($rates, 'timestamp');
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
-    }
-
-    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'index',
-        );
-        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
-    }
-
-    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'mark',
-        );
-        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function parse_balance_by_type($type, $response) {
@@ -1739,7 +1752,7 @@ class okx extends Exchange {
         );
         if ($market['spot']) {
             $request['instId'] = $market['id'];
-        } else if ($market['swap'] || $market['future'] || $market['option']) {
+        } elseif ($market['swap'] || $market['future'] || $market['option']) {
             $request['uly'] = $market['baseId'] . '-' . $market['quoteId'];
         } else {
             throw new NotSupported($this->id . ' fetchTradingFee() supports spot, swap, future or option markets only');
@@ -1944,10 +1957,10 @@ class okx extends Exchange {
         $tdMode = $this->safe_string_lower($params, 'tdMode');
         if ($market['spot']) {
             $request['tdMode'] = 'cash';
-        } else if ($market['contract']) {
+        } elseif ($market['contract']) {
             if ($tdMode === null) {
                 throw new ArgumentsRequired($this->id . ' $params["tdMode"] is required to be either "isolated" or "cross"');
-            } else if (($tdMode !== 'isolated') && ($tdMode !== 'cross')) {
+            } elseif (($tdMode !== 'isolated') && ($tdMode !== 'cross')) {
                 throw new BadRequest($this->id . ' $params["tdMode"] must be either "isolated" or "cross"');
             }
         }
@@ -1983,7 +1996,7 @@ class okx extends Exchange {
                             if ($notional === null) {
                                 $notional = $amount * $price;
                             }
-                        } else if ($notional === null) {
+                        } elseif ($notional === null) {
                             throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'sz' extra parameter (the exchange-specific behaviour)");
                         }
                     } else {
@@ -2016,7 +2029,7 @@ class okx extends Exchange {
         }
         if ($defaultMethod === 'privatePostTradeOrder' || $defaultMethod === 'privatePostTradeOrderAlgo') {
             $extendedRequest = array_merge($request, $params);
-        } else if ($defaultMethod === 'privatePostTradeBatchOrders') {
+        } elseif ($defaultMethod === 'privatePostTradeBatchOrders') {
             // keep the $request body the same
             // submit a single $order in an array to the batch $order endpoint
             // because it has a lower ratelimit
@@ -2064,6 +2077,11 @@ class okx extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        $stop = $this->safe_value($params, 'stop');
+        if ($stop) {
+            $order = $this->cancel_orders(array( $id ), $symbol, $params);
+            return $this->safe_value($order, 0);
+        }
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
@@ -2088,7 +2106,21 @@ class okx extends Exchange {
         return $this->parse_order($order, $market);
     }
 
+    public function parse_ids($ids) {
+        /**
+         * @ignore
+         * @param {[str]|str} $ids order $ids
+         * @return {[str]} list of order $ids
+         */
+        if (gettype($ids) === 'string') {
+            return explode(',', $ids);
+        } else {
+            return $ids;
+        }
+    }
+
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        // TODO : the original endpoint signature differs, according to that you can skip individual $symbol and assign $ids in batch. At this moment, `$params` is not being used too.
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
@@ -2098,57 +2130,44 @@ class okx extends Exchange {
         $options = $this->safe_value($this->options, 'cancelOrders', array());
         $defaultMethod = $this->safe_string($options, 'method', 'privatePostTradeCancelBatchOrders');
         $method = $this->safe_string($params, 'method', $defaultMethod);
-        $clientOrderId = $this->safe_value_2($params, 'clOrdId', 'clientOrderId');
-        $algoId = $this->safe_value($params, 'algoId');
+        $clientOrderIds = $this->parse_ids($this->safe_value_2($params, 'clOrdId', 'clientOrderId'));
+        $algoIds = $this->parse_ids($this->safe_value($params, 'algoId'));
         $stop = $this->safe_value($params, 'stop');
-        if ($clientOrderId === null) {
-            if ($stop || $algoId !== null) {
-                $method = 'privatePostTradeCancelAlgos';
-                if (gettype($algoId) === 'array' && count(array_filter(array_keys($algoId), 'is_string')) == 0) {
-                    for ($i = 0; $i < count($algoId); $i++) {
-                        $request[] = array(
-                            'instId' => $market['id'],
-                            'algoId' => $algoId[$i],
-                        );
-                    }
-                } else if (gettype($algoId) === 'string') {
+        if ($stop) {
+            $method = 'privatePostTradeCancelAlgos';
+        }
+        if ($clientOrderIds === null) {
+            $ids = $this->parse_ids($ids);
+            if ($algoIds !== null) {
+                for ($i = 0; $i < count($algoIds); $i++) {
                     $request[] = array(
+                        'algoId' => $algoIds[$i],
                         'instId' => $market['id'],
-                        'algoId' => $algoId,
                     );
                 }
-            } else {
-                if (gettype($ids) === 'string') {
-                    $orderIds = explode(',', $ids);
-                    for ($i = 0; $i < count($orderIds); $i++) {
-                        $request[] = array(
-                            'instId' => $market['id'],
-                            'ordId' => $orderIds[$i],
-                        );
-                    }
+            }
+            for ($i = 0; $i < count($ids); $i++) {
+                if ($stop) {
+                    $request[] = array(
+                        'algoId' => $ids[$i],
+                        'instId' => $market['id'],
+                    );
                 } else {
-                    for ($i = 0; $i < count($ids); $i++) {
-                        $request[] = array(
-                            'instId' => $market['id'],
-                            'ordId' => $ids[$i],
-                        );
-                    }
+                    $request[] = array(
+                        'ordId' => $ids[$i],
+                        'instId' => $market['id'],
+                    );
                 }
             }
-        } else if (gettype($clientOrderId) === 'array' && count(array_filter(array_keys($clientOrderId), 'is_string')) == 0) {
-            for ($i = 0; $i < count($clientOrderId); $i++) {
+        } else {
+            for ($i = 0; $i < count($clientOrderIds); $i++) {
                 $request[] = array(
                     'instId' => $market['id'],
-                    'clOrdId' => $clientOrderId[$i],
+                    'clOrdId' => $clientOrderIds[$i],
                 );
             }
-        } else if (gettype($clientOrderId) === 'string') {
-            $request[] = array(
-                'instId' => $market['id'],
-                'clOrdId' => $clientOrderId,
-            );
         }
-        $response = $this->$method ($request); // dont extend with $params, otherwise ARRAY will be turned into OBJECT
+        $response = $this->$method ($request); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
         //
         //     {
         //         "code" => "0",
@@ -2288,7 +2307,7 @@ class okx extends Exchange {
         //         "uly" => "BTC-USDT"
         //     }
         //
-        $id = $this->safe_string($order, 'ordId');
+        $id = $this->safe_string_2($order, 'ordId', 'algoId');
         $timestamp = $this->safe_integer($order, 'cTime');
         $lastTradeTimestamp = $this->safe_integer($order, 'fillTime');
         $side = $this->safe_string($order, 'side');
@@ -2298,10 +2317,10 @@ class okx extends Exchange {
         if ($type === 'post_only') {
             $postOnly = true;
             $type = 'limit';
-        } else if ($type === 'fok') {
+        } elseif ($type === 'fok') {
             $timeInForce = 'FOK';
             $type = 'limit';
-        } else if ($type === 'ioc') {
+        } elseif ($type === 'ioc') {
             $timeInForce = 'IOC';
             $type = 'limit';
         }
@@ -2340,7 +2359,7 @@ class okx extends Exchange {
         if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
             $clientOrderId = null; // fix empty $clientOrderId string
         }
-        $stopPrice = $this->safe_number_2($order, 'slTriggerPx', 'triggerPx');
+        $stopPrice = $this->safe_number_2($order, 'triggerPx', 'slTriggerPx');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -2368,15 +2387,14 @@ class okx extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         /**
-         * Fetch an $order by the $id
-         * @param {string} $id The $order $id
-         * @param {string} $symbol Unified $market $symbol
-         * @param {dict} $params Extra and exchange specific parameters
-         * @param {integer} $params->till Timestamp in ms of the latest time to retrieve orders for
-         * @param {boolean} $params->stop True if fetching trigger orders
+         * fetch an $order by the $id
+         * @param {string} $id the $order $id
+         * @param {string} $symbol unified $market $symbol
+         * @param {dict} $params extra and exchange specific parameters
+         * @param {integer} $params->till timestamp in ms of the latest time to retrieve orders for
+         * @param {boolean} $params->stop true if fetching trigger orders, $params->ordtype set to "trigger" if true
          * @param {string} $params->ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
-         * @param {string} $params->algoId Algo ID
-         * @return {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure An $order structure}
+         * @return {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure an $order structure}
         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
@@ -2403,11 +2421,12 @@ class okx extends Exchange {
         $ordType = $this->safe_string($params, 'ordType');
         $stop = $this->safe_value($params, 'stop');
         if ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
-            if ($ordType === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires an $ordType parameter');
-            }
             $method = 'privateGetTradeOrdersAlgoHistory';
             $request['algoId'] = $id;
+            if ($stop) {
+                $request['ordType'] = 'trigger';
+                $params = $this->omit($params, 'ordType');
+            }
         } else {
             if ($clientOrderId !== null) {
                 $request['clOrdId'] = $clientOrderId;
@@ -2559,6 +2578,10 @@ class okx extends Exchange {
         $stop = $this->safe_value($params, 'stop');
         if ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
             $method = 'privateGetTradeOrdersAlgoPending';
+            if ($stop) {
+                $request['ordType'] = 'trigger';
+                $params = $this->omit($params, 'ordType');
+            }
         }
         $query = $this->omit($params, array( 'method', 'stop' ));
         $response = $this->$method (array_merge($request, $query));
@@ -3345,7 +3368,7 @@ class okx extends Exchange {
         );
         if (is_array($params) && array_key_exists('password', $params)) {
             $request['pwd'] = $params['password'];
-        } else if (is_array($params) && array_key_exists('pwd', $params)) {
+        } elseif (is_array($params) && array_key_exists('pwd', $params)) {
             $request['pwd'] = $params['pwd'];
         }
         $networks = $this->safe_value($this->options, 'networks', array());
@@ -3877,7 +3900,7 @@ class okx extends Exchange {
         if ($marginMode === 'cross') {
             $initialMarginString = $this->safe_string($position, 'imr');
             $collateralString = Precise::string_add($initialMarginString, $unrealizedPnlString);
-        } else if ($marginMode === 'isolated') {
+        } elseif ($marginMode === 'isolated') {
             $initialMarginPercentage = Precise::string_div('1', $leverageString);
             $collateralString = $this->safe_string($position, 'margin');
         }
@@ -3886,7 +3909,7 @@ class okx extends Exchange {
         $maintenanceMarginPercentage = Precise::string_div($maintenanceMarginString, $notionalString);
         if ($initialMarginPercentage === null) {
             $initialMarginPercentage = $this->parse_number(Precise::string_div($initialMarginString, $notionalString, 4));
-        } else if ($initialMarginString === null) {
+        } elseif ($initialMarginString === null) {
             $initialMarginString = Precise::string_mul($initialMarginPercentage, $notionalString);
         }
         $rounder = '0.00005'; // round to closest 0.01%
@@ -3944,7 +3967,7 @@ class okx extends Exchange {
             $request['subAcct'] = $toId;
             $request['from'] = $this->safe_string($params, 'from', '6');
             $request['to'] = $this->safe_string($params, 'to', '6');
-        } else if ($toId === 'master') {
+        } elseif ($toId === 'master') {
             $request['type'] = '2';
             $request['subAcct'] = $fromId;
             $request['from'] = $this->safe_string($params, 'from', '6');
@@ -4064,7 +4087,7 @@ class okx extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             $this->check_required_credentials();
             $timestamp = $this->iso8601($this->milliseconds());
             $headers = array(
@@ -4292,7 +4315,7 @@ class okx extends Exchange {
         //        "type" => "8"
         //    }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
@@ -4835,11 +4858,80 @@ class okx extends Exchange {
         );
     }
 
+    public function fetch_open_interest_history($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * Retrieves the open interest history of a $currency
+         * @param {str} $symbol Unified CCXT $currency code instead of a unified $symbol
+         * @param {str} $timeframe "5m", "1h", or "1d"
+         * @param {int} $since The time in ms of the earliest record to retrieve as a unix timestamp
+         * @param {int} $limit Not used by okx, but parsed internally by CCXT
+         * @param {dict} $params Exchange specific parameters
+         * @param {int} $params->till The time in ms of the latest record to retrieve as a unix timestamp
+         * @return An array of open interest structures
+         */
+        $options = $this->safe_value($this->options, 'fetchOpenInterestHistory', array());
+        $timeframes = $this->safe_value($options, 'timeframes', array());
+        $timeframe = $this->safe_string($timeframes, $timeframe, $timeframe);
+        if ($timeframe !== '5m' && $timeframe !== '1H' && $timeframe !== '1D') {
+            throw new BadRequest($this->id . ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe');
+        }
+        $this->load_markets();
+        $currency = $this->currency($symbol);
+        $request = array(
+            'ccy' => $currency['id'],
+            'period' => $timeframe,
+        );
+        if ($since !== null) {
+            $request['begin'] = $since;
+        }
+        $till = $this->safe_integer_2($params, 'till', 'end');
+        if ($till !== null) {
+            $request['end'] = $till;
+        }
+        $response = $this->publicGetRubikStatContractsOpenInterestVolume (array_merge($request, $params));
+        //
+        //    {
+        //        code => '0',
+        //        $data => array(
+        //            array(
+        //                '1648221300000',  // timestamp
+        //                '2183354317.945',  // open interest (USD)
+        //                '74285877.617',  // volume (USD)
+        //            ),
+        //            ...
+        //        ),
+        //        msg => ''
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_open_interests($data, null, $since, $limit);
+    }
+
+    public function parse_open_interest($interest, $market = null) {
+        //
+        //    array(
+        //        '1648221300000',  // $timestamp
+        //        '2183354317.945',  // open $interest (USD)
+        //        '74285877.617',  // volume (USD)
+        //    )
+        //
+        $timestamp = $this->safe_number($interest, 0);
+        $openInterest = $this->safe_number($interest, 1);
+        return array(
+            'symbol' => null,
+            'baseVolume' => null,
+            'quoteVolume' => $openInterest,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $interest,
+        );
+    }
+
     public function set_sandbox_mode($enable) {
         parent::set_sandbox_mode($enable);
         if ($enable) {
             $this->headers['x-simulated-trading'] = '1';
-        } else if (is_array($this->headers) && array_key_exists('x-simulated-trading', $this->headers)) {
+        } elseif (is_array($this->headers) && array_key_exists('x-simulated-trading', $this->headers)) {
             $this->headers = $this->omit($this->headers, 'x-simulated-trading');
         }
     }

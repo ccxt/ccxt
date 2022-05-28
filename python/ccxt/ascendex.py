@@ -344,6 +344,11 @@ class ascendex(Exchange):
         return account.lower().capitalize()
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the ascendex api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         assets = self.v1PublicGetAssets(params)
         #
         #     {
@@ -854,7 +859,7 @@ class ascendex(Exchange):
             'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """
@@ -2478,7 +2483,7 @@ class ascendex(Exchange):
         #        ]
         #    }
         #
-        marginRequirements = self.safe_value(info, 'marginRequirements')
+        marginRequirements = self.safe_value(info, 'marginRequirements', [])
         id = self.safe_string(info, 'symbol')
         market = self.safe_market(id, market)
         tiers = []

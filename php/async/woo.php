@@ -28,15 +28,18 @@ class woo extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'addMargin' => false,
                 'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'cancelWithdraw' => false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
+                'createDepositAddress' => false,
                 'createMarketOrder' => false,
                 'createOrder' => true,
                 'createStopLimitOrder' => false,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => false,
+                'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchCanceledOrders' => false,
                 'fetchClosedOrder' => false,
@@ -72,6 +75,8 @@ class woo extends Exchange {
                 'fetchTransactions' => true,
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'setMargin' => false,
                 'transfer' => true,
                 'withdraw' => false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             ),
@@ -133,6 +138,8 @@ class woo extends Exchange {
                             'client/info' => 60,
                             'asset/deposit' => 120,
                             'asset/history' => 60,
+                            'sub_account/all' => 60,
+                            'sub_account/assets' => 60,
                             'token_interest' => 60,
                             'token_interest/{token}' => 60,
                             'interest/history' => 60,
@@ -550,6 +557,11 @@ class woo extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the woo api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $method = null;
         $result = array();
         list($marketType, $query) = $this->handle_market_type_and_params('fetchCurrencies', null, $params);
@@ -909,7 +921,7 @@ class woo extends Exchange {
         $cost = $this->safe_string_2($order, 'order_amount', 'amount'); // This is quote $amount
         $orderType = $this->safe_string_lower_2($order, 'order_type', 'type');
         $status = $this->safe_value($order, 'status');
-        $side = $this->safe_string_lower_2($order, 'side');
+        $side = $this->safe_string_lower($order, 'side');
         $filled = $this->safe_value($order, 'executed');
         $remaining = Precise::string_sub($cost, $filled);
         $fee = $this->safe_value($order, 'total_fee');
@@ -1145,6 +1157,51 @@ class woo extends Exchange {
         // }
         $trades = $this->safe_value($response, 'rows', array());
         return $this->parse_trades($trades, $market, $since, $limit, $params);
+    }
+
+    public function fetch_accounts($params = array ()) {
+        /**
+         * query to fetchAccounts
+         * @param {dict} $params extra parameters specific to the woo api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#account-structure account structure~
+         */
+        $response = yield $this->v1PrivateGetSubAccountAssets ($params);
+        //
+        //     {
+        //         $rows => [array(
+        //                 application_id => '13e4fc34-e2ff-4cb7-b1e4-4c22fee7d365',
+        //                 account => 'Main',
+        //                 usdt_balance => '4.0'
+        //             ),
+        //             {
+        //                 application_id => '432952aa-a401-4e26-aff6-972920aebba3',
+        //                 account => 'subaccount',
+        //                 usdt_balance => '1.0'
+        //             }
+        //         ],
+        //         success => true
+        //     }
+        //
+        $rows = $this->safe_value($response, 'rows', array());
+        return $this->parse_accounts($rows, $params);
+    }
+
+    public function parse_account($account) {
+        //
+        //     {
+        //         application_id => '336952aa-a401-4e26-aff6-972920aebba3',
+        //         $account => 'subaccount',
+        //         usdt_balance => '1.0',
+        //     }
+        //
+        $accountId = $this->safe_string($account, 'account');
+        return array(
+            'info' => $account,
+            'id' => $this->safe_string($account, 'application_id'),
+            'name' => $accountId,
+            'code' => null,
+            'type' => $accountId === 'Main' ? 'main' : 'subaccount',
+        );
     }
 
     public function fetch_balance($params = array ()) {
@@ -1495,7 +1552,7 @@ class woo extends Exchange {
         if ($movementDirection === 'withdraw') {
             $fromAccount = null;
             $toAccount = 'spot';
-        } else if ($movementDirection === 'deposit') {
+        } elseif ($movementDirection === 'deposit') {
             $fromAccount = 'spot';
             $toAccount = null;
         }

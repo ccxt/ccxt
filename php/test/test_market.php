@@ -116,14 +116,14 @@ function test_market($exchange, $market, $method) {
     //
     // if ($market['future']) {
     //     assert (($market['swap'] === false) && ($market['option'] === false));
-    // } else if ($market['swap']) {
+    // } elseif ($market['swap']) {
     //     assert (($market['future'] === false) && ($market['option'] === false));
-    // } else if ($market['option']) {
+    // } elseif ($market['option']) {
     //     assert (($market['future'] === false) && ($market['swap'] === false));
     // }
     // if ($market['linear']) {
     //     assert ($market['inverse'] === false);
-    // } else if ($market['inverse']) {
+    // } elseif ($market['inverse']) {
     //     assert ($market['linear'] === false);
     // }
     // if ($market['future']) {

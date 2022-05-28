@@ -306,7 +306,7 @@ class coincheck extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -405,7 +405,7 @@ class coincheck extends Exchange {
         if (is_array($trade) && array_key_exists('liquidity', $trade)) {
             if ($this->safe_string($trade, 'liquidity') === 'T') {
                 $takerOrMaker = 'taker';
-            } else if ($this->safe_string($trade, 'liquidity') === 'M') {
+            } elseif ($this->safe_string($trade, 'liquidity') === 'M') {
                 $takerOrMaker = 'maker';
             }
             $funds = $this->safe_value($trade, 'funds', array());

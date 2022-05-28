@@ -210,7 +210,7 @@ module.exports = class vcc extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        const markets = this.safeValue (data, 'symbols');
+        const markets = this.safeValue (data, 'symbols', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = this.safeValue (markets, i);
@@ -280,6 +280,13 @@ module.exports = class vcc extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name vcc#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the vcc api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetAssets (params);
         //
         //     {
@@ -302,7 +309,7 @@ module.exports = class vcc extends Exchange {
         //     }
         //
         const result = {};
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const ids = Object.keys (data);
         for (let i = 0; i < ids.length; i++) {
             const id = this.safeStringLower (ids, i);
@@ -354,7 +361,7 @@ module.exports = class vcc extends Exchange {
     }
 
     parseBalance (response) {
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', {});
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -551,7 +558,7 @@ module.exports = class vcc extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -585,7 +592,7 @@ module.exports = class vcc extends Exchange {
         //     }
         //
         const result = {};
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', {});
         const marketIds = Object.keys (data);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];

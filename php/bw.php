@@ -255,6 +255,11 @@ class bw extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {dict} $params extra parameters specific to the bw api endpoint
+         * @return {dict} an associative dictionary of $currencies
+         */
         $response = $this->publicGetExchangeConfigControllerWebsiteCurrencycontrollerGetCurrencyList ($params);
         //
         //     {
@@ -390,7 +395,7 @@ class bw extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 4),
             'quoteVolume' => $this->safe_string($ticker, 9),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -848,7 +853,7 @@ class bw extends Exchange {
         $side = $this->safe_string($order, 'type');
         if ($side === '0') {
             $side = 'sell';
-        } else if ($side === '1') {
+        } elseif ($side === '1') {
             $side = 'buy';
         }
         $amount = $this->safe_string($order, 'amount');

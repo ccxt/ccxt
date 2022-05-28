@@ -518,6 +518,11 @@ class bitstamp(Exchange):
         return self.safe_value(self.options['fetchMarkets'], 'response')
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.fetch_markets_from_cache(params)
         #
         #     [
@@ -632,7 +637,7 @@ class bitstamp(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """

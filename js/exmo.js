@@ -19,18 +19,25 @@ module.exports = class exmo extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined, // has but unimplemented
+                'margin': true,
                 'swap': false,
                 'future': false,
                 'option': false,
+                'addMargin': true,
                 'cancelOrder': true,
+                'cancelOrders': false,
+                'createDepositAddress': false,
                 'createOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'fetchAccounts': false,
                 'fetchBalance': true,
+                'fetchCanceledOrders': true,
                 'fetchCurrencies': true,
+                'fetchDeposit': true,
                 'fetchDepositAddress': true,
+                'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -56,7 +63,10 @@ module.exports = class exmo extends Exchange {
                 'fetchTransactions': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': true,
+                'setMargin': false,
                 'transfer': false,
                 'withdraw': true,
             },
@@ -174,6 +184,9 @@ module.exports = class exmo extends Exchange {
                 'fetchTradingFees': {
                     'method': 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
                 },
+                'margin': {
+                    'fillResponseFromRequest': true,
+                },
             },
             'commonCurrencies': {
                 'GMT': 'GMT Token',
@@ -204,6 +217,56 @@ module.exports = class exmo extends Exchange {
                 },
             },
         });
+    }
+
+    async modifyMarginHelper (symbol, amount, type, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'position_id': market['id'],
+            'quantity': amount,
+        };
+        let method = undefined;
+        if (type === 'add') {
+            method = 'privatePostMarginUserPositionMarginAdd';
+        } else if (type === 'reduce') {
+            method = 'privatePostMarginUserPositionMarginReduce';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //      {}
+        //
+        const margin = this.parseMarginModification (response, market);
+        const options = this.safeValue (this.options, 'margin', {});
+        const fillResponseFromRequest = this.safeValue (options, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            margin['type'] = type;
+            margin['amount'] = amount;
+        }
+        return margin;
+    }
+
+    parseMarginModification (data, market = undefined) {
+        //
+        //      {}
+        //
+        return {
+            'info': data,
+            'type': undefined,
+            'amount': undefined,
+            'code': this.safeValue (market, 'quote'),
+            'symbol': this.safeSymbol (undefined, market),
+            'total': undefined,
+            'status': 'ok',
+        };
+    }
+
+    async reduceMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
+    }
+
+    async addMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
     async fetchTradingFees (params = {}) {
@@ -399,6 +462,13 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name exmo#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the exmo api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         //
         const currencyList = await this.publicGetCurrencyListExtended (params);
         //
@@ -568,7 +638,7 @@ module.exports = class exmo extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': false,
+                'margin': true,
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -831,7 +901,7 @@ module.exports = class exmo extends Exchange {
             'baseVolume': this.safeString (ticker, 'vol'),
             'quoteVolume': this.safeString (ticker, 'vol_curr'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -1235,7 +1305,7 @@ module.exports = class exmo extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // fetchOrders, fetchOpenOrders, fetchClosedOrders
+        // fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         //
         //     {
         //         "order_id": "14",
@@ -1273,20 +1343,18 @@ module.exports = class exmo extends Exchange {
         let timestamp = this.safeTimestamp (order, 'created');
         let symbol = undefined;
         const side = this.safeString (order, 'type');
-        if (market === undefined) {
-            let marketId = undefined;
-            if ('pair' in order) {
-                marketId = order['pair'];
-            } else if (('in_currency' in order) && ('out_currency' in order)) {
-                if (side === 'buy') {
-                    marketId = order['in_currency'] + '_' + order['out_currency'];
-                } else {
-                    marketId = order['out_currency'] + '_' + order['in_currency'];
-                }
+        let marketId = undefined;
+        if ('pair' in order) {
+            marketId = order['pair'];
+        } else if (('in_currency' in order) && ('out_currency' in order)) {
+            if (side === 'buy') {
+                marketId = order['in_currency'] + '_' + order['out_currency'];
+            } else {
+                marketId = order['out_currency'] + '_' + order['in_currency'];
             }
-            if ((marketId !== undefined) && (marketId in this.markets_by_id)) {
-                market = this.markets_by_id[marketId];
-            }
+        }
+        if ((marketId !== undefined) && (marketId in this.markets_by_id)) {
+            market = this.markets_by_id[marketId];
         }
         let amount = this.safeNumber (order, 'quantity');
         if (amount === undefined) {
@@ -1381,6 +1449,35 @@ module.exports = class exmo extends Exchange {
             'fee': fee,
             'info': order,
         };
+    }
+
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (since !== undefined) {
+            request['offset'] = limit;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const response = await this.privatePostUserCancelledOrders (this.extend (request, params));
+        //
+        //     [{
+        //         "order_id": "27056153840",
+        //         "client_id": "0",
+        //         "created": "1653428646",
+        //         "type": "buy",
+        //         "pair": "BTC_USDT",
+        //         "quantity": "0.1",
+        //         "price": "10",
+        //         "amount": "1"
+        //     }]
+        //
+        return this.parseOrders (response, market, since, limit, params);
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -1664,7 +1761,138 @@ module.exports = class exmo extends Exchange {
         //         "count": 23
         //     }
         //
-        return this.parseTransactions (response['items'], currency, since, limit);
+        const items = this.safeValue (response, 'items', []);
+        return this.parseTransactions (items, currency, since, limit);
+    }
+
+    async fetchWithdrawal (id, code = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {
+            'order_id': id,
+            'type': 'withdraw',
+        };
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.privatePostWalletOperations (this.extend (request, params));
+        //
+        //     {
+        //         "items": [
+        //         {
+        //             "operation_id": 47412538520634344,
+        //             "created": 1573760013,
+        //             "updated": 1573760013,
+        //             "type": "deposit",
+        //             "currency": "DOGE",
+        //             "status": "Paid",
+        //             "amount": "300",
+        //             "provider": "DOGE",
+        //             "commission": "0",
+        //             "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        //             "order_id": 69670170,
+        //             "extra": {
+        //                 "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        //                 "excode": "",
+        //                 "invoice": ""
+        //             },
+        //             "error": ""
+        //         },
+        //     ],
+        //         "count": 23
+        //     }
+        //
+        const items = this.safeValue (response, 'items', []);
+        const first = this.safeValue (items, 0, {});
+        return this.parseTransaction (first, currency);
+    }
+
+    async fetchDeposit (id = undefined, code = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {
+            'order_id': id,
+            'type': 'deposit',
+        };
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.privatePostWalletOperations (this.extend (request, params));
+        //
+        //     {
+        //         "items": [
+        //         {
+        //             "operation_id": 47412538520634344,
+        //             "created": 1573760013,
+        //             "updated": 1573760013,
+        //             "type": "deposit",
+        //             "currency": "DOGE",
+        //             "status": "Paid",
+        //             "amount": "300",
+        //             "provider": "DOGE",
+        //             "commission": "0",
+        //             "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        //             "order_id": 69670170,
+        //             "extra": {
+        //                 "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        //                 "excode": "",
+        //                 "invoice": ""
+        //             },
+        //             "error": ""
+        //         },
+        //     ],
+        //         "count": 23
+        //     }
+        //
+        const items = this.safeValue (response, 'items', []);
+        const first = this.safeValue (items, 0, {});
+        return this.parseTransaction (first, currency);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {
+            'type': 'deposit',
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default: 100, maximum: 100
+        }
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.privatePostWalletOperations (this.extend (request, params));
+        //
+        //     {
+        //         "items": [
+        //         {
+        //             "operation_id": 47412538520634344,
+        //             "created": 1573760013,
+        //             "updated": 1573760013,
+        //             "type": "deposit",
+        //             "currency": "DOGE",
+        //             "status": "Paid",
+        //             "amount": "300",
+        //             "provider": "DOGE",
+        //             "commission": "0",
+        //             "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        //             "order_id": 69670170,
+        //             "extra": {
+        //                 "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        //                 "excode": "",
+        //                 "invoice": ""
+        //             },
+        //             "error": ""
+        //         },
+        //     ],
+        //         "count": 23
+        //     }
+        //
+        const items = this.safeValue (response, 'items', []);
+        return this.parseTransactions (items, currency, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

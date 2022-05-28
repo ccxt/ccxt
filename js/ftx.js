@@ -345,6 +345,7 @@ module.exports = class ftx extends Exchange {
                     'Account does not have enough balances': InsufficientFunds, // {"success":false,"error":"Account does not have enough balances"}
                     'Not authorized for subaccount-specific access': PermissionDenied, // {"success":false,"error":"Not authorized for subaccount-specific access"}
                     'Not approved to trade this product': PermissionDenied, // {"success":false,"error":"Not approved to trade this product"}
+                    'Internal Error': ExchangeNotAvailable, // {"success":false,"error":"Internal Error"}
                 },
                 'broad': {
                     // {"error":"Not logged in","success":false}
@@ -409,6 +410,13 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name ftx#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the ftx api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetCoins (params);
         const currencies = this.safeValue (response, 'result', []);
         //
@@ -743,7 +751,7 @@ module.exports = class ftx extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': this.safeString (ticker, 'quoteVolume24h'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -799,6 +807,7 @@ module.exports = class ftx extends Exchange {
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetMarkets (params);
         //
         //     {
@@ -982,13 +991,6 @@ module.exports = class ftx extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
-    }
-
-    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'index',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     parseTrade (trade, market = undefined) {
@@ -1286,12 +1288,12 @@ module.exports = class ftx extends Exchange {
         //        ]
         //      }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeValue (response, 'result', []);
         const rates = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const marketId = this.safeString (entry, 'future');
-            const timestamp = this.parse8601 (this.safeString (result[i], 'time'));
+            const timestamp = this.parse8601 (this.safeString (entry, 'time'));
             rates.push ({
                 'info': entry,
                 'symbol': this.safeSymbol (marketId),
@@ -2166,11 +2168,7 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', []);
-        const results = [];
-        for (let i = 0; i < result.length; i++) {
-            results.push (this.parsePosition (result[i]));
-        }
-        return this.filterByArray (results, 'symbol', symbols, false);
+        return this.parsePositions (result, symbols);
     }
 
     parsePosition (position, market = undefined) {

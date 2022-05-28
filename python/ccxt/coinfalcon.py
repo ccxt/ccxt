@@ -154,7 +154,7 @@ class coinfalcon(Exchange):
         #        ]
         #    }
         #
-        markets = self.safe_value(response, 'data')
+        markets = self.safe_value(response, 'data', [])
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -252,7 +252,7 @@ class coinfalcon(Exchange):
             'baseVolume': None,
             'quoteVolume': self.safe_string(ticker, 'volume'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """
@@ -293,7 +293,7 @@ class coinfalcon(Exchange):
         #         ]
         #     }
         #
-        tickers = self.safe_value(response, 'data')
+        tickers = self.safe_value(response, 'data', [])
         result = {}
         for i in range(0, len(tickers)):
             ticker = self.parse_ticker(tickers[i])
@@ -475,7 +475,7 @@ class coinfalcon(Exchange):
 
     def parse_balance(self, response):
         result = {'info': response}
-        balances = self.safe_value(response, 'data')
+        balances = self.safe_value(response, 'data', [])
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency_code')

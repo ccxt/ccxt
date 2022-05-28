@@ -339,6 +339,11 @@ class bitrue extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {dict} $params extra parameters specific to the bitrue api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure status structure}
+         */
         $response = yield $this->v1PublicGetPing ($params);
         //
         // empty means working status.
@@ -358,6 +363,11 @@ class bitrue extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the bitrue api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = yield $this->v1PublicGetTime ($params);
         //
         //     {
@@ -440,6 +450,11 @@ class bitrue extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the bitrue api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = yield $this->v1PublicGetExchangeInfo ($params);
         //
         //     {
@@ -785,7 +800,7 @@ class bitrue extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'baseVolume'),
             'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -834,6 +849,12 @@ class bitrue extends Exchange {
     }
 
     public function fetch_bids_asks($symbols = null, $params = array ()) {
+        /**
+         * fetches the bid and ask price and volume for multiple markets
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {dict} $params extra parameters specific to the bitrue api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
         yield $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchBidsAsks', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
@@ -841,7 +862,7 @@ class bitrue extends Exchange {
         $method = null;
         if ($type === 'future') {
             $method = 'fapiPublicGetTickerBookTicker';
-        } else if ($type === 'delivery') {
+        } elseif ($type === 'delivery') {
             $method = 'dapiPublicGetTickerBookTicker';
         } else {
             $method = 'publicGetTickerBookTicker';
@@ -952,9 +973,9 @@ class bitrue extends Exchange {
         $orderId = $this->safe_string($trade, 'orderId');
         if (is_array($trade) && array_key_exists('m', $trade)) {
             $side = $trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
-        } else if (is_array($trade) && array_key_exists('isBuyerMaker', $trade)) {
+        } elseif (is_array($trade) && array_key_exists('isBuyerMaker', $trade)) {
             $side = $trade['isBuyerMaker'] ? 'sell' : 'buy';
-        } else if (is_array($trade) && array_key_exists('side', $trade)) {
+        } elseif (is_array($trade) && array_key_exists('side', $trade)) {
             $side = $this->safe_string_lower($trade, 'side');
         } else {
             if (is_array($trade) && array_key_exists('isBuyer', $trade)) {
@@ -1106,9 +1127,9 @@ class bitrue extends Exchange {
         $lastTradeTimestamp = null;
         if (is_array($order) && array_key_exists('time', $order)) {
             $timestamp = $this->safe_integer($order, 'time');
-        } else if (is_array($order) && array_key_exists('transactTime', $order)) {
+        } elseif (is_array($order) && array_key_exists('transactTime', $order)) {
             $timestamp = $this->safe_integer($order, 'transactTime');
-        } else if (is_array($order) && array_key_exists('updateTime', $order)) {
+        } elseif (is_array($order) && array_key_exists('updateTime', $order)) {
             if ($status === 'open') {
                 if (Precise::string_gt($filled, '0')) {
                     $lastTradeTimestamp = $this->safe_integer($order, 'updateTime');
@@ -1773,7 +1794,7 @@ class bitrue extends Exchange {
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
         if ((is_array($config) && array_key_exists('noSymbol', $config)) && !(is_array($params) && array_key_exists('symbol', $params))) {
             return $config['noSymbol'];
-        } else if ((is_array($config) && array_key_exists('byLimit', $config)) && (is_array($params) && array_key_exists('limit', $params))) {
+        } elseif ((is_array($config) && array_key_exists('byLimit', $config)) && (is_array($params) && array_key_exists('limit', $params))) {
             $limit = $params['limit'];
             $byLimit = $config['byLimit'];
             for ($i = 0; $i < count($byLimit); $i++) {

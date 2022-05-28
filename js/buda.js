@@ -224,7 +224,7 @@ module.exports = class buda extends Exchange {
          * @returns {[dict]} an array of objects representing market data
          */
         const marketsResponse = await this.publicGetMarkets (params);
-        const markets = this.safeValue (marketsResponse, 'markets');
+        const markets = this.safeValue (marketsResponse, 'markets', []);
         const currenciesResponse = await this.publicGetCurrencies ();
         const currencies = this.safeValue (currenciesResponse, 'currencies');
         const result = [];
@@ -291,6 +291,13 @@ module.exports = class buda extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name buda#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the buda api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetCurrencies ();
         //
         //     {
@@ -479,7 +486,7 @@ module.exports = class buda extends Exchange {
             'baseVolume': this.safeString (baseVolume, 0),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -608,7 +615,7 @@ module.exports = class buda extends Exchange {
 
     parseBalance (response) {
         const result = { 'info': response };
-        const balances = this.safeValue (response, 'balances');
+        const balances = this.safeValue (response, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'id');

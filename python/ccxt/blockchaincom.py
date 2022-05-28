@@ -220,9 +220,9 @@ class blockchaincom(Exchange):
             active = None
             marketState = self.safe_string(market, 'status')
             if marketState == 'open':
-                active = 'true'
+                active = True
             else:
-                active = 'false'
+                active = False
             # price precision
             minPriceIncrementString = self.safe_string(market, 'min_price_increment')
             minPriceIncrementScaleString = self.safe_string(market, 'min_price_increment_scale')
@@ -367,7 +367,7 @@ class blockchaincom(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """

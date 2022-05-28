@@ -230,7 +230,7 @@ module.exports = class tidebit extends Exchange {
     }
 
     parseBalance (response) {
-        const balances = this.safeValue (response, 'accounts');
+        const balances = this.safeValue (response, 'accounts', []);
         const result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -320,7 +320,7 @@ module.exports = class tidebit extends Exchange {
             'baseVolume': this.safeString (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

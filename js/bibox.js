@@ -15,6 +15,8 @@ module.exports = class bibox extends Exchange {
             'name': 'Bibox',
             'countries': [ 'CN', 'US', 'KR' ],
             'version': 'v1',
+            // 30 requests per 5 seconds => 6 requests per second => rateLimit = 166.667 ms (166.6666...)
+            'rateLimit': 166.667,
             'hostname': 'bibox.com',
             'has': {
                 'CORS': undefined,
@@ -73,30 +75,30 @@ module.exports = class bibox extends Exchange {
             },
             'api': {
                 'public': {
-                    'post': [
+                    'post': {
                         // TODO: rework for full endpoint/cmd paths here
-                        'mdata',
-                    ],
-                    'get': [
-                        'cquery',
-                        'mdata',
-                        'cdata',
-                        'orderpending',
-                    ],
+                        'mdata': 1,
+                    },
+                    'get': {
+                        'cquery': 1,
+                        'mdata': 1,
+                        'cdata': 1,
+                        'orderpending': 1,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'cquery',
-                        'ctrade',
-                        'user',
-                        'orderpending',
-                        'transfer',
-                    ],
+                    'post': {
+                        'cquery': 1,
+                        'ctrade': 1,
+                        'user': 1,
+                        'orderpending': 1,
+                        'transfer': 1,
+                    },
                 },
                 'v2private': {
-                    'post': [
-                        'assets/transfer/spot',
-                    ],
+                    'post': {
+                        'assets/transfer/spot': 1,
+                    },
                 },
             },
             'fees': {
@@ -182,7 +184,7 @@ module.exports = class bibox extends Exchange {
         //         "ver":"1.1"
         //     }
         //
-        const markets = this.safeValue (response, 'result');
+        const markets = this.safeValue (response, 'result', []);
         const request2 = {
             'cmd': 'tradeLimit',
         };
@@ -320,7 +322,7 @@ module.exports = class bibox extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': this.safeString (ticker, 'amount'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -508,6 +510,13 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name bibox#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the bibox api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         if (this.checkRequiredCredentials (false)) {
             return await this.fetchCurrenciesPrivate (params);
         } else {
@@ -540,7 +549,7 @@ module.exports = class bibox extends Exchange {
         //         "cmd":"currencies"
         //     }
         //
-        const currencies = this.safeValue (response, 'result');
+        const currencies = this.safeValue (response, 'result', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
@@ -638,7 +647,7 @@ module.exports = class bibox extends Exchange {
         //
         const outerResults = this.safeValue (response, 'result');
         const firstResult = this.safeValue (outerResults, 0, {});
-        const currencies = this.safeValue (firstResult, 'result');
+        const currencies = this.safeValue (firstResult, 'result', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];

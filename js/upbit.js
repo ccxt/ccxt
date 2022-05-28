@@ -643,7 +643,7 @@ module.exports = class upbit extends Exchange {
             'baseVolume': this.safeString (ticker, 'acc_trade_volume_24h'),
             'quoteVolume': this.safeString (ticker, 'acc_trade_price_24h'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

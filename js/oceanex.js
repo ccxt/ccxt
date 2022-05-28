@@ -163,7 +163,7 @@ module.exports = class oceanex extends Exchange {
         //    },
         //
         const result = [];
-        const markets = this.safeValue (response, 'data');
+        const markets = this.safeValue (response, 'data', []);
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeValue (market, 'id');
@@ -297,7 +297,7 @@ module.exports = class oceanex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = data[i];
@@ -347,7 +347,7 @@ module.exports = class oceanex extends Exchange {
             'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -530,6 +530,13 @@ module.exports = class oceanex extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name oceanex#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the oceanex api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetTimestamp (params);
         //
         //     {"code":0,"message":"Operation successful","data":1559433420}
@@ -539,7 +546,7 @@ module.exports = class oceanex extends Exchange {
 
     async fetchTradingFees (params = {}) {
         const response = await this.publicGetFeesTrading (params);
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const group = data[i];
@@ -565,7 +572,7 @@ module.exports = class oceanex extends Exchange {
 
     parseBalance (response) {
         const data = this.safeValue (response, 'data');
-        const balances = this.safeValue (data, 'accounts');
+        const balances = this.safeValue (data, 'accounts', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];

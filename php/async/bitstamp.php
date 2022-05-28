@@ -516,6 +516,11 @@ class bitstamp extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the bitstamp api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = yield $this->fetch_markets_from_cache($params);
         //
         //     array(
@@ -635,7 +640,7 @@ class bitstamp extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -834,7 +839,7 @@ class bitstamp extends Exchange {
             $side = $this->safe_string($trade, 'type');
             if ($side === '1') {
                 $side = 'sell';
-            } else if ($side === '0') {
+            } elseif ($side === '0') {
                 $side = 'buy';
             } else {
                 $side = null;
@@ -1102,7 +1107,7 @@ class bitstamp extends Exchange {
         );
         if ($type === 'market') {
             $method .= 'Market';
-        } else if ($type === 'instant') {
+        } elseif ($type === 'instant') {
             $method .= 'Instant';
         } else {
             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -1345,10 +1350,10 @@ class bitstamp extends Exchange {
         $amount = null;
         if (is_array($transaction) && array_key_exists('amount', $transaction)) {
             $amount = $this->safe_number($transaction, 'amount');
-        } else if ($currency !== null) {
+        } elseif ($currency !== null) {
             $amount = $this->safe_number($transaction, $currency['id'], $amount);
             $feeCurrency = $currency['code'];
-        } else if (($code !== null) && ($currencyId !== null)) {
+        } elseif (($code !== null) && ($currencyId !== null)) {
             $amount = $this->safe_number($transaction, $currencyId, $amount);
             $feeCurrency = $code;
         }
@@ -1366,7 +1371,7 @@ class bitstamp extends Exchange {
             $rawType = $this->safe_string($transaction, 'type');
             if ($rawType === '0') {
                 $type = 'deposit';
-            } else if ($rawType === '1') {
+            } elseif ($rawType === '1') {
                 $type = 'withdrawal';
             }
         } else {
@@ -1589,7 +1594,7 @@ class bitstamp extends Exchange {
             if (is_array($item) && array_key_exists('amount', $item)) {
                 $amount = $this->safe_number($item, 'amount');
                 $direction = ($amount > 0) ? 'in' : 'out';
-            } else if ((is_array($parsedTransaction) && array_key_exists('currency', $parsedTransaction)) && $parsedTransaction['currency'] !== null) {
+            } elseif ((is_array($parsedTransaction) && array_key_exists('currency', $parsedTransaction)) && $parsedTransaction['currency'] !== null) {
                 $currencyCode = $this->safe_string($parsedTransaction, 'currency');
                 $currency = $this->currency($currencyCode);
                 $amount = $this->safe_number($item, $currency['id']);
@@ -1699,7 +1704,7 @@ class bitstamp extends Exchange {
                 if ($tag !== null) {
                     $request['destination_tag'] = $tag;
                 }
-            } else if ($code === 'XLM' || $code === 'HBAR') {
+            } elseif ($code === 'XLM' || $code === 'HBAR') {
                 if ($tag !== null) {
                     $request['memo_id'] = $tag;
                 }
@@ -1778,7 +1783,7 @@ class bitstamp extends Exchange {
             $errors = array();
             if (gettype($error) === 'string') {
                 $errors[] = $error;
-            } else if ($error !== null) {
+            } elseif ($error !== null) {
                 $keys = is_array($error) ? array_keys($error) : array();
                 for ($i = 0; $i < count($keys); $i++) {
                     $key = $keys[$i];

@@ -10,6 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\BadSymbol;
+use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
 use \ccxt\DDoSProtection;
 use \ccxt\Precise;
@@ -29,21 +30,27 @@ class bitmex extends Exchange {
                 'CORS' => null,
                 'spot' => false,
                 'margin' => false,
-                'swap' => null, // has but not fully implemented
-                'future' => null, // has but not fully implemented
-                'option' => null, // has but not fully implemented
+                'swap' => true,
+                'future' => true,
+                'option' => false,
+                'addMargin' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => true,
+                'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
+                'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -52,7 +59,9 @@ class bitmex extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
                 'fetchPositions' => true,
+                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -60,6 +69,11 @@ class bitmex extends Exchange {
                 'fetchTransactions' => 'emulated',
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'reduceMargin' => null,
+                'setLeverage' => true,
+                'setMargin' => null,
+                'setMarginMode' => true,
+                'setPositionMode' => false,
                 'transfer' => false,
                 'withdraw' => true,
             ),
@@ -350,11 +364,11 @@ class bitmex extends Exchange {
             $active = $status !== 'Unlisted';
             if ($swap) {
                 $type = 'swap';
-            } else if (mb_strpos($id, 'B_') !== false) {
+            } elseif (mb_strpos($id, 'B_') !== false) {
                 $prediction = true;
                 $type = 'prediction';
                 $symbol = $id;
-            } else if ($expiry !== null) {
+            } elseif ($expiry !== null) {
                 $future = true;
                 $type = 'future';
                 $symbol = $symbol . '-' . $this->yymmdd($expiry);
@@ -1273,7 +1287,7 @@ class bitmex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'homeNotional24h'),
             'quoteVolume' => $this->safe_string($ticker, 'foreignNotional24h'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -1651,12 +1665,21 @@ class bitmex extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $orderType = $this->capitalize($type);
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        if ($reduceOnly !== null) {
+            if (($market['type'] !== 'swap') && ($market['type'] !== 'future')) {
+                throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $market['type'] . ' orders, $reduceOnly orders are supported for swap and future markets only');
+            }
+        }
         $request = array(
             'symbol' => $market['id'],
             'side' => $this->capitalize($side),
-            'orderQty' => floatval($this->amount_to_precision($symbol, $amount)),
+            'orderQty' => floatval($this->amount_to_precision($symbol, $amount)), // lot size multiplied by the number of contracts
             'ordType' => $orderType,
         );
+        if ($reduceOnly) {
+            $request['execInst'] = 'ReduceOnly';
+        }
         if (($orderType === 'Stop') || ($orderType === 'StopLimit') || ($orderType === 'MarketIfTouched') || ($orderType === 'LimitIfTouched')) {
             $stopPrice = $this->safe_number_2($params, 'stopPx', 'stopPrice');
             if ($stopPrice === null) {
@@ -1782,6 +1805,7 @@ class bitmex extends Exchange {
     public function fetch_positions($symbols = null, $params = array ()) {
         yield $this->load_markets();
         $response = yield $this->privateGetPosition ($params);
+        //
         //     array(
         //         {
         //             "account" => 0,
@@ -1878,8 +1902,156 @@ class bitmex extends Exchange {
         //         }
         //     )
         //
-        // todo unify parsePosition/parsePositions
-        return $response;
+        return $this->parse_positions($response, $symbols);
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        //     {
+        //         "account" => 9371654,
+        //         "symbol" => "ETHUSDT",
+        //         "currency" => "USDt",
+        //         "underlying" => "ETH",
+        //         "quoteCurrency" => "USDT",
+        //         "commission" => 0.00075,
+        //         "initMarginReq" => 0.3333333333333333,
+        //         "maintMarginReq" => 0.01,
+        //         "riskLimit" => 1000000000000,
+        //         "leverage" => 3,
+        //         "crossMargin" => false,
+        //         "deleveragePercentile" => 1,
+        //         "rebalancedPnl" => 0,
+        //         "prevRealisedPnl" => 0,
+        //         "prevUnrealisedPnl" => 0,
+        //         "prevClosePrice" => 2053.738,
+        //         "openingTimestamp" => "2022-05-21T04:00:00.000Z",
+        //         "openingQty" => 0,
+        //         "openingCost" => 0,
+        //         "openingComm" => 0,
+        //         "openOrderBuyQty" => 0,
+        //         "openOrderBuyCost" => 0,
+        //         "openOrderBuyPremium" => 0,
+        //         "openOrderSellQty" => 0,
+        //         "openOrderSellCost" => 0,
+        //         "openOrderSellPremium" => 0,
+        //         "execBuyQty" => 2000,
+        //         "execBuyCost" => 39260000,
+        //         "execSellQty" => 0,
+        //         "execSellCost" => 0,
+        //         "execQty" => 2000,
+        //         "execCost" => 39260000,
+        //         "execComm" => 26500,
+        //         "currentTimestamp" => "2022-05-21T04:35:16.397Z",
+        //         "currentQty" => 2000,
+        //         "currentCost" => 39260000,
+        //         "currentComm" => 26500,
+        //         "realisedCost" => 0,
+        //         "unrealisedCost" => 39260000,
+        //         "grossOpenCost" => 0,
+        //         "grossOpenPremium" => 0,
+        //         "grossExecCost" => 39260000,
+        //         "isOpen" => true,
+        //         "markPrice" => 1964.195,
+        //         "markValue" => 39283900,
+        //         "riskValue" => 39283900,
+        //         "homeNotional" => 0.02,
+        //         "foreignNotional" => -39.2839,
+        //         "posState" => "",
+        //         "posCost" => 39260000,
+        //         "posCost2" => 39260000,
+        //         "posCross" => 0,
+        //         "posInit" => 13086667,
+        //         "posComm" => 39261,
+        //         "posLoss" => 0,
+        //         "posMargin" => 13125928,
+        //         "posMaint" => 435787,
+        //         "posAllowance" => 0,
+        //         "taxableMargin" => 0,
+        //         "initMargin" => 0,
+        //         "maintMargin" => 13149828,
+        //         "sessionMargin" => 0,
+        //         "targetExcessMargin" => 0,
+        //         "varMargin" => 0,
+        //         "realisedGrossPnl" => 0,
+        //         "realisedTax" => 0,
+        //         "realisedPnl" => -26500,
+        //         "unrealisedGrossPnl" => 23900,
+        //         "longBankrupt" => 0,
+        //         "shortBankrupt" => 0,
+        //         "taxBase" => 0,
+        //         "indicativeTaxRate" => null,
+        //         "indicativeTax" => 0,
+        //         "unrealisedTax" => 0,
+        //         "unrealisedPnl" => 23900,
+        //         "unrealisedPnlPcnt" => 0.0006,
+        //         "unrealisedRoePcnt" => 0.0018,
+        //         "simpleQty" => null,
+        //         "simpleCost" => null,
+        //         "simpleValue" => null,
+        //         "simplePnl" => null,
+        //         "simplePnlPcnt" => null,
+        //         "avgCostPrice" => 1963,
+        //         "avgEntryPrice" => 1963,
+        //         "breakEvenPrice" => 1964.35,
+        //         "marginCallPrice" => 1328.5,
+        //         "liquidationPrice" => 1328.5,
+        //         "bankruptPrice" => 1308.7,
+        //         "timestamp" => "2022-05-21T04:35:16.397Z",
+        //         "lastPrice" => 1964.195,
+        //         "lastValue" => 39283900
+        //     }
+        //
+        $market = $this->safe_market($this->safe_string($position, 'symbol'), $market);
+        $symbol = $market['symbol'];
+        $datetime = $this->safe_string($position, 'timestamp');
+        $crossMargin = $this->safe_value($position, 'crossMargin');
+        $marginMode = ($crossMargin === true) ? 'cross' : 'isolated';
+        $notional = null;
+        if ($market['quote'] === 'USDT') {
+            $notional = Precise::string_mul($this->safe_string($position, 'foreignNotional'), '-1');
+        }
+        $maintenanceMargin = $this->safe_number($position, 'maintMargin');
+        $unrealisedPnl = $this->safe_number($position, 'unrealisedPnl');
+        return array(
+            'info' => $position,
+            'id' => $this->safe_string($position, 'account'),
+            'symbol' => $symbol,
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
+            'hedged' => null,
+            'side' => null,
+            'contracts' => null,
+            'contractSize' => null,
+            'entryPrice' => $this->safe_number($position, 'avgEntryPrice'),
+            'markPrice' => $this->safe_number($position, 'markPrice'),
+            'notional' => $notional,
+            'leverage' => $this->safe_number($position, 'leverage'),
+            'collateral' => null,
+            'initialMargin' => null,
+            'initialMarginPercentage' => $this->safe_number($position, 'initMarginReq'),
+            'maintenanceMargin' => $this->convert_value($maintenanceMargin, $market),
+            'maintenanceMarginPercentage' => null,
+            'unrealizedPnl' => $this->convert_value($unrealisedPnl, $market),
+            'liquidationPrice' => $this->safe_number($position, 'liquidationPrice'),
+            'marginMode' => $marginMode,
+            'marginRatio' => null,
+            'percentage' => $this->safe_number($position, 'unrealisedPnlPcnt'),
+        );
+    }
+
+    public function convert_value($value, $market = null) {
+        if (($value === null) || ($market === null)) {
+            return $value;
+        }
+        $resultValue = null;
+        $value = $this->number_to_string($value);
+        if (($market['quote'] === 'USD') || ($market['quote'] === 'EUR')) {
+            $resultValue = Precise::string_mul($value, '0.00000001');
+        }
+        if ($market['quote'] === 'USDT') {
+            $resultValue = Precise::string_mul($value, '0.000001');
+        }
+        return floatval($resultValue);
     }
 
     public function is_fiat($currency) {
@@ -2193,7 +2365,7 @@ class bitmex extends Exchange {
         if (is_array($this->currencies) && array_key_exists($symbol, $this->currencies)) {
             $code = $this->currency($symbol);
             $request['symbol'] = $code['id'];
-        } else if ($symbol !== null) {
+        } elseif ($symbol !== null) {
             $splitSymbol = explode(':', $symbol);
             $splitSymbolLength = is_array($splitSymbol) ? count($splitSymbol) : 0;
             $timeframes = array( 'nearest', 'daily', 'weekly', 'monthly', 'quarterly', 'biquarterly', 'perpetual' );
@@ -2251,6 +2423,46 @@ class bitmex extends Exchange {
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
         );
+    }
+
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
+        if (($leverage < 0.01) || ($leverage > 100)) {
+            throw new BadRequest($this->id . ' $leverage should be between 0.01 and 100');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        if ($market['type'] !== 'swap' && $market['type'] !== 'future') {
+            throw new BadSymbol($this->id . ' setLeverage() supports future and swap contracts only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'leverage' => $leverage,
+        );
+        return yield $this->privatePostPositionLeverage (array_merge($request, $params));
+    }
+
+    public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+        }
+        $marginMode = strtolower($marginMode);
+        if ($marginMode !== 'isolated' && $marginMode !== 'cross') {
+            throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        if (($market['type'] !== 'swap') && ($market['type'] !== 'future')) {
+            throw new BadSymbol($this->id . ' setMarginMode() supports swap and future contracts only');
+        }
+        $enabled = ($marginMode === 'cross') ? false : true;
+        $request = array(
+            'symbol' => $market['id'],
+            'enabled' => $enabled,
+        );
+        return yield $this->privatePostPositionIsolate (array_merge($request, $params));
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

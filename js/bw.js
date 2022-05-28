@@ -254,6 +254,13 @@ module.exports = class bw extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name bw#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the bw api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetExchangeConfigControllerWebsiteCurrencycontrollerGetCurrencyList (params);
         //
         //     {
@@ -389,7 +396,7 @@ module.exports = class bw extends Exchange {
             'baseVolume': this.safeString (ticker, 4),
             'quoteVolume': this.safeString (ticker, 9),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

@@ -187,11 +187,11 @@ class bitflyer extends Exchange {
             if ($spot) {
                 $baseId = $this->safe_string($currencies, 0);
                 $quoteId = $this->safe_string($currencies, 1);
-            } else if ($swap) {
+            } elseif ($swap) {
                 $type = 'swap';
                 $baseId = $this->safe_string($currencies, 1);
                 $quoteId = $this->safe_string($currencies, 2);
-            } else if ($future) {
+            } elseif ($future) {
                 $alias = $this->safe_string($market, 'alias');
                 if ($alias === null) {
                     // no $alias:
@@ -367,7 +367,7 @@ class bitflyer extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volume_by_product'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

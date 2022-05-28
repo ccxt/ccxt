@@ -180,7 +180,7 @@ class btcturk(Exchange):
             quoteId = self.safe_string(entry, 'denominator')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            filters = self.safe_value(entry, 'filters')
+            filters = self.safe_value(entry, 'filters', [])
             minPrice = None
             maxPrice = None
             minAmount = None
@@ -366,7 +366,7 @@ class btcturk(Exchange):
             'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         """

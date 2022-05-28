@@ -23,21 +23,27 @@ module.exports = class bitmex extends Exchange {
                 'CORS': undefined,
                 'spot': false,
                 'margin': false,
-                'swap': undefined, // has but not fully implemented
-                'future': undefined, // has but not fully implemented
-                'option': undefined, // has but not fully implemented
+                'swap': true,
+                'future': true,
+                'option': false,
+                'addMargin': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchFundingHistory': false,
+                'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
+                'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -46,7 +52,9 @@ module.exports = class bitmex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
                 'fetchPositions': true,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -54,6 +62,11 @@ module.exports = class bitmex extends Exchange {
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'reduceMargin': undefined,
+                'setLeverage': true,
+                'setMargin': undefined,
+                'setMarginMode': true,
+                'setPositionMode': false,
                 'transfer': false,
                 'withdraw': true,
             },
@@ -1277,7 +1290,7 @@ module.exports = class bitmex extends Exchange {
             'baseVolume': this.safeString (ticker, 'homeNotional24h'),
             'quoteVolume': this.safeString (ticker, 'foreignNotional24h'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -1659,12 +1672,21 @@ module.exports = class bitmex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const orderType = this.capitalize (type);
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        if (reduceOnly !== undefined) {
+            if ((market['type'] !== 'swap') && (market['type'] !== 'future')) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only');
+            }
+        }
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
-            'orderQty': parseFloat (this.amountToPrecision (symbol, amount)),
+            'orderQty': parseFloat (this.amountToPrecision (symbol, amount)), // lot size multiplied by the number of contracts
             'ordType': orderType,
         };
+        if (reduceOnly) {
+            request['execInst'] = 'ReduceOnly';
+        }
         if ((orderType === 'Stop') || (orderType === 'StopLimit') || (orderType === 'MarketIfTouched') || (orderType === 'LimitIfTouched')) {
             const stopPrice = this.safeNumber2 (params, 'stopPx', 'stopPrice');
             if (stopPrice === undefined) {
@@ -1790,6 +1812,7 @@ module.exports = class bitmex extends Exchange {
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetPosition (params);
+        //
         //     [
         //         {
         //             "account": 0,
@@ -1886,8 +1909,156 @@ module.exports = class bitmex extends Exchange {
         //         }
         //     ]
         //
-        // todo unify parsePosition/parsePositions
-        return response;
+        return this.parsePositions (response, symbols);
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //     {
+        //         "account": 9371654,
+        //         "symbol": "ETHUSDT",
+        //         "currency": "USDt",
+        //         "underlying": "ETH",
+        //         "quoteCurrency": "USDT",
+        //         "commission": 0.00075,
+        //         "initMarginReq": 0.3333333333333333,
+        //         "maintMarginReq": 0.01,
+        //         "riskLimit": 1000000000000,
+        //         "leverage": 3,
+        //         "crossMargin": false,
+        //         "deleveragePercentile": 1,
+        //         "rebalancedPnl": 0,
+        //         "prevRealisedPnl": 0,
+        //         "prevUnrealisedPnl": 0,
+        //         "prevClosePrice": 2053.738,
+        //         "openingTimestamp": "2022-05-21T04:00:00.000Z",
+        //         "openingQty": 0,
+        //         "openingCost": 0,
+        //         "openingComm": 0,
+        //         "openOrderBuyQty": 0,
+        //         "openOrderBuyCost": 0,
+        //         "openOrderBuyPremium": 0,
+        //         "openOrderSellQty": 0,
+        //         "openOrderSellCost": 0,
+        //         "openOrderSellPremium": 0,
+        //         "execBuyQty": 2000,
+        //         "execBuyCost": 39260000,
+        //         "execSellQty": 0,
+        //         "execSellCost": 0,
+        //         "execQty": 2000,
+        //         "execCost": 39260000,
+        //         "execComm": 26500,
+        //         "currentTimestamp": "2022-05-21T04:35:16.397Z",
+        //         "currentQty": 2000,
+        //         "currentCost": 39260000,
+        //         "currentComm": 26500,
+        //         "realisedCost": 0,
+        //         "unrealisedCost": 39260000,
+        //         "grossOpenCost": 0,
+        //         "grossOpenPremium": 0,
+        //         "grossExecCost": 39260000,
+        //         "isOpen": true,
+        //         "markPrice": 1964.195,
+        //         "markValue": 39283900,
+        //         "riskValue": 39283900,
+        //         "homeNotional": 0.02,
+        //         "foreignNotional": -39.2839,
+        //         "posState": "",
+        //         "posCost": 39260000,
+        //         "posCost2": 39260000,
+        //         "posCross": 0,
+        //         "posInit": 13086667,
+        //         "posComm": 39261,
+        //         "posLoss": 0,
+        //         "posMargin": 13125928,
+        //         "posMaint": 435787,
+        //         "posAllowance": 0,
+        //         "taxableMargin": 0,
+        //         "initMargin": 0,
+        //         "maintMargin": 13149828,
+        //         "sessionMargin": 0,
+        //         "targetExcessMargin": 0,
+        //         "varMargin": 0,
+        //         "realisedGrossPnl": 0,
+        //         "realisedTax": 0,
+        //         "realisedPnl": -26500,
+        //         "unrealisedGrossPnl": 23900,
+        //         "longBankrupt": 0,
+        //         "shortBankrupt": 0,
+        //         "taxBase": 0,
+        //         "indicativeTaxRate": null,
+        //         "indicativeTax": 0,
+        //         "unrealisedTax": 0,
+        //         "unrealisedPnl": 23900,
+        //         "unrealisedPnlPcnt": 0.0006,
+        //         "unrealisedRoePcnt": 0.0018,
+        //         "simpleQty": null,
+        //         "simpleCost": null,
+        //         "simpleValue": null,
+        //         "simplePnl": null,
+        //         "simplePnlPcnt": null,
+        //         "avgCostPrice": 1963,
+        //         "avgEntryPrice": 1963,
+        //         "breakEvenPrice": 1964.35,
+        //         "marginCallPrice": 1328.5,
+        //         "liquidationPrice": 1328.5,
+        //         "bankruptPrice": 1308.7,
+        //         "timestamp": "2022-05-21T04:35:16.397Z",
+        //         "lastPrice": 1964.195,
+        //         "lastValue": 39283900
+        //     }
+        //
+        market = this.safeMarket (this.safeString (position, 'symbol'), market);
+        const symbol = market['symbol'];
+        const datetime = this.safeString (position, 'timestamp');
+        const crossMargin = this.safeValue (position, 'crossMargin');
+        const marginMode = (crossMargin === true) ? 'cross' : 'isolated';
+        let notional = undefined;
+        if (market['quote'] === 'USDT') {
+            notional = Precise.stringMul (this.safeString (position, 'foreignNotional'), '-1');
+        }
+        const maintenanceMargin = this.safeNumber (position, 'maintMargin');
+        const unrealisedPnl = this.safeNumber (position, 'unrealisedPnl');
+        return {
+            'info': position,
+            'id': this.safeString (position, 'account'),
+            'symbol': symbol,
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+            'hedged': undefined,
+            'side': undefined,
+            'contracts': undefined,
+            'contractSize': undefined,
+            'entryPrice': this.safeNumber (position, 'avgEntryPrice'),
+            'markPrice': this.safeNumber (position, 'markPrice'),
+            'notional': notional,
+            'leverage': this.safeNumber (position, 'leverage'),
+            'collateral': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': this.safeNumber (position, 'initMarginReq'),
+            'maintenanceMargin': this.convertValue (maintenanceMargin, market),
+            'maintenanceMarginPercentage': undefined,
+            'unrealizedPnl': this.convertValue (unrealisedPnl, market),
+            'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
+            'marginMode': marginMode,
+            'marginRatio': undefined,
+            'percentage': this.safeNumber (position, 'unrealisedPnlPcnt'),
+        };
+    }
+
+    convertValue (value, market = undefined) {
+        if ((value === undefined) || (market === undefined)) {
+            return value;
+        }
+        let resultValue = undefined;
+        value = this.numberToString (value);
+        if ((market['quote'] === 'USD') || (market['quote'] === 'EUR')) {
+            resultValue = Precise.stringMul (value, '0.00000001');
+        }
+        if (market['quote'] === 'USDT') {
+            resultValue = Precise.stringMul (value, '0.000001');
+        }
+        return parseFloat (resultValue);
     }
 
     isFiat (currency) {
@@ -2261,6 +2432,46 @@ module.exports = class bitmex extends Exchange {
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
         };
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        if ((leverage < 0.01) || (leverage > 100)) {
+            throw new BadRequest (this.id + ' leverage should be between 0.01 and 100');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['type'] !== 'swap' && market['type'] !== 'future') {
+            throw new BadSymbol (this.id + ' setLeverage() supports future and swap contracts only');
+        }
+        const request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        };
+        return await this.privatePostPositionLeverage (this.extend (request, params));
+    }
+
+    async setMarginMode (marginMode, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
+        marginMode = marginMode.toLowerCase ();
+        if (marginMode !== 'isolated' && marginMode !== 'cross') {
+            throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if ((market['type'] !== 'swap') && (market['type'] !== 'future')) {
+            throw new BadSymbol (this.id + ' setMarginMode() supports swap and future contracts only');
+        }
+        const enabled = (marginMode === 'cross') ? false : true;
+        const request = {
+            'symbol': market['id'],
+            'enabled': enabled,
+        };
+        return await this.privatePostPositionIsolate (this.extend (request, params));
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

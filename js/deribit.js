@@ -35,6 +35,7 @@ module.exports = class deribit extends Exchange {
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'editOrder': true,
+                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -378,6 +379,13 @@ module.exports = class deribit extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name deribit#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the deribit api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetGetTime (params);
         //
         //     {
@@ -400,6 +408,13 @@ module.exports = class deribit extends Exchange {
     }
 
     async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name deribit#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {dict} params extra parameters specific to the deribit api endpoint
+         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
         const response = await this.publicGetStatus (params);
         //
         //     {
@@ -422,6 +437,70 @@ module.exports = class deribit extends Exchange {
             'eta': undefined,
             'url': undefined,
             'info': response,
+        };
+    }
+
+    async fetchAccounts (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetGetSubaccounts (params);
+        //
+        //     {
+        //         jsonrpc: '2.0',
+        //         result: [{
+        //                 username: 'someusername',
+        //                 type: 'main',
+        //                 system_name: 'someusername',
+        //                 security_keys_enabled: false,
+        //                 security_keys_assignments: [],
+        //                 receive_notifications: false,
+        //                 login_enabled: true,
+        //                 is_password: true,
+        //                 id: '238216',
+        //                 email: 'pablo@abcdef.com'
+        //             },
+        //             {
+        //                 username: 'someusername_1',
+        //                 type: 'subaccount',
+        //                 system_name: 'someusername_1',
+        //                 security_keys_enabled: false,
+        //                 security_keys_assignments: [],
+        //                 receive_notifications: false,
+        //                 login_enabled: false,
+        //                 is_password: false,
+        //                 id: '245499',
+        //                 email: 'pablo@abcdef.com'
+        //             }
+        //         ],
+        //         usIn: '1652736468292006',
+        //         usOut: '1652736468292377',
+        //         usDiff: '371',
+        //         testnet: false
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        return this.parseAccounts (result);
+    }
+
+    parseAccount (account, currency = undefined) {
+        //
+        //      {
+        //          username: 'someusername_1',
+        //          type: 'subaccount',
+        //          system_name: 'someusername_1',
+        //          security_keys_enabled: false,
+        //          security_keys_assignments: [],
+        //          receive_notifications: false,
+        //          login_enabled: false,
+        //          is_password: false,
+        //          id: '245499',
+        //          email: 'pablo@abcdef.com'
+        //      }
+        //
+        return {
+            'info': account,
+            'id': this.safeString (account, 'id'),
+            'type': this.safeString (account, 'type'),
+            'code': this.safeCurrencyCode (undefined, currency),
         };
     }
 
@@ -842,7 +921,7 @@ module.exports = class deribit extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': this.safeString (stats, 'volume'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -1967,15 +2046,13 @@ module.exports = class deribit extends Exchange {
         //
         const contract = this.safeString (position, 'instrument_name');
         market = this.safeMarket (contract, market);
-        const size = this.safeString (position, 'size');
         let side = this.safeString (position, 'direction');
         side = (side === 'buy') ? 'long' : 'short';
-        const maintenanceRate = this.safeString (position, 'maintenance_margin');
-        const markPrice = this.safeString (position, 'mark_price');
-        const notionalString = Precise.stringMul (markPrice, size);
-        const unrealisedPnl = this.safeString (position, 'floating_profit_loss');
+        const unrealizedPnl = this.safeString (position, 'floating_profit_loss');
         const initialMarginString = this.safeString (position, 'initial_margin');
-        const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
+        const notionalString = this.safeString (position, 'size_currency');
+        const maintenanceMarginString = this.safeString (position, 'maintenance_margin');
+        const percentage = Precise.stringMul (Precise.stringDiv (unrealizedPnl, initialMarginString), '100');
         const currentTime = this.milliseconds ();
         return {
             'info': position,
@@ -1983,18 +2060,18 @@ module.exports = class deribit extends Exchange {
             'timestamp': currentTime,
             'datetime': this.iso8601 (currentTime),
             'initialMargin': this.parseNumber (initialMarginString),
-            'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notionalString)),
-            'maintenanceMargin': this.parseNumber (Precise.stringMul (maintenanceRate, notionalString)),
-            'maintenanceMarginPercentage': this.parseNumber (maintenanceRate),
-            'entryPrice': this.safeString (position, 'average_price'),
+            'initialMarginPercentage': this.parseNumber (Precise.stringMul (Precise.stringDiv (initialMarginString, notionalString), '100')),
+            'maintenanceMargin': this.parseNumber (maintenanceMarginString),
+            'maintenanceMarginPercentage': this.parseNumber (Precise.stringMul (Precise.stringDiv (maintenanceMarginString, notionalString), '100')),
+            'entryPrice': this.safeNumber (position, 'average_price'),
             'notional': this.parseNumber (notionalString),
-            'leverage': this.safeNumber (position, 'leverage'),
-            'unrealizedPnl': this.parseNumber (unrealisedPnl),
-            'contracts': this.parseNumber (size),  // in USD for perpetuals on deribit
-            'contractSize': this.safeValue (market, 'contractSize'),
+            'leverage': this.safeInteger (position, 'leverage'),
+            'unrealizedPnl': this.parseNumber (unrealizedPnl),
+            'contracts': undefined,
+            'contractSize': this.safeNumber (market, 'contractSize'),
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'estimated_liquidation_price'),
-            'markPrice': markPrice,
+            'markPrice': this.safeNumber (position, 'mark_price'),
             'collateral': undefined,
             'marginMode': undefined,
             'marginType': undefined, // deprecated
@@ -2038,14 +2115,6 @@ module.exports = class deribit extends Exchange {
         //
         const result = this.safeValue (response, 'result');
         return this.parsePosition (result);
-    }
-
-    parsePositions (positions) {
-        const result = [];
-        for (let i = 0; i < positions.length; i++) {
-            result.push (this.parsePosition (positions[i]));
-        }
-        return result;
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
@@ -2101,7 +2170,7 @@ module.exports = class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result');
-        return this.parsePositions (result);
+        return this.parsePositions (result, symbols);
     }
 
     async fetchHistoricalVolatility (code, params = {}) {

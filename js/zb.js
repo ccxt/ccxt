@@ -56,11 +56,13 @@ module.exports = class zb extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
+                'fetchIndexOHLCV': true,
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -696,6 +698,13 @@ module.exports = class zb extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name zb#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the zb api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.spotV1PublicGetGetFeeInfo (params);
         //
         //     {
@@ -1399,7 +1408,7 @@ module.exports = class zb extends Exchange {
         if (market['type'] === 'swap') {
             ticker = {};
             const data = this.safeValue (response, 'data');
-            const values = this.safeValue (data, market['id']);
+            const values = this.safeValue (data, market['id'], []);
             for (let i = 0; i < values.length; i++) {
                 ticker['open'] = this.safeValue (values, 0);
                 ticker['high'] = this.safeValue (values, 1);
@@ -1466,7 +1475,7 @@ module.exports = class zb extends Exchange {
             'baseVolume': this.safeString (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -1612,20 +1621,6 @@ module.exports = class zb extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
-    }
-
-    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'mark',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
-    }
-
-    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'index',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     parseTrade (trade, market = undefined) {
@@ -3202,7 +3197,7 @@ module.exports = class zb extends Exchange {
         //         "desc": "操作成功"
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const rates = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -3521,10 +3516,6 @@ module.exports = class zb extends Exchange {
 
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
-        if (symbols !== undefined) {
-            market = this.market (symbols);
-        }
         const request = {
             'futuresAccountType': 1, // 1: USDT-M Perpetual Futures
             // 'symbol': market['id'],
@@ -3582,7 +3573,7 @@ module.exports = class zb extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parsePositions (data, market);
+        return this.parsePositions (data, symbols);
     }
 
     parsePosition (position, market = undefined) {
@@ -3629,7 +3620,8 @@ module.exports = class zb extends Exchange {
         //         "userId": "6896693805014120448"
         //     }
         //
-        market = this.safeMarket (this.safeString (position, 'marketName'), market);
+        const marketId = this.safeString (position, 'marketName');
+        market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const contracts = this.safeString (position, 'amount');
         const entryPrice = this.safeNumber (position, 'avgPrice');
@@ -3670,14 +3662,6 @@ module.exports = class zb extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-    }
-
-    parsePositions (positions) {
-        const result = [];
-        for (let i = 0; i < positions.length; i++) {
-            result.push (this.parsePosition (positions[i]));
-        }
-        return result;
     }
 
     parseLedgerEntryType (type) {
@@ -4073,7 +4057,7 @@ module.exports = class zb extends Exchange {
         //     }
         //
         const timestamp = this.milliseconds ();
-        const data = this.safeValue (response, 'result');
+        const data = this.safeValue (response, 'result', []);
         const rates = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];

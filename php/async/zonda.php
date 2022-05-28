@@ -286,7 +286,7 @@ class zonda extends Exchange {
         //     }
         //
         $result = array();
-        $items = $this->safe_value($response, 'items');
+        $items = $this->safe_value($response, 'items', array());
         $keys = is_array($items) ? array_keys($items) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $id = $keys[$i];
@@ -563,7 +563,7 @@ class zonda extends Exchange {
             'baseVolume' => $volume,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1444,13 +1444,13 @@ class zonda extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'v1_01Public') {
+        } elseif ($api === 'v1_01Public') {
             $query = $this->omit($params, $this->extract_params($path));
             $url .= '/' . $this->implode_params($path, $params);
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'v1_01Private') {
+        } elseif ($api === 'v1_01Private') {
             $this->check_required_credentials();
             $query = $this->omit($params, $this->extract_params($path));
             $url .= '/' . $this->implode_params($path, $params);
@@ -1461,7 +1461,7 @@ class zonda extends Exchange {
                     $url .= '?' . $this->urlencode($query);
                 }
                 $payload = $this->apiKey . $nonce;
-            } else if ($body === null) {
+            } elseif ($body === null) {
                 $body = $this->json($query);
                 $payload = $this->apiKey . $nonce . $body;
             }
@@ -1521,7 +1521,7 @@ class zonda extends Exchange {
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions, $code, $feedback);
             throw new ExchangeError($feedback);
-        } else if (is_array($response) && array_key_exists('status', $response)) {
+        } elseif (is_array($response) && array_key_exists('status', $response)) {
             //
             //      array("status":"Fail","errors":["OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS"])
             //

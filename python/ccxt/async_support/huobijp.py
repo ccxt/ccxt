@@ -341,6 +341,11 @@ class huobijp(Exchange):
         })
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the huobijp api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.publicGetCommonTimestamp(params)
         return self.safe_integer(response, 'data')
 
@@ -449,7 +454,7 @@ class huobijp(Exchange):
         #         ]
         #    }
         #
-        markets = self.safe_value(response, 'data')
+        markets = self.safe_value(response, 'data', [])
         numMarkets = len(markets)
         if numMarkets < 1:
             raise NetworkError(self.id + ' fetchMarkets() returned empty response: ' + self.json(markets))
@@ -598,7 +603,7 @@ class huobijp(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         """
@@ -694,7 +699,7 @@ class huobijp(Exchange):
         """
         await self.load_markets()
         response = await self.marketGetTickers(params)
-        tickers = self.safe_value(response, 'data')
+        tickers = self.safe_value(response, 'data', [])
         timestamp = self.safe_integer(response, 'ts')
         result = {}
         for i in range(0, len(tickers)):
@@ -851,7 +856,7 @@ class huobijp(Exchange):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             trades = self.safe_value(data[i], 'data', [])
@@ -923,6 +928,11 @@ class huobijp(Exchange):
         return response['data']
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the huobijp api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         request = {
             'language': self.options['language'],
         }
@@ -967,7 +977,7 @@ class huobijp(Exchange):
         #         ]
         #     }
         #
-        currencies = self.safe_value(response, 'data')
+        currencies = self.safe_value(response, 'data', [])
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]

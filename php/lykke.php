@@ -171,6 +171,11 @@ class lykke extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {dict} $params extra parameters specific to the lykke api endpoint
+         * @return {dict} an associative dictionary of $currencies
+         */
         $response = $this->publicGetAssets ($params);
         $currencies = $this->safe_value($response, 'payload', array());
         //
@@ -396,7 +401,7 @@ class lykke extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volumeBase'),
             'quoteVolume' => $this->safe_string($ticker, 'volumeQuote'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1149,7 +1154,7 @@ class lykke extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             if (($method === 'GET') || ($method === 'DELETE')) {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);

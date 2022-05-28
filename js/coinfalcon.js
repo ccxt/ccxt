@@ -153,7 +153,7 @@ module.exports = class coinfalcon extends Exchange {
         //        ]
         //    }
         //
-        const markets = this.safeValue (response, 'data');
+        const markets = this.safeValue (response, 'data', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -253,7 +253,7 @@ module.exports = class coinfalcon extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': this.safeString (ticker, 'volume'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -300,7 +300,7 @@ module.exports = class coinfalcon extends Exchange {
         //         ]
         //     }
         //
-        const tickers = this.safeValue (response, 'data');
+        const tickers = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i]);
@@ -499,7 +499,7 @@ module.exports = class coinfalcon extends Exchange {
 
     parseBalance (response) {
         const result = { 'info': response };
-        const balances = this.safeValue (response, 'data');
+        const balances = this.safeValue (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency_code');

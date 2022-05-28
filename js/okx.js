@@ -70,6 +70,7 @@ module.exports = class okx extends Exchange {
                 'fetchMySells': undefined,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -346,7 +347,7 @@ module.exports = class okx extends Exchange {
                     '50023': ExchangeError, // Funding fee frozen. Operation restricted
                     '50024': BadRequest, // Parameter {0} and {1} can not exist at the same time
                     '50025': ExchangeError, // Parameter {0} count exceeds the limit {1}
-                    '50026': ExchangeError, // System error
+                    '50026': ExchangeNotAvailable, // System error, please try again later.
                     '50027': PermissionDenied, // The account is restricted from trading
                     '50028': ExchangeError, // Unable to take the order, please reach out to support center for details
                     // API Class
@@ -592,6 +593,7 @@ module.exports = class okx extends Exchange {
                     '63999': ExchangeError, // Internal system error
                 },
                 'broad': {
+                    'server error': ExchangeNotAvailable, // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249"}
                 },
             },
             'httpExceptions': {
@@ -612,6 +614,16 @@ module.exports = class okx extends Exchange {
                 'layerTwo': {
                     'Lightning': true,
                     'Liquid': true,
+                },
+                'fetchOpenInterestHistory': {
+                    'timeframes': {
+                        '5m': '5m',
+                        '1h': '1H',
+                        '1d': '1D',
+                        '5M': '5m',
+                        '1H': '1H',
+                        '1D': '1D',
+                    },
                 },
                 'fetchOHLCV': {
                     // 'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
@@ -712,6 +724,13 @@ module.exports = class okx extends Exchange {
     }
 
     async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name okx#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {dict} params extra parameters specific to the okx api endpoint
+         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
         const response = await this.publicGetSystemStatus (params);
         //
         // Note, if there is no maintenance around, the 'data' array is empty
@@ -755,6 +774,13 @@ module.exports = class okx extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name okx#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the okx api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetPublicTime (params);
         //
         //     {
@@ -1047,6 +1073,13 @@ module.exports = class okx extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name okx#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the okx api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
@@ -1282,7 +1315,7 @@ module.exports = class okx extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -1635,7 +1668,7 @@ module.exports = class okx extends Exchange {
         //     }
         //
         const rates = [];
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const rate = data[i];
             const timestamp = this.safeNumber (rate, 'fundingTime');
@@ -1648,20 +1681,6 @@ module.exports = class okx extends Exchange {
         }
         const sorted = this.sortBy (rates, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
-    }
-
-    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'index',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
-    }
-
-    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'mark',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     parseBalanceByType (type, response) {
@@ -2076,6 +2095,11 @@ module.exports = class okx extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        const stop = this.safeValue (params, 'stop');
+        if (stop) {
+            const order = await this.cancelOrders ([ id ], symbol, params);
+            return this.safeValue (order, 0);
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -2100,7 +2124,23 @@ module.exports = class okx extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrders (ids, symbol = undefined, params = {}) { // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
+    parseIds (ids) {
+        /**
+         * @ignore
+         * @method
+         * @name okx#parseIds
+         * @param {[str]|str} ids order ids
+         * @returns {[str]} list of order ids
+         */
+        if (typeof ids === 'string') {
+            return ids.split (',');
+        } else {
+            return ids;
+        }
+    }
+
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
@@ -2110,57 +2150,44 @@ module.exports = class okx extends Exchange {
         const options = this.safeValue (this.options, 'cancelOrders', {});
         const defaultMethod = this.safeString (options, 'method', 'privatePostTradeCancelBatchOrders');
         let method = this.safeString (params, 'method', defaultMethod);
-        const clientOrderId = this.safeValue2 (params, 'clOrdId', 'clientOrderId');
-        const algoId = this.safeValue (params, 'algoId');
+        const clientOrderIds = this.parseIds (this.safeValue2 (params, 'clOrdId', 'clientOrderId'));
+        const algoIds = this.parseIds (this.safeValue (params, 'algoId'));
         const stop = this.safeValue (params, 'stop');
-        if (clientOrderId === undefined) {
-            if (stop || algoId !== undefined) {
-                method = 'privatePostTradeCancelAlgos';
-                if (Array.isArray (algoId)) {
-                    for (let i = 0; i < algoId.length; i++) {
-                        request.push ({
-                            'instId': market['id'],
-                            'algoId': algoId[i],
-                        });
-                    }
-                } else if (typeof algoId === 'string') {
+        if (stop) {
+            method = 'privatePostTradeCancelAlgos';
+        }
+        if (clientOrderIds === undefined) {
+            ids = this.parseIds (ids);
+            if (algoIds !== undefined) {
+                for (let i = 0; i < algoIds.length; i++) {
                     request.push ({
+                        'algoId': algoIds[i],
                         'instId': market['id'],
-                        'algoId': algoId,
                     });
                 }
-            } else {
-                if (typeof ids === 'string') {
-                    const orderIds = ids.split (',');
-                    for (let i = 0; i < orderIds.length; i++) {
-                        request.push ({
-                            'instId': market['id'],
-                            'ordId': orderIds[i],
-                        });
-                    }
+            }
+            for (let i = 0; i < ids.length; i++) {
+                if (stop) {
+                    request.push ({
+                        'algoId': ids[i],
+                        'instId': market['id'],
+                    });
                 } else {
-                    for (let i = 0; i < ids.length; i++) {
-                        request.push ({
-                            'instId': market['id'],
-                            'ordId': ids[i],
-                        });
-                    }
+                    request.push ({
+                        'ordId': ids[i],
+                        'instId': market['id'],
+                    });
                 }
             }
-        } else if (Array.isArray (clientOrderId)) {
-            for (let i = 0; i < clientOrderId.length; i++) {
+        } else {
+            for (let i = 0; i < clientOrderIds.length; i++) {
                 request.push ({
                     'instId': market['id'],
-                    'clOrdId': clientOrderId[i],
+                    'clOrdId': clientOrderIds[i],
                 });
             }
-        } else if (typeof clientOrderId === 'string') {
-            request.push ({
-                'instId': market['id'],
-                'clOrdId': clientOrderId,
-            });
         }
-        const response = await this[method] (request); // dont extend with params, otherwise ARRAY will be turned into OBJECT
+        const response = await this[method] (request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         //
         //     {
         //         "code": "0",
@@ -2300,7 +2327,7 @@ module.exports = class okx extends Exchange {
         //         "uly": "BTC-USDT"
         //     }
         //
-        const id = this.safeString (order, 'ordId');
+        const id = this.safeString2 (order, 'ordId', 'algoId');
         const timestamp = this.safeInteger (order, 'cTime');
         const lastTradeTimestamp = this.safeInteger (order, 'fillTime');
         const side = this.safeString (order, 'side');
@@ -2352,7 +2379,7 @@ module.exports = class okx extends Exchange {
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
-        const stopPrice = this.safeNumber2 (order, 'slTriggerPx', 'triggerPx');
+        const stopPrice = this.safeNumber2 (order, 'triggerPx', 'slTriggerPx');
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -2382,15 +2409,14 @@ module.exports = class okx extends Exchange {
         /**
          * @method
          * @name okx#fetchOrder
-         * @description Fetch an order by the id
-         * @param {string} id The order id
-         * @param {string} symbol Unified market symbol
-         * @param {dict} params Extra and exchange specific parameters
-         * @param {integer} params.till Timestamp in ms of the latest time to retrieve orders for
-         * @param {boolean} params.stop True if fetching trigger orders
+         * @description fetch an order by the id
+         * @param {string} id the order id
+         * @param {string} symbol unified market symbol
+         * @param {dict} params extra and exchange specific parameters
+         * @param {integer} params.till timestamp in ms of the latest time to retrieve orders for
+         * @param {boolean} params.stop true if fetching trigger orders, params.ordtype set to "trigger" if true
          * @param {string} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
-         * @param {string} params.algoId Algo ID
-         * @returns [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns [an order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
@@ -2417,11 +2443,12 @@ module.exports = class okx extends Exchange {
         const ordType = this.safeString (params, 'ordType');
         const stop = this.safeValue (params, 'stop');
         if (stop || (ordType in algoOrderTypes)) {
-            if (ordType === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrder() requires an ordType parameter');
-            }
             method = 'privateGetTradeOrdersAlgoHistory';
             request['algoId'] = id;
+            if (stop) {
+                request['ordType'] = 'trigger';
+                params = this.omit (params, 'ordType');
+            }
         } else {
             if (clientOrderId !== undefined) {
                 request['clOrdId'] = clientOrderId;
@@ -2575,6 +2602,10 @@ module.exports = class okx extends Exchange {
         const stop = this.safeValue (params, 'stop');
         if (stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoPending';
+            if (stop) {
+                request['ordType'] = 'trigger';
+                params = this.omit (params, 'ordType');
+            }
         }
         const query = this.omit (params, [ 'method', 'stop' ]);
         const response = await this[method] (this.extend (request, query));
@@ -4308,7 +4339,7 @@ module.exports = class okx extends Exchange {
         //        "type": "8"
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -4853,6 +4884,77 @@ module.exports = class okx extends Exchange {
             'timestamp': timestamp,  // Interest accrued time
             'datetime': this.iso8601 (timestamp),
             'info': info,
+        };
+    }
+
+    async fetchOpenInterestHistory (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchOpenInterestHistory
+         * @description Retrieves the open interest history of a currency
+         * @param {str} symbol Unified CCXT currency code instead of a unified symbol
+         * @param {str} timeframe "5m", "1h", or "1d"
+         * @param {int} since The time in ms of the earliest record to retrieve as a unix timestamp
+         * @param {int} limit Not used by okx, but parsed internally by CCXT
+         * @param {dict} params Exchange specific parameters
+         * @param {int} params.till The time in ms of the latest record to retrieve as a unix timestamp
+         * @returns An array of open interest structures
+         */
+        const options = this.safeValue (this.options, 'fetchOpenInterestHistory', {});
+        const timeframes = this.safeValue (options, 'timeframes', {});
+        timeframe = this.safeString (timeframes, timeframe, timeframe);
+        if (timeframe !== '5m' && timeframe !== '1H' && timeframe !== '1D') {
+            throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (symbol);
+        const request = {
+            'ccy': currency['id'],
+            'period': timeframe,
+        };
+        if (since !== undefined) {
+            request['begin'] = since;
+        }
+        const till = this.safeInteger2 (params, 'till', 'end');
+        if (till !== undefined) {
+            request['end'] = till;
+        }
+        const response = await this.publicGetRubikStatContractsOpenInterestVolume (this.extend (request, params));
+        //
+        //    {
+        //        code: '0',
+        //        data: [
+        //            [
+        //                '1648221300000',  // timestamp
+        //                '2183354317.945',  // open interest (USD)
+        //                '74285877.617',  // volume (USD)
+        //            ],
+        //            ...
+        //        ],
+        //        msg: ''
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseOpenInterests (data, undefined, since, limit);
+    }
+
+    parseOpenInterest (interest, market = undefined) {
+        //
+        //    [
+        //        '1648221300000',  // timestamp
+        //        '2183354317.945',  // open interest (USD)
+        //        '74285877.617',  // volume (USD)
+        //    ]
+        //
+        const timestamp = this.safeNumber (interest, 0);
+        const openInterest = this.safeNumber (interest, 1);
+        return {
+            'symbol': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': openInterest,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
         };
     }
 
