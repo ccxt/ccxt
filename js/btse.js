@@ -1348,7 +1348,9 @@ module.exports = class btse extends Exchange {
         const txid = this.safeString (transaction, 'txId', '');
         const id = this.safeString (transaction, 'orderId');
         let addressTo = this.safeString (transaction, 'toAddress', '');
-        if (!addressTo) addressTo = undefined;
+        if (!addressTo) {
+            addressTo = undefined;
+        }
         const type = this.parseTransactionType (this.safeString (transaction, 'type'));
         const amount = this.safeNumber (transaction, 'amount');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
