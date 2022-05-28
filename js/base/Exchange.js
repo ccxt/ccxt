@@ -2057,7 +2057,7 @@ module.exports = class Exchange {
             for (let i = 0; i < reducedLength; i++) {
                 reducedFees[i]['cost'] = this.parseNumber (reducedFees[i]['cost']);
                 if ('rate' in reducedFees[i]) {
-                    reducedFees[i]['rate'] = this.parseNumber (reducedFees['i']['rate'])
+                    reducedFees[i]['rate'] = this.parseNumber (reducedFees[i]['rate'])
                 }
             }
             if (!parseFee && (reducedLength === 0)) {
