@@ -1834,7 +1834,7 @@ class mexc extends Exchange {
         if ($orderType === 'LIMIT') {
             $orderType = 'LIMIT_ORDER';
         }
-        $postOnly = $this->is_post_only($type, $params);
+        $postOnly = $this->is_post_only($type, $orderType === 'POST_ONLY', $params);
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $ioc = ($timeInForce === 'IOC');
         if ($postOnly) {
