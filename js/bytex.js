@@ -492,7 +492,7 @@ module.exports = class bytex extends Exchange {
         //             "volume":0.054,
         //             "symbol":"bch-usdt"
         //         },
-        //         // ...        
+        //         // ...
         //     }
         //
         return this.parseTickers (response, symbols);
@@ -790,7 +790,7 @@ module.exports = class bytex extends Exchange {
         //         "btc_available": 0,
         //         "eth_balance": 0,
         //         "eth_pending": 0,
-        //         "eth_available": 0, 
+        //         "eth_available": 0,
         //     }
         //
         return this.parseBalance (response);
@@ -1060,7 +1060,7 @@ module.exports = class bytex extends Exchange {
         params = this.omit (params, [ 'stopPrice', 'stop' ]);
         const meta = this.safeString (params, 'meta');
         const metaPostOnly = this.safeValue (meta, 'post_only');
-        const [ exchangeType, postOnly, timeInForce, query ] = this.isPostOnly (type, undefined, metaPostOnly, params);
+        const [ exchangeType, postOnly, query ] = this.isPostOnly (type, undefined, metaPostOnly, params);
         const request = {
             'symbol': market['id'],
             'side': side,
