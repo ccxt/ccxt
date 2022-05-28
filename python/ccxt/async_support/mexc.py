@@ -1757,8 +1757,10 @@ class mexc(Exchange):
             raise InvalidOrder(self.id + ' createOrder() does not support market orders, only limit orders are allowed')
         if orderType == 'LIMIT':
             orderType = 'LIMIT_ORDER'
-        postOnly = self.is_post_only(type, params)
-        timeInForce = self.safe_string_upper(params, 'timeInForce')
+        timeInForce = self.safe_string(params, 'timeInForce')
+        postOnly = False
+        isPostOnlyOrderType = (orderType == 'POST_ONLY')
+        type, postOnly, timeInForce, params = self.is_post_only(type, timeInForce, isPostOnlyOrderType, params)
         ioc = (timeInForce == 'IOC')
         if postOnly:
             orderType = 'POST_ONLY'
@@ -1793,14 +1795,15 @@ class mexc(Exchange):
             raise ArgumentsRequired(self.id + ' createSwapOrder() requires an integer openType parameter, 1 for isolated margin, 2 for cross margin')
         if (type != 'limit') and (type != 'market') and (type != 1) and (type != 2) and (type != 3) and (type != 4) and (type != 5) and (type != 6):
             raise InvalidOrder(self.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price')
-        postOnly = self.is_post_only(type, params)
+        timeInForce = self.safe_string(params, 'timeInForce')
+        postOnly = False
+        type, postOnly, timeInForce, params = self.is_post_only(type, timeInForce, None, params)
         if postOnly:
             type = 2
         elif type == 'limit':
             type = 1
         elif type == 'market':
             type = 6
-        timeInForce = self.safe_string_upper(params, 'timeInForce')
         ioc = (timeInForce == 'IOC')
         fok = (timeInForce == 'FOK')
         if ioc:
