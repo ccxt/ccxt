@@ -248,7 +248,7 @@ module.exports = class bkex extends Exchange {
         //     "status": 0
         // }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -336,7 +336,7 @@ module.exports = class bkex extends Exchange {
         //     "status": 0
         // }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const currency = data[i];
@@ -768,7 +768,7 @@ module.exports = class bkex extends Exchange {
         // }
         //
         const balances = this.safeValue (response, 'data');
-        const wallets = this.safeValue (balances, 'WALLET');
+        const wallets = this.safeValue (balances, 'WALLET', []);
         const result = { 'info': wallets };
         for (let i = 0; i < wallets.length; i++) {
             const wallet = wallets[i];

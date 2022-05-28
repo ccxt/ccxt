@@ -778,7 +778,7 @@ module.exports = class coinex extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         const timestamp = this.safeInteger (data, 'date');
-        const tickers = this.safeValue (data, 'ticker');
+        const tickers = this.safeValue (data, 'ticker', {});
         const marketIds = Object.keys (tickers);
         const result = {};
         for (let i = 0; i < marketIds.length; i++) {
@@ -3343,7 +3343,7 @@ module.exports = class coinex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        const result = this.safeValue (data, 'records');
+        const result = this.safeValue (data, 'records', []);
         const rates = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];

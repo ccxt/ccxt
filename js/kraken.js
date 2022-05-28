@@ -535,7 +535,7 @@ module.exports = class kraken extends Exchange {
         //         },
         //     }
         //
-        const currencies = this.safeValue (response, 'result');
+        const currencies = this.safeValue (response, 'result', {});
         const ids = Object.keys (currencies);
         const result = {};
         for (let i = 0; i < ids.length; i++) {

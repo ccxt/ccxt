@@ -222,7 +222,7 @@ module.exports = class coinmate extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -285,7 +285,7 @@ module.exports = class coinmate extends Exchange {
     }
 
     parseBalance (response) {
-        const balances = this.safeValue (response, 'data');
+        const balances = this.safeValue (response, 'data', {});
         const result = { 'info': response };
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {

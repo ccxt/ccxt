@@ -2486,7 +2486,7 @@ module.exports = class mexc3 extends Exchange {
         let response = undefined;
         if (marketType === 'spot') {
             response = await this.fetchAccountHelper ('spot', query);
-            const balances = this.safeValue (response, 'balances');
+            const balances = this.safeValue (response, 'balances', []);
             for (let i = 0; i < balances.length; i++) {
                 const entry = balances[i];
                 const currencyId = this.safeString (entry, 'asset');
@@ -2906,7 +2906,7 @@ module.exports = class mexc3 extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const result = this.safeValue (data, 'resultList');
+        const result = this.safeValue (data, 'resultList', []);
         const rates = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];

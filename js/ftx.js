@@ -1288,7 +1288,7 @@ module.exports = class ftx extends Exchange {
         //        ]
         //      }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeValue (response, 'result', []);
         const rates = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
