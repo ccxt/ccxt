@@ -15,14 +15,13 @@ module.exports = class bytex extends Exchange {
             'id': 'bytex',
             'name': 'ByteX',
             'countries': [ 'CA' ],
-            // 4 requests per second => 1000ms / 4 = 250 ms between requests
             'rateLimit': 250,
             'version': 'v2',
             'pro': false,
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
+                'margin': false,
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -34,6 +33,7 @@ module.exports = class bytex extends Exchange {
                 'createMarketBuyOrder': true,
                 'createMarketSellOrder': true,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -54,12 +54,14 @@ module.exports = class bytex extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverageTiers': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -73,18 +75,12 @@ module.exports = class bytex extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'fetchTradingFee': false,
-                'fetchTradingFees': true,
                 'fetchTransactions': undefined,
-                'fetchTransfer': false,
-                'fetchTransfers': false,
-                'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'transfer': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -317,32 +313,32 @@ module.exports = class bytex extends Exchange {
         //     {
         //         "coins":{
         //             "bch":{
-        //                 "id":4,
-        //                 "fullname":"Bitcoin Cash",
-        //                 "symbol":"bch",
-        //                 "active":true,
-        //                 "verified":true,
-        //                 "allow_deposit":true,
-        //                 "allow_withdrawal":true,
-        //                 "withdrawal_fee":0.0001,
-        //                 "min":0.001,
-        //                 "max":100000,
-        //                 "increment_unit":0.001,
-        //                 "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
-        //                 "code":"bch",
-        //                 "is_public":true,
-        //                 "meta":{},
-        //                 "estimated_price":null,
-        //                 "description":null,
-        //                 "type":"blockchain",
-        //                 "network":null,
-        //                 "standard":null,
-        //                 "issuer":"ByteX",
-        //                 "withdrawal_fees":null,
-        //                 "created_at":"2019-08-09T10:45:43.367Z",
-        //                 "updated_at":"2021-12-13T03:08:32.372Z",
-        //                 "created_by":1,
-        //                 "owner_id":1
+        //                 "id": 4,
+        //                 "fullname": "Bitcoin Cash",
+        //                 "symbol": "bch",
+        //                 "active": true,
+        //                 "verified": true,
+        //                 "allow_deposit": true,
+        //                 "allow_withdrawal": true,
+        //                 "withdrawal_fee": 0.0001,
+        //                 "min": 0.001,
+        //                 "max": 100000,
+        //                 "increment_unit": 0.001,
+        //                 "logo": "https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
+        //                 "code": "bch",
+        //                 "is_public": true,
+        //                 "meta": {},
+        //                 "estimated_price": null,
+        //                 "description": null,
+        //                 "type": "blockchain",
+        //                 "network": null,
+        //                 "standard": null,
+        //                 "issuer": "ByteX",
+        //                 "withdrawal_fees": null,
+        //                 "created_at": "2019-08-09T10:45:43.367Z",
+        //                 "updated_at": "2021-12-13T03:08:32.372Z",
+        //                 "created_by": 1,
+        //                 "owner_id": 1
         //             },
         //         },
         //     }
@@ -365,10 +361,10 @@ module.exports = class bytex extends Exchange {
             const precision = this.safeNumber (currency, 'increment_unit');
             const withdrawalLimits = this.safeValue (currency, 'withdrawal_limits', []);
             result[code] = {
+                'info': currency,
                 'id': id,
                 'numericId': numericId,
                 'code': code,
-                'info': currency,
                 'name': name,
                 'active': active,
                 'deposit': depositEnabled,
@@ -437,7 +433,6 @@ module.exports = class bytex extends Exchange {
         //             "timestamp": "2020-03-03T02:27:25.147Z"
         //         },
         //         "eth-usdt": {},
-        //         // ...
         //     }
         //
         const orderbook = this.safeValue (response, marketId);
@@ -497,24 +492,10 @@ module.exports = class bytex extends Exchange {
         //             "volume":0.054,
         //             "symbol":"bch-usdt"
         //         },
-        //         // ...
+        //         // ...        
         //     }
         //
         return this.parseTickers (response, symbols);
-    }
-
-    parseTickers (response, symbols = undefined, params = {}) {
-        const result = {};
-        const keys = Object.keys (response);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const ticker = response[key];
-            const marketId = this.safeString (ticker, 'symbol', key);
-            const market = this.safeMarket (marketId, undefined, '-');
-            const symbol = market['symbol'];
-            result[symbol] = this.extend (this.parseTicker (ticker, market), params);
-        }
-        return this.filterByArray (result, 'symbol', symbols);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -599,7 +580,6 @@ module.exports = class bytex extends Exchange {
         //                 "side": "buy",
         //                 "timestamp": "2020-03-03T04:44:33.034Z"
         //             },
-        //             // ...
         //         ]
         //     }
         //
@@ -619,15 +599,15 @@ module.exports = class bytex extends Exchange {
         //     }
         //
         // fetchMyTrades (private)
-        //  {
-        //      "side":"sell",
-        //      "symbol":"doge-usdt",
-        //      "size":70,
-        //      "price":0.147411,
-        //      "timestamp":"2022-01-26T17:53:34.650Z",
-        //      "order_id":"cba78ecb-4187-4da2-9d2f-c259aa693b5a",
-        //      "fee":0.01031877,"fee_coin":"usdt"
-        //  }
+        //
+        //     {
+        //         "side": "buy",
+        //         "symbol": "eth-usdt",
+        //         "size": 0.086,
+        //         "price": 226.19,
+        //         "timestamp": "2020-03-03T08:03:55.459Z",
+        //         "fee": 0.1
+        //     }
         //
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market, '-');
@@ -793,7 +773,42 @@ module.exports = class bytex extends Exchange {
         ];
     }
 
+    async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name bytex#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the bytex api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetUserBalance (params);
+        //
+        //     {
+        //         "btc_balance": 0,
+        //         "btc_pending": 0,
+        //         "btc_available": 0,
+        //         "eth_balance": 0,
+        //         "eth_pending": 0,
+        //         "eth_available": 0, 
+        //     }
+        //
+        return this.parseBalance (response);
+    }
+
     parseBalance (response) {
+        //
+        //     {
+        //         "user_id": '...',
+        //         "btc_balance": 0,
+        //         "btc_pending": 0,
+        //         "btc_available": 0,
+        //         "eth_balance": 0,
+        //         "eth_pending": 0,
+        //         "eth_available": 0,
+        //         ...
+        //     }
+        //
         const timestamp = this.parse8601 (this.safeString (response, 'updated_at'));
         const result = {
             'info': response,
@@ -810,31 +825,6 @@ module.exports = class bytex extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
-    }
-
-    async fetchBalance (params = {}) {
-        /**
-         * @method
-         * @name bytex#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} params extra parameters specific to the bytex api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
-         */
-        await this.loadMarkets ();
-        const response = await this.privateGetUserBalance (params);
-        //
-        //     {
-        //         "updated_at": "2020-03-02T22:27:38.428Z",
-        //         "btc_balance": 0,
-        //         "btc_pending": 0,
-        //         "btc_available": 0,
-        //         "eth_balance": 0,
-        //         "eth_pending": 0,
-        //         "eth_available": 0,
-        //         // ...
-        //     }
-        //
-        return this.parseBalance (response);
     }
 
     async fetchOpenOrder (id, symbol = undefined, params = {}) {
@@ -890,28 +880,28 @@ module.exports = class bytex extends Exchange {
             'order_id': id,
         };
         const response = await this.privateGetOrder (this.extend (request, params));
-        //             {
-        //                 "id": "string",
-        //                 "side": "sell",
-        //                 "symbol": "xht-usdt",
-        //                 "size": 0.1,
-        //                 "filled": 0,
-        //                 "stop": null,
-        //                 "fee": 0,
-        //                 "fee_coin": "usdt",
-        //                 "type": "limit",
-        //                 "price": 1.09,
-        //                 "status": "new",
-        //                 "created_by": 116,
-        //                 "created_at": "2021-02-17T02:32:38.910Z",
-        //                 "updated_at": "2021-02-17T02:32:38.910Z",
-        //                 "User": {
-        //                     "id": 116,
-        //                     "email": "fight@club.com",
-        //                     "username": "narrator",
-        //                     "exchange_id": 176
-        //                 }
-        //             }
+        //     {
+        //         "id": "string",
+        //         "side": "sell",
+        //         "symbol": "xht-usdt",
+        //         "size": 0.1,
+        //         "filled": 0,
+        //         "stop": null,
+        //         "fee": 0,
+        //         "fee_coin": "usdt",
+        //         "type": "limit",
+        //         "price": 1.09,
+        //         "status": "new",
+        //         "created_by": 116,
+        //         "created_at": "2021-02-17T02:32:38.910Z",
+        //         "updated_at": "2021-02-17T02:32:38.910Z",
+        //         "User": {
+        //             "id": 116,
+        //             "email": "fight@club.com",
+        //             "username": "narrator",
+        //             "exchange_id": 176
+        //         }
+        //     }
         const order = response;
         if (order === undefined) {
             throw new OrderNotFound (this.id + ' fetchOrder() could not find order id ' + id);
@@ -1020,37 +1010,32 @@ module.exports = class bytex extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, '-');
-        const id = this.safeString (order, 'id');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        const type = this.safeString (order, 'type');
-        const side = this.safeString (order, 'side');
-        const price = this.safeString (order, 'price');
-        const amount = this.safeString (order, 'size');
+        const meta = this.safeValue (order, 'meta');
         const filled = this.safeString (order, 'filled');
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const amount = this.safeString (order, 'size');
         return this.safeOrder ({
-            'id': id,
+            'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
+            'symbol': this.safeSymbol (marketId, market, '-'),
+            'type': this.safeString (order, 'type'),
             'timeInForce': undefined,
-            'postOnly': undefined,
-            'side': side,
-            'price': price,
-            'stopPrice': undefined,
+            'postOnly': this.safeValue (meta, 'post_only'),
+            'side': this.safeString (order, 'side'),
+            'price': this.safeString (order, 'price'),
+            'stopPrice': this.safeString (order, 'stop'),
             'amount': amount,
             'filled': filled,
             'remaining': undefined,
             'cost': undefined,
             'trades': undefined,
             'fee': undefined,
-            'info': order,
             'average': undefined,
+            'info': order,
         }, market);
     }
 
@@ -1071,24 +1056,29 @@ module.exports = class bytex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const stopPrice = this.safeFloat2 (params, 'stopPrice', 'stop');
+        params = this.omit (params, [ 'stopPrice', 'stop' ]);
+        const meta = this.safeString (params, 'meta');
+        const metaPostOnly = this.safeValue (meta, 'post_only');
+        const [ exchangeType, postOnly, timeInForce, query ] = this.isPostOnly (type, undefined, metaPostOnly, params);
         const request = {
             'symbol': market['id'],
             'side': side,
-            'size': this.normalizeNumberIfNeeded (amount),
-            'type': type,
-            // 'stop': parseFloat (this.priceToPrecision (symbol, stopPrice)),
-            // 'meta': {}, // other options such as post_only
+            'size': amount,
+            'type': exchangeType,
         };
         if (type !== 'market') {
-            const convertedPrice = parseFloat (this.priceToPrecision (symbol, price));
-            request['price'] = this.normalizeNumberIfNeeded (convertedPrice);
+            request['price'] = price;
         }
-        const stopPrice = this.safeNumber2 (params, 'stopPrice', 'stop');
         if (stopPrice !== undefined) {
-            request['stop'] = this.normalizeNumberIfNeeded (parseFloat (this.priceToPrecision (symbol, stopPrice)));
-            params = this.omit (params, [ 'stopPrice', 'stop' ]);
+            request['stop'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
         }
-        const response = await this.privatePostOrder (this.extend (request, params));
+        if (postOnly) {
+            request['meta'] = {
+                'post_only': true,
+            };
+        }
+        const response = await this.privatePostOrder (this.deepExtend (request, query));
         //
         //     {
         //         "fee": 0,
@@ -1139,13 +1129,12 @@ module.exports = class bytex extends Exchange {
 
     async cancelAllOrders (symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + " cancelAllOrders() requires a 'symbol' argument");
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
-        const request = {};
-        let market = undefined;
-        market = this.market (symbol);
-        request['symbol'] = market['id'];
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
         const response = await this.privateDeleteOrderAll (this.extend (request, params));
         //
         //     [
@@ -1233,15 +1222,30 @@ module.exports = class bytex extends Exchange {
             'currency': currency['code'],
             'address': address,
             'tag': tag,
-            'network': network,
+            'network': this.safeNetwork (network),
             'info': depositAddress,
         };
+    }
+
+    safeNetwork (networkId) {
+        const networksById = {
+            'trx': 'TRC20',
+            'eth': 'ERC20',
+        };
+        return this.safeString (networksById, networkId, networkId);
     }
 
     async fetchDepositAddresses (codes = undefined, params = {}) {
         await this.loadMarkets ();
         const network = this.safeString (params, 'network');
+        let exchangeNetwork = undefined;
         params = this.omit (params, 'network');
+        if (network !== undefined) {
+            exchangeNetwork = this.safeString (this.options['networks'], network);
+            if (exchangeNetwork === undefined) {
+                throw new BadRequest (this.name + ' has no network ' + network);
+            }
+        }
         const response = await this.privateGetUser (params);
         //
         //     {
