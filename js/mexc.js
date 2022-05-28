@@ -1848,7 +1848,7 @@ module.exports = class mexc extends Exchange {
         if (orderType === 'LIMIT') {
             orderType = 'LIMIT_ORDER';
         }
-        const postOnly = this.isPostOnly (type, params);
+        const postOnly = this.isPostOnly (type, orderType === 'POST_ONLY', params);
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         const ioc = (timeInForce === 'IOC');
         if (postOnly) {

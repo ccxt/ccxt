@@ -2302,12 +2302,13 @@ module.exports = class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    isPostOnly (type, params = {}) {
+    isPostOnly (type, exchangeSpecificParam, params = {}) {
         /**
          * @ignore
          * @method
          * @param {string} type Order type
-         * @param {dict} params Exchange specific params
+         * @param {boolean} exchangeSpecificParam exchange specific postOnly
+         * @param {dict} params exchange specific params
          * @returns {boolean} true if a post only order, false otherwise
          */
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
@@ -2318,7 +2319,7 @@ module.exports = class Exchange {
         const timeInForcePostOnly = timeInForce === 'PO';
         const typeLower = type.toLowerCase ();
         const isMarket = typeLower === 'market';
-        postOnly = postOnly || timeInForcePostOnly;
+        postOnly = postOnly || timeInForcePostOnly || exchangeSpecificParam;
         if (postOnly) {
             if (ioc || fok) {
                 throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
