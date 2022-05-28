@@ -1309,7 +1309,7 @@ class okx extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1652,7 +1652,7 @@ class okx extends Exchange {
         //     }
         //
         $rates = array();
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $rate = $data[$i];
             $timestamp = $this->safe_number($rate, 'fundingTime');
@@ -2077,6 +2077,11 @@ class okx extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        $stop = $this->safe_value($params, 'stop');
+        if ($stop) {
+            $order = $this->cancel_orders(array( $id ), $symbol, $params);
+            return $this->safe_value($order, 0);
+        }
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
@@ -2101,7 +2106,21 @@ class okx extends Exchange {
         return $this->parse_order($order, $market);
     }
 
+    public function parse_ids($ids) {
+        /**
+         * @ignore
+         * @param {[str]|str} $ids order $ids
+         * @return {[str]} list of order $ids
+         */
+        if (gettype($ids) === 'string') {
+            return explode(',', $ids);
+        } else {
+            return $ids;
+        }
+    }
+
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        // TODO : the original endpoint signature differs, according to that you can skip individual $symbol and assign $ids in batch. At this moment, `$params` is not being used too.
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
@@ -2111,57 +2130,44 @@ class okx extends Exchange {
         $options = $this->safe_value($this->options, 'cancelOrders', array());
         $defaultMethod = $this->safe_string($options, 'method', 'privatePostTradeCancelBatchOrders');
         $method = $this->safe_string($params, 'method', $defaultMethod);
-        $clientOrderId = $this->safe_value_2($params, 'clOrdId', 'clientOrderId');
-        $algoId = $this->safe_value($params, 'algoId');
+        $clientOrderIds = $this->parse_ids($this->safe_value_2($params, 'clOrdId', 'clientOrderId'));
+        $algoIds = $this->parse_ids($this->safe_value($params, 'algoId'));
         $stop = $this->safe_value($params, 'stop');
-        if ($clientOrderId === null) {
-            if ($stop || $algoId !== null) {
-                $method = 'privatePostTradeCancelAlgos';
-                if (gettype($algoId) === 'array' && count(array_filter(array_keys($algoId), 'is_string')) == 0) {
-                    for ($i = 0; $i < count($algoId); $i++) {
-                        $request[] = array(
-                            'instId' => $market['id'],
-                            'algoId' => $algoId[$i],
-                        );
-                    }
-                } elseif (gettype($algoId) === 'string') {
+        if ($stop) {
+            $method = 'privatePostTradeCancelAlgos';
+        }
+        if ($clientOrderIds === null) {
+            $ids = $this->parse_ids($ids);
+            if ($algoIds !== null) {
+                for ($i = 0; $i < count($algoIds); $i++) {
                     $request[] = array(
+                        'algoId' => $algoIds[$i],
                         'instId' => $market['id'],
-                        'algoId' => $algoId,
                     );
                 }
-            } else {
-                if (gettype($ids) === 'string') {
-                    $orderIds = explode(',', $ids);
-                    for ($i = 0; $i < count($orderIds); $i++) {
-                        $request[] = array(
-                            'instId' => $market['id'],
-                            'ordId' => $orderIds[$i],
-                        );
-                    }
+            }
+            for ($i = 0; $i < count($ids); $i++) {
+                if ($stop) {
+                    $request[] = array(
+                        'algoId' => $ids[$i],
+                        'instId' => $market['id'],
+                    );
                 } else {
-                    for ($i = 0; $i < count($ids); $i++) {
-                        $request[] = array(
-                            'instId' => $market['id'],
-                            'ordId' => $ids[$i],
-                        );
-                    }
+                    $request[] = array(
+                        'ordId' => $ids[$i],
+                        'instId' => $market['id'],
+                    );
                 }
             }
-        } elseif (gettype($clientOrderId) === 'array' && count(array_filter(array_keys($clientOrderId), 'is_string')) == 0) {
-            for ($i = 0; $i < count($clientOrderId); $i++) {
+        } else {
+            for ($i = 0; $i < count($clientOrderIds); $i++) {
                 $request[] = array(
                     'instId' => $market['id'],
-                    'clOrdId' => $clientOrderId[$i],
+                    'clOrdId' => $clientOrderIds[$i],
                 );
             }
-        } elseif (gettype($clientOrderId) === 'string') {
-            $request[] = array(
-                'instId' => $market['id'],
-                'clOrdId' => $clientOrderId,
-            );
         }
-        $response = $this->$method ($request); // dont extend with $params, otherwise ARRAY will be turned into OBJECT
+        $response = $this->$method ($request); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
         //
         //     {
         //         "code" => "0",
@@ -2301,7 +2307,7 @@ class okx extends Exchange {
         //         "uly" => "BTC-USDT"
         //     }
         //
-        $id = $this->safe_string($order, 'ordId');
+        $id = $this->safe_string_2($order, 'ordId', 'algoId');
         $timestamp = $this->safe_integer($order, 'cTime');
         $lastTradeTimestamp = $this->safe_integer($order, 'fillTime');
         $side = $this->safe_string($order, 'side');
@@ -2353,7 +2359,7 @@ class okx extends Exchange {
         if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
             $clientOrderId = null; // fix empty $clientOrderId string
         }
-        $stopPrice = $this->safe_number_2($order, 'slTriggerPx', 'triggerPx');
+        $stopPrice = $this->safe_number_2($order, 'triggerPx', 'slTriggerPx');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -2381,15 +2387,14 @@ class okx extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         /**
-         * Fetch an $order by the $id
-         * @param {string} $id The $order $id
-         * @param {string} $symbol Unified $market $symbol
-         * @param {dict} $params Extra and exchange specific parameters
-         * @param {integer} $params->till Timestamp in ms of the latest time to retrieve orders for
-         * @param {boolean} $params->stop True if fetching trigger orders
+         * fetch an $order by the $id
+         * @param {string} $id the $order $id
+         * @param {string} $symbol unified $market $symbol
+         * @param {dict} $params extra and exchange specific parameters
+         * @param {integer} $params->till timestamp in ms of the latest time to retrieve orders for
+         * @param {boolean} $params->stop true if fetching trigger orders, $params->ordtype set to "trigger" if true
          * @param {string} $params->ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
-         * @param {string} $params->algoId Algo ID
-         * @return {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure An $order structure}
+         * @return {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure an $order structure}
         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
@@ -2416,11 +2421,12 @@ class okx extends Exchange {
         $ordType = $this->safe_string($params, 'ordType');
         $stop = $this->safe_value($params, 'stop');
         if ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
-            if ($ordType === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires an $ordType parameter');
-            }
             $method = 'privateGetTradeOrdersAlgoHistory';
             $request['algoId'] = $id;
+            if ($stop) {
+                $request['ordType'] = 'trigger';
+                $params = $this->omit($params, 'ordType');
+            }
         } else {
             if ($clientOrderId !== null) {
                 $request['clOrdId'] = $clientOrderId;
@@ -2572,6 +2578,10 @@ class okx extends Exchange {
         $stop = $this->safe_value($params, 'stop');
         if ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
             $method = 'privateGetTradeOrdersAlgoPending';
+            if ($stop) {
+                $request['ordType'] = 'trigger';
+                $params = $this->omit($params, 'ordType');
+            }
         }
         $query = $this->omit($params, array( 'method', 'stop' ));
         $response = $this->$method (array_merge($request, $query));
@@ -4305,7 +4315,7 @@ class okx extends Exchange {
         //        "type" => "8"
         //    }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];

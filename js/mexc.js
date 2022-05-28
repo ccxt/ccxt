@@ -961,7 +961,7 @@ module.exports = class mexc extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -3150,7 +3150,7 @@ module.exports = class mexc extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const result = this.safeValue (data, 'resultList');
+        const result = this.safeValue (data, 'resultList', []);
         const rates = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];

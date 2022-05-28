@@ -872,7 +872,7 @@ class ascendex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -2587,7 +2587,7 @@ class ascendex extends Exchange {
         //        )
         //    }
         //
-        $marginRequirements = $this->safe_value($info, 'marginRequirements');
+        $marginRequirements = $this->safe_value($info, 'marginRequirements', array());
         $id = $this->safe_string($info, 'symbol');
         $market = $this->safe_market($id, $market);
         $tiers = array();

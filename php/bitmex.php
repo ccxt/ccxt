@@ -1286,7 +1286,7 @@ class bitmex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'homeNotional24h'),
             'quoteVolume' => $this->safe_string($ticker, 'foreignNotional24h'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

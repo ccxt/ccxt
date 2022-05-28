@@ -798,7 +798,7 @@ module.exports = class wavesexchange extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -1698,7 +1698,7 @@ module.exports = class wavesexchange extends Exchange {
         //     }
         //   ]
         // }
-        const balances = this.safeValue (totalBalance, 'balances');
+        const balances = this.safeValue (totalBalance, 'balances', []);
         const result = {};
         let timestamp = undefined;
         const assetIds = [];
@@ -1729,7 +1729,7 @@ module.exports = class wavesexchange extends Exchange {
                 'ids': assetIds,
             };
             const response = await this.publicGetAssets (request);
-            const data = this.safeValue (response, 'data');
+            const data = this.safeValue (response, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const entry = data[i];
                 const balance = nonStandardBalances[i];

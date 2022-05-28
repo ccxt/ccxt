@@ -569,7 +569,7 @@ class hollaex extends Exchange {
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

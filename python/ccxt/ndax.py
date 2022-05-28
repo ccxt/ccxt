@@ -595,24 +595,23 @@ class ndax(Exchange):
         marketId = self.safe_string(ticker, 'InstrumentId')
         market = self.safe_market(marketId, market)
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_number(ticker, 'LastTradedPx')
-        percentage = self.safe_number(ticker, 'Rolling24HrPxChangePercent')
-        change = self.safe_number(ticker, 'Rolling24HrPxChange')
-        open = self.safe_number(ticker, 'SessionOpen')
-        baseVolume = self.safe_number(ticker, 'Rolling24HrVolume')
-        quoteVolume = self.safe_number(ticker, 'Rolling24HrNotional')
-        vwap = self.vwap(baseVolume, quoteVolume)
+        last = self.safe_string(ticker, 'LastTradedPx')
+        percentage = self.safe_string(ticker, 'Rolling24HrPxChangePercent')
+        change = self.safe_string(ticker, 'Rolling24HrPxChange')
+        open = self.safe_string(ticker, 'SessionOpen')
+        baseVolume = self.safe_string(ticker, 'Rolling24HrVolume')
+        quoteVolume = self.safe_string(ticker, 'Rolling24HrNotional')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'SessionHigh'),
-            'low': self.safe_number(ticker, 'SessionLow'),
-            'bid': self.safe_number(ticker, 'BestBid'),
+            'high': self.safe_string(ticker, 'SessionHigh'),
+            'low': self.safe_string(ticker, 'SessionLow'),
+            'bid': self.safe_string(ticker, 'BestBid'),
             'bidVolume': None,  # self.safe_number(ticker, 'BidQty'), always shows 0
-            'ask': self.safe_number(ticker, 'BestOffer'),
+            'ask': self.safe_string(ticker, 'BestOffer'),
             'askVolume': None,  # self.safe_number(ticker, 'AskQty'), always shows 0
-            'vwap': vwap,
+            'vwap': None,
             'open': open,
             'close': last,
             'last': last,

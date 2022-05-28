@@ -318,22 +318,21 @@ module.exports = class novadax extends Exchange {
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const open = this.safeNumber (ticker, 'open24h');
-        const last = this.safeNumber (ticker, 'lastPrice');
-        const baseVolume = this.safeNumber (ticker, 'baseVolume24h');
-        const quoteVolume = this.safeNumber (ticker, 'quoteVolume24h');
-        const vwap = this.vwap (baseVolume, quoteVolume);
+        const open = this.safeString (ticker, 'open24h');
+        const last = this.safeString (ticker, 'lastPrice');
+        const baseVolume = this.safeString (ticker, 'baseVolume24h');
+        const quoteVolume = this.safeString (ticker, 'quoteVolume24h');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high24h'),
-            'low': this.safeNumber (ticker, 'low24h'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high24h'),
+            'low': this.safeString (ticker, 'low24h'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,

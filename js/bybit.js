@@ -577,7 +577,7 @@ module.exports = class bybit extends Exchange {
             const currencyId = this.safeString (currency, 'coin');
             const code = this.safeCurrencyCode (currencyId);
             const name = this.safeString (currency, 'name');
-            const chains = this.safeValue (currency, 'chains');
+            const chains = this.safeValue (currency, 'chains', []);
             const networks = {};
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
@@ -1232,7 +1232,7 @@ module.exports = class bybit extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -2679,8 +2679,6 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        amount = this.amountToPrecision (symbol, amount);
-        price = (price !== undefined) ? this.priceToPrecision (symbol, price) : undefined;
         const isUsdcSettled = (market['settle'] === 'USDC');
         if (market['spot']) {
             return await this.createSpotOrder (symbol, type, side, amount, price, params);
@@ -2711,7 +2709,7 @@ module.exports = class bybit extends Exchange {
             'side': this.capitalize (side),
             'type': type.toUpperCase (), // limit, market or limit_maker
             'timeInForce': 'GTC', // FOK, IOC
-            'qty': amount,
+            'qty': this.amountToPrecision (symbol, amount),
             // 'orderLinkId': 'string', // unique client order id, max 36 characters
         };
         if (type === 'limit' || type === 'limit_maker') {
@@ -2769,7 +2767,7 @@ module.exports = class bybit extends Exchange {
             'side': this.capitalize (side),
             'orderType': this.capitalize (type), // limit or market
             'timeInForce': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
-            'orderQty': amount,
+            'orderQty': this.amountToPrecision (symbol, amount),
             // 'takeProfit': 123.45, // take profit price, only take effect upon opening the position
             // 'stopLoss': 123.45, // stop loss price, only take effect upon opening the position
             // 'reduceOnly': false, // reduce only, required for linear orders
@@ -2785,7 +2783,7 @@ module.exports = class bybit extends Exchange {
             // 'mmp': false // market maker protection
         };
         if (price !== undefined) {
-            request['orderPrice'] = price;
+            request['orderPrice'] = this.priceToPrecision (symbol, price);
         }
         if (market['swap']) {
             const stopPx = this.safeValue2 (params, 'stopPrice', 'triggerPrice');

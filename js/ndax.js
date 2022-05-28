@@ -610,24 +610,23 @@ module.exports = class ndax extends Exchange {
         const marketId = this.safeString (ticker, 'InstrumentId');
         market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber (ticker, 'LastTradedPx');
-        const percentage = this.safeNumber (ticker, 'Rolling24HrPxChangePercent');
-        const change = this.safeNumber (ticker, 'Rolling24HrPxChange');
-        const open = this.safeNumber (ticker, 'SessionOpen');
-        const baseVolume = this.safeNumber (ticker, 'Rolling24HrVolume');
-        const quoteVolume = this.safeNumber (ticker, 'Rolling24HrNotional');
-        const vwap = this.vwap (baseVolume, quoteVolume);
+        const last = this.safeString (ticker, 'LastTradedPx');
+        const percentage = this.safeString (ticker, 'Rolling24HrPxChangePercent');
+        const change = this.safeString (ticker, 'Rolling24HrPxChange');
+        const open = this.safeString (ticker, 'SessionOpen');
+        const baseVolume = this.safeString (ticker, 'Rolling24HrVolume');
+        const quoteVolume = this.safeString (ticker, 'Rolling24HrNotional');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'SessionHigh'),
-            'low': this.safeNumber (ticker, 'SessionLow'),
-            'bid': this.safeNumber (ticker, 'BestBid'),
+            'high': this.safeString (ticker, 'SessionHigh'),
+            'low': this.safeString (ticker, 'SessionLow'),
+            'bid': this.safeString (ticker, 'BestBid'),
             'bidVolume': undefined, // this.safeNumber (ticker, 'BidQty'), always shows 0
-            'ask': this.safeNumber (ticker, 'BestOffer'),
+            'ask': this.safeString (ticker, 'BestOffer'),
             'askVolume': undefined, // this.safeNumber (ticker, 'AskQty'), always shows 0
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,

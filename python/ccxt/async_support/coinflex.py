@@ -386,7 +386,7 @@ class coinflex(Exchange):
         #         ],
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             market = data[i]
@@ -497,7 +497,7 @@ class coinflex(Exchange):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         result = {}
         for i in range(0, len(data)):
             entry = data[i]
@@ -901,7 +901,7 @@ class coinflex(Exchange):
             'baseVolume': self.safe_string(ticker, 'currencyVolume24h'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1236,7 +1236,7 @@ class coinflex(Exchange):
         return self.parse_balance(targetAccount)
 
     def parse_balance(self, data):
-        balances = self.safe_value(data, 'balances')
+        balances = self.safe_value(data, 'balances', [])
         result = {}
         for i in range(0, len(balances)):
             balance = balances[i]

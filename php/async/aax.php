@@ -492,7 +492,7 @@ class aax extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
@@ -702,7 +702,7 @@ class aax extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function set_margin($symbol, $amount, $params = array ()) {
@@ -1195,7 +1195,7 @@ class aax extends Exchange {
         //         "ts":1573530401020
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($response, 'ts');
         $result = array(
             'info' => $response,
@@ -2467,7 +2467,7 @@ class aax extends Exchange {
         //        )
         //    }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $rates = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];

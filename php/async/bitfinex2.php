@@ -940,7 +940,7 @@ class bitfinex2 extends bitfinex {
             'baseVolume' => $this->safe_string($ticker, $length - 3),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

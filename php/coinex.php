@@ -632,7 +632,7 @@ class coinex extends Exchange {
             'baseVolume' => $this->safe_string_2($ticker, 'vol', 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -777,7 +777,7 @@ class coinex extends Exchange {
         //
         $data = $this->safe_value($response, 'data');
         $timestamp = $this->safe_integer($data, 'date');
-        $tickers = $this->safe_value($data, 'ticker');
+        $tickers = $this->safe_value($data, 'ticker', array());
         $marketIds = is_array($tickers) ? array_keys($tickers) : array();
         $result = array();
         for ($i = 0; $i < count($marketIds); $i++) {
@@ -3330,7 +3330,7 @@ class coinex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
-        $result = $this->safe_value($data, 'records');
+        $result = $this->safe_value($data, 'records', array());
         $rates = array();
         for ($i = 0; $i < count($result); $i++) {
             $entry = $result[$i];

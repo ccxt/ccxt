@@ -258,7 +258,7 @@ module.exports = class whitebit extends Exchange {
         //        ]
         //    }
         //
-        const markets = this.safeValue (response, 'result');
+        const markets = this.safeValue (response, 'result', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -557,7 +557,7 @@ module.exports = class whitebit extends Exchange {
             'baseVolume': this.safeString2 (ticker, 'base_volume', 'volume'),
             'quoteVolume': this.safeString2 (ticker, 'quote_volume', 'deal'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

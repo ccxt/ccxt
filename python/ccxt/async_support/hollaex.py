@@ -561,7 +561,7 @@ class hollaex(Exchange):
             'average': None,
             'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
-        }, market, False)
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         """

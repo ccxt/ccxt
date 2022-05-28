@@ -165,7 +165,7 @@ class oceanex extends Exchange {
         //    ),
         //
         $result = array();
-        $markets = $this->safe_value($response, 'data');
+        $markets = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $id = $this->safe_value($market, 'id');
@@ -295,7 +295,7 @@ class oceanex extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $ticker = $data[$i];
@@ -345,7 +345,7 @@ class oceanex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -538,7 +538,7 @@ class oceanex extends Exchange {
 
     public function fetch_trading_fees($params = array ()) {
         $response = yield $this->publicGetFeesTrading ($params);
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $group = $data[$i];
@@ -564,7 +564,7 @@ class oceanex extends Exchange {
 
     public function parse_balance($response) {
         $data = $this->safe_value($response, 'data');
-        $balances = $this->safe_value($data, 'accounts');
+        $balances = $this->safe_value($data, 'accounts', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];

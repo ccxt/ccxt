@@ -375,7 +375,7 @@ module.exports = class blockchaincom extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

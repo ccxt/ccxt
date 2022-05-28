@@ -588,7 +588,7 @@ class latoken(Exchange):
             'baseVolume': None,
             'quoteVolume': self.safe_string(ticker, 'volume24h'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """

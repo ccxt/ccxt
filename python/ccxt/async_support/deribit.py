@@ -913,7 +913,7 @@ class deribit(Exchange):
             'baseVolume': None,
             'quoteVolume': self.safe_string(stats, 'volume'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         """
@@ -1967,15 +1967,13 @@ class deribit(Exchange):
         #
         contract = self.safe_string(position, 'instrument_name')
         market = self.safe_market(contract, market)
-        size = self.safe_string(position, 'size')
         side = self.safe_string(position, 'direction')
         side = 'long' if (side == 'buy') else 'short'
-        maintenanceRate = self.safe_string(position, 'maintenance_margin')
-        markPrice = self.safe_string(position, 'mark_price')
-        notionalString = Precise.string_mul(markPrice, size)
-        unrealisedPnl = self.safe_string(position, 'floating_profit_loss')
+        unrealizedPnl = self.safe_string(position, 'floating_profit_loss')
         initialMarginString = self.safe_string(position, 'initial_margin')
-        percentage = Precise.string_mul(Precise.string_div(unrealisedPnl, initialMarginString), '100')
+        notionalString = self.safe_string(position, 'size_currency')
+        maintenanceMarginString = self.safe_string(position, 'maintenance_margin')
+        percentage = Precise.string_mul(Precise.string_div(unrealizedPnl, initialMarginString), '100')
         currentTime = self.milliseconds()
         return {
             'info': position,
@@ -1983,18 +1981,18 @@ class deribit(Exchange):
             'timestamp': currentTime,
             'datetime': self.iso8601(currentTime),
             'initialMargin': self.parse_number(initialMarginString),
-            'initialMarginPercentage': self.parse_number(Precise.string_div(initialMarginString, notionalString)),
-            'maintenanceMargin': self.parse_number(Precise.string_mul(maintenanceRate, notionalString)),
-            'maintenanceMarginPercentage': self.parse_number(maintenanceRate),
-            'entryPrice': self.safe_string(position, 'average_price'),
+            'initialMarginPercentage': self.parse_number(Precise.string_mul(Precise.string_div(initialMarginString, notionalString), '100')),
+            'maintenanceMargin': self.parse_number(maintenanceMarginString),
+            'maintenanceMarginPercentage': self.parse_number(Precise.string_mul(Precise.string_div(maintenanceMarginString, notionalString), '100')),
+            'entryPrice': self.safe_number(position, 'average_price'),
             'notional': self.parse_number(notionalString),
-            'leverage': self.safe_number(position, 'leverage'),
-            'unrealizedPnl': self.parse_number(unrealisedPnl),
-            'contracts': self.parse_number(size),  # in USD for perpetuals on deribit
-            'contractSize': self.safe_value(market, 'contractSize'),
+            'leverage': self.safe_integer(position, 'leverage'),
+            'unrealizedPnl': self.parse_number(unrealizedPnl),
+            'contracts': None,
+            'contractSize': self.safe_number(market, 'contractSize'),
             'marginRatio': None,
             'liquidationPrice': self.safe_number(position, 'estimated_liquidation_price'),
-            'markPrice': markPrice,
+            'markPrice': self.safe_number(position, 'mark_price'),
             'collateral': None,
             'marginMode': None,
             'marginType': None,  # deprecated

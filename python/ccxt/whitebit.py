@@ -267,7 +267,7 @@ class whitebit(Exchange):
         #        ]
         #    }
         #
-        markets = self.safe_value(response, 'result')
+        markets = self.safe_value(response, 'result', [])
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -553,7 +553,7 @@ class whitebit(Exchange):
             'baseVolume': self.safe_string_2(ticker, 'base_volume', 'volume'),
             'quoteVolume': self.safe_string_2(ticker, 'quote_volume', 'deal'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         """

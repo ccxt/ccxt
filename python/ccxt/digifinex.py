@@ -675,7 +675,7 @@ class digifinex(Exchange):
             'baseVolume': self.safe_string(ticker, 'vol'),
             'quoteVolume': self.safe_string(ticker, 'base_vol'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def parse_trade(self, trade, market=None):
         #

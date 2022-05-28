@@ -201,7 +201,7 @@ class bitso extends Exchange {
         //             ),
         //         )
         //     }
-        $markets = $this->safe_value($response, 'payload');
+        $markets = $this->safe_value($response, 'payload', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
@@ -300,7 +300,7 @@ class bitso extends Exchange {
 
     public function parse_balance($response) {
         $payload = $this->safe_value($response, 'payload', array());
-        $balances = $this->safe_value($payload, 'balances');
+        $balances = $this->safe_value($payload, 'balances', array());
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -415,7 +415,7 @@ class bitso extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

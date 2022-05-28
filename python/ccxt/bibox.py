@@ -31,6 +31,8 @@ class bibox(Exchange):
             'name': 'Bibox',
             'countries': ['CN', 'US', 'KR'],
             'version': 'v1',
+            # 30 requests per 5 seconds => 6 requests per second => rateLimit = 166.667 ms(166.6666...)
+            'rateLimit': 166.667,
             'hostname': 'bibox.com',
             'has': {
                 'CORS': None,
@@ -89,30 +91,30 @@ class bibox(Exchange):
             },
             'api': {
                 'public': {
-                    'post': [
+                    'post': {
                         # TODO: rework for full endpoint/cmd paths here
-                        'mdata',
-                    ],
-                    'get': [
-                        'cquery',
-                        'mdata',
-                        'cdata',
-                        'orderpending',
-                    ],
+                        'mdata': 1,
+                    },
+                    'get': {
+                        'cquery': 1,
+                        'mdata': 1,
+                        'cdata': 1,
+                        'orderpending': 1,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'cquery',
-                        'ctrade',
-                        'user',
-                        'orderpending',
-                        'transfer',
-                    ],
+                    'post': {
+                        'cquery': 1,
+                        'ctrade': 1,
+                        'user': 1,
+                        'orderpending': 1,
+                        'transfer': 1,
+                    },
                 },
                 'v2private': {
-                    'post': [
-                        'assets/transfer/spot',
-                    ],
+                    'post': {
+                        'assets/transfer/spot': 1,
+                    },
                 },
             },
             'fees': {
@@ -195,7 +197,7 @@ class bibox(Exchange):
         #         "ver":"1.1"
         #     }
         #
-        markets = self.safe_value(response, 'result')
+        markets = self.safe_value(response, 'result', [])
         request2 = {
             'cmd': 'tradeLimit',
         }
@@ -327,7 +329,7 @@ class bibox(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': self.safe_string(ticker, 'amount'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """
@@ -527,7 +529,7 @@ class bibox(Exchange):
         #         "cmd":"currencies"
         #     }
         #
-        currencies = self.safe_value(response, 'result')
+        currencies = self.safe_value(response, 'result', [])
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
@@ -622,7 +624,7 @@ class bibox(Exchange):
         #
         outerResults = self.safe_value(response, 'result')
         firstResult = self.safe_value(outerResults, 0, {})
-        currencies = self.safe_value(firstResult, 'result')
+        currencies = self.safe_value(firstResult, 'result', [])
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]

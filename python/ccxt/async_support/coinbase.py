@@ -852,7 +852,7 @@ class coinbase(Exchange):
             'baseVolume': None,
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_balance(self, params={}):
         """
@@ -865,7 +865,7 @@ class coinbase(Exchange):
             'limit': 100,
         }
         response = await self.privateGetAccounts(self.extend(request, params))
-        balances = self.safe_value(response, 'data')
+        balances = self.safe_value(response, 'data', [])
         accounts = self.safe_value(params, 'type', self.options['accounts'])
         result = {'info': response}
         for b in range(0, len(balances)):

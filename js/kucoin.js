@@ -716,7 +716,7 @@ module.exports = class kucoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
@@ -859,7 +859,7 @@ module.exports = class kucoin extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

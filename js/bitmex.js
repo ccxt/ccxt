@@ -1290,7 +1290,7 @@ module.exports = class bitmex extends Exchange {
             'baseVolume': this.safeString (ticker, 'homeNotional24h'),
             'quoteVolume': this.safeString (ticker, 'foreignNotional24h'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     parseOHLCV (ohlcv, market = undefined) {

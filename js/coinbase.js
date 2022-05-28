@@ -889,7 +889,7 @@ module.exports = class coinbase extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchBalance (params = {}) {
@@ -905,7 +905,7 @@ module.exports = class coinbase extends Exchange {
             'limit': 100,
         };
         const response = await this.privateGetAccounts (this.extend (request, params));
-        const balances = this.safeValue (response, 'data');
+        const balances = this.safeValue (response, 'data', []);
         const accounts = this.safeValue (params, 'type', this.options['accounts']);
         const result = { 'info': response };
         for (let b = 0; b < balances.length; b++) {

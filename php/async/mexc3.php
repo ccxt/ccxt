@@ -1506,7 +1506,7 @@ class mexc3 extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_bids_asks($symbols = null, $params = array ()) {
@@ -2471,7 +2471,7 @@ class mexc3 extends Exchange {
         $response = null;
         if ($marketType === 'spot') {
             $response = yield $this->fetch_account_helper('spot', $query);
-            $balances = $this->safe_value($response, 'balances');
+            $balances = $this->safe_value($response, 'balances', array());
             for ($i = 0; $i < count($balances); $i++) {
                 $entry = $balances[$i];
                 $currencyId = $this->safe_string($entry, 'asset');
@@ -2889,7 +2889,7 @@ class mexc3 extends Exchange {
         //    }
         //
         $data = $this->safe_value($response, 'data');
-        $result = $this->safe_value($data, 'resultList');
+        $result = $this->safe_value($data, 'resultList', array());
         $rates = array();
         for ($i = 0; $i < count($result); $i++) {
             $entry = $result[$i];

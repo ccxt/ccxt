@@ -397,7 +397,7 @@ class lbank2(Exchange):
             'baseVolume': self.safe_string(tickerData, 'vol'),
             'quoteVolume': self.safe_string(tickerData, 'turnover'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         """

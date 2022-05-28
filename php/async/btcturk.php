@@ -178,7 +178,7 @@ class btcturk extends Exchange {
             $quoteId = $this->safe_string($entry, 'denominator');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $filters = $this->safe_value($entry, 'filters');
+            $filters = $this->safe_value($entry, 'filters', array());
             $minPrice = null;
             $maxPrice = null;
             $minAmount = null;
@@ -372,7 +372,7 @@ class btcturk extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

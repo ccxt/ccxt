@@ -682,7 +682,7 @@ class digifinex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'vol'),
             'quoteVolume' => $this->safe_string($ticker, 'base_vol'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function parse_trade($trade, $market = null) {

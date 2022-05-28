@@ -383,7 +383,7 @@ module.exports = class coinflex extends Exchange {
         //         ],
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -500,7 +500,7 @@ module.exports = class coinflex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -931,7 +931,7 @@ module.exports = class coinflex extends Exchange {
             'baseVolume': this.safeString (ticker, 'currencyVolume24h'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1303,7 +1303,7 @@ module.exports = class coinflex extends Exchange {
     }
 
     parseBalance (data) {
-        const balances = this.safeValue (data, 'balances');
+        const balances = this.safeValue (data, 'balances', []);
         const result = {};
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];

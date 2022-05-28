@@ -494,7 +494,7 @@ module.exports = class aax extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -706,7 +706,7 @@ module.exports = class aax extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async setMargin (symbol, amount, params = {}) {
@@ -1209,7 +1209,7 @@ module.exports = class aax extends Exchange {
         //         "ts":1573530401020
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const timestamp = this.safeInteger (response, 'ts');
         const result = {
             'info': response,
@@ -2483,7 +2483,7 @@ module.exports = class aax extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const rates = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];

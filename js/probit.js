@@ -398,7 +398,7 @@ module.exports = class probit extends Exchange {
         //         ]
         //     }
         //
-        const currencies = this.safeValue (response, 'data');
+        const currencies = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
@@ -465,7 +465,7 @@ module.exports = class probit extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'currency_id');
@@ -648,7 +648,7 @@ module.exports = class probit extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

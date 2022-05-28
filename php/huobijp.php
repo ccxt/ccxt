@@ -451,7 +451,7 @@ class huobijp extends Exchange {
         //         )
         //    }
         //
-        $markets = $this->safe_value($response, 'data');
+        $markets = $this->safe_value($response, 'data', array());
         $numMarkets = is_array($markets) ? count($markets) : 0;
         if ($numMarkets < 1) {
             throw new NetworkError($this->id . ' fetchMarkets() returned empty $response => ' . $this->json($markets));
@@ -607,7 +607,7 @@ class huobijp extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -708,7 +708,7 @@ class huobijp extends Exchange {
          */
         $this->load_markets();
         $response = $this->marketGetTickers ($params);
-        $tickers = $this->safe_value($response, 'data');
+        $tickers = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($response, 'ts');
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
@@ -878,7 +878,7 @@ class huobijp extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $trades = $this->safe_value($data[$i], 'data', array());
@@ -1006,7 +1006,7 @@ class huobijp extends Exchange {
         //         ]
         //     }
         //
-        $currencies = $this->safe_value($response, 'data');
+        $currencies = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $currencies[$i];
