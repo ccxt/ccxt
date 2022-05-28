@@ -517,17 +517,17 @@ class Exchange {
     }
 
     public static function safe_string_n($object, $array, $default_value = null) {
-        $value = static::get_object_value_from_key_array($object, $array);
+        $value = static::get_string_value_from_key_array($object, $array);
         return (static::valid_string($value) && is_scalar($value)) ? strval($value) : $default_value;
     }
 
     public static function safe_string_lower_n($object, $array, $default_value = null) {
-        $value = static::get_object_value_from_key_array($object, $array);
+        $value = static::get_string_value_from_key_array($object, $array);
         return (static::valid_string($value) && is_scalar($value)) ? strtolower(strval($value)) : $default_value;
     }
 
     public static function safe_string_upper_n($object, $array, $default_value = null) {
-        $value = static::get_object_value_from_key_array($object, $array);
+        $value = static::get_string_value_from_key_array($object, $array);
         return (static::valid_string($value) && is_scalar($value)) ? strtoupper(strval($value)) : $default_value;
     }
 
@@ -548,6 +548,15 @@ class Exchange {
     public static function safe_value_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
         return (isset($value) && is_scalar($value)) ? $value : $default_value;
+    }
+
+    public static function get_string_value_from_key_array($object, $array) {
+        foreach($array as $key) {
+            if (isset($object[$key]) && ($object[$key] !== '')) {
+                return $object[$key];
+            }
+        }
+        return null;
     }
 
     public static function get_object_value_from_key_array($object, $array) {
