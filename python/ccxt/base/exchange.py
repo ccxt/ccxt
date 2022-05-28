@@ -2951,7 +2951,7 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + 'fetch_market_leverage_tiers() is not supported yet')
 
-    def is_post_only(self, type, params={}):
+    def is_post_only(self, type, exchangeSpecificParam, params={}):
         """
          * @ignore
         :param string type: Order type
@@ -2966,7 +2966,7 @@ class Exchange(object):
         timeInForcePostOnly = timeInForce == 'PO'
         typeLower = type.lower()
         isMarket = typeLower == 'market'
-        postOnly = postOnly or timeInForcePostOnly
+        postOnly = postOnly or timeInForcePostOnly or exchangeSpecificParam
         if postOnly:
             if ioc or fok:
                 raise InvalidOrder(self.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce)
