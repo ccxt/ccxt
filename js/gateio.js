@@ -2778,7 +2778,7 @@ module.exports = class gateio extends Exchange {
         const stopPrice = this.safeNumber (params, 'stopPrice');
         let methodTail = 'Orders';
         const reduceOnly = this.safeValue (params, 'reduceOnly');
-        const exchangeSpecificTimeInForce = this.safeString2 (params, 'time_in_force', 'tif');
+        const exchangeSpecificTimeInForce = this.safeStringLower2 (params, 'time_in_force', 'tif');
         const postOnly = this.isPostOnly (type, exchangeSpecificTimeInForce === 'poc', params);
         // we only omit the unified params here
         // this is because the other params will get extended into the request
@@ -2905,7 +2905,7 @@ module.exports = class gateio extends Exchange {
                 if (reduceOnly !== undefined) {
                     request['initial']['reduce_only'] = reduceOnly;
                 }
-                if (timeInForce !== undefined) {
+                if (tif !== undefined) {
                     request['initial']['tif'] = tif;
                 }
             } else {
