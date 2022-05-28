@@ -3,7 +3,6 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-// BadSymbol, BadRequest
 const { AuthenticationError, BadRequest, NotSupported } = require ('ccxt/js/base/errors');
 const Precise = require ('ccxt/js/base/Precise');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
