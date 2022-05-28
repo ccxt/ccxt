@@ -1655,21 +1655,40 @@ module.exports = class btse extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.currency (code);
+        const networks = await this.spotPublicGetAvailableCurrencyNetworks ({ 'currency': currency['id'] });
+        if (!networks || networks.length <= 0) {
+            throw new BadRequest ('fetch  ' + currency['id'] + ' currency network error.');
+        }
+        let network = networks[0].toLowerCase ();
+        network = network.replace (network[0], network[0].toUpperCase ());
         const request = {
-            'currency': currency['id'],
+            'currency': currency['id'] + '-' + network,
             'amount': amount.toString (),
             'address': address,
+            'tag': '',
         };
         if (tag !== undefined) {
             request['tag'] = tag;
         }
+        if (params['network']) {
+            request['currency'] = currency['id'] + '-' + params['network'];
+        }
+        // const request = {
+        //     'currency': 'ETH-Ethereum',
+        //     'address': '0x7293D3B0f486BBB8160fE04f6Fdde0eaf147d6B6',
+        //     'tag': '',
+        //     'amount': '0.001',
+        // };
         const response = await this.spotPrivatePostUserWalletWithdraw (this.extend (request, params));
+        if (!response || response['withdrawId'] === undefined) {
+            throw new BadRequest ('withdraw ' + `${amount}` + ' ' + currency['id'] + ' to ' + address + 'failed.');
+        }
         //
         //  {
-        //       "withdraw_id": "<withdrawal ID>"
+        //       "withdrawId": "<withdrawal ID>"
         //  }
         //
-        const id = this.safeString (response, 'withdraw_id');
+        const id = this.safeString (response, 'withdrawId');
         return {
             'info': response,
             'id': id,
