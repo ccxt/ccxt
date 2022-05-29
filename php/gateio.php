@@ -2758,7 +2758,7 @@ class gateio extends Exchange {
         $methodTail = 'Orders';
         $reduceOnly = $this->safe_value($params, 'reduceOnly');
         $exchangeSpecificTimeInForce = $this->safe_string_lower_2($params, 'time_in_force', 'tif');
-        $postOnly = $this->is_post_only($type, $exchangeSpecificTimeInForce === 'poc', $params);
+        $postOnly = $this->is_post_only($type === 'market', $exchangeSpecificTimeInForce === 'poc', $params);
         // we only omit the unified $params here
         // this is because the other $params will get extended into the $request
         $timeInForce = $this->safe_string_upper($params, 'timeInForce'); // supported values GTC, IOC, PO
