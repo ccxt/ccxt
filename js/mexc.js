@@ -1951,7 +1951,7 @@ module.exports = class mexc extends Exchange {
             request['triggerType'] = this.safeInteger (params, 'triggerType', 1);
             request['executeCycle'] = this.safeInteger (params, 'executeCycle', 1);
             request['trend'] = this.safeInteger (params, 'trend', 1);
-            request['orderType'] = this.safeInteger (params, 'orderType', 1);
+            request['orderType'] = this.safeInteger (params, 'orderType', type);
         }
         if ((type !== 5) && (type !== 6) && (type !== 'market')) {
             request['price'] = parseFloat (this.priceToPrecision (symbol, price));
