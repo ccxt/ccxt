@@ -63,6 +63,10 @@ class gateio extends \ccxt\async\gateio {
                 'watchOrderBook' => array(
                     'interval' => '100ms',
                 ),
+                'watchBalance' => array(
+                    'settle' => 'usdt', // or btc
+                    'spot' => 'spot.balances', // spot.margin_balances, spot.funding_balances or spot.cross_balances
+                ),
             ),
             'exceptions' => array(
                 'ws' => array(
@@ -635,50 +639,29 @@ class gateio extends \ccxt\async\gateio {
 
     public function watch_balance($params = array ()) {
         yield $this->load_markets();
-        $this->check_required_credentials();
-        $url = $this->urls['api']['ws'];
-        yield $this->authenticate();
-        $requestId = $this->nonce();
-        $method = 'balance.update';
-        $subscribeMessage = array(
-            'id' => $requestId,
-            'method' => 'balance.subscribe',
-            'params' => array(),
-        );
-        $subscription = array(
-            'id' => $requestId,
-            'method' => array($this, 'handle_balance_subscription'),
-        );
-        return yield $this->watch($url, $method, $subscribeMessage, $method, $subscription);
-    }
-
-    public function fetch_balance_snapshot() {
-        yield $this->load_markets();
-        $this->check_required_credentials();
-        $url = $this->urls['api']['ws'];
-        yield $this->authenticate();
-        $requestId = $this->nonce();
-        $method = 'balance.query';
-        $subscribeMessage = array(
-            'id' => $requestId,
-            'method' => $method,
-            'params' => array(),
-        );
-        $subscription = array(
-            'id' => $requestId,
-            'method' => array($this, 'handle_balance_snapshot'),
-        );
-        return yield $this->watch($url, $requestId, $subscribeMessage, $method, $subscription);
-    }
-
-    public function handle_balance_snapshot($client, $message) {
-        $messageHash = $this->safe_string($message, 'id');
-        $result = $this->safe_value($message, 'result');
-        $this->handle_balance_message($client, $messageHash, $result);
-        $client->resolve ($this->balance, 'balance.update');
-        if (is_array($client->subscriptions) && array_key_exists('balance.query', $client->subscriptions)) {
-            unset($client->subscriptions['balance.query']);
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
+        $options = $this->safe_value($this->options, 'watchBalance', array());
+        $subType = $this->safe_value($options, 'subType', 'linear');
+        $subType = $this->safe_value($params, 'subType', $subType);
+        $params = $this->omit($params, 'subType');
+        $isInverse = ($subType === 'inverse');
+        $url = $this->get_url_by_market_type($type, $isInverse);
+        $requiresUid = ($type !== 'spot');
+        $channelType = 'spot';
+        if ($type === 'future' || $type === 'swap') {
+            $channelType = 'futures';
+        } else if ($type === 'option') {
+            $channelType = 'options';
         }
+        $channel = null;
+        if ($type === 'spot') {
+            $options = $this->safe_value($this->options, 'watchTicker', array());
+            $channel = $this->safe_string($options, 'spot', 'spot.balances');
+        } else {
+            $channel = $channelType . '.balances';
+        }
+        return yield $this->subscribe_private($url, $channel, $channel, null, $requiresUid);
     }
 
     public function handle_balance($client, $message) {
@@ -687,19 +670,80 @@ class gateio extends \ccxt\async\gateio {
         $this->handle_balance_message($client, $messageHash, $result);
     }
 
-    public function handle_balance_message($client, $messageHash, $result) {
-        $keys = is_array($result) ? array_keys($result) : array();
-        for ($i = 0; $i < count($keys); $i++) {
+    public function handle_balance_message($client, $message) {
+        //
+        // spot order fill
+        //   {
+        //       time => 1653664351,
+        //       $channel => 'spot.balances',
+        //       event => 'update',
+        //       $result => array(
+        //         {
+        //           timestamp => '1653664351',
+        //           timestamp_ms => '1653664351017',
+        //           user => '10406147',
+        //           currency => 'LTC',
+        //           change => '-0.0002000000000000',
+        //           total => '0.09986000000000000000',
+        //           available => '0.09986000000000000000'
+        //         }
+        //       )
+        //   }
+        //
+        // $account transfer
+        //
+        //    {
+        //        id => null,
+        //        time => 1653665088,
+        //        $channel => 'futures.balances',
+        //        event => 'update',
+        //        error => null,
+        //        $result => array(
+        //          {
+        //            balance => 25.035008537,
+        //            change => 25,
+        //            text => '-',
+        //            time => 1653665088,
+        //            time_ms => 1653665088286,
+        //            type => 'dnw',
+        //            user => '10406147'
+        //          }
+        //        )
+        //   }
+        //
+        // swap order fill
+        //   {
+        //       id => null,
+        //       time => 1653665311,
+        //       $channel => 'futures.balances',
+        //       event => 'update',
+        //       error => null,
+        //       $result => array(
+        //         {
+        //           balance => 20.031873037,
+        //           change => -0.0031355,
+        //           text => 'LTC_USDT:165551103273',
+        //           time => 1653665311,
+        //           time_ms => 1653665311437,
+        //           type => 'fee',
+        //           user => '10406147'
+        //         }
+        //       )
+        //   }
+        //
+        $channel = $this->safe_string($message, 'channel');
+        $result = $this->safe_value($message, 'result', array());
+        for ($i = 0; $i < count($result); $i++) {
+            $rawBalance = $result[$i];
             $account = $this->account();
-            $key = $keys[$i];
-            $code = $this->safe_currency_code($key);
-            $balance = $result[$key];
-            $account['free'] = $this->safe_string($balance, 'available');
-            $account['used'] = $this->safe_string($balance, 'freeze');
+            $currencyId = $this->safe_string($rawBalance, 'currency', 'USDT'); // when not present it is USDT
+            $code = $this->safe_currency_code($currencyId);
+            $account['free'] = $this->safe_string($rawBalance, 'available');
+            $account['total'] = $this->safe_string_2($rawBalance, 'total', 'balance');
             $this->balance[$code] = $account;
         }
         $this->balance = $this->safe_balance($this->balance);
-        $client->resolve ($this->balance, $messageHash);
+        $client->resolve ($this->balance, $channel);
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -859,117 +903,161 @@ class gateio extends \ccxt\async\gateio {
         }
     }
 
-    public function handle_balance_subscription($client, $message, $subscription) {
-        $this->spawn(array($this, 'fetch_balance_snapshot'));
+    public function handle_balance_subscription($client, $message) {
+        $this->spawn(array($this, 'fetch_balance_snapshot'), $client, $message);
+    }
+
+    public function fetch_balance_snapshot($client, $message) {
+        //
+        //  {
+        //     id => 1,
+        //     time => 1653665810,
+        //     $channel => 'futures.balances',
+        //     event => 'subscribe',
+        //     auth => array(
+        //     ),
+        //     payload => array( '10406147' )
+        //   }
+        //
+        yield $this->load_markets();
+        $channel = $this->safe_string($message, 'channel', '');
+        $parts = explode('.', $channel);
+        $exchangeType = $this->safe_string($parts, 0);
+        $type = $exchangeType;
+        if ($exchangeType === 'futures') {
+            $type = 'future';
+        } else if ($type === 'options') {
+            $type = 'option';
+        }
+        $params = array(
+            'type' => $type,
+        );
+        if ($type === 'future' || $type === 'swap') {
+            $options = $this->safe_value($this->options, 'watchTicker', array());
+            $settle = $this->safe_string($options, 'settle', 'usdt');
+            $params['settle'] = $settle;
+        }
+        $snapshot = yield $this->fetch_balance($params);
+        $this->balance = $snapshot;
+        $client->resolve ($this->balance, $channel);
     }
 
     public function handle_subscription_status($client, $message) {
-        $messageId = $this->safe_integer($message, 'id');
-        if ($messageId !== null) {
-            $subscriptionsById = $this->index_by($client->subscriptions, 'id');
-            $subscription = $this->safe_value($subscriptionsById, $messageId, array());
-            $method = $this->safe_value($subscription, 'method');
-            if ($method !== null) {
-                $method($client, $message, $subscription);
-            }
-            $client->resolve ($message, $messageId);
+        $channel = $this->safe_string($message, 'channel', '');
+        if (mb_strpos($channel, 'balance') !== false) {
+            $this->handle_balance_subscription($client, $message);
         }
     }
 
     public function handle_message($client, $message) {
         //
         // subscribe
-        // {
-        //     time => 1649062304,
-        //     id => 1649062303,
-        //     $channel => 'spot.candlesticks',
-        //     $event => 'subscribe',
-        //     result => array( status => 'success' )
-        // }
+        //    {
+        //        time => 1649062304,
+        //        id => 1649062303,
+        //        $channel => 'spot.candlesticks',
+        //        $event => 'subscribe',
+        //        result => array( status => 'success' )
+        //    }
+        //
         // candlestick
-        // {
-        //     time => 1649063328,
-        //     $channel => 'spot.candlesticks',
-        //     $event => 'update',
-        //     result => {
-        //       t => '1649063280',
-        //       v => '58932.23174896',
-        //       c => '45966.47',
-        //       h => '45997.24',
-        //       l => '45966.47',
-        //       o => '45975.18',
-        //       n => '1m_BTC_USDT',
-        //       a => '1.281699'
+        //    {
+        //        time => 1649063328,
+        //        $channel => 'spot.candlesticks',
+        //        $event => 'update',
+        //        result => {
+        //          t => '1649063280',
+        //          v => '58932.23174896',
+        //          c => '45966.47',
+        //          h => '45997.24',
+        //          l => '45966.47',
+        //          o => '45975.18',
+        //          n => '1m_BTC_USDT',
+        //          a => '1.281699'
+        //        }
         //     }
-        //  }
-        // orders
-        // {
-        //     "time" => 1630654851,
-        //     "channel" => "options.orders", or futures.orders or spot.orders
-        //     "event" => "update",
-        //     "result" => array(
-        //        {
-        //           "contract" => "BTC_USDT-20211130-65000-C",
-        //           "create_time" => 1637897000,
-        //             (...)
-        //     )
-        // }
-        // orderbook
-        // {
-        //     time => 1649770525,
-        //     $channel => 'spot.order_book_update',
-        //     $event => 'update',
-        //     result => {
-        //       t => 1649770525653,
-        //       e => 'depthUpdate',
-        //       E => 1649770525,
-        //       s => 'LTC_USDT',
-        //       U => 2622525645,
-        //       u => 2622525665,
-        //       b => [
-        //         [Array], [Array],
-        //         [Array], [Array],
-        //         [Array], [Array],
-        //         [Array], [Array],
-        //         [Array], [Array],
-        //         [Array]
-        //       ],
-        //       a => [
-        //         [Array], [Array],
-        //         [Array], [Array],
-        //         [Array], [Array],
-        //         [Array], [Array],
-        //         [Array], [Array],
-        //         [Array]
-        //       ]
-        //     }
+        //
+        //  orders
+        //   {
+        //       "time" => 1630654851,
+        //       "channel" => "options.orders", or futures.orders or spot.orders
+        //       "event" => "update",
+        //       "result" => array(
+        //          {
+        //             "contract" => "BTC_USDT-20211130-65000-C",
+        //             "create_time" => 1637897000,
+        //               (...)
+        //       )
         //   }
+        // orderbook
+        //   {
+        //       time => 1649770525,
+        //       $channel => 'spot.order_book_update',
+        //       $event => 'update',
+        //       result => {
+        //         t => 1649770525653,
+        //         e => 'depthUpdate',
+        //         E => 1649770525,
+        //         s => 'LTC_USDT',
+        //         U => 2622525645,
+        //         u => 2622525665,
+        //         b => [
+        //           [Array], [Array],
+        //           [Array], [Array],
+        //           [Array], [Array],
+        //           [Array], [Array],
+        //           [Array], [Array],
+        //           [Array]
+        //         ],
+        //         a => [
+        //           [Array], [Array],
+        //           [Array], [Array],
+        //           [Array], [Array],
+        //           [Array], [Array],
+        //           [Array], [Array],
+        //           [Array]
+        //         ]
+        //       }
+        //     }
+        //
+        // balance update
+        //
+        //    {
+        //        time => 1653664351,
+        //        $channel => 'spot.balances',
+        //        $event => 'update',
+        //        result => array(
+        //          {
+        //            timestamp => '1653664351',
+        //            timestamp_ms => '1653664351017',
+        //            user => '10406147',
+        //            currency => 'LTC',
+        //            change => '-0.0002000000000000',
+        //            total => '0.09986000000000000000',
+        //            available => '0.09986000000000000000'
+        //          }
+        //        )
+        //    }
+        //
         $this->handle_error_message($client, $message);
-        $methods = array(
-            // missing migration to v4
-            'balance.update' => array($this, 'handle_balance'),
-        );
-        $methodType = $this->safe_string($message, 'method');
-        $method = $this->safe_value($methods, $methodType);
-        if ($method === null) {
-            $event = $this->safe_string($message, 'event');
-            if ($event === 'subscribe') {
-                $this->handle_subscription_status($client, $message);
-                return;
-            }
-            $channel = $this->safe_string($message, 'channel', '');
-            $channelParts = explode('.', $channel);
-            $channelType = $this->safe_value($channelParts, 1);
-            $v4Methods = array(
-                'usertrades' => array($this, 'handle_my_trades'),
-                'candlesticks' => array($this, 'handle_ohlcv'),
-                'orders' => array($this, 'handle_order'),
-                'tickers' => array($this, 'handle_ticker'),
-                'trades' => array($this, 'handle_trades'),
-                'order_book_update' => array($this, 'handle_order_book'),
-            );
-            $method = $this->safe_value($v4Methods, $channelType);
+        $event = $this->safe_string($message, 'event');
+        if ($event === 'subscribe') {
+            $this->handle_subscription_status($client, $message);
+            return;
         }
+        $channel = $this->safe_string($message, 'channel', '');
+        $channelParts = explode('.', $channel);
+        $channelType = $this->safe_value($channelParts, 1);
+        $v4Methods = array(
+            'usertrades' => array($this, 'handle_my_trades'),
+            'candlesticks' => array($this, 'handle_ohlcv'),
+            'orders' => array($this, 'handle_order'),
+            'tickers' => array($this, 'handle_ticker'),
+            'trades' => array($this, 'handle_trades'),
+            'order_book_update' => array($this, 'handle_order_book'),
+            'balances' => array($this, 'handle_balance_message'),
+        );
+        $method = $this->safe_value($v4Methods, $channelType);
         if ($method !== null) {
             $method($client, $message);
         }
@@ -1031,15 +1119,19 @@ class gateio extends \ccxt\async\gateio {
         return yield $this->watch($url, $messageHash, $request, $messageHash, $subscription);
     }
 
-    public function subscribe_private($url, $channel, $messageHash, $payload, $requiresUid = false) {
+    public function subscribe_private($url, $channel, $messageHash, $payload = null, $requiresUid = false) {
         $this->check_required_credentials();
         // uid is required for some subscriptions only so it's not a part of required credentials
         if ($requiresUid) {
             if ($this->uid === null || strlen($this->uid) === 0) {
                 throw new ArgumentsRequired($this->id . ' requires uid to subscribe');
             }
-            $idArray = [$this->uid];
-            $payload = $this->array_concat($idArray, $payload);
+            $idArray = array( $this->uid );
+            if ($payload === null) {
+                $payload = $idArray;
+            } else {
+                $payload = $this->array_concat($idArray, $payload);
+            }
         }
         $time = $this->seconds();
         $event = 'subscribe';
@@ -1056,9 +1148,11 @@ class gateio extends \ccxt\async\gateio {
             'time' => $time,
             'channel' => $channel,
             'event' => 'subscribe',
-            'payload' => $payload,
             'auth' => $auth,
         );
+        if ($payload !== null) {
+            $request['payload'] = $payload;
+        }
         $subscription = array(
             'id' => $requestId,
             'messageHash' => $messageHash,

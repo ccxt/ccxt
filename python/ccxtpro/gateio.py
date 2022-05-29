@@ -64,6 +64,10 @@ class gateio(Exchange, ccxt.gateio):
                 'watchOrderBook': {
                     'interval': '100ms',
                 },
+                'watchBalance': {
+                    'settle': 'usdt',  # or btc
+                    'spot': 'spot.balances',  # spot.margin_balances, spot.funding_balances or spot.cross_balances
+                },
             },
             'exceptions': {
                 'ws': {
@@ -581,65 +585,106 @@ class gateio(Exchange, ccxt.gateio):
 
     async def watch_balance(self, params={}):
         await self.load_markets()
-        self.check_required_credentials()
-        url = self.urls['api']['ws']
-        await self.authenticate()
-        requestId = self.nonce()
-        method = 'balance.update'
-        subscribeMessage = {
-            'id': requestId,
-            'method': 'balance.subscribe',
-            'params': [],
-        }
-        subscription = {
-            'id': requestId,
-            'method': self.handle_balance_subscription,
-        }
-        return await self.watch(url, method, subscribeMessage, method, subscription)
-
-    async def fetch_balance_snapshot(self):
-        await self.load_markets()
-        self.check_required_credentials()
-        url = self.urls['api']['ws']
-        await self.authenticate()
-        requestId = self.nonce()
-        method = 'balance.query'
-        subscribeMessage = {
-            'id': requestId,
-            'method': method,
-            'params': [],
-        }
-        subscription = {
-            'id': requestId,
-            'method': self.handle_balance_snapshot,
-        }
-        return await self.watch(url, requestId, subscribeMessage, method, subscription)
-
-    def handle_balance_snapshot(self, client, message):
-        messageHash = self.safe_string(message, 'id')
-        result = self.safe_value(message, 'result')
-        self.handle_balance_message(client, messageHash, result)
-        client.resolve(self.balance, 'balance.update')
-        if 'balance.query' in client.subscriptions:
-            del client.subscriptions['balance.query']
+        type = None
+        type, params = self.handle_market_type_and_params('watchBalance', None, params)
+        options = self.safe_value(self.options, 'watchBalance', {})
+        subType = self.safe_value(options, 'subType', 'linear')
+        subType = self.safe_value(params, 'subType', subType)
+        params = self.omit(params, 'subType')
+        isInverse = (subType == 'inverse')
+        url = self.get_url_by_market_type(type, isInverse)
+        requiresUid = (type != 'spot')
+        channelType = 'spot'
+        if type == 'future' or type == 'swap':
+            channelType = 'futures'
+        elif type == 'option':
+            channelType = 'options'
+        channel = None
+        if type == 'spot':
+            options = self.safe_value(self.options, 'watchTicker', {})
+            channel = self.safe_string(options, 'spot', 'spot.balances')
+        else:
+            channel = channelType + '.balances'
+        return await self.subscribe_private(url, channel, channel, None, requiresUid)
 
     def handle_balance(self, client, message):
         messageHash = message['method']
         result = message['params'][0]
         self.handle_balance_message(client, messageHash, result)
 
-    def handle_balance_message(self, client, messageHash, result):
-        keys = list(result.keys())
-        for i in range(0, len(keys)):
+    def handle_balance_message(self, client, message):
+        #
+        # spot order fill
+        #   {
+        #       time: 1653664351,
+        #       channel: 'spot.balances',
+        #       event: 'update',
+        #       result: [
+        #         {
+        #           timestamp: '1653664351',
+        #           timestamp_ms: '1653664351017',
+        #           user: '10406147',
+        #           currency: 'LTC',
+        #           change: '-0.0002000000000000',
+        #           total: '0.09986000000000000000',
+        #           available: '0.09986000000000000000'
+        #         }
+        #       ]
+        #   }
+        #
+        # account transfer
+        #
+        #    {
+        #        id: null,
+        #        time: 1653665088,
+        #        channel: 'futures.balances',
+        #        event: 'update',
+        #        error: null,
+        #        result: [
+        #          {
+        #            balance: 25.035008537,
+        #            change: 25,
+        #            text: '-',
+        #            time: 1653665088,
+        #            time_ms: 1653665088286,
+        #            type: 'dnw',
+        #            user: '10406147'
+        #          }
+        #        ]
+        #   }
+        #
+        # swap order fill
+        #   {
+        #       id: null,
+        #       time: 1653665311,
+        #       channel: 'futures.balances',
+        #       event: 'update',
+        #       error: null,
+        #       result: [
+        #         {
+        #           balance: 20.031873037,
+        #           change: -0.0031355,
+        #           text: 'LTC_USDT:165551103273',
+        #           time: 1653665311,
+        #           time_ms: 1653665311437,
+        #           type: 'fee',
+        #           user: '10406147'
+        #         }
+        #       ]
+        #   }
+        #
+        channel = self.safe_string(message, 'channel')
+        result = self.safe_value(message, 'result', [])
+        for i in range(0, len(result)):
+            rawBalance = result[i]
             account = self.account()
-            key = keys[i]
-            code = self.safe_currency_code(key)
-            balance = result[key]
-            account['free'] = self.safe_string(balance, 'available')
-            account['used'] = self.safe_string(balance, 'freeze')
+            currencyId = self.safe_string(rawBalance, 'currency', 'USDT')  # when not present it is USDT
+            code = self.safe_currency_code(currencyId)
+            account['free'] = self.safe_string(rawBalance, 'available')
+            account['total'] = self.safe_string_2(rawBalance, 'total', 'balance')
             self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
-        client.resolve(self.balance, messageHash)
+        client.resolve(self.balance, channel)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
@@ -779,111 +824,154 @@ class gateio(Exchange, ccxt.gateio):
                     if id in client.subscriptions:
                         del client.subscriptions[id]
 
-    def handle_balance_subscription(self, client, message, subscription):
-        self.spawn(self.fetch_balance_snapshot)
+    def handle_balance_subscription(self, client, message):
+        self.spawn(self.fetch_balance_snapshot, client, message)
+
+    async def fetch_balance_snapshot(self, client, message):
+        #
+        #  {
+        #     id: 1,
+        #     time: 1653665810,
+        #     channel: 'futures.balances',
+        #     event: 'subscribe',
+        #     auth: {
+        #     },
+        #     payload: ['10406147']
+        #   }
+        #
+        await self.load_markets()
+        channel = self.safe_string(message, 'channel', '')
+        parts = channel.split('.')
+        exchangeType = self.safe_string(parts, 0)
+        type = exchangeType
+        if exchangeType == 'futures':
+            type = 'future'
+        elif type == 'options':
+            type = 'option'
+        params = {
+            'type': type,
+        }
+        if type == 'future' or type == 'swap':
+            options = self.safe_value(self.options, 'watchTicker', {})
+            settle = self.safe_string(options, 'settle', 'usdt')
+            params['settle'] = settle
+        snapshot = await self.fetch_balance(params)
+        self.balance = snapshot
+        client.resolve(self.balance, channel)
 
     def handle_subscription_status(self, client, message):
-        messageId = self.safe_integer(message, 'id')
-        if messageId is not None:
-            subscriptionsById = self.index_by(client.subscriptions, 'id')
-            subscription = self.safe_value(subscriptionsById, messageId, {})
-            method = self.safe_value(subscription, 'method')
-            if method is not None:
-                method(client, message, subscription)
-            client.resolve(message, messageId)
+        channel = self.safe_string(message, 'channel', '')
+        if channel.find('balance') >= 0:
+            self.handle_balance_subscription(client, message)
 
     def handle_message(self, client, message):
         #
         # subscribe
-        # {
-        #     time: 1649062304,
-        #     id: 1649062303,
-        #     channel: 'spot.candlesticks',
-        #     event: 'subscribe',
-        #     result: {status: 'success'}
-        # }
+        #    {
+        #        time: 1649062304,
+        #        id: 1649062303,
+        #        channel: 'spot.candlesticks',
+        #        event: 'subscribe',
+        #        result: {status: 'success'}
+        #    }
+        #
         # candlestick
-        # {
-        #     time: 1649063328,
-        #     channel: 'spot.candlesticks',
-        #     event: 'update',
-        #     result: {
-        #       t: '1649063280',
-        #       v: '58932.23174896',
-        #       c: '45966.47',
-        #       h: '45997.24',
-        #       l: '45966.47',
-        #       o: '45975.18',
-        #       n: '1m_BTC_USDT',
-        #       a: '1.281699'
+        #    {
+        #        time: 1649063328,
+        #        channel: 'spot.candlesticks',
+        #        event: 'update',
+        #        result: {
+        #          t: '1649063280',
+        #          v: '58932.23174896',
+        #          c: '45966.47',
+        #          h: '45997.24',
+        #          l: '45966.47',
+        #          o: '45975.18',
+        #          n: '1m_BTC_USDT',
+        #          a: '1.281699'
+        #        }
         #     }
-        #  }
-        # orders
-        # {
-        #     "time": 1630654851,
-        #     "channel": "options.orders", or futures.orders or spot.orders
-        #     "event": "update",
-        #     "result": [
-        #        {
-        #           "contract": "BTC_USDT-20211130-65000-C",
-        #           "create_time": 1637897000,
-        #             (...)
-        #     ]
-        # }
-        # orderbook
-        # {
-        #     time: 1649770525,
-        #     channel: 'spot.order_book_update',
-        #     event: 'update',
-        #     result: {
-        #       t: 1649770525653,
-        #       e: 'depthUpdate',
-        #       E: 1649770525,
-        #       s: 'LTC_USDT',
-        #       U: 2622525645,
-        #       u: 2622525665,
-        #       b: [
-        #         [Array], [Array],
-        #         [Array], [Array],
-        #         [Array], [Array],
-        #         [Array], [Array],
-        #         [Array], [Array],
-        #         [Array]
-        #       ],
-        #       a: [
-        #         [Array], [Array],
-        #         [Array], [Array],
-        #         [Array], [Array],
-        #         [Array], [Array],
-        #         [Array], [Array],
-        #         [Array]
+        #
+        #  orders
+        #   {
+        #       "time": 1630654851,
+        #       "channel": "options.orders", or futures.orders or spot.orders
+        #       "event": "update",
+        #       "result": [
+        #          {
+        #             "contract": "BTC_USDT-20211130-65000-C",
+        #             "create_time": 1637897000,
+        #               (...)
         #       ]
-        #     }
         #   }
+        # orderbook
+        #   {
+        #       time: 1649770525,
+        #       channel: 'spot.order_book_update',
+        #       event: 'update',
+        #       result: {
+        #         t: 1649770525653,
+        #         e: 'depthUpdate',
+        #         E: 1649770525,
+        #         s: 'LTC_USDT',
+        #         U: 2622525645,
+        #         u: 2622525665,
+        #         b: [
+        #           [Array], [Array],
+        #           [Array], [Array],
+        #           [Array], [Array],
+        #           [Array], [Array],
+        #           [Array], [Array],
+        #           [Array]
+        #         ],
+        #         a: [
+        #           [Array], [Array],
+        #           [Array], [Array],
+        #           [Array], [Array],
+        #           [Array], [Array],
+        #           [Array], [Array],
+        #           [Array]
+        #         ]
+        #       }
+        #     }
+        #
+        # balance update
+        #
+        #    {
+        #        time: 1653664351,
+        #        channel: 'spot.balances',
+        #        event: 'update',
+        #        result: [
+        #          {
+        #            timestamp: '1653664351',
+        #            timestamp_ms: '1653664351017',
+        #            user: '10406147',
+        #            currency: 'LTC',
+        #            change: '-0.0002000000000000',
+        #            total: '0.09986000000000000000',
+        #            available: '0.09986000000000000000'
+        #          }
+        #        ]
+        #    }
+        #
         self.handle_error_message(client, message)
-        methods = {
-            # missing migration to v4
-            'balance.update': self.handle_balance,
+        event = self.safe_string(message, 'event')
+        if event == 'subscribe':
+            self.handle_subscription_status(client, message)
+            return
+        channel = self.safe_string(message, 'channel', '')
+        channelParts = channel.split('.')
+        channelType = self.safe_value(channelParts, 1)
+        v4Methods = {
+            'usertrades': self.handle_my_trades,
+            'candlesticks': self.handle_ohlcv,
+            'orders': self.handle_order,
+            'tickers': self.handle_ticker,
+            'trades': self.handle_trades,
+            'order_book_update': self.handle_order_book,
+            'balances': self.handle_balance_message,
         }
-        methodType = self.safe_string(message, 'method')
-        method = self.safe_value(methods, methodType)
-        if method is None:
-            event = self.safe_string(message, 'event')
-            if event == 'subscribe':
-                self.handle_subscription_status(client, message)
-                return
-            channel = self.safe_string(message, 'channel', '')
-            channelParts = channel.split('.')
-            channelType = self.safe_value(channelParts, 1)
-            v4Methods = {
-                'usertrades': self.handle_my_trades,
-                'candlesticks': self.handle_ohlcv,
-                'orders': self.handle_order,
-                'tickers': self.handle_ticker,
-                'trades': self.handle_trades,
-                'order_book_update': self.handle_order_book,
-            }
-            method = self.safe_value(v4Methods, channelType)
+        method = self.safe_value(v4Methods, channelType)
         if method is not None:
             method(client, message)
 
@@ -933,14 +1021,17 @@ class gateio(Exchange, ccxt.gateio):
         subscription = self.extend(subscription, subscriptionParams)
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
-    async def subscribe_private(self, url, channel, messageHash, payload, requiresUid=False):
+    async def subscribe_private(self, url, channel, messageHash, payload=None, requiresUid=False):
         self.check_required_credentials()
         # uid is required for some subscriptions only so it's not a part of required credentials
         if requiresUid:
             if self.uid is None or len(self.uid) == 0:
                 raise ArgumentsRequired(self.id + ' requires uid to subscribe')
             idArray = [self.uid]
-            payload = self.array_concat(idArray, payload)
+            if payload is None:
+                payload = idArray
+            else:
+                payload = self.array_concat(idArray, payload)
         time = self.seconds()
         event = 'subscribe'
         signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + str(time)
@@ -956,9 +1047,10 @@ class gateio(Exchange, ccxt.gateio):
             'time': time,
             'channel': channel,
             'event': 'subscribe',
-            'payload': payload,
             'auth': auth,
         }
+        if payload is not None:
+            request['payload'] = payload
         subscription = {
             'id': requestId,
             'messageHash': messageHash,
