@@ -57,6 +57,10 @@ module.exports = class gateio extends ccxt.gateio {
                 'watchOrderBook': {
                     'interval': '100ms',
                 },
+                'watchBalance': {
+                    'settle': 'usdt', // or btc
+                    'spot': 'spot.balances', // spot.margin_balances, spot.funding_balances or spot.cross_balances
+                },
             },
             'exceptions': {
                 'ws': {
@@ -629,50 +633,29 @@ module.exports = class gateio extends ccxt.gateio {
 
     async watchBalance (params = {}) {
         await this.loadMarkets ();
-        this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws'];
-        await this.authenticate ();
-        const requestId = this.nonce ();
-        const method = 'balance.update';
-        const subscribeMessage = {
-            'id': requestId,
-            'method': 'balance.subscribe',
-            'params': [],
-        };
-        const subscription = {
-            'id': requestId,
-            'method': this.handleBalanceSubscription,
-        };
-        return await this.watch (url, method, subscribeMessage, method, subscription);
-    }
-
-    async fetchBalanceSnapshot () {
-        await this.loadMarkets ();
-        this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws'];
-        await this.authenticate ();
-        const requestId = this.nonce ();
-        const method = 'balance.query';
-        const subscribeMessage = {
-            'id': requestId,
-            'method': method,
-            'params': [],
-        };
-        const subscription = {
-            'id': requestId,
-            'method': this.handleBalanceSnapshot,
-        };
-        return await this.watch (url, requestId, subscribeMessage, method, subscription);
-    }
-
-    handleBalanceSnapshot (client, message) {
-        const messageHash = this.safeString (message, 'id');
-        const result = this.safeValue (message, 'result');
-        this.handleBalanceMessage (client, messageHash, result);
-        client.resolve (this.balance, 'balance.update');
-        if ('balance.query' in client.subscriptions) {
-            delete client.subscriptions['balance.query'];
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const options = this.safeValue (this.options, 'watchBalance', {});
+        let subType = this.safeValue (options, 'subType', 'linear');
+        subType = this.safeValue (params, 'subType', subType);
+        params = this.omit (params, 'subType');
+        const isInverse = (subType === 'inverse');
+        const url = this.getUrlByMarketType (type, isInverse);
+        const requiresUid = (type !== 'spot');
+        let channelType = 'spot';
+        if (type === 'future' || type === 'swap') {
+            channelType = 'futures';
+        } else if (type === 'option') {
+            channelType = 'options';
         }
+        let channel = undefined;
+        if (type === 'spot') {
+            const options = this.safeValue (this.options, 'watchTicker', {});
+            channel = this.safeString (options, 'spot', 'spot.balances');
+        } else {
+            channel = channelType + '.balances';
+        }
+        return await this.subscribePrivate (url, channel, channel, undefined, requiresUid);
     }
 
     handleBalance (client, message) {
@@ -681,19 +664,80 @@ module.exports = class gateio extends ccxt.gateio {
         this.handleBalanceMessage (client, messageHash, result);
     }
 
-    handleBalanceMessage (client, messageHash, result) {
-        const keys = Object.keys (result);
-        for (let i = 0; i < keys.length; i++) {
+    handleBalanceMessage (client, message) {
+        //
+        // spot order fill
+        //   {
+        //       time: 1653664351,
+        //       channel: 'spot.balances',
+        //       event: 'update',
+        //       result: [
+        //         {
+        //           timestamp: '1653664351',
+        //           timestamp_ms: '1653664351017',
+        //           user: '10406147',
+        //           currency: 'LTC',
+        //           change: '-0.0002000000000000',
+        //           total: '0.09986000000000000000',
+        //           available: '0.09986000000000000000'
+        //         }
+        //       ]
+        //   }
+        //
+        // account transfer
+        //
+        //    {
+        //        id: null,
+        //        time: 1653665088,
+        //        channel: 'futures.balances',
+        //        event: 'update',
+        //        error: null,
+        //        result: [
+        //          {
+        //            balance: 25.035008537,
+        //            change: 25,
+        //            text: '-',
+        //            time: 1653665088,
+        //            time_ms: 1653665088286,
+        //            type: 'dnw',
+        //            user: '10406147'
+        //          }
+        //        ]
+        //   }
+        //
+        // swap order fill
+        //   {
+        //       id: null,
+        //       time: 1653665311,
+        //       channel: 'futures.balances',
+        //       event: 'update',
+        //       error: null,
+        //       result: [
+        //         {
+        //           balance: 20.031873037,
+        //           change: -0.0031355,
+        //           text: 'LTC_USDT:165551103273',
+        //           time: 1653665311,
+        //           time_ms: 1653665311437,
+        //           type: 'fee',
+        //           user: '10406147'
+        //         }
+        //       ]
+        //   }
+        //
+        const channel = this.safeString (message, 'channel');
+        const result = this.safeValue (message, 'result', []);
+        for (let i = 0; i < result.length; i++) {
+            const rawBalance = result[i];
             const account = this.account ();
-            const key = keys[i];
-            const code = this.safeCurrencyCode (key);
-            const balance = result[key];
-            account['free'] = this.safeString (balance, 'available');
-            account['used'] = this.safeString (balance, 'freeze');
+            const currencyId = this.safeString (rawBalance, 'currency', 'USDT'); // when not present it is USDT
+            const code = this.safeCurrencyCode (currencyId);
+            account['free'] = this.safeString (rawBalance, 'available');
+            account['total'] = this.safeString2 (rawBalance, 'total', 'balance');
             this.balance[code] = account;
         }
         this.balance = this.safeBalance (this.balance);
-        client.resolve (this.balance, messageHash);
+        client.resolve (this.balance, channel);
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -853,117 +897,161 @@ module.exports = class gateio extends ccxt.gateio {
         }
     }
 
-    handleBalanceSubscription (client, message, subscription) {
-        this.spawn (this.fetchBalanceSnapshot);
+    handleBalanceSubscription (client, message) {
+        this.spawn (this.fetchBalanceSnapshot, client, message);
+    }
+
+    async fetchBalanceSnapshot (client, message) {
+        //
+        //  {
+        //     id: 1,
+        //     time: 1653665810,
+        //     channel: 'futures.balances',
+        //     event: 'subscribe',
+        //     auth: {
+        //     },
+        //     payload: [ '10406147' ]
+        //   }
+        //
+        await this.loadMarkets ();
+        const channel = this.safeString (message, 'channel', '');
+        const parts = channel.split ('.');
+        const exchangeType = this.safeString (parts, 0);
+        let type = exchangeType;
+        if (exchangeType === 'futures') {
+            type = 'future';
+        } else if (type === 'options') {
+            type = 'option';
+        }
+        const params = {
+            'type': type,
+        };
+        if (type === 'future' || type === 'swap') {
+            const options = this.safeValue (this.options, 'watchTicker', {});
+            const settle = this.safeString (options, 'settle', 'usdt');
+            params['settle'] = settle;
+        }
+        const snapshot = await this.fetchBalance (params);
+        this.balance = snapshot;
+        client.resolve (this.balance, channel);
     }
 
     handleSubscriptionStatus (client, message) {
-        const messageId = this.safeInteger (message, 'id');
-        if (messageId !== undefined) {
-            const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-            const subscription = this.safeValue (subscriptionsById, messageId, {});
-            const method = this.safeValue (subscription, 'method');
-            if (method !== undefined) {
-                method.call (this, client, message, subscription);
-            }
-            client.resolve (message, messageId);
+        const channel = this.safeString (message, 'channel', '');
+        if (channel.indexOf ('balance') >= 0) {
+            this.handleBalanceSubscription (client, message);
         }
     }
 
     handleMessage (client, message) {
         //
         // subscribe
-        // {
-        //     time: 1649062304,
-        //     id: 1649062303,
-        //     channel: 'spot.candlesticks',
-        //     event: 'subscribe',
-        //     result: { status: 'success' }
-        // }
+        //    {
+        //        time: 1649062304,
+        //        id: 1649062303,
+        //        channel: 'spot.candlesticks',
+        //        event: 'subscribe',
+        //        result: { status: 'success' }
+        //    }
+        //
         // candlestick
-        // {
-        //     time: 1649063328,
-        //     channel: 'spot.candlesticks',
-        //     event: 'update',
-        //     result: {
-        //       t: '1649063280',
-        //       v: '58932.23174896',
-        //       c: '45966.47',
-        //       h: '45997.24',
-        //       l: '45966.47',
-        //       o: '45975.18',
-        //       n: '1m_BTC_USDT',
-        //       a: '1.281699'
+        //    {
+        //        time: 1649063328,
+        //        channel: 'spot.candlesticks',
+        //        event: 'update',
+        //        result: {
+        //          t: '1649063280',
+        //          v: '58932.23174896',
+        //          c: '45966.47',
+        //          h: '45997.24',
+        //          l: '45966.47',
+        //          o: '45975.18',
+        //          n: '1m_BTC_USDT',
+        //          a: '1.281699'
+        //        }
         //     }
-        //  }
-        // orders
-        // {
-        //     "time": 1630654851,
-        //     "channel": "options.orders", or futures.orders or spot.orders
-        //     "event": "update",
-        //     "result": [
-        //        {
-        //           "contract": "BTC_USDT-20211130-65000-C",
-        //           "create_time": 1637897000,
-        //             (...)
-        //     ]
-        // }
-        // orderbook
-        // {
-        //     time: 1649770525,
-        //     channel: 'spot.order_book_update',
-        //     event: 'update',
-        //     result: {
-        //       t: 1649770525653,
-        //       e: 'depthUpdate',
-        //       E: 1649770525,
-        //       s: 'LTC_USDT',
-        //       U: 2622525645,
-        //       u: 2622525665,
-        //       b: [
-        //         [Array], [Array],
-        //         [Array], [Array],
-        //         [Array], [Array],
-        //         [Array], [Array],
-        //         [Array], [Array],
-        //         [Array]
-        //       ],
-        //       a: [
-        //         [Array], [Array],
-        //         [Array], [Array],
-        //         [Array], [Array],
-        //         [Array], [Array],
-        //         [Array], [Array],
-        //         [Array]
+        //
+        //  orders
+        //   {
+        //       "time": 1630654851,
+        //       "channel": "options.orders", or futures.orders or spot.orders
+        //       "event": "update",
+        //       "result": [
+        //          {
+        //             "contract": "BTC_USDT-20211130-65000-C",
+        //             "create_time": 1637897000,
+        //               (...)
         //       ]
-        //     }
         //   }
+        // orderbook
+        //   {
+        //       time: 1649770525,
+        //       channel: 'spot.order_book_update',
+        //       event: 'update',
+        //       result: {
+        //         t: 1649770525653,
+        //         e: 'depthUpdate',
+        //         E: 1649770525,
+        //         s: 'LTC_USDT',
+        //         U: 2622525645,
+        //         u: 2622525665,
+        //         b: [
+        //           [Array], [Array],
+        //           [Array], [Array],
+        //           [Array], [Array],
+        //           [Array], [Array],
+        //           [Array], [Array],
+        //           [Array]
+        //         ],
+        //         a: [
+        //           [Array], [Array],
+        //           [Array], [Array],
+        //           [Array], [Array],
+        //           [Array], [Array],
+        //           [Array], [Array],
+        //           [Array]
+        //         ]
+        //       }
+        //     }
+        //
+        // balance update
+        //
+        //    {
+        //        time: 1653664351,
+        //        channel: 'spot.balances',
+        //        event: 'update',
+        //        result: [
+        //          {
+        //            timestamp: '1653664351',
+        //            timestamp_ms: '1653664351017',
+        //            user: '10406147',
+        //            currency: 'LTC',
+        //            change: '-0.0002000000000000',
+        //            total: '0.09986000000000000000',
+        //            available: '0.09986000000000000000'
+        //          }
+        //        ]
+        //    }
+        //
         this.handleErrorMessage (client, message);
-        const methods = {
-            // missing migration to v4
-            'balance.update': this.handleBalance,
-        };
-        const methodType = this.safeString (message, 'method');
-        let method = this.safeValue (methods, methodType);
-        if (method === undefined) {
-            const event = this.safeString (message, 'event');
-            if (event === 'subscribe') {
-                this.handleSubscriptionStatus (client, message);
-                return;
-            }
-            const channel = this.safeString (message, 'channel', '');
-            const channelParts = channel.split ('.');
-            const channelType = this.safeValue (channelParts, 1);
-            const v4Methods = {
-                'usertrades': this.handleMyTrades,
-                'candlesticks': this.handleOHLCV,
-                'orders': this.handleOrder,
-                'tickers': this.handleTicker,
-                'trades': this.handleTrades,
-                'order_book_update': this.handleOrderBook,
-            };
-            method = this.safeValue (v4Methods, channelType);
+        const event = this.safeString (message, 'event');
+        if (event === 'subscribe') {
+            this.handleSubscriptionStatus (client, message);
+            return;
         }
+        const channel = this.safeString (message, 'channel', '');
+        const channelParts = channel.split ('.');
+        const channelType = this.safeValue (channelParts, 1);
+        const v4Methods = {
+            'usertrades': this.handleMyTrades,
+            'candlesticks': this.handleOHLCV,
+            'orders': this.handleOrder,
+            'tickers': this.handleTicker,
+            'trades': this.handleTrades,
+            'order_book_update': this.handleOrderBook,
+            'balances': this.handleBalanceMessage,
+        };
+        const method = this.safeValue (v4Methods, channelType);
         if (method !== undefined) {
             method.call (this, client, message);
         }
@@ -1025,15 +1113,19 @@ module.exports = class gateio extends ccxt.gateio {
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
-    async subscribePrivate (url, channel, messageHash, payload, requiresUid = false) {
+    async subscribePrivate (url, channel, messageHash, payload = undefined, requiresUid = false) {
         this.checkRequiredCredentials ();
         // uid is required for some subscriptions only so it's not a part of required credentials
         if (requiresUid) {
             if (this.uid === undefined || this.uid.length === 0) {
                 throw new ArgumentsRequired (this.id + ' requires uid to subscribe');
             }
-            const idArray = [this.uid];
-            payload = this.arrayConcat (idArray, payload);
+            const idArray = [ this.uid ];
+            if (payload === undefined) {
+                payload = idArray;
+            } else {
+                payload = this.arrayConcat (idArray, payload);
+            }
         }
         const time = this.seconds ();
         const event = 'subscribe';
@@ -1050,9 +1142,11 @@ module.exports = class gateio extends ccxt.gateio {
             'time': time,
             'channel': channel,
             'event': 'subscribe',
-            'payload': payload,
             'auth': auth,
         };
+        if (payload !== undefined) {
+            request['payload'] = payload;
+        }
         const subscription = {
             'id': requestId,
             'messageHash': messageHash,
