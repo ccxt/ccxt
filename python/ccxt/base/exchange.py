@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.84.27'
+__version__ = '1.84.39'
 
 # -----------------------------------------------------------------------------
 
@@ -2892,7 +2892,6 @@ class Exchange(object):
             return self.safe_value(tiers, symbol)
         else:
             raise NotSupported(self.id + 'fetch_market_leverage_tiers() is not supported yet')
-
 
 # -----------------------------------------------------------------------------
 # exchange_common : set imported common methods as part of the class

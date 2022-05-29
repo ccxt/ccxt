@@ -256,7 +256,7 @@ module.exports = class coinbase extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        this.parseAccounts (data, params);
+        return this.parseAccounts (data, params);
     }
 
     parseAccount (account) {

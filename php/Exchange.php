@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.84.27';
+$version = '1.84.39';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -60,7 +60,7 @@ class Exchange {
 
     use ExchangeCommon;
 
-    const VERSION = '1.84.27';
+    const VERSION = '1.84.39';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -3821,6 +3821,16 @@ class Exchange {
 
     public function sleep($milliseconds) {
         sleep($milliseconds / 1000);
+    }
+  
+    public function parse_positions($positions, $symbols = null, $params = array()) {
+        $symbols = $this->market_symbols($symbols);
+        $array = is_array($positions) ? array_values($positions) : array();
+        $result = array();
+        foreach ($array as $position) {
+            $result[] = $this->merge($this->parse_trade($position), $params);
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
