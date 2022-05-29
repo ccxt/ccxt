@@ -74,6 +74,7 @@ module.exports = class woo extends Exchange {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'setLeverage': true,
                 'setMargin': false,
                 'transfer': true,
                 'withdraw': false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
@@ -1878,6 +1879,17 @@ module.exports = class woo extends Exchange {
         }
         const sorted = this.sortBy (rates, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        if ((leverage < 1) || (leverage > 20)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 20');
+        }
+        const request = {
+            'leverage': leverage,
+        };
+        return await this.v1PrivatePostClientLeverage (this.extend (request, params));
     }
 
     defaultNetworkCodeForCurrency (code) { // TODO: can be moved into base as an unified method
