@@ -63,6 +63,7 @@ module.exports = class woo extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchPosition': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
                 'fetchTicker': false,
@@ -157,6 +158,7 @@ module.exports = class woo extends Exchange {
                             'interest/repay': 60,
                             'funding_fee/history': 30,
                             'positions': 30,
+                            'position/{symbol}': 30,
                         },
                         'post': {
                             'order': 5, // 2 requests per 1 second per symbol
@@ -1919,6 +1921,88 @@ module.exports = class woo extends Exchange {
             'leverage': leverage,
         };
         return await this.v1PrivatePostClientLeverage (this.extend (request, params));
+    }
+
+    async fetchPosition (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.v1PrivateGetPositionSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "symbol":"PERP_ETC_USDT",
+        //         "holding":0.0,
+        //         "pnl_24_h":0,
+        //         "settle_price":0.0,
+        //         "average_open_price":0,
+        //         "success":true,
+        //         "mark_price":22.6955,
+        //         "pending_short_qty":0.0,
+        //         "pending_long_qty":0.0,
+        //         "fee_24_h":0,
+        //         "timestamp":"1652231044.920"
+        //     }
+        //
+        return this.parsePosition (response, market);
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //     {
+        //         "symbol":"PERP_ETC_USDT",
+        //         "holding":0.0,
+        //         "pending_long_qty":0.0,
+        //         "pending_short_qty":0.0,
+        //         "settle_price":0.0,
+        //         "average_open_price":0,
+        //         "timestamp":"1652231044.920",
+        //         "mark_price":22.68,
+        //         "pnl_24_h":0,
+        //         "fee_24_h":0
+        //     }
+        //
+        const contract = this.safeString (position, 'symbol');
+        market = this.safeMarket (contract, market);
+        const pendingLongQty = this.safeString (position, 'pending_long_qty');
+        const pendingShortQty = this.safeString (position, 'pending_short_qty');
+        const size = this.safeString (position, 'holding');
+        let side = undefined;
+        if (Precise.stringGt (pendingLongQty, '0')) {
+            side = 'long';
+        } else if (Precise.stringLt (pendingShortQty, '0')) {
+            side = 'short';
+        }
+        const unrealisedPnl = this.safeString (position, 'pnl_24_h');
+        const contractSize = this.safeString (market, 'contractSize');
+        const marketPrice = this.safeString (position, 'mark_price');
+        const notional = Precise.stringMul (size, marketPrice);
+        const timestamp = this.safeTimestamp (position, 'timestamp');
+        return {
+            'info': position,
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'entryPrice': this.safeNumber (position, 'average_open_price'),
+            'notional': this.parseNumber (notional),
+            'leverage': undefined,
+            'unrealizedPnl': this.parseNumber (unrealisedPnl),
+            'contracts': this.parseNumber (size),
+            'contractSize': this.parseNumber (contractSize),
+            'marginRatio': undefined,
+            'liquidationPrice': undefined,
+            'markPrice': marketPrice,
+            'collateral': undefined,
+            'marginMode': undefined,
+            'marginType': undefined,
+            'side': side,
+            'percentage': undefined,
+        };
     }
 
     defaultNetworkCodeForCurrency (code) { // TODO: can be moved into base as an unified method
