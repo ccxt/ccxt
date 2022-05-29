@@ -1891,7 +1891,13 @@ module.exports = class mexc extends Exchange {
         if ((type !== 'limit') && (type !== 'market') && (type !== 1) && (type !== 2) && (type !== 3) && (type !== 4) && (type !== 5) && (type !== 6)) {
             throw new InvalidOrder (this.id + ' createSwapOrder () order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
-        const postOnly = this.isPostOnly (type, params);
+        let orderType = undefined;
+        if ((type === 'market') || (type === 6) || (type === 5)) {
+            orderType = 'market';
+        } else {
+            orderType = 'limit';
+        }
+        const postOnly = this.isPostOnly (orderType, type === 2, params);
         if (postOnly) {
             type = 2;
         } else if (type === 'limit') {
@@ -2231,8 +2237,9 @@ module.exports = class mexc extends Exchange {
         // swap: 1:price limited order, 2:Post Only Maker, 3:transact or cancel instantly, 4:transact completely or cancel completely，5:market orders, 6:convert market price to current price
         // spot: LIMIT_ORDER, POST_ONLY, IMMEDIATE_OR_CANCEL
         let timeInForce = undefined;
-        let postOnly = false;
+        let postOnly = undefined;
         if (rawOrderType !== undefined) {
+            postOnly = false;
             if (rawOrderType === '1') {
                 orderType = 'limit';
                 timeInForce = 'GTC';
