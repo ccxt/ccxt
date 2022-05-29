@@ -1753,11 +1753,12 @@ class mexc(Exchange):
         elif side == 'sell':
             orderSide = 'ASK'
         orderType = type.upper()
-        if orderType == 'MARKET':
+        isMarketOrder = orderType == 'MARKET'
+        if isMarketOrder:
             raise InvalidOrder(self.id + ' createOrder() does not support market orders, only limit orders are allowed')
         if orderType == 'LIMIT':
             orderType = 'LIMIT_ORDER'
-        postOnly = self.is_post_only(type, orderType == 'POST_ONLY', params)
+        postOnly = self.is_post_only(isMarketOrder, orderType == 'POST_ONLY', params)
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         ioc = (timeInForce == 'IOC')
         if postOnly:

@@ -1828,13 +1828,14 @@ class mexc extends Exchange {
             $orderSide = 'ASK';
         }
         $orderType = strtoupper($type);
-        if ($orderType === 'MARKET') {
+        $isMarketOrder = $orderType === 'MARKET';
+        if ($isMarketOrder) {
             throw new InvalidOrder($this->id . ' createOrder () does not support $market orders, only limit orders are allowed');
         }
         if ($orderType === 'LIMIT') {
             $orderType = 'LIMIT_ORDER';
         }
-        $postOnly = $this->is_post_only($type, $orderType === 'POST_ONLY', $params);
+        $postOnly = $this->is_post_only($isMarketOrder, $orderType === 'POST_ONLY', $params);
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $ioc = ($timeInForce === 'IOC');
         if ($postOnly) {

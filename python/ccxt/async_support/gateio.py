@@ -2651,7 +2651,7 @@ class gateio(Exchange):
         methodTail = 'Orders'
         reduceOnly = self.safe_value(params, 'reduceOnly')
         exchangeSpecificTimeInForce = self.safe_string_lower_2(params, 'time_in_force', 'tif')
-        postOnly = self.is_post_only(type, exchangeSpecificTimeInForce == 'poc', params)
+        postOnly = self.is_post_only(type == 'market', exchangeSpecificTimeInForce == 'poc', params)
         # we only omit the unified params here
         # self is because the other params will get extended into the request
         timeInForce = self.safe_string_upper(params, 'timeInForce')  # supported values GTC, IOC, PO
