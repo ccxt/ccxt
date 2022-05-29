@@ -64,6 +64,7 @@ module.exports = class woo extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
                 'fetchTicker': false,
@@ -1946,6 +1947,35 @@ module.exports = class woo extends Exchange {
         //     }
         //
         return this.parsePosition (response, market);
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.v1PrivateGetPositions (params);
+        //
+        //     {
+        //         "positions":[
+        //             {
+        //                 "symbol":"PERP_ETC_USDT",
+        //                 "holding":0.0,
+        //                 "pending_long_qty":0.0,
+        //                 "pending_short_qty":0.0,
+        //                 "settle_price":0.0,
+        //                 "average_open_price":0,
+        //                 "timestamp":"1652231044.920",
+        //                 "mark_price":22.68,
+        //                 "pnl_24_h":0,
+        //                 "fee_24_h":0
+        //             }
+        //         ],
+        //         "initial_margin_ratio":1000,
+        //         "current_margin_ratio":1000,
+        //         "maintenance_margin_ratio":1000,
+        //         "success":true
+        //     }
+        //
+        const result = this.safeValue (response, 'positions', []);
+        return this.parsePositions (result, symbols);
     }
 
     parsePosition (position, market = undefined) {
