@@ -1970,9 +1970,7 @@ module.exports = class okx extends Exchange {
         } else if (contract) {
             const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
             const tdMode = this.safeStringLower (params, 'tdMode', marginMode); // not ommited so as to be extended into the request
-            if (tdMode === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() params["tdMode"] must be either "isolated" or "cross"');
-            } else if ((tdMode !== 'isolated') && (tdMode !== 'cross')) {
+            if ((tdMode !== 'isolated') && (tdMode !== 'cross')) {
                 throw new BadRequest (this.id + ' createOrder() params["tdMode"] must be either "isolated" or "cross"');
             } else {
                 request['tdMode'] = marginMode;
@@ -2049,10 +2047,7 @@ module.exports = class okx extends Exchange {
             method = 'privatePostTradeOrderAlgo';
             request['ordType'] = 'trigger';
             request['triggerPx'] = this.priceToPrecision (symbol, stopPrice);
-            if (isMarketOrder) {
-                price = -1;
-            }
-            request['orderPx'] = this.priceToPrecision (symbol, price);
+            request['orderPx'] = isMarketOrder ? '-1' : this.priceToPrecision (symbol, price);
         } else if (conditional) {
             method = 'privatePostTradeOrderAlgo';
             request['ordType'] = 'conditional';
