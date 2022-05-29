@@ -2933,10 +2933,13 @@ module.exports = class gateio extends Exchange {
                         'price': this.priceToPrecision (symbol, price),
                         'amount': this.amountToPrecision (symbol, amount),
                         'account': marginMode,
-                        'time_in_force': tif, // gtc, ioc for taker only
+                        // 'time_in_force': tif, // gtc, ioc for taker only
                     },
                     'market': market['id'],
                 };
+                if (tif !== undefined) {
+                    request['put']['time_in_force'] = tif;
+                }
             }
             methodTail = 'PriceOrders';
         }
