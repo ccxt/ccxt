@@ -1793,7 +1793,12 @@ class mexc(Exchange):
             raise ArgumentsRequired(self.id + ' createSwapOrder() requires an integer openType parameter, 1 for isolated margin, 2 for cross margin')
         if (type != 'limit') and (type != 'market') and (type != 1) and (type != 2) and (type != 3) and (type != 4) and (type != 5) and (type != 6):
             raise InvalidOrder(self.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price')
-        postOnly = self.is_post_only(type, params)
+        orderType = None
+        if (type == 'market') or (type == 6) or (type == 5):
+            orderType = 'market'
+        else:
+            orderType = 'limit'
+        postOnly = self.is_post_only(orderType, type == 2, params)
         if postOnly:
             type = 2
         elif type == 'limit':
@@ -2110,8 +2115,9 @@ class mexc(Exchange):
         # swap: 1:price limited order, 2:Post Only Maker, 3:transact or cancel instantly, 4:transact completely or cancel completely，5:market orders, 6:convert market price to current price
         # spot: LIMIT_ORDER, POST_ONLY, IMMEDIATE_OR_CANCEL
         timeInForce = None
-        postOnly = False
+        postOnly = None
         if rawOrderType is not None:
+            postOnly = False
             if rawOrderType == '1':
                 orderType = 'limit'
                 timeInForce = 'GTC'
