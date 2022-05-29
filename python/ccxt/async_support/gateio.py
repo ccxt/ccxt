@@ -2658,8 +2658,8 @@ class gateio(Exchange):
         tif = None
         if timeInForce is not None:
             timeInForceMapping = {
+                'GTC': 'gtc',
                 'IOC': 'ioc',
-                'FOK': 'fok',
                 'PO': 'poc',
             }
             tif = self.safe_string(timeInForceMapping, timeInForce)
@@ -2677,7 +2677,7 @@ class gateio(Exchange):
             signedAmount = Precise.string_neg(amountToPrecision) if (side == 'sell') else amountToPrecision
             amount = int(signedAmount)
             if isMarketOrder:
-                if (tif == 'poc') or (tif == 'fok'):
+                if (tif == 'poc') or (tif == 'gtc'):
                     raise ExchangeError(self.id + ' createOrder() timeInForce for market orders must be "IOC"')
                 tif = 'ioc'
                 price = 0
