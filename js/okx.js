@@ -2039,7 +2039,7 @@ module.exports = class okx extends Exchange {
         if (postOnly) {
             method = defaultMethod;
             request['ordType'] = 'post_only';
-        } else if ((ioc) && (!marketIOC)) {
+        } else if (ioc && !marketIOC) {
             method = defaultMethod;
             request['ordType'] = 'ioc';
         } else if (fok) {
@@ -2058,7 +2058,7 @@ module.exports = class okx extends Exchange {
             request['ordType'] = 'conditional';
             const twoWayCondition = ((takeProfitPrice !== undefined) && (stopLossPrice !== undefined));
             if (!isMarketOrder) {
-                if ((twoWayCondition) && ((!slOrdPx) || (!tpOrdPx))) {
+                if (twoWayCondition && ((!slOrdPx) || (!tpOrdPx))) {
                     throw new InvalidOrder (this.id + ' createOrder() cannot use the same price for two-way conditional orders to be created, please supply takeProfitPrice and stopLossPrice params or tpOrdPx and slOrdPx params');
                 }
             }
