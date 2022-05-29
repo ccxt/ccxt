@@ -1842,13 +1842,14 @@ module.exports = class mexc extends Exchange {
             orderSide = 'ASK';
         }
         let orderType = type.toUpperCase ();
-        if (orderType === 'MARKET') {
+        const isMarketOrder = orderType === 'MARKET';
+        if (isMarketOrder) {
             throw new InvalidOrder (this.id + ' createOrder () does not support market orders, only limit orders are allowed');
         }
         if (orderType === 'LIMIT') {
             orderType = 'LIMIT_ORDER';
         }
-        const postOnly = this.isPostOnly (type, orderType === 'POST_ONLY', params);
+        const postOnly = this.isPostOnly (isMarketOrder, orderType === 'POST_ONLY', params);
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         const ioc = (timeInForce === 'IOC');
         if (postOnly) {
