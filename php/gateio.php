@@ -2765,8 +2765,8 @@ class gateio extends Exchange {
         $tif = null;
         if ($timeInForce !== null) {
             $timeInForceMapping = array(
+                'GTC' => 'gtc',
                 'IOC' => 'ioc',
-                'FOK' => 'fok',
                 'PO' => 'poc',
             );
             $tif = $this->safe_string($timeInForceMapping, $timeInForce);
@@ -2788,7 +2788,7 @@ class gateio extends Exchange {
             $signedAmount = ($side === 'sell') ? Precise::string_neg($amountToPrecision) : $amountToPrecision;
             $amount = intval($signedAmount);
             if ($isMarketOrder) {
-                if (($tif === 'poc') || ($tif === 'fok')) {
+                if (($tif === 'poc') || ($tif === 'gtc')) {
                     throw new ExchangeError($this->id . ' createOrder() $timeInForce for $market orders must be "IOC"');
                 }
                 $tif = 'ioc';
