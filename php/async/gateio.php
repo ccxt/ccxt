@@ -573,7 +573,7 @@ class gateio extends Exchange {
                     'INVALID_PRECISION' => '\\ccxt\\InvalidOrder',
                     'INVALID_CURRENCY' => '\\ccxt\\BadSymbol',
                     'INVALID_CURRENCY_PAIR' => '\\ccxt\\BadSymbol',
-                    'POC_FILL_IMMEDIATELY' => '\\ccxt\\ExchangeError',
+                    'POC_FILL_IMMEDIATELY' => '\\ccxt\\OrderImmediatelyFillable', // array("label":"POC_FILL_IMMEDIATELY","message":"Order would match and take immediately so its cancelled")
                     'ORDER_NOT_FOUND' => '\\ccxt\\OrderNotFound',
                     'CLIENT_ID_NOT_FOUND' => '\\ccxt\\OrderNotFound',
                     'ORDER_CLOSED' => '\\ccxt\\InvalidOrder',
@@ -619,7 +619,7 @@ class gateio extends Exchange {
                     'SIZE_TOO_SMALL' => '\\ccxt\\InvalidOrder',
                     'PRICE_OVER_LIQUIDATION' => '\\ccxt\\InvalidOrder',
                     'PRICE_OVER_BANKRUPT' => '\\ccxt\\InvalidOrder',
-                    'ORDER_POC_IMMEDIATE' => '\\ccxt\\InvalidOrder',
+                    'ORDER_POC_IMMEDIATE' => '\\ccxt\\OrderImmediatelyFillable', // array("label":"ORDER_POC_IMMEDIATE","detail":"order price 1700 while counter price 1793.55")
                     'INCREASE_POSITION' => '\\ccxt\\InvalidOrder',
                     'CONTRACT_IN_DELISTING' => '\\ccxt\\ExchangeError',
                     'INTERNAL' => '\\ccxt\\ExchangeNotAvailable',
@@ -2999,6 +2999,7 @@ class gateio extends Exchange {
             'filled' => 'closed',
             'cancelled' => 'canceled',
             'liquidated' => 'closed',
+            'ioc' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
     }
