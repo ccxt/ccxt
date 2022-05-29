@@ -2779,7 +2779,7 @@ module.exports = class gateio extends Exchange {
         let methodTail = 'Orders';
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         const exchangeSpecificTimeInForce = this.safeStringLower2 (params, 'time_in_force', 'tif');
-        const postOnly = this.isPostOnly (type, exchangeSpecificTimeInForce === 'poc', params);
+        const postOnly = this.isPostOnly (type === 'market', exchangeSpecificTimeInForce === 'poc', params);
         // we only omit the unified params here
         // this is because the other params will get extended into the request
         const timeInForce = this.safeStringUpper (params, 'timeInForce'); // supported values GTC, IOC, PO
