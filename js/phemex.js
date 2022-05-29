@@ -3,9 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { NotSupported } = require ('ccxt/js/base/errors');
 const Precise = require ('ccxt/js/base/Precise');
-const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -17,6 +16,8 @@ module.exports = class phemex extends ccxt.phemex {
                 'watchTicker': true,
                 'watchTickers': false, // for now
                 'watchTrades': true,
+                'watchMyTrades': true,
+                'watchOrders': true,
                 'watchOrderBook': true,
                 'watchOHLCV': true,
             },
@@ -193,7 +194,65 @@ module.exports = class phemex extends ccxt.phemex {
 
     async watchBalance (params = {}) {
         await this.loadMarkets ();
-        throw new NotSupported (this.id + ' watchBalance() not implemented yet');
+        const [ type, query ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const messageHash = type + ':balance';
+        return await this.subscribePrivate (type, messageHash, query);
+    }
+
+    handleBalance (type, client, message) {
+        // spot
+        //  [
+        //     {
+        //         balanceEv: 0,
+        //         currency: 'BTC',
+        //         lastUpdateTimeNs: '1650442638722099092',
+        //         lockedTradingBalanceEv: 0,
+        //         lockedWithdrawEv: 0,
+        //         userID: 2647224
+        //       },
+        //       {
+        //         balanceEv: 1154232337,
+        //         currency: 'USDT',
+        //         lastUpdateTimeNs: '1650442617610017597',
+        //         lockedTradingBalanceEv: 0,
+        //         lockedWithdrawEv: 0,
+        //         userID: 2647224
+        //       }
+        //    ]
+        //
+        // swap
+        //  [
+        //       {
+        //         accountBalanceEv: 0,
+        //         accountID: 26472240001,
+        //         bonusBalanceEv: 0,
+        //         currency: 'BTC',
+        //         totalUsedBalanceEv: 0,
+        //         userID: 2647224
+        //       }
+        //  ]
+        //
+        for (let i = 0; i < message.length; i++) {
+            const balance = message[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const currency = this.safeValue (this.currencies, code, {});
+            const scale = this.safeInteger (currency, 'valueScale', 8);
+            const account = this.account ();
+            let usedEv = this.safeString (balance, 'totalUsedBalanceEv');
+            if (usedEv === undefined) {
+                const lockedTradingBalanceEv = this.safeString (balance, 'lockedTradingBalanceEv');
+                const lockedWithdrawEv = this.safeString (balance, 'lockedWithdrawEv');
+                usedEv = Precise.stringAdd (lockedTradingBalanceEv, lockedWithdrawEv);
+            }
+            const totalEv = this.safeString2 (balance, 'accountBalanceEv', 'balanceEv');
+            account['used'] = this.fromEn (usedEv, scale);
+            account['total'] = this.fromEn (totalEv, scale);
+            this.balance[code] = account;
+            this.balance = this.safeBalance (this.balance);
+        }
+        const messageHash = type + ':balance';
+        client.resolve (this.balance, messageHash);
     }
 
     handleTrades (client, message) {
@@ -417,7 +476,476 @@ module.exports = class phemex extends ccxt.phemex {
         }
     }
 
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let messageHash = 'trades';
+        let market = undefined;
+        let type = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash = messageHash + ':' + market['symbol'];
+        }
+        [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
+        if (symbol === undefined) {
+            messageHash = messageHash + ':' + type;
+        }
+        const trades = await this.subscribePrivate (type, messageHash, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    handleMyTrades (client, message) {
+        //
+        // [
+        //    {
+        //       "avgPriceEp":4138763000000,
+        //       "baseCurrency":"BTC",
+        //       "baseQtyEv":0,
+        //       "clOrdID":"7956e0be-e8be-93a0-2887-ca504d85cda2",
+        //       "execBaseQtyEv":30100,
+        //       "execFeeEv":31,
+        //       "execID":"d3b10cfa-84e3-5752-828e-78a79617e598",
+        //       "execPriceEp":4138763000000,
+        //       "execQuoteQtyEv":1245767663,
+        //       "feeCurrency":"BTC",
+        //       "lastLiquidityInd":"RemovedLiquidity",
+        //       "ordType":"Market",
+        //       "orderID":"34a4b1a8-ac3a-4580-b3e6-a6d039f27195",
+        //       "priceEp":4549022000000,
+        //       "qtyType":"ByQuote",
+        //       "quoteCurrency":"USDT",
+        //       "quoteQtyEv":1248000000,
+        //       "side":"Buy",
+        //       "symbol":"sBTCUSDT",
+        //       "tradeType":"Trade",
+        //       "transactTimeNs":"1650442617609928764",
+        //       "userID":2647224
+        //    }
+        //  ]
+        //
+        const channel = 'trades';
+        const tradesLength = message.length;
+        if (tradesLength === 0) {
+            return;
+        }
+        let cachedTrades = this.myTrades;
+        if (cachedTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            cachedTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const parsed = this.parseTrades (message);
+        const marketIds = {};
+        let type = undefined;
+        for (let i = 0; i < parsed.length; i++) {
+            const trade = parsed[i];
+            cachedTrades.append (trade);
+            const symbol = trade['symbol'];
+            const market = this.market (symbol);
+            if (type === undefined) {
+                type = market['type'];
+            }
+            marketIds[symbol] = true;
+        }
+        const keys = Object.keys (marketIds);
+        for (let i = 0; i < keys.length; i++) {
+            const market = keys[i];
+            const hash = channel + ':' + market;
+            client.resolve (cachedTrades, hash);
+        }
+        // generic subscription
+        const messageHash = channel + ':' + type;
+        client.resolve (cachedTrades, messageHash);
+    }
+
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let messageHash = 'orders';
+        let market = undefined;
+        let type = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash = messageHash + ':' + market['symbol'];
+        }
+        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        if (symbol === undefined) {
+            messageHash = messageHash + ':' + type;
+        }
+        const orders = await this.subscribePrivate (type, messageHash, params);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrders (client, message) {
+        // spot update
+        // {
+        //        "closed":[
+        //           {
+        //              "action":"New",
+        //              "avgPriceEp":4138763000000,
+        //              "baseCurrency":"BTC",
+        //              "baseQtyEv":0,
+        //              "bizError":0,
+        //              "clOrdID":"7956e0be-e8be-93a0-2887-ca504d85cda2",
+        //              "createTimeNs":"1650442617606017583",
+        //              "cumBaseQtyEv":30100,
+        //              "cumFeeEv":31,
+        //              "cumQuoteQtyEv":1245767663,
+        //              "cxlRejReason":0,
+        //              "feeCurrency":"BTC",
+        //              "leavesBaseQtyEv":0,
+        //              "leavesQuoteQtyEv":0,
+        //              "ordStatus":"Filled",
+        //              "ordType":"Market",
+        //              "orderID":"34a4b1a8-ac3a-4580-b3e6-a6d039f27195",
+        //              "pegOffsetValueEp":0,
+        //              "priceEp":4549022000000,
+        //              "qtyType":"ByQuote",
+        //              "quoteCurrency":"USDT",
+        //              "quoteQtyEv":1248000000,
+        //              "side":"Buy",
+        //              "stopPxEp":0,
+        //              "symbol":"sBTCUSDT",
+        //              "timeInForce":"ImmediateOrCancel",
+        //              "tradeType":"Trade",
+        //              "transactTimeNs":"1650442617609928764",
+        //              "triggerTimeNs":0,
+        //              "userID":2647224
+        //           }
+        //        ],
+        //        "fills":[
+        //           {
+        //              "avgPriceEp":4138763000000,
+        //              "baseCurrency":"BTC",
+        //              "baseQtyEv":0,
+        //              "clOrdID":"7956e0be-e8be-93a0-2887-ca504d85cda2",
+        //              "execBaseQtyEv":30100,
+        //              "execFeeEv":31,
+        //              "execID":"d3b10cfa-84e3-5752-828e-78a79617e598",
+        //              "execPriceEp":4138763000000,
+        //              "execQuoteQtyEv":1245767663,
+        //              "feeCurrency":"BTC",
+        //              "lastLiquidityInd":"RemovedLiquidity",
+        //              "ordType":"Market",
+        //              "orderID":"34a4b1a8-ac3a-4580-b3e6-a6d039f27195",
+        //              "priceEp":4549022000000,
+        //              "qtyType":"ByQuote",
+        //              "quoteCurrency":"USDT",
+        //              "quoteQtyEv":1248000000,
+        //              "side":"Buy",
+        //              "symbol":"sBTCUSDT",
+        //              "tradeType":"Trade",
+        //              "transactTimeNs":"1650442617609928764",
+        //              "userID":2647224
+        //           }
+        //        ],
+        //        "open":[
+        //           {
+        //              "action":"New",
+        //              "avgPriceEp":0,
+        //              "baseCurrency":"LTC",
+        //              "baseQtyEv":0,
+        //              "bizError":0,
+        //              "clOrdID":"2c0e5eb5-efb7-60d3-2e5f-df175df412ef",
+        //              "createTimeNs":"1650446670073853755",
+        //              "cumBaseQtyEv":0,
+        //              "cumFeeEv":0,
+        //              "cumQuoteQtyEv":0,
+        //              "cxlRejReason":0,
+        //              "feeCurrency":"LTC",
+        //              "leavesBaseQtyEv":0,
+        //              "leavesQuoteQtyEv":1000000000,
+        //              "ordStatus":"New",
+        //              "ordType":"Limit",
+        //              "orderID":"d2aad92f-50f5-441a-957b-8184b146e3fb",
+        //              "pegOffsetValueEp":0,
+        //              "priceEp":5000000000,
+        //              "qtyType":"ByQuote",
+        //              "quoteCurrency":"USDT",
+        //              "quoteQtyEv":1000000000,
+        //              "side":"Buy",
+        //            }
+        //        ]
+        //  },
+        //
+        let trades = [];
+        let parsedOrders = [];
+        if (('closed' in message) || ('fills' in message) || ('open' in message)) {
+            const closed = this.safeValue (message, 'closed', []);
+            const open = this.safeValue (message, 'open', []);
+            const orders = this.arrayConcat (open, closed);
+            const fills = this.safeValue (message, 'fills', []);
+            trades = fills;
+            parsedOrders = this.parseOrders (orders);
+        } else {
+            for (let i = 0; i < message.length; i++) {
+                const update = message[i];
+                const action = this.safeString (update, 'action');
+                if ((action !== undefined) && (action !== 'Cancel')) {
+                    // order + trade info together
+                    trades.push (update);
+                }
+                const parsedOrder = this.parseWSSwapOrder (update);
+                parsedOrders.push (parsedOrder);
+            }
+        }
+        this.handleMyTrades (client, trades);
+        const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+        const marketIds = {};
+        if (this.orders === undefined) {
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        let type = undefined;
+        const stored = this.orders;
+        for (let i = 0; i < parsedOrders.length; i++) {
+            const parsed = parsedOrders[i];
+            stored.append (parsed);
+            const symbol = parsed['symbol'];
+            const market = this.market (symbol);
+            if (type === undefined) {
+                type = market['type'];
+            }
+            marketIds[symbol] = true;
+        }
+        const keys = Object.keys (marketIds);
+        for (let i = 0; i < keys.length; i++) {
+            const messageHash = 'orders' + ':' + keys[i];
+            client.resolve (this.orders, messageHash);
+        }
+        // resolve generic subscription (spot or swap)
+        const messageHash = 'orders:' + type;
+        client.resolve (this.orders, messageHash);
+    }
+
+    parseWSSwapOrder (order, market = undefined) {
+        //
+        // {
+        //     "accountID":26472240002,
+        //     "action":"Cancel",
+        //     "actionBy":"ByUser",
+        //     "actionTimeNs":"1650450096104760797",
+        //     "addedSeq":26975849309,
+        //     "bonusChangedAmountEv":0,
+        //     "clOrdID":"d9675963-5e4e-6fc8-898a-ec8b934c1c61",
+        //     "closedPnlEv":0,
+        //     "closedSize":0,
+        //     "code":0,
+        //     "cumQty":0,
+        //     "cumValueEv":0,
+        //     "curAccBalanceEv":400079,
+        //     "curAssignedPosBalanceEv":0,
+        //     "curBonusBalanceEv":0,
+        //     "curLeverageEr":0,
+        //     "curPosSide":"None",
+        //     "curPosSize":0,
+        //     "curPosTerm":1,
+        //     "curPosValueEv":0,
+        //     "curRiskLimitEv":5000000000,
+        //     "currency":"USD",
+        //     "cxlRejReason":0,
+        //     "displayQty":0,
+        //     "execFeeEv":0,
+        //     "execID":"00000000-0000-0000-0000-000000000000",
+        //     "execPriceEp":0,
+        //     "execQty":1,
+        //     "execSeq":26975862338,
+        //     "execStatus":"Canceled",
+        //     "execValueEv":0,
+        //     "feeRateEr":0,
+        //     "leavesQty":0,
+        //     "leavesValueEv":0,
+        //     "message":"No error",
+        //     "ordStatus":"Canceled",
+        //     "ordType":"Limit",
+        //     "orderID":"8141deb9-8f94-48f6-9421-a4e3a791537b",
+        //     "orderQty":1,
+        //     "pegOffsetValueEp":0,
+        //     "priceEp":9521,
+        //     "relatedPosTerm":1,
+        //     "relatedReqNum":4,
+        //     "side":"Buy",
+        //     "slTrigger":"ByMarkPrice",
+        //     "stopLossEp":0,
+        //     "stopPxEp":0,
+        //     "symbol":"ADAUSD",
+        //     "takeProfitEp":0,
+        //     "timeInForce":"GoodTillCancel",
+        //     "tpTrigger":"ByLastPrice",
+        //     "transactTimeNs":"1650450096108143014",
+        //     "userID":2647224
+        //  }
+        //
+        const id = this.safeString (order, 'orderID');
+        let clientOrderId = this.safeString (order, 'clOrdID');
+        if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
+            clientOrderId = undefined;
+        }
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
+        const side = this.safeStringLower (order, 'side');
+        const type = this.parseOrderType (this.safeString (order, 'ordType'));
+        const price = this.parseNumber (this.fromEp (this.safeString (order, 'priceEp'), market));
+        const amount = this.safeString (order, 'orderQty');
+        const filled = this.safeString (order, 'cumQty');
+        const remaining = this.safeString (order, 'leavesQty');
+        const timestamp = this.safeIntegerProduct (order, 'actionTimeNs', 0.000001);
+        const costEv = this.safeString (order, 'cumValueEv');
+        const cost = this.fromEv (costEv, market);
+        let lastTradeTimestamp = this.safeIntegerProduct (order, 'transactTimeNs', 0.000001);
+        if (lastTradeTimestamp === 0) {
+            lastTradeTimestamp = undefined;
+        }
+        const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
+        const stopPrice = this.safeString (order, 'stopPx');
+        const postOnly = (timeInForce === 'PO');
+        return this.safeOrder ({
+            'info': order,
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
+            'side': side,
+            'price': price,
+            'stopPrice': stopPrice,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'cost': cost,
+            'average': undefined,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
+        }, market);
+    }
+
     handleMessage (client, message) {
+        // private spot update
+        // {
+        //     orders: { closed: [ ], fills: [ ], open: [] },
+        //     sequence: 40435835,
+        //     timestamp: '1650443245600839241',
+        //     type: 'snapshot',
+        //     wallets: [
+        //       {
+        //         balanceEv: 0,
+        //         currency: 'BTC',
+        //         lastUpdateTimeNs: '1650442638722099092',
+        //         lockedTradingBalanceEv: 0,
+        //         lockedWithdrawEv: 0,
+        //         userID: 2647224
+        //       },
+        //       {
+        //         balanceEv: 1154232337,
+        //         currency: 'USDT',
+        //         lastUpdateTimeNs: '1650442617610017597',
+        //         lockedTradingBalanceEv: 0,
+        //         lockedWithdrawEv: 0,
+        //         userID: 2647224
+        //       }
+        //     ]
+        // }
+        // private swap update
+        // {
+        //     sequence: 83839628,
+        //     timestamp: '1650382581827447829',
+        //     type: 'snapshot',
+        //     accounts: [
+        //       {
+        //         accountBalanceEv: 0,
+        //         accountID: 26472240001,
+        //         bonusBalanceEv: 0,
+        //         currency: 'BTC',
+        //         totalUsedBalanceEv: 0,
+        //         userID: 2647224
+        //       }
+        //     ],
+        //     orders: [],
+        //     positions: [
+        //       {
+        //         accountID: 26472240001,
+        //         assignedPosBalanceEv: 0,
+        //         avgEntryPriceEp: 0,
+        //         bankruptCommEv: 0,
+        //         bankruptPriceEp: 0,
+        //         buyLeavesQty: 0,
+        //         buyLeavesValueEv: 0,
+        //         buyValueToCostEr: 1150750,
+        //         createdAtNs: 0,
+        //         crossSharedBalanceEv: 0,
+        //         cumClosedPnlEv: 0,
+        //         cumFundingFeeEv: 0,
+        //         cumTransactFeeEv: 0,
+        //         curTermRealisedPnlEv: 0,
+        //         currency: 'BTC',
+        //         dataVer: 2,
+        //         deleveragePercentileEr: 0,
+        //         displayLeverageEr: 10000000000,
+        //         estimatedOrdLossEv: 0,
+        //         execSeq: 0,
+        //         freeCostEv: 0,
+        //         freeQty: 0,
+        //         initMarginReqEr: 1000000,
+        //         lastFundingTime: '1640601827712091793',
+        //         lastTermEndTime: 0,
+        //         leverageEr: 0,
+        //         liquidationPriceEp: 0,
+        //         maintMarginReqEr: 500000,
+        //         makerFeeRateEr: 0,
+        //         markPriceEp: 507806777,
+        //         orderCostEv: 0,
+        //         posCostEv: 0,
+        //         positionMarginEv: 0,
+        //         positionStatus: 'Normal',
+        //         riskLimitEv: 10000000000,
+        //         sellLeavesQty: 0,
+        //         sellLeavesValueEv: 0,
+        //         sellValueToCostEr: 1149250,
+        //         side: 'None',
+        //         size: 0,
+        //         symbol: 'BTCUSD',
+        //         takerFeeRateEr: 0,
+        //         term: 1,
+        //         transactTimeNs: 0,
+        //         unrealisedPnlEv: 0,
+        //         updatedAtNs: 0,
+        //         usedBalanceEv: 0,
+        //         userID: 2647224,
+        //         valueEv: 0
+        //       }
+        //     ]
+        // }
+        const id = this.safeInteger (message, 'id');
+        if (id !== undefined) {
+            // not every method stores its subscription
+            // as an object so we can't do indeById here
+            const subs = client.subscriptions;
+            const values = Object.values (subs);
+            for (let i = 0; i < values.length; i++) {
+                const subscription = values[i];
+                if (subscription !== true) {
+                    const subId = this.safeInteger (subscription, 'id');
+                    if ((subId !== undefined) && (subId === id)) {
+                        const method = this.safeValue (subscription, 'method');
+                        if (method !== undefined) {
+                            method.call (this, client, message);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
         if (('market24h' in message) || ('spot_market24h' in message)) {
             return this.handleTicker (client, message);
         } else if ('trades' in message) {
@@ -426,11 +954,75 @@ module.exports = class phemex extends ccxt.phemex {
             return this.handleOHLCV (client, message);
         } else if ('book' in message) {
             return this.handleOrderBook (client, message);
-        } else {
-            //
-            //     { error: null, id: 1, result: { status: 'success' } }
-            //
-            return message;
         }
+        if ('orders' in message) {
+            const orders = this.safeValue (message, 'orders', {});
+            this.handleOrders (client, orders);
+        }
+        if (('accounts' in message) || ('wallets' in message)) {
+            const type = ('accounts' in message) ? 'swap' : 'spot';
+            const accounts = this.safeValue2 (message, 'accounts', 'wallets', []);
+            this.handleBalance (type, client, accounts);
+        }
+    }
+
+    handleAuthenticate (client, message) {
+        //
+        // {
+        //     "error": null,
+        //     "id": 1234,
+        //     "result": {
+        //       "status": "success"
+        //     }
+        // }
+        //
+        client.resolve (message, 'authenticated');
+        return message;
+    }
+
+    async subscribePrivate (type, messageHash, params = {}) {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const url = this.urls['api']['ws'];
+        const requestId = this.seconds ();
+        const channel = (type === 'spot') ? 'wo.subscribe' : 'aop.subscribe';
+        let request = {
+            'id': requestId,
+            'method': channel,
+            'params': [],
+        };
+        request = this.extend (request, params);
+        const subscription = {
+            'id': requestId,
+            'messageHash': messageHash,
+        };
+        return await this.watch (url, messageHash, request, channel, subscription);
+    }
+
+    async authenticate (params = {}) {
+        this.checkRequiredCredentials ();
+        const url = this.urls['api']['ws'];
+        const client = this.client (url);
+        const time = this.seconds ();
+        const messageHash = 'authenticated';
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
+            const expiryDelta = this.safeInteger (this.options, 'expires', 120);
+            const expiration = this.seconds () + expiryDelta;
+            const payload = this.apiKey + expiration.toString ();
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256');
+            const request = {
+                'method': 'user.auth',
+                'params': [ 'API', this.apiKey, signature, expiration],
+                'id': time,
+            };
+            const subscription = {
+                'id': time,
+                'method': this.handleAuthenticate,
+            };
+            this.spawn (this.watch, url, messageHash, request, messageHash, subscription);
+        }
+        return await future;
     }
 };
