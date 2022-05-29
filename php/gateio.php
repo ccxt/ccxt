@@ -2912,10 +2912,13 @@ class gateio extends Exchange {
                         'price' => $this->price_to_precision($symbol, $price),
                         'amount' => $this->amount_to_precision($symbol, $amount),
                         'account' => $marginMode,
-                        'time_in_force' => $timeInForce, // gtc, ioc for taker only
+                        // 'time_in_force' => $tif, // gtc, ioc for taker only
                     ),
                     'market' => $market['id'],
                 );
+                if ($tif !== null) {
+                    $request['put']['time_in_force'] = $tif;
+                }
             }
             $methodTail = 'PriceOrders';
         }

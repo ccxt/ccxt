@@ -2788,10 +2788,12 @@ class gateio(Exchange):
                         'price': self.price_to_precision(symbol, price),
                         'amount': self.amount_to_precision(symbol, amount),
                         'account': marginMode,
-                        'time_in_force': timeInForce,  # gtc, ioc for taker only
+                        # 'time_in_force': tif,  # gtc, ioc for taker only
                     },
                     'market': market['id'],
                 }
+                if tif is not None:
+                    request['put']['time_in_force'] = tif
             methodTail = 'PriceOrders'
         method = self.get_supported_mapping(market['type'], {
             'spot': 'privateSpotPost' + methodTail,
