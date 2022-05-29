@@ -2054,7 +2054,7 @@ module.exports = class okx extends Exchange {
             const twoWayCondition = ((takeProfitPrice !== undefined) && (stopLossPrice !== undefined));
             if (type !== 'market') {
                 if ((twoWayCondition) && ((!slOrdPx) || (!tpOrdPx))) {
-                    throw new InvalidOrder (this.id + ' createOrder() will cannot use the same price for two-way conditional orders to be created, please supply tpOrdPx and slOrdPx params');
+                    throw new InvalidOrder (this.id + ' createOrder() cannot use the same price for two-way conditional orders to be created, please supply takeProfitPrice and stopLossPrice params or tpOrdPx and slOrdPx params');
                 }
             }
             // if TP and SL are sent together
