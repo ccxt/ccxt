@@ -822,7 +822,7 @@ class bittrex extends \ccxt\async\bittrex {
             if ($method !== null) {
                 if ($methodType === 'heartbeat') {
                     $method($client, $message);
-                } else if ($methodType === 'authenticationExpiring') {
+                } elseif ($methodType === 'authenticationExpiring') {
                     $method($client, $message);
                 } else {
                     $A = $this->safe_value($M[$i], 'A', array());

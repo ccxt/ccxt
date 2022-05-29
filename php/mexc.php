@@ -870,7 +870,7 @@ class mexc extends \ccxt\async\mexc {
             $tradeType = $this->safe_string_lower($order, 'tradeType');
             if (($tradeType === 'ask') || ($tradeType === '2')) {
                 $side = 'sell';
-            } else if (($tradeType === 'bid') || ($tradeType === '1')) {
+            } elseif (($tradeType === 'bid') || ($tradeType === '1')) {
                 $side = 'buy';
             } else {
                 $side = $tradeType;

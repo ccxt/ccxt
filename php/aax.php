@@ -800,7 +800,7 @@ class aax extends \ccxt\async\aax {
                 $contents = $this->safe_value($message, 'data', array());
                 $data = $this->safe_value($contents, 'data', array());
                 $this->handle_notification($client, $data);
-            } else if ($e === null) {
+            } elseif ($e === null) {
                 // private
                 $rid = $this->safe_string($message, 'rid');
                 if ($rid !== null) {

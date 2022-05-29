@@ -152,12 +152,12 @@ class bitstamp extends \ccxt\async\bitstamp {
             $this->handle_order_book_message($client, $message, $orderbook);
             $client->resolve ($orderbook, $channel);
             // replace top bids and asks
-        } else if ($type === 'detail_order_book') {
+        } elseif ($type === 'detail_order_book') {
             $orderbook->reset (array());
             $this->handle_order_book_message($client, $message, $orderbook);
             $client->resolve ($orderbook, $channel);
             // replace top bids and asks
-        } else if ($type === 'diff_order_book') {
+        } elseif ($type === 'diff_order_book') {
             // process incremental deltas
             $nonce = $this->safe_integer($orderbook, 'nonce');
             if ($nonce === null) {
@@ -308,10 +308,10 @@ class bitstamp extends \ccxt\async\bitstamp {
         if ($type === 'order_book') {
             $limit = $this->safe_integer($subscription, 'limit', 100);
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
-        } else if ($type === 'detail_order_book') {
+        } elseif ($type === 'detail_order_book') {
             $limit = $this->safe_integer($subscription, 'limit', 100);
             $this->orderbooks[$symbol] = $this->indexed_order_book(array(), $limit);
-        } else if ($type === 'diff_order_book') {
+        } elseif ($type === 'diff_order_book') {
             $limit = $this->safe_integer($subscription, 'limit');
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             // fetch the snapshot in a separate async call

@@ -651,7 +651,7 @@ class gateio extends \ccxt\async\gateio {
         $channelType = 'spot';
         if ($type === 'future' || $type === 'swap') {
             $channelType = 'futures';
-        } else if ($type === 'option') {
+        } elseif ($type === 'option') {
             $channelType = 'options';
         }
         $channel = null;
@@ -756,7 +756,7 @@ class gateio extends \ccxt\async\gateio {
         $type = 'spot';
         if ($market['future'] || $market['swap']) {
             $type = 'futures';
-        } else if ($market['option']) {
+        } elseif ($market['option']) {
             $type = 'options';
         }
         $method = $type . '.orders';
@@ -827,7 +827,7 @@ class gateio extends \ccxt\async\gateio {
                 $event = $this->safe_string($info, 'event');
                 if ($event === 'put') {
                     $parsed['status'] = 'open';
-                } else if ($event === 'finish') {
+                } elseif ($event === 'finish') {
                     $parsed['status'] = 'closed';
                 }
                 $stored->append ($parsed);
@@ -926,7 +926,7 @@ class gateio extends \ccxt\async\gateio {
         $type = $exchangeType;
         if ($exchangeType === 'futures') {
             $type = 'future';
-        } else if ($type === 'options') {
+        } elseif ($type === 'options') {
             $type = 'option';
         }
         $params = array(
@@ -1067,7 +1067,7 @@ class gateio extends \ccxt\async\gateio {
         $uniformType = 'spot';
         if ($type === 'future' || $type === 'swap') {
             $uniformType = 'futures';
-        } else if ($type === 'option') {
+        } elseif ($type === 'option') {
             $uniformType = 'options';
         }
         return $uniformType;

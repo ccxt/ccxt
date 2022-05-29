@@ -426,7 +426,7 @@ class okx extends \ccxt\async\okx {
                 $messageHash = $channel . ':' . $marketId;
                 $client->resolve ($orderbook, $messageHash);
             }
-        } else if ($action === 'update') {
+        } elseif ($action === 'update') {
             if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
                 $orderbook = $this->orderbooks[$symbol];
                 for ($i = 0; $i < count($data); $i++) {
@@ -436,7 +436,7 @@ class okx extends \ccxt\async\okx {
                     $client->resolve ($orderbook, $messageHash);
                 }
             }
-        } else if (($channel === 'books5') || ($channel === 'bbo-tbt')) {
+        } elseif (($channel === 'books5') || ($channel === 'bbo-tbt')) {
             $orderbook = $this->safe_value($this->orderbooks, $symbol);
             if ($orderbook === null) {
                 $orderbook = $this->order_book(array(), $limit);

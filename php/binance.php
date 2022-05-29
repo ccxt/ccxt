@@ -761,9 +761,9 @@ class binance extends \ccxt\async\binance {
             $method = 'publicPostUserDataStream';
             if ($type === 'future') {
                 $method = 'fapiPrivatePostListenKey';
-            } else if ($type === 'delivery') {
+            } elseif ($type === 'delivery') {
                 $method = 'dapiPrivatePostListenKey';
-            } else if ($type === 'margin') {
+            } elseif ($type === 'margin') {
                 $method = 'sapiPostUserDataStream';
             }
             $response = yield $this->$method ();
@@ -788,9 +788,9 @@ class binance extends \ccxt\async\binance {
         $method = 'publicPutUserDataStream';
         if ($type === 'future') {
             $method = 'fapiPrivatePutListenKey';
-        } else if ($type === 'delivery') {
+        } elseif ($type === 'delivery') {
             $method = 'dapiPrivatePutListenKey';
-        } else if ($type === 'margin') {
+        } elseif ($type === 'margin') {
             $method = 'sapiPutUserDataStream';
         }
         $request = array(
@@ -1088,7 +1088,7 @@ class binance extends \ccxt\async\binance {
             if ($timestamp === null) {
                 $timestamp = $T;
             }
-        } else if ($executionType === 'TRADE') {
+        } elseif ($executionType === 'TRADE') {
             $lastTradeTimestamp = $T;
         }
         $fee = null;
@@ -1302,11 +1302,11 @@ class binance extends \ccxt\async\binance {
                             if ($insertNewFeeCurrency) {
                                 $order['fees'][] = $tradeFee;
                             }
-                        } else if ($fee !== null) {
+                        } elseif ($fee !== null) {
                             if ($fee['currency'] === $tradeFee['currency']) {
                                 $feeCost = $this->sum($fee['cost'], $tradeFee['cost']);
                                 $order['fee']['cost'] = floatval($this->currency_to_precision($tradeFee['currency'], $feeCost));
-                            } else if ($fee['currency'] === null) {
+                            } elseif ($fee['currency'] === null) {
                                 $order['fee'] = $tradeFee;
                             } else {
                                 $order['fees'] = array( $fee, $tradeFee );

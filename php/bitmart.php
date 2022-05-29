@@ -352,7 +352,7 @@ class bitmart extends \ccxt\async\bitmart {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-        } else if ($marketId !== null) {
+        } elseif ($marketId !== null) {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
             }
@@ -363,11 +363,11 @@ class bitmart extends \ccxt\async\bitmart {
             if ($currencyUndefined) {
                 throw new ArgumentsRequired($this->id . " watchBalance requires a 'currency' (id) or a unified 'code' parameter for " . $type . ' accounts');
             }
-        } else if (($type === 'margin') || ($type === 'swap') || ($type === 'option')) {
+        } elseif (($type === 'margin') || ($type === 'swap') || ($type === 'option')) {
             if ($marketUndefined) {
                 throw new ArgumentsRequired($this->id . " watchBalance requires a 'instrument_id' (id) or a unified 'symbol' parameter for " . $type . ' accounts');
             }
-        } else if ($type === 'futures') {
+        } elseif ($type === 'futures') {
             if ($currencyUndefined && $marketUndefined) {
                 throw new ArgumentsRequired($this->id . " watchBalance requires a 'currency' (id), or unified 'code', or 'instrument_id' (id), or unified 'symbol' parameter for " . $type . ' accounts');
             }
@@ -375,7 +375,7 @@ class bitmart extends \ccxt\async\bitmart {
         $suffix = null;
         if (!$currencyUndefined) {
             $suffix = $currency['id'];
-        } else if (!$marketUndefined) {
+        } elseif (!$marketUndefined) {
             $suffix = $market['id'];
         }
         $accountType = ($type === 'margin') ? 'spot' : $type;

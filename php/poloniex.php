@@ -398,7 +398,7 @@ class poloniex extends \ccxt\async\poloniex {
                 }
                 $orderbook['nonce'] = $nonce;
                 $orderbookUpdatesCount = $this->sum($orderbookUpdatesCount, 1);
-            } else if ($delta[0] === 'o') {
+            } elseif ($delta[0] === 'o') {
                 $orderbook = $this->orderbooks[$symbol];
                 $side = $delta[1] ? 'bids' : 'asks';
                 $bookside = $orderbook[$side];
@@ -407,7 +407,7 @@ class poloniex extends \ccxt\async\poloniex {
                 $bookside->store ($price, $amount);
                 $orderbookUpdatesCount = $this->sum($orderbookUpdatesCount, 1);
                 $orderbook['nonce'] = $nonce;
-            } else if ($delta[0] === 't') {
+            } elseif ($delta[0] === 't') {
                 $trade = $this->handle_trade($client, $delta, $market);
                 $stored->append ($trade);
                 $tradesCount = $this->sum($tradesCount, 1);
@@ -529,7 +529,7 @@ class poloniex extends \ccxt\async\poloniex {
             $this->balance[$code]['free'] = $this->sum($this->balance[$code]['free'], $changeAmount);
             $this->balance[$code]['total'] = null;
             $this->balance = $this->safe_balance($this->balance);
-        } else if (($messageType === 'o') || ($messageType === 'p') || ($messageType === 't') || ($messageType === 'n')) {
+        } elseif (($messageType === 'o') || ($messageType === 'p') || ($messageType === 't') || ($messageType === 'n')) {
             $symbol = null;
             $orderId = null;
             if (($messageType === 'o') || ($messageType === 'p')) {
@@ -539,9 +539,9 @@ class poloniex extends \ccxt\async\poloniex {
                     // we use the trades for the fills and the order events for the cancels
                     return;
                 }
-            } else if ($messageType === 't') {
+            } elseif ($messageType === 't') {
                 $orderId = $this->safe_string($message, 6);
-            } else if ($messageType === 'n') {
+            } elseif ($messageType === 'n') {
                 $orderId = $this->safe_string($message, 2);
             }
             $symbolsByOrderId = $this->safe_value($this->options, 'symbolsByOrderId');
@@ -556,7 +556,7 @@ class poloniex extends \ccxt\async\poloniex {
             $changeAmount = null;
             if ($messageType === 'n') {
                 $changeAmount = $previousOrder['filled'];
-            } else if ($messageType === 'o') {
+            } elseif ($messageType === 'o') {
                 $changeAmount = $this->safe_float($message, 5);
             } else {
                 $changeAmount = $previousOrder['amount'];
@@ -660,7 +660,7 @@ class poloniex extends \ccxt\async\poloniex {
                 'fee' => null,
                 'trades' => null,
             ));
-        } else if ($type === 'n') {
+        } elseif ($type === 'n') {
             $numericId = $this->safe_string($message, 1);
             $market = $this->safe_value($this->options['marketsByNumericId'], $numericId);
             if ($market === null) {
@@ -711,7 +711,7 @@ class poloniex extends \ccxt\async\poloniex {
                 'fee' => null,
                 'trades' => null,
             ));
-        } else if ($type === 'o') {
+        } elseif ($type === 'o') {
             $orderId = $this->safe_string($message, 1);
             $orderType = $this->safe_string($message, 3);
             if (($orderType === 'c') || ($orderType === 'k')) {
@@ -722,7 +722,7 @@ class poloniex extends \ccxt\async\poloniex {
                     $previousOrder['status'] = 'canceled';
                 }
             }
-        } else if ($type === 't') {
+        } elseif ($type === 't') {
             $trade = $this->parse_ws_trade($message);
             $orderId = $this->safe_string($trade, 'order');
             $symbol = $this->safe_string($symbolsByOrderId, $orderId);

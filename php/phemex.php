@@ -951,11 +951,11 @@ class phemex extends \ccxt\async\phemex {
         }
         if ((is_array($message) && array_key_exists('market24h', $message)) || (is_array($message) && array_key_exists('spot_market24h', $message))) {
             return $this->handle_ticker($client, $message);
-        } else if (is_array($message) && array_key_exists('trades', $message)) {
+        } elseif (is_array($message) && array_key_exists('trades', $message)) {
             return $this->handle_trades($client, $message);
-        } else if (is_array($message) && array_key_exists('kline', $message)) {
+        } elseif (is_array($message) && array_key_exists('kline', $message)) {
             return $this->handle_ohlcv($client, $message);
-        } else if (is_array($message) && array_key_exists('book', $message)) {
+        } elseif (is_array($message) && array_key_exists('book', $message)) {
             return $this->handle_order_book($client, $message);
         }
         if (is_array($message) && array_key_exists('orders', $message)) {

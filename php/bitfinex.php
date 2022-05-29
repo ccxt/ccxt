@@ -548,7 +548,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         $type = $this->safe_string($order, 4);
         if (mb_strpos($type, 'LIMIT') > -1) {
             $type = 'limit';
-        } else if (mb_strpos($type, 'MARKET') > -1) {
+        } elseif (mb_strpos($type, 'MARKET') > -1) {
             $type = 'market';
         }
         $status = $this->parse_ws_order_status($this->safe_string($order, 5));
