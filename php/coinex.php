@@ -35,6 +35,7 @@ class coinex extends Exchange {
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRates' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
@@ -3665,6 +3666,51 @@ class coinex extends Exchange {
             $data = $this->safe_value($data, 'data', array());
         }
         return $this->parse_transactions($data, $currency, $since, $limit);
+    }
+
+    public function fetch_borrow_rates($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetMarginConfig ($params);
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             {
+        //                 "market" => "BTCUSDT",
+        //                 "leverage" => 10,
+        //                 "BTC" => array(
+        //                     "min_amount" => "0.002",
+        //                     "max_amount" => "200",
+        //                     "day_rate" => "0.001"
+        //                 ),
+        //                 "USDT" => array(
+        //                     "min_amount" => "60",
+        //                     "max_amount" => "5000000",
+        //                     "day_rate" => "0.001"
+        //                 }
+        //             ),
+        //         ),
+        //         "message" => "Success"
+        //     }
+        //
+        $timestamp = $this->milliseconds();
+        $data = $this->safe_value($response, 'data', array());
+        $rates = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $symbol = $this->safe_string($entry, 'market');
+            $market = $this->safe_market($symbol);
+            $currencyData = $this->safe_value($entry, $market['base']);
+            $rates[] = array(
+                'currency' => $market['base'],
+                'rate' => $this->safe_number($currencyData, 'day_rate'),
+                'period' => 86400000,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'info' => $entry,
+            );
+        }
+        return $rates;
     }
 
     public function nonce() {

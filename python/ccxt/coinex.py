@@ -41,6 +41,7 @@ class coinex(Exchange):
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRates': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -3486,6 +3487,49 @@ class coinex(Exchange):
         if not isinstance(data, list):
             data = self.safe_value(data, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
+
+    def fetch_borrow_rates(self, params={}):
+        self.load_markets()
+        response = self.privateGetMarginConfig(params)
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "market": "BTCUSDT",
+        #                 "leverage": 10,
+        #                 "BTC": {
+        #                     "min_amount": "0.002",
+        #                     "max_amount": "200",
+        #                     "day_rate": "0.001"
+        #                 },
+        #                 "USDT": {
+        #                     "min_amount": "60",
+        #                     "max_amount": "5000000",
+        #                     "day_rate": "0.001"
+        #                 }
+        #             },
+        #         ],
+        #         "message": "Success"
+        #     }
+        #
+        timestamp = self.milliseconds()
+        data = self.safe_value(response, 'data', {})
+        rates = []
+        for i in range(0, len(data)):
+            entry = data[i]
+            symbol = self.safe_string(entry, 'market')
+            market = self.safe_market(symbol)
+            currencyData = self.safe_value(entry, market['base'])
+            rates.append({
+                'currency': market['base'],
+                'rate': self.safe_number(currencyData, 'day_rate'),
+                'period': 86400000,
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'info': entry,
+            })
+        return rates
 
     def nonce(self):
         return self.milliseconds()
