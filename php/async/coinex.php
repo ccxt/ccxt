@@ -3478,19 +3478,36 @@ class coinex extends Exchange {
     public function parse_transfer_status($status) {
         $statuses = array(
             '0' => 'ok',
+            'SUCCESS' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_transfer($transfer, $currency = null) {
         //
-        // fetchTransfers
+        // fetchTransfers Swap
         //
         //     array(
         //         "amount" => "10",
         //         "asset" => "USDT",
         //         "transfer_type" => "transfer_out", // from swap to spot
         //         "created_at" => 1651633422
+        //     ),
+        //
+        // fetchTransfers Margin
+        //
+        //     array(
+        //         "id" => 7580062,
+        //         "updated_at" => 1653684379,
+        //         "user_id" => 3620173,
+        //         "from_account_id" => 0,
+        //         "to_account_id" => 1,
+        //         "asset" => "BTC",
+        //         "amount" => "0.00160829",
+        //         "balance" => "0.00160829",
+        //         "transfer_type" => "IN",
+        //         "status" => "SUCCESS",
+        //         "created_at" => 1653684379
         //     ),
         //
         $timestamp = $this->safe_timestamp($transfer, 'created_at');
@@ -3503,18 +3520,24 @@ class coinex extends Exchange {
         } elseif ($transferType === 'transfer_in') {
             $fromAccount = 'spot';
             $toAccount = 'swap';
+        } elseif ($transferType === 'IN') {
+            $fromAccount = 'spot';
+            $toAccount = 'margin';
+        } elseif ($transferType === 'OUT') {
+            $fromAccount = 'margin';
+            $toAccount = 'spot';
         }
         $currencyId = $this->safe_string($transfer, 'asset');
         $currencyCode = $this->safe_currency_code($currencyId, $currency);
         return array(
-            'id' => null,
+            'id' => $this->safe_integer($transfer, 'id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'currency' => $currencyCode,
             'amount' => $this->safe_number($transfer, 'amount'),
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
-            'status' => $this->parse_transfer_status($this->safe_string($transfer, 'code')),
+            'status' => $this->parse_transfer_status($this->safe_string_2($transfer, 'code', 'status')),
         );
     }
 
@@ -3541,7 +3564,11 @@ class coinex extends Exchange {
             $request['start_time'] = $since;
         }
         $params = $this->omit($params, 'page');
-        $response = yield $this->privateGetContractTransferHistory (array_merge($request, $params));
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $method = ($defaultType === 'margin') ? 'privateGetMarginTransferHistory' : 'privateGetContractTransferHistory';
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        // Swap
         //
         //     {
         //         "code" => 0,
@@ -3555,6 +3582,31 @@ class coinex extends Exchange {
         //                 ),
         //             ),
         //             "total" => 5
+        //         ),
+        //         "message" => "Success"
+        //     }
+        //
+        // Margin
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => {
+        //             "records" => array(
+        //                 array(
+        //                     "id" => 7580062,
+        //                     "updated_at" => 1653684379,
+        //                     "user_id" => 3620173,
+        //                     "from_account_id" => 0,
+        //                     "to_account_id" => 1,
+        //                     "asset" => "BTC",
+        //                     "amount" => "0.00160829",
+        //                     "balance" => "0.00160829",
+        //                     "transfer_type" => "IN",
+        //                     "status" => "SUCCESS",
+        //                     "created_at" => 1653684379
+        //                 }
+        //             ),
+        //             "total" => 1
         //         ),
         //         "message" => "Success"
         //     }
