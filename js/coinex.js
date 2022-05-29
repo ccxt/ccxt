@@ -3490,19 +3490,36 @@ module.exports = class coinex extends Exchange {
     parseTransferStatus (status) {
         const statuses = {
             '0': 'ok',
+            'SUCCESS': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
 
     parseTransfer (transfer, currency = undefined) {
         //
-        // fetchTransfers
+        // fetchTransfers Swap
         //
         //     {
         //         "amount": "10",
         //         "asset": "USDT",
         //         "transfer_type": "transfer_out", // from swap to spot
         //         "created_at": 1651633422
+        //     },
+        //
+        // fetchTransfers Margin
+        //
+        //     {
+        //         "id": 7580062,
+        //         "updated_at": 1653684379,
+        //         "user_id": 3620173,
+        //         "from_account_id": 0,
+        //         "to_account_id": 1,
+        //         "asset": "BTC",
+        //         "amount": "0.00160829",
+        //         "balance": "0.00160829",
+        //         "transfer_type": "IN",
+        //         "status": "SUCCESS",
+        //         "created_at": 1653684379
         //     },
         //
         const timestamp = this.safeTimestamp (transfer, 'created_at');
@@ -3515,18 +3532,24 @@ module.exports = class coinex extends Exchange {
         } else if (transferType === 'transfer_in') {
             fromAccount = 'spot';
             toAccount = 'swap';
+        } else if (transferType === 'IN') {
+            fromAccount = 'spot';
+            toAccount = 'margin';
+        } else if (transferType === 'OUT') {
+            fromAccount = 'margin';
+            toAccount = 'spot';
         }
         const currencyId = this.safeString (transfer, 'asset');
         const currencyCode = this.safeCurrencyCode (currencyId, currency);
         return {
-            'id': undefined,
+            'id': this.safeInteger (transfer, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'currency': currencyCode,
             'amount': this.safeNumber (transfer, 'amount'),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': this.parseTransferStatus (this.safeString (transfer, 'code')),
+            'status': this.parseTransferStatus (this.safeString2 (transfer, 'code', 'status')),
         };
     }
 
@@ -3553,7 +3576,11 @@ module.exports = class coinex extends Exchange {
             request['start_time'] = since;
         }
         params = this.omit (params, 'page');
-        const response = await this.privateGetContractTransferHistory (this.extend (request, params));
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const method = (defaultType === 'margin') ? 'privateGetMarginTransferHistory' : 'privateGetContractTransferHistory';
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Swap
         //
         //     {
         //         "code": 0,
@@ -3567,6 +3594,31 @@ module.exports = class coinex extends Exchange {
         //                 },
         //             ],
         //             "total": 5
+        //         },
+        //         "message": "Success"
+        //     }
+        //
+        // Margin
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "records": [
+        //                 {
+        //                     "id": 7580062,
+        //                     "updated_at": 1653684379,
+        //                     "user_id": 3620173,
+        //                     "from_account_id": 0,
+        //                     "to_account_id": 1,
+        //                     "asset": "BTC",
+        //                     "amount": "0.00160829",
+        //                     "balance": "0.00160829",
+        //                     "transfer_type": "IN",
+        //                     "status": "SUCCESS",
+        //                     "created_at": 1653684379
+        //                 }
+        //             ],
+        //             "total": 1
         //         },
         //         "message": "Success"
         //     }
