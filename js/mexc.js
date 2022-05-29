@@ -1892,7 +1892,7 @@ module.exports = class mexc extends Exchange {
             throw new InvalidOrder (this.id + ' createSwapOrder () order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
         let orderType = undefined;
-        if ((type === 'market') || (type === 6) || (type === 5)) {
+        if ((type === 'market') || (type === 5)) {
             orderType = 'market';
         } else {
             orderType = 'limit';
