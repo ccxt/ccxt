@@ -632,6 +632,7 @@ module.exports = class okx extends Exchange {
                 'createMarketBuyOrderRequiresPrice': false,
                 'fetchMarkets': [ 'spot', 'future', 'swap', 'option' ], // spot, future, swap, option
                 'defaultType': 'spot', // 'funding', 'spot', 'margin', 'future', 'swap', 'option'
+                'defaultMarginMode': 'cross', // cross, isolated
                 // 'fetchBalance': {
                 //     'type': 'spot', // 'funding', 'trading', 'spot'
                 // },
@@ -1964,14 +1965,17 @@ module.exports = class okx extends Exchange {
         let slOrdPx = this.safeString (params, 'slOrdPx');
         const slTriggerPxType = this.safeString (params, 'slTriggerPxType', 'last');
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
-        const tdMode = this.safeStringLower (params, 'tdMode'); // not ommited so as to be extended into the request
         if (spot) {
             request['tdMode'] = 'cash';
         } else if (contract) {
+            const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+            const tdMode = this.safeStringLower (params, 'tdMode', marginMode); // not ommited so as to be extended into the request
             if (tdMode === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() params["tdMode"] must be either "isolated" or "cross"');
             } else if ((tdMode !== 'isolated') && (tdMode !== 'cross')) {
                 throw new BadRequest (this.id + ' createOrder() params["tdMode"] must be either "isolated" or "cross"');
+            } else {
+                request['tdMode'] = marginMode;
             }
         }
         const isMarketOrder = type === 'market';
