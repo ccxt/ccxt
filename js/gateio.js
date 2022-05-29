@@ -2786,8 +2786,8 @@ module.exports = class gateio extends Exchange {
         let tif = undefined;
         if (timeInForce !== undefined) {
             const timeInForceMapping = {
+                'GTC': 'gtc',
                 'IOC': 'ioc',
-                'FOK': 'fok',
                 'PO': 'poc',
             };
             tif = this.safeString (timeInForceMapping, timeInForce);
