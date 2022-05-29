@@ -1969,12 +1969,7 @@ module.exports = class okx extends Exchange {
             request['tdMode'] = 'cash';
         } else if (contract) {
             const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-            const tdMode = this.safeStringLower (params, 'tdMode', marginMode); // not ommited so as to be extended into the request
-            if ((tdMode !== 'isolated') && (tdMode !== 'cross')) {
-                throw new BadRequest (this.id + ' createOrder() params["tdMode"] must be either "isolated" or "cross"');
-            } else {
-                request['tdMode'] = marginMode;
-            }
+            request['tdMode'] = this.safeStringLower (params, 'tdMode', marginMode); // not ommited so as to be extended into the request
         }
         const isMarketOrder = type === 'market';
         const postOnly = this.isPostOnly (isMarketOrder, type === 'post_only', params);
@@ -2054,7 +2049,7 @@ module.exports = class okx extends Exchange {
             const twoWayCondition = ((takeProfitPrice !== undefined) && (stopLossPrice !== undefined));
             if (!isMarketOrder) {
                 if (twoWayCondition && ((!slOrdPx) || (!tpOrdPx))) {
-                    throw new InvalidOrder (this.id + ' createOrder() cannot use the same price for two-way conditional orders to be created, please supply takeProfitPrice and stopLossPrice params or tpOrdPx and slOrdPx params');
+                    throw new InvalidOrder (this.id + ' createOrder() cannot use the same price for two-way conditional orders to be created, please supply tpOrdPx and slOrdPx params');
                 }
             }
             // if TP and SL are sent together
