@@ -51,6 +51,7 @@ module.exports = class woo extends Exchange {
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
+                'fetchLeverage': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -1879,6 +1880,34 @@ module.exports = class woo extends Exchange {
         }
         const sorted = this.sortBy (rates, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    async fetchLeverage (symbol, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.v1PrivateGetClientInfo (params);
+        // //
+        //     {
+        //         "success": true,
+        //         "application": {
+        //             "application_id": "8935820a-6600-4c2c-9bc3-f017d89aa173",
+        //             "account": "CLIENT_ACCOUNT_01",
+        //             "alias": "CLIENT_ACCOUNT_01",
+        //             "account_mode":"FUTURES" //account mode
+        //             "leverage": 5,
+        //             "taker_fee_rate": 0,
+        //             "maker_fee_rate": 0,
+        //             "interest_rate": 0,
+        //             "futures_leverage": 5,
+        //             "futures_taker_fee_rate": 0,
+        //             "futures_maker_fee_rate": 0,
+        //             "otpauth": false
+        //         },
+        //         "margin_rate": 1000
+        //     }
+        //
+        const result = this.safeValue (response, 'application');
+        const leverage = this.safeNumber (result, 'leverage');
+        return leverage;
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
