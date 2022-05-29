@@ -30,6 +30,7 @@ module.exports = class coinex extends Exchange {
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRates': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -3678,6 +3679,51 @@ module.exports = class coinex extends Exchange {
             data = this.safeValue (data, 'data', []);
         }
         return this.parseTransactions (data, currency, since, limit);
+    }
+
+    async fetchBorrowRates (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetMarginConfig (params);
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "market": "BTCUSDT",
+        //                 "leverage": 10,
+        //                 "BTC": {
+        //                     "min_amount": "0.002",
+        //                     "max_amount": "200",
+        //                     "day_rate": "0.001"
+        //                 },
+        //                 "USDT": {
+        //                     "min_amount": "60",
+        //                     "max_amount": "5000000",
+        //                     "day_rate": "0.001"
+        //                 }
+        //             },
+        //         ],
+        //         "message": "Success"
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        const data = this.safeValue (response, 'data', {});
+        const rates = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const symbol = this.safeString (entry, 'market');
+            const market = this.safeMarket (symbol);
+            const currencyData = this.safeValue (entry, market['base']);
+            rates.push ({
+                'currency': market['base'],
+                'rate': this.safeNumber (currencyData, 'day_rate'),
+                'period': 86400000,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'info': entry,
+            });
+        }
+        return rates;
     }
 
     nonce () {
