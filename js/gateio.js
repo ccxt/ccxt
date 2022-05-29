@@ -2809,7 +2809,7 @@ module.exports = class gateio extends Exchange {
             const signedAmount = (side === 'sell') ? Precise.stringNeg (amountToPrecision) : amountToPrecision;
             amount = parseInt (signedAmount);
             if (isMarketOrder) {
-                if ((tif === 'poc') || (tif === 'fok')) {
+                if ((tif === 'poc') || (tif === 'gtc')) {
                     throw new ExchangeError (this.id + ' createOrder() timeInForce for market orders must be "IOC"');
                 }
                 tif = 'ioc';
