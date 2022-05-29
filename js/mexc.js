@@ -1892,19 +1892,14 @@ module.exports = class mexc extends Exchange {
         if ((type !== 'limit') && (type !== 'market') && (type !== 1) && (type !== 2) && (type !== 3) && (type !== 4) && (type !== 5) && (type !== 6)) {
             throw new InvalidOrder (this.id + ' createSwapOrder () order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
-        let orderType = undefined;
-        if ((type === 'market') || (type === 5)) {
-            orderType = 'market';
-        } else {
-            orderType = 'limit';
-        }
-        const postOnly = this.isPostOnly (orderType, type === 2, params);
+        const isMarketOrder = (type === 'market') || (type === 5);
+        const postOnly = this.isPostOnly (isMarketOrder, type === 2, params);
         if (postOnly) {
             type = 2;
         } else if (type === 'limit') {
             type = 1;
         } else if (type === 'market') {
-            type = 6;
+            type = 5;
         }
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         const ioc = (timeInForce === 'IOC');
