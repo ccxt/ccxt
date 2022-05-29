@@ -1878,7 +1878,7 @@ class mexc extends Exchange {
             throw new InvalidOrder($this->id . ' createSwapOrder () order $type must either limit, $market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for $market orders or 6 to convert $market $price to current price');
         }
         $orderType = null;
-        if (($type === 'market') || ($type === 6) || ($type === 5)) {
+        if (($type === 'market') || ($type === 5)) {
             $orderType = 'market';
         } else {
             $orderType = 'limit';
@@ -1937,7 +1937,7 @@ class mexc extends Exchange {
             $request['triggerType'] = $this->safe_integer($params, 'triggerType', 1);
             $request['executeCycle'] = $this->safe_integer($params, 'executeCycle', 1);
             $request['trend'] = $this->safe_integer($params, 'trend', 1);
-            $request['orderType'] = $this->safe_integer($params, 'orderType', 1);
+            $request['orderType'] = $this->safe_integer($params, 'orderType', $type);
         }
         if (($type !== 5) && ($type !== 6) && ($type !== 'market')) {
             $request['price'] = floatval($this->price_to_precision($symbol, $price));
