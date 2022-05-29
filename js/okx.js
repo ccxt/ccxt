@@ -1977,11 +1977,11 @@ module.exports = class okx extends Exchange {
         const isMarketOrder = type === 'market';
         const postOnly = this.isPostOnly (isMarketOrder, type === 'post_only', params);
         params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPx', 'cloOrdId', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slTriggerPx', 'tpTriggerPrice', 'tpOrdPx', 'slOrdPx', 'tpTriggerPxType', 'slTriggerPxType' ]);
-        const ioc = ((timeInForce === 'IOC') || (type === 'ioc'));
-        const fok = ((timeInForce === 'FOK') || (type === 'fok'));
-        const trigger = ((stopPrice !== undefined) || (type === 'trigger'));
-        const conditional = ((stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional'));
-        const marketIOC = ((isMarketOrder && ioc) || (type === 'optimal_limit_ioc'));
+        const ioc = (timeInForce === 'IOC') || (type === 'ioc');
+        const fok = (timeInForce === 'FOK') || (type === 'fok');
+        const trigger = (stopPrice !== undefined) || (type === 'trigger');
+        const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
+        const marketIOC = (isMarketOrder && ioc) || (type === 'optimal_limit_ioc');
         const defaultMethod = this.safeString (this.options, 'createOrder', 'privatePostTradeBatchOrders');
         let method = defaultMethod;
         request['sz'] = this.amountToPrecision (symbol, amount);
