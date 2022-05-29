@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4c8cad755be8f6e66d1247cc4ed40756",
+    "content-hash": "999c10ba61ee050d1b62a1e974569940",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.84.2",
+            "version": "1.84.38",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "3909bc284a71b979392052ec34f286e672059c8b"
+                "reference": "a8aa3552439e91c8ced1a79b8b714144a9633411"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/3909bc284a71b979392052ec34f286e672059c8b",
-                "reference": "3909bc284a71b979392052ec34f286e672059c8b",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/a8aa3552439e91c8ced1a79b8b714144a9633411",
+                "reference": "a8aa3552439e91c8ced1a79b8b714144a9633411",
                 "shasum": ""
             },
             "require": {
@@ -281,7 +281,7 @@
             ],
             "support": {
                 "issues": "https://github.com/ccxt/ccxt/issues",
-                "source": "https://github.com/ccxt/ccxt/tree/1.84.2"
+                "source": "https://github.com/ccxt/ccxt/tree/1.84.38"
             },
             "funding": [
                 {
@@ -289,7 +289,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2022-05-25T17:00:33+00:00"
+            "time": "2022-05-29T05:28:16+00:00"
         },
         {
             "name": "evenement/evenement",
