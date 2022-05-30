@@ -208,36 +208,32 @@ async function fetchPremiumIndexOHLCV (symbol, timeframe = '1m', since = undefin
     }
 }
 
-function isPostOnly (type, timeInForce = undefined, exchangeSpecificOption = undefined, params = {}) {
+function isPostOnly (isMarketOrder, exchangeSpecificParam, params = {}) {
     /**
      * @ignore
      * @method
      * @param {string} type Order type
-     * @param {string} timeInForce
-     * @param {boolean} exchangeSpecificOption True if the exchange specific post only setting is set
-     * @param {dict} params Exchange specific params
+     * @param {boolean} exchangeSpecificParam exchange specific postOnly
+     * @param {dict} params exchange specific params
      * @returns {boolean} true if a post only order, false otherwise
      */
+    const timeInForce = this.safeStringUpper (params, 'timeInForce');
     let postOnly = this.safeValue2 (params, 'postOnly', 'post_only', false);
-    params = this.omit (params, [ 'post_only', 'postOnly' ]);
-    const timeInForceUpper = (timeInForce !== undefined) ? timeInForce.toUpperCase () : undefined;
-    const typeLower = type.toLowerCase ();
-    const ioc = timeInForceUpper === 'IOC';
-    const fok = timeInForceUpper === 'FOK';
-    const timeInForcePostOnly = timeInForceUpper === 'PO';
-    const isMarket = typeLower === 'market';
-    postOnly = postOnly || (typeLower === 'postonly') || timeInForcePostOnly || exchangeSpecificOption;
+    // we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
+    const ioc = timeInForce === 'IOC';
+    const fok = timeInForce === 'FOK';
+    const timeInForcePostOnly = timeInForce === 'PO';
+    postOnly = postOnly || timeInForcePostOnly || exchangeSpecificParam;
     if (postOnly) {
         if (ioc || fok) {
             throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
-        } else if (isMarket) {
-            throw new InvalidOrder (this.id + ' postOnly orders cannot have type ' + type);
+        } else if (isMarketOrder) {
+            throw new InvalidOrder (this.id + ' market orders cannot be postOnly');
         } else {
-            timeInForce = timeInForcePostOnly ? undefined : timeInForce;
-            return [ 'limit', true, timeInForce, params ];
+            return true;
         }
     } else {
-        return [ type, false, timeInForce, params ];
+        return false;
     }
 }
 

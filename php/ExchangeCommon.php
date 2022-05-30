@@ -211,35 +211,31 @@ trait ExchangeCommon {
         }
     }
 
-    public function is_post_only($type, $timeInForce = null, $exchangeSpecificOption = null, $params = array ()) {
+    public function is_post_only($isMarketOrder, $exchangeSpecificParam, $params = array ()) {
         /**
          * @ignore
-         * @param {string} $type Order $type
-         * @param {string} $timeInForce
-         * @param {boolean} $exchangeSpecificOption True if the exchange specific post only setting is set
-         * @param {dict} $params Exchange specific $params
+         * @param {string} type Order type
+         * @param {boolean} $exchangeSpecificParam exchange specific $postOnly
+         * @param {dict} $params exchange specific $params
          * @return {boolean} true if a post only order, false otherwise
          */
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $postOnly = $this->safe_value_2($params, 'postOnly', 'post_only', false);
-        $params = $this->omit ($params, array( 'post_only', 'postOnly' ));
-        $timeInForceUpper = ($timeInForce !== null) ? strtoupper($timeInForce) : null;
-        $typeLower = strtolower($type);
-        $ioc = $timeInForceUpper === 'IOC';
-        $fok = $timeInForceUpper === 'FOK';
-        $timeInForcePostOnly = $timeInForceUpper === 'PO';
-        $isMarket = $typeLower === 'market';
-        $postOnly = $postOnly || ($typeLower === 'postonly') || $timeInForcePostOnly || $exchangeSpecificOption;
+        // we assume $timeInForce is uppercase from safeStringUpper ($params, 'timeInForce')
+        $ioc = $timeInForce === 'IOC';
+        $fok = $timeInForce === 'FOK';
+        $timeInForcePostOnly = $timeInForce === 'PO';
+        $postOnly = $postOnly || $timeInForcePostOnly || $exchangeSpecificParam;
         if ($postOnly) {
             if ($ioc || $fok) {
                 throw new InvalidOrder($this->id . ' $postOnly orders cannot have $timeInForce equal to ' . $timeInForce);
-            } else if ($isMarket) {
-                throw new InvalidOrder($this->id . ' $postOnly orders cannot have $type ' . $type);
+            } elseif ($isMarketOrder) {
+                throw new InvalidOrder($this->id . ' market orders cannot be postOnly');
             } else {
-                $timeInForce = $timeInForcePostOnly ? null : $timeInForce;
-                return array( 'limit', true, $timeInForce, $params );
+                return true;
             }
         } else {
-            return array( $type, false, $timeInForce, $params );
+            return false;
         }
     }
 
