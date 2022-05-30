@@ -35,6 +35,7 @@ class bybit(Exchange):
             # 20 requests per second for POST requests, cost = 50 / 20 = 2.5
             'rateLimit': 20,
             'hostname': 'bybit.com',  # bybit.com, bytick.com
+            'pro': True,
             'has': {
                 'CORS': True,
                 'spot': True,
