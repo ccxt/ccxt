@@ -1253,13 +1253,7 @@ class latoken extends Exchange {
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $amount = $this->safe_number($transaction, 'amount');
         $addressFrom = $this->safe_string($transaction, 'senderAddress');
-        if ($addressFrom === '') {
-            $addressFrom = null;
-        }
         $addressTo = $this->safe_string($transaction, 'recipientAddress');
-        if ($addressTo === '') {
-            $addressTo = null;
-        }
         $txid = $this->safe_string($transaction, 'transactionHash');
         $tagTo = $this->safe_string($transaction, 'memo');
         $fee = null;

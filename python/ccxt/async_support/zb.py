@@ -1169,6 +1169,7 @@ class zb(Exchange):
             parts = address.split('_')
             address = parts[0]  # WARNING: MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIESnot !
             tag = parts[1]
+        self.check_address(address)
         currencyId = self.safe_string(depositAddress, 'blockChain')
         code = self.safe_currency_code(currencyId, currency)
         return {

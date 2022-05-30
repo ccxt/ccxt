@@ -2105,8 +2105,6 @@ class mexc(Exchange):
             side = 'close long'
         status = self.parse_order_status(state, market)
         clientOrderId = self.safe_string_2(order, 'client_order_id', 'orderId')
-        if clientOrderId == '':
-            clientOrderId = None
         rawOrderType = self.safe_string_2(order, 'orderType', 'order_type')
         orderType = None
         # swap: 1:price limited order, 2:Post Only Maker, 3:transact or cancel instantly, 4:transact completely or cancel completely，5:market orders, 6:convert market price to current price

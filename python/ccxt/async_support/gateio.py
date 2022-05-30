@@ -1485,12 +1485,14 @@ class gateio(Exchange):
         addressField = self.safe_string(response, 'address')
         tag = None
         address = None
-        if addressField.find(' ') >= 0:
-            splitted = addressField.split(' ')
-            address = splitted[0]
-            tag = splitted[1]
-        else:
-            address = addressField
+        if addressField is not None:
+            if addressField.find(' ') >= 0:
+                splitted = addressField.split(' ')
+                address = splitted[0]
+                tag = splitted[1]
+            else:
+                address = addressField
+        self.check_address(address)
         return {
             'info': response,
             'code': code,
@@ -2598,8 +2600,6 @@ class gateio(Exchange):
         address = self.safe_string(transaction, 'address')
         fee = self.safe_number(transaction, 'fee')
         tag = self.safe_string(transaction, 'memo')
-        if tag == '':
-            tag = None
         timestamp = self.safe_timestamp(transaction, 'timestamp')
         return {
             'info': transaction,

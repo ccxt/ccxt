@@ -1055,8 +1055,6 @@ class kucoin(Exchange):
         data = self.safe_value(response, 'data', {})
         address = self.safe_string(data, 'address')
         tag = self.safe_string(data, 'memo')
-        if tag == '':
-            tag = None
         if code != 'NIM':
             # contains spaces
             self.check_address(address)

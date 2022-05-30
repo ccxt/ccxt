@@ -959,9 +959,6 @@ class okx extends Exchange {
         $fees = $this->safe_value_2($this->fees, $type, 'trading', array());
         $precisionPrice = $this->parse_number($tickSize);
         $maxLeverage = $this->safe_string($market, 'lever', '1');
-        if ($maxLeverage === '') {
-            $maxLeverage = '1';
-        }
         $maxLeverage = Precise::string_max($maxLeverage, '1');
         return array_merge($fees, array(
             'id' => $id,
@@ -1267,30 +1264,12 @@ class okx extends Exchange {
         $market = $this->safe_market($marketId, $market, '-');
         $symbol = $market['symbol'];
         $last = $this->safe_string($ticker, 'last');
-        if ($last === '') {
-            $last = null;
-        }
         $open = $this->safe_string($ticker, 'open24h');
-        if ($open === '') {
-            $open = null;
-        }
         $spot = $this->safe_value($market, 'spot', false);
         $quoteVolume = $spot ? $this->safe_string($ticker, 'volCcy24h') : null;
-        if ($quoteVolume === '') {
-            $quoteVolume = null;
-        }
         $baseVolume = $this->safe_string($ticker, 'vol24h');
-        if ($baseVolume === '') {
-            $baseVolume = null;
-        }
         $high = $this->safe_string($ticker, 'high24h');
-        if ($high === '') {
-            $high = null;
-        }
         $low = $this->safe_string($ticker, 'low24h');
-        if ($low === '') {
-            $low = null;
-        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,

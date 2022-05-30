@@ -1586,8 +1586,6 @@ class cryptocom(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string(order, 'order_id')
         clientOrderId = self.safe_string(order, 'client_oid')
-        if clientOrderId == '':
-            clientOrderId = None
         price = self.safe_string_2(order, 'price', 'limit_price')
         average = self.safe_string(order, 'avg_price')
         type = self.safe_string_lower_2(order, 'type', 'order_type')

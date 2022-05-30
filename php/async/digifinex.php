@@ -1475,12 +1475,7 @@ class digifinex extends Exchange {
         //
         $id = $this->safe_string_2($transaction, 'id', 'withdraw_id');
         $address = $this->safe_string($transaction, 'address');
-        $tag = $this->safe_string($transaction, 'memo'); // set but unused
-        if ($tag !== null) {
-            if (strlen($tag) < 1) {
-                $tag = null;
-            }
-        }
+        $tag = $this->safe_string($transaction, 'memo');
         $txid = $this->safe_string($transaction, 'hash');
         $currencyId = $this->safe_string_upper($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
@@ -1494,9 +1489,6 @@ class digifinex extends Exchange {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
         $network = $this->safe_string($transaction, 'chain');
-        if ($network === '') {
-            $network = null;
-        }
         return array(
             'info' => $transaction,
             'id' => $id,

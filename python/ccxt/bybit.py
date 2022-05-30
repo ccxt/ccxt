@@ -3546,8 +3546,6 @@ class bybit(Exchange):
         #
         address = self.safe_string(depositAddress, 'address_deposit')
         tag = self.safe_string(depositAddress, 'tag_deposit')
-        if tag == '':
-            tag = None
         code = self.safe_string(currency, 'code')
         chain = self.safe_string(depositAddress, 'chain')
         self.check_address(address)
