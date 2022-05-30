@@ -411,6 +411,7 @@ class Exchange {
         'parseBorrowInterests' => 'parse_borrow_interests',
         'parseFundingRateHistories' => 'parse_funding_rate_histories',
         'fetchFundingRate' => 'fetch_funding_rate',
+        'methodGuard' => 'method_guard',
         'fetchMarkOHLCV' => 'fetch_mark_ohlcv',
         'fetchIndexOHLCV' => 'fetch_index_ohlcv',
         'fetchPremiumIndexOHLCV' => 'fetch_premium_index_ohlcv',
@@ -3835,10 +3836,8 @@ class Exchange {
     }
 
     public function fetch_borrow_rate($code, $params = array()) {
+        $this->method_guard('fetchBorrowRates', 'fetch_borrow_rate');
         $this->load_markets();
-        if (!$this->has['fetchBorrowRates']) {
-            throw new NotSupported($this->id . ' fetchBorrowRate() is not supported yet');
-        }
         $borrow_rates = $this->fetch_borrow_rates($params);
         $rate = $this->safe_value($borrow_rates, $code);
         if ($rate == null) {
@@ -3891,16 +3890,13 @@ class Exchange {
     }
 
     public function fetch_market_leverage_tiers($symbol, $params = array()) {
-        if ($this->has['fetchLeverageTiers']) {
-            $market = $this->market($symbol);
-            if (!$market['contract']) {
-                throw new BadRequest($this->id . ' fetch_market_leverage_tiers() supports contract markets only');
-            }
-            $tiers = $this->fetch_leverage_tiers(array($symbol));
-            return $this->safe_value($tiers, $symbol);
-        } else {
-            throw new NotSupported($this->id . ' fetch_market_leverage_tiers() is not supported yet');
+        $this->method_guard('fetchLeverageTiers', 'fetch_market_leverage_tiers');
+        $market = $this->market($symbol);
+        if (!$market['contract']) {
+            throw new BadRequest($this->id . ' fetch_market_leverage_tiers() supports contract markets only');
         }
+        $tiers = $this->fetch_leverage_tiers(array($symbol));
+        return $this->safe_value($tiers, $symbol);
     }
 
     public function sleep($milliseconds) {
@@ -3936,27 +3932,21 @@ class Exchange {
     }
 
     public function create_post_only_order($symbol, $type, $side, $amount, $price, $params = array()) {
-        if (!$this->has['createPostOnlyOrder']) {
-            throw new NotSupported($this->id . ' create_post_only_order() is not supported yet');
-        }
+        $this->method_guard('createPostOnlyOrder', 'create_post_only_order');
         $array = array('postOnly' => true);
         $query = array_merge($params, $array);
         return $this->create_order($symbol, $type, $side, $amount, $price, $query);
     }
 
     public function create_reduce_only_order($symbol, $type, $side, $amount, $price, $params = array()) {
-        if (!$this->has['createReduceOnlyOrder']) {
-            throw new NotSupported($this->id . ' create_reduce_only_order() is not supported yet');
-        }
+        $this->method_guard('createReduceOnlyOrder', 'create_reduce_only_order');
         $array = array('reduceOnly' => true);
         $query = array_merge($params, $array);
         return $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
-
+    
     public function create_stop_order($symbol, $type, $side, $amount, $price = null, $stopPrice = null, $params = array()) {
-        if (!$this->has['createStopOrder']) {
-            throw new NotSupported($this->id . ' create_stop_order() is not supported yet');
-        }
+        $this->method_guard('createStopOrder', 'create_stop_order');
         if ($stopPrice === null) {
             throw new ArgumentsRequired($this->id . ' create_stop_order() requires a stopPrice argument');
         }
@@ -3966,18 +3956,14 @@ class Exchange {
     }
 
     public function create_stop_limit_order($symbol, $side, $amount, $price, $stopPrice, $params = array()) {
-        if (!$this->has['createStopLimitOrder']) {
-            throw new NotSupported($this->id . ' create_stop_limit_order() is not supported yet');
-        }
+        $this->method_guard('createStopLimitOrder', 'create_stop_limit_order');
         $array = array('stopPrice' => $stopPrice);
         $query = array_merge($params, $array);
         return $this->create_order($symbol, 'limit', $side, $amount, $price, $query);
     }
 
     public function create_stop_market_order($symbol, $side, $amount, $stopPrice, $params = array()) {
-        if (!$this->has['createStopMarketOrder']) {
-            throw new NotSupported($this->id . ' create_stop_market_order() is not supported yet');
-        }
+        $this->method_guard('createStopMarketOrder', 'create_stop_market_order');
         $array = array('stopPrice' => $stopPrice);
         $query = array_merge($params, $array);
         return $this->create_order($symbol, 'market', $side, $amount, null, $query);
@@ -4037,20 +4023,17 @@ class Exchange {
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
-        if ($this->has['fetchFundingRates']) {
-            $market = $this->market($symbol);
-            if (!$market['contract']) {
-                throw new BadSymbol($this->id . ' fetch_funding_rate () supports contract markets only');
-            }
-            $rates = $this->fetch_funding_rates (array( $symbol ), $params);
-            $rate = $this->safe_value($rates, $symbol);
-            if ($rate === null) {
-                throw new NullResponse($this->id . ' fetch_funding_rate () returned no data for ' . $symbol);
-            } else {
-                return $rate;
-            }
+        $this->method_guard('fetchFundingRates', 'fetch_funding_rate');
+        $market = $this->market($symbol);
+        if (!$market['contract']) {
+            throw new BadSymbol($this->id . ' fetch_funding_rate () supports contract markets only');
+        }
+        $rates = $this->fetch_funding_rates (array( $symbol ), $params);
+        $rate = $this->safe_value($rates, $symbol);
+        if ($rate === null) {
+            throw new NullResponse($this->id . ' fetch_funding_rate () returned no data for ' . $symbol);
         } else {
-            throw new NotSupported($this->id . ' fetch_funding_rate () is not supported yet');
+            return $rate;
         }
     }
 
@@ -4064,14 +4047,11 @@ class Exchange {
          * @param {dict} $params extra parameters specific to the exchange api endpoint
          * @return {[[int|float]]} a list of candles ordered as timestamp, open, high, low, close, null
          */
-        if ($this->has['fetchMarkOHLCV']) {
-            $request = array(
-                'price' => 'mark',
-            );
-            return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
-        } else {
-            throw new NotSupported($this->id . ' fetchMarkOHLCV () is not supported yet');
-        }
+        $this->method_guard('fetchMarkOHLCV', 'fetch_mark_ohlcv');
+        $request = array(
+            'price' => 'mark',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -4084,14 +4064,11 @@ class Exchange {
          * @param {dict} $params extra parameters specific to the exchange api endpoint
          * @return {[[int|float]]} a list of candles ordered as timestamp, open, high, low, close, null
          */
-        if ($this->has['fetchIndexOHLCV']) {
-            $request = array(
-                'price' => 'index',
-            );
-            return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
-        } else {
-            throw new NotSupported($this->id . ' fetchIndexOHLCV () is not supported yet');
-        }
+        $this->method_guard('fetchIndexOHLCV', 'fetch_index_ohlcv');
+        $request = array(
+            'price' => 'index',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -4104,13 +4081,17 @@ class Exchange {
          * @param {dict} $params extra parameters specific to the exchange api endpoint
          * @return {[[int|float]]} a list of candles ordered as timestamp, open, high, low, close, null
          */
-        if ($this->has['fetchPremiumIndexOHLCV']) {
-            $request = array(
-                'price' => 'premiumIndex',
-            );
-            return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
-        } else {
-            throw new NotSupported($this->id . ' fetchPremiumIndexOHLCV () is not supported yet');
+        $this->method_guard('fetchPremiumIndexOHLCV', 'fetch_premium_index_ohlcv');
+        $request = array(
+            'price' => 'premiumIndex',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function method_guard($hasMethod, $unsupportedMethod = null) {
+        if (!$this->has[$hasMethod]) {
+            $unsupportedMethod = $unsupportedMethod ? $unsupportedMethod : $hasMethod;
+            throw new NotSupported($this->id . ' ' . $unsupportedMethod . ' () is not supported yet');
         }
     }
 }
