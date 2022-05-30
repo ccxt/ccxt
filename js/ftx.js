@@ -1172,6 +1172,8 @@ module.exports = class ftx extends Exchange {
             // For a proper pagination, fetch the most recent trades first, then set
             // the end_time parameter to the timestamp of the last trade
             request['start_time'] = parseInt (since / 1000); // must be in seconds
+            // start_time doesn't work without end_time (that can be easily verified with `npm run cli.js ftx fetchTrades BTC/USDT 2021-05-30T12:00:00Z undefined`)
+            request['end_time'] = this.seconds ();
         }
         const response = await this.publicGetMarketsMarketNameTrades (this.extend (request, params));
         //
