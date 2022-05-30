@@ -2224,10 +2224,7 @@ module.exports = class mexc extends Exchange {
             side = 'close long';
         }
         status = this.parseOrderStatus (state, market);
-        let clientOrderId = this.safeString2 (order, 'client_order_id', 'orderId');
-        if (clientOrderId === '') {
-            clientOrderId = undefined;
-        }
+        const clientOrderId = this.safeString2 (order, 'client_order_id', 'orderId');
         const rawOrderType = this.safeString2 (order, 'orderType', 'order_type');
         let orderType = undefined;
         // swap: 1:price limited order, 2:Post Only Maker, 3:transact or cancel instantly, 4:transact completely or cancel completely，5:market orders, 6:convert market price to current price
