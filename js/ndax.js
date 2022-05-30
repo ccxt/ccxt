@@ -1874,7 +1874,7 @@ module.exports = class ndax extends Exchange {
         const depositInfoString = this.safeString (depositAddress, 'DepositInfo');
         const depositInfo = JSON.parse (depositInfoString);
         const depositInfoLength = depositInfo.length;
-        const lastString = this.safeString (depositInfo, depositInfoLength - 1, '');
+        const lastString = this.safeString (depositInfo, depositInfoLength - 1);
         const parts = lastString.split ('?memo=');
         const address = this.safeString (parts, 0);
         const tag = this.safeString (parts, 1);

@@ -300,7 +300,7 @@ module.exports = class woo extends Exchange {
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
-            const marketId = this.safeString (market, 'symbol', '');
+            const marketId = this.safeString (market, 'symbol');
             const parts = marketId.split ('_');
             const marketTypeVal = this.safeStringLower (parts, 0);
             const isSpot = marketTypeVal === 'spot';
@@ -644,7 +644,7 @@ module.exports = class woo extends Exchange {
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'fullname');
             const decimals = this.safeInteger (currency, 'decimals');
-            const chainedTokenCode = this.safeString (currency, 'token', '');
+            const chainedTokenCode = this.safeString (currency, 'token');
             const parts = chainedTokenCode.split ('_');
             const chainNameId = this.safeString (parts, 0, chainedTokenCode);
             const chainCode = this.safeString (this.options['network-aliases'], chainNameId, chainNameId);

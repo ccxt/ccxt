@@ -805,7 +805,7 @@ module.exports = class bitpanda extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const periodUnit = this.safeString (this.timeframes, timeframe, '');
+        const periodUnit = this.safeString (this.timeframes, timeframe);
         const [ period, unit ] = periodUnit.split ('/');
         const durationInSeconds = this.parseTimeframe (timeframe);
         const duration = durationInSeconds * 1000;

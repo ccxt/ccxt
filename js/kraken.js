@@ -2036,7 +2036,7 @@ module.exports = class kraken extends Exchange {
             if (network !== undefined) {
                 // find best matching deposit method, or fallback to the first one
                 for (let i = 0; i < depositMethods.length; i++) {
-                    const entry = this.safeString (depositMethods[i], 'method', '');
+                    const entry = this.safeString (depositMethods[i], 'method');
                     if (entry.indexOf (network) >= 0) {
                         depositMethod = entry;
                         break;

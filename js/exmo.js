@@ -1941,7 +1941,7 @@ module.exports = class exmo extends Exchange {
             }
             if (!success) {
                 let code = undefined;
-                const message = this.safeString2 (response, 'error', 'errmsg', '');
+                const message = this.safeString2 (response, 'error', 'errmsg');
                 const errorParts = message.split (':');
                 const numParts = errorParts.length;
                 if (numParts > 1) {
