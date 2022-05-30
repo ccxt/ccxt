@@ -1285,7 +1285,7 @@ class kucoinfutures extends kucoin {
         if ($since !== null) {
             $request['startAt'] = $since;
         }
-        $till = $this->safe_integer($params, 'till', 'endAt');
+        $till = $this->safe_integer_2($params, 'till', 'endAt');
         if ($till !== null) {
             $request['endAt'] = $till;
         }
