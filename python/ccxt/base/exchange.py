@@ -2893,6 +2893,7 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + 'fetch_market_leverage_tiers() is not supported yet')
 
+
 # -----------------------------------------------------------------------------
 # exchange_common : set imported common methods as part of the class
 # -----------------------------------------------------------------------------
