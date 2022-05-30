@@ -1146,20 +1146,25 @@ module.exports = class ftx extends Exchange {
         const request = {
             'market_name': marketId,
         };
-        // Temporarily, till FTX solves the issue, we are suspending the usage of `limit` argument.
-        // if (limit !== undefined) {
-        //    request['limit'] = limit;
-        // }
-        // The reasons is that it is an undocumented featuer, and it aligns items from the end-time, i.e. if your request (without `limit`)
-        // would return 100 items, but you set `limit = 5`, then the last 5 (chronologically recent)
-        // items will be returned, instead of the first (chronologically earliest) 5 items.
-        // You can still use `params['limit']` to set the undocumented `limit` functionality, however note: maximum possible amount seems to be 5000, while default amount seems to be 20.
-        const limitParam = this.safeInteger (params, 'limit');
+        // Temporarily, FTX has an issue in the endpoint, so we have a slightly complex workaround.
         if (limit !== undefined) {
-            if (limitParam === undefined) {
+            if (since === undefined) {
+                // if since is undefined, then it's ok to fetch the last 'limit' amount
                 request['limit'] = limit;
-            } else if (limitParam < limit) {
-                request['limit'] = limit;
+            } else {
+                // Otherwise, we have to implement the other approach.
+                // the reasons are that it is an undocumented feature, and it aligns items from the end-time, i.e. if your request (without `limit`)
+                // would return 100 items, but you set `limit = 5`, then the last 5 (chronologically recent)
+                // items will be returned, instead of the first (chronologically earliest) 5 items.
+                // You can still use `params['limit']` to set the undocumented `limit` functionality, however note: maximum possible amount seems to be 5000, while default amount seems to be 20.
+                const limitParam = this.safeInteger (params, 'limit');
+                if (limit !== undefined) {
+                    if (limitParam === undefined) {
+                        request['limit'] = limit;
+                    } else if (limitParam < limit) {
+                        request['limit'] = limit;
+                    }
+                }
             }
         }
         if (since !== undefined) {
