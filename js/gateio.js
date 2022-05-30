@@ -690,7 +690,7 @@ module.exports = class gateio extends Exchange {
         const result = [];
         for (let i = 0; i < spotMarketsResponse.length; i++) {
             const spotMarket = spotMarketsResponse[i];
-            const id = this.safeString (spotMarket, 'id');
+            const id = this.safeString (spotMarket, 'id', '');
             const marginMarket = this.safeValue (marginMarkets, id);
             const market = this.deepExtend (marginMarket, spotMarket);
             const [ baseId, quoteId ] = id.split ('_');
@@ -875,7 +875,7 @@ module.exports = class gateio extends Exchange {
         //        "in_delisting": false
         //    }
         //
-        const id = this.safeString (market, 'name');
+        const id = this.safeString (market, 'name', '');
         const parts = id.split ('_');
         const baseId = this.safeString (parts, 0);
         const quoteId = this.safeString (parts, 1);
@@ -1001,7 +1001,7 @@ module.exports = class gateio extends Exchange {
             //
             for (let i = 0; i < response.length; i++) {
                 const market = response[i];
-                const id = this.safeString (market, 'name');
+                const id = this.safeString (market, 'name', '');
                 const parts = underlying.split ('_');
                 const baseId = this.safeString (parts, 0);
                 const quoteId = this.safeString (parts, 1);
@@ -1526,13 +1526,16 @@ module.exports = class gateio extends Exchange {
         const addressField = this.safeString (response, 'address');
         let tag = undefined;
         let address = undefined;
-        if (addressField.indexOf (' ') >= 0) {
-            const splitted = addressField.split (' ');
-            address = splitted[0];
-            tag = splitted[1];
-        } else {
-            address = addressField;
+        if (addressField !== undefined) {
+            if (addressField.indexOf (' ') >= 0) {
+                const splitted = addressField.split (' ');
+                address = splitted[0];
+                tag = splitted[1];
+            } else {
+                address = addressField;
+            }
         }
+        this.checkAddress (address);
         return {
             'info': response,
             'code': code,

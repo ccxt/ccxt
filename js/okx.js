@@ -1134,7 +1134,7 @@ module.exports = class okx extends Exchange {
                 const canInternal = this.safeValue (chain, 'canInternal');
                 const active = (canDeposit && canWithdraw && canInternal) ? true : false;
                 currencyActive = (currencyActive === undefined) ? active : currencyActive;
-                const networkId = this.safeString (chain, 'chain');
+                const networkId = this.safeString (chain, 'chain', '');
                 if (canDeposit && !depositEnabled) {
                     depositEnabled = true;
                 } else if (!canDeposit) {

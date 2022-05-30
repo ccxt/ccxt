@@ -733,7 +733,7 @@ class Exchange(object):
             else:
                 return False
         if key in dictionary:
-            return dictionary[key] is not None
+            return dictionary[key] is not None and dictionary[key] != ''
         return False
 
     @staticmethod

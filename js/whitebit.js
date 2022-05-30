@@ -1091,7 +1091,7 @@ module.exports = class whitebit extends Exchange {
         let price = this.safeString (order, 'price');
         const stopPrice = this.safeString (order, 'activation_price');
         const orderId = this.safeString2 (order, 'orderId', 'id');
-        const type = this.safeString (order, 'type');
+        const type = this.safeString (order, 'type', '');
         let amount = this.safeString (order, 'amount');
         let cost = undefined;
         if (price === '0') {
