@@ -1232,7 +1232,7 @@ class coinbasepro(Exchange):
         await self.load_markets()
         await self.load_accounts()
         currency = self.currency(code)
-        accountsByCurrencyCode = self.index_by(self.accounts, 'currency')
+        accountsByCurrencyCode = self.index_by(self.accounts, 'code')
         account = self.safe_value(accountsByCurrencyCode, code)
         if account is None:
             raise ExchangeError(self.id + ' fetchLedger() could not find account id for ' + code)
@@ -1262,7 +1262,7 @@ class coinbasepro(Exchange):
         if id is None:
             if code is not None:
                 currency = self.currency(code)
-                accountsByCurrencyCode = self.index_by(self.accounts, 'currency')
+                accountsByCurrencyCode = self.index_by(self.accounts, 'code')
                 account = self.safe_value(accountsByCurrencyCode, code)
                 if account is None:
                     raise ExchangeError(self.id + ' fetchTransactions() could not find account id for ' + code)
@@ -1278,7 +1278,7 @@ class coinbasepro(Exchange):
             for i in range(0, len(response)):
                 account_id = self.safe_string(response[i], 'account_id')
                 account = self.safe_value(self.accountsById, account_id)
-                code = self.safe_string(account, 'currency')
+                code = self.safe_string(account, 'code')
                 response[i]['currency'] = code
         else:
             response = await self.privateGetAccountsIdTransfers(self.extend(request, params))
