@@ -1146,18 +1146,17 @@ module.exports = class ftx extends Exchange {
         const request = {
             'market_name': marketId,
         };
-        if (since !== undefined) {
-            // the exchange aligns results to end_time returning 5000 trades max
-            // the user must set the end_time (in seconds) close enough to start_time
-            // for a proper pagination, fetch the most recent trades first
-            // then set the end_time parameter to the timestamp of the last trade
-            // start_time and end_time must be in seconds, divided by a thousand
-            request['start_time'] = parseInt (since / 1000);
-            // start_time doesn't work without end_time
-            request['end_time'] = this.seconds ();
-        }
+        // Note 1: limit is not documented in the API docs, and it also aligns items from the end
+        // i.e. if your request (without `limit`) would return 100 items, but you set `limit = 5`, then the last 5 (chronologically recent) items will be returned, instead of the first (chronologically earliest) 5 items.
+        // Note 2: Maximum limit seems to be 5000
         if (limit !== undefined) {
             request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            // If you don't set `end_time` in request, then exchange considers it as current time. In addition to that, this exchange aligns results to `end_time`. So, for example, you have `limit = 5` and if you request (between start_time and end_time) might theoretically contain 10 000 items, then the last 5 items are returned (chronologically recent) instead of the first (chronologically earliest) 5 items.
+            // For a proper pagination, fetch the most recent trades first, then set
+            // the end_time parameter to the timestamp of the last trade
+            request['start_time'] = parseInt (since / 1000); // must be in seconds
         }
         const response = await this.publicGetMarketsMarketNameTrades (this.extend (request, params));
         //
