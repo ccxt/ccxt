@@ -1936,7 +1936,7 @@ module.exports = class okx extends Exchange {
             'ordType': type,
             // 'ordType': type, // privatePostTradeOrder: market, limit, post_only, fok, ioc, optimal_limit_ioc
             // 'ordType': type, // privatePostTradeOrderAlgo: conditional, oco, trigger, move_order_stop, iceberg, twap
-            // 'sz': this.amountToPrecision (symbol, amount),
+            'sz': this.amountToPrecision (symbol, amount),
             // 'px': this.priceToPrecision (symbol, price), // limit orders only
             // 'reduceOnly': false, // MARGIN orders only
             //
@@ -1953,16 +1953,14 @@ module.exports = class okx extends Exchange {
             // 'slOrdPx': 10, // Order price for Stop-Loss orders, if -1 will be executed at market price (conditional orders)
         };
         const spot = market['spot'];
-        const swap = market['swap'];
-        const future = market['future'];
         const contract = market['contract'];
         const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPx');
         const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
         const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'tpTriggerPx');
-        let tpOrdPx = this.safeString (params, 'tpOrdPx');
+        const tpOrdPx = this.safeString (params, 'tpOrdPx');
         const tpTriggerPxType = this.safeString (params, 'tpTriggerPxType', 'last');
         const stopLossPrice = this.safeString2 (params, 'stopLossPrice', 'slTriggerPx');
-        let slOrdPx = this.safeString (params, 'slOrdPx');
+        const slOrdPx = this.safeString (params, 'slOrdPx');
         const slTriggerPxType = this.safeString (params, 'slTriggerPxType', 'last');
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         if (spot) {
@@ -1981,13 +1979,7 @@ module.exports = class okx extends Exchange {
         const marketIOC = (isMarketOrder && ioc) || (type === 'optimal_limit_ioc');
         const defaultMethod = this.safeString (this.options, 'createOrder', 'privatePostTradeBatchOrders');
         let method = defaultMethod;
-        request['sz'] = this.amountToPrecision (symbol, amount);
         if (isMarketOrder || marketIOC) {
-            if (postOnly || ioc || fok) {
-                if (!marketIOC) {
-                    throw new InvalidOrder (this.id + ' createOrder() does not allow market orders to be IOC, FOK, or postOnly. Only limit IOC, FOK, and postOnly orders are allowed. The only exception is IOC market orders for swap or futures orders.');
-                }
-            }
             request['ordType'] = 'market';
             if (spot && (side === 'buy')) {
                 // spot market buy: "sz" can refer either to base currency units or to quote currency units
@@ -2018,10 +2010,7 @@ module.exports = class okx extends Exchange {
                 }
                 params = this.omit (params, [ 'tgtCcy' ]);
             }
-            if (marketIOC) {
-                if ((!swap) && (!future)) {
-                    throw new InvalidOrder (this.id + ' createOrder() does not not allow IOC market orders for spot or option markets, only swap and future IOC market orders are allowed.');
-                }
+            if (marketIOC && contract) {
                 request['ordType'] = 'optimal_limit_ioc';
             }
         } else {
@@ -2047,11 +2036,6 @@ module.exports = class okx extends Exchange {
             method = 'privatePostTradeOrderAlgo';
             request['ordType'] = 'conditional';
             const twoWayCondition = ((takeProfitPrice !== undefined) && (stopLossPrice !== undefined));
-            if (!isMarketOrder) {
-                if (twoWayCondition && ((!slOrdPx) || (!tpOrdPx))) {
-                    throw new InvalidOrder (this.id + ' createOrder() cannot use the same price for two-way conditional orders to be created, please supply tpOrdPx and slOrdPx params');
-                }
-            }
             // if TP and SL are sent together
             // as ordType 'conditional' only stop-loss order will be applied
             if (twoWayCondition) {
@@ -2059,14 +2043,12 @@ module.exports = class okx extends Exchange {
             }
             if (takeProfitPrice !== undefined) {
                 request['tpTriggerPx'] = this.priceToPrecision (symbol, takeProfitPrice);
-                tpOrdPx = (tpOrdPx !== undefined) ? tpOrdPx : price;
-                request['tpOrdPx'] = isMarketOrder ? '-1' : this.priceToPrecision (symbol, tpOrdPx);
+                request['tpOrdPx'] = (tpOrdPx === undefined) ? '-1' : this.priceToPrecision (symbol, tpOrdPx);
                 request['tpTriggerPxType'] = tpTriggerPxType;
             }
             if (stopLossPrice !== undefined) {
                 request['slTriggerPx'] = this.priceToPrecision (symbol, stopLossPrice);
-                slOrdPx = (slOrdPx !== undefined) ? slOrdPx : price;
-                request['slOrdPx'] = isMarketOrder ? '-1' : this.priceToPrecision (symbol, slOrdPx);
+                request['slOrdPx'] = (slOrdPx === undefined) ? '-1' : this.priceToPrecision (symbol, slOrdPx);
                 request['slTriggerPxType'] = slTriggerPxType;
             }
         }
