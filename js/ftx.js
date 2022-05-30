@@ -1146,12 +1146,14 @@ module.exports = class ftx extends Exchange {
         const request = {
             'market_name': marketId,
         };
-        // Note 1: limit is not documented in the API docs, and it also aligns items from the end
-        // i.e. if your request (without `limit`) would return 100 items, but you set `limit = 5`, then the last 5 (chronologically recent) items will be returned, instead of the first (chronologically earliest) 5 items.
-        // Note 2: Maximum limit seems to be 5000
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
+        // Temporarily, yet FTX solved the issue, we are suspending the `limit` argument. You can
+        // still use `params['limit']` to set the undocumented `limit` functionality.
+        // The reasons is that aligns items from the end-time, i.e. if your request (without `limit`)
+        // would return 100 items, but you set `limit = 5`, then the last 5 (chronologically recent)
+        // items will be returned, instead of the first (chronologically earliest) 5 items.
+        // if (limit !== undefined) {
+        //    request['limit'] = limit; // Maximum limit seems to be 5000
+        // }
         if (since !== undefined) {
             // If you don't set `end_time` in request, then exchange considers it as current time. In addition to that, this exchange aligns results to `end_time`. So, for example, you have `limit = 5` and if you request (between start_time and end_time) might theoretically contain 10 000 items, then the last 5 items are returned (chronologically recent) instead of the first (chronologically earliest) 5 items.
             // For a proper pagination, fetch the most recent trades first, then set
