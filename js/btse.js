@@ -1271,8 +1271,11 @@ module.exports = class btse extends Exchange {
             'Processing': 'pending',
             'Completed': 'ok',
             'Cancelled': 'canceled',
+            'Expired': 'failed',
+            'User Cancelled': 'canceled',
+            'Check Failed': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status, 'pending');
     }
 
     parseTransfer (transfer, currency = undefined) {
@@ -1849,7 +1852,7 @@ module.exports = class btse extends Exchange {
         const request = {};
         if (code !== undefined) {
             const currency = this.currency (code);
-            request['currency'] = currency;
+            request['currency'] = currency['id'];
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -1879,7 +1882,7 @@ module.exports = class btse extends Exchange {
         const request = {};
         if (code !== undefined) {
             const currency = this.currency (code);
-            request['currency'] = currency;
+            request['currency'] = currency['id'];
         }
         if (since !== undefined) {
             request['startTime'] = since;
