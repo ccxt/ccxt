@@ -1068,9 +1068,6 @@ class kucoin extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $address = $this->safe_string($data, 'address');
         $tag = $this->safe_string($data, 'memo');
-        if ($tag === '') {
-            $tag = null;
-        }
         if ($code !== 'NIM') {
             // contains spaces
             $this->check_address($address);

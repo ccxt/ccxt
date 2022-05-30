@@ -1526,13 +1526,16 @@ module.exports = class gateio extends Exchange {
         const addressField = this.safeString (response, 'address');
         let tag = undefined;
         let address = undefined;
-        if (addressField.indexOf (' ') >= 0) {
-            const splitted = addressField.split (' ');
-            address = splitted[0];
-            tag = splitted[1];
-        } else {
-            address = addressField;
+        if (addressField !== undefined) {
+            if (addressField.indexOf (' ') >= 0) {
+                const splitted = addressField.split (' ');
+                address = splitted[0];
+                tag = splitted[1];
+            } else {
+                address = addressField;
+            }
         }
+        this.checkAddress (address);
         return {
             'info': response,
             'code': code,
@@ -2721,10 +2724,7 @@ module.exports = class gateio extends Exchange {
         const status = this.parseTransactionStatus (rawStatus);
         const address = this.safeString (transaction, 'address');
         const fee = this.safeNumber (transaction, 'fee');
-        let tag = this.safeString (transaction, 'memo');
-        if (tag === '') {
-            tag = undefined;
-        }
+        const tag = this.safeString (transaction, 'memo');
         const timestamp = this.safeTimestamp (transaction, 'timestamp');
         return {
             'info': transaction,

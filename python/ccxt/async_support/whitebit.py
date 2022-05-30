@@ -1025,8 +1025,6 @@ class whitebit(Exchange):
         filled = self.safe_string(order, 'dealStock')
         remaining = self.safe_string(order, 'left')
         clientOrderId = self.safe_string(order, 'clientOrderId')
-        if clientOrderId == '':
-            clientOrderId = None
         price = self.safe_string(order, 'price')
         stopPrice = self.safe_string(order, 'activation_price')
         orderId = self.safe_string_2(order, 'orderId', 'id')

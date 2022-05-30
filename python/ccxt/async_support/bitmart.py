@@ -2239,8 +2239,6 @@ class bitmart(Exchange):
                 'currency': code,
             }
         txid = self.safe_string(transaction, 'tx_id')
-        if txid == '':
-            txid = None
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'address_memo')
         return {

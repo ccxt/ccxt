@@ -955,8 +955,6 @@ class okx(Exchange):
         fees = self.safe_value_2(self.fees, type, 'trading', {})
         precisionPrice = self.parse_number(tickSize)
         maxLeverage = self.safe_string(market, 'lever', '1')
-        if maxLeverage == '':
-            maxLeverage = '1'
         maxLeverage = Precise.string_max(maxLeverage, '1')
         return self.extend(fees, {
             'id': id,
@@ -1247,24 +1245,12 @@ class okx(Exchange):
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
         last = self.safe_string(ticker, 'last')
-        if last == '':
-            last = None
         open = self.safe_string(ticker, 'open24h')
-        if open == '':
-            open = None
         spot = self.safe_value(market, 'spot', False)
         quoteVolume = self.safe_string(ticker, 'volCcy24h') if spot else None
-        if quoteVolume == '':
-            quoteVolume = None
         baseVolume = self.safe_string(ticker, 'vol24h')
-        if baseVolume == '':
-            baseVolume = None
         high = self.safe_string(ticker, 'high24h')
-        if high == '':
-            high = None
         low = self.safe_string(ticker, 'low24h')
-        if low == '':
-            low = None
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,

@@ -384,15 +384,17 @@ module.exports = class independentreserve extends Exchange {
         }
         let orderType = this.safeString2 (order, 'Type', 'OrderType');
         let side = undefined;
-        if (orderType.indexOf ('Bid') >= 0) {
-            side = 'buy';
-        } else if (orderType.indexOf ('Offer') >= 0) {
-            side = 'sell';
-        }
-        if (orderType.indexOf ('Market') >= 0) {
-            orderType = 'market';
-        } else if (orderType.indexOf ('Limit') >= 0) {
-            orderType = 'limit';
+        if (orderType !== undefined) {
+            if (orderType.indexOf ('Bid') >= 0) {
+                side = 'buy';
+            } else if (orderType.indexOf ('Offer') >= 0) {
+                side = 'sell';
+            }
+            if (orderType.indexOf ('Market') >= 0) {
+                orderType = 'market';
+            } else if (orderType.indexOf ('Limit') >= 0) {
+                orderType = 'limit';
+            }
         }
         const timestamp = this.parse8601 (this.safeString (order, 'CreatedTimestampUtc'));
         const amount = this.safeString2 (order, 'VolumeOrdered', 'Volume');

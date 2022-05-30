@@ -2360,10 +2360,7 @@ module.exports = class bitmart extends Exchange {
                 'currency': code,
             };
         }
-        let txid = this.safeString (transaction, 'tx_id');
-        if (txid === '') {
-            txid = undefined;
-        }
+        const txid = this.safeString (transaction, 'tx_id');
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString (transaction, 'address_memo');
         return {

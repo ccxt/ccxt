@@ -1177,6 +1177,7 @@ class zb extends Exchange {
             $address = $parts[0];  // WARNING => MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIES!!
             $tag = $parts[1];
         }
+        $this->check_address($address);
         $currencyId = $this->safe_string($depositAddress, 'blockChain');
         $code = $this->safe_currency_code($currencyId, $currency);
         return array(

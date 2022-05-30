@@ -959,9 +959,6 @@ module.exports = class okx extends Exchange {
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
         const precisionPrice = this.parseNumber (tickSize);
         let maxLeverage = this.safeString (market, 'lever', '1');
-        if (maxLeverage === '') {
-            maxLeverage = '1';
-        }
         maxLeverage = Precise.stringMax (maxLeverage, '1');
         return this.extend (fees, {
             'id': id,
@@ -1270,31 +1267,13 @@ module.exports = class okx extends Exchange {
         const marketId = this.safeString (ticker, 'instId');
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
-        let last = this.safeString (ticker, 'last');
-        if (last === '') {
-            last = undefined;
-        }
-        let open = this.safeString (ticker, 'open24h');
-        if (open === '') {
-            open = undefined;
-        }
+        const last = this.safeString (ticker, 'last');
+        const open = this.safeString (ticker, 'open24h');
         const spot = this.safeValue (market, 'spot', false);
-        let quoteVolume = spot ? this.safeString (ticker, 'volCcy24h') : undefined;
-        if (quoteVolume === '') {
-            quoteVolume = undefined;
-        }
-        let baseVolume = this.safeString (ticker, 'vol24h');
-        if (baseVolume === '') {
-            baseVolume = undefined;
-        }
-        let high = this.safeString (ticker, 'high24h');
-        if (high === '') {
-            high = undefined;
-        }
-        let low = this.safeString (ticker, 'low24h');
-        if (low === '') {
-            low = undefined;
-        }
+        const quoteVolume = spot ? this.safeString (ticker, 'volCcy24h') : undefined;
+        const baseVolume = this.safeString (ticker, 'vol24h');
+        const high = this.safeString (ticker, 'high24h');
+        const low = this.safeString (ticker, 'low24h');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,

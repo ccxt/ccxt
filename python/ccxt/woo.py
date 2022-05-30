@@ -1231,8 +1231,6 @@ class woo(Exchange):
         #     extra: ''
         # }
         tag = self.safe_string(response, 'extra')
-        if tag == '':
-            tag = None
         address = self.safe_string(response, 'address')
         self.check_address(address)
         return {

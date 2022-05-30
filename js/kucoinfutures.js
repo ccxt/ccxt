@@ -1301,7 +1301,7 @@ module.exports = class kucoinfutures extends kucoin {
         if (since !== undefined) {
             request['startAt'] = since;
         }
-        const till = this.safeInteger (params, 'till', 'endAt');
+        const till = this.safeInteger2 (params, 'till', 'endAt');
         if (till !== undefined) {
             request['endAt'] = till;
         }

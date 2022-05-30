@@ -1011,8 +1011,6 @@ class probit(Exchange):
         if type == 'market':
             price = None
         clientOrderId = self.safe_string(order, 'client_order_id')
-        if clientOrderId == '':
-            clientOrderId = None
         timeInForce = self.safe_string_upper(order, 'time_in_force')
         return self.safe_order({
             'id': id,

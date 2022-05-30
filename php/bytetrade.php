@@ -309,8 +309,8 @@ class bytetrade extends Exchange {
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'symbol');
-            $base = $this->safe_string($market, 'baseName');
-            $quote = $this->safe_string($market, 'quoteName');
+            $base = $this->safe_string($market, 'baseName', '');
+            $quote = $this->safe_string($market, 'quoteName', '');
             $baseId = $this->safe_string($market, 'base');
             $quoteId = $this->safe_string($market, 'quote');
             $normalBase = explode('@' . $baseId, $base)[0];

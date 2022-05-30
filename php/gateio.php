@@ -1521,13 +1521,16 @@ class gateio extends Exchange {
         $addressField = $this->safe_string($response, 'address');
         $tag = null;
         $address = null;
-        if (mb_strpos($addressField, ' ') !== false) {
-            $splitted = explode(' ', $addressField);
-            $address = $splitted[0];
-            $tag = $splitted[1];
-        } else {
-            $address = $addressField;
+        if ($addressField !== null) {
+            if (mb_strpos($addressField, ' ') !== false) {
+                $splitted = explode(' ', $addressField);
+                $address = $splitted[0];
+                $tag = $splitted[1];
+            } else {
+                $address = $addressField;
+            }
         }
+        $this->check_address($address);
         return array(
             'info' => $response,
             'code' => $code,
@@ -2703,9 +2706,6 @@ class gateio extends Exchange {
         $address = $this->safe_string($transaction, 'address');
         $fee = $this->safe_number($transaction, 'fee');
         $tag = $this->safe_string($transaction, 'memo');
-        if ($tag === '') {
-            $tag = null;
-        }
         $timestamp = $this->safe_timestamp($transaction, 'timestamp');
         return array(
             'info' => $transaction,

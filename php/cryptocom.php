@@ -1659,9 +1659,6 @@ class cryptocom extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $id = $this->safe_string($order, 'order_id');
         $clientOrderId = $this->safe_string($order, 'client_oid');
-        if ($clientOrderId === '') {
-            $clientOrderId = null;
-        }
         $price = $this->safe_string_2($order, 'price', 'limit_price');
         $average = $this->safe_string($order, 'avg_price');
         $type = $this->safe_string_lower_2($order, 'type', 'order_type');

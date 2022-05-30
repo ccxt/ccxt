@@ -378,15 +378,17 @@ class independentreserve extends Exchange {
         }
         $orderType = $this->safe_string_2($order, 'Type', 'OrderType');
         $side = null;
-        if (mb_strpos($orderType, 'Bid') !== false) {
-            $side = 'buy';
-        } elseif (mb_strpos($orderType, 'Offer') !== false) {
-            $side = 'sell';
-        }
-        if (mb_strpos($orderType, 'Market') !== false) {
-            $orderType = 'market';
-        } elseif (mb_strpos($orderType, 'Limit') !== false) {
-            $orderType = 'limit';
+        if ($orderType !== null) {
+            if (mb_strpos($orderType, 'Bid') !== false) {
+                $side = 'buy';
+            } elseif (mb_strpos($orderType, 'Offer') !== false) {
+                $side = 'sell';
+            }
+            if (mb_strpos($orderType, 'Market') !== false) {
+                $orderType = 'market';
+            } elseif (mb_strpos($orderType, 'Limit') !== false) {
+                $orderType = 'limit';
+            }
         }
         $timestamp = $this->parse8601($this->safe_string($order, 'CreatedTimestampUtc'));
         $amount = $this->safe_string_2($order, 'VolumeOrdered', 'Volume');
