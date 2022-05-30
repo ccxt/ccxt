@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds } = require ('./base/errors');
+const { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, OrderImmediatelyFillable, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -177,6 +177,7 @@ module.exports = class hollaex extends Exchange {
                     '429': BadRequest,
                     '500': NetworkError,
                     '503': NetworkError,
+                    '1001': OrderImmediatelyFillable,
                 },
             },
             'options': {
@@ -1072,14 +1073,21 @@ module.exports = class hollaex extends Exchange {
             // 'stop': parseFloat (this.priceToPrecision (symbol, stopPrice)),
             // 'meta': {}, // other options such as post_only
         };
-        if (type !== 'market') {
+        const stopPrice = this.safeNumber2 (params, 'stopPrice', 'stop');
+        const meta = this.safeValue (params, 'meta', {});
+        const exchangeSpecificParam = this.safeValue (meta, 'post_only', false);
+        const isMarketOrder = type === 'market';
+        const postOnly = this.isPostOnly (isMarketOrder, exchangeSpecificParam, params);
+        params = this.omit (params, [ 'stopPrice', 'stop', 'meta', 'postOnly' ]);
+        if (!isMarketOrder) {
             const convertedPrice = parseFloat (this.priceToPrecision (symbol, price));
             request['price'] = this.normalizeNumberIfNeeded (convertedPrice);
         }
-        const stopPrice = this.safeNumber2 (params, 'stopPrice', 'stop');
         if (stopPrice !== undefined) {
             request['stop'] = this.normalizeNumberIfNeeded (parseFloat (this.priceToPrecision (symbol, stopPrice)));
-            params = this.omit (params, [ 'stopPrice', 'stop' ]);
+        }
+        if (postOnly) {
+            request['meta'] = { 'post_only': true };
         }
         const response = await this.privatePostOrder (this.extend (request, params));
         //
@@ -1604,10 +1612,24 @@ module.exports = class hollaex extends Exchange {
             //
             //  { "message": "Invalid token" }
             //
+            //  { "message":"Error 1001 - Order rejected. Order could not be submitted as this order was set to a post only order." }
+            //
             const feedback = this.id + ' ' + body;
             const message = this.safeString (response, 'message');
+            let specificErrorCode = undefined;
+            if (message !== undefined) {
+                const splitMessage = message.split (' ');
+                if (splitMessage[0] === 'Error') {
+                    specificErrorCode = splitMessage[1];
+                }
+            }
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-            const status = code.toString ();
+            let status = undefined;
+            if (specificErrorCode !== undefined) {
+                status = specificErrorCode;
+            } else {
+                status = code.toString ();
+            }
             this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
         }
     }
