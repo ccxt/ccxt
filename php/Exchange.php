@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.84.27';
+$version = '1.84.40';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.84.27';
+    const VERSION = '1.84.40';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -3898,11 +3898,12 @@ class Exchange {
         sleep($milliseconds / 1000);
     }
 
-    public function is_post_only($type, $params = array ()) {
+    public function is_post_only($isMarketOrder, $exchangeSpecificParam, $params = array ()) {
         /**
          * @ignore
          * @param {string} $type Order type
-         * @param {dict} $params Exchange specific $params
+         * @param {boolean} exchangeSpecificParam exchange specific postOnly
+         * @param {dict} $params exchange specific $params
          * @return {boolean} true if a post only order, false otherwise
          */
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
@@ -3911,14 +3912,12 @@ class Exchange {
         $ioc = $timeInForce === 'IOC';
         $fok = $timeInForce === 'FOK';
         $timeInForcePostOnly = $timeInForce === 'PO';
-        $typeLower = strtolower($type);
-        $isMarket = $typeLower === 'market';
-        $postOnly = $postOnly || $timeInForcePostOnly;
+        $postOnly = $postOnly || $timeInForcePostOnly || $exchangeSpecificParam;
         if ($postOnly) {
             if ($ioc || $fok) {
-                throw new InvalidOrder($this->id . ' $postOnly orders cannot have $timeInForce equal to ' . $timeInForce);
-            } elseif ($isMarket) {
-                throw new InvalidOrder($this->id . ' $postOnly orders cannot have $type ' . $type);
+                throw new InvalidOrder($this->id . ' postOnly orders cannot have timeInForce equal to ' . $timeInForce);
+            } elseif ($isMarketOrder) {
+                throw new InvalidOrder($this->id . ' market orders cannot be postOnly');
             } else {
                 return true;
             }

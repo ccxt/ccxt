@@ -257,7 +257,7 @@ class coinbase(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        self.parse_accounts(data, params)
+        return self.parse_accounts(data, params)
 
     def parse_account(self, account):
         #

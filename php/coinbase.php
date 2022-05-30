@@ -256,7 +256,7 @@ class coinbase extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $this->parse_accounts($data, $params);
+        return $this->parse_accounts($data, $params);
     }
 
     public function parse_account($account) {

@@ -41,6 +41,7 @@ class coinex(Exchange):
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRates': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -3311,18 +3312,35 @@ class coinex(Exchange):
     def parse_transfer_status(self, status):
         statuses = {
             '0': 'ok',
+            'SUCCESS': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
     def parse_transfer(self, transfer, currency=None):
         #
-        # fetchTransfers
+        # fetchTransfers Swap
         #
         #     {
         #         "amount": "10",
         #         "asset": "USDT",
         #         "transfer_type": "transfer_out",  # from swap to spot
         #         "created_at": 1651633422
+        #     },
+        #
+        # fetchTransfers Margin
+        #
+        #     {
+        #         "id": 7580062,
+        #         "updated_at": 1653684379,
+        #         "user_id": 3620173,
+        #         "from_account_id": 0,
+        #         "to_account_id": 1,
+        #         "asset": "BTC",
+        #         "amount": "0.00160829",
+        #         "balance": "0.00160829",
+        #         "transfer_type": "IN",
+        #         "status": "SUCCESS",
+        #         "created_at": 1653684379
         #     },
         #
         timestamp = self.safe_timestamp(transfer, 'created_at')
@@ -3335,17 +3353,23 @@ class coinex(Exchange):
         elif transferType == 'transfer_in':
             fromAccount = 'spot'
             toAccount = 'swap'
+        elif transferType == 'IN':
+            fromAccount = 'spot'
+            toAccount = 'margin'
+        elif transferType == 'OUT':
+            fromAccount = 'margin'
+            toAccount = 'spot'
         currencyId = self.safe_string(transfer, 'asset')
         currencyCode = self.safe_currency_code(currencyId, currency)
         return {
-            'id': None,
+            'id': self.safe_integer(transfer, 'id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'currency': currencyCode,
             'amount': self.safe_number(transfer, 'amount'),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': self.parse_transfer_status(self.safe_string(transfer, 'code')),
+            'status': self.parse_transfer_status(self.safe_string_2(transfer, 'code', 'status')),
         }
 
     async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
@@ -3368,7 +3392,11 @@ class coinex(Exchange):
         if since is not None:
             request['start_time'] = since
         params = self.omit(params, 'page')
-        response = await self.privateGetContractTransferHistory(self.extend(request, params))
+        defaultType = self.safe_string(self.options, 'defaultType')
+        method = 'privateGetMarginTransferHistory' if (defaultType == 'margin') else 'privateGetContractTransferHistory'
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # Swap
         #
         #     {
         #         "code": 0,
@@ -3382,6 +3410,31 @@ class coinex(Exchange):
         #                 },
         #             ],
         #             "total": 5
+        #         },
+        #         "message": "Success"
+        #     }
+        #
+        # Margin
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "records": [
+        #                 {
+        #                     "id": 7580062,
+        #                     "updated_at": 1653684379,
+        #                     "user_id": 3620173,
+        #                     "from_account_id": 0,
+        #                     "to_account_id": 1,
+        #                     "asset": "BTC",
+        #                     "amount": "0.00160829",
+        #                     "balance": "0.00160829",
+        #                     "transfer_type": "IN",
+        #                     "status": "SUCCESS",
+        #                     "created_at": 1653684379
+        #                 }
+        #             ],
+        #             "total": 1
         #         },
         #         "message": "Success"
         #     }
@@ -3486,6 +3539,49 @@ class coinex(Exchange):
         if not isinstance(data, list):
             data = self.safe_value(data, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
+
+    async def fetch_borrow_rates(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetMarginConfig(params)
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "market": "BTCUSDT",
+        #                 "leverage": 10,
+        #                 "BTC": {
+        #                     "min_amount": "0.002",
+        #                     "max_amount": "200",
+        #                     "day_rate": "0.001"
+        #                 },
+        #                 "USDT": {
+        #                     "min_amount": "60",
+        #                     "max_amount": "5000000",
+        #                     "day_rate": "0.001"
+        #                 }
+        #             },
+        #         ],
+        #         "message": "Success"
+        #     }
+        #
+        timestamp = self.milliseconds()
+        data = self.safe_value(response, 'data', {})
+        rates = []
+        for i in range(0, len(data)):
+            entry = data[i]
+            symbol = self.safe_string(entry, 'market')
+            market = self.safe_market(symbol)
+            currencyData = self.safe_value(entry, market['base'])
+            rates.append({
+                'currency': market['base'],
+                'rate': self.safe_number(currencyData, 'day_rate'),
+                'period': 86400000,
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'info': entry,
+            })
+        return rates
 
     def nonce(self):
         return self.milliseconds()
