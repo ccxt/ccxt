@@ -1312,7 +1312,7 @@ module.exports = class coinbasepro extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const currency = this.currency (code);
-        const accountsByCurrencyCode = this.indexBy (this.accounts, 'currency');
+        const accountsByCurrencyCode = this.indexBy (this.accounts, 'code');
         const account = this.safeValue (accountsByCurrencyCode, code);
         if (account === undefined) {
             throw new ExchangeError (this.id + ' fetchLedger() could not find account id for ' + code);
@@ -1347,7 +1347,7 @@ module.exports = class coinbasepro extends Exchange {
         if (id === undefined) {
             if (code !== undefined) {
                 currency = this.currency (code);
-                const accountsByCurrencyCode = this.indexBy (this.accounts, 'currency');
+                const accountsByCurrencyCode = this.indexBy (this.accounts, 'code');
                 const account = this.safeValue (accountsByCurrencyCode, code);
                 if (account === undefined) {
                     throw new ExchangeError (this.id + ' fetchTransactions() could not find account id for ' + code);
@@ -1368,7 +1368,7 @@ module.exports = class coinbasepro extends Exchange {
             for (let i = 0; i < response.length; i++) {
                 const account_id = this.safeString (response[i], 'account_id');
                 const account = this.safeValue (this.accountsById, account_id);
-                const code = this.safeString (account, 'currency');
+                const code = this.safeString (account, 'code');
                 response[i]['currency'] = code;
             }
         } else {
