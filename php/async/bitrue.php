@@ -1150,9 +1150,6 @@ class bitrue extends Exchange {
         $side = $this->safe_string_lower($order, 'side');
         $fills = $this->safe_value($order, 'fills', array());
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
-        if ($clientOrderId === '') {
-            $clientOrderId = null;
-        }
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $postOnly = ($type === 'limit_maker') || ($timeInForce === 'GTX');
         if ($type === 'limit_maker') {
@@ -1590,13 +1587,7 @@ class bitrue extends Exchange {
         $id = $this->safe_string($transaction, 'id');
         $tagType = $this->safe_string($transaction, 'tagType');
         $addressTo = $this->safe_string($transaction, 'addressTo');
-        if ($addressTo === '') {
-            $addressTo = null;
-        }
         $addressFrom = $this->safe_string($transaction, 'addressFrom');
-        if ($addressFrom === '') {
-            $addressFrom = null;
-        }
         $tagTo = null;
         $tagFrom = null;
         if ($tagType !== null) {
@@ -1612,9 +1603,6 @@ class bitrue extends Exchange {
             }
         }
         $txid = $this->safe_string($transaction, 'txid');
-        if ($txid === '') {
-            $txid = null;
-        }
         $timestamp = $this->safe_integer($transaction, 'createdAt');
         $updated = $this->safe_integer($transaction, 'updatedAt');
         $payAmount = (is_array($transaction) && array_key_exists('payAmount', $transaction));

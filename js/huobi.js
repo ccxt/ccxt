@@ -4342,10 +4342,7 @@ module.exports = class huobi extends Exchange {
         //     }
         //
         const address = this.safeString (depositAddress, 'address');
-        let tag = this.safeString (depositAddress, 'addressTag');
-        if (tag === '') {
-            tag = undefined;
-        }
+        const tag = this.safeString (depositAddress, 'addressTag');
         const currencyId = this.safeString (depositAddress, 'currency');
         currency = this.safeCurrency (currencyId, currency);
         const code = this.safeCurrencyCode (currencyId, currency);

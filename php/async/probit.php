@@ -1053,9 +1053,6 @@ class probit extends Exchange {
             $price = null;
         }
         $clientOrderId = $this->safe_string($order, 'client_order_id');
-        if ($clientOrderId === '') {
-            $clientOrderId = null;
-        }
         $timeInForce = $this->safe_string_upper($order, 'time_in_force');
         return $this->safe_order(array(
             'id' => $id,

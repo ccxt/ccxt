@@ -1282,9 +1282,6 @@ class woo extends Exchange {
         //     extra => ''
         // }
         $tag = $this->safe_string($response, 'extra');
-        if ($tag === '') {
-            $tag = null;
-        }
         $address = $this->safe_string($response, 'address');
         $this->check_address($address);
         return array(

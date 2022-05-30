@@ -536,10 +536,7 @@ class hitbtc3 extends Exchange {
             $withdrawEnabled = null;
             for ($j = 0; $j < count($rawNetworks); $j++) {
                 $rawNetwork = $rawNetworks[$j];
-                $networkId = $this->safe_string($rawNetwork, 'protocol');
-                if (strlen($networkId) === 0) {
-                    $networkId = $this->safe_string($rawNetwork, 'network');
-                }
+                $networkId = $this->safe_string_2($rawNetwork, 'protocol', 'network');
                 $network = $this->safe_network($networkId);
                 $fee = $this->safe_number($rawNetwork, 'payout_fee');
                 $precision = $this->safe_number($rawNetwork, 'precision_payout');

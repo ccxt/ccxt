@@ -1175,6 +1175,7 @@ module.exports = class zb extends Exchange {
             address = parts[0];  // WARNING: MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIES!!
             tag = parts[1];
         }
+        this.checkAddress (address);
         const currencyId = this.safeString (depositAddress, 'blockChain');
         const code = this.safeCurrencyCode (currencyId, currency);
         return {

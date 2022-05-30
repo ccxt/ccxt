@@ -3721,9 +3721,6 @@ class bybit extends Exchange {
         //
         $address = $this->safe_string($depositAddress, 'address_deposit');
         $tag = $this->safe_string($depositAddress, 'tag_deposit');
-        if ($tag === '') {
-            $tag = null;
-        }
         $code = $this->safe_string($currency, 'code');
         $chain = $this->safe_string($depositAddress, 'chain');
         $this->check_address($address);

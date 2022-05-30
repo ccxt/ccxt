@@ -1667,10 +1667,7 @@ module.exports = class cryptocom extends Exchange {
         const filled = this.safeString (order, 'cumulative_quantity');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const id = this.safeString (order, 'order_id');
-        let clientOrderId = this.safeString (order, 'client_oid');
-        if (clientOrderId === '') {
-            clientOrderId = undefined;
-        }
+        const clientOrderId = this.safeString (order, 'client_oid');
         const price = this.safeString2 (order, 'price', 'limit_price');
         const average = this.safeString (order, 'avg_price');
         const type = this.safeStringLower2 (order, 'type', 'order_type');

@@ -1294,10 +1294,7 @@ module.exports = class woo extends Exchange {
         //     address: '3Jmtjx5544T4smrit9Eroe4PCrRkpDeKjP',
         //     extra: ''
         // }
-        let tag = this.safeString (response, 'extra');
-        if (tag === '') {
-            tag = undefined;
-        }
+        const tag = this.safeString (response, 'extra');
         const address = this.safeString (response, 'address');
         this.checkAddress (address);
         return {

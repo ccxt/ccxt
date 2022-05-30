@@ -1079,10 +1079,7 @@ module.exports = class kucoin extends Exchange {
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         const data = this.safeValue (response, 'data', {});
         const address = this.safeString (data, 'address');
-        let tag = this.safeString (data, 'memo');
-        if (tag === '') {
-            tag = undefined;
-        }
+        const tag = this.safeString (data, 'memo');
         if (code !== 'NIM') {
             // contains spaces
             this.checkAddress (address);

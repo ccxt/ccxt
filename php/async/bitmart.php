@@ -2346,9 +2346,6 @@ class bitmart extends Exchange {
             );
         }
         $txid = $this->safe_string($transaction, 'tx_id');
-        if ($txid === '') {
-            $txid = null;
-        }
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'address_memo');
         return array(

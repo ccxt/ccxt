@@ -1064,10 +1064,7 @@ module.exports = class probit extends Exchange {
         if (type === 'market') {
             price = undefined;
         }
-        let clientOrderId = this.safeString (order, 'client_order_id');
-        if (clientOrderId === '') {
-            clientOrderId = undefined;
-        }
+        const clientOrderId = this.safeString (order, 'client_order_id');
         const timeInForce = this.safeStringUpper (order, 'time_in_force');
         return this.safeOrder ({
             'id': id,

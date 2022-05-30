@@ -306,8 +306,8 @@ class bytetrade(Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'symbol')
-            base = self.safe_string(market, 'baseName')
-            quote = self.safe_string(market, 'quoteName')
+            base = self.safe_string(market, 'baseName', '')
+            quote = self.safe_string(market, 'quoteName', '')
             baseId = self.safe_string(market, 'base')
             quoteId = self.safe_string(market, 'quote')
             normalBase = base.split('@' + baseId)[0]
