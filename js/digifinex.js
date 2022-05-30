@@ -1491,12 +1491,7 @@ module.exports = class digifinex extends Exchange {
         //
         const id = this.safeString2 (transaction, 'id', 'withdraw_id');
         const address = this.safeString (transaction, 'address');
-        let tag = this.safeString (transaction, 'memo'); // set but unused
-        if (tag !== undefined) {
-            if (tag.length < 1) {
-                tag = undefined;
-            }
-        }
+        const tag = this.safeString (transaction, 'memo');
         const txid = this.safeString (transaction, 'hash');
         const currencyId = this.safeStringUpper (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
@@ -1509,10 +1504,7 @@ module.exports = class digifinex extends Exchange {
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        let network = this.safeString (transaction, 'chain');
-        if (network === '') {
-            network = undefined;
-        }
+        const network = this.safeString (transaction, 'chain');
         return {
             'info': transaction,
             'id': id,
