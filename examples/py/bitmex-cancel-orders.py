@@ -12,14 +12,13 @@ import ccxt  # noqa: E402
 exchange = ccxt.bitmex({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET',
-    'enableRateLimit': True,
 })
 
 # exchange.set_sandbox_mode(True)  # uncomment to use the testnet sandbox
 
-symbol = 'BTC/USD'  
+symbol = 'BTC/USD'
 type = 'limit'
-side = 'buy'  
+side = 'buy'
 amount = 100
 price = 15000
 
@@ -40,7 +39,7 @@ print(order2['id'])
 price = 9000
 order3 = exchange.create_order(symbol, type, side, amount, price, {'clientOrderId': 'order0003'})
 print(order3['id'])
-# canceling first order 
+# canceling first order
 cancelResponse = exchange.cancel_order(None, None, {'clientOrderId': 'order0001'})
 print(cancelResponse)
 # cancel second and third order at the same time
@@ -61,7 +60,7 @@ print(newOrder2['id'])
 price = 9000
 newOrder3 = exchange.create_order(symbol, type, side, amount, price)
 print(newOrder3['id'])
-# canceling first order 
+# canceling first order
 cancelResponse = exchange.cancel_order(newOrder1['id'])
 print(cancelResponse)
 # cancel second and third order at the same time

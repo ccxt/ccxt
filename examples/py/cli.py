@@ -110,7 +110,6 @@ with open(keys_file) as file:
 config = {
     # 'verbose': argv.verbose,  # set later, after load_markets
     'timeout': 30000,
-    'enableRateLimit': True,
 }
 
 if not argv.exchange_id:
