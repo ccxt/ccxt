@@ -9,7 +9,9 @@ sys.path.append(root + '/python')
 
 import ccxt  # noqa: E402
 
-exchange = ccxt.binance()
+exchange = ccxt.binance({
+    'enableRateLimit': True,
+})
 
 markets = exchange.load_markets()
 symbol = 'ETH/BTC'

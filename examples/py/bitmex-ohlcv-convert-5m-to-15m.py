@@ -10,7 +10,10 @@ sys.path.append(root + '/python')
 import ccxt  # noqa: E402
 
 
-bitmex = ccxt.bitmex()
+bitmex = ccxt.bitmex({
+    'enableRateLimit': True,
+    # 'verbose': True,
+})
 
 # fetch 5m OHLCV
 

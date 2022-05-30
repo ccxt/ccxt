@@ -2,7 +2,6 @@
 
 import os
 import sys
-from pprint import pprint
 
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root + '/python')
@@ -13,6 +12,7 @@ import ccxt  # noqa: E402
 print('CCXT Version:', ccxt.__version__)
 
 exchange = ccxt.kucoin({
+    'enableRateLimit': True,
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET',
     'password': 'YOUR_API_PASSWORD',
@@ -30,7 +30,7 @@ try:
     params = {
         'chain': 'TRC20',  # 'ERC20', 'TRC20', default is ERC20
     }
-    response = exchange.withdraw(code, amount, address, tag, params)
+    response = kucoin.withdraw(code, amount, address, tag, params)
     pprint(response)
 except Exception as e:
     print(type(e).__name__, str(e))

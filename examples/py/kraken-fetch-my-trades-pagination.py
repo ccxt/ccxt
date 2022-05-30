@@ -12,6 +12,7 @@ import ccxt  # noqa: E402
 exchange = ccxt.kraken({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_API_SECRET',
+    'enableRateLimit': True,  # required by the Manual https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
 })
 
 exchange.load_markets()

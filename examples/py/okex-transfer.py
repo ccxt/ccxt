@@ -6,6 +6,7 @@ from pprint import pprint
 print('CCXT Version:', ccxt.__version__)
 
 exchange = ccxt.okex({
+    'enableRateLimit': True,  # https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_API_SECRET',
     'password': 'YOUR_API_PASSWORD',

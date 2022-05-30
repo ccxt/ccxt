@@ -22,4 +22,4 @@ async def test():
     print(await exchange.fetch_balance())
 
 
-asyncio.run(test())
+asyncio.get_event_loop().run_until_complete(test())

@@ -13,6 +13,8 @@ symbol = 'ETH/BTC'
 
 exchange = ccxt.bitfinex({
 
+    'enableRateLimit': True,  # or .enableRateLimit = True later
+
     # BITFINEX RATELIMITS DON'T CORRESPOND TO THEIR DOCUMENTATION!
 
     # their actual rate limit is significantly more strict than documented!

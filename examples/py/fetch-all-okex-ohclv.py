@@ -71,6 +71,7 @@ class my_okex(ohlcv, ccxt.okex):
 
 exchange = my_okex({
     # 'hostname': 'okex.me',  # if you're in mainland China
+    'enableRateLimit': True,  # as required by the Manual https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
 })
 
 symbol = 'BTC/USDT'

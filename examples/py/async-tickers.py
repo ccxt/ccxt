@@ -38,4 +38,6 @@ async def fetch_tickers(exchange):
     print(exchange.id, 'fetched', len(list(tickers)), 'tickers')
 
 
-asyncio.run(fetch_tickers(ccxt.bitfinex()))
+asyncio.get_event_loop().run_until_complete(fetch_tickers(ccxt.bitfinex({
+    'enableRateLimit': True,  # this option enables the built-in rate limiter
+})))

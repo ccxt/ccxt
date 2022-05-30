@@ -12,6 +12,7 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 async def test():
     exchange = ccxt.bitstamp({
+        'enableRateLimit': True,  # as required by the Manual
         # "verbose": True,  # useful for debugging purposes, uncomment if needed
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
@@ -27,4 +28,4 @@ async def test():
 
 if __name__ == '__main__':
     print('CCXT version:', ccxt.__version__)
-    print(asyncio.run(test()))
+    print(asyncio.get_event_loop().run_until_complete(test()))

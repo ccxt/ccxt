@@ -13,6 +13,7 @@ import ccxt  # noqa: E402
 print('CCXT Version:', ccxt.__version__)
 
 exchange = ccxt.phemex({
+    'enableRateLimit': True,  # https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
     'apiKey': 'YOUR_API_KEY',  # testnet keys if using the testnet sandbox
     'secret': 'YOUR_SECRET',  # testnet keys if using the testnet sandbox
     'options': {
@@ -34,7 +35,7 @@ leverageResponse = exchange.set_leverage(5, symbol)
 order = exchange.create_order(symbol, 'market', 'buy', amount)
 print(order)
 
-# Canceling pending contract
+# Canceling pending contract 
 closingOrder = exchange.create_order(symbol, 'market', 'sell', amount)
 pprint(closingOrder)
 

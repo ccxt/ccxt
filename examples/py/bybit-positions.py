@@ -15,6 +15,7 @@ print('CCXT Version:', ccxt.__version__)
 exchange = ccxt.bybit ({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET',
+    'enableRateLimit': True,  # https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
 })
 
 # https://github.com/ccxt/ccxt/wiki/Manual#loading-markets

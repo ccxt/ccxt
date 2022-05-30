@@ -25,7 +25,9 @@ async def fetch_ticker(exchange, symbol):
 
 
 async def fetch_tickers(id):
-    exchange = getattr(ccxt, id)()
+    exchange = getattr(ccxt, id)({
+      'enableRateLimit': True,  # this option enables the built-in rate limiter
+    })
     await exchange.load_markets()
     print(exchange.id, 'fetching all tickers by simultaneous multiple concurrent requests')
     symbols_to_load = get_active_symbols(exchange)
@@ -40,4 +42,4 @@ async def fetch_tickers(id):
     await exchange.close()
 
 
-asyncio.run(fetch_tickers('theocean'))
+asyncio.get_event_loop().run_until_complete(fetch_tickers('theocean'))

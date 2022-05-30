@@ -23,7 +23,11 @@ hold = 30
 
 # -----------------------------------------------------------------------------
 
-exchange = ccxt.binance()
+exchange = ccxt.binance({
+    'rateLimit': 1000,
+    'enableRateLimit': True,
+    # 'verbose': True,
+})
 
 limit = 500
 timeframe = "5m"

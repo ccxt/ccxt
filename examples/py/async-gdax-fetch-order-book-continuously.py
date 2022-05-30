@@ -11,7 +11,12 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 
 async def main(symbol):
-    exchange = ccxt.binance()
+    # you can set enableRateLimit = True to enable the built-in rate limiter
+    # this way you request rate will never hit the limit of an exchange
+    # the library will throttle your requests to avoid that
+    exchange = ccxt.binance({
+        'enableRateLimit': True,  # this option enables the built-in rate limiter
+    })
     while True:
         print('--------------------------------------------------------------')
         print(exchange.iso8601(exchange.milliseconds()), 'fetching', symbol, 'ticker from', exchange.name)
@@ -21,4 +26,4 @@ async def main(symbol):
         print(ticker)
 
 
-asyncio.run(main('BTC/USDT'))
+asyncio.get_event_loop().run_until_complete(main('BTC/USDT'))

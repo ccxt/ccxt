@@ -11,8 +11,10 @@ sys.path.append(root + '/python')
 import ccxt.async_support as ccxt  # noqa: E402
 
 
-async def main():
+async def main(asyncio_loop):
     exchange = ccxt.binance({
+        'asyncio_loop': asyncio_loop,
+        'enableRateLimit': True,
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
         # 'verbose': True,  # for debug output
@@ -35,5 +37,6 @@ async def main():
         print(e)
     await exchange.close()
 
-
-asyncio.run(main())
+if __name__ == '__main__':
+    asyncio_loop = asyncio.get_event_loop()
+    asyncio_loop.run_until_complete(main(asyncio_loop))
