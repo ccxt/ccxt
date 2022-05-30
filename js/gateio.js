@@ -2724,10 +2724,7 @@ module.exports = class gateio extends Exchange {
         const status = this.parseTransactionStatus (rawStatus);
         const address = this.safeString (transaction, 'address');
         const fee = this.safeNumber (transaction, 'fee');
-        let tag = this.safeString (transaction, 'memo');
-        if (tag === '') {
-            tag = undefined;
-        }
+        const tag = this.safeString (transaction, 'memo');
         const timestamp = this.safeTimestamp (transaction, 'timestamp');
         return {
             'info': transaction,
