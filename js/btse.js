@@ -40,7 +40,7 @@ module.exports = class btse extends Exchange {
                 'fetchFundingRates': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
-                'fetchOHLCV': true,
+                'fetchOHLCV': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': false,
@@ -55,7 +55,7 @@ module.exports = class btse extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransaction': false,
-                'fetchTransactions': true,
+                'fetchTransactions': false,
                 'fetchTransfers': true,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
@@ -693,10 +693,12 @@ module.exports = class btse extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        if (trade['_btseCustomMode'] === 'fetchMyTrades') {
-            return this.parseMyTrade (trade, market);
+        if ('_btseCustomMode' in trade) {
+            if (trade['_btseCustomMode'] === 'fetchMyTrades') {
+                return this.parseMyTrade (trade, market);
+            }
         }
-        if (!trade['orderid']) {
+        if ('orderid' in trade && !trade['orderid']) {
             return this.parsePublicTrade (trade, market);
         }
         //
@@ -896,7 +898,7 @@ module.exports = class btse extends Exchange {
             'baseVolume': volume,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -1847,6 +1849,15 @@ module.exports = class btse extends Exchange {
         };
     }
 
+    _inStrArray (arr, str) {
+        for (let i = 0; i < arr.length; i++) {
+            if (arr[i] === str) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     async _fetchWalletHistory (filters, code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
@@ -1864,8 +1875,9 @@ module.exports = class btse extends Exchange {
         const transactions = [];
         for (let i = 0; i < response.length; i++) {
             const transaction = response[i];
+            transaction['info'] = {};
             const type = this.safeString (transaction, 'type');
-            if (!filters.length || filters.indexOf (type) >= 0) {
+            if (filters.length && this._inStrArray (filters, type)) {
                 transactions.push (transaction);
             }
         }
@@ -1896,7 +1908,7 @@ module.exports = class btse extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const transfer = response[i];
             const type = this.safeString (transfer, 'type');
-            if (filters.indexOf (type) >= 0) {
+            if (this._inStrArray (filters, type)) {
                 transfers.push (transfer);
             }
         }
