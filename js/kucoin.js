@@ -595,7 +595,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         const statuses = {
             'open': 'open',
             'filled': 'closed',
-            'match': 'closed',
+            'match': 'open',
             'update': 'open',
             'canceled': 'canceled',
         };
