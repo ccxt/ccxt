@@ -23,7 +23,7 @@ def when_orderbook_changed(exchange_spot, symbol, orderbook):
 async def watch_one_orderbook(exchange_spot, symbol):
     # a call cost of 1 in the queue of subscriptions
     # means one subscription per exchange.rateLimit milliseconds
-    your_delay = 1  
+    your_delay = 1
     await exchange_spot.throttle(your_delay)
     while True:
         try:
@@ -48,5 +48,4 @@ async def main():
     await exchange_spot.close()
 
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(main())
+asyncio.run(main())
