@@ -13,11 +13,8 @@ from pprint import pprint
 print('CCXT Version:', ccxt.__version__)
 
 exchange = ccxt.bybit ({
-    # 'apiKey': 'YOUR_API_KEY',
-    # 'secret': 'YOUR_SECRET',
-    "apiKey": "AOIOT8vKgfyQ4meCod",
-    "secret": "Tiyvoh5J3bFfwR1vwdFq2jBgXjykr6XPBHm5",
-
+    'apiKey': 'YOUR_API_KEY',
+    'secret': 'YOUR_SECRET',
 })
 
 markets = exchange.load_markets() # https://github.com/ccxt/ccxt/wiki/Manual#loading-markets
