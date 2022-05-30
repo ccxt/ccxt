@@ -2899,8 +2899,7 @@ class Exchange(object):
 
     def fetch_borrow_rate(self, code, params={}):
         self.load_markets()
-        if not self.has['fetchBorrowRates']:
-            raise NotSupported(self.id + 'fetchBorrowRate() is not supported yet')
+        self.method_guard('fetchBorrowRates', 'fetch_borrow_rate')
         borrow_rates = self.fetch_borrow_rates(params)
         rate = self.safe_value(borrow_rates, code)
         if rate is None:
@@ -2942,14 +2941,12 @@ class Exchange(object):
         return tiers
 
     def fetch_market_leverage_tiers(self, symbol, params={}):
-        if self.has['fetchLeverageTiers']:
-            market = self.market(symbol)
-            if (not market['contract']):
-                raise BadRequest(self.id + ' fetch_market_leverage_tiers() supports contract markets only')
-            tiers = self.fetch_leverage_tiers([symbol])
-            return self.safe_value(tiers, symbol)
-        else:
-            raise NotSupported(self.id + 'fetch_market_leverage_tiers() is not supported yet')
+        self.method_guard('fetchLeverageTiers', 'fetch_market_leverage_tiers')
+        market = self.market(symbol)
+        if (not market['contract']):
+            raise BadRequest(self.id + ' fetch_market_leverage_tiers() supports contract markets only')
+        tiers = self.fetch_leverage_tiers([symbol])
+        return self.safe_value(tiers, symbol)
 
     def is_post_only(self, isMarketOrder, exchangeSpecificParam, params={}):
         """
@@ -2977,34 +2974,29 @@ class Exchange(object):
             return False
 
     def create_post_only_order(self, symbol, type, side, amount, price, params={}):
-        if not self.has['createPostOnlyOrder']:
-            raise NotSupported(self.id + ' create_post_only_order() is not supported yet')
+        self.method_guard('createPostOnlyOrder', 'create_post_only_order')
         query = self.extend(params, {'postOnly': True})
         return self.create_order(symbol, type, side, amount, price, query)
 
     def create_reduce_only_order(self, symbol, type, side, amount, price, params={}):
-        if not self.has['createReduceOnlyOrder']:
-            raise NotSupported(self.id + ' create_reduce_only_order() is not supported yet')
+        self.method_guard('createReduceOnlyOrder', 'create_reduce_only_order')
         query = self.extend(params, {'reduceOnly': True})
         return self.create_order(symbol, type, side, amount, price, query)
 
     def create_stop_order(self, symbol, type, side, amount, price=None, stopPrice=None, params={}):
-        if not self.has['createStopOrder']:
-            raise NotSupported(self.id + 'create_stop_order() is not supported yet')
+        self.method_guard('createStopOrder', 'create_stop_order')
         if stopPrice is None:
             raise ArgumentsRequired(self.id + ' create_stop_order() requires a stopPrice argument')
         query = self.extend(params, {'stopPrice': stopPrice})
         return self.create_order(symbol, type, side, amount, price, query)
 
     def create_stop_limit_order(self, symbol, side, amount, price, stopPrice, params={}):
-        if not self.has['createStopLimitOrder']:
-            raise NotSupported(self.id + ' create_stop_limit_order() is not supported yet')
+        self.method_guard('createStopLimitOrder', 'create_stop_limit_order')
         query = self.extend(params, {'stopPrice': stopPrice})
         return self.create_order(symbol, 'limit', side, amount, price, query)
 
     def create_stop_market_order(self, symbol, side, amount, stopPrice, params={}):
-        if not self.has['createStopMarketOrder']:
-            raise NotSupported(self.id + ' create_stop_market_order() is not supported yet')
+        self.method_guard('createStopMarketOrder', 'create_stop_market_order')
         query = self.extend(params, {'stopPrice': stopPrice})
         return self.create_order(symbol, 'market', side, amount, None, query)
 
@@ -3044,22 +3036,20 @@ class Exchange(object):
             interest = self.parseOpenInterest(entry, market)
             interests.append(interest)
         sorted = self.sortBy(interests, 'timestamp')
-        symbol = this.safeString(market, 'symbol')
+        symbol = self.safeString(market, 'symbol')
         return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
 
     def fetch_funding_rate(self, symbol, params={}):
-        if self.has['fetchFundingRates']:
-            market = self.market(symbol)
-            if not market['contract']:
-                raise BadSymbol(self.id + ' fetch_funding_rate() supports contract markets only')
-            rates = self.fetchFundingRates([symbol], params)
-            rate = self.safe_value(rates, symbol)
-            if rate is None:
-                raise NullResponse(self.id + ' fetch_funding_rate() returned no data for ' + symbol)
-            else:
-                return rate
+        self.method_guard('fetchFundingRates', 'fetch_funding_rate')
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadSymbol(self.id + ' fetch_funding_rate() supports contract markets only')
+        rates = self.fetchFundingRates([symbol], params)
+        rate = self.safe_value(rates, symbol)
+        if rate is None:
+            raise NullResponse(self.id + ' fetch_funding_rate() returned no data for ' + symbol)
         else:
-            raise NotSupported(self.id + ' fetch_funding_rate() is not supported yet')
+            return rate
 
     def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
@@ -3071,13 +3061,11 @@ class Exchange(object):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [[int|float]] A: list of candles ordered as timestamp, open, high, low, close, None
         """
-        if self.has['fetchMarkOHLCV']:
-            request = {
-                'price': 'mark',
-            }
-            return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
-        else:
-            raise NotSupported(self.id + ' fetchMarkOHLCV() is not supported yet')
+        self.method_guard('fetchMarkOHLCV', 'fetch_mark_ohlcv')
+        request = {
+            'price': 'mark',
+        }
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
@@ -3089,13 +3077,11 @@ class Exchange(object):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [[int|float]] A: list of candles ordered as timestamp, open, high, low, close, None
         """
-        if self.has['fetchIndexOHLCV']:
-            request = {
-                'price': 'index',
-            }
-            return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
-        else:
-            raise NotSupported(self.id + ' fetchIndexOHLCV() is not supported yet')
+        self.method_guard('fetchIndexOHLCV', 'fetch_index_ohlcv')
+        request = {
+            'price': 'index',
+        }
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
@@ -3107,10 +3093,13 @@ class Exchange(object):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [[int|float]] A: list of candles ordered as timestamp, open, high, low, close, None
         """
-        if self.has['fetchPremiumIndexOHLCV']:
-            request = {
-                'price': 'premiumIndex',
-            }
-            return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
-        else:
-            raise NotSupported(self.id + ' fetchPremiumIndexOHLCV() is not supported yet')
+        self.method_guard('fetchPremiumIndexOHLCV', 'fetch_premium_index_ohlcv')
+        request = {
+            'price': 'premiumIndex',
+        }
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
+    def method_guard(self, hasMethod, unsupportedMethod=None):
+        if not self.has[hasMethod]:
+            unsupportedMethod = unsupportedMethod if unsupportedMethod else hasMethod
+            raise NotSupported(self.id + ' ' + unsupportedMethod + '() is not supported yet')
