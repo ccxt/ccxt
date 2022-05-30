@@ -1248,7 +1248,7 @@ class kucoinfutures(kucoin):
             request['symbol'] = market['id']
         if since is not None:
             request['startAt'] = since
-        till = self.safe_integer(params, 'till', 'endAt')
+        till = self.safe_integer_2(params, 'till', 'endAt')
         if till is not None:
             request['endAt'] = till
         method = 'futuresPrivateGetStopOrders' if stop else 'futuresPrivateGetOrders'
