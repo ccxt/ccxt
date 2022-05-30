@@ -1155,8 +1155,12 @@ module.exports = class ftx extends Exchange {
         // items will be returned, instead of the first (chronologically earliest) 5 items.
         // You can still use `params['limit']` to set the undocumented `limit` functionality, however note: maximum possible amount seems to be 5000, while default amount seems to be 20.
         const limitParam = this.safeInteger (params, 'limit');
-        if (limitParam === undefined && limit !== undefined && limitParam < limit) {
-            request['limit'] = limit;
+        if (limit !== undefined) {
+            if (limitParam === undefined) {
+                request['limit'] = limit;
+            } else if (limitParam < limit) {
+                request['limit'] = limit;
+            }
         }
         if (since !== undefined) {
             // If you don't set `end_time` in request, then exchange considers it as current time. In addition to that, this exchange aligns results to `end_time`. So, for example, you have `limit = 5` and if you request (between start_time and end_time) might theoretically contain 10 000 items, then the last 5 items are returned (chronologically recent) instead of the first (chronologically earliest) 5 items.
