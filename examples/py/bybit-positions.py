@@ -23,7 +23,7 @@ exchange.verbose = True  # uncomment for debugging
 
 # -----------------------------------------------------------------------------
 
-symbol = 'BTC/USDT:USDT'
+symbol = 'BTC/USDT:USDT'  # https://docs.ccxt.com/en/latest/manual.html#contract-naming-conventions
 market = exchange.market(symbol)
 params = {'subType':'linear' if market['linear'] else 'inverse'}
 linear_positions = exchange.fetch_positions([ symbol ], params)
