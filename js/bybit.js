@@ -4202,8 +4202,8 @@ module.exports = class bybit extends Exchange {
             let defaultSettle = this.safeString (this.options, 'defaultSettle');
             defaultSettle = this.safeString2 (params, 'settle', 'defaultSettle', defaultSettle);
             isUsdcSettled = (defaultSettle === 'USDC');
-            params = this.omit (params, [ 'settle', 'defaultSettle', 'subType' ]);
         }
+        params = this.omit (params, [ 'settle', 'defaultSettle', 'subType' ]);
         let method = undefined;
         if (isUsdcSettled) {
             method = 'privatePostOptionUsdcOpenapiPrivateV1QueryPosition';
