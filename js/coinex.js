@@ -30,6 +30,9 @@ module.exports = class coinex extends Exchange {
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': true,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRateHistories': false,
                 'fetchBorrowRates': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -3731,6 +3734,47 @@ module.exports = class coinex extends Exchange {
             data = this.safeValue (data, 'data', []);
         }
         return this.parseTransactions (data, currency, since, limit);
+    }
+
+    async fetchBorrowRate (code, params = {}) {
+        await this.loadMarkets ();
+        const symbol = code + '/USDT';
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.privateGetMarginConfig (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "market": "BTCUSDT",
+        //             "leverage": 10,
+        //             "BTC": {
+        //                 "min_amount": "0.002",
+        //                 "max_amount": "200",
+        //                 "day_rate": "0.001"
+        //             },
+        //             "USDT": {
+        //                 "min_amount": "60",
+        //                 "max_amount": "5000000",
+        //                 "day_rate": "0.001"
+        //             }
+        //         },
+        //         "message": "Success"
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        const data = this.safeValue (response, 'data', {});
+        const baseCurrencyData = this.safeValue (data, code, {});
+        return {
+            'currency': this.safeCurrencyCode (code),
+            'rate': this.safeNumber (baseCurrencyData, 'day_rate'),
+            'period': 86400000,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': data,
+        };
     }
 
     async fetchBorrowRates (params = {}) {
