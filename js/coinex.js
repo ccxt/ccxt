@@ -3485,7 +3485,7 @@ module.exports = class coinex extends Exchange {
             'amount': amountToPrecision,
             'coin_type': currency,
         };
-        if (marketType === 'swap') {
+        if ((marketType === 'spot') || (marketType === 'swap')) {
             request['transfer_side'] = transfer; // 'in': spot to swap, 'out': swap to spot
         }
         if (marketType === 'margin') {
