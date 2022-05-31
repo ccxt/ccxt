@@ -12,28 +12,26 @@ import ccxt  # noqa: E402
 # make sure your version is 1.51+
 print('CCXT Version:', ccxt.__version__)
 
-exchange = ccxt.ftx({
-    'apiKey': 'YOUR_API_KEY',
-    'secret': 'YOUR_SECRET',
-})
 
+exchange = ccxt.ftx()
 
 markets = exchange.load_markets ()
 
 # exchange.verbose = True  # uncomment for debugging
 
 all_trades = {}
-symbol = None
+symbol = 'BTC/USD'
 since = None
 limit = 200
 end_time = exchange.milliseconds()
+start_time = end_time - 1 * 60 * 60 * 1000  # 1 hour of history for example
 
 while True:
     print('------------------------------------------------------------------')
     params = {
         'end_time': int(end_time / 1000),
     }
-    trades = exchange.fetch_my_trades(symbol, since, limit, params)
+    trades = exchange.fetch_trades(symbol, since, limit, params)
     if len(trades):
         first_trade = trades[0]
         last_trade = trades[len(trades) - 1]
@@ -45,8 +43,11 @@ while True:
             if trade_id not in all_trades:
                 fetched_new_trades = True
                 all_trades[trade_id] = trade
+        print(len(list(all_trades.keys())), 'trades in total')
         if not fetched_new_trades:
             print('Done')
+            break
+        if end_time < start_time:
             break
     else:
         print('Done')
