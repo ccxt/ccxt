@@ -2341,7 +2341,7 @@ module.exports = class Exchange {
     async createStopOrder (symbol, type, side, amount, price = undefined, stopPrice = undefined, params = {}) {
         this.methodGuard ('createStopOrder');
         if (stopPrice === undefined) {
-            throw new ArgumentsRequired(this.id + ' create_stop_order() requires a stopPrice argument');
+            throw new ArgumentsRequired(this.id + ' createStopOrder() requires a stopPrice argument');
         }
         const query = this.extend (params, { 'stopPrice': stopPrice });
         return await this.createOrder (symbol, type, side, amount, price, query);
@@ -2349,12 +2349,18 @@ module.exports = class Exchange {
 
     async createStopLimitOrder(symbol, side, amount, price, stopPrice, params = {}) {
         this.methodGuard ('createStopLimitOrder');
+        if (stopPrice === undefined) {
+            throw new ArgumentsRequired(this.id + ' createStopLimitOrder() requires a stopPrice argument');
+        }
         const query = this.extend(params, {'stopPrice': stopPrice});
         return this.createOrder(symbol, 'limit', side, amount, price, query);
     }
-    
+
     async createStopMarketOrder(symbol, side, amount, stopPrice, params = {}) {
         this.methodGuard ('createStopMarketOrder');
+        if (stopPrice === undefined) {
+            throw new ArgumentsRequired(this.id + ' createStopMarketOrder() requires a stopPrice argument');
+        }
         const query = this.extend(params, {'stopPrice': stopPrice});
         return this.createOrder(symbol, 'market', side, amount, undefined, query);
     }
