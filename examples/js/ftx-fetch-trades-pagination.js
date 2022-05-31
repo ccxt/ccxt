@@ -1,33 +1,48 @@
 'use strict';
 
-
 const ccxt = require ('../../ccxt.js')
 
-const exchange = new ccxt.ftx ()
+async function main () {
 
-;(async () => {
+    const exchange = new ccxt.ftx ()
+    await exchange.loadMarkets ()
+
+    // exchange.verbose = true // uncomment for debugging purposes if necessary
 
     const symbol = 'BTC/USDT'
-    await exchange.loadMarkets ()
-    const MS_divisor = 1000 // as FTX works with Seconds, instead of Milliseconsd
-    // because of current FTX peculiarities, we have to use workaround to fetch all trades
-    const since = exchange.milliseconds() - 8 * 60 * 60 * 1000// from 8 hours ago
-    let end_time = exchange.milliseconds() // current time
-    let allTrades = []
-    while (end_time > since) {
-        const trades = await exchange.fetchTrades (symbol, since/MS_divisor, undefined, {'end_time': end_time/MS_divisor})
+    const since = undefined
+    const limit = 200
+    let endTime = exchange.milliseconds ()
+    const startTime = endTime - 1 * 60 * 60 * 1000 // past hour
+    let allTrades = {}
+
+    // ftx counts trades starting from end_time into the past
+    const params = {
+        'end_time': parseInt (endTime / 1000), // FTX expects end_time in seconds
+    }
+
+    while (endTime > startTime) {
+        const trades = await exchange.fetchTrades (symbol, since, limit, params)
         if (trades.length) {
-            const firstTrade = trades[0]
-            const lastTrade = trades[trades.length - 1]
-            console.log ('Fetched', trades.length, symbol, 'trades from', firstTrade['timestamp'], '(' + firstTrade['datetime'] + ')', 'to', lastTrade['timestamp'], '(' + lastTrade['datetime'] + ')' )
-            end_time = firstTrade['timestamp']
-            allTrades.push (...trades)
+            const first = trades[0]
+            const last = trades[trades.length - 1]
+            console.log ('Fetched', trades.length, symbol, 'trades from', first['datetime'], 'to', last['datetime'])
+            endTime = first['timestamp']
+            params['end_time'] = parseInt (endTime / 1000);
+            Object.assign (allTrades, exchange.indexBy (trades, 'id'))
         } else {
-            console.log ('No trades returned.')
+            // stop if no trades were returned
             break;
         }
     }
-    allTrades = exchange.filterBySinceLimit (allTrades, since)
-    console.log ('Done.', 'There were', allTrades.length, 'trades from', since, 'till', end_time)
 
-}) ()
+    allTrades = Object.values (allTrades)
+    allTrades = exchange.sortBy (allTrades, 'timestamp')
+    allTrades = exchange.filterBySinceLimit (allTrades, startTime)
+    const first = allTrades[0]
+    const last = allTrades[allTrades.length - 1]
+    console.log ('Done.', 'There were', allTrades.length, 'trades from', first['datetime'], 'till', last['datetime'])
+
+}
+
+main ()
