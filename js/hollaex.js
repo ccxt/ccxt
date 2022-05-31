@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, OrderImmediatelyFillable, InsufficientFunds } = require ('./base/errors');
+const { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderImmediatelyFillable, OrderNotFound, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -167,6 +167,7 @@ module.exports = class hollaex extends Exchange {
                     'Invalid token': AuthenticationError,
                     'Order not found': OrderNotFound,
                     'Insufficient balance': InsufficientFunds,
+                    'Error 1001 - Order rejected. Order could not be submitted as this order was set to a post only order.': OrderImmediatelyFillable,
                 },
                 'exact': {
                     '400': BadRequest,
@@ -177,7 +178,6 @@ module.exports = class hollaex extends Exchange {
                     '429': BadRequest,
                     '500': NetworkError,
                     '503': NetworkError,
-                    '1001': OrderImmediatelyFillable,
                 },
             },
             'options': {
@@ -1612,24 +1612,16 @@ module.exports = class hollaex extends Exchange {
             //
             //  { "message": "Invalid token" }
             //
+            // different errors return the same code eg:
+            //
             //  { "message":"Error 1001 - Order rejected. Order could not be submitted as this order was set to a post only order." }
+            //
+            //  { "message":"Error 1001 - POST ONLY order can not be of type market" }
             //
             const feedback = this.id + ' ' + body;
             const message = this.safeString (response, 'message');
-            let specificErrorCode = undefined;
-            if (message !== undefined) {
-                const splitMessage = message.split (' ');
-                if (splitMessage[0] === 'Error') {
-                    specificErrorCode = splitMessage[1];
-                }
-            }
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-            let status = undefined;
-            if (specificErrorCode !== undefined) {
-                status = specificErrorCode;
-            } else {
-                status = code.toString ();
-            }
+            const status = code.toString ();
             this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
         }
     }
