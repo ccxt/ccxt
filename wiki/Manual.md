@@ -5284,15 +5284,12 @@ try {
     if (e instanceof ccxt.NetworkError) {
         console.log (exchange.id, 'fetchTicker failed due to a network error:', e.message)
         // retry or whatever
-        // ...
     } else if (e instanceof ccxt.ExchangeError) {
         console.log (exchange.id, 'fetchTicker failed due to exchange error:', e.message)
         // retry or whatever
-        // ...
     } else {
         console.log (exchange.id, 'fetchTicker failed with:', e.message)
         // retry or whatever
-        // ...
     }
 }
 ```
@@ -5307,15 +5304,12 @@ try:
 except ccxt.NetworkError as e:
     print(exchange.id, 'fetch_order_book failed due to a network error:', str(e))
     # retry or whatever
-    # ...
 except ccxt.ExchangeError as e:
     print(exchange.id, 'fetch_order_book failed due to exchange error:', str(e))
     # retry or whatever
-    # ...
 except Exception as e:
     print(exchange.id, 'fetch_order_book failed with:', str(e))
     # retry or whatever
-    # ...
 ```
 
 ```PHP
@@ -5328,15 +5322,12 @@ try {
 } catch (\ccxt\NetworkError $e) {
     echo $exchange->id . ' fetch_trades failed due to a network error: ' . $e->getMessage () . "\n";
     // retry or whatever
-    // ...
 } catch (\ccxt\ExchangeError $e) {
     echo $exchange->id . ' fetch_trades failed due to exchange error: ' . $e->getMessage () . "\n";
     // retry or whatever
-    // ...
 } catch (Exception $e) {
     echo $exchange->id . ' fetch_trades failed with: ' . $e->getMessage () . "\n";
     // retry or whatever
-    // ...
 }
 ```
 
@@ -5440,7 +5431,7 @@ In contrast, the `ExchangeError` is a critical error indeed, and it differs from
 
 The distinction between the two families of exceptions is such that one family is recoverable and the other family is unrecoverable. `NetworkError` means you can retry later and it can magically go away by itself, so a subsequent retry may succeed and the user may be able to recover from a `NetworkError` just by waiting. An `ExchangeError` is a fatal error, so, it means, something went bad and it will go bad every time, unless you change the input.
 
-## ExchangeError
+### ExchangeError
 
 This exception is thrown when an exchange server replies with an error in JSON. Possible reasons:
 
@@ -5460,25 +5451,18 @@ Other exceptions derived from `ExchangeError`:
   - `InvalidOrder`: This exception is the base class for all exceptions related to the unified order API.
   - `OrderNotFound`: Raised when you are trying to fetch or cancel a non-existent order.
 
-## NetworkError
+### NetworkError
 
 All errors related to networking are usually recoverable, meaning that networking problems, traffic congestion, unavailability is usually time-dependent. Making a retry later is usually enough to recover from a NetworkError, but if it doesn't go away, then it may indicate some persistent problem with the exchange or with your connection.
 
-## DDoSProtection
+#### DDoSProtection
 
 This exception is thrown in either of two cases:
 
 - when Cloudflare or Incapsula rate limiter restrictions are enforced per user or region/location
 - when the exchange restricts user access for requesting the endpoints in question too frequently
 
-In addition to default error handling, the ccxt library does a case-insensitive search in the response received from the exchange for one of the following keywords:
-
-  - `cloudflare`
-  - `incapsula`
-  - `overload`
-  - `ddos`
-
-## RequestTimeout
+#### RequestTimeout
 
 This exception is raised when the connection with the exchange fails or data is not fully received in a specified amount of time. This is controlled by the `timeout` option. When a `RequestTimeout` is raised, the user doesn't know the outcome of a request (whether it was accepted by the exchange server or not).
 
@@ -5492,7 +5476,7 @@ Thus it's advised to handle this type of exception in the following manner:
   - call `fetchOrders()`, `fetchOpenOrders()`, `fetchClosedOrders()` to check if the request to place the order has succeeded and the order is now open
   - if the order is not `'open'` the user should `fetchBalance()` to check if the balance has changed since the order was created on the first run and then was filled and closed by the time of the second check.
 
-## ExchangeNotAvailable
+#### ExchangeNotAvailable
 
 This type of exception is thrown when the underlying exchange is unreachable.
 
@@ -5507,7 +5491,7 @@ The ccxt library also throws this error if it detects any of the following keywo
   - `maintenance`
   - `maintenancing`
 
-## InvalidNonce
+#### InvalidNonce
 
 Raised when your nonce is less than the previous nonce used with your keypair, as described in the [Authentication](#authentication) section. This type of exception is thrown in these cases (in order of precedence for checking):
 
