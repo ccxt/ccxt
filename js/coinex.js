@@ -3736,6 +3736,35 @@ module.exports = class coinex extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
+    parseBorrowRate (info, currency = undefined) {
+        //
+        //     {
+        //         "market": "BTCUSDT",
+        //         "leverage": 10,
+        //         "BTC": {
+        //             "min_amount": "0.002",
+        //             "max_amount": "200",
+        //             "day_rate": "0.001"
+        //         },
+        //         "USDT": {
+        //             "min_amount": "60",
+        //             "max_amount": "5000000",
+        //             "day_rate": "0.001"
+        //         }
+        //     },
+        //
+        const timestamp = this.milliseconds ();
+        const baseCurrencyData = this.safeValue (info, currency, {});
+        return {
+            'currency': this.safeCurrencyCode (currency),
+            'rate': this.safeNumber (baseCurrencyData, 'day_rate'),
+            'period': 86400000,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
     async fetchBorrowRate (code, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
@@ -3769,17 +3798,8 @@ module.exports = class coinex extends Exchange {
         //         "message": "Success"
         //     }
         //
-        const timestamp = this.milliseconds ();
         const data = this.safeValue (response, 'data', {});
-        const baseCurrencyData = this.safeValue (data, market['base'], {});
-        return {
-            'currency': market['base'],
-            'rate': this.safeNumber (baseCurrencyData, 'day_rate'),
-            'period': 86400000,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'info': data,
-        };
+        return this.parseBorrowRate (data, market['base']);
     }
 
     async fetchBorrowRates (params = {}) {
