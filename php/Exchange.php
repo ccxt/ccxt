@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.84.42';
+$version = '1.84.53';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -60,7 +60,7 @@ class Exchange {
 
     use ExchangeCommon;
 
-    const VERSION = '1.84.42';
+    const VERSION = '1.84.53';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -436,7 +436,7 @@ class Exchange {
     public static function valid_string($string) {
         return isset($string) && $string !== '';
     }
-    
+
     public static function valid_object_value($object, $key) {
         return isset($object[$key]) && $object[$key] !== '' && is_scalar($object[$key]);
     }

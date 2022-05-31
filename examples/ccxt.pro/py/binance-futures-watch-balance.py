@@ -32,6 +32,8 @@ async def main():
     asyncio.ensure_future(print_balance(exchange, 'delivery'))  # inverse futures settled in BTC
     asyncio.ensure_future(print_balance(exchange, 'spot'))
 
+
+asyncio.run(main())
 asyncio.ensure_future(main())
 loop.run_forever()
 
