@@ -2893,6 +2893,68 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + 'fetch_market_leverage_tiers() is not supported yet')
 
+    def edit_limit_buy_order(self, id, symbol, *args):
+        return self.edit_limit_order(id, symbol, 'buy', *args)
+
+    def edit_limit_sell_order(self, id, symbol, *args):
+        return self.edit_limit_order(id, symbol, 'sell', *args)
+
+    def edit_limit_order(self, id, symbol, *args):
+        return self.edit_order(id, symbol, 'limit', *args)
+
+    def edit_order(self, id, symbol, *args):
+        self.cancel_order(id, symbol)
+        return self.create_order(symbol, *args)
+
+    def create_limit_order(self, symbol, side, amount, price, params={}) -> dict:
+        return self.create_order(symbol, 'limit', side, amount, price, params)
+
+    def create_market_order(self, symbol, side, amount, price=None, params={}) -> dict:
+        return self.create_order(symbol, 'market', side, amount, price, params)
+
+    def create_limit_buy_order(self, symbol, amount, price, params={}) -> dict:
+        return self.create_order(symbol, 'limit', 'buy', amount, price, params)
+
+    def create_limit_sell_order(self, symbol, amount, price, params={}) -> dict:
+        return self.create_order(symbol, 'limit', 'sell', amount, price, params)
+
+    def create_market_buy_order(self, symbol, amount, params={}) -> dict:
+        return self.create_order(symbol, 'market', 'buy', amount, None, params)
+
+    def create_market_sell_order(self, symbol, amount, params={}) -> dict:
+        return self.create_order(symbol, 'market', 'sell', amount, None, params)
+
+    def create_post_only_order(self, symbol, type, side, amount, price, params={}):
+        if not self.has['createPostOnlyOrder']:
+            raise NotSupported(self.id + ' create_post_only_order() is not supported yet')
+        query = self.extend(params, {'postOnly': True})
+        return self.create_order(symbol, type, side, amount, price, query)
+
+    def create_reduce_only_order(self, symbol, type, side, amount, price, params={}):
+        if not self.has['createReduceOnlyOrder']:
+            raise NotSupported(self.id + ' create_reduce_only_order() is not supported yet')
+        query = self.extend(params, {'reduceOnly': True})
+        return self.create_order(symbol, type, side, amount, price, query)
+
+    def create_stop_order(self, symbol, type, side, amount, price=None, stopPrice=None, params={}):
+        if not self.has['createStopOrder']:
+            raise NotSupported(self.id + 'create_stop_order() is not supported yet')
+        if stopPrice is None:
+            raise ArgumentsRequired(self.id + ' create_stop_order() requires a stopPrice argument')
+        query = self.extend(params, {'stopPrice': stopPrice})
+        return self.create_order(symbol, type, side, amount, price, query)
+
+    def create_stop_limit_order(self, symbol, side, amount, price, stopPrice, params={}):
+        if not self.has['createStopLimitOrder']:
+            raise NotSupported(self.id + ' create_stop_limit_order() is not supported yet')
+        query = self.extend(params, {'stopPrice': stopPrice})
+        return self.create_order(symbol, 'limit', side, amount, price, query)
+
+    def create_stop_market_order(self, symbol, side, amount, stopPrice, params={}):
+        if not self.has['createStopMarketOrder']:
+            raise NotSupported(self.id + ' create_stop_market_order() is not supported yet')
+        query = self.extend(params, {'stopPrice': stopPrice})
+        return self.create_order(symbol, 'market', side, amount, None, query)
 
 # -----------------------------------------------------------------------------
 # exchange_common : set imported common methods as part of the class
