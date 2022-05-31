@@ -1354,10 +1354,6 @@ module.exports = class gemini extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            const apiKey = this.apiKey;
-            if (apiKey.indexOf ('account') < 0) {
-                throw new AuthenticationError (this.id + ' sign() requires an account-key, master-keys are not-supported');
-            }
             const nonce = this.nonce ();
             const request = this.extend ({
                 'request': url,
@@ -1366,10 +1362,11 @@ module.exports = class gemini extends Exchange {
             let payload = this.json (request);
             payload = this.stringToBase64 (payload);
             const signature = this.hmac (payload, this.encode (this.secret), 'sha384');
+            const authorizationKey = 'Bearer ' + this.token;
             headers = {
                 'Content-Type': 'text/plain',
+                'Authorization': authorizationKey,
                 'X-GEMINI-APIKEY': this.apiKey,
-                'X-GEMINI-PAYLOAD': this.decode (payload),
                 'X-GEMINI-SIGNATURE': signature,
             };
         } else {
