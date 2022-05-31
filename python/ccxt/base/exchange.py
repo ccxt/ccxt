@@ -2956,6 +2956,7 @@ class Exchange(object):
         query = self.extend(params, {'stopPrice': stopPrice})
         return self.create_order(symbol, 'market', side, amount, None, query)
 
+
 # -----------------------------------------------------------------------------
 # exchange_common : set imported common methods as part of the class
 # -----------------------------------------------------------------------------

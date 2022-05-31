@@ -6,7 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadSymbol;
 use \ccxt\NullResponse;
@@ -44,93 +43,6 @@ trait ExchangeCommon {
             }
         }
         return array( $tag, $params );
-    }
-
-    public function edit_limit_buy_order($id, $symbol, $amount, $price, $params = array ()) {
-        return $this->edit_limit_order($id, $symbol, 'buy', $amount, $price, $params);
-    }
-
-    public function edit_limit_sell_order($id, $symbol, $amount, $price, $params = array ()) {
-        return $this->edit_limit_order($id, $symbol, 'sell', $amount, $price, $params);
-    }
-
-    public function edit_limit_order($id, $symbol, $amount, $price, $params = array ()) {
-        return $this->edit_order($id, $symbol, 'limit', $amount, $price, $params);
-    }
-
-    public function edit_order($id, $symbol, $type, $side, $amount, $price, $params = array ()) {
-        if (!$this->enableRateLimit) {
-            throw new ExchangeError($this->id . ' editOrder() requires enableRateLimit = true');
-        }
-        $this->cancelOrder ($id, $symbol);
-        return $this->create_order($symbol, $type, $side, $amount, $price, $params);
-    }
-
-    public function create_limit_order($symbol, $side, $amount, $price, $params = array ()) {
-        return $this->create_order($symbol, 'limit', $side, $amount, $price, $params);
-    }
-
-    public function create_market_order($symbol, $side, $amount, $price = null, $params = array ()) {
-        return $this->create_order($symbol, 'market', $side, $amount, $price, $params);
-    }
-
-    public function create_limit_buy_order($symbol, $amount, $price, $params = array ()) {
-        return $this->create_order($symbol, 'limit', 'buy', $amount, $price, $params);
-    }
-
-    public function create_limit_sell_order($symbol, $amount, $price, $params = array ()) {
-        return $this->create_order($symbol, 'limit', 'sell', $amount, $price, $params);
-    }
-
-    public function create_market_buy_order($symbol, $amount, $params = array ()) {
-        return $this->create_order($symbol, 'market', 'buy', $amount, null, $params);
-    }
-
-    public function create_market_sell_order($symbol, $amount, $params = array ()) {
-        return $this->create_order($symbol, 'market', 'sell', $amount, null, $params);
-    }
-
-    public function create_post_only_order($symbol, $type, $side, $amount, $price, $params = array ()) {
-        if (!$this->has['createPostOnlyOrder']) {
-            throw new NotSupported($this->id . 'createPostOnlyOrder() is not supported yet');
-        }
-        $query = array_merge($params, array( 'postOnly' => true ));
-        return $this->create_order($symbol, $type, $side, $amount, $price, $query);
-    }
-
-    public function create_reduce_only_order($symbol, $type, $side, $amount, $price, $params = array ()) {
-        if (!$this->has['createReduceOnlyOrder']) {
-            throw new NotSupported($this->id . 'createReduceOnlyOrder() is not supported yet');
-        }
-        $query = array_merge($params, array( 'reduceOnly' => true ));
-        return $this->create_order($symbol, $type, $side, $amount, $price, $query);
-    }
-
-    public function create_stop_order($symbol, $type, $side, $amount, $price = null, $stopPrice = null, $params = array ()) {
-        if (!$this->has['createStopOrder']) {
-            throw new NotSupported($this->id . ' createStopOrder() is not supported yet');
-        }
-        if ($stopPrice === null) {
-            throw new ArgumentsRequired($this->id . ' create_stop_order() requires a $stopPrice argument');
-        }
-        $query = array_merge($params, array( 'stopPrice' => $stopPrice ));
-        return $this->create_order($symbol, $type, $side, $amount, $price, $query);
-    }
-
-    public function create_stop_limit_order($symbol, $side, $amount, $price, $stopPrice, $params = array ()) {
-        if (!$this->has['createStopLimitOrder']) {
-            throw new NotSupported($this->id . ' createStopLimitOrder() is not supported yet');
-        }
-        $query = array_merge($params, array( 'stopPrice' => $stopPrice ));
-        return $this->create_order($symbol, 'limit', $side, $amount, $price, $query);
-    }
-
-    public function create_stop_market_order($symbol, $side, $amount, $stopPrice, $params = array ()) {
-        if (!$this->has['createStopMarketOrder']) {
-            throw new NotSupported($this->id . ' createStopMarketOrder() is not supported yet');
-        }
-        $query = array_merge($params, array( 'stopPrice' => $stopPrice ));
-        return $this->create_order($symbol, 'market', $side, $amount, null, $query);
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {

@@ -422,6 +422,7 @@ class Exchange(BaseExchange):
         await self.cancel_order(id, symbol)
         return await self.create_order(symbol, *args)
 
+
 # -----------------------------------------------------------------------------
 # exchange_common : set imported common methods as part of the class
 # needs to be done again here to assign the async version of the method
