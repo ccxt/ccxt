@@ -347,7 +347,7 @@ class bitmex(Exchange):
             id = self.safe_string(market, 'symbol')
             baseId = self.safe_string(market, 'underlying')
             quoteId = self.safe_string(market, 'quoteCurrency')
-            settleId = self.safe_string(market, 'settlCurrency')
+            settleId = self.safe_string(market, 'settlCurrency', '')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             settle = self.safe_currency_code(settleId)
