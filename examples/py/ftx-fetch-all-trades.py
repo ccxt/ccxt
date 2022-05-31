@@ -26,7 +26,7 @@ limit = 200
 end_time = exchange.milliseconds()
 start_time = end_time - 1 * 60 * 60 * 1000  # 1 hour of history for example
 
-while True:
+while end_time > start_time:
     print('------------------------------------------------------------------')
     params = {
         'end_time': int(end_time / 1000),
@@ -47,8 +47,6 @@ while True:
         if not fetched_new_trades:
             print('Done')
             break
-        if end_time < start_time:
-            break
     else:
         print('Done')
         break
@@ -56,6 +54,7 @@ while True:
 
 all_trades = list(all_trades.values())
 all_trades = exchange.sort_by(all_trades, 'timestamp')
+all_trades = exchange.filter_by_since_limit(all_trades, start_time)
 
 print('Fetched', len(all_trades), 'trades')
 for i in range(0, len(all_trades)):
