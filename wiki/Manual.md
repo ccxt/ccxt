@@ -4795,16 +4795,16 @@ fetchFees (params = {})
     },
     'trading': {
         'ETH/BTC': {
-             'maker': 0.001,
-             'taker': 0.002,
-             'info': { ... },
-             'symbol': 'ETH/BTC',
+            'maker': 0.001,
+            'taker': 0.002,
+            'info': { ... },
+            'symbol': 'ETH/BTC',
         },
         'LTC/BTC': {
-             'maker': 0.001,
-             'taker': 0.002,
-             'info': { ... },
-             'symbol': 'LTC/BTC',
+            'maker': 0.001,
+            'taker': 0.002,
+            'info': { ... },
+            'symbol': 'LTC/BTC',
         },
     },
 }
@@ -5254,7 +5254,6 @@ Returns
     amount: -0.027722
 }
 ```
-
 
 # Error Handling
 
