@@ -3738,8 +3738,13 @@ module.exports = class coinex extends Exchange {
 
     async fetchBorrowRate (code, params = {}) {
         await this.loadMarkets ();
-        const symbol = code + '/USDT';
-        const market = this.market (symbol);
+        let market = undefined;
+        if (code in this.markets) {
+            market = this.market (code);
+        } else {
+            const defaultSettle = this.safeString (this.options, 'defaultSettle', 'USDT');
+            market = this.market (code + '/' + defaultSettle);
+        }
         const request = {
             'market': market['id'],
         };
@@ -3766,9 +3771,9 @@ module.exports = class coinex extends Exchange {
         //
         const timestamp = this.milliseconds ();
         const data = this.safeValue (response, 'data', {});
-        const baseCurrencyData = this.safeValue (data, code, {});
+        const baseCurrencyData = this.safeValue (data, market['base'], {});
         return {
-            'currency': this.safeCurrencyCode (code),
+            'currency': market['base'],
             'rate': this.safeNumber (baseCurrencyData, 'day_rate'),
             'period': 86400000,
             'timestamp': timestamp,
