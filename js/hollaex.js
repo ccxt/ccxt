@@ -1032,6 +1032,7 @@ module.exports = class hollaex extends Exchange {
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
         const price = this.safeString (order, 'price');
+        const stopPrice = this.safeString (order, 'stop');
         const amount = this.safeString (order, 'size');
         const filled = this.safeString (order, 'filled');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -1050,7 +1051,7 @@ module.exports = class hollaex extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'stopPrice': stopPrice,
             'amount': amount,
             'filled': filled,
             'remaining': undefined,
