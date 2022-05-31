@@ -3983,7 +3983,7 @@ class bybit(Exchange):
             defaultSettle = self.safe_string(self.options, 'defaultSettle')
             defaultSettle = self.safe_string_2(params, 'settle', 'defaultSettle', defaultSettle)
             isUsdcSettled = (defaultSettle == 'USDC')
-            params = self.omit(params, ['settle', 'defaultSettle', 'subType'])
+        params = self.omit(params, ['settle', 'defaultSettle', 'subType'])
         method = None
         if isUsdcSettled:
             method = 'privatePostOptionUsdcOpenapiPrivateV1QueryPosition'

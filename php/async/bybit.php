@@ -4190,8 +4190,8 @@ class bybit extends Exchange {
             $defaultSettle = $this->safe_string($this->options, 'defaultSettle');
             $defaultSettle = $this->safe_string_2($params, 'settle', 'defaultSettle', $defaultSettle);
             $isUsdcSettled = ($defaultSettle === 'USDC');
-            $params = $this->omit($params, array( 'settle', 'defaultSettle', 'subType' ));
         }
+        $params = $this->omit($params, array( 'settle', 'defaultSettle', 'subType' ));
         $method = null;
         if ($isUsdcSettled) {
             $method = 'privatePostOptionUsdcOpenapiPrivateV1QueryPosition';
