@@ -550,7 +550,7 @@ class kucoin(Exchange, ccxt.kucoin):
         statuses = {
             'open': 'open',
             'filled': 'closed',
-            'match': 'closed',
+            'match': 'open',
             'update': 'open',
             'canceled': 'canceled',
         }
