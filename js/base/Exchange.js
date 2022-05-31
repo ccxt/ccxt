@@ -2219,4 +2219,88 @@ module.exports = class Exchange {
         const result = Object.values (positions || []).map ((position) => this.merge (this.parsePosition (position), params));
         return this.filterByArray (result, 'symbol', symbols, false);
     }
+
+    editLimitBuyOrder (id, symbol, ...args) {
+        return this.editLimitOrder (id, symbol, 'buy', ...args)
+    }
+
+    editLimitSellOrder (id, symbol, ...args) {
+        return this.editLimitOrder (id, symbol, 'sell', ...args)
+    }
+
+    editLimitOrder (id, symbol, ...args) {
+        return this.editOrder (id, symbol, 'limit', ...args)
+    }
+
+    async editOrder (id, symbol, ...args) {
+        await this.cancelOrder (id, symbol);
+        return this.createOrder (symbol, ...args)
+    }
+
+    createLimitOrder (symbol, side, amount, price, params = {}) {
+        return this.createOrder (symbol, 'limit', side, amount, price, params)
+    }
+
+    createMarketOrder (symbol, side, amount, price, params = {}) {
+        return this.createOrder (symbol, 'market', side, amount, price, params)
+    }
+
+    createLimitBuyOrder (symbol, amount, price, params = {}) {
+        return this.createOrder  (symbol, 'limit', 'buy', amount, price, params)
+    }
+
+    createLimitSellOrder (symbol, amount, price, params = {}) {
+        return this.createOrder (symbol, 'limit', 'sell', amount, price, params)
+    }
+
+    createMarketBuyOrder (symbol, amount, params = {}) {
+        return this.createOrder (symbol, 'market', 'buy', amount, undefined, params)
+    }
+
+    createMarketSellOrder (symbol, amount, params = {}) {
+        return this.createOrder (symbol, 'market', 'sell', amount, undefined, params)
+    }
+
+    async createPostOnlyOrder (symbol, type, side, amount, price, params = {}) {
+        if (!this.has['createPostOnlyOrder']) {
+            throw new NotSupported (this.id + 'createPostOnlyOrder() is not supported yet');
+        }
+        const query = this.extend (params, { 'postOnly': true });
+        return await this.createOrder (symbol, type, side, amount, price, query);
+    }
+
+    async createReduceOnlyOrder (symbol, type, side, amount, price, params = {}) {
+        if (!this.has['createReduceOnlyOrder']) {
+            throw new NotSupported (this.id + 'createReduceOnlyOrder() is not supported yet');
+        }
+        const query = this.extend (params, { 'reduceOnly': true });
+        return await this.createOrder (symbol, type, side, amount, price, query);
+    }
+
+    async createStopOrder (symbol, type, side, amount, price = undefined, stopPrice = undefined, params = {}) {
+        if (!this.has['createStopOrder']) {
+            throw new NotSupported (this.id + ' createStopOrder() is not supported yet');
+        }
+        if (stopPrice === undefined) {
+            throw new ArgumentsRequired(this.id + ' create_stop_order() requires a stopPrice argument');
+        }
+        const query = this.extend (params, { 'stopPrice': stopPrice });
+        return await this.createOrder (symbol, type, side, amount, price, query);
+    }
+
+    async createStopLimitOrder(symbol, side, amount, price, stopPrice, params = {}) {
+        if (!this.has['createStopLimitOrder']) {
+            throw new NotSupported(this.id + ' createStopLimitOrder() is not supported yet');
+        }
+        const query = this.extend(params, {'stopPrice': stopPrice});
+        return this.createOrder(symbol, 'limit', side, amount, price, query);
+    }
+
+    async createStopMarketOrder(symbol, side, amount, stopPrice, params = {}) {
+        if (!this.has['createStopMarketOrder']) {
+            throw new NotSupported(this.id + ' createStopMarketOrder() is not supported yet');
+        }
+        const query = this.extend(params, {'stopPrice': stopPrice});
+        return this.createOrder(symbol, 'market', side, amount, undefined, query);
+    }
 }
