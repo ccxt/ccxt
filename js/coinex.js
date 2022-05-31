@@ -3462,23 +3462,11 @@ module.exports = class coinex extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('transfer', undefined, params);
         const currency = this.safeCurrencyCode (code);
         const amountToPrecision = this.currencyToPrecision (code, amount);
-        const marginAccountId = this.safeInteger (query, 'marginAccountId');
         let transfer = undefined;
         if ((fromAccount === 'spot') && (toAccount === 'swap')) {
             transfer = 'in';
         } else if ((fromAccount === 'swap') && (toAccount === 'spot')) {
             transfer = 'out';
-        } else if ((fromAccount === 'margin') || (toAccount === 'margin')) {
-            if (marginAccountId === undefined) {
-                throw new BadRequest (this.id + ' transfer() to a margin pair requires a marginAccountId in the params which can be retrieved using fetchBalance()');
-            }
-            if (toAccount === 'spot') {
-                fromAccount = marginAccountId;
-                toAccount = 0;
-            } else if (fromAccount === 'spot') {
-                fromAccount = 0;
-                toAccount = marginAccountId;
-            }
         }
         const request = {
             'amount': amountToPrecision,
@@ -3488,6 +3476,7 @@ module.exports = class coinex extends Exchange {
             request['transfer_side'] = transfer; // 'in': spot to swap, 'out': swap to spot
         }
         if (marketType === 'margin') {
+            // fromAccount and toAccount must be integers for margin transfers, spot is 0, use fetchBalance() to find the margin account id
             request['from_account'] = fromAccount;
             request['to_account'] = toAccount;
         }
