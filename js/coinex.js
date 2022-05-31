@@ -3460,23 +3460,41 @@ module.exports = class coinex extends Exchange {
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('transfer', undefined, params);
-        if (marketType !== 'spot') {
-            throw new BadRequest (this.id + ' transfer() requires defaultType to be spot');
-        }
         const currency = this.safeCurrencyCode (code);
         const amountToPrecision = this.currencyToPrecision (code, amount);
+        const marginAccountId = this.safeInteger (query, 'marginAccountId');
         let transfer = undefined;
         if ((fromAccount === 'spot') && (toAccount === 'swap')) {
             transfer = 'in';
         } else if ((fromAccount === 'swap') && (toAccount === 'spot')) {
             transfer = 'out';
+        } else if ((fromAccount === 'spot') && (toAccount === 'margin')) {
+            if (marginAccountId === undefined) {
+                throw new BadRequest (this.id + ' transfer() to a margin pair requires a marginAccountId in the params which can be retrieved using fetchBalance()');
+            }
+            fromAccount = 0;
+            toAccount = marginAccountId;
+        } else if ((fromAccount === 'margin') && (toAccount === 'spot')) {
+            if (marginAccountId === undefined) {
+                throw new BadRequest (this.id + ' transfer() from a margin pair requires a marginAccountId in the params which can be retrieved using fetchBalance()');
+            }
+            fromAccount = marginAccountId;
+            toAccount = 0;
         }
         const request = {
             'amount': amountToPrecision,
             'coin_type': currency,
-            'transfer_side': transfer, // 'in': spot to swap, 'out': swap to spot
         };
-        const response = await this.privatePostContractBalanceTransfer (this.extend (request, query));
+        if (marketType === 'swap') {
+            request['transfer_side'] = transfer; // 'in': spot to swap, 'out': swap to spot
+        }
+        if (marketType === 'margin') {
+            request['from_account'] = fromAccount;
+            request['to_account'] = toAccount;
+        }
+        const method = (marketType === 'margin') ? 'privatePostMarginTransfer' : 'privatePostContractBalanceTransfer';
+        params = this.omit (query, 'marginAccountId');
+        const response = await this[method] (this.extend (request, params));
         //
         //     {"code": 0, "data": null, "message": "Success"}
         //
