@@ -3468,18 +3468,17 @@ module.exports = class coinex extends Exchange {
             transfer = 'in';
         } else if ((fromAccount === 'swap') && (toAccount === 'spot')) {
             transfer = 'out';
-        } else if ((fromAccount === 'spot') && (toAccount === 'margin')) {
+        } else if ((fromAccount === 'margin') || (toAccount === 'margin')) {
             if (marginAccountId === undefined) {
                 throw new BadRequest (this.id + ' transfer() to a margin pair requires a marginAccountId in the params which can be retrieved using fetchBalance()');
             }
-            fromAccount = 0;
-            toAccount = marginAccountId;
-        } else if ((fromAccount === 'margin') && (toAccount === 'spot')) {
-            if (marginAccountId === undefined) {
-                throw new BadRequest (this.id + ' transfer() from a margin pair requires a marginAccountId in the params which can be retrieved using fetchBalance()');
+            if (toAccount === 'spot') {
+                fromAccount = marginAccountId;
+                toAccount = 0;
+            } else if (fromAccount === 'spot') {
+                fromAccount = 0;
+                toAccount = marginAccountId;
             }
-            fromAccount = marginAccountId;
-            toAccount = 0;
         }
         const request = {
             'amount': amountToPrecision,
