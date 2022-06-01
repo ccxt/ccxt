@@ -6368,7 +6368,8 @@ module.exports = class huobi extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         const settlementRecord = this.safeValue (data, 'settlement_record');
-        return this.parseSettlements (settlementRecord, market);
+        const settlements = this.parseSettlements (settlementRecord, market);
+        return this.sortBy (settlements, 'timestamp');
     }
 
     parseSettlements (settlements, market) {
