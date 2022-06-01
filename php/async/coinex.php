@@ -36,6 +36,9 @@ class coinex extends Exchange {
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => true,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
@@ -3734,6 +3737,72 @@ class coinex extends Exchange {
             $data = $this->safe_value($data, 'data', array());
         }
         return $this->parse_transactions($data, $currency, $since, $limit);
+    }
+
+    public function parse_borrow_rate($info, $currency = null) {
+        //
+        //     {
+        //         "market" => "BTCUSDT",
+        //         "leverage" => 10,
+        //         "BTC" => array(
+        //             "min_amount" => "0.002",
+        //             "max_amount" => "200",
+        //             "day_rate" => "0.001"
+        //         ),
+        //         "USDT" => array(
+        //             "min_amount" => "60",
+        //             "max_amount" => "5000000",
+        //             "day_rate" => "0.001"
+        //         }
+        //     ),
+        //
+        $timestamp = $this->milliseconds();
+        $baseCurrencyData = $this->safe_value($info, $currency, array());
+        return array(
+            'currency' => $this->safe_currency_code($currency),
+            'rate' => $this->safe_number($baseCurrencyData, 'day_rate'),
+            'period' => 86400000,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
+    }
+
+    public function fetch_borrow_rate($code, $params = array ()) {
+        yield $this->load_markets();
+        $market = null;
+        if (is_array($this->markets) && array_key_exists($code, $this->markets)) {
+            $market = $this->market($code);
+        } else {
+            $defaultSettle = $this->safe_string($this->options, 'defaultSettle', 'USDT');
+            $market = $this->market($code . '/' . $defaultSettle);
+        }
+        $request = array(
+            'market' => $market['id'],
+        );
+        $response = yield $this->privateGetMarginConfig (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => {
+        //             "market" => "BTCUSDT",
+        //             "leverage" => 10,
+        //             "BTC" => array(
+        //                 "min_amount" => "0.002",
+        //                 "max_amount" => "200",
+        //                 "day_rate" => "0.001"
+        //             ),
+        //             "USDT" => array(
+        //                 "min_amount" => "60",
+        //                 "max_amount" => "5000000",
+        //                 "day_rate" => "0.001"
+        //             }
+        //         ),
+        //         "message" => "Success"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_borrow_rate($data, $market['base']);
     }
 
     public function fetch_borrow_rates($params = array ()) {

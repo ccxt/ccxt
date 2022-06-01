@@ -41,6 +41,9 @@ class coinex(Exchange):
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': True,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
@@ -3553,6 +3556,69 @@ class coinex(Exchange):
         if not isinstance(data, list):
             data = self.safe_value(data, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
+
+    def parse_borrow_rate(self, info, currency=None):
+        #
+        #     {
+        #         "market": "BTCUSDT",
+        #         "leverage": 10,
+        #         "BTC": {
+        #             "min_amount": "0.002",
+        #             "max_amount": "200",
+        #             "day_rate": "0.001"
+        #         },
+        #         "USDT": {
+        #             "min_amount": "60",
+        #             "max_amount": "5000000",
+        #             "day_rate": "0.001"
+        #         }
+        #     },
+        #
+        timestamp = self.milliseconds()
+        baseCurrencyData = self.safe_value(info, currency, {})
+        return {
+            'currency': self.safe_currency_code(currency),
+            'rate': self.safe_number(baseCurrencyData, 'day_rate'),
+            'period': 86400000,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
+
+    async def fetch_borrow_rate(self, code, params={}):
+        await self.load_markets()
+        market = None
+        if code in self.markets:
+            market = self.market(code)
+        else:
+            defaultSettle = self.safe_string(self.options, 'defaultSettle', 'USDT')
+            market = self.market(code + '/' + defaultSettle)
+        request = {
+            'market': market['id'],
+        }
+        response = await self.privateGetMarginConfig(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "market": "BTCUSDT",
+        #             "leverage": 10,
+        #             "BTC": {
+        #                 "min_amount": "0.002",
+        #                 "max_amount": "200",
+        #                 "day_rate": "0.001"
+        #             },
+        #             "USDT": {
+        #                 "min_amount": "60",
+        #                 "max_amount": "5000000",
+        #                 "day_rate": "0.001"
+        #             }
+        #         },
+        #         "message": "Success"
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_borrow_rate(data, market['base'])
 
     async def fetch_borrow_rates(self, params={}):
         await self.load_markets()
