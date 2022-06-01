@@ -2852,7 +2852,7 @@ module.exports = class bybit extends Exchange {
             'side': this.capitalize (side),
             'order_type': this.capitalize (type), // limit
             'time_in_force': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
-            'qty': amount,
+            'qty': this.amountToPrecision (symbol, amount),
             // 'take_profit': 123.45, // take profit price, only take effect upon opening the position
             // 'stop_loss': 123.45, // stop loss price, only take effect upon opening the position
             // 'reduce_only': false, // reduce only, required for linear orders
