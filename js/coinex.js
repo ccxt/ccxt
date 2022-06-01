@@ -3464,7 +3464,6 @@ module.exports = class coinex extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const amountToPrecision = this.currencyToPrecision (code, amount);
-        let transfer = undefined;
         const request = {
             'amount': amountToPrecision,
             'coin_type': currency['id'],
