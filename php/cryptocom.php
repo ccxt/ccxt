@@ -214,7 +214,7 @@ class cryptocom extends Exchange {
             ),
             'options' => array(
                 'defaultType' => 'spot',
-                'accountsByType' => array(
+                'accountsById' => array(
                     'funding' => 'SPOT',
                     'spot' => 'SPOT',
                     'derivatives' => 'DERIVATIVES',
@@ -1349,7 +1349,7 @@ class cryptocom extends Exchange {
         $currency = $this->currency($code);
         $fromAccount = strtolower($fromAccount);
         $toAccount = strtolower($toAccount);
-        $accountsById = $this->safe_value($this->options, 'accountsByType', array());
+        $accountsById = $this->safe_value($this->options, 'accountsById', array());
         $fromId = $this->safe_string($accountsById, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsById, $toAccount, $toAccount);
         $request = array(
