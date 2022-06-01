@@ -4564,7 +4564,7 @@ module.exports = class bybit extends Exchange {
         market = this.safeMarket (id, market);
         const timestamp = this.safeTimestamp (interest, 'timestamp');
         const numContracts = this.safeString (interest, 'open_interest');
-        const contractSize = this.safeNumber (market, 'contractSize');
+        const contractSize = this.safeString (market, 'contractSize');
         return {
             'symbol': this.safeSymbol (id),
             'baseVolume': Precise.stringMul (numContracts, contractSize),
