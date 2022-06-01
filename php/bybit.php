@@ -2835,6 +2835,8 @@ class bybit extends Exchange {
         if ($price === null && $type === 'limit') {
             throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for limit orders');
         }
+        $amount = $this->amount_to_precision($symbol, $amount);
+        $amount = $market['linear'] ? floatval($amount) : intval($amount);
         $request = array(
             'symbol' => $market['id'],
             'side' => $this->capitalize($side),

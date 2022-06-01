@@ -2719,6 +2719,8 @@ class bybit(Exchange):
         market = self.market(symbol)
         if price is None and type == 'limit':
             raise ArgumentsRequired(self.id + ' createOrder requires a price argument for limit orders')
+        amount = self.amount_to_precision(symbol, amount)
+        amount = float(amount) if market['linear'] else int(amount)
         request = {
             'symbol': market['id'],
             'side': self.capitalize(side),
