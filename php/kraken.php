@@ -540,7 +540,7 @@ class kraken extends Exchange {
         //         ),
         //     }
         //
-        $currencies = $this->safe_value($response, 'result');
+        $currencies = $this->safe_value($response, 'result', array());
         $ids = is_array($currencies) ? array_keys($currencies) : array();
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
@@ -741,7 +741,7 @@ class kraken extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

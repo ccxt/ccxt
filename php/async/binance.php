@@ -224,7 +224,7 @@ class binance extends Exchange {
                         'margin/isolatedMarginTier' => 0.1,
                         'margin/rateLimit/order' => 2,
                         'loan/income' => 40, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40
-                        'fiat/orders' => 0.1,
+                        'fiat/orders' => 20,
                         'fiat/payments' => 0.1,
                         'futures/transfer' => 1,
                         'futures/loan/borrow/history' => 1,
@@ -1733,7 +1733,7 @@ class binance extends Exchange {
                 $result[$code] = $account;
             }
         } elseif ($type === 'savings') {
-            $positionAmountVos = $this->safe_value($response, 'positionAmountVos');
+            $positionAmountVos = $this->safe_value($response, 'positionAmountVos', array());
             for ($i = 0; $i < count($positionAmountVos); $i++) {
                 $entry = $positionAmountVos[$i];
                 $currencyId = $this->safe_string($entry, 'asset');
@@ -2118,7 +2118,7 @@ class binance extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_status($params = array ()) {
@@ -4039,7 +4039,7 @@ class binance extends Exchange {
             $entry = $response[$i];
             $currencyId = $this->safe_string($entry, 'coin');
             $code = $this->safe_currency_code($currencyId);
-            $networkList = $this->safe_value($entry, 'networkList');
+            $networkList = $this->safe_value($entry, 'networkList', array());
             $withdrawFees[$code] = array();
             for ($j = 0; $j < count($networkList); $j++) {
                 $networkEntry = $networkList[$j];
@@ -4469,7 +4469,7 @@ class binance extends Exchange {
 
     public function parse_account_positions($account) {
         $positions = $this->safe_value($account, 'positions');
-        $assets = $this->safe_value($account, 'assets');
+        $assets = $this->safe_value($account, 'assets', array());
         $balances = array();
         for ($i = 0; $i < count($assets); $i++) {
             $entry = $assets[$i];
@@ -4888,7 +4888,7 @@ class binance extends Exchange {
                 $entry = $response[$i];
                 $marketId = $this->safe_string($entry, 'symbol');
                 $symbol = $this->safe_symbol($marketId);
-                $brackets = $this->safe_value($entry, 'brackets');
+                $brackets = $this->safe_value($entry, 'brackets', array());
                 $result = array();
                 for ($j = 0; $j < count($brackets); $j++) {
                     $bracket = $brackets[$j];
@@ -4980,7 +4980,7 @@ class binance extends Exchange {
         $marketId = $this->safe_string($info, 'symbol');
         $safeSymbol = $this->safe_symbol($marketId);
         $market = $this->safe_market($safeSymbol, $market);
-        $brackets = $this->safe_value($info, 'brackets');
+        $brackets = $this->safe_value($info, 'brackets', array());
         $tiers = array();
         for ($j = 0; $j < count($brackets); $j++) {
             $bracket = $brackets[$j];

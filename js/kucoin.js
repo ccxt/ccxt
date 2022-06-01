@@ -716,7 +716,7 @@ module.exports = class kucoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
@@ -859,7 +859,7 @@ module.exports = class kucoin extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -1079,10 +1079,7 @@ module.exports = class kucoin extends Exchange {
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         const data = this.safeValue (response, 'data', {});
         const address = this.safeString (data, 'address');
-        let tag = this.safeString (data, 'memo');
-        if (tag === '') {
-            tag = undefined;
-        }
+        const tag = this.safeString (data, 'memo');
         if (code !== 'NIM') {
             // contains spaces
             this.checkAddress (address);

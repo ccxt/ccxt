@@ -859,7 +859,7 @@ class ascendex(Exchange):
             'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """
@@ -2483,7 +2483,7 @@ class ascendex(Exchange):
         #        ]
         #    }
         #
-        marginRequirements = self.safe_value(info, 'marginRequirements')
+        marginRequirements = self.safe_value(info, 'marginRequirements', [])
         id = self.safe_string(info, 'symbol')
         market = self.safe_market(id, market)
         tiers = []

@@ -349,7 +349,7 @@ module.exports = class yobit extends Exchange {
         //         },
         //     }
         //
-        const markets = this.safeValue (response, 'pairs');
+        const markets = this.safeValue (response, 'pairs', {});
         const keys = Object.keys (markets);
         const result = [];
         for (let i = 0; i < keys.length; i++) {
@@ -514,7 +514,7 @@ module.exports = class yobit extends Exchange {
             'baseVolume': this.safeString (ticker, 'vol_cur'),
             'quoteVolume': this.safeString (ticker, 'vol'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -713,7 +713,7 @@ module.exports = class yobit extends Exchange {
         //         },
         //     }
         //
-        const pairs = this.safeValue (response, 'pairs');
+        const pairs = this.safeValue (response, 'pairs', {});
         const marketIds = Object.keys (pairs);
         const result = {};
         for (let i = 0; i < marketIds.length; i++) {

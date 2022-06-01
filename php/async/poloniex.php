@@ -553,7 +553,7 @@ class poloniex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'quoteVolume'),
             'quoteVolume' => $this->safe_string($ticker, 'baseVolume'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

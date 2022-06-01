@@ -393,7 +393,7 @@ class lbank2 extends Exchange {
             'baseVolume' => $this->safe_string($tickerData, 'vol'),
             'quoteVolume' => $this->safe_string($tickerData, 'turnover'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

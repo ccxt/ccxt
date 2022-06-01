@@ -398,7 +398,7 @@ module.exports = class probit extends Exchange {
         //         ]
         //     }
         //
-        const currencies = this.safeValue (response, 'data');
+        const currencies = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
@@ -465,7 +465,7 @@ module.exports = class probit extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'currency_id');
@@ -648,7 +648,7 @@ module.exports = class probit extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1064,10 +1064,7 @@ module.exports = class probit extends Exchange {
         if (type === 'market') {
             price = undefined;
         }
-        let clientOrderId = this.safeString (order, 'client_order_id');
-        if (clientOrderId === '') {
-            clientOrderId = undefined;
-        }
+        const clientOrderId = this.safeString (order, 'client_order_id');
         const timeInForce = this.safeStringUpper (order, 'time_in_force');
         return this.safeOrder ({
             'id': id,

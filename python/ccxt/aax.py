@@ -495,7 +495,7 @@ class aax(Exchange):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             market = data[i]
@@ -699,7 +699,7 @@ class aax(Exchange):
             'baseVolume': None,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def set_margin(self, symbol, amount, params={}):
         self.load_markets()
@@ -1168,7 +1168,7 @@ class aax(Exchange):
         #         "ts":1573530401020
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         timestamp = self.safe_integer(response, 'ts')
         result = {
             'info': response,
@@ -2368,7 +2368,7 @@ class aax(Exchange):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         rates = []
         for i in range(0, len(data)):
             entry = data[i]

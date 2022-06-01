@@ -395,7 +395,7 @@ class bw extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 4),
             'quoteVolume' => $this->safe_string($ticker, 9),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

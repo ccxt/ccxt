@@ -415,7 +415,7 @@ module.exports = class kucoinfutures extends kucoin {
         //    }
         //
         const result = [];
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
@@ -758,7 +758,7 @@ module.exports = class kucoinfutures extends kucoin {
             'baseVolume': undefined,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -809,7 +809,7 @@ module.exports = class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const dataList = this.safeValue (data, 'dataList');
+        const dataList = this.safeValue (data, 'dataList', []);
         const fees = [];
         for (let i = 0; i < dataList.length; i++) {
             const listItem = dataList[i];
@@ -1301,7 +1301,7 @@ module.exports = class kucoinfutures extends kucoin {
         if (since !== undefined) {
             request['startAt'] = since;
         }
-        const till = this.safeInteger (params, 'till', 'endAt');
+        const till = this.safeInteger2 (params, 'till', 'endAt');
         if (till !== undefined) {
             request['endAt'] = till;
         }

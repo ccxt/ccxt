@@ -801,7 +801,7 @@ class wavesexchange extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1695,7 +1695,7 @@ class wavesexchange extends Exchange {
         //     }
         //   )
         // }
-        $balances = $this->safe_value($totalBalance, 'balances');
+        $balances = $this->safe_value($totalBalance, 'balances', array());
         $result = array();
         $timestamp = null;
         $assetIds = array();
@@ -1726,7 +1726,7 @@ class wavesexchange extends Exchange {
                 'ids' => $assetIds,
             );
             $response = yield $this->publicGetAssets ($request);
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_value($response, 'data', array());
             for ($i = 0; $i < count($data); $i++) {
                 $entry = $data[$i];
                 $balance = $nonStandardBalances[$i];

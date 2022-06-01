@@ -380,7 +380,7 @@ class cdax extends Exchange {
         //        )
         //    }
         //
-        $markets = $this->safe_value($response, 'data');
+        $markets = $this->safe_value($response, 'data', array());
         $numMarkets = is_array($markets) ? count($markets) : 0;
         if ($numMarkets < 1) {
             throw new NetworkError($this->id . ' fetchMarkets() returned empty $response => ' . $this->json($markets));
@@ -532,7 +532,7 @@ class cdax extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -633,7 +633,7 @@ class cdax extends Exchange {
          */
         $this->load_markets();
         $response = $this->marketGetTickers ($params);
-        $tickers = $this->safe_value($response, 'data');
+        $tickers = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($response, 'ts');
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
@@ -822,7 +822,7 @@ class cdax extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $trades = $this->safe_value($data[$i], 'data', array());
@@ -950,7 +950,7 @@ class cdax extends Exchange {
         //         ]
         //     }
         //
-        $currencies = $this->safe_value($response, 'data');
+        $currencies = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $currencies[$i];
@@ -1429,9 +1429,6 @@ class cdax extends Exchange {
         //
         $address = $this->safe_string($depositAddress, 'address');
         $tag = $this->safe_string($depositAddress, 'addressTag');
-        if ($tag === '') {
-            $tag = null;
-        }
         $currencyId = $this->safe_string($depositAddress, 'currency');
         $currency = $this->safe_currency($currencyId, $currency);
         $code = $this->safe_currency_code($currencyId, $currency);

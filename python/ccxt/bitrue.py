@@ -794,7 +794,7 @@ class bitrue(Exchange):
             'baseVolume': self.safe_string(ticker, 'baseVolume'),
             'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """
@@ -1125,8 +1125,6 @@ class bitrue(Exchange):
         side = self.safe_string_lower(order, 'side')
         fills = self.safe_value(order, 'fills', [])
         clientOrderId = self.safe_string(order, 'clientOrderId')
-        if clientOrderId == '':
-            clientOrderId = None
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = (type == 'limit_maker') or (timeInForce == 'GTX')
         if type == 'limit_maker':
@@ -1530,11 +1528,7 @@ class bitrue(Exchange):
         id = self.safe_string(transaction, 'id')
         tagType = self.safe_string(transaction, 'tagType')
         addressTo = self.safe_string(transaction, 'addressTo')
-        if addressTo == '':
-            addressTo = None
         addressFrom = self.safe_string(transaction, 'addressFrom')
-        if addressFrom == '':
-            addressFrom = None
         tagTo = None
         tagFrom = None
         if tagType is not None:
@@ -1547,8 +1541,6 @@ class bitrue(Exchange):
                 addressFrom = self.safe_string(parts, 0)
                 tagFrom = self.safe_string(parts, 1)
         txid = self.safe_string(transaction, 'txid')
-        if txid == '':
-            txid = None
         timestamp = self.safe_integer(transaction, 'createdAt')
         updated = self.safe_integer(transaction, 'updatedAt')
         payAmount = ('payAmount' in transaction)

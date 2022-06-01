@@ -394,7 +394,7 @@ class bw(Exchange):
             'baseVolume': self.safe_string(ticker, 4),
             'quoteVolume': self.safe_string(ticker, 9),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         """

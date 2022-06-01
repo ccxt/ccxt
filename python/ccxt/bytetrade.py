@@ -306,8 +306,8 @@ class bytetrade(Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'symbol')
-            base = self.safe_string(market, 'baseName')
-            quote = self.safe_string(market, 'quoteName')
+            base = self.safe_string(market, 'baseName', '')
+            quote = self.safe_string(market, 'quoteName', '')
             baseId = self.safe_string(market, 'base')
             quoteId = self.safe_string(market, 'quote')
             normalBase = base.split('@' + baseId)[0]
@@ -477,7 +477,7 @@ class bytetrade(Exchange):
             'baseVolume': self.safe_string(ticker, 'baseVolume'),
             'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """

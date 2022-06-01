@@ -1252,7 +1252,7 @@ class okcoin(Exchange):
             'baseVolume': self.safe_string(ticker, 'base_volume_24h'),
             'quoteVolume': self.safe_string(ticker, 'quote_volume_24h'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """

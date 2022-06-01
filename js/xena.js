@@ -500,7 +500,7 @@ module.exports = class xena extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -617,7 +617,7 @@ module.exports = class xena extends Exchange {
         //         ]
         //     }
         //
-        const accounts = this.safeValue (response, 'accounts');
+        const accounts = this.safeValue (response, 'accounts', []);
         const result = [];
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];

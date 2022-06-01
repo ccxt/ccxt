@@ -226,7 +226,7 @@ class tidebit(Exchange):
         return result
 
     def parse_balance(self, response):
-        balances = self.safe_value(response, 'accounts')
+        balances = self.safe_value(response, 'accounts', [])
         result = {'info': balances}
         for i in range(0, len(balances)):
             balance = balances[i]
@@ -307,7 +307,7 @@ class tidebit(Exchange):
             'baseVolume': self.safe_string(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         """

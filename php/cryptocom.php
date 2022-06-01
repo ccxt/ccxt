@@ -214,7 +214,7 @@ class cryptocom extends Exchange {
             ),
             'options' => array(
                 'defaultType' => 'spot',
-                'accountsByType' => array(
+                'accountsById' => array(
                     'funding' => 'SPOT',
                     'spot' => 'SPOT',
                     'derivatives' => 'DERIVATIVES',
@@ -1349,7 +1349,7 @@ class cryptocom extends Exchange {
         $currency = $this->currency($code);
         $fromAccount = strtolower($fromAccount);
         $toAccount = strtolower($toAccount);
-        $accountsById = $this->safe_value($this->options, 'accountsByType', array());
+        $accountsById = $this->safe_value($this->options, 'accountsById', array());
         $fromId = $this->safe_string($accountsById, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsById, $toAccount, $toAccount);
         $request = array(
@@ -1492,7 +1492,7 @@ class cryptocom extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'v'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -1659,9 +1659,6 @@ class cryptocom extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $id = $this->safe_string($order, 'order_id');
         $clientOrderId = $this->safe_string($order, 'client_oid');
-        if ($clientOrderId === '') {
-            $clientOrderId = null;
-        }
         $price = $this->safe_string_2($order, 'price', 'limit_price');
         $average = $this->safe_string($order, 'avg_price');
         $type = $this->safe_string_lower_2($order, 'type', 'order_type');

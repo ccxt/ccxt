@@ -257,7 +257,7 @@ class coinbase extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $this->parse_accounts($data, $params);
+        return $this->parse_accounts($data, $params);
     }
 
     public function parse_account($account) {
@@ -882,21 +882,11 @@ class coinbase extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
-    public function fetch_balance($params = array ()) {
-        /**
-         * query for $balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} $params extra parameters specific to the coinbase api endpoint
-         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#$balance-structure $balance structure~
-         */
-        yield $this->load_markets();
-        $request = array(
-            'limit' => 100,
-        );
-        $response = yield $this->privateGetAccounts (array_merge($request, $params));
-        $balances = $this->safe_value($response, 'data');
+    public function parse_balance($response, $params = array ()) {
+        $balances = $this->safe_value($response, 'data', array());
         $accounts = $this->safe_value($params, 'type', $this->options['accounts']);
         $result = array( 'info' => $response );
         for ($b = 0; $b < count($balances); $b++) {
@@ -923,6 +913,60 @@ class coinbase extends Exchange {
             }
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the coinbase api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
+        yield $this->load_markets();
+        $request = array(
+            'limit' => 100,
+        );
+        $response = yield $this->privateGetAccounts (array_merge($request, $params));
+        //
+        //     {
+        //         "pagination":array(
+        //             "ending_before":null,
+        //             "starting_after":null,
+        //             "previous_ending_before":null,
+        //             "next_starting_after":"6b17acd6-2e68-5eb0-9f45-72d67cef578b",
+        //             "limit":100,
+        //             "order":"desc",
+        //             "previous_uri":null,
+        //             "next_uri":"/v2/accounts?limit=100\u0026starting_after=6b17acd6-2e68-5eb0-9f45-72d67cef578b"
+        //         ),
+        //         "data":[
+        //             array(
+        //                 "id":"94ad58bc-0f15-5309-b35a-a4c86d7bad60",
+        //                 "name":"MINA Wallet",
+        //                 "primary":false,
+        //                 "type":"wallet",
+        //                 "currency":array(
+        //                     "code":"MINA",
+        //                     "name":"Mina",
+        //                     "color":"#EA6B48",
+        //                     "sort_index":397,
+        //                     "exponent":9,
+        //                     "type":"crypto",
+        //                     "address_regex":"^(B62)[A-Za-z0-9]{52}$",
+        //                     "asset_id":"a4ffc575-942c-5e26-b70c-cb3befdd4229",
+        //                     "slug":"mina"
+        //                 ),
+        //                 "balance":array("amount":"0.000000000","currency":"MINA"),
+        //                 "created_at":"2022-03-25T00:36:16Z",
+        //                 "updated_at":"2022-03-25T00:36:16Z",
+        //                 "resource":"account",
+        //                 "resource_path":"/v2/accounts/94ad58bc-0f15-5309-b35a-a4c86d7bad60",
+        //                 "allow_deposits":true,
+        //                 "allow_withdrawals":true
+        //             ),
+        //         ]
+        //     }
+        //
+        return $this->parse_balance($response, $params);
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {

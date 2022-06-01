@@ -16,6 +16,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
@@ -582,7 +583,7 @@ class gateio(Exchange):
                     'INVALID_PRECISION': InvalidOrder,
                     'INVALID_CURRENCY': BadSymbol,
                     'INVALID_CURRENCY_PAIR': BadSymbol,
-                    'POC_FILL_IMMEDIATELY': ExchangeError,
+                    'POC_FILL_IMMEDIATELY': OrderImmediatelyFillable,  # {"label":"POC_FILL_IMMEDIATELY","message":"Order would match and take immediately so its cancelled"}
                     'ORDER_NOT_FOUND': OrderNotFound,
                     'CLIENT_ID_NOT_FOUND': OrderNotFound,
                     'ORDER_CLOSED': InvalidOrder,
@@ -628,7 +629,7 @@ class gateio(Exchange):
                     'SIZE_TOO_SMALL': InvalidOrder,
                     'PRICE_OVER_LIQUIDATION': InvalidOrder,
                     'PRICE_OVER_BANKRUPT': InvalidOrder,
-                    'ORDER_POC_IMMEDIATE': InvalidOrder,
+                    'ORDER_POC_IMMEDIATE': OrderImmediatelyFillable,  # {"label":"ORDER_POC_IMMEDIATE","detail":"order price 1700 while counter price 1793.55"}
                     'INCREASE_POSITION': InvalidOrder,
                     'CONTRACT_IN_DELISTING': ExchangeError,
                     'INTERNAL': ExchangeNotAvailable,
@@ -1484,12 +1485,14 @@ class gateio(Exchange):
         addressField = self.safe_string(response, 'address')
         tag = None
         address = None
-        if addressField.find(' ') >= 0:
-            splitted = addressField.split(' ')
-            address = splitted[0]
-            tag = splitted[1]
-        else:
-            address = addressField
+        if addressField is not None:
+            if addressField.find(' ') >= 0:
+                splitted = addressField.split(' ')
+                address = splitted[0]
+                tag = splitted[1]
+            else:
+                address = addressField
+        self.check_address(address)
         return {
             'info': response,
             'code': code,
@@ -1868,7 +1871,7 @@ class gateio(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         """
@@ -2597,8 +2600,6 @@ class gateio(Exchange):
         address = self.safe_string(transaction, 'address')
         fee = self.safe_number(transaction, 'fee')
         tag = self.safe_string(transaction, 'memo')
-        if tag == '':
-            tag = None
         timestamp = self.safe_timestamp(transaction, 'timestamp')
         return {
             'info': transaction,
@@ -2649,13 +2650,24 @@ class gateio(Exchange):
         stopPrice = self.safe_number(params, 'stopPrice')
         methodTail = 'Orders'
         reduceOnly = self.safe_value(params, 'reduceOnly')
-        postOnly = self.is_post_only(type, params)
+        exchangeSpecificTimeInForce = self.safe_string_lower_2(params, 'time_in_force', 'tif')
+        postOnly = self.is_post_only(type == 'market', exchangeSpecificTimeInForce == 'poc', params)
         # we only omit the unified params here
         # self is because the other params will get extended into the request
+        timeInForce = self.safe_string_upper(params, 'timeInForce')  # supported values GTC, IOC, PO
+        tif = None
+        if timeInForce is not None:
+            timeInForceMapping = {
+                'GTC': 'gtc',
+                'IOC': 'ioc',
+                'PO': 'poc',
+            }
+            tif = self.safe_string(timeInForceMapping, timeInForce)
+            if tif is None:
+                raise ExchangeError(self.id + ' createOrder() does not support timeInForce "' + timeInForce + '"')
         params = self.omit(params, ['stopPrice', 'reduceOnly', 'timeInForce', 'postOnly'])
-        timeInForce = None
         if postOnly:
-            timeInForce = 'poc'
+            tif = 'poc'
         isLimitOrder = (type == 'limit')
         isMarketOrder = (type == 'market')
         if isLimitOrder and price is None:
@@ -2665,7 +2677,9 @@ class gateio(Exchange):
             signedAmount = Precise.string_neg(amountToPrecision) if (side == 'sell') else amountToPrecision
             amount = int(signedAmount)
             if isMarketOrder:
-                timeInForce = 'ioc'
+                if (tif == 'poc') or (tif == 'gtc'):
+                    raise ExchangeError(self.id + ' createOrder() timeInForce for market orders must be "IOC"')
+                tif = 'ioc'
                 price = 0
         elif not isLimitOrder:
             # Gateio doesn't have market orders for spot
@@ -2690,7 +2704,7 @@ class gateio(Exchange):
                 if reduceOnly is not None:
                     request['reduce_only'] = reduceOnly
                 if timeInForce is not None:
-                    request['tif'] = timeInForce
+                    request['tif'] = tif
             else:
                 marginMode = None
                 marginMode, params = self.get_margin_mode(False, params)
@@ -2708,8 +2722,8 @@ class gateio(Exchange):
                     # 'auto_borrow': False,  # used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
                     # 'auto_repay': False,  # automatic repayment for automatic borrow loan generated by cross margin order, diabled by default
                 }
-                if timeInForce is not None:
-                    request['time_in_force'] = timeInForce
+                if tif is not None:
+                    request['time_in_force'] = tif
             clientOrderId = self.safe_string_2(params, 'text', 'clientOrderId')
             if clientOrderId is not None:
                 # user-defined, must follow the rules if not empty
@@ -2751,8 +2765,8 @@ class gateio(Exchange):
                     params = self.omit(params, 'expiration')
                 if reduceOnly is not None:
                     request['initial']['reduce_only'] = reduceOnly
-                if timeInForce is not None:
-                    request['initial']['tif'] = timeInForce
+                if tif is not None:
+                    request['initial']['tif'] = tif
             else:
                 # spot conditional order
                 options = self.safe_value(self.options, 'createOrder', {})
@@ -2774,10 +2788,12 @@ class gateio(Exchange):
                         'price': self.price_to_precision(symbol, price),
                         'amount': self.amount_to_precision(symbol, amount),
                         'account': marginMode,
-                        'time_in_force': timeInForce,  # gtc, ioc for taker only
+                        # 'time_in_force': tif,  # gtc, ioc for taker only
                     },
                     'market': market['id'],
                 }
+                if tif is not None:
+                    request['put']['time_in_force'] = tif
             methodTail = 'PriceOrders'
         method = self.get_supported_mapping(market['type'], {
             'spot': 'privateSpotPost' + methodTail,
@@ -2857,6 +2873,7 @@ class gateio(Exchange):
             'filled': 'closed',
             'cancelled': 'canceled',
             'liquidated': 'closed',
+            'ioc': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 

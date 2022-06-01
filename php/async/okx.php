@@ -638,6 +638,7 @@ class okx extends Exchange {
                 'createMarketBuyOrderRequiresPrice' => false,
                 'fetchMarkets' => array( 'spot', 'future', 'swap', 'option' ), // spot, future, swap, option
                 'defaultType' => 'spot', // 'funding', 'spot', 'margin', 'future', 'swap', 'option'
+                'defaultMarginMode' => 'cross', // cross, isolated
                 // 'fetchBalance' => array(
                 //     'type' => 'spot', // 'funding', 'trading', 'spot'
                 // ),
@@ -958,9 +959,6 @@ class okx extends Exchange {
         $fees = $this->safe_value_2($this->fees, $type, 'trading', array());
         $precisionPrice = $this->parse_number($tickSize);
         $maxLeverage = $this->safe_string($market, 'lever', '1');
-        if ($maxLeverage === '') {
-            $maxLeverage = '1';
-        }
         $maxLeverage = Precise::string_max($maxLeverage, '1');
         return array_merge($fees, array(
             'id' => $id,
@@ -1266,30 +1264,12 @@ class okx extends Exchange {
         $market = $this->safe_market($marketId, $market, '-');
         $symbol = $market['symbol'];
         $last = $this->safe_string($ticker, 'last');
-        if ($last === '') {
-            $last = null;
-        }
         $open = $this->safe_string($ticker, 'open24h');
-        if ($open === '') {
-            $open = null;
-        }
         $spot = $this->safe_value($market, 'spot', false);
         $quoteVolume = $spot ? $this->safe_string($ticker, 'volCcy24h') : null;
-        if ($quoteVolume === '') {
-            $quoteVolume = null;
-        }
         $baseVolume = $this->safe_string($ticker, 'vol24h');
-        if ($baseVolume === '') {
-            $baseVolume = null;
-        }
         $high = $this->safe_string($ticker, 'high24h');
-        if ($high === '') {
-            $high = null;
-        }
         $low = $this->safe_string($ticker, 'low24h');
-        if ($low === '') {
-            $low = null;
-        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1311,7 +1291,7 @@ class okx extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1654,7 +1634,7 @@ class okx extends Exchange {
         //     }
         //
         $rates = array();
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $rate = $data[$i];
             $timestamp = $this->safe_number($rate, 'fundingTime');
@@ -1691,7 +1671,7 @@ class okx extends Exchange {
             // it may be incorrect to use total, free and used for swap accounts
             $eq = $this->safe_string($balance, 'eq');
             $availEq = $this->safe_string($balance, 'availEq');
-            if ((strlen($eq) < 1) || (strlen($availEq) < 1)) {
+            if (($eq === null) || ($availEq === null)) {
                 $account['free'] = $this->safe_string($balance, 'availBal');
                 $account['used'] = $this->safe_string($balance, 'frozenBal');
             } else {
@@ -1911,80 +1891,61 @@ class okx extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'instId' => $market['id'],
-            //
-            //     Simple:
-            //     - SPOT and OPTION buyer => cash
-            //
-            //     Single-currency margin:
-            //     - Isolated MARGIN => isolated
-            //     - Cross MARGIN => cross
-            //     - Cross SPOT => cash
-            //     - Cross FUTURES/SWAP/OPTION => cross
-            //     - Isolated FUTURES/SWAP/OPTION => isolated
-            //
-            //     Multi-currency margin:
-            //     - Isolated MARGIN => isolated
-            //     - Cross SPOT => cross
-            //     - Cross FUTURES/SWAP/OPTION => cross
-            //     - Isolated FUTURES/SWAP/OPTION => isolated
-            //
             // 'ccy' => currency['id'], // only applicable to cross MARGIN orders in single-currency margin
             // 'clOrdId' => $clientOrderId, // up to 32 characters, must be unique
             // 'tag' => tag, // up to 8 characters
-            //
-            //     In long/short mode, $side and posSide need to be combined
-            //
-            //     buy with long means open long
-            //     sell with long means close long
-            //     sell with short means open short
-            //     buy with short means close short
-            //
             'side' => $side,
-            // 'posSide' => 'long', // long, short, // required in the long/short mode, and can only be long or short
-            'ordType' => $type, // $market, limit, post_only, fok, ioc, (trigger for stop orders)
-            //
-            //     for SPOT/MARGIN bought and sold at a limit $price, sz refers to the $amount of trading currency
-            //     for SPOT/MARGIN bought at a $market $price, sz refers to the $amount of quoted currency
-            //     for SPOT/MARGIN sold at a $market $price, sz refers to the $amount of trading currency
-            //     for FUTURES/SWAP/OPTION buying and selling, sz refers to the number of contracts
-            //
-            // 'sz' => $this->amount_to_precision($symbol, $amount),
+            // 'posSide' => 'long', // long, short, // required in the long/short mode, and can only be long or short (only for future or swap)
+            'ordType' => $type,
+            // 'ordType' => $type, // privatePostTradeOrder => $market, limit, post_only, $fok, $ioc, optimal_limit_ioc
+            // 'ordType' => $type, // privatePostTradeOrderAlgo => $conditional, oco, $trigger, move_order_stop, iceberg, twap
+            'sz' => $this->amount_to_precision($symbol, $amount),
             // 'px' => $this->price_to_precision($symbol, $price), // limit orders only
             // 'reduceOnly' => false, // MARGIN orders only
-            // 'triggerPx' => 10, // Stop $order trigger $price
-            // 'orderPx' => 10, // Order $price if -1, the $order will be executed at the $market $price->
-            // 'triggerPxType' => 'last', // Conditional default is last, mark or index
             //
+            // 'triggerPx' => 10, // $stopPrice ($trigger orders)
+            // 'orderPx' => 10, // Order $price if -1, the $order will be executed at the $market $price-> ($trigger orders)
+            // 'triggerPxType' => 'last', // Conditional default is last, mark or index ($trigger orders)
+            //
+            // 'tpTriggerPx' => 10, // $takeProfitPrice ($conditional orders)
+            // 'tpTriggerPxType' => 'last', // Conditional default is last, mark or index ($conditional orders)
+            // 'tpOrdPx' => 10, // Order $price for Take-Profit orders, if -1 will be executed at $market $price ($conditional orders)
+            //
+            // 'slTriggerPx' => 10, // $stopLossPrice ($conditional orders)
+            // 'slTriggerPxType' => 'last', // Conditional default is last, mark or index ($conditional orders)
+            // 'slOrdPx' => 10, // Order $price for Stop-Loss orders, if -1 will be executed at $market $price ($conditional orders)
         );
-        $tdMode = $this->safe_string_lower($params, 'tdMode');
-        if ($market['spot']) {
-            $request['tdMode'] = 'cash';
-        } elseif ($market['contract']) {
-            if ($tdMode === null) {
-                throw new ArgumentsRequired($this->id . ' $params["tdMode"] is required to be either "isolated" or "cross"');
-            } elseif (($tdMode !== 'isolated') && ($tdMode !== 'cross')) {
-                throw new BadRequest($this->id . ' $params["tdMode"] must be either "isolated" or "cross"');
-            }
-        }
-        $postOnly = $this->safe_value($params, 'postOnly', false);
-        if ($postOnly) {
-            $request['ordType'] = 'post_only';
-            $params = $this->omit($params, array( 'postOnly' ));
-        }
+        $spot = $market['spot'];
+        $contract = $market['contract'];
+        $stopPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPx');
+        $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
+        $takeProfitPrice = $this->safe_string_2($params, 'takeProfitPrice', 'tpTriggerPx');
+        $tpOrdPx = $this->safe_string($params, 'tpOrdPx');
+        $tpTriggerPxType = $this->safe_string($params, 'tpTriggerPxType', 'last');
+        $stopLossPrice = $this->safe_string_2($params, 'stopLossPrice', 'slTriggerPx');
+        $slOrdPx = $this->safe_string($params, 'slOrdPx');
+        $slTriggerPxType = $this->safe_string($params, 'slTriggerPxType', 'last');
         $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
-        if ($clientOrderId === null) {
-            $brokerId = $this->safe_string($this->options, 'brokerId');
-            if ($brokerId !== null) {
-                $request['clOrdId'] = $brokerId . $this->uuid16();
-            }
-        } else {
-            $request['clOrdId'] = $clientOrderId;
-            $params = $this->omit($params, array( 'clOrdId', 'clientOrderId' ));
+        if ($spot) {
+            $request['tdMode'] = 'cash';
+        } elseif ($contract) {
+            $marginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
+            $request['tdMode'] = $this->safe_string_lower($params, 'tdMode', $marginMode); // not ommited so as to be extended into the $request
         }
-        $request['sz'] = $this->amount_to_precision($symbol, $amount);
-        if ($type === 'market') {
-            if ($market['type'] === 'spot' && $side === 'buy') {
-                // spot $market buy => "sz" can refer either to base currency units or to quote currency units
+        $isMarketOrder = $type === 'market';
+        $postOnly = $this->is_post_only($isMarketOrder, $type === 'post_only', $params);
+        $params = $this->omit($params, array( 'timeInForce', 'stopPrice', 'triggerPx', 'cloOrdId', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slTriggerPx', 'tpTriggerPrice', 'tpOrdPx', 'slOrdPx', 'tpTriggerPxType', 'slTriggerPxType' ));
+        $ioc = ($timeInForce === 'IOC') || ($type === 'ioc');
+        $fok = ($timeInForce === 'FOK') || ($type === 'fok');
+        $trigger = ($stopPrice !== null) || ($type === 'trigger');
+        $conditional = ($stopLossPrice !== null) || ($takeProfitPrice !== null) || ($type === 'conditional');
+        $marketIOC = ($isMarketOrder && $ioc) || ($type === 'optimal_limit_ioc');
+        $defaultMethod = $this->safe_string($this->options, 'createOrder', 'privatePostTradeBatchOrders');
+        $method = $defaultMethod;
+        if ($isMarketOrder || $marketIOC) {
+            $request['ordType'] = 'market';
+            if ($spot && ($side === 'buy')) {
+                // $spot $market buy => "sz" can refer either to base currency units or to quote currency units
                 // see documentation => https://www.okx.com/docs-v5/en/#rest-api-trade-place-$order
                 $defaultTgtCcy = $this->safe_string($this->options, 'tgtCcy', 'base_ccy');
                 $tgtCcy = $this->safe_string($params, 'tgtCcy', $defaultTgtCcy);
@@ -2012,63 +1973,72 @@ class okx extends Exchange {
                 }
                 $params = $this->omit($params, array( 'tgtCcy' ));
             }
+            if ($marketIOC && $contract) {
+                $request['ordType'] = 'optimal_limit_ioc';
+            }
         } else {
-            // non-$market orders
-            $request['px'] = $this->price_to_precision($symbol, $price);
+            if ((!$trigger) && (!$conditional)) {
+                $request['px'] = $this->price_to_precision($symbol, $price);
+            }
         }
-        $extendedRequest = null;
-        $defaultMethod = $this->safe_string($this->options, 'createOrder', 'privatePostTradeBatchOrders'); // or privatePostTradeOrder or privatePostTradeOrderAlgo
-        $stopPrice = $this->safe_number_2($params, 'triggerPx', 'stopPrice');
-        $params = $this->omit($params, array( 'triggerPx', 'stopPrice' ));
-        if ($stopPrice) {
-            $defaultMethod = 'privatePostTradeOrderAlgo';
+        if ($postOnly) {
+            $method = $defaultMethod;
+            $request['ordType'] = 'post_only';
+        } elseif ($ioc && !$marketIOC) {
+            $method = $defaultMethod;
+            $request['ordType'] = 'ioc';
+        } elseif ($fok) {
+            $method = $defaultMethod;
+            $request['ordType'] = 'fok';
+        } elseif ($trigger) {
+            $method = 'privatePostTradeOrderAlgo';
             $request['ordType'] = 'trigger';
             $request['triggerPx'] = $this->price_to_precision($symbol, $stopPrice);
-            if ($type === 'market') {
-                $price = -1;
+            $request['orderPx'] = $isMarketOrder ? '-1' : $this->price_to_precision($symbol, $price);
+        } elseif ($conditional) {
+            $method = 'privatePostTradeOrderAlgo';
+            $request['ordType'] = 'conditional';
+            $twoWayCondition = (($takeProfitPrice !== null) && ($stopLossPrice !== null));
+            // if TP and SL are sent together
+            // as ordType 'conditional' only stop-loss $order will be applied
+            if ($twoWayCondition) {
+                $request['ordType'] = 'oco';
             }
-            $request['orderPx'] = $this->price_to_precision($symbol, $price);
+            if ($takeProfitPrice !== null) {
+                $request['tpTriggerPx'] = $this->price_to_precision($symbol, $takeProfitPrice);
+                $request['tpOrdPx'] = ($tpOrdPx === null) ? '-1' : $this->price_to_precision($symbol, $tpOrdPx);
+                $request['tpTriggerPxType'] = $tpTriggerPxType;
+            }
+            if ($stopLossPrice !== null) {
+                $request['slTriggerPx'] = $this->price_to_precision($symbol, $stopLossPrice);
+                $request['slOrdPx'] = ($slOrdPx === null) ? '-1' : $this->price_to_precision($symbol, $slOrdPx);
+                $request['slTriggerPxType'] = $slTriggerPxType;
+            }
         }
-        if ($defaultMethod === 'privatePostTradeOrder' || $defaultMethod === 'privatePostTradeOrderAlgo') {
+        if (($type === 'oco') || ($type === 'move_order_stop') || ($type === 'iceberg') || ($type === 'twap')) {
+            $method = 'privatePostTradeOrderAlgo';
+        }
+        if ($clientOrderId === null) {
+            $brokerId = $this->safe_string($this->options, 'brokerId');
+            if ($brokerId !== null) {
+                $request['clOrdId'] = $brokerId . $this->uuid16();
+            }
+        } else {
+            $request['clOrdId'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clOrdId', 'clientOrderId' ));
+        }
+        $extendedRequest = null;
+        if (($method === 'privatePostTradeOrder') || ($method === 'privatePostTradeOrderAlgo')) {
             $extendedRequest = array_merge($request, $params);
-        } elseif ($defaultMethod === 'privatePostTradeBatchOrders') {
+        } elseif ($method === 'privatePostTradeBatchOrders') {
             // keep the $request body the same
             // submit a single $order in an array to the batch $order endpoint
             // because it has a lower ratelimit
             $extendedRequest = array( array_merge($request, $params) );
         } else {
-            throw new ExchangeError($this->id . ' $this->options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder');
+            throw new ExchangeError($this->id . ' createOrder() $this->options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder');
         }
-        $response = yield $this->$defaultMethod ($extendedRequest);
-        //
-        //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
-        //             {
-        //                 "clOrdId" => "oktswap6",
-        //                 "ordId" => "312269865356374016",
-        //                 "tag" => "",
-        //                 "sCode" => "0",
-        //                 "sMsg" => ""
-        //             }
-        //         )
-        //     }
-        //
-        // Trigger Order
-        //
-        //     {
-        //         "code" => "0",
-        //         "data" => array(
-        //             {
-        //                 "algoId" => "422774258702659590",
-        //                 "sCode" => "0",
-        //                 "sMsg" => ""
-        //             }
-        //         ),
-        //         "msg" => ""
-        //     }
-        //
+        $response = yield $this->$method ($extendedRequest);
         $data = $this->safe_value($response, 'data', array());
         $first = $this->safe_value($data, 0);
         $order = $this->parse_order($first, $market);
@@ -2079,6 +2049,11 @@ class okx extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        $stop = $this->safe_value($params, 'stop');
+        if ($stop) {
+            $order = yield $this->cancel_orders(array( $id ), $symbol, $params);
+            return $this->safe_value($order, 0);
+        }
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
@@ -2103,7 +2078,21 @@ class okx extends Exchange {
         return $this->parse_order($order, $market);
     }
 
+    public function parse_ids($ids) {
+        /**
+         * @ignore
+         * @param {[str]|str} $ids order $ids
+         * @return {[str]} list of order $ids
+         */
+        if (gettype($ids) === 'string') {
+            return explode(',', $ids);
+        } else {
+            return $ids;
+        }
+    }
+
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        // TODO : the original endpoint signature differs, according to that you can skip individual $symbol and assign $ids in batch. At this moment, `$params` is not being used too.
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
@@ -2113,57 +2102,44 @@ class okx extends Exchange {
         $options = $this->safe_value($this->options, 'cancelOrders', array());
         $defaultMethod = $this->safe_string($options, 'method', 'privatePostTradeCancelBatchOrders');
         $method = $this->safe_string($params, 'method', $defaultMethod);
-        $clientOrderId = $this->safe_value_2($params, 'clOrdId', 'clientOrderId');
-        $algoId = $this->safe_value($params, 'algoId');
+        $clientOrderIds = $this->parse_ids($this->safe_value_2($params, 'clOrdId', 'clientOrderId'));
+        $algoIds = $this->parse_ids($this->safe_value($params, 'algoId'));
         $stop = $this->safe_value($params, 'stop');
-        if ($clientOrderId === null) {
-            if ($stop || $algoId !== null) {
-                $method = 'privatePostTradeCancelAlgos';
-                if (gettype($algoId) === 'array' && count(array_filter(array_keys($algoId), 'is_string')) == 0) {
-                    for ($i = 0; $i < count($algoId); $i++) {
-                        $request[] = array(
-                            'instId' => $market['id'],
-                            'algoId' => $algoId[$i],
-                        );
-                    }
-                } elseif (gettype($algoId) === 'string') {
+        if ($stop) {
+            $method = 'privatePostTradeCancelAlgos';
+        }
+        if ($clientOrderIds === null) {
+            $ids = $this->parse_ids($ids);
+            if ($algoIds !== null) {
+                for ($i = 0; $i < count($algoIds); $i++) {
                     $request[] = array(
+                        'algoId' => $algoIds[$i],
                         'instId' => $market['id'],
-                        'algoId' => $algoId,
                     );
                 }
-            } else {
-                if (gettype($ids) === 'string') {
-                    $orderIds = explode(',', $ids);
-                    for ($i = 0; $i < count($orderIds); $i++) {
-                        $request[] = array(
-                            'instId' => $market['id'],
-                            'ordId' => $orderIds[$i],
-                        );
-                    }
+            }
+            for ($i = 0; $i < count($ids); $i++) {
+                if ($stop) {
+                    $request[] = array(
+                        'algoId' => $ids[$i],
+                        'instId' => $market['id'],
+                    );
                 } else {
-                    for ($i = 0; $i < count($ids); $i++) {
-                        $request[] = array(
-                            'instId' => $market['id'],
-                            'ordId' => $ids[$i],
-                        );
-                    }
+                    $request[] = array(
+                        'ordId' => $ids[$i],
+                        'instId' => $market['id'],
+                    );
                 }
             }
-        } elseif (gettype($clientOrderId) === 'array' && count(array_filter(array_keys($clientOrderId), 'is_string')) == 0) {
-            for ($i = 0; $i < count($clientOrderId); $i++) {
+        } else {
+            for ($i = 0; $i < count($clientOrderIds); $i++) {
                 $request[] = array(
                     'instId' => $market['id'],
-                    'clOrdId' => $clientOrderId[$i],
+                    'clOrdId' => $clientOrderIds[$i],
                 );
             }
-        } elseif (gettype($clientOrderId) === 'string') {
-            $request[] = array(
-                'instId' => $market['id'],
-                'clOrdId' => $clientOrderId,
-            );
         }
-        $response = yield $this->$method ($request); // dont extend with $params, otherwise ARRAY will be turned into OBJECT
+        $response = yield $this->$method ($request); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
         //
         //     {
         //         "code" => "0",
@@ -2303,7 +2279,7 @@ class okx extends Exchange {
         //         "uly" => "BTC-USDT"
         //     }
         //
-        $id = $this->safe_string($order, 'ordId');
+        $id = $this->safe_string_2($order, 'ordId', 'algoId');
         $timestamp = $this->safe_integer($order, 'cTime');
         $lastTradeTimestamp = $this->safe_integer($order, 'fillTime');
         $side = $this->safe_string($order, 'side');
@@ -2355,7 +2331,7 @@ class okx extends Exchange {
         if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
             $clientOrderId = null; // fix empty $clientOrderId string
         }
-        $stopPrice = $this->safe_number_2($order, 'slTriggerPx', 'triggerPx');
+        $stopPrice = $this->safe_number_2($order, 'triggerPx', 'slTriggerPx');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -2383,15 +2359,14 @@ class okx extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         /**
-         * Fetch an $order by the $id
-         * @param {string} $id The $order $id
-         * @param {string} $symbol Unified $market $symbol
-         * @param {dict} $params Extra and exchange specific parameters
-         * @param {integer} $params->till Timestamp in ms of the latest time to retrieve orders for
-         * @param {boolean} $params->stop True if fetching trigger orders
+         * fetch an $order by the $id
+         * @param {string} $id the $order $id
+         * @param {string} $symbol unified $market $symbol
+         * @param {dict} $params extra and exchange specific parameters
+         * @param {integer} $params->till timestamp in ms of the latest time to retrieve orders for
+         * @param {boolean} $params->stop true if fetching trigger orders, $params->ordtype set to "trigger" if true
          * @param {string} $params->ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
-         * @param {string} $params->algoId Algo ID
-         * @return {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure An $order structure}
+         * @return {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure an $order structure}
         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
@@ -2418,11 +2393,12 @@ class okx extends Exchange {
         $ordType = $this->safe_string($params, 'ordType');
         $stop = $this->safe_value($params, 'stop');
         if ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
-            if ($ordType === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires an $ordType parameter');
-            }
             $method = 'privateGetTradeOrdersAlgoHistory';
             $request['algoId'] = $id;
+            if ($stop) {
+                $request['ordType'] = 'trigger';
+                $params = $this->omit($params, 'ordType');
+            }
         } else {
             if ($clientOrderId !== null) {
                 $request['clOrdId'] = $clientOrderId;
@@ -2574,6 +2550,10 @@ class okx extends Exchange {
         $stop = $this->safe_value($params, 'stop');
         if ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
             $method = 'privateGetTradeOrdersAlgoPending';
+            if ($stop) {
+                $request['ordType'] = 'trigger';
+                $params = $this->omit($params, 'ordType');
+            }
         }
         $query = $this->omit($params, array( 'method', 'stop' ));
         $response = yield $this->$method (array_merge($request, $query));
@@ -4307,7 +4287,7 @@ class okx extends Exchange {
         //        "type" => "8"
         //    }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];

@@ -628,7 +628,7 @@ class upbit(Exchange):
             'baseVolume': self.safe_string(ticker, 'acc_trade_volume_24h'),
             'quoteVolume': self.safe_string(ticker, 'acc_trade_price_24h'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         """

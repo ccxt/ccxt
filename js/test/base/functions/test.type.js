@@ -41,7 +41,7 @@ function testSafeValue() {
     equal (safeValue ({}, 'foo'), undefined)
     equal (safeValue ({}, 'foo', 'bar'), 'bar')
     equal (safeValue ({ 'foo': 'bar' }, 'foo'), 'bar')
-    equal (safeValue ({ 'foo': '' }, 'foo'), '')
+    equal (safeValue ({ 'foo': '' }, 'foo'), undefined)
     equal (safeValue ({ 'foo': 0 }, 'foo'), 0)
 }
 

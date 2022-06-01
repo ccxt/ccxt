@@ -26,10 +26,10 @@ class coinbasepro extends Exchange {
             'has' => array(
                 'CORS' => true,
                 'spot' => true,
-                'margin' => null, // has but not fully inplemented
-                'swap' => null, // has but not fully inplemented
-                'future' => null, // has but not fully inplemented
-                'option' => null,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
@@ -574,7 +574,7 @@ class coinbasepro extends Exchange {
             'baseVolume' => $volume,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -1297,7 +1297,7 @@ class coinbasepro extends Exchange {
         yield $this->load_markets();
         yield $this->load_accounts();
         $currency = $this->currency($code);
-        $accountsByCurrencyCode = $this->index_by($this->accounts, 'currency');
+        $accountsByCurrencyCode = $this->index_by($this->accounts, 'code');
         $account = $this->safe_value($accountsByCurrencyCode, $code);
         if ($account === null) {
             throw new ExchangeError($this->id . ' fetchLedger() could not find $account id for ' . $code);
@@ -1332,7 +1332,7 @@ class coinbasepro extends Exchange {
         if ($id === null) {
             if ($code !== null) {
                 $currency = $this->currency($code);
-                $accountsByCurrencyCode = $this->index_by($this->accounts, 'currency');
+                $accountsByCurrencyCode = $this->index_by($this->accounts, 'code');
                 $account = $this->safe_value($accountsByCurrencyCode, $code);
                 if ($account === null) {
                     throw new ExchangeError($this->id . ' fetchTransactions() could not find $account $id for ' . $code);
@@ -1353,7 +1353,7 @@ class coinbasepro extends Exchange {
             for ($i = 0; $i < count($response); $i++) {
                 $account_id = $this->safe_string($response[$i], 'account_id');
                 $account = $this->safe_value($this->accountsById, $account_id);
-                $code = $this->safe_string($account, 'currency');
+                $code = $this->safe_string($account, 'code');
                 $response[$i]['currency'] = $code;
             }
         } else {

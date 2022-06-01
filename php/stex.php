@@ -681,7 +681,7 @@ class stex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volumeQuote'),
             'quoteVolume' => $this->safe_string($ticker, 'volume'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

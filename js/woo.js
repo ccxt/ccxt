@@ -925,7 +925,7 @@ module.exports = class woo extends Exchange {
         const cost = this.safeString2 (order, 'order_amount', 'amount'); // This is quote amount
         const orderType = this.safeStringLower2 (order, 'order_type', 'type');
         const status = this.safeValue (order, 'status');
-        const side = this.safeStringLower2 (order, 'side');
+        const side = this.safeStringLower (order, 'side');
         const filled = this.safeValue (order, 'executed');
         const remaining = Precise.stringSub (cost, filled);
         const fee = this.safeValue (order, 'total_fee');
@@ -1294,10 +1294,7 @@ module.exports = class woo extends Exchange {
         //     address: '3Jmtjx5544T4smrit9Eroe4PCrRkpDeKjP',
         //     extra: ''
         // }
-        let tag = this.safeString (response, 'extra');
-        if (tag === '') {
-            tag = undefined;
-        }
+        const tag = this.safeString (response, 'extra');
         const address = this.safeString (response, 'address');
         this.checkAddress (address);
         return {

@@ -389,7 +389,7 @@ class bitopro(Exchange):
             'baseVolume': self.safe_string(ticker, 'volume24hr'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """

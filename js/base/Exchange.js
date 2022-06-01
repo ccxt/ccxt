@@ -1298,119 +1298,60 @@ module.exports = class Exchange {
         return indexed ? indexBy (result, key) : result
     }
 
-    safeTicker (ticker, market = undefined, legacy = true) {
-        if (legacy) {
-            let symbol = this.safeValue (ticker, 'symbol');
-            if (symbol === undefined) {
-                symbol = this.safeSymbol (undefined, market);
-            }
-            const timestamp = this.safeInteger (ticker, 'timestamp');
-            let baseVolume = this.safeValue (ticker, 'baseVolume');
-            let quoteVolume = this.safeValue (ticker, 'quoteVolume');
-            let vwap = this.safeValue (ticker, 'vwap');
-            if (vwap === undefined) {
-                vwap = this.vwap (baseVolume, quoteVolume);
-            }
-            let open = this.safeValue (ticker, 'open');
-            let close = this.safeValue (ticker, 'close');
-            let last = this.safeValue (ticker, 'last');
-            let change = this.safeValue (ticker, 'change');
-            let percentage = this.safeValue (ticker, 'percentage');
-            let average = this.safeValue (ticker, 'average');
-            if ((last !== undefined) && (close === undefined)) {
-                close = last;
-            } else if ((last === undefined) && (close !== undefined)) {
-                last = close;
-            }
-            if ((last !== undefined) && (open !== undefined)) {
-                if (change === undefined) {
-                    change = last - open;
-                }
-                if (average === undefined) {
-                    average = this.sum (last, open) / 2;
-                }
-            }
-            if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && (open > 0)) {
-                percentage = change / open * 100;
-            }
-            if ((change === undefined) && (percentage !== undefined) && (last !== undefined)) {
-                change = percentage / 100 * last;
-            }
-            if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
-                open = last - change;
-            }
-            if ((vwap !== undefined) && (baseVolume !== undefined) && (quoteVolume === undefined)) {
-                quoteVolume = vwap / baseVolume;
-            }
-            if ((vwap !== undefined) && (quoteVolume !== undefined) && (baseVolume === undefined)) {
-                baseVolume = quoteVolume / vwap;
-            }
-            ticker['symbol'] = symbol;
-            ticker['timestamp'] = timestamp;
-            ticker['datetime'] = this.iso8601 (timestamp);
-            ticker['open'] = open;
-            ticker['close'] = close;
-            ticker['last'] = last;
-            ticker['vwap'] = vwap;
-            ticker['change'] = change;
-            ticker['percentage'] = percentage;
-            ticker['average'] = average;
-            return ticker;
-        } else {
-            let open = this.safeValue (ticker, 'open');
-            let close = this.safeValue (ticker, 'close');
-            let last = this.safeValue (ticker, 'last');
-            let change = this.safeValue (ticker, 'change');
-            let percentage = this.safeValue (ticker, 'percentage');
-            let average = this.safeValue (ticker, 'average');
-            let vwap = this.safeValue (ticker, 'vwap');
-            const baseVolume = this.safeValue (ticker, 'baseVolume');
-            const quoteVolume = this.safeValue (ticker, 'quoteVolume');
-            if (vwap === undefined) {
-                vwap = Precise.stringDiv (quoteVolume, baseVolume);
-            }
-            if ((last !== undefined) && (close === undefined)) {
-                close = last;
-            } else if ((last === undefined) && (close !== undefined)) {
-                last = close;
-            }
-            if ((last !== undefined) && (open !== undefined)) {
-                if (change === undefined) {
-                    change = Precise.stringSub (last, open);
-                }
-                if (average === undefined) {
-                    average = Precise.stringDiv (Precise.stringAdd (last, open), '2');
-                }
-            }
-            if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && (Precise.stringGt (open, '0'))) {
-                percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
-            }
-            if ((change === undefined) && (percentage !== undefined) && (last !== undefined)) {
-                change = Precise.stringDiv (Precise.stringMul (percentage, last), '100');
-            }
-            if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
-                open = Precise.stringSub (last, change);
-            }
-            // timestamp and symbol operations don't belong in safeTicker
-            // they should be done in the derived classes
-            return this.extend (ticker, {
-                'bid': this.safeNumber (ticker, 'bid'),
-                'bidVolume': this.safeNumber (ticker, 'bidVolume'),
-                'ask': this.safeNumber (ticker, 'ask'),
-                'askVolume': this.safeNumber (ticker, 'askVolume'),
-                'high': this.safeNumber (ticker, 'high'),
-                'low': this.safeNumber (ticker, 'low'),
-                'open': this.parseNumber (open),
-                'close': this.parseNumber (close),
-                'last': this.parseNumber (last),
-                'change': this.parseNumber (change),
-                'percentage': this.parseNumber (percentage),
-                'average': this.parseNumber (average),
-                'vwap': this.parseNumber (vwap),
-                'baseVolume': this.parseNumber (baseVolume),
-                'quoteVolume': this.parseNumber (quoteVolume),
-            });
+    safeTicker (ticker, market = undefined) {
+        let open = this.safeValue (ticker, 'open');
+        let close = this.safeValue (ticker, 'close');
+        let last = this.safeValue (ticker, 'last');
+        let change = this.safeValue (ticker, 'change');
+        let percentage = this.safeValue (ticker, 'percentage');
+        let average = this.safeValue (ticker, 'average');
+        let vwap = this.safeValue (ticker, 'vwap');
+        const baseVolume = this.safeValue (ticker, 'baseVolume');
+        const quoteVolume = this.safeValue (ticker, 'quoteVolume');
+        if (vwap === undefined) {
+            vwap = Precise.stringDiv (quoteVolume, baseVolume);
         }
+        if ((last !== undefined) && (close === undefined)) {
+            close = last;
+        } else if ((last === undefined) && (close !== undefined)) {
+            last = close;
+        }
+        if ((last !== undefined) && (open !== undefined)) {
+            if (change === undefined) {
+                change = Precise.stringSub (last, open);
+            }
+            if (average === undefined) {
+                average = Precise.stringDiv (Precise.stringAdd (last, open), '2');
+            }
+        }
+        if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && (Precise.stringGt (open, '0'))) {
+            percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
+        }
+        if ((change === undefined) && (percentage !== undefined) && (open !== undefined)) {
+            change = Precise.stringDiv (Precise.stringMul (percentage, open), '100');
+        }
+        if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
+            open = Precise.stringSub (last, change);
+        }
+        // timestamp and symbol operations don't belong in safeTicker
+        // they should be done in the derived classes
+        return this.extend (ticker, {
+            'bid': this.safeNumber (ticker, 'bid'),
+            'bidVolume': this.safeNumber (ticker, 'bidVolume'),
+            'ask': this.safeNumber (ticker, 'ask'),
+            'askVolume': this.safeNumber (ticker, 'askVolume'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'open': this.parseNumber (open),
+            'close': this.parseNumber (close),
+            'last': this.parseNumber (last),
+            'change': this.parseNumber (change),
+            'percentage': this.parseNumber (percentage),
+            'average': this.parseNumber (average),
+            'vwap': this.parseNumber (vwap),
+            'baseVolume': this.parseNumber (baseVolume),
+            'quoteVolume': this.parseNumber (quoteVolume),
+        });
     }
 
     parseAccounts (accounts, params = {}) {
@@ -2116,7 +2057,7 @@ module.exports = class Exchange {
             for (let i = 0; i < reducedLength; i++) {
                 reducedFees[i]['cost'] = this.parseNumber (reducedFees[i]['cost']);
                 if ('rate' in reducedFees[i]) {
-                    reducedFees[i]['rate'] = this.parseNumber (reducedFees['i']['rate'])
+                    reducedFees[i]['rate'] = this.parseNumber (reducedFees[i]['rate'])
                 }
             }
             if (!parseFee && (reducedLength === 0)) {
@@ -2361,12 +2302,13 @@ module.exports = class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    isPostOnly (type, params = {}) {
+    isPostOnly (isMarketOrder, exchangeSpecificParam, params = {}) {
         /**
          * @ignore
          * @method
          * @param {string} type Order type
-         * @param {dict} params Exchange specific params
+         * @param {boolean} exchangeSpecificParam exchange specific postOnly
+         * @param {dict} params exchange specific params
          * @returns {boolean} true if a post only order, false otherwise
          */
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
@@ -2375,14 +2317,12 @@ module.exports = class Exchange {
         const ioc = timeInForce === 'IOC';
         const fok = timeInForce === 'FOK';
         const timeInForcePostOnly = timeInForce === 'PO';
-        const typeLower = type.toLowerCase ();
-        const isMarket = typeLower === 'market';
-        postOnly = postOnly || timeInForcePostOnly;
+        postOnly = postOnly || timeInForcePostOnly || exchangeSpecificParam;
         if (postOnly) {
             if (ioc || fok) {
                 throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
-            } else if (isMarket) {
-                throw new InvalidOrder (this.id + ' postOnly orders cannot have type ' + type);
+            } else if (isMarketOrder) {
+                throw new InvalidOrder (this.id + ' market orders cannot be postOnly');
             } else {
                 return true;
             }

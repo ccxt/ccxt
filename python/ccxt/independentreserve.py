@@ -284,7 +284,7 @@ class independentreserve(Exchange):
             'baseVolume': self.safe_string(ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """
@@ -365,14 +365,15 @@ class independentreserve(Exchange):
             quote = market['quote']
         orderType = self.safe_string_2(order, 'Type', 'OrderType')
         side = None
-        if orderType.find('Bid') >= 0:
-            side = 'buy'
-        elif orderType.find('Offer') >= 0:
-            side = 'sell'
-        if orderType.find('Market') >= 0:
-            orderType = 'market'
-        elif orderType.find('Limit') >= 0:
-            orderType = 'limit'
+        if orderType is not None:
+            if orderType.find('Bid') >= 0:
+                side = 'buy'
+            elif orderType.find('Offer') >= 0:
+                side = 'sell'
+            if orderType.find('Market') >= 0:
+                orderType = 'market'
+            elif orderType.find('Limit') >= 0:
+                orderType = 'limit'
         timestamp = self.parse8601(self.safe_string(order, 'CreatedTimestampUtc'))
         amount = self.safe_string_2(order, 'VolumeOrdered', 'Volume')
         filled = self.safe_string(order, 'VolumeFilled')

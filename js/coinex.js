@@ -30,6 +30,10 @@ module.exports = class coinex extends Exchange {
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': true,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -261,6 +265,9 @@ module.exports = class coinex extends Exchange {
                 'defaultMarginMode': 'isolated', // isolated, cross
                 'fetchDepositAddress': {
                     'fillResponseFromRequest': true,
+                },
+                'accountsById': {
+                    'spot': '0',
                 },
             },
             'commonCurrencies': {
@@ -629,7 +636,7 @@ module.exports = class coinex extends Exchange {
             'baseVolume': this.safeString2 (ticker, 'vol', 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -778,7 +785,7 @@ module.exports = class coinex extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         const timestamp = this.safeInteger (data, 'date');
-        const tickers = this.safeValue (data, 'ticker');
+        const tickers = this.safeValue (data, 'ticker', {});
         const marketIds = Object.keys (tickers);
         const result = {};
         for (let i = 0; i < marketIds.length; i++) {
@@ -1788,10 +1795,18 @@ module.exports = class coinex extends Exchange {
                 }
             }
         }
-        params = this.omit (params, [ 'reduceOnly', 'position_id', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type' ]);
+        const accountId = this.safeInteger (params, 'account_id');
+        const defaultType = this.safeString (this.options, 'defaultType');
+        if (defaultType === 'margin') {
+            if (accountId === undefined) {
+                throw new BadRequest (this.id + ' createOrder() requires an account_id parameter for margin orders');
+            }
+            request['account_id'] = accountId;
+        }
+        params = this.omit (params, [ 'account_id', 'reduceOnly', 'position_id', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type' ]);
         const response = await this[method] (this.extend (request, params));
         //
-        // Spot
+        // Spot and Margin
         //
         //     {
         //         "code": 0,
@@ -3343,7 +3358,7 @@ module.exports = class coinex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        const result = this.safeValue (data, 'records');
+        const result = this.safeValue (data, 'records', []);
         const rates = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
@@ -3458,24 +3473,28 @@ module.exports = class coinex extends Exchange {
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets ();
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('transfer', undefined, params);
-        if (marketType !== 'spot') {
-            throw new BadRequest (this.id + ' transfer() requires defaultType to be spot');
-        }
-        const currency = this.safeCurrencyCode (code);
+        const currency = this.currency (code);
         const amountToPrecision = this.currencyToPrecision (code, amount);
-        let transfer = undefined;
-        if ((fromAccount === 'spot') && (toAccount === 'swap')) {
-            transfer = 'in';
-        } else if ((fromAccount === 'swap') && (toAccount === 'spot')) {
-            transfer = 'out';
-        }
         const request = {
             'amount': amountToPrecision,
-            'coin_type': currency,
-            'transfer_side': transfer, // 'in': spot to swap, 'out': swap to spot
+            'coin_type': currency['id'],
         };
-        const response = await this.privatePostContractBalanceTransfer (this.extend (request, query));
+        let method = 'privatePostContractBalanceTransfer';
+        if ((fromAccount === 'spot') && (toAccount === 'swap')) {
+            request['transfer_side'] = 'in'; // 'in' spot to swap, 'out' swap to spot
+        } else if ((fromAccount === 'swap') && (toAccount === 'spot')) {
+            request['transfer_side'] = 'out'; // 'in' spot to swap, 'out' swap to spot
+        } else {
+            const accountsById = this.safeValue (this.options, 'accountsById', {});
+            const fromId = this.safeString (accountsById, fromAccount, fromAccount);
+            const toId = this.safeString (accountsById, toAccount, toAccount);
+            // fromAccount and toAccount must be integers for margin transfers
+            // spot is 0, use fetchBalance() to find the margin account id
+            request['from_account'] = parseInt (fromId);
+            request['to_account'] = parseInt (toId);
+            method = 'privatePostMarginTransfer';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {"code": 0, "data": null, "message": "Success"}
         //
@@ -3489,19 +3508,36 @@ module.exports = class coinex extends Exchange {
     parseTransferStatus (status) {
         const statuses = {
             '0': 'ok',
+            'SUCCESS': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
 
     parseTransfer (transfer, currency = undefined) {
         //
-        // fetchTransfers
+        // fetchTransfers Swap
         //
         //     {
         //         "amount": "10",
         //         "asset": "USDT",
         //         "transfer_type": "transfer_out", // from swap to spot
         //         "created_at": 1651633422
+        //     },
+        //
+        // fetchTransfers Margin
+        //
+        //     {
+        //         "id": 7580062,
+        //         "updated_at": 1653684379,
+        //         "user_id": 3620173,
+        //         "from_account_id": 0,
+        //         "to_account_id": 1,
+        //         "asset": "BTC",
+        //         "amount": "0.00160829",
+        //         "balance": "0.00160829",
+        //         "transfer_type": "IN",
+        //         "status": "SUCCESS",
+        //         "created_at": 1653684379
         //     },
         //
         const timestamp = this.safeTimestamp (transfer, 'created_at');
@@ -3514,18 +3550,24 @@ module.exports = class coinex extends Exchange {
         } else if (transferType === 'transfer_in') {
             fromAccount = 'spot';
             toAccount = 'swap';
+        } else if (transferType === 'IN') {
+            fromAccount = 'spot';
+            toAccount = 'margin';
+        } else if (transferType === 'OUT') {
+            fromAccount = 'margin';
+            toAccount = 'spot';
         }
         const currencyId = this.safeString (transfer, 'asset');
         const currencyCode = this.safeCurrencyCode (currencyId, currency);
         return {
-            'id': undefined,
+            'id': this.safeInteger (transfer, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'currency': currencyCode,
             'amount': this.safeNumber (transfer, 'amount'),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': this.parseTransferStatus (this.safeString (transfer, 'code')),
+            'status': this.parseTransferStatus (this.safeString2 (transfer, 'code', 'status')),
         };
     }
 
@@ -3552,7 +3594,11 @@ module.exports = class coinex extends Exchange {
             request['start_time'] = since;
         }
         params = this.omit (params, 'page');
-        const response = await this.privateGetContractTransferHistory (this.extend (request, params));
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const method = (defaultType === 'margin') ? 'privateGetMarginTransferHistory' : 'privateGetContractTransferHistory';
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Swap
         //
         //     {
         //         "code": 0,
@@ -3566,6 +3612,31 @@ module.exports = class coinex extends Exchange {
         //                 },
         //             ],
         //             "total": 5
+        //         },
+        //         "message": "Success"
+        //     }
+        //
+        // Margin
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "records": [
+        //                 {
+        //                     "id": 7580062,
+        //                     "updated_at": 1653684379,
+        //                     "user_id": 3620173,
+        //                     "from_account_id": 0,
+        //                     "to_account_id": 1,
+        //                     "asset": "BTC",
+        //                     "amount": "0.00160829",
+        //                     "balance": "0.00160829",
+        //                     "transfer_type": "IN",
+        //                     "status": "SUCCESS",
+        //                     "created_at": 1653684379
+        //                 }
+        //             ],
+        //             "total": 1
         //         },
         //         "message": "Success"
         //     }
@@ -3678,6 +3749,117 @@ module.exports = class coinex extends Exchange {
             data = this.safeValue (data, 'data', []);
         }
         return this.parseTransactions (data, currency, since, limit);
+    }
+
+    parseBorrowRate (info, currency = undefined) {
+        //
+        //     {
+        //         "market": "BTCUSDT",
+        //         "leverage": 10,
+        //         "BTC": {
+        //             "min_amount": "0.002",
+        //             "max_amount": "200",
+        //             "day_rate": "0.001"
+        //         },
+        //         "USDT": {
+        //             "min_amount": "60",
+        //             "max_amount": "5000000",
+        //             "day_rate": "0.001"
+        //         }
+        //     },
+        //
+        const timestamp = this.milliseconds ();
+        const baseCurrencyData = this.safeValue (info, currency, {});
+        return {
+            'currency': this.safeCurrencyCode (currency),
+            'rate': this.safeNumber (baseCurrencyData, 'day_rate'),
+            'period': 86400000,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
+    async fetchBorrowRate (code, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (code in this.markets) {
+            market = this.market (code);
+        } else {
+            const defaultSettle = this.safeString (this.options, 'defaultSettle', 'USDT');
+            market = this.market (code + '/' + defaultSettle);
+        }
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.privateGetMarginConfig (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "market": "BTCUSDT",
+        //             "leverage": 10,
+        //             "BTC": {
+        //                 "min_amount": "0.002",
+        //                 "max_amount": "200",
+        //                 "day_rate": "0.001"
+        //             },
+        //             "USDT": {
+        //                 "min_amount": "60",
+        //                 "max_amount": "5000000",
+        //                 "day_rate": "0.001"
+        //             }
+        //         },
+        //         "message": "Success"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseBorrowRate (data, market['base']);
+    }
+
+    async fetchBorrowRates (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetMarginConfig (params);
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "market": "BTCUSDT",
+        //                 "leverage": 10,
+        //                 "BTC": {
+        //                     "min_amount": "0.002",
+        //                     "max_amount": "200",
+        //                     "day_rate": "0.001"
+        //                 },
+        //                 "USDT": {
+        //                     "min_amount": "60",
+        //                     "max_amount": "5000000",
+        //                     "day_rate": "0.001"
+        //                 }
+        //             },
+        //         ],
+        //         "message": "Success"
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        const data = this.safeValue (response, 'data', {});
+        const rates = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const symbol = this.safeString (entry, 'market');
+            const market = this.safeMarket (symbol);
+            const currencyData = this.safeValue (entry, market['base']);
+            rates.push ({
+                'currency': market['base'],
+                'rate': this.safeNumber (currencyData, 'day_rate'),
+                'period': 86400000,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'info': entry,
+            });
+        }
+        return rates;
     }
 
     nonce () {

@@ -257,7 +257,7 @@ class coinbase(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        self.parse_accounts(data, params)
+        return self.parse_accounts(data, params)
 
     def parse_account(self, account):
         #
@@ -852,20 +852,10 @@ class coinbase(Exchange):
             'baseVolume': None,
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
-    async def fetch_balance(self, params={}):
-        """
-        query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the coinbase api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
-        """
-        await self.load_markets()
-        request = {
-            'limit': 100,
-        }
-        response = await self.privateGetAccounts(self.extend(request, params))
-        balances = self.safe_value(response, 'data')
+    def parse_balance(self, response, params={}):
+        balances = self.safe_value(response, 'data', [])
         accounts = self.safe_value(params, 'type', self.options['accounts'])
         result = {'info': response}
         for b in range(0, len(balances)):
@@ -888,6 +878,59 @@ class coinbase(Exchange):
                         account['total'] = Precise.string_add(account['total'], total)
                     result[code] = account
         return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
+        await self.load_markets()
+        request = {
+            'limit': 100,
+        }
+        response = await self.privateGetAccounts(self.extend(request, params))
+        #
+        #     {
+        #         "pagination":{
+        #             "ending_before":null,
+        #             "starting_after":null,
+        #             "previous_ending_before":null,
+        #             "next_starting_after":"6b17acd6-2e68-5eb0-9f45-72d67cef578b",
+        #             "limit":100,
+        #             "order":"desc",
+        #             "previous_uri":null,
+        #             "next_uri":"/v2/accounts?limit=100\u0026starting_after=6b17acd6-2e68-5eb0-9f45-72d67cef578b"
+        #         },
+        #         "data":[
+        #             {
+        #                 "id":"94ad58bc-0f15-5309-b35a-a4c86d7bad60",
+        #                 "name":"MINA Wallet",
+        #                 "primary":false,
+        #                 "type":"wallet",
+        #                 "currency":{
+        #                     "code":"MINA",
+        #                     "name":"Mina",
+        #                     "color":"#EA6B48",
+        #                     "sort_index":397,
+        #                     "exponent":9,
+        #                     "type":"crypto",
+        #                     "address_regex":"^(B62)[A-Za-z0-9]{52}$",
+        #                     "asset_id":"a4ffc575-942c-5e26-b70c-cb3befdd4229",
+        #                     "slug":"mina"
+        #                 },
+        #                 "balance":{"amount":"0.000000000","currency":"MINA"},
+        #                 "created_at":"2022-03-25T00:36:16Z",
+        #                 "updated_at":"2022-03-25T00:36:16Z",
+        #                 "resource":"account",
+        #                 "resource_path":"/v2/accounts/94ad58bc-0f15-5309-b35a-a4c86d7bad60",
+        #                 "allow_deposits":true,
+        #                 "allow_withdrawals":true
+        #             },
+        #         ]
+        #     }
+        #
+        return self.parse_balance(response, params)
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()

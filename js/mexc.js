@@ -961,7 +961,7 @@ module.exports = class mexc extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1842,13 +1842,14 @@ module.exports = class mexc extends Exchange {
             orderSide = 'ASK';
         }
         let orderType = type.toUpperCase ();
-        if (orderType === 'MARKET') {
+        const isMarketOrder = orderType === 'MARKET';
+        if (isMarketOrder) {
             throw new InvalidOrder (this.id + ' createOrder () does not support market orders, only limit orders are allowed');
         }
         if (orderType === 'LIMIT') {
             orderType = 'LIMIT_ORDER';
         }
-        const postOnly = this.isPostOnly (type, params);
+        const postOnly = this.isPostOnly (isMarketOrder, orderType === 'POST_ONLY', params);
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         const ioc = (timeInForce === 'IOC');
         if (postOnly) {
@@ -1891,13 +1892,14 @@ module.exports = class mexc extends Exchange {
         if ((type !== 'limit') && (type !== 'market') && (type !== 1) && (type !== 2) && (type !== 3) && (type !== 4) && (type !== 5) && (type !== 6)) {
             throw new InvalidOrder (this.id + ' createSwapOrder () order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
-        const postOnly = this.isPostOnly (type, params);
+        const isMarketOrder = (type === 'market') || (type === 5);
+        const postOnly = this.isPostOnly (isMarketOrder, type === 2, params);
         if (postOnly) {
             type = 2;
         } else if (type === 'limit') {
             type = 1;
         } else if (type === 'market') {
-            type = 6;
+            type = 5;
         }
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         const ioc = (timeInForce === 'IOC');
@@ -1945,7 +1947,7 @@ module.exports = class mexc extends Exchange {
             request['triggerType'] = this.safeInteger (params, 'triggerType', 1);
             request['executeCycle'] = this.safeInteger (params, 'executeCycle', 1);
             request['trend'] = this.safeInteger (params, 'trend', 1);
-            request['orderType'] = this.safeInteger (params, 'orderType', 1);
+            request['orderType'] = this.safeInteger (params, 'orderType', type);
         }
         if ((type !== 5) && (type !== 6) && (type !== 'market')) {
             request['price'] = parseFloat (this.priceToPrecision (symbol, price));
@@ -2222,17 +2224,15 @@ module.exports = class mexc extends Exchange {
             side = 'close long';
         }
         status = this.parseOrderStatus (state, market);
-        let clientOrderId = this.safeString2 (order, 'client_order_id', 'orderId');
-        if (clientOrderId === '') {
-            clientOrderId = undefined;
-        }
+        const clientOrderId = this.safeString2 (order, 'client_order_id', 'orderId');
         const rawOrderType = this.safeString2 (order, 'orderType', 'order_type');
         let orderType = undefined;
         // swap: 1:price limited order, 2:Post Only Maker, 3:transact or cancel instantly, 4:transact completely or cancel completely，5:market orders, 6:convert market price to current price
         // spot: LIMIT_ORDER, POST_ONLY, IMMEDIATE_OR_CANCEL
         let timeInForce = undefined;
-        let postOnly = false;
+        let postOnly = undefined;
         if (rawOrderType !== undefined) {
+            postOnly = false;
             if (rawOrderType === '1') {
                 orderType = 'limit';
                 timeInForce = 'GTC';
@@ -3150,7 +3150,7 @@ module.exports = class mexc extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const result = this.safeValue (data, 'resultList');
+        const result = this.safeValue (data, 'resultList', []);
         const rates = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];

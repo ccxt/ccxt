@@ -1177,6 +1177,7 @@ class zb extends Exchange {
             $address = $parts[0];  // WARNING => MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIES!!
             $tag = $parts[1];
         }
+        $this->check_address($address);
         $currencyId = $this->safe_string($depositAddress, 'blockChain');
         $code = $this->safe_currency_code($currencyId, $currency);
         return array(
@@ -1404,7 +1405,7 @@ class zb extends Exchange {
         if ($market['type'] === 'swap') {
             $ticker = array();
             $data = $this->safe_value($response, 'data');
-            $values = $this->safe_value($data, $market['id']);
+            $values = $this->safe_value($data, $market['id'], array());
             for ($i = 0; $i < count($values); $i++) {
                 $ticker['open'] = $this->safe_value($values, 0);
                 $ticker['high'] = $this->safe_value($values, 1);
@@ -1471,7 +1472,7 @@ class zb extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -3187,7 +3188,7 @@ class zb extends Exchange {
         //         "desc" => "操作成功"
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $rates = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
@@ -4047,7 +4048,7 @@ class zb extends Exchange {
         //     }
         //
         $timestamp = $this->milliseconds();
-        $data = $this->safe_value($response, 'result');
+        $data = $this->safe_value($response, 'result', array());
         $rates = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];

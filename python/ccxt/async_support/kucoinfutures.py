@@ -420,7 +420,7 @@ class kucoinfutures(kucoin):
         #    }
         #
         result = []
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         for i in range(0, len(data)):
             market = data[i]
             id = self.safe_string(market, 'symbol')
@@ -738,7 +738,7 @@ class kucoinfutures(kucoin):
             'baseVolume': None,
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         #
@@ -785,7 +785,7 @@ class kucoinfutures(kucoin):
         #    }
         #
         data = self.safe_value(response, 'data')
-        dataList = self.safe_value(data, 'dataList')
+        dataList = self.safe_value(data, 'dataList', [])
         fees = []
         for i in range(0, len(dataList)):
             listItem = dataList[i]
@@ -1248,7 +1248,7 @@ class kucoinfutures(kucoin):
             request['symbol'] = market['id']
         if since is not None:
             request['startAt'] = since
-        till = self.safe_integer(params, 'till', 'endAt')
+        till = self.safe_integer_2(params, 'till', 'endAt')
         if till is not None:
             request['endAt'] = till
         method = 'futuresPrivateGetStopOrders' if stop else 'futuresPrivateGetOrders'

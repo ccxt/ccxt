@@ -808,7 +808,7 @@ module.exports = class bitrue extends Exchange {
             'baseVolume': this.safeString (ticker, 'baseVolume'),
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -1165,10 +1165,7 @@ module.exports = class bitrue extends Exchange {
         let type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
         const fills = this.safeValue (order, 'fills', []);
-        let clientOrderId = this.safeString (order, 'clientOrderId');
-        if (clientOrderId === '') {
-            clientOrderId = undefined;
-        }
+        const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.safeString (order, 'timeInForce');
         const postOnly = (type === 'limit_maker') || (timeInForce === 'GTX');
         if (type === 'limit_maker') {
@@ -1606,13 +1603,7 @@ module.exports = class bitrue extends Exchange {
         const id = this.safeString (transaction, 'id');
         const tagType = this.safeString (transaction, 'tagType');
         let addressTo = this.safeString (transaction, 'addressTo');
-        if (addressTo === '') {
-            addressTo = undefined;
-        }
         let addressFrom = this.safeString (transaction, 'addressFrom');
-        if (addressFrom === '') {
-            addressFrom = undefined;
-        }
         let tagTo = undefined;
         let tagFrom = undefined;
         if (tagType !== undefined) {
@@ -1627,10 +1618,7 @@ module.exports = class bitrue extends Exchange {
                 tagFrom = this.safeString (parts, 1);
             }
         }
-        let txid = this.safeString (transaction, 'txid');
-        if (txid === '') {
-            txid = undefined;
-        }
+        const txid = this.safeString (transaction, 'txid');
         const timestamp = this.safeInteger (transaction, 'createdAt');
         const updated = this.safeInteger (transaction, 'updatedAt');
         const payAmount = ('payAmount' in transaction);

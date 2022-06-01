@@ -35,6 +35,10 @@ class coinex extends Exchange {
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => true,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
@@ -266,6 +270,9 @@ class coinex extends Exchange {
                 'defaultMarginMode' => 'isolated', // isolated, cross
                 'fetchDepositAddress' => array(
                     'fillResponseFromRequest' => true,
+                ),
+                'accountsById' => array(
+                    'spot' => '0',
                 ),
             ),
             'commonCurrencies' => array(
@@ -632,7 +639,7 @@ class coinex extends Exchange {
             'baseVolume' => $this->safe_string_2($ticker, 'vol', 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -777,7 +784,7 @@ class coinex extends Exchange {
         //
         $data = $this->safe_value($response, 'data');
         $timestamp = $this->safe_integer($data, 'date');
-        $tickers = $this->safe_value($data, 'ticker');
+        $tickers = $this->safe_value($data, 'ticker', array());
         $marketIds = is_array($tickers) ? array_keys($tickers) : array();
         $result = array();
         for ($i = 0; $i < count($marketIds); $i++) {
@@ -1777,10 +1784,18 @@ class coinex extends Exchange {
                 }
             }
         }
-        $params = $this->omit($params, array( 'reduceOnly', 'position_id', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type' ));
+        $accountId = $this->safe_integer($params, 'account_id');
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        if ($defaultType === 'margin') {
+            if ($accountId === null) {
+                throw new BadRequest($this->id . ' createOrder() requires an account_id parameter for margin orders');
+            }
+            $request['account_id'] = $accountId;
+        }
+        $params = $this->omit($params, array( 'account_id', 'reduceOnly', 'position_id', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type' ));
         $response = $this->$method (array_merge($request, $params));
         //
-        // Spot
+        // Spot and Margin
         //
         //     {
         //         "code" => 0,
@@ -3330,7 +3345,7 @@ class coinex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
-        $result = $this->safe_value($data, 'records');
+        $result = $this->safe_value($data, 'records', array());
         $rates = array();
         for ($i = 0; $i < count($result); $i++) {
             $entry = $result[$i];
@@ -3445,24 +3460,28 @@ class coinex extends Exchange {
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         $this->load_markets();
-        list($marketType, $query) = $this->handle_market_type_and_params('transfer', null, $params);
-        if ($marketType !== 'spot') {
-            throw new BadRequest($this->id . ' $transfer() requires defaultType to be spot');
-        }
-        $currency = $this->safe_currency_code($code);
+        $currency = $this->currency($code);
         $amountToPrecision = $this->currency_to_precision($code, $amount);
-        $transfer = null;
-        if (($fromAccount === 'spot') && ($toAccount === 'swap')) {
-            $transfer = 'in';
-        } elseif (($fromAccount === 'swap') && ($toAccount === 'spot')) {
-            $transfer = 'out';
-        }
         $request = array(
             'amount' => $amountToPrecision,
-            'coin_type' => $currency,
-            'transfer_side' => $transfer, // 'in' => spot to swap, 'out' => swap to spot
+            'coin_type' => $currency['id'],
         );
-        $response = $this->privatePostContractBalanceTransfer (array_merge($request, $query));
+        $method = 'privatePostContractBalanceTransfer';
+        if (($fromAccount === 'spot') && ($toAccount === 'swap')) {
+            $request['transfer_side'] = 'in'; // 'in' spot to swap, 'out' swap to spot
+        } elseif (($fromAccount === 'swap') && ($toAccount === 'spot')) {
+            $request['transfer_side'] = 'out'; // 'in' spot to swap, 'out' swap to spot
+        } else {
+            $accountsById = $this->safe_value($this->options, 'accountsById', array());
+            $fromId = $this->safe_string($accountsById, $fromAccount, $fromAccount);
+            $toId = $this->safe_string($accountsById, $toAccount, $toAccount);
+            // $fromAccount and $toAccount must be integers for margin transfers
+            // spot is 0, use fetchBalance() to find the margin account id
+            $request['from_account'] = intval($fromId);
+            $request['to_account'] = intval($toId);
+            $method = 'privatePostMarginTransfer';
+        }
+        $response = $this->$method (array_merge($request, $params));
         //
         //     array("code" => 0, "data" => null, "message" => "Success")
         //
@@ -3476,19 +3495,36 @@ class coinex extends Exchange {
     public function parse_transfer_status($status) {
         $statuses = array(
             '0' => 'ok',
+            'SUCCESS' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_transfer($transfer, $currency = null) {
         //
-        // fetchTransfers
+        // fetchTransfers Swap
         //
         //     array(
         //         "amount" => "10",
         //         "asset" => "USDT",
         //         "transfer_type" => "transfer_out", // from swap to spot
         //         "created_at" => 1651633422
+        //     ),
+        //
+        // fetchTransfers Margin
+        //
+        //     array(
+        //         "id" => 7580062,
+        //         "updated_at" => 1653684379,
+        //         "user_id" => 3620173,
+        //         "from_account_id" => 0,
+        //         "to_account_id" => 1,
+        //         "asset" => "BTC",
+        //         "amount" => "0.00160829",
+        //         "balance" => "0.00160829",
+        //         "transfer_type" => "IN",
+        //         "status" => "SUCCESS",
+        //         "created_at" => 1653684379
         //     ),
         //
         $timestamp = $this->safe_timestamp($transfer, 'created_at');
@@ -3501,18 +3537,24 @@ class coinex extends Exchange {
         } elseif ($transferType === 'transfer_in') {
             $fromAccount = 'spot';
             $toAccount = 'swap';
+        } elseif ($transferType === 'IN') {
+            $fromAccount = 'spot';
+            $toAccount = 'margin';
+        } elseif ($transferType === 'OUT') {
+            $fromAccount = 'margin';
+            $toAccount = 'spot';
         }
         $currencyId = $this->safe_string($transfer, 'asset');
         $currencyCode = $this->safe_currency_code($currencyId, $currency);
         return array(
-            'id' => null,
+            'id' => $this->safe_integer($transfer, 'id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'currency' => $currencyCode,
             'amount' => $this->safe_number($transfer, 'amount'),
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
-            'status' => $this->parse_transfer_status($this->safe_string($transfer, 'code')),
+            'status' => $this->parse_transfer_status($this->safe_string_2($transfer, 'code', 'status')),
         );
     }
 
@@ -3539,7 +3581,11 @@ class coinex extends Exchange {
             $request['start_time'] = $since;
         }
         $params = $this->omit($params, 'page');
-        $response = $this->privateGetContractTransferHistory (array_merge($request, $params));
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $method = ($defaultType === 'margin') ? 'privateGetMarginTransferHistory' : 'privateGetContractTransferHistory';
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // Swap
         //
         //     {
         //         "code" => 0,
@@ -3553,6 +3599,31 @@ class coinex extends Exchange {
         //                 ),
         //             ),
         //             "total" => 5
+        //         ),
+        //         "message" => "Success"
+        //     }
+        //
+        // Margin
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => {
+        //             "records" => array(
+        //                 array(
+        //                     "id" => 7580062,
+        //                     "updated_at" => 1653684379,
+        //                     "user_id" => 3620173,
+        //                     "from_account_id" => 0,
+        //                     "to_account_id" => 1,
+        //                     "asset" => "BTC",
+        //                     "amount" => "0.00160829",
+        //                     "balance" => "0.00160829",
+        //                     "transfer_type" => "IN",
+        //                     "status" => "SUCCESS",
+        //                     "created_at" => 1653684379
+        //                 }
+        //             ),
+        //             "total" => 1
         //         ),
         //         "message" => "Success"
         //     }
@@ -3665,6 +3736,117 @@ class coinex extends Exchange {
             $data = $this->safe_value($data, 'data', array());
         }
         return $this->parse_transactions($data, $currency, $since, $limit);
+    }
+
+    public function parse_borrow_rate($info, $currency = null) {
+        //
+        //     {
+        //         "market" => "BTCUSDT",
+        //         "leverage" => 10,
+        //         "BTC" => array(
+        //             "min_amount" => "0.002",
+        //             "max_amount" => "200",
+        //             "day_rate" => "0.001"
+        //         ),
+        //         "USDT" => array(
+        //             "min_amount" => "60",
+        //             "max_amount" => "5000000",
+        //             "day_rate" => "0.001"
+        //         }
+        //     ),
+        //
+        $timestamp = $this->milliseconds();
+        $baseCurrencyData = $this->safe_value($info, $currency, array());
+        return array(
+            'currency' => $this->safe_currency_code($currency),
+            'rate' => $this->safe_number($baseCurrencyData, 'day_rate'),
+            'period' => 86400000,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
+    }
+
+    public function fetch_borrow_rate($code, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        if (is_array($this->markets) && array_key_exists($code, $this->markets)) {
+            $market = $this->market($code);
+        } else {
+            $defaultSettle = $this->safe_string($this->options, 'defaultSettle', 'USDT');
+            $market = $this->market($code . '/' . $defaultSettle);
+        }
+        $request = array(
+            'market' => $market['id'],
+        );
+        $response = $this->privateGetMarginConfig (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => {
+        //             "market" => "BTCUSDT",
+        //             "leverage" => 10,
+        //             "BTC" => array(
+        //                 "min_amount" => "0.002",
+        //                 "max_amount" => "200",
+        //                 "day_rate" => "0.001"
+        //             ),
+        //             "USDT" => array(
+        //                 "min_amount" => "60",
+        //                 "max_amount" => "5000000",
+        //                 "day_rate" => "0.001"
+        //             }
+        //         ),
+        //         "message" => "Success"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_borrow_rate($data, $market['base']);
+    }
+
+    public function fetch_borrow_rates($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetMarginConfig ($params);
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             {
+        //                 "market" => "BTCUSDT",
+        //                 "leverage" => 10,
+        //                 "BTC" => array(
+        //                     "min_amount" => "0.002",
+        //                     "max_amount" => "200",
+        //                     "day_rate" => "0.001"
+        //                 ),
+        //                 "USDT" => array(
+        //                     "min_amount" => "60",
+        //                     "max_amount" => "5000000",
+        //                     "day_rate" => "0.001"
+        //                 }
+        //             ),
+        //         ),
+        //         "message" => "Success"
+        //     }
+        //
+        $timestamp = $this->milliseconds();
+        $data = $this->safe_value($response, 'data', array());
+        $rates = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $symbol = $this->safe_string($entry, 'market');
+            $market = $this->safe_market($symbol);
+            $currencyData = $this->safe_value($entry, $market['base']);
+            $rates[] = array(
+                'currency' => $market['base'],
+                'rate' => $this->safe_number($currencyData, 'day_rate'),
+                'period' => 86400000,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'info' => $entry,
+            );
+        }
+        return $rates;
     }
 
     public function nonce() {

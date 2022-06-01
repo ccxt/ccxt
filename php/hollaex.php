@@ -168,6 +168,7 @@ class hollaex extends Exchange {
                     'Invalid token' => '\\ccxt\\AuthenticationError',
                     'Order not found' => '\\ccxt\\OrderNotFound',
                     'Insufficient balance' => '\\ccxt\\InsufficientFunds',
+                    'Error 1001 - Order rejected. Order could not be submitted as this order was set to a post only order.' => '\\ccxt\\OrderImmediatelyFillable',
                 ),
                 'exact' => array(
                     '400' => '\\ccxt\\BadRequest',
@@ -568,7 +569,7 @@ class hollaex extends Exchange {
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -985,31 +986,29 @@ class hollaex extends Exchange {
         // createOrder, fetchOpenOrder, fetchOpenOrders
         //
         //     {
-        //         "id" => "string",
-        //         "side" => "sell",
-        //         "symbol" => "xht-usdt",
-        //         "size" => 0.1,
-        //         "filled" => 0,
-        //         "stop" => null,
-        //         "fee" => 0,
-        //         "fee_coin" => "usdt",
-        //         "type" => "limit",
-        //         "price" => 1.09,
-        //         "status" => "new",
-        //         "created_by" => 116,
-        //         "created_at" => "2021-02-17T02:32:38.910Z",
-        //         "updated_at" => "2021-02-17T02:32:38.910Z",
-        //         "User" => array(
-        //             "id" => 116,
-        //             "email" => "fight@club.com",
-        //             "username" => "narrator",
-        //             "exchange_id" => 176
-        //         ),
-        //         "fee_structure" => array(
-        //             "maker" => 0.2,
-        //             "taker" => 0.2
-        //         ),
-        //     }
+        //          "id":"10644b7e-3c90-4ba9-bc3b-188f3a4e9cfd",
+        //          "created_by":140093,
+        //          "exchange_id":22,
+        //          "side":"buy",
+        //          "symbol":"doge-usdt",
+        //          "type":"limit",
+        //          "price":0.05,
+        //          "size":10,
+        //          "stop":null,
+        //          "filled":0,
+        //          "status":"canceled",
+        //          "fee":0,
+        //          "fee_coin":"doge",
+        //          "meta" => array(                 // optional field only returned for $postOnly orders
+        //              "post_only":true
+        //          ),
+        //          "fee_structure" => array(
+        //              "maker":0.1,
+        //              "taker":0.1
+        //          ),
+        //          "created_at":"2022-05-31T08:14:14.747Z",
+        //          "updated_at":"2022-05-31T08:14:23.727Z"
+        //      }
         //
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '-');
@@ -1018,9 +1017,12 @@ class hollaex extends Exchange {
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side');
         $price = $this->safe_string($order, 'price');
+        $stopPrice = $this->safe_string($order, 'stop');
         $amount = $this->safe_string($order, 'size');
         $filled = $this->safe_string($order, 'filled');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
+        $meta = $this->safe_value($order, 'meta', array());
+        $postOnly = $this->safe_value($meta, 'post_only', false);
         return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
@@ -1031,10 +1033,10 @@ class hollaex extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => null,
-            'postOnly' => null,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => null,
@@ -1057,14 +1059,21 @@ class hollaex extends Exchange {
             // 'stop' => floatval($this->price_to_precision($symbol, $stopPrice)),
             // 'meta' => array(), // other options such as post_only
         );
-        if ($type !== 'market') {
+        $stopPrice = $this->safe_number_2($params, 'stopPrice', 'stop');
+        $meta = $this->safe_value($params, 'meta', array());
+        $exchangeSpecificParam = $this->safe_value($meta, 'post_only', false);
+        $isMarketOrder = $type === 'market';
+        $postOnly = $this->is_post_only($isMarketOrder, $exchangeSpecificParam, $params);
+        $params = $this->omit($params, array( 'stopPrice', 'stop', 'meta', 'postOnly' ));
+        if (!$isMarketOrder) {
             $convertedPrice = floatval($this->price_to_precision($symbol, $price));
             $request['price'] = $this->normalize_number_if_needed($convertedPrice);
         }
-        $stopPrice = $this->safe_number_2($params, 'stopPrice', 'stop');
         if ($stopPrice !== null) {
             $request['stop'] = $this->normalize_number_if_needed(floatval($this->price_to_precision($symbol, $stopPrice)));
-            $params = $this->omit($params, array( 'stopPrice', 'stop' ));
+        }
+        if ($postOnly) {
+            $request['meta'] = array( 'post_only' => true );
         }
         $response = $this->privatePostOrder (array_merge($request, $params));
         //
@@ -1588,6 +1597,12 @@ class hollaex extends Exchange {
         if (($code >= 400) && ($code <= 503)) {
             //
             //  array( "message" => "Invalid token" )
+            //
+            // different errors return the same $code eg:
+            //
+            //  array( "message":"Error 1001 - Order rejected. Order could not be submitted as this order was set to a post only order." )
+            //
+            //  array( "message":"Error 1001 - POST ONLY order can not be of type market" )
             //
             $feedback = $this->id . ' ' . $body;
             $message = $this->safe_string($response, 'message');

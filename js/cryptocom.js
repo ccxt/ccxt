@@ -209,7 +209,7 @@ module.exports = class cryptocom extends Exchange {
             },
             'options': {
                 'defaultType': 'spot',
-                'accountsByType': {
+                'accountsById': {
                     'funding': 'SPOT',
                     'spot': 'SPOT',
                     'derivatives': 'DERIVATIVES',
@@ -1358,7 +1358,7 @@ module.exports = class cryptocom extends Exchange {
         const currency = this.currency (code);
         fromAccount = fromAccount.toLowerCase ();
         toAccount = toAccount.toLowerCase ();
-        const accountsById = this.safeValue (this.options, 'accountsByType', {});
+        const accountsById = this.safeValue (this.options, 'accountsById', {});
         const fromId = this.safeString (accountsById, fromAccount, fromAccount);
         const toId = this.safeString (accountsById, toAccount, toAccount);
         const request = {
@@ -1501,7 +1501,7 @@ module.exports = class cryptocom extends Exchange {
             'baseVolume': this.safeString (ticker, 'v'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     parseTrade (trade, market = undefined) {
@@ -1667,10 +1667,7 @@ module.exports = class cryptocom extends Exchange {
         const filled = this.safeString (order, 'cumulative_quantity');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const id = this.safeString (order, 'order_id');
-        let clientOrderId = this.safeString (order, 'client_oid');
-        if (clientOrderId === '') {
-            clientOrderId = undefined;
-        }
+        const clientOrderId = this.safeString (order, 'client_oid');
         const price = this.safeString2 (order, 'price', 'limit_price');
         const average = this.safeString (order, 'avg_price');
         const type = this.safeStringLower2 (order, 'type', 'order_type');

@@ -35,6 +35,7 @@ class bybit(Exchange):
             # 20 requests per second for POST requests, cost = 50 / 20 = 2.5
             'rateLimit': 20,
             'hostname': 'bybit.com',  # bybit.com, bytick.com
+            'pro': True,
             'has': {
                 'CORS': True,
                 'spot': True,
@@ -582,7 +583,7 @@ class bybit(Exchange):
             currencyId = self.safe_string(currency, 'coin')
             code = self.safe_currency_code(currencyId)
             name = self.safe_string(currency, 'name')
-            chains = self.safe_value(currency, 'chains')
+            chains = self.safe_value(currency, 'chains', [])
             networks = {}
             for j in range(0, len(chains)):
                 chain = chains[j]
@@ -1209,7 +1210,7 @@ class bybit(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """
@@ -2569,8 +2570,6 @@ class bybit(Exchange):
         self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        amount = self.amount_to_precision(symbol, amount)
-        price = self.price_to_precision(symbol, price) if (price is not None) else None
         isUsdcSettled = (market['settle'] == 'USDC')
         if market['spot']:
             return self.create_spot_order(symbol, type, side, amount, price, params)
@@ -2596,13 +2595,13 @@ class bybit(Exchange):
             'side': self.capitalize(side),
             'type': type.upper(),  # limit, market or limit_maker
             'timeInForce': 'GTC',  # FOK, IOC
-            'qty': amount,
+            'qty': self.amount_to_precision(symbol, amount),
             # 'orderLinkId': 'string',  # unique client order id, max 36 characters
         }
         if type == 'limit' or type == 'limit_maker':
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder requires a price argument for a ' + type + ' order')
-            request['price'] = self.price_to_precision(symbol, price)
+            request['price'] = float(self.price_to_precision(symbol, price))
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'orderLinkId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
@@ -2647,7 +2646,7 @@ class bybit(Exchange):
             'side': self.capitalize(side),
             'orderType': self.capitalize(type),  # limit or market
             'timeInForce': 'GoodTillCancel',  # ImmediateOrCancel, FillOrKill, PostOnly
-            'orderQty': amount,
+            'orderQty': self.amount_to_precision(symbol, amount),
             # 'takeProfit': 123.45,  # take profit price, only take effect upon opening the position
             # 'stopLoss': 123.45,  # stop loss price, only take effect upon opening the position
             # 'reduceOnly': False,  # reduce only, required for linear orders
@@ -2663,7 +2662,7 @@ class bybit(Exchange):
             # 'mmp': False  # market maker protection
         }
         if price is not None:
-            request['orderPrice'] = price
+            request['orderPrice'] = self.price_to_precision(symbol, price)
         if market['swap']:
             stopPx = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
             params = self.omit(params, ['stopPrice', 'triggerPrice'])
@@ -2720,6 +2719,8 @@ class bybit(Exchange):
         market = self.market(symbol)
         if price is None and type == 'limit':
             raise ArgumentsRequired(self.id + ' createOrder requires a price argument for limit orders')
+        amount = self.amount_to_precision(symbol, amount)
+        amount = float(amount) if market['linear'] else int(amount)
         request = {
             'symbol': market['id'],
             'side': self.capitalize(side),
@@ -2754,7 +2755,7 @@ class bybit(Exchange):
             request['reduce_only'] = reduceOnly
             request['close_on_trigger'] = closeOnTrigger
         if price is not None:
-            request['price'] = price
+            request['price'] = float(self.price_to_precision(symbol, price))
         stopPx = self.safe_value_2(params, 'stop_px', 'stopPrice')
         basePrice = self.safe_value_2(params, 'base_price', 'basePrice')
         isConditionalOrder = False
@@ -3548,8 +3549,6 @@ class bybit(Exchange):
         #
         address = self.safe_string(depositAddress, 'address_deposit')
         tag = self.safe_string(depositAddress, 'tag_deposit')
-        if tag == '':
-            tag = None
         code = self.safe_string(currency, 'code')
         chain = self.safe_string(depositAddress, 'chain')
         self.check_address(address)
@@ -3986,7 +3985,7 @@ class bybit(Exchange):
             defaultSettle = self.safe_string(self.options, 'defaultSettle')
             defaultSettle = self.safe_string_2(params, 'settle', 'defaultSettle', defaultSettle)
             isUsdcSettled = (defaultSettle == 'USDC')
-            params = self.omit(params, ['settle', 'defaultSettle', 'subType'])
+        params = self.omit(params, ['settle', 'defaultSettle', 'subType'])
         method = None
         if isUsdcSettled:
             method = 'privatePostOptionUsdcOpenapiPrivateV1QueryPosition'

@@ -454,7 +454,7 @@ class huobijp(Exchange):
         #         ]
         #    }
         #
-        markets = self.safe_value(response, 'data')
+        markets = self.safe_value(response, 'data', [])
         numMarkets = len(markets)
         if numMarkets < 1:
             raise NetworkError(self.id + ' fetchMarkets() returned empty response: ' + self.json(markets))
@@ -603,7 +603,7 @@ class huobijp(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         """
@@ -699,7 +699,7 @@ class huobijp(Exchange):
         """
         self.load_markets()
         response = self.marketGetTickers(params)
-        tickers = self.safe_value(response, 'data')
+        tickers = self.safe_value(response, 'data', [])
         timestamp = self.safe_integer(response, 'ts')
         result = {}
         for i in range(0, len(tickers)):
@@ -856,7 +856,7 @@ class huobijp(Exchange):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             trades = self.safe_value(data[i], 'data', [])
@@ -977,7 +977,7 @@ class huobijp(Exchange):
         #         ]
         #     }
         #
-        currencies = self.safe_value(response, 'data')
+        currencies = self.safe_value(response, 'data', [])
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
@@ -1412,8 +1412,6 @@ class huobijp(Exchange):
         #
         address = self.safe_string(depositAddress, 'address')
         tag = self.safe_string(depositAddress, 'addressTag')
-        if tag == '':
-            tag = None
         currencyId = self.safe_string(depositAddress, 'currency')
         currency = self.safe_currency(currencyId, currency)
         code = self.safe_currency_code(currencyId, currency)

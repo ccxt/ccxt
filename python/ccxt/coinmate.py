@@ -226,7 +226,7 @@ class coinmate(Exchange):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             market = data[i]
@@ -287,7 +287,7 @@ class coinmate(Exchange):
         return result
 
     def parse_balance(self, response):
-        balances = self.safe_value(response, 'data')
+        balances = self.safe_value(response, 'data', {})
         result = {'info': response}
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):

@@ -938,7 +938,7 @@ class mexc(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         """
@@ -1753,11 +1753,12 @@ class mexc(Exchange):
         elif side == 'sell':
             orderSide = 'ASK'
         orderType = type.upper()
-        if orderType == 'MARKET':
+        isMarketOrder = orderType == 'MARKET'
+        if isMarketOrder:
             raise InvalidOrder(self.id + ' createOrder() does not support market orders, only limit orders are allowed')
         if orderType == 'LIMIT':
             orderType = 'LIMIT_ORDER'
-        postOnly = self.is_post_only(type, params)
+        postOnly = self.is_post_only(isMarketOrder, orderType == 'POST_ONLY', params)
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         ioc = (timeInForce == 'IOC')
         if postOnly:
@@ -1793,13 +1794,14 @@ class mexc(Exchange):
             raise ArgumentsRequired(self.id + ' createSwapOrder() requires an integer openType parameter, 1 for isolated margin, 2 for cross margin')
         if (type != 'limit') and (type != 'market') and (type != 1) and (type != 2) and (type != 3) and (type != 4) and (type != 5) and (type != 6):
             raise InvalidOrder(self.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price')
-        postOnly = self.is_post_only(type, params)
+        isMarketOrder = (type == 'market') or (type == 5)
+        postOnly = self.is_post_only(isMarketOrder, type == 2, params)
         if postOnly:
             type = 2
         elif type == 'limit':
             type = 1
         elif type == 'market':
-            type = 6
+            type = 5
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         ioc = (timeInForce == 'IOC')
         fok = (timeInForce == 'FOK')
@@ -1844,7 +1846,7 @@ class mexc(Exchange):
             request['triggerType'] = self.safe_integer(params, 'triggerType', 1)
             request['executeCycle'] = self.safe_integer(params, 'executeCycle', 1)
             request['trend'] = self.safe_integer(params, 'trend', 1)
-            request['orderType'] = self.safe_integer(params, 'orderType', 1)
+            request['orderType'] = self.safe_integer(params, 'orderType', type)
         if (type != 5) and (type != 6) and (type != 'market'):
             request['price'] = float(self.price_to_precision(symbol, price))
         if openType == 1:
@@ -2103,15 +2105,14 @@ class mexc(Exchange):
             side = 'close long'
         status = self.parse_order_status(state, market)
         clientOrderId = self.safe_string_2(order, 'client_order_id', 'orderId')
-        if clientOrderId == '':
-            clientOrderId = None
         rawOrderType = self.safe_string_2(order, 'orderType', 'order_type')
         orderType = None
         # swap: 1:price limited order, 2:Post Only Maker, 3:transact or cancel instantly, 4:transact completely or cancel completely，5:market orders, 6:convert market price to current price
         # spot: LIMIT_ORDER, POST_ONLY, IMMEDIATE_OR_CANCEL
         timeInForce = None
-        postOnly = False
+        postOnly = None
         if rawOrderType is not None:
+            postOnly = False
             if rawOrderType == '1':
                 orderType = 'limit'
                 timeInForce = 'GTC'
@@ -2963,7 +2964,7 @@ class mexc(Exchange):
         #    }
         #
         data = self.safe_value(response, 'data')
-        result = self.safe_value(data, 'resultList')
+        result = self.safe_value(data, 'resultList', [])
         rates = []
         for i in range(0, len(result)):
             entry = result[i]

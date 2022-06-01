@@ -572,7 +572,7 @@ class gateio extends Exchange {
                     'INVALID_PRECISION' => '\\ccxt\\InvalidOrder',
                     'INVALID_CURRENCY' => '\\ccxt\\BadSymbol',
                     'INVALID_CURRENCY_PAIR' => '\\ccxt\\BadSymbol',
-                    'POC_FILL_IMMEDIATELY' => '\\ccxt\\ExchangeError',
+                    'POC_FILL_IMMEDIATELY' => '\\ccxt\\OrderImmediatelyFillable', // array("label":"POC_FILL_IMMEDIATELY","message":"Order would match and take immediately so its cancelled")
                     'ORDER_NOT_FOUND' => '\\ccxt\\OrderNotFound',
                     'CLIENT_ID_NOT_FOUND' => '\\ccxt\\OrderNotFound',
                     'ORDER_CLOSED' => '\\ccxt\\InvalidOrder',
@@ -618,7 +618,7 @@ class gateio extends Exchange {
                     'SIZE_TOO_SMALL' => '\\ccxt\\InvalidOrder',
                     'PRICE_OVER_LIQUIDATION' => '\\ccxt\\InvalidOrder',
                     'PRICE_OVER_BANKRUPT' => '\\ccxt\\InvalidOrder',
-                    'ORDER_POC_IMMEDIATE' => '\\ccxt\\InvalidOrder',
+                    'ORDER_POC_IMMEDIATE' => '\\ccxt\\OrderImmediatelyFillable', // array("label":"ORDER_POC_IMMEDIATE","detail":"order price 1700 while counter price 1793.55")
                     'INCREASE_POSITION' => '\\ccxt\\InvalidOrder',
                     'CONTRACT_IN_DELISTING' => '\\ccxt\\ExchangeError',
                     'INTERNAL' => '\\ccxt\\ExchangeNotAvailable',
@@ -1521,13 +1521,16 @@ class gateio extends Exchange {
         $addressField = $this->safe_string($response, 'address');
         $tag = null;
         $address = null;
-        if (mb_strpos($addressField, ' ') !== false) {
-            $splitted = explode(' ', $addressField);
-            $address = $splitted[0];
-            $tag = $splitted[1];
-        } else {
-            $address = $addressField;
+        if ($addressField !== null) {
+            if (mb_strpos($addressField, ' ') !== false) {
+                $splitted = explode(' ', $addressField);
+                $address = $splitted[0];
+                $tag = $splitted[1];
+            } else {
+                $address = $addressField;
+            }
         }
+        $this->check_address($address);
         return array(
             'info' => $response,
             'code' => $code,
@@ -1927,7 +1930,7 @@ class gateio extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -2703,9 +2706,6 @@ class gateio extends Exchange {
         $address = $this->safe_string($transaction, 'address');
         $fee = $this->safe_number($transaction, 'fee');
         $tag = $this->safe_string($transaction, 'memo');
-        if ($tag === '') {
-            $tag = null;
-        }
         $timestamp = $this->safe_timestamp($transaction, 'timestamp');
         return array(
             'info' => $transaction,
@@ -2757,13 +2757,26 @@ class gateio extends Exchange {
         $stopPrice = $this->safe_number($params, 'stopPrice');
         $methodTail = 'Orders';
         $reduceOnly = $this->safe_value($params, 'reduceOnly');
-        $postOnly = $this->is_post_only($type, $params);
+        $exchangeSpecificTimeInForce = $this->safe_string_lower_2($params, 'time_in_force', 'tif');
+        $postOnly = $this->is_post_only($type === 'market', $exchangeSpecificTimeInForce === 'poc', $params);
         // we only omit the unified $params here
         // this is because the other $params will get extended into the $request
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce'); // supported values GTC, IOC, PO
+        $tif = null;
+        if ($timeInForce !== null) {
+            $timeInForceMapping = array(
+                'GTC' => 'gtc',
+                'IOC' => 'ioc',
+                'PO' => 'poc',
+            );
+            $tif = $this->safe_string($timeInForceMapping, $timeInForce);
+            if ($tif === null) {
+                throw new ExchangeError($this->id . ' createOrder() does not support $timeInForce "' . $timeInForce . '"');
+            }
+        }
         $params = $this->omit($params, array( 'stopPrice', 'reduceOnly', 'timeInForce', 'postOnly' ));
-        $timeInForce = null;
         if ($postOnly) {
-            $timeInForce = 'poc';
+            $tif = 'poc';
         }
         $isLimitOrder = ($type === 'limit');
         $isMarketOrder = ($type === 'market');
@@ -2775,7 +2788,10 @@ class gateio extends Exchange {
             $signedAmount = ($side === 'sell') ? Precise::string_neg($amountToPrecision) : $amountToPrecision;
             $amount = intval($signedAmount);
             if ($isMarketOrder) {
-                $timeInForce = 'ioc';
+                if (($tif === 'poc') || ($tif === 'gtc')) {
+                    throw new ExchangeError($this->id . ' createOrder() $timeInForce for $market orders must be "IOC"');
+                }
+                $tif = 'ioc';
                 $price = 0;
             }
         } elseif (!$isLimitOrder) {
@@ -2791,7 +2807,7 @@ class gateio extends Exchange {
                     'contract' => $market['id'], // filled in prepareRequest above
                     'size' => $amount, // int64, positive = bid, negative = ask
                     // 'iceberg' => 0, // int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
-                    'price' => $this->price_to_precision($symbol, $price), // 0 for $market order with tif set as ioc
+                    'price' => $this->price_to_precision($symbol, $price), // 0 for $market order with $tif set as ioc
                     // 'close' => false, // true to close the position, with size set to 0
                     // 'reduce_only' => false, // St as true to be reduce-only order
                     // 'tif' => 'gtc', // gtc, ioc, poc PendingOrCancelled == $postOnly order
@@ -2803,7 +2819,7 @@ class gateio extends Exchange {
                     $request['reduce_only'] = $reduceOnly;
                 }
                 if ($timeInForce !== null) {
-                    $request['tif'] = $timeInForce;
+                    $request['tif'] = $tif;
                 }
             } else {
                 $marginMode = null;
@@ -2822,8 +2838,8 @@ class gateio extends Exchange {
                     // 'auto_borrow' => false, // used in margin or cross margin trading to allow automatic loan of insufficient $amount if balance is not enough
                     // 'auto_repay' => false, // automatic repayment for automatic borrow loan generated by cross margin order, diabled by default
                 );
-                if ($timeInForce !== null) {
-                    $request['time_in_force'] = $timeInForce;
+                if ($tif !== null) {
+                    $request['time_in_force'] = $tif;
                 }
             }
             $clientOrderId = $this->safe_string_2($params, 'text', 'clientOrderId');
@@ -2872,8 +2888,8 @@ class gateio extends Exchange {
                 if ($reduceOnly !== null) {
                     $request['initial']['reduce_only'] = $reduceOnly;
                 }
-                if ($timeInForce !== null) {
-                    $request['initial']['tif'] = $timeInForce;
+                if ($tif !== null) {
+                    $request['initial']['tif'] = $tif;
                 }
             } else {
                 // spot conditional order
@@ -2896,10 +2912,13 @@ class gateio extends Exchange {
                         'price' => $this->price_to_precision($symbol, $price),
                         'amount' => $this->amount_to_precision($symbol, $amount),
                         'account' => $marginMode,
-                        'time_in_force' => $timeInForce, // gtc, ioc for taker only
+                        // 'time_in_force' => $tif, // gtc, ioc for taker only
                     ),
                     'market' => $market['id'],
                 );
+                if ($tif !== null) {
+                    $request['put']['time_in_force'] = $tif;
+                }
             }
             $methodTail = 'PriceOrders';
         }
@@ -2982,6 +3001,7 @@ class gateio extends Exchange {
             'filled' => 'closed',
             'cancelled' => 'canceled',
             'liquidated' => 'closed',
+            'ioc' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
     }

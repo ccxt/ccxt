@@ -414,7 +414,7 @@ class kucoinfutures extends kucoin {
         //    }
         //
         $result = array();
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
             $id = $this->safe_string($market, 'symbol');
@@ -749,7 +749,7 @@ class kucoinfutures extends kucoin {
             'baseVolume' => null,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -800,7 +800,7 @@ class kucoinfutures extends kucoin {
         //    }
         //
         $data = $this->safe_value($response, 'data');
-        $dataList = $this->safe_value($data, 'dataList');
+        $dataList = $this->safe_value($data, 'dataList', array());
         $fees = array();
         for ($i = 0; $i < count($dataList); $i++) {
             $listItem = $dataList[$i];
@@ -1286,7 +1286,7 @@ class kucoinfutures extends kucoin {
         if ($since !== null) {
             $request['startAt'] = $since;
         }
-        $till = $this->safe_integer($params, 'till', 'endAt');
+        $till = $this->safe_integer_2($params, 'till', 'endAt');
         if ($till !== null) {
             $request['endAt'] = $till;
         }

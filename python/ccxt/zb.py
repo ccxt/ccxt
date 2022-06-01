@@ -1169,6 +1169,7 @@ class zb(Exchange):
             parts = address.split('_')
             address = parts[0]  # WARNING: MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIESnot !
             tag = parts[1]
+        self.check_address(address)
         currencyId = self.safe_string(depositAddress, 'blockChain')
         code = self.safe_currency_code(currencyId, currency)
         return {
@@ -1385,7 +1386,7 @@ class zb(Exchange):
         if market['type'] == 'swap':
             ticker = {}
             data = self.safe_value(response, 'data')
-            values = self.safe_value(data, market['id'])
+            values = self.safe_value(data, market['id'], [])
             for i in range(0, len(values)):
                 ticker['open'] = self.safe_value(values, 0)
                 ticker['high'] = self.safe_value(values, 1)
@@ -1449,7 +1450,7 @@ class zb(Exchange):
             'baseVolume': self.safe_string(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def parse_ohlcv(self, ohlcv, market=None):
         if market['swap']:
@@ -3045,7 +3046,7 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         rates = []
         for i in range(0, len(data)):
             entry = data[i]
@@ -3860,7 +3861,7 @@ class zb(Exchange):
         #     }
         #
         timestamp = self.milliseconds()
-        data = self.safe_value(response, 'result')
+        data = self.safe_value(response, 'result', [])
         rates = []
         for i in range(0, len(data)):
             entry = data[i]

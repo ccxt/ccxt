@@ -222,7 +222,7 @@ class cryptocom(Exchange):
             },
             'options': {
                 'defaultType': 'spot',
-                'accountsByType': {
+                'accountsById': {
                     'funding': 'SPOT',
                     'spot': 'SPOT',
                     'derivatives': 'DERIVATIVES',
@@ -1292,7 +1292,7 @@ class cryptocom(Exchange):
         currency = self.currency(code)
         fromAccount = fromAccount.lower()
         toAccount = toAccount.lower()
-        accountsById = self.safe_value(self.options, 'accountsByType', {})
+        accountsById = self.safe_value(self.options, 'accountsById', {})
         fromId = self.safe_string(accountsById, fromAccount, fromAccount)
         toId = self.safe_string(accountsById, toAccount, toAccount)
         request = {
@@ -1428,7 +1428,7 @@ class cryptocom(Exchange):
             'baseVolume': self.safe_string(ticker, 'v'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def parse_trade(self, trade, market=None):
         #
@@ -1586,8 +1586,6 @@ class cryptocom(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string(order, 'order_id')
         clientOrderId = self.safe_string(order, 'client_oid')
-        if clientOrderId == '':
-            clientOrderId = None
         price = self.safe_string_2(order, 'price', 'limit_price')
         average = self.safe_string(order, 'avg_price')
         type = self.safe_string_lower_2(order, 'type', 'order_type')

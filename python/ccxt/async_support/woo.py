@@ -887,7 +887,7 @@ class woo(Exchange):
         cost = self.safe_string_2(order, 'order_amount', 'amount')  # This is quote amount
         orderType = self.safe_string_lower_2(order, 'order_type', 'type')
         status = self.safe_value(order, 'status')
-        side = self.safe_string_lower_2(order, 'side')
+        side = self.safe_string_lower(order, 'side')
         filled = self.safe_value(order, 'executed')
         remaining = Precise.string_sub(cost, filled)
         fee = self.safe_value(order, 'total_fee')
@@ -1231,8 +1231,6 @@ class woo(Exchange):
         #     extra: ''
         # }
         tag = self.safe_string(response, 'extra')
-        if tag == '':
-            tag = None
         address = self.safe_string(response, 'address')
         self.check_address(address)
         return {

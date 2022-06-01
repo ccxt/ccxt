@@ -540,9 +540,7 @@ class hitbtc3(Exchange):
             withdrawEnabled = None
             for j in range(0, len(rawNetworks)):
                 rawNetwork = rawNetworks[j]
-                networkId = self.safe_string(rawNetwork, 'protocol')
-                if len(networkId) == 0:
-                    networkId = self.safe_string(rawNetwork, 'network')
+                networkId = self.safe_string_2(rawNetwork, 'protocol', 'network')
                 network = self.safe_network(networkId)
                 fee = self.safe_number(rawNetwork, 'payout_fee')
                 precision = self.safe_number(rawNetwork, 'precision_payout')
@@ -766,7 +764,7 @@ class hitbtc3(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         """

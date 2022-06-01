@@ -261,7 +261,7 @@ class whitebit extends Exchange {
         //        )
         //    }
         //
-        $markets = $this->safe_value($response, 'result');
+        $markets = $this->safe_value($response, 'result', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
@@ -556,7 +556,7 @@ class whitebit extends Exchange {
             'baseVolume' => $this->safe_string_2($ticker, 'base_volume', 'volume'),
             'quoteVolume' => $this->safe_string_2($ticker, 'quote_volume', 'deal'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -1070,9 +1070,6 @@ class whitebit extends Exchange {
         $filled = $this->safe_string($order, 'dealStock');
         $remaining = $this->safe_string($order, 'left');
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
-        if ($clientOrderId === '') {
-            $clientOrderId = null;
-        }
         $price = $this->safe_string($order, 'price');
         $stopPrice = $this->safe_string($order, 'activation_price');
         $orderId = $this->safe_string_2($order, 'orderId', 'id');

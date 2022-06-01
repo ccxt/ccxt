@@ -131,7 +131,7 @@ class btctradeua extends Exchange {
 
     public function parse_balance($response) {
         $result = array( 'info' => $response );
-        $balances = $this->safe_value($response, 'accounts');
+        $balances = $this->safe_value($response, 'accounts', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
@@ -244,7 +244,7 @@ class btctradeua extends Exchange {
             $result['last'] = $this->safe_string($ticker[$last], 4);
             $result['close'] = $result['last'];
         }
-        return $this->safe_ticker($result, $market, false);
+        return $this->safe_ticker($result, $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

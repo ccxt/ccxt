@@ -675,7 +675,7 @@ class digifinex(Exchange):
             'baseVolume': self.safe_string(ticker, 'vol'),
             'quoteVolume': self.safe_string(ticker, 'base_vol'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def parse_trade(self, trade, market=None):
         #
@@ -1419,10 +1419,7 @@ class digifinex(Exchange):
         #
         id = self.safe_string_2(transaction, 'id', 'withdraw_id')
         address = self.safe_string(transaction, 'address')
-        tag = self.safe_string(transaction, 'memo')  # set but unused
-        if tag is not None:
-            if len(tag) < 1:
-                tag = None
+        tag = self.safe_string(transaction, 'memo')
         txid = self.safe_string(transaction, 'hash')
         currencyId = self.safe_string_upper(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
@@ -1435,8 +1432,6 @@ class digifinex(Exchange):
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
         network = self.safe_string(transaction, 'chain')
-        if network == '':
-            network = None
         return {
             'info': transaction,
             'id': id,

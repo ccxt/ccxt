@@ -339,7 +339,7 @@ module.exports = class bitmex extends Exchange {
             const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'underlying');
             const quoteId = this.safeString (market, 'quoteCurrency');
-            const settleId = this.safeString (market, 'settlCurrency');
+            const settleId = this.safeString (market, 'settlCurrency', '');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
@@ -1290,7 +1290,7 @@ module.exports = class bitmex extends Exchange {
             'baseVolume': this.safeString (ticker, 'homeNotional24h'),
             'quoteVolume': this.safeString (ticker, 'foreignNotional24h'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     parseOHLCV (ohlcv, market = undefined) {

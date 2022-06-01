@@ -264,7 +264,7 @@ module.exports = class lbank extends Exchange {
             'baseVolume': this.safeString (ticker, 'vol'),
             'quoteVolume': this.safeString (ticker, 'turnover'),
             'info': info,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

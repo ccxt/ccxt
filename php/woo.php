@@ -920,7 +920,7 @@ class woo extends Exchange {
         $cost = $this->safe_string_2($order, 'order_amount', 'amount'); // This is quote $amount
         $orderType = $this->safe_string_lower_2($order, 'order_type', 'type');
         $status = $this->safe_value($order, 'status');
-        $side = $this->safe_string_lower_2($order, 'side');
+        $side = $this->safe_string_lower($order, 'side');
         $filled = $this->safe_value($order, 'executed');
         $remaining = Precise::string_sub($cost, $filled);
         $fee = $this->safe_value($order, 'total_fee');
@@ -1282,9 +1282,6 @@ class woo extends Exchange {
         //     extra => ''
         // }
         $tag = $this->safe_string($response, 'extra');
-        if ($tag === '') {
-            $tag = null;
-        }
         $address = $this->safe_string($response, 'address');
         $this->check_address($address);
         return array(

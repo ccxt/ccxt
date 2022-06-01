@@ -219,7 +219,7 @@ class vcc(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data')
-        markets = self.safe_value(data, 'symbols')
+        markets = self.safe_value(data, 'symbols', [])
         result = []
         for i in range(0, len(markets)):
             market = self.safe_value(markets, i)
@@ -314,7 +314,7 @@ class vcc(Exchange):
         #     }
         #
         result = {}
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         ids = list(data.keys())
         for i in range(0, len(ids)):
             id = self.safe_string_lower(ids, i)
@@ -363,7 +363,7 @@ class vcc(Exchange):
         }
 
     def parse_balance(self, response):
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', {})
         result = {
             'info': response,
             'timestamp': None,
@@ -545,7 +545,7 @@ class vcc(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         """
@@ -576,7 +576,7 @@ class vcc(Exchange):
         #     }
         #
         result = {}
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', {})
         marketIds = list(data.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]

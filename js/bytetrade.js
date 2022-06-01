@@ -309,8 +309,8 @@ module.exports = class bytetrade extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'symbol');
-            let base = this.safeString (market, 'baseName');
-            let quote = this.safeString (market, 'quoteName');
+            let base = this.safeString (market, 'baseName', '');
+            let quote = this.safeString (market, 'quoteName', '');
             const baseId = this.safeString (market, 'base');
             const quoteId = this.safeString (market, 'quote');
             const normalBase = base.split ('@' + baseId)[0];
@@ -497,7 +497,7 @@ module.exports = class bytetrade extends Exchange {
             'baseVolume': this.safeString (ticker, 'baseVolume'),
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

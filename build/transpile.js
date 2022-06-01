@@ -13,7 +13,6 @@ const fs = require ('fs')
         unCamelCase,
         precisionConstants,
         safeString,
-        unique,
     } = functions
     , { basename } = require ('path')
     , {
@@ -667,10 +666,6 @@ class Transpiler {
             'sys': 'sys',
         }
 
-        const baseClasses = {
-            'Exchange': 'base.exchange',
-        }
-
         async = (async ? '.async_support' : '')
 
         const imports = this.createPythonClassImports (baseClass, async)
@@ -746,7 +741,6 @@ class Transpiler {
             return false // capabilities not found
         }
         let capabilities = found[0].split (lineBreak);
-        const exchange = new Exchange ()
         const sortingOrder = {
             'CORS': 'undefined,',
             'spot': 'true,',
@@ -1324,7 +1318,7 @@ class Transpiler {
         const message = 'Transpiling error hierachy →'
         const root = errorHierarchy['BaseError']
 
-        const { python3Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js })
+        const { python3Body } = this.transpileJavaScriptToPythonAndPHP ({ js })
 
         // a helper to generate a list of exception class declarations
         // properly derived from corresponding parent classes according
@@ -1439,7 +1433,7 @@ class Transpiler {
             [/^\/\*.*\s+/mg, ''],
         ])
 
-        let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
+        let { python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
 
         // phpBody = phpBody.replace (/exchange\./g, 'Exchange::')
 
@@ -1552,7 +1546,7 @@ class Transpiler {
             [ /function equals \([\S\s]+?return true\n}\n/g, '' ],
         ])
 
-        let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
+        let { python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
 
         const pythonHeader = [
             "",
@@ -1670,7 +1664,7 @@ class Transpiler {
             [ /module.exports\s+=\s+[^;]+;/g, '' ],
         ])
 
-        let { python3Body, python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
+        let { python3Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
 
         let pythonHeader = []
 

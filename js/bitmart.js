@@ -30,6 +30,7 @@ module.exports = class bitmart extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
@@ -777,7 +778,7 @@ module.exports = class bitmart extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -1595,7 +1596,7 @@ module.exports = class bitmart extends Exchange {
         //         "symbol":"BTC_USDT",
         //         "create_time":1591096004000,
         //         "side":"sell",
-        //         "type":"market",
+        //         "type":"market", // limit, market, limit_maker, ioc
         //         "price":"0.00",
         //         "price_avg":"0.00",
         //         "size":"0.02000",
@@ -1658,6 +1659,17 @@ module.exports = class bitmart extends Exchange {
         } else if (category === 2) {
             type = 'market';
         }
+        let timeInForce = undefined;
+        let postOnly = undefined;
+        if (type === 'limit_maker') {
+            type = 'limit';
+            postOnly = true;
+            timeInForce = 'PO';
+        }
+        if (type === 'ioc') {
+            type = 'limit';
+            timeInForce = 'IOC';
+        }
         return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
@@ -1667,8 +1679,8 @@ module.exports = class bitmart extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
-            'timeInForce': undefined,
-            'postOnly': undefined,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': undefined,
@@ -1709,16 +1721,25 @@ module.exports = class bitmart extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {};
+        const timeInForce = this.safeString (params, 'timeInForce');
+        if (timeInForce === 'FOK') {
+            throw new InvalidOrder (this.id + ' createOrder () only accepts timeInForce parameter values of IOC or PO');
+        }
+        const isMarketOrder = type === 'market';
+        const postOnly = this.isPostOnly (isMarketOrder, type === 'limit_maker', params);
+        params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
+        const ioc = ((timeInForce === 'IOC') || (type === 'ioc'));
+        const isLimitOrder = (type === 'limit') || postOnly || ioc;
         let method = undefined;
         if (market['spot']) {
             request['symbol'] = market['id'];
             request['side'] = side;
             request['type'] = type;
             method = 'privateSpotPostSubmitOrder';
-            if (type === 'limit') {
+            if (isLimitOrder) {
                 request['size'] = this.amountToPrecision (symbol, amount);
                 request['price'] = this.priceToPrecision (symbol, price);
-            } else if (type === 'market') {
+            } else if (isMarketOrder) {
                 // for market buy it requires the amount of quote currency to spend
                 if (side === 'buy') {
                     let notional = this.safeNumber (params, 'notional');
@@ -1743,26 +1764,11 @@ module.exports = class bitmart extends Exchange {
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' createOrder () does not accept swap or future orders, only spot orders are allowed');
         }
-        const timeInForce = this.safeString (params, 'timeInForce');
-        const postOnly = this.safeValue (params, 'postOnly', false);
-        if ((timeInForce !== undefined) || postOnly || (type === 'limit_maker') || (type === 'ioc')) {
-            if (timeInForce === 'FOK') {
-                throw new InvalidOrder (this.id + ' createOrder () only accepts timeInForce parameter values of IOC or PO');
-            }
-            const maker = ((timeInForce === 'PO') || postOnly || (type === 'limit_maker'));
-            const ioc = ((timeInForce === 'IOC') || (type === 'ioc'));
-            if (maker && ioc) {
-                throw new InvalidOrder (this.id + ' createOrder () does not accept IOC postOnly orders, the order cannot be both postOnly and IOC');
-            }
-            if (type === 'market') {
-                throw new InvalidOrder (this.id + ' createOrder () does not accept market postOnly orders or market IOC orders, only limit postOnly order or limit IOC orders are allowed');
-            }
-            if (maker) {
-                request['type'] = 'limit_maker';
-            } else if (ioc) {
-                request['type'] = 'ioc';
-            }
-            params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
+        if (postOnly) {
+            request['type'] = 'limit_maker';
+        }
+        if (ioc) {
+            request['type'] = 'ioc';
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -2360,10 +2366,7 @@ module.exports = class bitmart extends Exchange {
                 'currency': code,
             };
         }
-        let txid = this.safeString (transaction, 'tx_id');
-        if (txid === '') {
-            txid = undefined;
-        }
+        const txid = this.safeString (transaction, 'tx_id');
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString (transaction, 'address_memo');
         return {

@@ -588,7 +588,7 @@ class latoken(Exchange):
             'baseVolume': None,
             'quoteVolume': self.safe_string(ticker, 'volume24h'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """
@@ -1208,11 +1208,7 @@ class latoken(Exchange):
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         amount = self.safe_number(transaction, 'amount')
         addressFrom = self.safe_string(transaction, 'senderAddress')
-        if addressFrom == '':
-            addressFrom = None
         addressTo = self.safe_string(transaction, 'recipientAddress')
-        if addressTo == '':
-            addressTo = None
         txid = self.safe_string(transaction, 'transactionHash')
         tagTo = self.safe_string(transaction, 'memo')
         fee = None

@@ -26,6 +26,7 @@ class bybit extends Exchange {
             // 20 requests per second for POST requests, cost = 50 / 20 = 2.5
             'rateLimit' => 20,
             'hostname' => 'bybit.com', // bybit.com, bytick.com
+            'pro' => true,
             'has' => array(
                 'CORS' => true,
                 'spot' => true,
@@ -578,7 +579,7 @@ class bybit extends Exchange {
             $currencyId = $this->safe_string($currency, 'coin');
             $code = $this->safe_currency_code($currencyId);
             $name = $this->safe_string($currency, 'name');
-            $chains = $this->safe_value($currency, 'chains');
+            $chains = $this->safe_value($currency, 'chains', array());
             $networks = array();
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];
@@ -1231,7 +1232,7 @@ class bybit extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -2666,8 +2667,6 @@ class bybit extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
-        $amount = $this->amount_to_precision($symbol, $amount);
-        $price = ($price !== null) ? $this->price_to_precision($symbol, $price) : null;
         $isUsdcSettled = ($market['settle'] === 'USDC');
         if ($market['spot']) {
             return $this->create_spot_order($symbol, $type, $side, $amount, $price, $params);
@@ -2698,14 +2697,14 @@ class bybit extends Exchange {
             'side' => $this->capitalize($side),
             'type' => strtoupper($type), // limit, $market or limit_maker
             'timeInForce' => 'GTC', // FOK, IOC
-            'qty' => $amount,
+            'qty' => $this->amount_to_precision($symbol, $amount),
             // 'orderLinkId' => 'string', // unique client $order id, max 36 characters
         );
         if ($type === 'limit' || $type === 'limit_maker') {
             if ($price === null) {
                 throw new InvalidOrder($this->id . ' createOrder requires a $price argument for a ' . $type . ' order');
             }
-            $request['price'] = $this->price_to_precision($symbol, $price);
+            $request['price'] = floatval($this->price_to_precision($symbol, $price));
         }
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'orderLinkId');
         if ($clientOrderId !== null) {
@@ -2756,7 +2755,7 @@ class bybit extends Exchange {
             'side' => $this->capitalize($side),
             'orderType' => $this->capitalize($type), // limit or $market
             'timeInForce' => 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
-            'orderQty' => $amount,
+            'orderQty' => $this->amount_to_precision($symbol, $amount),
             // 'takeProfit' => 123.45, // take profit $price, only take effect upon opening the position
             // 'stopLoss' => 123.45, // stop loss $price, only take effect upon opening the position
             // 'reduceOnly' => false, // reduce only, required for linear orders
@@ -2772,7 +2771,7 @@ class bybit extends Exchange {
             // 'mmp' => false // $market maker protection
         );
         if ($price !== null) {
-            $request['orderPrice'] = $price;
+            $request['orderPrice'] = $this->price_to_precision($symbol, $price);
         }
         if ($market['swap']) {
             $stopPx = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
@@ -2836,6 +2835,8 @@ class bybit extends Exchange {
         if ($price === null && $type === 'limit') {
             throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for limit orders');
         }
+        $amount = $this->amount_to_precision($symbol, $amount);
+        $amount = $market['linear'] ? floatval($amount) : intval($amount);
         $request = array(
             'symbol' => $market['id'],
             'side' => $this->capitalize($side),
@@ -2872,7 +2873,7 @@ class bybit extends Exchange {
             $request['close_on_trigger'] = $closeOnTrigger;
         }
         if ($price !== null) {
-            $request['price'] = $price;
+            $request['price'] = floatval($this->price_to_precision($symbol, $price));
         }
         $stopPx = $this->safe_value_2($params, 'stop_px', 'stopPrice');
         $basePrice = $this->safe_value_2($params, 'base_price', 'basePrice');
@@ -3723,9 +3724,6 @@ class bybit extends Exchange {
         //
         $address = $this->safe_string($depositAddress, 'address_deposit');
         $tag = $this->safe_string($depositAddress, 'tag_deposit');
-        if ($tag === '') {
-            $tag = null;
-        }
         $code = $this->safe_string($currency, 'code');
         $chain = $this->safe_string($depositAddress, 'chain');
         $this->check_address($address);
@@ -4193,8 +4191,8 @@ class bybit extends Exchange {
             $defaultSettle = $this->safe_string($this->options, 'defaultSettle');
             $defaultSettle = $this->safe_string_2($params, 'settle', 'defaultSettle', $defaultSettle);
             $isUsdcSettled = ($defaultSettle === 'USDC');
-            $params = $this->omit($params, array( 'settle', 'defaultSettle', 'subType' ));
         }
+        $params = $this->omit($params, array( 'settle', 'defaultSettle', 'subType' ));
         $method = null;
         if ($isUsdcSettled) {
             $method = 'privatePostOptionUsdcOpenapiPrivateV1QueryPosition';

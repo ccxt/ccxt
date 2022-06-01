@@ -602,7 +602,7 @@ module.exports = class latoken extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': this.safeString (ticker, 'volume24h'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -1266,14 +1266,8 @@ module.exports = class latoken extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const amount = this.safeNumber (transaction, 'amount');
-        let addressFrom = this.safeString (transaction, 'senderAddress');
-        if (addressFrom === '') {
-            addressFrom = undefined;
-        }
-        let addressTo = this.safeString (transaction, 'recipientAddress');
-        if (addressTo === '') {
-            addressTo = undefined;
-        }
+        const addressFrom = this.safeString (transaction, 'senderAddress');
+        const addressTo = this.safeString (transaction, 'recipientAddress');
         const txid = this.safeString (transaction, 'transactionHash');
         const tagTo = this.safeString (transaction, 'memo');
         let fee = undefined;

@@ -405,7 +405,7 @@ class probit(Exchange):
         #         ]
         #     }
         #
-        currencies = self.safe_value(response, 'data')
+        currencies = self.safe_value(response, 'data', [])
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
@@ -468,7 +468,7 @@ class probit(Exchange):
             'timestamp': None,
             'datetime': None,
         }
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         for i in range(0, len(data)):
             balance = data[i]
             currencyId = self.safe_string(balance, 'currency_id')
@@ -635,7 +635,7 @@ class probit(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1011,8 +1011,6 @@ class probit(Exchange):
         if type == 'market':
             price = None
         clientOrderId = self.safe_string(order, 'client_order_id')
-        if clientOrderId == '':
-            clientOrderId = None
         timeInForce = self.safe_string_upper(order, 'time_in_force')
         return self.safe_order({
             'id': id,

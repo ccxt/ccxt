@@ -9,6 +9,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import NetworkError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -173,6 +174,7 @@ class hollaex(Exchange):
                     'Invalid token': AuthenticationError,
                     'Order not found': OrderNotFound,
                     'Insufficient balance': InsufficientFunds,
+                    'Error 1001 - Order rejected. Order could not be submitted as self order was set to a post only order.': OrderImmediatelyFillable,
                 },
                 'exact': {
                     '400': BadRequest,
@@ -561,7 +563,7 @@ class hollaex(Exchange):
             'average': None,
             'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
-        }, market, False)
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         """
@@ -954,31 +956,29 @@ class hollaex(Exchange):
         # createOrder, fetchOpenOrder, fetchOpenOrders
         #
         #     {
-        #         "id": "string",
-        #         "side": "sell",
-        #         "symbol": "xht-usdt",
-        #         "size": 0.1,
-        #         "filled": 0,
-        #         "stop": null,
-        #         "fee": 0,
-        #         "fee_coin": "usdt",
-        #         "type": "limit",
-        #         "price": 1.09,
-        #         "status": "new",
-        #         "created_by": 116,
-        #         "created_at": "2021-02-17T02:32:38.910Z",
-        #         "updated_at": "2021-02-17T02:32:38.910Z",
-        #         "User": {
-        #             "id": 116,
-        #             "email": "fight@club.com",
-        #             "username": "narrator",
-        #             "exchange_id": 176
-        #         },
-        #         "fee_structure": {
-        #             "maker": 0.2,
-        #             "taker": 0.2
-        #         },
-        #     }
+        #          "id":"10644b7e-3c90-4ba9-bc3b-188f3a4e9cfd",
+        #          "created_by":140093,
+        #          "exchange_id":22,
+        #          "side":"buy",
+        #          "symbol":"doge-usdt",
+        #          "type":"limit",
+        #          "price":0.05,
+        #          "size":10,
+        #          "stop":null,
+        #          "filled":0,
+        #          "status":"canceled",
+        #          "fee":0,
+        #          "fee_coin":"doge",
+        #          "meta": {                # optional field only returned for postOnly orders
+        #              "post_only":true
+        #          },
+        #          "fee_structure": {
+        #              "maker":0.1,
+        #              "taker":0.1
+        #          },
+        #          "created_at":"2022-05-31T08:14:14.747Z",
+        #          "updated_at":"2022-05-31T08:14:23.727Z"
+        #      }
         #
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market, '-')
@@ -987,9 +987,12 @@ class hollaex(Exchange):
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
         price = self.safe_string(order, 'price')
+        stopPrice = self.safe_string(order, 'stop')
         amount = self.safe_string(order, 'size')
         filled = self.safe_string(order, 'filled')
         status = self.parse_order_status(self.safe_string(order, 'status'))
+        meta = self.safe_value(order, 'meta', {})
+        postOnly = self.safe_value(meta, 'post_only', False)
         return self.safe_order({
             'id': id,
             'clientOrderId': None,
@@ -1000,10 +1003,10 @@ class hollaex(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': None,
-            'postOnly': None,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': None,
+            'stopPrice': stopPrice,
             'amount': amount,
             'filled': filled,
             'remaining': None,
@@ -1025,13 +1028,19 @@ class hollaex(Exchange):
             # 'stop': float(self.price_to_precision(symbol, stopPrice)),
             # 'meta': {},  # other options such as post_only
         }
-        if type != 'market':
+        stopPrice = self.safe_number_2(params, 'stopPrice', 'stop')
+        meta = self.safe_value(params, 'meta', {})
+        exchangeSpecificParam = self.safe_value(meta, 'post_only', False)
+        isMarketOrder = type == 'market'
+        postOnly = self.is_post_only(isMarketOrder, exchangeSpecificParam, params)
+        params = self.omit(params, ['stopPrice', 'stop', 'meta', 'postOnly'])
+        if not isMarketOrder:
             convertedPrice = float(self.price_to_precision(symbol, price))
             request['price'] = self.normalize_number_if_needed(convertedPrice)
-        stopPrice = self.safe_number_2(params, 'stopPrice', 'stop')
         if stopPrice is not None:
             request['stop'] = self.normalize_number_if_needed(float(self.price_to_precision(symbol, stopPrice)))
-            params = self.omit(params, ['stopPrice', 'stop'])
+        if postOnly:
+            request['meta'] = {'post_only': True}
         response = self.privatePostOrder(self.extend(request, params))
         #
         #     {
@@ -1517,6 +1526,12 @@ class hollaex(Exchange):
         if (code >= 400) and (code <= 503):
             #
             #  {"message": "Invalid token"}
+            #
+            # different errors return the same code eg:
+            #
+            #  {"message":"Error 1001 - Order rejected. Order could not be submitted as self order was set to a post only order."}
+            #
+            #  {"message":"Error 1001 - POST ONLY order can not be of type market"}
             #
             feedback = self.id + ' ' + body
             message = self.safe_string(response, 'message')

@@ -441,7 +441,7 @@ class currencycom extends Exchange {
         if ($this->options['adjustForTimeDifference']) {
             yield $this->load_time_difference();
         }
-        $markets = $this->safe_value($response, 'symbols');
+        $markets = $this->safe_value($response, 'symbols', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
@@ -843,7 +843,7 @@ class currencycom extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

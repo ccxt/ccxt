@@ -749,7 +749,7 @@ class ftx(Exchange):
             'baseVolume': None,
             'quoteVolume': self.safe_string(ticker, 'quoteVolume24h'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         """
@@ -1249,7 +1249,7 @@ class ftx(Exchange):
         #        ]
         #      }
         #
-        result = self.safe_value(response, 'result')
+        result = self.safe_value(response, 'result', [])
         rates = []
         for i in range(0, len(result)):
             entry = result[i]

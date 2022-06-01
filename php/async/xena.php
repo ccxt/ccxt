@@ -503,7 +503,7 @@ class xena extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -614,7 +614,7 @@ class xena extends Exchange {
         //         )
         //     }
         //
-        $accounts = $this->safe_value($response, 'accounts');
+        $accounts = $this->safe_value($response, 'accounts', array());
         $result = array();
         for ($i = 0; $i < count($accounts); $i++) {
             $account = $accounts[$i];

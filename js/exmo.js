@@ -901,7 +901,7 @@ module.exports = class exmo extends Exchange {
             'baseVolume': this.safeString (ticker, 'vol'),
             'quoteVolume': this.safeString (ticker, 'vol_curr'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

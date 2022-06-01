@@ -1152,7 +1152,7 @@ module.exports = class timex extends Exchange {
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': this.safeString (ticker, 'volumeQuote'),
-        }, market, false);
+        }, market);
     }
 
     parseTrade (trade, market = undefined) {

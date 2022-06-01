@@ -441,7 +441,7 @@ class currencycom(Exchange):
         #
         if self.options['adjustForTimeDifference']:
             self.load_time_difference()
-        markets = self.safe_value(response, 'symbols')
+        markets = self.safe_value(response, 'symbols', [])
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -826,7 +826,7 @@ class currencycom(Exchange):
             'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """

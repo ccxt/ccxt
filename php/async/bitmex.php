@@ -344,7 +344,7 @@ class bitmex extends Exchange {
             $id = $this->safe_string($market, 'symbol');
             $baseId = $this->safe_string($market, 'underlying');
             $quoteId = $this->safe_string($market, 'quoteCurrency');
-            $settleId = $this->safe_string($market, 'settlCurrency');
+            $settleId = $this->safe_string($market, 'settlCurrency', '');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $settle = $this->safe_currency_code($settleId);
@@ -1287,7 +1287,7 @@ class bitmex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'homeNotional24h'),
             'quoteVolume' => $this->safe_string($ticker, 'foreignNotional24h'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

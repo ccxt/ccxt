@@ -752,7 +752,7 @@ class ftx extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => $this->safe_string($ticker, 'quoteVolume24h'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1277,7 +1277,7 @@ class ftx extends Exchange {
         //        )
         //      }
         //
-        $result = $this->safe_value($response, 'result');
+        $result = $this->safe_value($response, 'result', array());
         $rates = array();
         for ($i = 0; $i < count($result); $i++) {
             $entry = $result[$i];

@@ -917,7 +917,7 @@ class deribit extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => $this->safe_string($stats, 'volume'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -2032,15 +2032,13 @@ class deribit extends Exchange {
         //
         $contract = $this->safe_string($position, 'instrument_name');
         $market = $this->safe_market($contract, $market);
-        $size = $this->safe_string($position, 'size');
         $side = $this->safe_string($position, 'direction');
         $side = ($side === 'buy') ? 'long' : 'short';
-        $maintenanceRate = $this->safe_string($position, 'maintenance_margin');
-        $markPrice = $this->safe_string($position, 'mark_price');
-        $notionalString = Precise::string_mul($markPrice, $size);
-        $unrealisedPnl = $this->safe_string($position, 'floating_profit_loss');
+        $unrealizedPnl = $this->safe_string($position, 'floating_profit_loss');
         $initialMarginString = $this->safe_string($position, 'initial_margin');
-        $percentage = Precise::string_mul(Precise::string_div($unrealisedPnl, $initialMarginString), '100');
+        $notionalString = $this->safe_string($position, 'size_currency');
+        $maintenanceMarginString = $this->safe_string($position, 'maintenance_margin');
+        $percentage = Precise::string_mul(Precise::string_div($unrealizedPnl, $initialMarginString), '100');
         $currentTime = $this->milliseconds();
         return array(
             'info' => $position,
@@ -2048,18 +2046,18 @@ class deribit extends Exchange {
             'timestamp' => $currentTime,
             'datetime' => $this->iso8601($currentTime),
             'initialMargin' => $this->parse_number($initialMarginString),
-            'initialMarginPercentage' => $this->parse_number(Precise::string_div($initialMarginString, $notionalString)),
-            'maintenanceMargin' => $this->parse_number(Precise::string_mul($maintenanceRate, $notionalString)),
-            'maintenanceMarginPercentage' => $this->parse_number($maintenanceRate),
-            'entryPrice' => $this->safe_string($position, 'average_price'),
+            'initialMarginPercentage' => $this->parse_number(Precise::string_mul(Precise::string_div($initialMarginString, $notionalString), '100')),
+            'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
+            'maintenanceMarginPercentage' => $this->parse_number(Precise::string_mul(Precise::string_div($maintenanceMarginString, $notionalString), '100')),
+            'entryPrice' => $this->safe_number($position, 'average_price'),
             'notional' => $this->parse_number($notionalString),
-            'leverage' => $this->safe_number($position, 'leverage'),
-            'unrealizedPnl' => $this->parse_number($unrealisedPnl),
-            'contracts' => $this->parse_number($size),  // in USD for perpetuals on deribit
-            'contractSize' => $this->safe_value($market, 'contractSize'),
+            'leverage' => $this->safe_integer($position, 'leverage'),
+            'unrealizedPnl' => $this->parse_number($unrealizedPnl),
+            'contracts' => null,
+            'contractSize' => $this->safe_number($market, 'contractSize'),
             'marginRatio' => null,
             'liquidationPrice' => $this->safe_number($position, 'estimated_liquidation_price'),
-            'markPrice' => $markPrice,
+            'markPrice' => $this->safe_number($position, 'mark_price'),
             'collateral' => null,
             'marginMode' => null,
             'marginType' => null, // deprecated

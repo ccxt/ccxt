@@ -33,10 +33,10 @@ class coinbasepro(Exchange):
             'has': {
                 'CORS': True,
                 'spot': True,
-                'margin': None,  # has but not fully inplemented
-                'swap': None,  # has but not fully inplemented
-                'future': None,  # has but not fully inplemented
-                'option': None,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createDepositAddress': True,
@@ -569,7 +569,7 @@ class coinbasepro(Exchange):
             'baseVolume': volume,
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         """
@@ -1232,7 +1232,7 @@ class coinbasepro(Exchange):
         self.load_markets()
         self.load_accounts()
         currency = self.currency(code)
-        accountsByCurrencyCode = self.index_by(self.accounts, 'currency')
+        accountsByCurrencyCode = self.index_by(self.accounts, 'code')
         account = self.safe_value(accountsByCurrencyCode, code)
         if account is None:
             raise ExchangeError(self.id + ' fetchLedger() could not find account id for ' + code)
@@ -1262,7 +1262,7 @@ class coinbasepro(Exchange):
         if id is None:
             if code is not None:
                 currency = self.currency(code)
-                accountsByCurrencyCode = self.index_by(self.accounts, 'currency')
+                accountsByCurrencyCode = self.index_by(self.accounts, 'code')
                 account = self.safe_value(accountsByCurrencyCode, code)
                 if account is None:
                     raise ExchangeError(self.id + ' fetchTransactions() could not find account id for ' + code)
@@ -1278,7 +1278,7 @@ class coinbasepro(Exchange):
             for i in range(0, len(response)):
                 account_id = self.safe_string(response[i], 'account_id')
                 account = self.safe_value(self.accountsById, account_id)
-                code = self.safe_string(account, 'currency')
+                code = self.safe_string(account, 'code')
                 response[i]['currency'] = code
         else:
             response = self.privateGetAccountsIdTransfers(self.extend(request, params))

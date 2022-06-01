@@ -400,7 +400,7 @@ class probit extends Exchange {
         //         ]
         //     }
         //
-        $currencies = $this->safe_value($response, 'data');
+        $currencies = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $currencies[$i];
@@ -467,7 +467,7 @@ class probit extends Exchange {
             'timestamp' => null,
             'datetime' => null,
         );
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $balance = $data[$i];
             $currencyId = $this->safe_string($balance, 'currency_id');
@@ -642,7 +642,7 @@ class probit extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1053,9 +1053,6 @@ class probit extends Exchange {
             $price = null;
         }
         $clientOrderId = $this->safe_string($order, 'client_order_id');
-        if ($clientOrderId === '') {
-            $clientOrderId = null;
-        }
         $timeInForce = $this->safe_string_upper($order, 'time_in_force');
         return $this->safe_order(array(
             'id' => $id,

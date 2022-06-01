@@ -716,7 +716,7 @@ class kucoin(Exchange):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             account = data[i]
@@ -853,7 +853,7 @@ class kucoin(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         """
@@ -1055,8 +1055,6 @@ class kucoin(Exchange):
         data = self.safe_value(response, 'data', {})
         address = self.safe_string(data, 'address')
         tag = self.safe_string(data, 'memo')
-        if tag == '':
-            tag = None
         if code != 'NIM':
             # contains spaces
             self.check_address(address)

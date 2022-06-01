@@ -168,7 +168,7 @@ class oceanex(Exchange):
         #    },
         #
         result = []
-        markets = self.safe_value(response, 'data')
+        markets = self.safe_value(response, 'data', [])
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_value(market, 'id')
@@ -294,7 +294,7 @@ class oceanex(Exchange):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         result = {}
         for i in range(0, len(data)):
             ticker = data[i]
@@ -342,7 +342,7 @@ class oceanex(Exchange):
             'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         """
@@ -522,7 +522,7 @@ class oceanex(Exchange):
 
     async def fetch_trading_fees(self, params={}):
         response = await self.publicGetFeesTrading(params)
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         result = {}
         for i in range(0, len(data)):
             group = data[i]
@@ -545,7 +545,7 @@ class oceanex(Exchange):
 
     def parse_balance(self, response):
         data = self.safe_value(response, 'data')
-        balances = self.safe_value(data, 'accounts')
+        balances = self.safe_value(data, 'accounts', [])
         result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]

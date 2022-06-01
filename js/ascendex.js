@@ -876,7 +876,7 @@ module.exports = class ascendex extends Exchange {
             'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -2599,7 +2599,7 @@ module.exports = class ascendex extends Exchange {
         //        ]
         //    }
         //
-        const marginRequirements = this.safeValue (info, 'marginRequirements');
+        const marginRequirements = this.safeValue (info, 'marginRequirements', []);
         const id = this.safeString (info, 'symbol');
         market = this.safeMarket (id, market);
         const tiers = [];

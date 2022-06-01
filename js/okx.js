@@ -632,6 +632,7 @@ module.exports = class okx extends Exchange {
                 'createMarketBuyOrderRequiresPrice': false,
                 'fetchMarkets': [ 'spot', 'future', 'swap', 'option' ], // spot, future, swap, option
                 'defaultType': 'spot', // 'funding', 'spot', 'margin', 'future', 'swap', 'option'
+                'defaultMarginMode': 'cross', // cross, isolated
                 // 'fetchBalance': {
                 //     'type': 'spot', // 'funding', 'trading', 'spot'
                 // },
@@ -958,9 +959,6 @@ module.exports = class okx extends Exchange {
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
         const precisionPrice = this.parseNumber (tickSize);
         let maxLeverage = this.safeString (market, 'lever', '1');
-        if (maxLeverage === '') {
-            maxLeverage = '1';
-        }
         maxLeverage = Precise.stringMax (maxLeverage, '1');
         return this.extend (fees, {
             'id': id,
@@ -1269,31 +1267,13 @@ module.exports = class okx extends Exchange {
         const marketId = this.safeString (ticker, 'instId');
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
-        let last = this.safeString (ticker, 'last');
-        if (last === '') {
-            last = undefined;
-        }
-        let open = this.safeString (ticker, 'open24h');
-        if (open === '') {
-            open = undefined;
-        }
+        const last = this.safeString (ticker, 'last');
+        const open = this.safeString (ticker, 'open24h');
         const spot = this.safeValue (market, 'spot', false);
-        let quoteVolume = spot ? this.safeString (ticker, 'volCcy24h') : undefined;
-        if (quoteVolume === '') {
-            quoteVolume = undefined;
-        }
-        let baseVolume = this.safeString (ticker, 'vol24h');
-        if (baseVolume === '') {
-            baseVolume = undefined;
-        }
-        let high = this.safeString (ticker, 'high24h');
-        if (high === '') {
-            high = undefined;
-        }
-        let low = this.safeString (ticker, 'low24h');
-        if (low === '') {
-            low = undefined;
-        }
+        const quoteVolume = spot ? this.safeString (ticker, 'volCcy24h') : undefined;
+        const baseVolume = this.safeString (ticker, 'vol24h');
+        const high = this.safeString (ticker, 'high24h');
+        const low = this.safeString (ticker, 'low24h');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1315,7 +1295,7 @@ module.exports = class okx extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -1668,7 +1648,7 @@ module.exports = class okx extends Exchange {
         //     }
         //
         const rates = [];
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const rate = data[i];
             const timestamp = this.safeNumber (rate, 'fundingTime');
@@ -1705,7 +1685,7 @@ module.exports = class okx extends Exchange {
             // it may be incorrect to use total, free and used for swap accounts
             const eq = this.safeString (balance, 'eq');
             const availEq = this.safeString (balance, 'availEq');
-            if ((eq.length < 1) || (availEq.length < 1)) {
+            if ((eq === undefined) || (availEq === undefined)) {
                 account['free'] = this.safeString (balance, 'availBal');
                 account['used'] = this.safeString (balance, 'frozenBal');
             } else {
@@ -1927,79 +1907,60 @@ module.exports = class okx extends Exchange {
         const market = this.market (symbol);
         const request = {
             'instId': market['id'],
-            //
-            //     Simple:
-            //     - SPOT and OPTION buyer: cash
-            //
-            //     Single-currency margin:
-            //     - Isolated MARGIN: isolated
-            //     - Cross MARGIN: cross
-            //     - Cross SPOT: cash
-            //     - Cross FUTURES/SWAP/OPTION: cross
-            //     - Isolated FUTURES/SWAP/OPTION: isolated
-            //
-            //     Multi-currency margin:
-            //     - Isolated MARGIN: isolated
-            //     - Cross SPOT: cross
-            //     - Cross FUTURES/SWAP/OPTION: cross
-            //     - Isolated FUTURES/SWAP/OPTION: isolated
-            //
             // 'ccy': currency['id'], // only applicable to cross MARGIN orders in single-currency margin
             // 'clOrdId': clientOrderId, // up to 32 characters, must be unique
             // 'tag': tag, // up to 8 characters
-            //
-            //     In long/short mode, side and posSide need to be combined
-            //
-            //     buy with long means open long
-            //     sell with long means close long
-            //     sell with short means open short
-            //     buy with short means close short
-            //
             'side': side,
-            // 'posSide': 'long', // long, short, // required in the long/short mode, and can only be long or short
-            'ordType': type, // market, limit, post_only, fok, ioc, (trigger for stop orders)
-            //
-            //     for SPOT/MARGIN bought and sold at a limit price, sz refers to the amount of trading currency
-            //     for SPOT/MARGIN bought at a market price, sz refers to the amount of quoted currency
-            //     for SPOT/MARGIN sold at a market price, sz refers to the amount of trading currency
-            //     for FUTURES/SWAP/OPTION buying and selling, sz refers to the number of contracts
-            //
-            // 'sz': this.amountToPrecision (symbol, amount),
+            // 'posSide': 'long', // long, short, // required in the long/short mode, and can only be long or short (only for future or swap)
+            'ordType': type,
+            // 'ordType': type, // privatePostTradeOrder: market, limit, post_only, fok, ioc, optimal_limit_ioc
+            // 'ordType': type, // privatePostTradeOrderAlgo: conditional, oco, trigger, move_order_stop, iceberg, twap
+            'sz': this.amountToPrecision (symbol, amount),
             // 'px': this.priceToPrecision (symbol, price), // limit orders only
             // 'reduceOnly': false, // MARGIN orders only
-            // 'triggerPx': 10, // Stop order trigger price
-            // 'orderPx': 10, // Order price if -1, the order will be executed at the market price.
-            // 'triggerPxType': 'last', // Conditional default is last, mark or index
             //
+            // 'triggerPx': 10, // stopPrice (trigger orders)
+            // 'orderPx': 10, // Order price if -1, the order will be executed at the market price. (trigger orders)
+            // 'triggerPxType': 'last', // Conditional default is last, mark or index (trigger orders)
+            //
+            // 'tpTriggerPx': 10, // takeProfitPrice (conditional orders)
+            // 'tpTriggerPxType': 'last', // Conditional default is last, mark or index (conditional orders)
+            // 'tpOrdPx': 10, // Order price for Take-Profit orders, if -1 will be executed at market price (conditional orders)
+            //
+            // 'slTriggerPx': 10, // stopLossPrice (conditional orders)
+            // 'slTriggerPxType': 'last', // Conditional default is last, mark or index (conditional orders)
+            // 'slOrdPx': 10, // Order price for Stop-Loss orders, if -1 will be executed at market price (conditional orders)
         };
-        const tdMode = this.safeStringLower (params, 'tdMode');
-        if (market['spot']) {
-            request['tdMode'] = 'cash';
-        } else if (market['contract']) {
-            if (tdMode === undefined) {
-                throw new ArgumentsRequired (this.id + ' params["tdMode"] is required to be either "isolated" or "cross"');
-            } else if ((tdMode !== 'isolated') && (tdMode !== 'cross')) {
-                throw new BadRequest (this.id + ' params["tdMode"] must be either "isolated" or "cross"');
-            }
-        }
-        const postOnly = this.safeValue (params, 'postOnly', false);
-        if (postOnly) {
-            request['ordType'] = 'post_only';
-            params = this.omit (params, [ 'postOnly' ]);
-        }
+        const spot = market['spot'];
+        const contract = market['contract'];
+        const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPx');
+        const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
+        const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'tpTriggerPx');
+        const tpOrdPx = this.safeString (params, 'tpOrdPx');
+        const tpTriggerPxType = this.safeString (params, 'tpTriggerPxType', 'last');
+        const stopLossPrice = this.safeString2 (params, 'stopLossPrice', 'slTriggerPx');
+        const slOrdPx = this.safeString (params, 'slOrdPx');
+        const slTriggerPxType = this.safeString (params, 'slTriggerPxType', 'last');
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
-        if (clientOrderId === undefined) {
-            const brokerId = this.safeString (this.options, 'brokerId');
-            if (brokerId !== undefined) {
-                request['clOrdId'] = brokerId + this.uuid16 ();
-            }
-        } else {
-            request['clOrdId'] = clientOrderId;
-            params = this.omit (params, [ 'clOrdId', 'clientOrderId' ]);
+        if (spot) {
+            request['tdMode'] = 'cash';
+        } else if (contract) {
+            const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+            request['tdMode'] = this.safeStringLower (params, 'tdMode', marginMode); // not ommited so as to be extended into the request
         }
-        request['sz'] = this.amountToPrecision (symbol, amount);
-        if (type === 'market') {
-            if (market['type'] === 'spot' && side === 'buy') {
+        const isMarketOrder = type === 'market';
+        const postOnly = this.isPostOnly (isMarketOrder, type === 'post_only', params);
+        params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPx', 'cloOrdId', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slTriggerPx', 'tpTriggerPrice', 'tpOrdPx', 'slOrdPx', 'tpTriggerPxType', 'slTriggerPxType' ]);
+        const ioc = (timeInForce === 'IOC') || (type === 'ioc');
+        const fok = (timeInForce === 'FOK') || (type === 'fok');
+        const trigger = (stopPrice !== undefined) || (type === 'trigger');
+        const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
+        const marketIOC = (isMarketOrder && ioc) || (type === 'optimal_limit_ioc');
+        const defaultMethod = this.safeString (this.options, 'createOrder', 'privatePostTradeBatchOrders');
+        let method = defaultMethod;
+        if (isMarketOrder || marketIOC) {
+            request['ordType'] = 'market';
+            if (spot && (side === 'buy')) {
                 // spot market buy: "sz" can refer either to base currency units or to quote currency units
                 // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
@@ -2028,63 +1989,72 @@ module.exports = class okx extends Exchange {
                 }
                 params = this.omit (params, [ 'tgtCcy' ]);
             }
+            if (marketIOC && contract) {
+                request['ordType'] = 'optimal_limit_ioc';
+            }
         } else {
-            // non-market orders
-            request['px'] = this.priceToPrecision (symbol, price);
+            if ((!trigger) && (!conditional)) {
+                request['px'] = this.priceToPrecision (symbol, price);
+            }
         }
-        let extendedRequest = undefined;
-        let defaultMethod = this.safeString (this.options, 'createOrder', 'privatePostTradeBatchOrders'); // or privatePostTradeOrder or privatePostTradeOrderAlgo
-        const stopPrice = this.safeNumber2 (params, 'triggerPx', 'stopPrice');
-        params = this.omit (params, [ 'triggerPx', 'stopPrice' ]);
-        if (stopPrice) {
-            defaultMethod = 'privatePostTradeOrderAlgo';
+        if (postOnly) {
+            method = defaultMethod;
+            request['ordType'] = 'post_only';
+        } else if (ioc && !marketIOC) {
+            method = defaultMethod;
+            request['ordType'] = 'ioc';
+        } else if (fok) {
+            method = defaultMethod;
+            request['ordType'] = 'fok';
+        } else if (trigger) {
+            method = 'privatePostTradeOrderAlgo';
             request['ordType'] = 'trigger';
             request['triggerPx'] = this.priceToPrecision (symbol, stopPrice);
-            if (type === 'market') {
-                price = -1;
+            request['orderPx'] = isMarketOrder ? '-1' : this.priceToPrecision (symbol, price);
+        } else if (conditional) {
+            method = 'privatePostTradeOrderAlgo';
+            request['ordType'] = 'conditional';
+            const twoWayCondition = ((takeProfitPrice !== undefined) && (stopLossPrice !== undefined));
+            // if TP and SL are sent together
+            // as ordType 'conditional' only stop-loss order will be applied
+            if (twoWayCondition) {
+                request['ordType'] = 'oco';
             }
-            request['orderPx'] = this.priceToPrecision (symbol, price);
+            if (takeProfitPrice !== undefined) {
+                request['tpTriggerPx'] = this.priceToPrecision (symbol, takeProfitPrice);
+                request['tpOrdPx'] = (tpOrdPx === undefined) ? '-1' : this.priceToPrecision (symbol, tpOrdPx);
+                request['tpTriggerPxType'] = tpTriggerPxType;
+            }
+            if (stopLossPrice !== undefined) {
+                request['slTriggerPx'] = this.priceToPrecision (symbol, stopLossPrice);
+                request['slOrdPx'] = (slOrdPx === undefined) ? '-1' : this.priceToPrecision (symbol, slOrdPx);
+                request['slTriggerPxType'] = slTriggerPxType;
+            }
         }
-        if (defaultMethod === 'privatePostTradeOrder' || defaultMethod === 'privatePostTradeOrderAlgo') {
+        if ((type === 'oco') || (type === 'move_order_stop') || (type === 'iceberg') || (type === 'twap')) {
+            method = 'privatePostTradeOrderAlgo';
+        }
+        if (clientOrderId === undefined) {
+            const brokerId = this.safeString (this.options, 'brokerId');
+            if (brokerId !== undefined) {
+                request['clOrdId'] = brokerId + this.uuid16 ();
+            }
+        } else {
+            request['clOrdId'] = clientOrderId;
+            params = this.omit (params, [ 'clOrdId', 'clientOrderId' ]);
+        }
+        let extendedRequest = undefined;
+        if ((method === 'privatePostTradeOrder') || (method === 'privatePostTradeOrderAlgo')) {
             extendedRequest = this.extend (request, params);
-        } else if (defaultMethod === 'privatePostTradeBatchOrders') {
+        } else if (method === 'privatePostTradeBatchOrders') {
             // keep the request body the same
             // submit a single order in an array to the batch order endpoint
             // because it has a lower ratelimit
             extendedRequest = [ this.extend (request, params) ];
         } else {
-            throw new ExchangeError (this.id + ' this.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder');
+            throw new ExchangeError (this.id + ' createOrder() this.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder');
         }
-        const response = await this[defaultMethod] (extendedRequest);
-        //
-        //     {
-        //         "code": "0",
-        //         "msg": "",
-        //         "data": [
-        //             {
-        //                 "clOrdId": "oktswap6",
-        //                 "ordId": "312269865356374016",
-        //                 "tag": "",
-        //                 "sCode": "0",
-        //                 "sMsg": ""
-        //             }
-        //         ]
-        //     }
-        //
-        // Trigger Order
-        //
-        //     {
-        //         "code": "0",
-        //         "data": [
-        //             {
-        //                 "algoId": "422774258702659590",
-        //                 "sCode": "0",
-        //                 "sMsg": ""
-        //             }
-        //         ],
-        //         "msg": ""
-        //     }
-        //
+        const response = await this[method] (extendedRequest);
         const data = this.safeValue (response, 'data', []);
         const first = this.safeValue (data, 0);
         const order = this.parseOrder (first, market);
@@ -2095,6 +2065,11 @@ module.exports = class okx extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        const stop = this.safeValue (params, 'stop');
+        if (stop) {
+            const order = await this.cancelOrders ([ id ], symbol, params);
+            return this.safeValue (order, 0);
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -2119,7 +2094,23 @@ module.exports = class okx extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrders (ids, symbol = undefined, params = {}) { // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
+    parseIds (ids) {
+        /**
+         * @ignore
+         * @method
+         * @name okx#parseIds
+         * @param {[str]|str} ids order ids
+         * @returns {[str]} list of order ids
+         */
+        if (typeof ids === 'string') {
+            return ids.split (',');
+        } else {
+            return ids;
+        }
+    }
+
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
@@ -2129,57 +2120,44 @@ module.exports = class okx extends Exchange {
         const options = this.safeValue (this.options, 'cancelOrders', {});
         const defaultMethod = this.safeString (options, 'method', 'privatePostTradeCancelBatchOrders');
         let method = this.safeString (params, 'method', defaultMethod);
-        const clientOrderId = this.safeValue2 (params, 'clOrdId', 'clientOrderId');
-        const algoId = this.safeValue (params, 'algoId');
+        const clientOrderIds = this.parseIds (this.safeValue2 (params, 'clOrdId', 'clientOrderId'));
+        const algoIds = this.parseIds (this.safeValue (params, 'algoId'));
         const stop = this.safeValue (params, 'stop');
-        if (clientOrderId === undefined) {
-            if (stop || algoId !== undefined) {
-                method = 'privatePostTradeCancelAlgos';
-                if (Array.isArray (algoId)) {
-                    for (let i = 0; i < algoId.length; i++) {
-                        request.push ({
-                            'instId': market['id'],
-                            'algoId': algoId[i],
-                        });
-                    }
-                } else if (typeof algoId === 'string') {
+        if (stop) {
+            method = 'privatePostTradeCancelAlgos';
+        }
+        if (clientOrderIds === undefined) {
+            ids = this.parseIds (ids);
+            if (algoIds !== undefined) {
+                for (let i = 0; i < algoIds.length; i++) {
                     request.push ({
+                        'algoId': algoIds[i],
                         'instId': market['id'],
-                        'algoId': algoId,
                     });
                 }
-            } else {
-                if (typeof ids === 'string') {
-                    const orderIds = ids.split (',');
-                    for (let i = 0; i < orderIds.length; i++) {
-                        request.push ({
-                            'instId': market['id'],
-                            'ordId': orderIds[i],
-                        });
-                    }
+            }
+            for (let i = 0; i < ids.length; i++) {
+                if (stop) {
+                    request.push ({
+                        'algoId': ids[i],
+                        'instId': market['id'],
+                    });
                 } else {
-                    for (let i = 0; i < ids.length; i++) {
-                        request.push ({
-                            'instId': market['id'],
-                            'ordId': ids[i],
-                        });
-                    }
+                    request.push ({
+                        'ordId': ids[i],
+                        'instId': market['id'],
+                    });
                 }
             }
-        } else if (Array.isArray (clientOrderId)) {
-            for (let i = 0; i < clientOrderId.length; i++) {
+        } else {
+            for (let i = 0; i < clientOrderIds.length; i++) {
                 request.push ({
                     'instId': market['id'],
-                    'clOrdId': clientOrderId[i],
+                    'clOrdId': clientOrderIds[i],
                 });
             }
-        } else if (typeof clientOrderId === 'string') {
-            request.push ({
-                'instId': market['id'],
-                'clOrdId': clientOrderId,
-            });
         }
-        const response = await this[method] (request); // dont extend with params, otherwise ARRAY will be turned into OBJECT
+        const response = await this[method] (request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         //
         //     {
         //         "code": "0",
@@ -2319,7 +2297,7 @@ module.exports = class okx extends Exchange {
         //         "uly": "BTC-USDT"
         //     }
         //
-        const id = this.safeString (order, 'ordId');
+        const id = this.safeString2 (order, 'ordId', 'algoId');
         const timestamp = this.safeInteger (order, 'cTime');
         const lastTradeTimestamp = this.safeInteger (order, 'fillTime');
         const side = this.safeString (order, 'side');
@@ -2371,7 +2349,7 @@ module.exports = class okx extends Exchange {
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
-        const stopPrice = this.safeNumber2 (order, 'slTriggerPx', 'triggerPx');
+        const stopPrice = this.safeNumber2 (order, 'triggerPx', 'slTriggerPx');
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -2401,15 +2379,14 @@ module.exports = class okx extends Exchange {
         /**
          * @method
          * @name okx#fetchOrder
-         * @description Fetch an order by the id
-         * @param {string} id The order id
-         * @param {string} symbol Unified market symbol
-         * @param {dict} params Extra and exchange specific parameters
-         * @param {integer} params.till Timestamp in ms of the latest time to retrieve orders for
-         * @param {boolean} params.stop True if fetching trigger orders
+         * @description fetch an order by the id
+         * @param {string} id the order id
+         * @param {string} symbol unified market symbol
+         * @param {dict} params extra and exchange specific parameters
+         * @param {integer} params.till timestamp in ms of the latest time to retrieve orders for
+         * @param {boolean} params.stop true if fetching trigger orders, params.ordtype set to "trigger" if true
          * @param {string} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
-         * @param {string} params.algoId Algo ID
-         * @returns [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns [an order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
@@ -2436,11 +2413,12 @@ module.exports = class okx extends Exchange {
         const ordType = this.safeString (params, 'ordType');
         const stop = this.safeValue (params, 'stop');
         if (stop || (ordType in algoOrderTypes)) {
-            if (ordType === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrder() requires an ordType parameter');
-            }
             method = 'privateGetTradeOrdersAlgoHistory';
             request['algoId'] = id;
+            if (stop) {
+                request['ordType'] = 'trigger';
+                params = this.omit (params, 'ordType');
+            }
         } else {
             if (clientOrderId !== undefined) {
                 request['clOrdId'] = clientOrderId;
@@ -2594,6 +2572,10 @@ module.exports = class okx extends Exchange {
         const stop = this.safeValue (params, 'stop');
         if (stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoPending';
+            if (stop) {
+                request['ordType'] = 'trigger';
+                params = this.omit (params, 'ordType');
+            }
         }
         const query = this.omit (params, [ 'method', 'stop' ]);
         const response = await this[method] (this.extend (request, query));
@@ -4327,7 +4309,7 @@ module.exports = class okx extends Exchange {
         //        "type": "8"
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];

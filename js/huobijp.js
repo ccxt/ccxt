@@ -451,7 +451,7 @@ module.exports = class huobijp extends Exchange {
         //         ]
         //    }
         //
-        const markets = this.safeValue (response, 'data');
+        const markets = this.safeValue (response, 'data', []);
         const numMarkets = markets.length;
         if (numMarkets < 1) {
             throw new NetworkError (this.id + ' fetchMarkets() returned empty response: ' + this.json (markets));
@@ -607,7 +607,7 @@ module.exports = class huobijp extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -714,7 +714,7 @@ module.exports = class huobijp extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.marketGetTickers (params);
-        const tickers = this.safeValue (response, 'data');
+        const tickers = this.safeValue (response, 'data', []);
         const timestamp = this.safeInteger (response, 'ts');
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
@@ -886,7 +886,7 @@ module.exports = class huobijp extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         let result = [];
         for (let i = 0; i < data.length; i++) {
             const trades = this.safeValue (data[i], 'data', []);
@@ -1018,7 +1018,7 @@ module.exports = class huobijp extends Exchange {
         //         ]
         //     }
         //
-        const currencies = this.safeValue (response, 'data');
+        const currencies = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
@@ -1495,10 +1495,7 @@ module.exports = class huobijp extends Exchange {
         //     }
         //
         const address = this.safeString (depositAddress, 'address');
-        let tag = this.safeString (depositAddress, 'addressTag');
-        if (tag === '') {
-            tag = undefined;
-        }
+        const tag = this.safeString (depositAddress, 'addressTag');
         const currencyId = this.safeString (depositAddress, 'currency');
         currency = this.safeCurrency (currencyId, currency);
         const code = this.safeCurrencyCode (currencyId, currency);
