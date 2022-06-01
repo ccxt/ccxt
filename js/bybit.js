@@ -2847,12 +2847,14 @@ module.exports = class bybit extends Exchange {
         if (price === undefined && type === 'limit') {
             throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
         }
+        amount = this.amountToPrecision (symbol, amount);
+        amount = market['linear'] ? parseFloat (amount) : parseInt (amount);
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
             'order_type': this.capitalize (type), // limit
             'time_in_force': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
-            'qty': this.amountToPrecision (symbol, amount),
+            'qty': amount,
             // 'take_profit': 123.45, // take profit price, only take effect upon opening the position
             // 'stop_loss': 123.45, // stop loss price, only take effect upon opening the position
             // 'reduce_only': false, // reduce only, required for linear orders
