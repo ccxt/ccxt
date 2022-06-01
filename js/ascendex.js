@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol, PermissionDenied, BadRequest } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol, PermissionDenied, BadRequest, NotSupported } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -32,6 +32,7 @@ module.exports = class ascendex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -1312,6 +1313,101 @@ module.exports = class ascendex extends Exchange {
             };
         }
         return result;
+    }
+
+    async createOrder2 (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name gateio#createOrder
+         * @description Create an order on the exchange
+         * @param {str} symbol Unified CCXT market symbol
+         * @param {str} type "limit" or "market"
+         * @param {str} side "buy" or "sell"
+         * @param {float} amount the amount of currency to trade
+         * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+         * @param {dict} params Extra parameters specific to the exchange API endpoint
+         * @param {str} params.timeInForce "GTC", "IOC", "FOK", or "PO"
+         * @param {bool} params.postOnly true or false
+         * @param {float} params.stopPrice The price at which a trigger order is triggered at
+         * @param {float} params.stopLossPrice position stop loss price (swap only)
+         * @param {float} params.takeProfitPrice position take profit price (swap only)
+         * @returns [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const market = this.market (symbol);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        const options = this.safeValue (this.options, 'createOrder', {});
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountCategory = this.safeString (accountsByType, marketType, 'cash');
+        const account = this.safeValue (this.accounts, 0, {});
+        const accountGroup = this.safeValue (account, 'id');
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'id');
+        const request = {
+            'account-group': accountGroup,
+            'account-category': accountCategory,
+            'symbol': market['id'],
+            'time': this.milliseconds (),
+            'orderQty': this.amountToPrecision (symbol, amount),
+            'orderType': type, // "limit", "market", "stop_market", "stop_limit"
+            'side': side, // "buy" or "sell",
+            // 'respInst': 'ACK', // ACK, 'ACCEPT, DONE
+            // 'posStopLossPrice': position stop loss price ( v2 swap orders only)
+            // 'posTakeProfitPrice': position take profit price (v2 swap orders only)
+        };
+        const isMarketOrder = (type === 'market') || (type === 'stop_market'); // TODO investigate swap endpoint orderType naming as above
+        const isLimitOrder = (type === 'limit') || (type === 'stop_limit');
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const postOnly = this.isPostOnly (isMarketOrder, undefined, params);
+        const reduceOnly = this.safeValue (params, 'reduceOnly', true);
+        const stopLossPrice = this.safeString2 (params, 'stopLossPrice', 'posStopLossPrice');
+        const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'posTakeProfitPrice');
+        params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly' ]);
+        if (!reduceOnly) {
+            throw new NotSupported (this.id + ' createOrder () does not support reduceOnly = false');
+        }
+        if (isLimitOrder) {
+            request['orderPrice'] = this.priceToPrecision (symbol, price);
+        }
+        if (timeInForce === 'IOC') {
+            request['timeInForce'] = 'IOC';
+        }
+        if (timeInForce === 'FOK') {
+            request['timeInForce'] = 'FOK';
+        }
+        if (postOnly) {
+            request['postOnly'] = true;
+        }
+        if (stopLossPrice || takeProfitPrice) {
+            if (marketType === 'spot') {
+                throw new NotSupported (this.id + ' createOrder () does not support stopLossPrice or takeProfitPrice on spot orders');
+            }
+            if (stopLossPrice) {
+                request['posStopLossPrice'] = this.priceToPrecision (symbol, stopLossPrice);
+            }
+            if (takeProfitPrice) {
+                request['posTakeProfitPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
+            }
+        }
+        if (clientOrderId !== undefined) {
+            request['id'] = clientOrderId;
+        }
+        const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountCategoryPostOrder');
+        const method = this.getSupportedMapping (marketType, {
+            'spot': defaultMethod,
+            'margin': defaultMethod,
+            'swap': 'v2PrivateAccountGroupPostFuturesOrder',
+        });
+        if (method === 'v1PrivateAccountCategoryPostOrder') {
+            if (accountCategory !== undefined) {
+                request['category'] = accountCategory;
+            }
+        } else {
+            request['account-category'] = accountCategory;
+        }
+        return [ method, this.extend (request, params) ];
+        // const response = await this[method] (this.extend (request, params));
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
