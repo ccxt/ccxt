@@ -189,6 +189,13 @@ module.exports = class oceanex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name oceanex#fetchMarkets
+         * @description retrieves data on all markets for oceanex
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const request = { 'show_details': true };
         const response = await this.spotPublicGetMarkets (this.extend (request, params));
         //
@@ -205,72 +212,7 @@ module.exports = class oceanex extends Exchange {
         //    },
         //
         const result = [];
-        const markets = this.safeValue (response, 'data');
-        // const contractResponse = await this.contractPublicGetContracts (params);
-        //
-        //     {
-        //         "code": 0,
-        //         "message": "Operation is successful",
-        //         "data": {
-        //             "contracts": [{
-        //                 "contract": {
-        //                     "contract_id": 1,
-        //                     "index_id": 1,
-        //                     "name": "BTCUSDT(USDT)",
-        //                     "display_name": "BTCUSDT(USDT)",
-        //                     "contract_type": 1,
-        //                     "base_coin": "btc",
-        //                     "quote_coin": "usdt",
-        //                     "price_coin": "btc",
-        //                     "contract_size": "0.0001",
-        //                     "delivery_cycle": "28800.0",
-        //                     "min_leverage": "10.0",
-        //                     "max_leverage": "100.0",
-        //                     "leverage_step": "0.1",
-        //                     "price_unit": "0.01",
-        //                     "vol_unit": "1.0",
-        //                     "value_unit": "0.0001",
-        //                     "price_precision": 2,
-        //                     "volume_precision": 0,
-        //                     "value_precision": 4,
-        //                     "min_vol": "1.0",
-        //                     "max_vol": "300000.0",
-        //                     "liquidation_warn_ratio": "0.85",
-        //                     "fast_liquidation_ratio": "0.8",
-        //                     "settle_type": 1,
-        //                     "open_type": 3,
-        //                     "compensate_type": 1,
-        //                     "status": 1,
-        //                     "display_index": 1,
-        //                     "index_sources": {
-        //                         "binance": 50,
-        //                         "coinbase": 50
-        //                     },
-        //                     "created_at": "2020-06-11T18:13:34Z",
-        //                     "updated_at": "2020-06-11T18:13:34Z"
-        //                 },
-        //                 "risk_limit": {
-        //                     "contract_id": 1,
-        //                     "base_limit": "1000000.0",
-        //                     "step": "500000.0",
-        //                     "maintenance_margin": "0.005",
-        //                     "initial_margin": "0.01"
-        //                 },
-        //                 "fee_config": {
-        //                     "contract_id": 1,
-        //                     "maker_fee": "-0.0003",
-        //                     "taker_fee": "0.001",
-        //                     "settlement_fee": "0.0"
-        //                 },
-        //                 "plan_order_config": {
-        //                     "contract_id": 1
-        //                 }
-        //             }]
-        //         }
-        //     }
-        //
-        // const data = this.safeValue (contractResponse, 'data', {});
-        // const contracts = this.safeValue (data, 'contracts', []);
+        const markets = this.safeValue (response, 'data', []);
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeValue (market, 'id');
@@ -336,6 +278,14 @@ module.exports = class oceanex extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name oceanex#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the oceanex api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -364,6 +314,14 @@ module.exports = class oceanex extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name oceanex#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the oceanex api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         if (symbols === undefined) {
             symbols = this.symbols;
@@ -388,7 +346,7 @@ module.exports = class oceanex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = data[i];
@@ -438,10 +396,19 @@ module.exports = class oceanex extends Exchange {
             'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name oceanex#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the oceanex api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -524,6 +491,16 @@ module.exports = class oceanex extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name oceanex#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the oceanex api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -602,7 +579,14 @@ module.exports = class oceanex extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const response = await this.spotPublicGetTimestamp (params);
+        /**
+         * @method
+         * @name oceanex#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the oceanex api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        const response = await this.publicGetTimestamp (params);
         //
         //     {"code":0,"message":"Operation successful","data":1559433420}
         //
@@ -611,7 +595,7 @@ module.exports = class oceanex extends Exchange {
 
     async fetchTradingFees (params = {}) {
         const response = await this.publicGetFeesTrading (params);
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const group = data[i];
@@ -637,7 +621,7 @@ module.exports = class oceanex extends Exchange {
 
     parseBalance (response) {
         const data = this.safeValue (response, 'data');
-        const balances = this.safeValue (data, 'accounts');
+        const balances = this.safeValue (data, 'accounts', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -652,6 +636,13 @@ module.exports = class oceanex extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name oceanex#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the oceanex api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const response = await this.spotPrivateGetMembersMe (params);
         return this.parseBalance (response);
@@ -762,6 +753,17 @@ module.exports = class oceanex extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name oceanex#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the oceanex api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
