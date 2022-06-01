@@ -736,7 +736,7 @@ module.exports = class kucoinfutures extends kucoin {
         const last = this.safeString (ticker, 'price');
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market, '-');
-        const timestamp = parseInt (Precise.stringDiv (this.safeString (ticker, 'ts'), '1000000'));
+        const timestamp = parseInt (parseFloat (Precise.stringDiv (this.safeString (ticker, 'ts'), '1000000')));
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
