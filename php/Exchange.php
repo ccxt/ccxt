@@ -2295,6 +2295,7 @@ class Exchange {
             'vwap' => $this->parse_number($vwap),
             'baseVolume' => $this->parse_number($baseVolume),
             'quoteVolume' => $this->parse_number($quoteVolume),
+            'previousClose' => $this->safe_number($ticker, 'previousClose'),
         ));
     }
 
