@@ -2883,7 +2883,7 @@ module.exports = class bybit extends Exchange {
             request['close_on_trigger'] = closeOnTrigger;
         }
         if (price !== undefined) {
-            request['price'] = price;
+            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
         }
         const stopPx = this.safeValue2 (params, 'stop_px', 'stopPrice');
         const basePrice = this.safeValue2 (params, 'base_price', 'basePrice');
