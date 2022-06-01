@@ -30,6 +30,9 @@ module.exports = class coinex extends Exchange {
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': true,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRateHistories': false,
                 'fetchBorrowRates': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -3746,6 +3749,72 @@ module.exports = class coinex extends Exchange {
             data = this.safeValue (data, 'data', []);
         }
         return this.parseTransactions (data, currency, since, limit);
+    }
+
+    parseBorrowRate (info, currency = undefined) {
+        //
+        //     {
+        //         "market": "BTCUSDT",
+        //         "leverage": 10,
+        //         "BTC": {
+        //             "min_amount": "0.002",
+        //             "max_amount": "200",
+        //             "day_rate": "0.001"
+        //         },
+        //         "USDT": {
+        //             "min_amount": "60",
+        //             "max_amount": "5000000",
+        //             "day_rate": "0.001"
+        //         }
+        //     },
+        //
+        const timestamp = this.milliseconds ();
+        const baseCurrencyData = this.safeValue (info, currency, {});
+        return {
+            'currency': this.safeCurrencyCode (currency),
+            'rate': this.safeNumber (baseCurrencyData, 'day_rate'),
+            'period': 86400000,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
+    async fetchBorrowRate (code, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (code in this.markets) {
+            market = this.market (code);
+        } else {
+            const defaultSettle = this.safeString (this.options, 'defaultSettle', 'USDT');
+            market = this.market (code + '/' + defaultSettle);
+        }
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.privateGetMarginConfig (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "market": "BTCUSDT",
+        //             "leverage": 10,
+        //             "BTC": {
+        //                 "min_amount": "0.002",
+        //                 "max_amount": "200",
+        //                 "day_rate": "0.001"
+        //             },
+        //             "USDT": {
+        //                 "min_amount": "60",
+        //                 "max_amount": "5000000",
+        //                 "day_rate": "0.001"
+        //             }
+        //         },
+        //         "message": "Success"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseBorrowRate (data, market['base']);
     }
 
     async fetchBorrowRates (params = {}) {
