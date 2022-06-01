@@ -1628,7 +1628,7 @@ class okx(Exchange):
             # it may be incorrect to use total, free and used for swap accounts
             eq = self.safe_string(balance, 'eq')
             availEq = self.safe_string(balance, 'availEq')
-            if (len(eq) < 1) or (len(availEq) < 1):
+            if (eq is None) or (availEq is None):
                 account['free'] = self.safe_string(balance, 'availBal')
                 account['used'] = self.safe_string(balance, 'frozenBal')
             else:

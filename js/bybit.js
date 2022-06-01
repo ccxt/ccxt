@@ -2717,7 +2717,7 @@ module.exports = class bybit extends Exchange {
             if (price === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder requires a price argument for a ' + type + ' order');
             }
-            request['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
         }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'orderLinkId');
         if (clientOrderId !== undefined) {
@@ -2886,7 +2886,7 @@ module.exports = class bybit extends Exchange {
             request['close_on_trigger'] = closeOnTrigger;
         }
         if (price !== undefined) {
-            request['price'] = price;
+            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
         }
         const stopPx = this.safeValue2 (params, 'stop_px', 'stopPrice');
         const basePrice = this.safeValue2 (params, 'base_price', 'basePrice');
