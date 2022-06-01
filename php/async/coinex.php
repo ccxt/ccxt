@@ -1779,10 +1779,18 @@ class coinex extends Exchange {
                 }
             }
         }
-        $params = $this->omit($params, array( 'reduceOnly', 'position_id', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type' ));
+        $accountId = $this->safe_integer($params, 'account_id');
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        if ($defaultType === 'margin') {
+            if ($accountId === null) {
+                throw new BadRequest($this->id . ' createOrder() requires an account_id parameter for margin orders');
+            }
+            $request['account_id'] = $accountId;
+        }
+        $params = $this->omit($params, array( 'account_id', 'reduceOnly', 'position_id', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type' ));
         $response = yield $this->$method (array_merge($request, $params));
         //
-        // Spot
+        // Spot and Margin
         //
         //     {
         //         "code" => 0,

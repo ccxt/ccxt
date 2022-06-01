@@ -1708,10 +1708,16 @@ class coinex(Exchange):
                     else:
                         if timeInForce is not None:
                             request['option'] = timeInForce  # exchange takes 'IOC' and 'FOK'
-        params = self.omit(params, ['reduceOnly', 'position_id', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type'])
+        accountId = self.safe_integer(params, 'account_id')
+        defaultType = self.safe_string(self.options, 'defaultType')
+        if defaultType == 'margin':
+            if accountId is None:
+                raise BadRequest(self.id + ' createOrder() requires an account_id parameter for margin orders')
+            request['account_id'] = accountId
+        params = self.omit(params, ['account_id', 'reduceOnly', 'position_id', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type'])
         response = getattr(self, method)(self.extend(request, params))
         #
-        # Spot
+        # Spot and Margin
         #
         #     {
         #         "code": 0,
