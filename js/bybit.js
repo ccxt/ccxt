@@ -2848,6 +2848,8 @@ module.exports = class bybit extends Exchange {
         if (price === undefined && type === 'limit') {
             throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
         }
+        amount = this.amountToPrecision (symbol, amount);
+        amount = market['linear'] ? parseFloat (amount) : parseInt (amount);
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
