@@ -3462,12 +3462,12 @@ module.exports = class coinex extends Exchange {
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets ();
-        const currency = this.safeCurrencyCode (code);
+        const currency = this.currency (code);
         const amountToPrecision = this.currencyToPrecision (code, amount);
         let transfer = undefined;
         const request = {
             'amount': amountToPrecision,
-            'coin_type': currency,
+            'coin_type': currency['id'],
         };
         let method = 'privatePostContractBalanceTransfer';
         if ((fromAccount === 'spot') && (toAccount === 'swap')) {
