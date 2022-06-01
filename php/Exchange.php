@@ -1395,7 +1395,6 @@ class Exchange {
                         $value;
             }
         }
-        $this->emulate_single_market_method('fetchPosition', 'fetchPositions');
 
         $this->tokenBucket = array(
             'delay' => 0.001,

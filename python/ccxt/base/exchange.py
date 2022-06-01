@@ -393,7 +393,6 @@ class Exchange(object):
         self.userAgent = default_user_agent()
 
         settings = self.deep_extend(self.describe(), config)
-        self.emulate_single_market_method('fetchPosition', 'fetchPositions')
 
         for key in settings:
             if hasattr(self, key) and isinstance(getattr(self, key), dict):
