@@ -209,7 +209,7 @@ module.exports = class cryptocom extends Exchange {
             },
             'options': {
                 'defaultType': 'spot',
-                'accountsByType': {
+                'accountsById': {
                     'funding': 'SPOT',
                     'spot': 'SPOT',
                     'derivatives': 'DERIVATIVES',
@@ -1358,7 +1358,7 @@ module.exports = class cryptocom extends Exchange {
         const currency = this.currency (code);
         fromAccount = fromAccount.toLowerCase ();
         toAccount = toAccount.toLowerCase ();
-        const accountsById = this.safeValue (this.options, 'accountsByType', {});
+        const accountsById = this.safeValue (this.options, 'accountsById', {});
         const fromId = this.safeString (accountsById, fromAccount, fromAccount);
         const toId = this.safeString (accountsById, toAccount, toAccount);
         const request = {
