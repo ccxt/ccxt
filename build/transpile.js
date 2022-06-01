@@ -1102,8 +1102,10 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
+
     getClassDeclarationMatches (contents) {
         return contents.match (/^module\.exports\s*=\s*class\s+([\S]+)(?:\s+extends\s+([\S]+))?\s+{([\s\S]+?)^};*/m)
+        // /^module\.exports\s*=\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^};*/m
     }
 
     // ------------------------------------------------------------------------
@@ -1121,6 +1123,7 @@ class Transpiler {
         // altogether in PHP, async PHP, Python sync and async
         const sync = false
         const async = true
+        // const docstringPattern = /^\s*\/\*\*[^\/]*\*\//m;   // Cannot have / character in class docstring
         return {
             python2:      this.createPythonClass (className, baseClass, python2,  methodNames, sync),
             python3:      this.createPythonClass (className, baseClass, python3,  methodNames, async),
