@@ -74,7 +74,9 @@ module.exports = class bitforex extends Exchange {
                     'get': {
                         'api/v1/market/symbols': 20,
                         'api/v1/market/ticker': 4,
+                        'api/v1/market/ticker-all': 4,
                         'api/v1/market/depth': 4,
+                        'api/v1/market/depth-all': 4,
                         'api/v1/market/trades': 20,
                         'api/v1/market/kline': 20,
                     },
@@ -384,7 +386,7 @@ module.exports = class bitforex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetApiV1MarketTicker (this.extend (request, params));
+        const response = await this.publicGetApiV1MarketTickerAll (this.extend (request, params));
         const ticker = this.safeValue (response, 'data');
         //
         //     {
@@ -481,7 +483,7 @@ module.exports = class bitforex extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await this.publicGetApiV1MarketDepth (this.extend (request, params));
+        const response = await this.publicGetApiV1MarketDepthAll (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         const timestamp = this.safeInteger (response, 'time');
         return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
