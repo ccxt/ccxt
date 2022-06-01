@@ -222,7 +222,7 @@ class cryptocom(Exchange):
             },
             'options': {
                 'defaultType': 'spot',
-                'accountsByType': {
+                'accountsById': {
                     'funding': 'SPOT',
                     'spot': 'SPOT',
                     'derivatives': 'DERIVATIVES',
@@ -1292,7 +1292,7 @@ class cryptocom(Exchange):
         currency = self.currency(code)
         fromAccount = fromAccount.lower()
         toAccount = toAccount.lower()
-        accountsById = self.safe_value(self.options, 'accountsByType', {})
+        accountsById = self.safe_value(self.options, 'accountsById', {})
         fromId = self.safe_string(accountsById, fromAccount, fromAccount)
         toId = self.safe_string(accountsById, toAccount, toAccount)
         request = {
