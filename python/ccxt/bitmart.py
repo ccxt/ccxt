@@ -46,6 +46,7 @@ class bitmart(Exchange):
                 'cancelOrder': True,
                 'cancelOrders': False,
                 'createOrder': True,
+                'createPostOnlyOrder': True,
                 'createStopLimitOrder': False,
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
@@ -1535,7 +1536,7 @@ class bitmart(Exchange):
         #         "symbol":"BTC_USDT",
         #         "create_time":1591096004000,
         #         "side":"sell",
-        #         "type":"market",
+        #         "type":"market",  # limit, market, limit_maker, ioc
         #         "price":"0.00",
         #         "price_avg":"0.00",
         #         "size":"0.02000",
@@ -1595,6 +1596,15 @@ class bitmart(Exchange):
             type = 'limit'
         elif category == 2:
             type = 'market'
+        timeInForce = None
+        postOnly = None
+        if type == 'limit_maker':
+            type = 'limit'
+            postOnly = True
+            timeInForce = 'PO'
+        if type == 'ioc':
+            type = 'limit'
+            timeInForce = 'IOC'
         return self.safe_order({
             'id': id,
             'clientOrderId': None,
@@ -1604,8 +1614,8 @@ class bitmart(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
-            'timeInForce': None,
-            'postOnly': None,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': None,
@@ -1644,16 +1654,24 @@ class bitmart(Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = {}
+        timeInForce = self.safe_string(params, 'timeInForce')
+        if timeInForce == 'FOK':
+            raise InvalidOrder(self.id + ' createOrder() only accepts timeInForce parameter values of IOC or PO')
+        isMarketOrder = type == 'market'
+        postOnly = self.is_post_only(isMarketOrder, type == 'limit_maker', params)
+        params = self.omit(params, ['timeInForce', 'postOnly'])
+        ioc = ((timeInForce == 'IOC') or (type == 'ioc'))
+        isLimitOrder = (type == 'limit') or postOnly or ioc
         method = None
         if market['spot']:
             request['symbol'] = market['id']
             request['side'] = side
             request['type'] = type
             method = 'privateSpotPostSubmitOrder'
-            if type == 'limit':
+            if isLimitOrder:
                 request['size'] = self.amount_to_precision(symbol, amount)
                 request['price'] = self.price_to_precision(symbol, price)
-            elif type == 'market':
+            elif isMarketOrder:
                 # for market buy it requires the amount of quote currency to spend
                 if side == 'buy':
                     notional = self.safe_number(params, 'notional')
@@ -1672,22 +1690,10 @@ class bitmart(Exchange):
                     request['size'] = self.amount_to_precision(symbol, amount)
         elif market['swap'] or market['future']:
             raise NotSupported(self.id + ' createOrder() does not accept swap or future orders, only spot orders are allowed')
-        timeInForce = self.safe_string(params, 'timeInForce')
-        postOnly = self.safe_value(params, 'postOnly', False)
-        if (timeInForce is not None) or postOnly or (type == 'limit_maker') or (type == 'ioc'):
-            if timeInForce == 'FOK':
-                raise InvalidOrder(self.id + ' createOrder() only accepts timeInForce parameter values of IOC or PO')
-            maker = ((timeInForce == 'PO') or postOnly or (type == 'limit_maker'))
-            ioc = ((timeInForce == 'IOC') or (type == 'ioc'))
-            if maker and ioc:
-                raise InvalidOrder(self.id + ' createOrder() does not accept IOC postOnly orders, the order cannot be both postOnly and IOC')
-            if type == 'market':
-                raise InvalidOrder(self.id + ' createOrder() does not accept market postOnly orders or market IOC orders, only limit postOnly order or limit IOC orders are allowed')
-            if maker:
-                request['type'] = 'limit_maker'
-            elif ioc:
-                request['type'] = 'ioc'
-            params = self.omit(params, ['timeInForce', 'postOnly'])
+        if postOnly:
+            request['type'] = 'limit_maker'
+        if ioc:
+            request['type'] = 'ioc'
         response = getattr(self, method)(self.extend(request, params))
         #
         # spot and contract

@@ -34,6 +34,7 @@ class bitmart extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => false,
                 'createOrder' => true,
+                'createPostOnlyOrder' => true,
                 'createStopLimitOrder' => false,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => false,
@@ -1579,7 +1580,7 @@ class bitmart extends Exchange {
         //         "symbol":"BTC_USDT",
         //         "create_time":1591096004000,
         //         "side":"sell",
-        //         "type":"market",
+        //         "type":"market", // limit, $market, limit_maker, ioc
         //         "price":"0.00",
         //         "price_avg":"0.00",
         //         "size":"0.02000",
@@ -1642,6 +1643,17 @@ class bitmart extends Exchange {
         } elseif ($category === 2) {
             $type = 'market';
         }
+        $timeInForce = null;
+        $postOnly = null;
+        if ($type === 'limit_maker') {
+            $type = 'limit';
+            $postOnly = true;
+            $timeInForce = 'PO';
+        }
+        if ($type === 'ioc') {
+            $type = 'limit';
+            $timeInForce = 'IOC';
+        }
         return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
@@ -1651,8 +1663,8 @@ class bitmart extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
-            'timeInForce' => null,
-            'postOnly' => null,
+            'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
@@ -1693,16 +1705,25 @@ class bitmart extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array();
+        $timeInForce = $this->safe_string($params, 'timeInForce');
+        if ($timeInForce === 'FOK') {
+            throw new InvalidOrder($this->id . ' createOrder () only accepts $timeInForce parameter values of IOC or PO');
+        }
+        $isMarketOrder = $type === 'market';
+        $postOnly = $this->is_post_only($isMarketOrder, $type === 'limit_maker', $params);
+        $params = $this->omit($params, array( 'timeInForce', 'postOnly' ));
+        $ioc = (($timeInForce === 'IOC') || ($type === 'ioc'));
+        $isLimitOrder = ($type === 'limit') || $postOnly || $ioc;
         $method = null;
         if ($market['spot']) {
             $request['symbol'] = $market['id'];
             $request['side'] = $side;
             $request['type'] = $type;
             $method = 'privateSpotPostSubmitOrder';
-            if ($type === 'limit') {
+            if ($isLimitOrder) {
                 $request['size'] = $this->amount_to_precision($symbol, $amount);
                 $request['price'] = $this->price_to_precision($symbol, $price);
-            } elseif ($type === 'market') {
+            } elseif ($isMarketOrder) {
                 // for $market buy it requires the $amount of quote currency to spend
                 if ($side === 'buy') {
                     $notional = $this->safe_number($params, 'notional');
@@ -1727,26 +1748,11 @@ class bitmart extends Exchange {
         } elseif ($market['swap'] || $market['future']) {
             throw new NotSupported($this->id . ' createOrder () does not accept swap or future orders, only spot orders are allowed');
         }
-        $timeInForce = $this->safe_string($params, 'timeInForce');
-        $postOnly = $this->safe_value($params, 'postOnly', false);
-        if (($timeInForce !== null) || $postOnly || ($type === 'limit_maker') || ($type === 'ioc')) {
-            if ($timeInForce === 'FOK') {
-                throw new InvalidOrder($this->id . ' createOrder () only accepts $timeInForce parameter values of IOC or PO');
-            }
-            $maker = (($timeInForce === 'PO') || $postOnly || ($type === 'limit_maker'));
-            $ioc = (($timeInForce === 'IOC') || ($type === 'ioc'));
-            if ($maker && $ioc) {
-                throw new InvalidOrder($this->id . ' createOrder () does not accept IOC $postOnly orders, the order cannot be both $postOnly and IOC');
-            }
-            if ($type === 'market') {
-                throw new InvalidOrder($this->id . ' createOrder () does not accept $market $postOnly orders or $market IOC orders, only limit $postOnly order or limit IOC orders are allowed');
-            }
-            if ($maker) {
-                $request['type'] = 'limit_maker';
-            } elseif ($ioc) {
-                $request['type'] = 'ioc';
-            }
-            $params = $this->omit($params, array( 'timeInForce', 'postOnly' ));
+        if ($postOnly) {
+            $request['type'] = 'limit_maker';
+        }
+        if ($ioc) {
+            $request['type'] = 'ioc';
         }
         $response = $this->$method (array_merge($request, $params));
         //
