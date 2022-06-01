@@ -368,7 +368,7 @@ module.exports = class lbank2 extends Exchange {
         //
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const timestamp = this.safeString (ticker, 'timestamp');
+        const timestamp = this.safeInteger (ticker, 'timestamp');
         const tickerData = this.safeValue (ticker, 'ticker');
         return this.safeTicker ({
             'symbol': symbol,
