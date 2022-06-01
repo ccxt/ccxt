@@ -30,6 +30,9 @@ module.exports = class coinex extends Exchange {
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': true,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -262,6 +265,9 @@ module.exports = class coinex extends Exchange {
                 'defaultMarginMode': 'isolated', // isolated, cross
                 'fetchDepositAddress': {
                     'fillResponseFromRequest': true,
+                },
+                'accountsById': {
+                    'spot': '0',
                 },
             },
             'commonCurrencies': {
@@ -1789,10 +1795,18 @@ module.exports = class coinex extends Exchange {
                 }
             }
         }
-        params = this.omit (params, [ 'reduceOnly', 'position_id', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type' ]);
+        const accountId = this.safeInteger (params, 'account_id');
+        const defaultType = this.safeString (this.options, 'defaultType');
+        if (defaultType === 'margin') {
+            if (accountId === undefined) {
+                throw new BadRequest (this.id + ' createOrder() requires an account_id parameter for margin orders');
+            }
+            request['account_id'] = accountId;
+        }
+        params = this.omit (params, [ 'account_id', 'reduceOnly', 'position_id', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type' ]);
         const response = await this[method] (this.extend (request, params));
         //
-        // Spot
+        // Spot and Margin
         //
         //     {
         //         "code": 0,
@@ -3459,24 +3473,28 @@ module.exports = class coinex extends Exchange {
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets ();
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('transfer', undefined, params);
-        if (marketType !== 'spot') {
-            throw new BadRequest (this.id + ' transfer() requires defaultType to be spot');
-        }
-        const currency = this.safeCurrencyCode (code);
+        const currency = this.currency (code);
         const amountToPrecision = this.currencyToPrecision (code, amount);
-        let transfer = undefined;
-        if ((fromAccount === 'spot') && (toAccount === 'swap')) {
-            transfer = 'in';
-        } else if ((fromAccount === 'swap') && (toAccount === 'spot')) {
-            transfer = 'out';
-        }
         const request = {
             'amount': amountToPrecision,
-            'coin_type': currency,
-            'transfer_side': transfer, // 'in': spot to swap, 'out': swap to spot
+            'coin_type': currency['id'],
         };
-        const response = await this.privatePostContractBalanceTransfer (this.extend (request, query));
+        let method = 'privatePostContractBalanceTransfer';
+        if ((fromAccount === 'spot') && (toAccount === 'swap')) {
+            request['transfer_side'] = 'in'; // 'in' spot to swap, 'out' swap to spot
+        } else if ((fromAccount === 'swap') && (toAccount === 'spot')) {
+            request['transfer_side'] = 'out'; // 'in' spot to swap, 'out' swap to spot
+        } else {
+            const accountsById = this.safeValue (this.options, 'accountsById', {});
+            const fromId = this.safeString (accountsById, fromAccount, fromAccount);
+            const toId = this.safeString (accountsById, toAccount, toAccount);
+            // fromAccount and toAccount must be integers for margin transfers
+            // spot is 0, use fetchBalance() to find the margin account id
+            request['from_account'] = parseInt (fromId);
+            request['to_account'] = parseInt (toId);
+            method = 'privatePostMarginTransfer';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {"code": 0, "data": null, "message": "Success"}
         //
@@ -3731,6 +3749,72 @@ module.exports = class coinex extends Exchange {
             data = this.safeValue (data, 'data', []);
         }
         return this.parseTransactions (data, currency, since, limit);
+    }
+
+    parseBorrowRate (info, currency = undefined) {
+        //
+        //     {
+        //         "market": "BTCUSDT",
+        //         "leverage": 10,
+        //         "BTC": {
+        //             "min_amount": "0.002",
+        //             "max_amount": "200",
+        //             "day_rate": "0.001"
+        //         },
+        //         "USDT": {
+        //             "min_amount": "60",
+        //             "max_amount": "5000000",
+        //             "day_rate": "0.001"
+        //         }
+        //     },
+        //
+        const timestamp = this.milliseconds ();
+        const baseCurrencyData = this.safeValue (info, currency, {});
+        return {
+            'currency': this.safeCurrencyCode (currency),
+            'rate': this.safeNumber (baseCurrencyData, 'day_rate'),
+            'period': 86400000,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
+    async fetchBorrowRate (code, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (code in this.markets) {
+            market = this.market (code);
+        } else {
+            const defaultSettle = this.safeString (this.options, 'defaultSettle', 'USDT');
+            market = this.market (code + '/' + defaultSettle);
+        }
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.privateGetMarginConfig (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "market": "BTCUSDT",
+        //             "leverage": 10,
+        //             "BTC": {
+        //                 "min_amount": "0.002",
+        //                 "max_amount": "200",
+        //                 "day_rate": "0.001"
+        //             },
+        //             "USDT": {
+        //                 "min_amount": "60",
+        //                 "max_amount": "5000000",
+        //                 "day_rate": "0.001"
+        //             }
+        //         },
+        //         "message": "Success"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseBorrowRate (data, market['base']);
     }
 
     async fetchBorrowRates (params = {}) {

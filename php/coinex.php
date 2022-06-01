@@ -35,6 +35,9 @@ class coinex extends Exchange {
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => true,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
@@ -267,6 +270,9 @@ class coinex extends Exchange {
                 'defaultMarginMode' => 'isolated', // isolated, cross
                 'fetchDepositAddress' => array(
                     'fillResponseFromRequest' => true,
+                ),
+                'accountsById' => array(
+                    'spot' => '0',
                 ),
             ),
             'commonCurrencies' => array(
@@ -1778,10 +1784,18 @@ class coinex extends Exchange {
                 }
             }
         }
-        $params = $this->omit($params, array( 'reduceOnly', 'position_id', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type' ));
+        $accountId = $this->safe_integer($params, 'account_id');
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        if ($defaultType === 'margin') {
+            if ($accountId === null) {
+                throw new BadRequest($this->id . ' createOrder() requires an account_id parameter for margin orders');
+            }
+            $request['account_id'] = $accountId;
+        }
+        $params = $this->omit($params, array( 'account_id', 'reduceOnly', 'position_id', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type' ));
         $response = $this->$method (array_merge($request, $params));
         //
-        // Spot
+        // Spot and Margin
         //
         //     {
         //         "code" => 0,
@@ -3446,24 +3460,28 @@ class coinex extends Exchange {
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         $this->load_markets();
-        list($marketType, $query) = $this->handle_market_type_and_params('transfer', null, $params);
-        if ($marketType !== 'spot') {
-            throw new BadRequest($this->id . ' $transfer() requires defaultType to be spot');
-        }
-        $currency = $this->safe_currency_code($code);
+        $currency = $this->currency($code);
         $amountToPrecision = $this->currency_to_precision($code, $amount);
-        $transfer = null;
-        if (($fromAccount === 'spot') && ($toAccount === 'swap')) {
-            $transfer = 'in';
-        } elseif (($fromAccount === 'swap') && ($toAccount === 'spot')) {
-            $transfer = 'out';
-        }
         $request = array(
             'amount' => $amountToPrecision,
-            'coin_type' => $currency,
-            'transfer_side' => $transfer, // 'in' => spot to swap, 'out' => swap to spot
+            'coin_type' => $currency['id'],
         );
-        $response = $this->privatePostContractBalanceTransfer (array_merge($request, $query));
+        $method = 'privatePostContractBalanceTransfer';
+        if (($fromAccount === 'spot') && ($toAccount === 'swap')) {
+            $request['transfer_side'] = 'in'; // 'in' spot to swap, 'out' swap to spot
+        } elseif (($fromAccount === 'swap') && ($toAccount === 'spot')) {
+            $request['transfer_side'] = 'out'; // 'in' spot to swap, 'out' swap to spot
+        } else {
+            $accountsById = $this->safe_value($this->options, 'accountsById', array());
+            $fromId = $this->safe_string($accountsById, $fromAccount, $fromAccount);
+            $toId = $this->safe_string($accountsById, $toAccount, $toAccount);
+            // $fromAccount and $toAccount must be integers for margin transfers
+            // spot is 0, use fetchBalance() to find the margin account id
+            $request['from_account'] = intval($fromId);
+            $request['to_account'] = intval($toId);
+            $method = 'privatePostMarginTransfer';
+        }
+        $response = $this->$method (array_merge($request, $params));
         //
         //     array("code" => 0, "data" => null, "message" => "Success")
         //
@@ -3718,6 +3736,72 @@ class coinex extends Exchange {
             $data = $this->safe_value($data, 'data', array());
         }
         return $this->parse_transactions($data, $currency, $since, $limit);
+    }
+
+    public function parse_borrow_rate($info, $currency = null) {
+        //
+        //     {
+        //         "market" => "BTCUSDT",
+        //         "leverage" => 10,
+        //         "BTC" => array(
+        //             "min_amount" => "0.002",
+        //             "max_amount" => "200",
+        //             "day_rate" => "0.001"
+        //         ),
+        //         "USDT" => array(
+        //             "min_amount" => "60",
+        //             "max_amount" => "5000000",
+        //             "day_rate" => "0.001"
+        //         }
+        //     ),
+        //
+        $timestamp = $this->milliseconds();
+        $baseCurrencyData = $this->safe_value($info, $currency, array());
+        return array(
+            'currency' => $this->safe_currency_code($currency),
+            'rate' => $this->safe_number($baseCurrencyData, 'day_rate'),
+            'period' => 86400000,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
+    }
+
+    public function fetch_borrow_rate($code, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        if (is_array($this->markets) && array_key_exists($code, $this->markets)) {
+            $market = $this->market($code);
+        } else {
+            $defaultSettle = $this->safe_string($this->options, 'defaultSettle', 'USDT');
+            $market = $this->market($code . '/' . $defaultSettle);
+        }
+        $request = array(
+            'market' => $market['id'],
+        );
+        $response = $this->privateGetMarginConfig (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => {
+        //             "market" => "BTCUSDT",
+        //             "leverage" => 10,
+        //             "BTC" => array(
+        //                 "min_amount" => "0.002",
+        //                 "max_amount" => "200",
+        //                 "day_rate" => "0.001"
+        //             ),
+        //             "USDT" => array(
+        //                 "min_amount" => "60",
+        //                 "max_amount" => "5000000",
+        //                 "day_rate" => "0.001"
+        //             }
+        //         ),
+        //         "message" => "Success"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_borrow_rate($data, $market['base']);
     }
 
     public function fetch_borrow_rates($params = array ()) {

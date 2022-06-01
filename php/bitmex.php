@@ -343,7 +343,7 @@ class bitmex extends Exchange {
             $id = $this->safe_string($market, 'symbol');
             $baseId = $this->safe_string($market, 'underlying');
             $quoteId = $this->safe_string($market, 'quoteCurrency');
-            $settleId = $this->safe_string($market, 'settlCurrency');
+            $settleId = $this->safe_string($market, 'settlCurrency', '');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $settle = $this->safe_currency_code($settleId);
