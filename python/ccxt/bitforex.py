@@ -82,7 +82,9 @@ class bitforex(Exchange):
                     'get': {
                         'api/v1/market/symbols': 20,
                         'api/v1/market/ticker': 4,
+                        'api/v1/market/ticker-all': 4,
                         'api/v1/market/depth': 4,
+                        'api/v1/market/depth-all': 4,
                         'api/v1/market/trades': 20,
                         'api/v1/market/kline': 20,
                     },
@@ -374,7 +376,7 @@ class bitforex(Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = self.publicGetApiV1MarketTicker(self.extend(request, params))
+        response = self.publicGetApiV1MarketTickerAll(self.extend(request, params))
         ticker = self.safe_value(response, 'data')
         #
         #     {
@@ -462,7 +464,7 @@ class bitforex(Exchange):
         }
         if limit is not None:
             request['size'] = limit
-        response = self.publicGetApiV1MarketDepth(self.extend(request, params))
+        response = self.publicGetApiV1MarketDepthAll(self.extend(request, params))
         data = self.safe_value(response, 'data')
         timestamp = self.safe_integer(response, 'time')
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
