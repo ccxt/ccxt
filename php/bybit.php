@@ -26,6 +26,7 @@ class bybit extends Exchange {
             // 20 requests per second for POST requests, cost = 50 / 20 = 2.5
             'rateLimit' => 20,
             'hostname' => 'bybit.com', // bybit.com, bytick.com
+            'pro' => true,
             'has' => array(
                 'CORS' => true,
                 'spot' => true,
@@ -2834,6 +2835,8 @@ class bybit extends Exchange {
         if ($price === null && $type === 'limit') {
             throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for limit orders');
         }
+        $amount = $this->amount_to_precision($symbol, $amount);
+        $amount = $market['linear'] ? floatval($amount) : intval($amount);
         $request = array(
             'symbol' => $market['id'],
             'side' => $this->capitalize($side),
@@ -4188,8 +4191,8 @@ class bybit extends Exchange {
             $defaultSettle = $this->safe_string($this->options, 'defaultSettle');
             $defaultSettle = $this->safe_string_2($params, 'settle', 'defaultSettle', $defaultSettle);
             $isUsdcSettled = ($defaultSettle === 'USDC');
-            $params = $this->omit($params, array( 'settle', 'defaultSettle', 'subType' ));
         }
+        $params = $this->omit($params, array( 'settle', 'defaultSettle', 'subType' ));
         $method = null;
         if ($isUsdcSettled) {
             $method = 'privatePostOptionUsdcOpenapiPrivateV1QueryPosition';

@@ -41,6 +41,9 @@ class coinex(Exchange):
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': True,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
@@ -273,6 +276,9 @@ class coinex(Exchange):
                 'defaultMarginMode': 'isolated',  # isolated, cross
                 'fetchDepositAddress': {
                     'fillResponseFromRequest': True,
+                },
+                'accountsById': {
+                    'spot': '0',
                 },
             },
             'commonCurrencies': {
@@ -1708,10 +1714,16 @@ class coinex(Exchange):
                     else:
                         if timeInForce is not None:
                             request['option'] = timeInForce  # exchange takes 'IOC' and 'FOK'
-        params = self.omit(params, ['reduceOnly', 'position_id', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type'])
+        accountId = self.safe_integer(params, 'account_id')
+        defaultType = self.safe_string(self.options, 'defaultType')
+        if defaultType == 'margin':
+            if accountId is None:
+                raise BadRequest(self.id + ' createOrder() requires an account_id parameter for margin orders')
+            request['account_id'] = accountId
+        params = self.omit(params, ['account_id', 'reduceOnly', 'position_id', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type'])
         response = await getattr(self, method)(self.extend(request, params))
         #
-        # Spot
+        # Spot and Margin
         #
         #     {
         #         "code": 0,
@@ -3284,22 +3296,27 @@ class coinex(Exchange):
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         await self.load_markets()
-        marketType, query = self.handle_market_type_and_params('transfer', None, params)
-        if marketType != 'spot':
-            raise BadRequest(self.id + ' transfer() requires defaultType to be spot')
-        currency = self.safe_currency_code(code)
+        currency = self.currency(code)
         amountToPrecision = self.currency_to_precision(code, amount)
-        transfer = None
-        if (fromAccount == 'spot') and (toAccount == 'swap'):
-            transfer = 'in'
-        elif (fromAccount == 'swap') and (toAccount == 'spot'):
-            transfer = 'out'
         request = {
             'amount': amountToPrecision,
-            'coin_type': currency,
-            'transfer_side': transfer,  # 'in': spot to swap, 'out': swap to spot
+            'coin_type': currency['id'],
         }
-        response = await self.privatePostContractBalanceTransfer(self.extend(request, query))
+        method = 'privatePostContractBalanceTransfer'
+        if (fromAccount == 'spot') and (toAccount == 'swap'):
+            request['transfer_side'] = 'in'  # 'in' spot to swap, 'out' swap to spot
+        elif (fromAccount == 'swap') and (toAccount == 'spot'):
+            request['transfer_side'] = 'out'  # 'in' spot to swap, 'out' swap to spot
+        else:
+            accountsById = self.safe_value(self.options, 'accountsById', {})
+            fromId = self.safe_string(accountsById, fromAccount, fromAccount)
+            toId = self.safe_string(accountsById, toAccount, toAccount)
+            # fromAccount and toAccount must be integers for margin transfers
+            # spot is 0, use fetchBalance() to find the margin account id
+            request['from_account'] = int(fromId)
+            request['to_account'] = int(toId)
+            method = 'privatePostMarginTransfer'
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #     {"code": 0, "data": null, "message": "Success"}
         #
@@ -3539,6 +3556,69 @@ class coinex(Exchange):
         if not isinstance(data, list):
             data = self.safe_value(data, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
+
+    def parse_borrow_rate(self, info, currency=None):
+        #
+        #     {
+        #         "market": "BTCUSDT",
+        #         "leverage": 10,
+        #         "BTC": {
+        #             "min_amount": "0.002",
+        #             "max_amount": "200",
+        #             "day_rate": "0.001"
+        #         },
+        #         "USDT": {
+        #             "min_amount": "60",
+        #             "max_amount": "5000000",
+        #             "day_rate": "0.001"
+        #         }
+        #     },
+        #
+        timestamp = self.milliseconds()
+        baseCurrencyData = self.safe_value(info, currency, {})
+        return {
+            'currency': self.safe_currency_code(currency),
+            'rate': self.safe_number(baseCurrencyData, 'day_rate'),
+            'period': 86400000,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
+
+    async def fetch_borrow_rate(self, code, params={}):
+        await self.load_markets()
+        market = None
+        if code in self.markets:
+            market = self.market(code)
+        else:
+            defaultSettle = self.safe_string(self.options, 'defaultSettle', 'USDT')
+            market = self.market(code + '/' + defaultSettle)
+        request = {
+            'market': market['id'],
+        }
+        response = await self.privateGetMarginConfig(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "market": "BTCUSDT",
+        #             "leverage": 10,
+        #             "BTC": {
+        #                 "min_amount": "0.002",
+        #                 "max_amount": "200",
+        #                 "day_rate": "0.001"
+        #             },
+        #             "USDT": {
+        #                 "min_amount": "60",
+        #                 "max_amount": "5000000",
+        #                 "day_rate": "0.001"
+        #             }
+        #         },
+        #         "message": "Success"
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_borrow_rate(data, market['base'])
 
     async def fetch_borrow_rates(self, params={}):
         await self.load_markets()

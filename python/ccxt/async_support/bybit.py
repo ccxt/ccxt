@@ -35,6 +35,7 @@ class bybit(Exchange):
             # 20 requests per second for POST requests, cost = 50 / 20 = 2.5
             'rateLimit': 20,
             'hostname': 'bybit.com',  # bybit.com, bytick.com
+            'pro': True,
             'has': {
                 'CORS': True,
                 'spot': True,
@@ -2718,6 +2719,8 @@ class bybit(Exchange):
         market = self.market(symbol)
         if price is None and type == 'limit':
             raise ArgumentsRequired(self.id + ' createOrder requires a price argument for limit orders')
+        amount = self.amount_to_precision(symbol, amount)
+        amount = float(amount) if market['linear'] else int(amount)
         request = {
             'symbol': market['id'],
             'side': self.capitalize(side),
@@ -3982,7 +3985,7 @@ class bybit(Exchange):
             defaultSettle = self.safe_string(self.options, 'defaultSettle')
             defaultSettle = self.safe_string_2(params, 'settle', 'defaultSettle', defaultSettle)
             isUsdcSettled = (defaultSettle == 'USDC')
-            params = self.omit(params, ['settle', 'defaultSettle', 'subType'])
+        params = self.omit(params, ['settle', 'defaultSettle', 'subType'])
         method = None
         if isUsdcSettled:
             method = 'privatePostOptionUsdcOpenapiPrivateV1QueryPosition'

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.84.42';
+$version = '1.84.60';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.84.42';
+    const VERSION = '1.84.60';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -431,7 +431,7 @@ class Exchange {
     public static function valid_string($string) {
         return isset($string) && $string !== '';
     }
-    
+
     public static function valid_object_value($object, $key) {
         return isset($object[$key]) && $object[$key] !== '' && is_scalar($object[$key]);
     }
@@ -3939,7 +3939,7 @@ class Exchange {
             throw new NotSupported($this->id . ' create_post_only_order() is not supported yet');
         }
         $array = array('postOnly' => true);
-        $query = $this->extend($params, $array);
+        $query = array_merge($params, $array);
         return $this->create_order($symbol, $type, $side, $amount, $price, $query);
     }
 
@@ -3948,7 +3948,7 @@ class Exchange {
             throw new NotSupported($this->id . ' create_reduce_only_order() is not supported yet');
         }
         $array = array('reduceOnly' => true);
-        $query = $this->extend($params, $array);
+        $query = array_merge($params, $array);
         return $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -3960,7 +3960,7 @@ class Exchange {
             throw new ArgumentsRequired($this->id . ' create_stop_order() requires a stopPrice argument');
         }
         $array = array('stopPrice' => $stopPrice);
-        $query = $this->extend($params, $array);
+        $query = array_merge($params, $array);
         return $this->create_order($symbol, $type, $side, $amount, $price, $query);
     }
 
@@ -3969,7 +3969,7 @@ class Exchange {
             throw new NotSupported($this->id . ' create_stop_limit_order() is not supported yet');
         }
         $array = array('stopPrice' => $stopPrice);
-        $query = $this->extend($params, $array);
+        $query = array_merge($params, $array);
         return $this->create_order($symbol, 'limit', $side, $amount, $price, $query);
     }
 
@@ -3978,7 +3978,7 @@ class Exchange {
             throw new NotSupported($this->id . ' create_stop_market_order() is not supported yet');
         }
         $array = array('stopPrice' => $stopPrice);
-        $query = $this->extend($params, $array);
+        $query = array_merge($params, $array);
         return $this->create_order($symbol, 'market', $side, $amount, null, $query);
     }
 

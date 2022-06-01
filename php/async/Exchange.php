@@ -28,11 +28,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.84.42';
+$version = '1.84.60';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.84.42';
+    const VERSION = '1.84.60';
 
     public static $loop;
     public static $kernel;
@@ -389,7 +389,7 @@ class Exchange extends \ccxt\Exchange {
             throw new NotSupported($this->id . ' create_post_only_order() is not supported yet');
         }
         $array = array('postOnly' => true);
-        $query = $this->extend($params, $array);
+        $query = array_merge($params, $array);
         return yield $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -401,7 +401,7 @@ class Exchange extends \ccxt\Exchange {
             throw new ArgumentsRequired($this->id . ' create_stop_order() requires a stopPrice argument');
         }
         $array = array('stopPrice' => $stopPrice);
-        $query = $this->extend($params, $array);
+        $query = array_merge($params, $array);
         return yield $this->create_order($symbol, $type, $side, $amount, $price, $query);
     }
 
@@ -410,7 +410,7 @@ class Exchange extends \ccxt\Exchange {
             throw new NotSupported($this->id . ' create_stop_limit_order() is not supported yet');
         }
         $array = array('stopPrice' => $stopPrice);
-        $query = $this->extend($params, $array);
+        $query = array_merge($params, $array);
         return yield $this->create_order($symbol, 'limit', $side, $amount, $price, $query);
     }
 
@@ -419,7 +419,7 @@ class Exchange extends \ccxt\Exchange {
             throw new NotSupported($this->id . ' create_stop_market_order() is not supported yet');
         }
         $array = array('stopPrice' => $stopPrice);
-        $query = $this->extend($params, $array);
+        $query = array_merge($params, $array);
         return yield $this->create_order($symbol, 'market', $side, $amount, null, $query);
     }
 

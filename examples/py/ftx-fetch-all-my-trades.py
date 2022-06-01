@@ -37,7 +37,7 @@ while True:
     if len(trades):
         first_trade = trades[0]
         last_trade = trades[len(trades) - 1]
-        end_time = first_trade['timestamp'] + 1000
+        end_time = first_trade['timestamp']
         print('Fetched', len(trades), 'trades from', first_trade['datetime'], 'till', last_trade['datetime'])
         fetched_new_trades = False
         for trade in trades:
@@ -52,8 +52,9 @@ while True:
         print('Done')
         break
 
-        
+
 all_trades = list(all_trades.values())
+all_trades = exchange.sort_by(all_trades, 'timestamp')
 
 print('Fetched', len(all_trades), 'trades')
 for i in range(0, len(all_trades)):
