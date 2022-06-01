@@ -909,7 +909,7 @@ module.exports = class coinex extends Exchange {
         //          "date_ms":  1638990110518
         //      },
         //
-        // Spot fetchMyTrades (private)
+        // Spot and Margin fetchMyTrades (private)
         //
         //      {
         //          "id": 2611520950,
@@ -2525,9 +2525,18 @@ module.exports = class coinex extends Exchange {
             method = 'privateGetOrderUserDeals';
             request['page'] = 1;
         }
+        const accountId = this.safeInteger (params, 'account_id');
+        const defaultType = this.safeString (this.options, 'defaultType');
+        if (defaultType === 'margin') {
+            if (accountId === undefined) {
+                throw new BadRequest (this.id + ' fetchMyTrades() requires an account_id parameter for margin trades');
+            }
+            request['account_id'] = accountId;
+            params = this.omit (params, 'account_id');
+        }
         const response = await this[method] (this.extend (request, params));
         //
-        // Spot
+        // Spot and Margin
         //
         //      {
         //          "code": 0,
