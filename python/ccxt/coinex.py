@@ -274,6 +274,9 @@ class coinex(Exchange):
                 'fetchDepositAddress': {
                     'fillResponseFromRequest': True,
                 },
+                'accountsById': {
+                    'spot': '0',
+                },
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',
@@ -3290,22 +3293,27 @@ class coinex(Exchange):
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         self.load_markets()
-        marketType, query = self.handle_market_type_and_params('transfer', None, params)
-        if marketType != 'spot':
-            raise BadRequest(self.id + ' transfer() requires defaultType to be spot')
-        currency = self.safe_currency_code(code)
+        currency = self.currency(code)
         amountToPrecision = self.currency_to_precision(code, amount)
-        transfer = None
-        if (fromAccount == 'spot') and (toAccount == 'swap'):
-            transfer = 'in'
-        elif (fromAccount == 'swap') and (toAccount == 'spot'):
-            transfer = 'out'
         request = {
             'amount': amountToPrecision,
-            'coin_type': currency,
-            'transfer_side': transfer,  # 'in': spot to swap, 'out': swap to spot
+            'coin_type': currency['id'],
         }
-        response = self.privatePostContractBalanceTransfer(self.extend(request, query))
+        method = 'privatePostContractBalanceTransfer'
+        if (fromAccount == 'spot') and (toAccount == 'swap'):
+            request['transfer_side'] = 'in'  # 'in' spot to swap, 'out' swap to spot
+        elif (fromAccount == 'swap') and (toAccount == 'spot'):
+            request['transfer_side'] = 'out'  # 'in' spot to swap, 'out' swap to spot
+        else:
+            accountsById = self.safe_value(self.options, 'accountsById', {})
+            fromId = self.safe_string(accountsById, fromAccount, fromAccount)
+            toId = self.safe_string(accountsById, toAccount, toAccount)
+            # fromAccount and toAccount must be integers for margin transfers
+            # spot is 0, use fetchBalance() to find the margin account id
+            request['from_account'] = int(fromId)
+            request['to_account'] = int(toId)
+            method = 'privatePostMarginTransfer'
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {"code": 0, "data": null, "message": "Success"}
         #

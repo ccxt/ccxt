@@ -269,6 +269,9 @@ class coinex extends Exchange {
                 'fetchDepositAddress' => array(
                     'fillResponseFromRequest' => true,
                 ),
+                'accountsById' => array(
+                    'spot' => '0',
+                ),
             ),
             'commonCurrencies' => array(
                 'ACM' => 'Actinium',
@@ -3455,24 +3458,28 @@ class coinex extends Exchange {
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         yield $this->load_markets();
-        list($marketType, $query) = $this->handle_market_type_and_params('transfer', null, $params);
-        if ($marketType !== 'spot') {
-            throw new BadRequest($this->id . ' $transfer() requires defaultType to be spot');
-        }
-        $currency = $this->safe_currency_code($code);
+        $currency = $this->currency($code);
         $amountToPrecision = $this->currency_to_precision($code, $amount);
-        $transfer = null;
-        if (($fromAccount === 'spot') && ($toAccount === 'swap')) {
-            $transfer = 'in';
-        } elseif (($fromAccount === 'swap') && ($toAccount === 'spot')) {
-            $transfer = 'out';
-        }
         $request = array(
             'amount' => $amountToPrecision,
-            'coin_type' => $currency,
-            'transfer_side' => $transfer, // 'in' => spot to swap, 'out' => swap to spot
+            'coin_type' => $currency['id'],
         );
-        $response = yield $this->privatePostContractBalanceTransfer (array_merge($request, $query));
+        $method = 'privatePostContractBalanceTransfer';
+        if (($fromAccount === 'spot') && ($toAccount === 'swap')) {
+            $request['transfer_side'] = 'in'; // 'in' spot to swap, 'out' swap to spot
+        } elseif (($fromAccount === 'swap') && ($toAccount === 'spot')) {
+            $request['transfer_side'] = 'out'; // 'in' spot to swap, 'out' swap to spot
+        } else {
+            $accountsById = $this->safe_value($this->options, 'accountsById', array());
+            $fromId = $this->safe_string($accountsById, $fromAccount, $fromAccount);
+            $toId = $this->safe_string($accountsById, $toAccount, $toAccount);
+            // $fromAccount and $toAccount must be integers for margin transfers
+            // spot is 0, use fetchBalance() to find the margin account id
+            $request['from_account'] = intval($fromId);
+            $request['to_account'] = intval($toId);
+            $method = 'privatePostMarginTransfer';
+        }
+        $response = yield $this->$method (array_merge($request, $params));
         //
         //     array("code" => 0, "data" => null, "message" => "Success")
         //
