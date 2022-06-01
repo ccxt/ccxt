@@ -2601,7 +2601,7 @@ class bybit(Exchange):
         if type == 'limit' or type == 'limit_maker':
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder requires a price argument for a ' + type + ' order')
-            request['price'] = self.price_to_precision(symbol, price)
+            request['price'] = float(self.price_to_precision(symbol, price))
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'orderLinkId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
@@ -2755,7 +2755,7 @@ class bybit(Exchange):
             request['reduce_only'] = reduceOnly
             request['close_on_trigger'] = closeOnTrigger
         if price is not None:
-            request['price'] = price
+            request['price'] = float(self.price_to_precision(symbol, price))
         stopPx = self.safe_value_2(params, 'stop_px', 'stopPrice')
         basePrice = self.safe_value_2(params, 'base_price', 'basePrice')
         isConditionalOrder = False
