@@ -263,6 +263,9 @@ module.exports = class coinex extends Exchange {
                 'fetchDepositAddress': {
                     'fillResponseFromRequest': true,
                 },
+                'accountsById': {
+                    'spot': '0',
+                },
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',
@@ -3467,24 +3470,28 @@ module.exports = class coinex extends Exchange {
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets ();
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('transfer', undefined, params);
-        if (marketType !== 'spot') {
-            throw new BadRequest (this.id + ' transfer() requires defaultType to be spot');
-        }
-        const currency = this.safeCurrencyCode (code);
+        const currency = this.currency (code);
         const amountToPrecision = this.currencyToPrecision (code, amount);
-        let transfer = undefined;
-        if ((fromAccount === 'spot') && (toAccount === 'swap')) {
-            transfer = 'in';
-        } else if ((fromAccount === 'swap') && (toAccount === 'spot')) {
-            transfer = 'out';
-        }
         const request = {
             'amount': amountToPrecision,
-            'coin_type': currency,
-            'transfer_side': transfer, // 'in': spot to swap, 'out': swap to spot
+            'coin_type': currency['id'],
         };
-        const response = await this.privatePostContractBalanceTransfer (this.extend (request, query));
+        let method = 'privatePostContractBalanceTransfer';
+        if ((fromAccount === 'spot') && (toAccount === 'swap')) {
+            request['transfer_side'] = 'in'; // 'in' spot to swap, 'out' swap to spot
+        } else if ((fromAccount === 'swap') && (toAccount === 'spot')) {
+            request['transfer_side'] = 'out'; // 'in' spot to swap, 'out' swap to spot
+        } else {
+            const accountsById = this.safeValue (this.options, 'accountsById', {});
+            const fromId = this.safeString (accountsById, fromAccount, fromAccount);
+            const toId = this.safeString (accountsById, toAccount, toAccount);
+            // fromAccount and toAccount must be integers for margin transfers
+            // spot is 0, use fetchBalance() to find the margin account id
+            request['from_account'] = parseInt (fromId);
+            request['to_account'] = parseInt (toId);
+            method = 'privatePostMarginTransfer';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {"code": 0, "data": null, "message": "Success"}
         //
