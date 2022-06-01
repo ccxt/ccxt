@@ -1362,13 +1362,18 @@ module.exports = class gemini extends Exchange {
             let payload = this.json (request);
             payload = this.stringToBase64 (payload);
             const signature = this.hmac (payload, this.encode (this.secret), 'sha384');
-            const authorizationKey = 'Bearer ' + this.token;
+            const apiKey = this.apiKey;
             headers = {
                 'Content-Type': 'text/plain',
-                'Authorization': authorizationKey,
-                'X-GEMINI-APIKEY': this.apiKey,
+                'X-GEMINI-APIKEY': apiKey,
                 'X-GEMINI-SIGNATURE': signature,
             };
+            if (apiKey.indexOf ('account') < 0) { // OAuth 2.0 Flow
+                const authorizationKey = 'Bearer ' + this.token;
+                headers['Authorization'] = authorizationKey;
+            } else { // Original flow with account key
+                headers['X-GEMINI-PAYLOAD'] = this.decode (payload);
+            }
         } else {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
