@@ -19,7 +19,7 @@ module.exports = class coinex extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined, // has but unimplemented
+                'margin': true,
                 'swap': true,
                 'future': false,
                 'option': false,
@@ -1501,7 +1501,7 @@ module.exports = class coinex extends Exchange {
         //     }
         //
         //
-        // Spot fetchOpenOrders, fetchClosedOrders
+        // Spot and Margin fetchOpenOrders, fetchClosedOrders
         //
         //     {
         //         "account_id": 0,
@@ -1560,7 +1560,7 @@ module.exports = class coinex extends Exchange {
         //         "user_id": 3620173
         //     }
         //
-        // Spot Stop fetchOpenOrders, fetchClosedOrders
+        // Spot and Margin Stop fetchOpenOrders, fetchClosedOrders
         //
         //     {
         //         "account_id": 0,
@@ -2231,9 +2231,18 @@ module.exports = class coinex extends Exchange {
             }
             request['page'] = 1;
         }
-        const response = await this[method] (this.extend (request, query));
+        const accountId = this.safeInteger (params, 'account_id');
+        const defaultType = this.safeString (this.options, 'defaultType');
+        if (defaultType === 'margin') {
+            if (accountId === undefined) {
+                throw new BadRequest (this.id + ' fetchOpenOrders() and fetchClosedOrders() require an account_id parameter for margin orders');
+            }
+            request['account_id'] = accountId;
+        }
+        params = this.omit (query, 'account_id');
+        const response = await this[method] (this.extend (request, params));
         //
-        // Spot
+        // Spot and Margin
         //
         //     {
         //         "code": 0,
@@ -2314,7 +2323,7 @@ module.exports = class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        // Spot Stop
+        // Spot and Margin Stop
         //
         //     {
         //         "code": 0,
