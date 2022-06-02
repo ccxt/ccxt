@@ -593,7 +593,7 @@ module.exports = class coinex extends ccxt.coinex {
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         await this.authenticate (params);
-        const messageHash = 'someorders';
+        let messageHash = 'someorders';
         let market = undefined;
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
@@ -605,6 +605,7 @@ module.exports = class coinex extends ccxt.coinex {
             market = this.market (symbol);
             symbol = market['symbol'];
             message['params'] = [ market['id'] ];
+            messageHash += ':' + symbol;
         } else {
             const markets = Object.keys (this.markets_by_id);
             message['params'] = markets;
@@ -711,7 +712,9 @@ module.exports = class coinex extends ccxt.coinex {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         this.orders.append (parsedOrder);
-        const messageHash = 'someorders';
+        let messageHash = 'someorders';
+        client.resolve (this.orders, messageHash);
+        messageHash += ':' + parsedOrder['symbol'];
         client.resolve (this.orders, messageHash);
     }
 
@@ -811,6 +814,7 @@ module.exports = class coinex extends ccxt.coinex {
         //           fee_asset: null,
         //           status: 0
         //       }
+        //
         const timestamp = this.safeTimestamp2 (order, 'update_time', 'mtime');
         const marketId = this.safeString (order, 'market');
         const typeCode = this.safeString (order, 'type');
