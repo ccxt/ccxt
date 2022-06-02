@@ -453,8 +453,8 @@ class coinflex extends Exchange {
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => $this->safe_number($market, 'upperPriceBound'),
-                        'max' => $this->safe_number($market, 'lowerPriceBound'),
+                        'min' => $this->safe_number($market, 'lowerPriceBound'),
+                        'max' => $this->safe_number($market, 'upperPriceBound'),
                     ),
                     'cost' => array(
                         'min' => null,

@@ -454,8 +454,8 @@ class coinflex(Exchange):
                         'max': None,
                     },
                     'price': {
-                        'min': self.safe_number(market, 'upperPriceBound'),
-                        'max': self.safe_number(market, 'lowerPriceBound'),
+                        'min': self.safe_number(market, 'lowerPriceBound'),
+                        'max': self.safe_number(market, 'upperPriceBound'),
                     },
                     'cost': {
                         'min': None,
