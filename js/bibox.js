@@ -28,6 +28,9 @@ module.exports = class bibox extends Exchange {
                 'cancelOrder': true,
                 'createMarketOrder': undefined, // or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder': true,
+                'createStopOrder': false, // true for contract
+                'createStopLimitOrder': false, // true for contract
+                'createStopMarketOrder': false, // true for contract
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRates': false,
