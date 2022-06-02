@@ -1397,7 +1397,7 @@ class coinex extends Exchange {
         //         "type" => "sell",
         //     }
         //
-        // Spot createOrder, cancelOrder, fetchOrder
+        // Spot and Margin createOrder, cancelOrder, fetchOrder
         //
         //      {
         //          "amount":"1.5",
@@ -1894,10 +1894,18 @@ class coinex extends Exchange {
                 $method = 'privateDeleteOrderStopPendingId';
             }
         }
-        $query = $this->omit($params, 'stop');
+        $accountId = $this->safe_integer($params, 'account_id');
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        if ($defaultType === 'margin') {
+            if ($accountId === null) {
+                throw new BadRequest($this->id . ' cancelOrder() requires an account_id parameter for margin orders');
+            }
+            $request['account_id'] = $accountId;
+        }
+        $query = $this->omit($params, array( 'stop', 'account_id' ));
         $response = yield $this->$method (array_merge($request, $query));
         //
-        // Spot
+        // Spot and Margin
         //
         //     {
         //         "code" => 0,
@@ -1998,7 +2006,7 @@ class coinex extends Exchange {
         //         "message":"OK"
         //     }
         //
-        // Spot Stop
+        // Spot and Margin Stop
         //
         //     array("code":0,"data":array(),"message":"Success")
         //

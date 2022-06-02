@@ -1358,7 +1358,7 @@ class coinex(Exchange):
         #         "type": "sell",
         #     }
         #
-        # Spot createOrder, cancelOrder, fetchOrder
+        # Spot and Margin createOrder, cancelOrder, fetchOrder
         #
         #      {
         #          "amount":"1.5",
@@ -1818,10 +1818,16 @@ class coinex(Exchange):
                 method = 'perpetualPrivatePostOrderCancelStop'
             else:
                 method = 'privateDeleteOrderStopPendingId'
-        query = self.omit(params, 'stop')
+        accountId = self.safe_integer(params, 'account_id')
+        defaultType = self.safe_string(self.options, 'defaultType')
+        if defaultType == 'margin':
+            if accountId is None:
+                raise BadRequest(self.id + ' cancelOrder() requires an account_id parameter for margin orders')
+            request['account_id'] = accountId
+        query = self.omit(params, ['stop', 'account_id'])
         response = await getattr(self, method)(self.extend(request, query))
         #
-        # Spot
+        # Spot and Margin
         #
         #     {
         #         "code": 0,
@@ -1922,7 +1928,7 @@ class coinex(Exchange):
         #         "message":"OK"
         #     }
         #
-        # Spot Stop
+        # Spot and Margin Stop
         #
         #     {"code":0,"data":{},"message":"Success"}
         #
