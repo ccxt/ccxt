@@ -1638,14 +1638,6 @@ module.exports = class btcex extends Exchange {
         return this.parsePosition (result);
     }
 
-    parsePositions (positions) {
-        const result = [];
-        for (let i = 0; i < positions.length; i++) {
-            result.push (this.parsePosition (positions[i]));
-        }
-        return result;
-    }
-
     async fetchPositions (symbols = undefined, params = {}) {
         await this.signIn ();
         await this.loadMarkets ();
@@ -1690,7 +1682,7 @@ module.exports = class btcex extends Exchange {
         //         }]
         //     }
         //
-        return this.filterByArray (this.parsePositions (result), 'symbol', symbols);
+        return this.parsePositions (result, symbols);
     }
 
     parseTransactionStatus (status) {
