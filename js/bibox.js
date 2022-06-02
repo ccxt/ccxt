@@ -76,25 +76,25 @@ module.exports = class bibox extends Exchange {
             'api': {
                 'v1': {
                     'public': {
-                        'get': [
-                            'cquery',
-                            'mdata',
-                            'cdata',
-                            'orderpending',
-                        ],
-                        'post': [
-                            'mdata',
-                        ],
+                        'get': {
+                            'cquery': 1,
+                            'mdata': 1,
+                            'cdata': 1,
+                            'orderpending': 1,
+                        },
+                        'post': {
+                            'mdata': 1,
+                        },
                     },
                     'private': {
-                        'post': [
-                            'credit',
-                            'cquery',
-                            'ctrade',
-                            'user',
-                            'orderpending',
-                            'transfer',
-                        ],
+                        'post': {
+                            'credit': 1,
+                            'cquery': 1,
+                            'ctrade': 1,
+                            'user': 1,
+                            'orderpending': 1,
+                            'transfer': 1,
+                        },
                     },
                 },
                 'v1.1': {
