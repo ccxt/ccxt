@@ -480,7 +480,7 @@ class wazirx extends Exchange {
         $baseVolume = $this->safe_string($ticker, 'volume');
         $bid = $this->safe_string($ticker, 'bidPrice');
         $ask = $this->safe_string($ticker, 'askPrice');
-        $timestamp = $this->safe_string($ticker, 'at');
+        $timestamp = $this->safe_integer($ticker, 'at');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
