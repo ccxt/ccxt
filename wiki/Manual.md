@@ -808,7 +808,9 @@ Each network is an associative array (aka dictionary) with the following keys:
     'precision': {            // number of decimal digits "after the dot"
         'price': 8,           // integer or float for TICK_SIZE roundingMode, might be missing if not supplied by the exchange
         'amount': 8,          // integer, might be missing if not supplied by the exchange
-        'cost': 8,            // integer, very few exchanges actually have it
+        'cost': 8,            // integer, might be missing if not supplied by the exchange
+        'base': 4,            // integer, precision of base currency (might be missing if not supplied by the exchange)
+        'quote': 7,           // integer, precision of quote currency (might be missing if not supplied by the exchange)
     },
     'limits': {               // value limits when placing orders on this market
         'amount': {
