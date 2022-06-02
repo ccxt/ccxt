@@ -531,9 +531,8 @@ module.exports = class mexc3 extends Exchange {
                 const isWithdrawEnabled = this.safeValue (chain, 'is_withdraw_enabled', false);
                 const active = (isDepositEnabled && isWithdrawEnabled);
                 currencyActive = active || currencyActive;
-                const precisionDigits = this.safeInteger (chain, 'precision');
-                let precision = 1 / Math.pow (10, precisionDigits);
-                precision = this.parseNumber (this.numberToString (precision));
+                const precisionDigits = this.safeString (chain, 'precision');
+                const precision = this.parseNumber (this.parsePrecision (precisionDigits));
                 const withdrawMin = this.safeString (chain, 'withdraw_limit_min');
                 const withdrawMax = this.safeString (chain, 'withdraw_limit_max');
                 currencyWithdrawMin = (currencyWithdrawMin === undefined) ? withdrawMin : currencyWithdrawMin;
@@ -672,7 +671,10 @@ module.exports = class mexc3 extends Exchange {
         //         ]
         //     }
         //
-        // Notes: quotePrecision seems deprecated, in favor of quoteAssetPrecision : https://dev.binance.vision/t/what-is-the-difference-between-quoteprecision-and-quoteassetprecision/4333
+        // Notes:
+        // - 'quotePrecision' seems deprecated, in favor of quoteAssetPrecision : https://dev.binance.vision/t/what-is-the-difference-between-quoteprecision-and-quoteassetprecision/4333
+        // - 'baseSizePrecision' seems useless at this moment, because in orderbook, mexc might show base-size in i.e. 123.450, however, the tradable precision might be just 2 decimals after dot. So, we have to use baseAssetPrecision
+        // - 'quoteAmountPrecision' , alike above field, seems useless, because markets which have value i.e. 5, and having 'quoteAssetPrecision':6, then the tradable amount still rounds up to 6 digits after dot.
         const data = this.safeValue (response, 'symbols', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
@@ -686,13 +688,11 @@ module.exports = class mexc3 extends Exchange {
             const makerCommission = this.safeNumber (market, 'makerCommission');
             const takerCommission = this.safeNumber (market, 'takerCommission');
             const maxQuoteAmount = this.safeNumber (market, 'maxQuoteAmount');
-            // const baseSizePrecision = this.safeNumber (market, 'baseSizePrecision'); // Note, this is not usable at this moment, because in orderbook, mexc might show base-size in i.e. 123.450, however, the tradable precision might be just 2 decimals after dot. So, we have to use baseAssetPrecision
-            // const quoteAmountPrecision = this.safeString (market, 'quoteAmountPrecision'); // Note, alike above field, neither this one seems of any use, because markets which have value i.e. 5, and having 'quoteAssetPrecision':6, then the tradable amount still rounds up to 6 digits after dot.
-            const baseAssetPrecision = this.safeNumber (market, 'baseAssetPrecision');
-            const quoteAssetPrecision = this.safeNumber (market, 'quoteAssetPrecision');
-            const precisionBase = this.parseNumber (this.numberToString (1 / Math.pow (10, baseAssetPrecision)));
-            const precisionQuote = this.parseNumber (this.numberToString (1 / Math.pow (10, quoteAssetPrecision)));
-            const precisionPrice = this.parseNumber (this.numberToString (1 / Math.pow (10, quoteAssetPrecision)));
+            const baseAssetPrecision = this.safeString (market, 'baseAssetPrecision');
+            const quoteAssetPrecision = this.safeString (market, 'quoteAssetPrecision');
+            const precisionBase = this.parseNumber (this.parsePrecision (baseAssetPrecision));
+            const precisionQuote = this.parseNumber (this.parsePrecision (quoteAssetPrecision));
+            const precisionPrice = precisionQuote;
             const precisionCost = precisionQuote;
             result.push ({
                 'id': id,
