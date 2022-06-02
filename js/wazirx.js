@@ -487,7 +487,7 @@ module.exports = class wazirx extends Exchange {
         const baseVolume = this.safeString (ticker, 'volume');
         const bid = this.safeString (ticker, 'bidPrice');
         const ask = this.safeString (ticker, 'askPrice');
-        const timestamp = this.safeString (ticker, 'at');
+        const timestamp = this.safeInteger (ticker, 'at');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,

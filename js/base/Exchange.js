@@ -1351,6 +1351,7 @@ module.exports = class Exchange {
             'vwap': this.parseNumber (vwap),
             'baseVolume': this.parseNumber (baseVolume),
             'quoteVolume': this.parseNumber (quoteVolume),
+            'previousClose': this.safeNumber (ticker, 'previousClose'),
         });
     }
 

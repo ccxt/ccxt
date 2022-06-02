@@ -2051,6 +2051,7 @@ class Exchange(object):
             'vwap': self.parse_number(vwap),
             'baseVolume': self.parse_number(baseVolume),
             'quoteVolume': self.parse_number(quoteVolume),
+            'previousClose': self.safe_number(ticker, 'previousClose'),
         })
 
     def parse_accounts(self, accounts, params={}):
