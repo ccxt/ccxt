@@ -1187,7 +1187,7 @@ module.exports = class ascendex extends Exchange {
         //         "side":         "Buy",
         //         "status":       "Filled",
         //         "stopPrice":    "",
-        //         "execInst":     "NULL_VAL"
+        //         "execInst":     "NULL_VAL" // "Post" (for postOnly orders), "reduceOnly" (for reduceOnly orders)
         //     }
         //
         //     {
@@ -1215,8 +1215,11 @@ module.exports = class ascendex extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '/');
-        const timestamp = this.safeInteger2 (order, 'timestamp', 'sendingTime');
+        let timestamp = this.safeInteger2 (order, 'timestamp', 'sendingTime');
         const lastTradeTimestamp = this.safeInteger (order, 'lastExecTime');
+        if (timestamp === undefined) {
+            timestamp = lastTradeTimestamp;
+        }
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'orderQty');
         const average = this.safeString (order, 'avgPx');
@@ -1246,6 +1249,10 @@ module.exports = class ascendex extends Exchange {
         if (execInst === 'reduceOnly') {
             reduceOnly = true;
         }
+        let postOnly = false;
+        if (execInst === 'Post') {
+            postOnly = true;
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1256,7 +1263,7 @@ module.exports = class ascendex extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': undefined,
-            'postOnly': undefined,
+            'postOnly': postOnly,
             'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
@@ -1352,21 +1359,21 @@ module.exports = class ascendex extends Exchange {
             'orderQty': this.amountToPrecision (symbol, amount),
             'orderType': type, // "limit", "market", "stop_market", "stop_limit"
             'side': side, // "buy" or "sell",
+            // 'execInst': // TODO investigate Post Liquidation InternalPost StopOnMarket StopOnMark StopOnRef ReduceOnly PostReduceOnly PostStopMarket PostStopMark PostStopRef ReduceOnlyMarket ReduceOnlyMark ReduceOnlyRef PostReduceMarket PostReduceMark PostReduceRef OpenStopMkt OpenStopMark OpenStopRef OpenPostStopMkt OpenPostStopMark OpenPostStopRef PosStopMkt PosStopMark PosStopRef
             // 'respInst': 'ACK', // ACK, 'ACCEPT, DONE
             // 'posStopLossPrice': position stop loss price ( v2 swap orders only)
             // 'posTakeProfitPrice': position take profit price (v2 swap orders only)
         };
-        const isMarketOrder = (type === 'market') || (type === 'stop_market'); // TODO investigate swap endpoint orderType naming as above
+        const isMarketOrder = (type === 'market') || (type === 'stop_market');
         const isLimitOrder = (type === 'limit') || (type === 'stop_limit');
         const timeInForce = this.safeString (params, 'timeInForce');
         const postOnly = this.isPostOnly (isMarketOrder, undefined, params);
-        const reduceOnly = this.safeValue (params, 'reduceOnly', true);
+        // const reduceOnly = this.safeValue (params, 'reduceOnly', true); // TODO investigate reduceOnly wrt GUI
+        const stopPrice = this.safeString (params, 'stopPrice');
         const stopLossPrice = this.safeString2 (params, 'stopLossPrice', 'posStopLossPrice');
         const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'posTakeProfitPrice');
-        params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly' ]);
-        if (!reduceOnly) {
-            throw new NotSupported (this.id + ' createOrder () does not support reduceOnly = false');
-        }
+        params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly', 'stopPrice' ]);
+        // TODO add parsing for reduceOnly...
         if (isLimitOrder) {
             request['orderPrice'] = this.priceToPrecision (symbol, price);
         }
@@ -1378,6 +1385,14 @@ module.exports = class ascendex extends Exchange {
         }
         if (postOnly) {
             request['postOnly'] = true;
+        }
+        if (stopPrice) {
+            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice).toString ();
+            if (isLimitOrder) {
+                request['orderType'] = 'stop_limit';
+            } else if (isMarketOrder) {
+                request['orderType'] = 'stop_market';
+            }
         }
         if (stopLossPrice || takeProfitPrice) {
             if (marketType === 'spot') {
@@ -1406,8 +1421,14 @@ module.exports = class ascendex extends Exchange {
         } else {
             request['account-category'] = accountCategory;
         }
-        return [ method, this.extend (request, params) ];
-        // const response = await this[method] (this.extend (request, params));
+        // return [ method, this.extend (request, params) ];
+        const response = await this[method] (this.extend (request, params));
+        //
+        //
+        //
+        const data = this.safeValue (response, 'data', {});
+        const order = this.safeValue2 (data, 'order', 'info', {});
+        return this.parseOrder (order, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
