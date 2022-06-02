@@ -984,8 +984,8 @@ module.exports = class oceanex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'code': this.safeCurrencyCode (currencyId, currency),
             'amount': this.safeNumber (transfer, 'amount'),
-            'fromAccount': category === 'withdraw' ? 'spot' : 'future',
-            'toAccount': category === 'withdraw' ? 'future' : 'spot',
+            'fromAccount': (category === 'withdraw') ? 'spot' : 'future',
+            'toAccount': (category === 'withdraw') ? 'future' : 'spot',
             'status': this.parseTransferStatus (status),
         };
     }
