@@ -76,7 +76,9 @@ class bitforex extends Exchange {
                     'get' => array(
                         'api/v1/market/symbols' => 20,
                         'api/v1/market/ticker' => 4,
+                        'api/v1/market/ticker-all' => 4,
                         'api/v1/market/depth' => 4,
+                        'api/v1/market/depth-all' => 4,
                         'api/v1/market/trades' => 20,
                         'api/v1/market/kline' => 20,
                     ),
@@ -378,7 +380,7 @@ class bitforex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = yield $this->publicGetApiV1MarketTicker (array_merge($request, $params));
+        $response = yield $this->publicGetApiV1MarketTickerAll (array_merge($request, $params));
         $ticker = $this->safe_value($response, 'data');
         //
         //     {
@@ -471,7 +473,7 @@ class bitforex extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit;
         }
-        $response = yield $this->publicGetApiV1MarketDepth (array_merge($request, $params));
+        $response = yield $this->publicGetApiV1MarketDepthAll (array_merge($request, $params));
         $data = $this->safe_value($response, 'data');
         $timestamp = $this->safe_integer($response, 'time');
         return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'price', 'amount');

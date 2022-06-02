@@ -905,7 +905,7 @@ class coinex extends Exchange {
         //          "date_ms" =>  1638990110518
         //      ),
         //
-        // Spot fetchMyTrades (private)
+        // Spot and Margin fetchMyTrades (private)
         //
         //      {
         //          "id" => 2611520950,
@@ -1397,7 +1397,7 @@ class coinex extends Exchange {
         //         "type" => "sell",
         //     }
         //
-        // Spot createOrder, cancelOrder, fetchOrder
+        // Spot and Margin createOrder, cancelOrder, fetchOrder
         //
         //      {
         //          "amount":"1.5",
@@ -1894,10 +1894,18 @@ class coinex extends Exchange {
                 $method = 'privateDeleteOrderStopPendingId';
             }
         }
-        $query = $this->omit($params, 'stop');
+        $accountId = $this->safe_integer($params, 'account_id');
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        if ($defaultType === 'margin') {
+            if ($accountId === null) {
+                throw new BadRequest($this->id . ' cancelOrder() requires an account_id parameter for margin orders');
+            }
+            $request['account_id'] = $accountId;
+        }
+        $query = $this->omit($params, array( 'stop', 'account_id' ));
         $response = yield $this->$method (array_merge($request, $query));
         //
-        // Spot
+        // Spot and Margin
         //
         //     {
         //         "code" => 0,
@@ -1998,7 +2006,7 @@ class coinex extends Exchange {
         //         "message":"OK"
         //     }
         //
-        // Spot Stop
+        // Spot and Margin Stop
         //
         //     array("code":0,"data":array(),"message":"Success")
         //
@@ -2013,7 +2021,7 @@ class coinex extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['id'];
-        $accountId = $this->safe_string($params, 'id', '0');
+        $accountId = $this->safe_integer($params, 'account_id', 0);
         $request = array(
             'market' => $marketId,
             // 'account_id' => $accountId, // SPOT, main account ID => 0, margin account ID => See < Inquire Margin Account Market Info >, future account ID => See < Inquire Future Account Market Info >
@@ -2034,10 +2042,10 @@ class coinex extends Exchange {
             }
             $request['account_id'] = $accountId;
         }
-        $params = $this->omit($params, 'stop');
+        $params = $this->omit($params, array( 'stop', 'account_id' ));
         $response = yield $this->$method (array_merge($request, $params));
         //
-        // Spot
+        // Spot and Margin
         //
         //     array("code" => 0, "data" => null, "message" => "Success")
         //
@@ -2515,9 +2523,18 @@ class coinex extends Exchange {
             $method = 'privateGetOrderUserDeals';
             $request['page'] = 1;
         }
+        $accountId = $this->safe_integer($params, 'account_id');
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        if ($defaultType === 'margin') {
+            if ($accountId === null) {
+                throw new BadRequest($this->id . ' fetchMyTrades() requires an account_id parameter for margin trades');
+            }
+            $request['account_id'] = $accountId;
+            $params = $this->omit($params, 'account_id');
+        }
         $response = yield $this->$method (array_merge($request, $params));
         //
-        // Spot
+        // Spot and Margin
         //
         //      {
         //          "code" => 0,

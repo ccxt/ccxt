@@ -395,7 +395,7 @@ class mexc(Exchange):
         status = 'ok' if (code == 200) else 'maintenance'
         return {
             'status': status,
-            'updated': self.milliseconds(),
+            'updated': None,
             'eta': None,
             'url': None,
             'info': response,

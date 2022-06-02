@@ -425,7 +425,7 @@ class wazirx(Exchange):
         status = self.safe_string(response, 'status')
         return {
             'status': 'ok' if (status == 'normal') else 'maintenance',
-            'updated': self.milliseconds(),
+            'updated': None,
             'eta': None,
             'url': None,
             'info': response,
@@ -471,7 +471,7 @@ class wazirx(Exchange):
         baseVolume = self.safe_string(ticker, 'volume')
         bid = self.safe_string(ticker, 'bidPrice')
         ask = self.safe_string(ticker, 'askPrice')
-        timestamp = self.safe_string(ticker, 'at')
+        timestamp = self.safe_integer(ticker, 'at')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,

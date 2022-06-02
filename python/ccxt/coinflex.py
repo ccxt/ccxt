@@ -309,7 +309,7 @@ class coinflex(Exchange):
         status = self.safe_string({'true': 'ok', 'false': 'maintenance'}, statusRaw, statusRaw)
         return {
             'status': status,
-            'updated': self.milliseconds(),
+            'updated': None,
             'eta': None,
             'url': None,
             'info': response,
@@ -454,8 +454,8 @@ class coinflex(Exchange):
                         'max': None,
                     },
                     'price': {
-                        'min': self.safe_number(market, 'upperPriceBound'),
-                        'max': self.safe_number(market, 'lowerPriceBound'),
+                        'min': self.safe_number(market, 'lowerPriceBound'),
+                        'max': self.safe_number(market, 'upperPriceBound'),
                     },
                     'cost': {
                         'min': None,

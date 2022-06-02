@@ -363,7 +363,7 @@ class bitrue(Exchange):
         formattedStatus = 'maintenance' if keysLength else 'ok'
         return {
             'status': formattedStatus,
-            'updated': self.milliseconds(),
+            'updated': None,
             'eta': None,
             'url': None,
             'info': response,

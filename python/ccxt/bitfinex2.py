@@ -401,7 +401,7 @@ class bitfinex2(bitfinex):
         statusRaw = self.safe_string(response, 0)
         return {
             'status': self.safe_string({'0': 'maintenance', '1': 'ok'}, statusRaw, statusRaw),
-            'updated': self.milliseconds(),
+            'updated': None,
             'eta': None,
             'url': None,
             'info': response,

@@ -773,7 +773,7 @@ class digifinex(Exchange):
         status = 'ok' if (code == 0) else 'maintenance'
         return {
             'status': status,
-            'updated': self.milliseconds(),
+            'updated': None,
             'eta': None,
             'url': None,
             'info': response,

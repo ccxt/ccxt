@@ -374,7 +374,7 @@ class lbank2(Exchange):
         #
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        timestamp = self.safe_string(ticker, 'timestamp')
+        timestamp = self.safe_integer(ticker, 'timestamp')
         tickerData = self.safe_value(ticker, 'ticker')
         return self.safe_ticker({
             'symbol': symbol,

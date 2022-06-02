@@ -424,6 +424,7 @@ module.exports = class mexc3 extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
         let response = undefined;
         let status = undefined;
+        let updated = undefined;
         if (marketType === 'spot') {
             response = await this.spotPublicGetPing (query);
             //
@@ -436,10 +437,12 @@ module.exports = class mexc3 extends Exchange {
             //     {"success":true,"code":"0","data":"1648124374985"}
             //
             status = this.safeValue (response, 'success') ? 'ok' : this.json (response);
+            updated = this.safeInteger (response, 'data');
         }
         return {
             'status': status,
-            'updated': this.milliseconds (),
+            'updated': updated,
+            'url': undefined,
             'eta': undefined,
             'info': response,
         };

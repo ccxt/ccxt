@@ -810,7 +810,7 @@ class whitebit extends Exchange {
         $status = $this->safe_string($response, 0);
         return array(
             'status' => ($status === 'pong') ? 'ok' : $status,
-            'updated' => $this->milliseconds(),
+            'updated' => null,
             'eta' => null,
             'url' => null,
             'info' => $response,

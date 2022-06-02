@@ -2259,10 +2259,13 @@ class bybit(Exchange):
             'CREATED': 'open',
             'REJECTED': 'rejected',
             'NEW': 'open',
+            'PENDING_NEW': 'open',
             'PARTIALLYFILLED': 'open',
+            'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
             'PENDINGCANCEL': 'canceling',
+            'PENDING_CANCEL': 'canceling',
             # conditional orders
             'Active': 'open',  # order is triggered and placed successfully
             'Untriggered': 'open',  # order waits to be triggered
@@ -2601,7 +2604,7 @@ class bybit(Exchange):
         if type == 'limit' or type == 'limit_maker':
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder requires a price argument for a ' + type + ' order')
-            request['price'] = self.price_to_precision(symbol, price)
+            request['price'] = float(self.price_to_precision(symbol, price))
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'orderLinkId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
@@ -2719,6 +2722,8 @@ class bybit(Exchange):
         market = self.market(symbol)
         if price is None and type == 'limit':
             raise ArgumentsRequired(self.id + ' createOrder requires a price argument for limit orders')
+        amount = self.amount_to_precision(symbol, amount)
+        amount = float(amount) if market['linear'] else int(amount)
         request = {
             'symbol': market['id'],
             'side': self.capitalize(side),
@@ -2753,7 +2758,7 @@ class bybit(Exchange):
             request['reduce_only'] = reduceOnly
             request['close_on_trigger'] = closeOnTrigger
         if price is not None:
-            request['price'] = price
+            request['price'] = float(self.price_to_precision(symbol, price))
         stopPx = self.safe_value_2(params, 'stop_px', 'stopPrice')
         basePrice = self.safe_value_2(params, 'base_price', 'basePrice')
         isConditionalOrder = False

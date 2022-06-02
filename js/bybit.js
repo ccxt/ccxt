@@ -2352,10 +2352,13 @@ module.exports = class bybit extends Exchange {
             'CREATED': 'open',
             'REJECTED': 'rejected',
             'NEW': 'open',
+            'PENDING_NEW': 'open',
             'PARTIALLYFILLED': 'open',
+            'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
             'PENDINGCANCEL': 'canceling',
+            'PENDING_CANCEL': 'canceling',
             // conditional orders
             'Active': 'open', // order is triggered and placed successfully
             'Untriggered': 'open', // order waits to be triggered
@@ -2717,7 +2720,7 @@ module.exports = class bybit extends Exchange {
             if (price === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder requires a price argument for a ' + type + ' order');
             }
-            request['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
         }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'orderLinkId');
         if (clientOrderId !== undefined) {
@@ -2848,6 +2851,8 @@ module.exports = class bybit extends Exchange {
         if (price === undefined && type === 'limit') {
             throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
         }
+        amount = this.amountToPrecision (symbol, amount);
+        amount = market['linear'] ? parseFloat (amount) : parseInt (amount);
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
@@ -2884,7 +2889,7 @@ module.exports = class bybit extends Exchange {
             request['close_on_trigger'] = closeOnTrigger;
         }
         if (price !== undefined) {
-            request['price'] = price;
+            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
         }
         const stopPx = this.safeValue2 (params, 'stop_px', 'stopPrice');
         const basePrice = this.safeValue2 (params, 'base_price', 'basePrice');

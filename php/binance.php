@@ -2136,7 +2136,7 @@ class binance extends Exchange {
         $statusRaw = $this->safe_string($response, 'status');
         return array(
             'status' => $this->safe_string(array( '0' => 'ok', '1' => 'maintenance' ), $statusRaw, $statusRaw),
-            'updated' => $this->milliseconds(),
+            'updated' => null,
             'eta' => null,
             'url' => null,
             'info' => $response,

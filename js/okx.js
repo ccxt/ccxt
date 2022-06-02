@@ -755,9 +755,8 @@ module.exports = class okx extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const dataLength = data.length;
-        const timestamp = this.milliseconds ();
         const update = {
-            'updated': timestamp,
+            'updated': undefined,
             'status': (dataLength === 0) ? 'ok' : 'maintenance',
             'eta': undefined,
             'url': undefined,
@@ -1685,7 +1684,7 @@ module.exports = class okx extends Exchange {
             // it may be incorrect to use total, free and used for swap accounts
             const eq = this.safeString (balance, 'eq');
             const availEq = this.safeString (balance, 'availEq');
-            if ((eq.length < 1) || (availEq.length < 1)) {
+            if ((eq === undefined) || (availEq === undefined)) {
                 account['free'] = this.safeString (balance, 'availBal');
                 account['used'] = this.safeString (balance, 'frozenBal');
             } else {

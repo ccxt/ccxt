@@ -33,6 +33,9 @@ class bibox extends Exchange {
                 'cancelOrder' => true,
                 'createMarketOrder' => null, // or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder' => true,
+                'createStopLimitOrder' => false, // true for contract
+                'createStopMarketOrder' => false, // true for contract
+                'createStopOrder' => false, // true for contract
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRates' => false,

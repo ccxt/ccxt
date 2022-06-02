@@ -1302,15 +1302,15 @@ module.exports = class Exchange {
     }
 
     safeTicker (ticker, market = undefined) {
-        let open = this.safeValue (ticker, 'open');
-        let close = this.safeValue (ticker, 'close');
-        let last = this.safeValue (ticker, 'last');
-        let change = this.safeValue (ticker, 'change');
-        let percentage = this.safeValue (ticker, 'percentage');
-        let average = this.safeValue (ticker, 'average');
-        let vwap = this.safeValue (ticker, 'vwap');
-        const baseVolume = this.safeValue (ticker, 'baseVolume');
-        const quoteVolume = this.safeValue (ticker, 'quoteVolume');
+        let open = this.safeString (ticker, 'open');
+        let close = this.safeString (ticker, 'close');
+        let last = this.safeString (ticker, 'last');
+        let change = this.safeString (ticker, 'change');
+        let percentage = this.safeString (ticker, 'percentage');
+        let average = this.safeString (ticker, 'average');
+        let vwap = this.safeString (ticker, 'vwap');
+        const baseVolume = this.safeString (ticker, 'baseVolume');
+        const quoteVolume = this.safeString (ticker, 'quoteVolume');
         if (vwap === undefined) {
             vwap = Precise.stringDiv (quoteVolume, baseVolume);
         }
@@ -1354,6 +1354,7 @@ module.exports = class Exchange {
             'vwap': this.parseNumber (vwap),
             'baseVolume': this.parseNumber (baseVolume),
             'quoteVolume': this.parseNumber (quoteVolume),
+            'previousClose': this.safeNumber (ticker, 'previousClose'),
         });
     }
 

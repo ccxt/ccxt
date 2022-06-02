@@ -337,7 +337,7 @@ class kucoinfutures(kucoin):
         status = self.safe_string(data, 'status')
         return {
             'status': 'ok' if (status == 'open') else 'maintenance',
-            'updated': self.milliseconds(),
+            'updated': None,
             'eta': None,
             'url': None,
             'info': response,
@@ -716,7 +716,7 @@ class kucoinfutures(kucoin):
         last = self.safe_string(ticker, 'price')
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market, '-')
-        timestamp = Precise.string_div(self.safe_string(ticker, 'ts'), '1000000')
+        timestamp = self.safe_integer_product(ticker, 'ts', 0.000001)
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': timestamp,

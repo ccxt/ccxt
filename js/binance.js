@@ -2141,7 +2141,7 @@ module.exports = class binance extends Exchange {
         const statusRaw = this.safeString (response, 'status');
         return {
             'status': this.safeString ({ '0': 'ok', '1': 'maintenance' }, statusRaw, statusRaw),
-            'updated': this.milliseconds (),
+            'updated': undefined,
             'eta': undefined,
             'url': undefined,
             'info': response,

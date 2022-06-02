@@ -428,6 +428,7 @@ class mexc3 extends Exchange {
         list($marketType, $query) = $this->handle_market_type_and_params('fetchStatus', null, $params);
         $response = null;
         $status = null;
+        $updated = null;
         if ($marketType === 'spot') {
             $response = $this->spotPublicGetPing ($query);
             //
@@ -440,10 +441,12 @@ class mexc3 extends Exchange {
             //     array("success":true,"code":"0","data":"1648124374985")
             //
             $status = $this->safe_value($response, 'success') ? 'ok' : $this->json($response);
+            $updated = $this->safe_integer($response, 'data');
         }
         return array(
             'status' => $status,
-            'updated' => $this->milliseconds(),
+            'updated' => $updated,
+            'url' => null,
             'eta' => null,
             'info' => $response,
         );

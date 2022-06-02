@@ -759,9 +759,8 @@ class okx extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $dataLength = is_array($data) ? count($data) : 0;
-        $timestamp = $this->milliseconds();
         $update = array(
-            'updated' => $timestamp,
+            'updated' => null,
             'status' => ($dataLength === 0) ? 'ok' : 'maintenance',
             'eta' => null,
             'url' => null,
@@ -1671,7 +1670,7 @@ class okx extends Exchange {
             // it may be incorrect to use total, free and used for swap accounts
             $eq = $this->safe_string($balance, 'eq');
             $availEq = $this->safe_string($balance, 'availEq');
-            if ((strlen($eq) < 1) || (strlen($availEq) < 1)) {
+            if (($eq === null) || ($availEq === null)) {
                 $account['free'] = $this->safe_string($balance, 'availBal');
                 $account['used'] = $this->safe_string($balance, 'frozenBal');
             } else {
