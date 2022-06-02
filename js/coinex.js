@@ -2023,7 +2023,7 @@ module.exports = class coinex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const accountId = this.safeString (params, 'id', '0');
+        const accountId = this.safeInteger (params, 'account_id', 0);
         const request = {
             'market': marketId,
             // 'account_id': accountId, // SPOT, main account ID: 0, margin account ID: See < Inquire Margin Account Market Info >, future account ID: See < Inquire Future Account Market Info >
@@ -2044,10 +2044,10 @@ module.exports = class coinex extends Exchange {
             }
             request['account_id'] = accountId;
         }
-        params = this.omit (params, 'stop');
+        params = this.omit (params, [ 'stop', 'account_id' ]);
         const response = await this[method] (this.extend (request, params));
         //
-        // Spot
+        // Spot and Margin
         //
         //     {"code": 0, "data": null, "message": "Success"}
         //
