@@ -342,8 +342,7 @@ You can still use the ccxt library from your browser via a CORS-proxy, which is 
 
 The absolute exchange endpoint URL is appended to `proxy` string before HTTP request is sent to exchange. The `proxy` setting is an empty string `''` by default. Below are examples of a non-empty `proxy` string (last slash is mandatory!):
 
-- `kraken.proxy = 'https://crossorigin.me/'`
-- `gdax.proxy   = 'https://cors-anywhere.herokuapp.com/'`
+- `kraken.proxy = 'https://cors-anywhere.herokuapp.com/'`
 
 To run your own CORS proxy locally you can either set up one of the existing ones or make a quick script of your own, like shown below.
 
