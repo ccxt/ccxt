@@ -999,7 +999,7 @@ module.exports = class oceanex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    sign (path, api = [ 'spot', 'public' ], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const [ type, access ] = api;
         let url = this.urls['api'][type] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
