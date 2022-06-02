@@ -979,7 +979,8 @@ class phemex extends \ccxt\async\phemex {
         //     }
         // }
         //
-        $client->resolve ($message, 'authenticated');
+        $future = $client->futures['authenticated'];
+        $future->resolve (1);
         return $message;
     }
 

@@ -908,7 +908,8 @@ class phemex(Exchange, ccxt.phemex):
         #     }
         # }
         #
-        client.resolve(message, 'authenticated')
+        future = client.futures['authenticated']
+        future.resolve(1)
         return message
 
     async def subscribe_private(self, type, messageHash, params={}):
