@@ -666,7 +666,7 @@ module.exports = class mexc3 extends Exchange {
         //                "maxQuoteAmount": "5000000",
         //                "makerCommission": "0.002",
         //                "takerCommission": "0.002"
-        //                // note, "icebergAllowed" & "ocoAllowed" were recently removed
+        //                // note, "icebergAllowed" & "ocoAllowed" fields were recently removed
         //            },
         //         ]
         //     }
@@ -682,13 +682,17 @@ module.exports = class mexc3 extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const status = this.safeString (market, 'status');
-            const baseSizePrecision = this.safeString (market, 'baseSizePrecision');
-            const quoteAmountPrecision = this.safeString (market, 'quoteAmountPrecision');
-            const baseAssetPrecision = this.safeNumber (market, 'baseAssetPrecision');
-            const quoteAssetPrecision = this.safeNumber (market, 'quoteAssetPrecision');
-            const maxQuoteAmount = this.safeNumber (market, 'maxQuoteAmount');
             const makerCommission = this.safeNumber (market, 'makerCommission');
             const takerCommission = this.safeNumber (market, 'takerCommission');
+            const maxQuoteAmount = this.safeNumber (market, 'maxQuoteAmount');
+            // const baseSizePrecision = this.safeNumber (market, 'baseSizePrecision'); // Note, this is not usable at this moment, because in orderbook, mexc might show base-size in i.e. 123.450, however, the tradable precision might be just 2 decimals after dot. So, we have to use baseAssetPrecision
+            // const quoteAmountPrecision = this.safeString (market, 'quoteAmountPrecision'); // Note, alike above field, neither this one seems of any use, because markets which have value i.e. 5, and having 'quoteAssetPrecision':6, then the tradable amount still rounds up to 6 digits after dot.
+            const baseAssetPrecision = this.safeNumber (market, 'baseAssetPrecision');
+            const quoteAssetPrecision = this.safeNumber (market, 'quoteAssetPrecision');
+            const precisionBase = this.parseNumber (this.numberToString (1 / Math.pow (10, baseAssetPrecision)));
+            const precisionQuote = this.parseNumber (this.numberToString (1 / Math.pow (10, quoteAssetPrecision)));
+            const precisionPrice = this.parseNumber (this.numberToString (1 / Math.pow (10, quoteAssetPrecision)));
+            const precisionCost = precisionQuote;
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -716,11 +720,11 @@ module.exports = class mexc3 extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': baseSizePrecision,
-                    'price': this.parseNumber (Precise.stringDiv ('1', quoteAssetPrecision)),
-                    'cost': this.parseNumber (Precise.stringDiv ('1', quoteAmountPrecision)),
-                    'base': baseAssetPrecision,
-                    'quote': quoteAssetPrecision,
+                    'amount': precisionBase,
+                    'price': precisionPrice,
+                    'cost': precisionCost,
+                    'base': precisionBase,
+                    'quote': precisionQuote,
                 },
                 'limits': {
                     'leverage': {
