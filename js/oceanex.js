@@ -977,6 +977,7 @@ module.exports = class oceanex extends Exchange {
         const timestamp = this.safeTimestamp (transfer, 'created_at');
         const category = this.safeString (transfer, 'category');
         const status = this.safeString (transfer, 'state');
+        const withdraw = (category === 'withdraw');
         return {
             'info': transfer,
             'id': this.safeString (transfer, 'id'),
@@ -984,8 +985,8 @@ module.exports = class oceanex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'code': this.safeCurrencyCode (currencyId, currency),
             'amount': this.safeNumber (transfer, 'amount'),
-            'fromAccount': (category === 'withdraw') ? 'spot' : 'future',
-            'toAccount': (category === 'withdraw') ? 'future' : 'spot',
+            'fromAccount': withdraw ? 'spot' : 'future',
+            'toAccount': withdraw ? 'future' : 'spot',
             'status': this.parseTransferStatus (status),
         };
     }
