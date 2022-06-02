@@ -27,7 +27,7 @@ module.exports = class coinex extends ccxt.coinex {
                 'api': {
                     'ws': {
                         'spot': 'wss://socket.coinex.com/',
-                        'swap': ' wss://perpetual.coinex.com/',
+                        'swap': 'wss://perpetual.coinex.com/',
                     },
                 },
             },
@@ -179,21 +179,21 @@ module.exports = class coinex extends ccxt.coinex {
             'symbol': this.safeSymbol (undefined, market),
             'timestamp': undefined,
             'datetime': undefined,
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
             'bid': undefined,
-            'bidVolume': undefined,
+            'bidVolume': this.safeString (ticker, 'buy_total'),
             'ask': undefined,
-            'askVolume': undefined,
+            'askVolume': this.safeString (ticker, 'sell_total'),
             'vwap': undefined,
-            'open': this.safeNumber (ticker, 'open'),
-            'close': this.safeNumber (ticker, 'close'),
-            'last': this.safeNumber (ticker, 'last'),
+            'open': this.safeString (ticker, 'open'),
+            'close': this.safeString (ticker, 'close'),
+            'last': this.safeString (ticker, 'last'),
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume'),
+            'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
         }, market);
@@ -209,8 +209,9 @@ module.exports = class coinex extends ccxt.coinex {
          */
         await this.loadMarkets ();
         await this.authenticate (params);
+        const messageHash = 'balance';
         let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams ('watchMyTrades', undefined, params);
+        [type, params] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const url = this.urls['api']['ws'][type];
         const currencies = Object.keys (this.currencies_by_id);
         const subscribe = {
@@ -219,7 +220,7 @@ module.exports = class coinex extends ccxt.coinex {
             'id': this.requestId (),
         };
         const request = this.deepExtend (subscribe, params);
-        return await this.watch (url, 'balance', request, 'balance');
+        return await this.watch (url, messageHash, request, messageHash, request);
     }
 
     handleBalance (client, message) {
@@ -286,15 +287,16 @@ module.exports = class coinex extends ccxt.coinex {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const parsed = this.parseTrades (trades, market);
-        for (let i = 0; i < parsed.length; i++) {
-            stored.append (parsed[i]);
+        for (let i = 0; i < trades.length; i++) {
+            const trade = trades[i];
+            const parsed = this.parseWSTrade (trade, market);
+            stored.append (parsed);
         }
         this.trades[symbol] = stored;
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseWSTrade (trade, market = undefined) {
         //
         //     {
         //         "type": "sell",
@@ -377,7 +379,7 @@ module.exports = class coinex extends ccxt.coinex {
             ],
         };
         const request = this.deepExtend (subscribe, params);
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.watch (url, messageHash, request, messageHash, request);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -405,7 +407,7 @@ module.exports = class coinex extends ccxt.coinex {
             'id': this.requestId (),
         };
         const request = this.deepExtend (message, params);
-        const trades = await this.watch (url, messageHash, request, messageHash);
+        const trades = await this.watch (url, messageHash, request, messageHash, request);
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
@@ -432,13 +434,13 @@ module.exports = class coinex extends ccxt.coinex {
             limit = this.safeValue (options, 'defaultLimit', 50);
         }
         if (!this.inArray (limit, limits)) {
-            throw new ExchangeError (this.id + ' watchOrderBook() limit must be one of ' + limits.join (', '));
+            throw new NotSupported (this.id + ' watchOrderBook() limit must be one of ' + limits.join (', '));
         }
         const defaultAggregation = this.safeString (options, 'defaultAggregation', '0');
         const aggregations = this.safeValue (options, 'aggregations', []);
         const aggregation = this.safeString (params, 'aggregation', defaultAggregation);
         if (!this.inArray (aggregation, aggregations)) {
-            throw new ExchangeError (this.id + ' watchOrderBook() aggregation must be one of ' + aggregations.join (', '));
+            throw new NotSupported (this.id + ' watchOrderBook() aggregation must be one of ' + aggregations.join (', '));
         }
         params = this.omit (params, 'aggregation');
         const subscribe = {
@@ -474,7 +476,7 @@ module.exports = class coinex extends ccxt.coinex {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
         if (type !== 'swap') {
-            throw new ExchangeError (this.id + ' watchOHLCV() is only support for swap markets');
+            throw new NotSupported (this.id + ' watchOHLCV() is only support for swap markets');
         }
         const url = this.urls['api']['ws'][type];
         const subscribe = {
@@ -609,7 +611,7 @@ module.exports = class coinex extends ccxt.coinex {
         }
         const url = this.urls['api']['ws'][type];
         const request = this.deepExtend (message, params);
-        const orders = await this.watch (url, messageHash, request, messageHash);
+        const orders = await this.watch (url, messageHash, request, messageHash, request);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -785,6 +787,30 @@ module.exports = class coinex extends ccxt.coinex {
         //          position_type: 2
         //      }
         //
+        //
+        //  order.update_stop
+        //       {
+        //           id: 78006745870,
+        //           type: 1,
+        //           side: 2,
+        //           user: 1849116,
+        //           account: 1,
+        //           option: 70,
+        //           direction: 1,
+        //           ctime: 1654171725.131976,
+        //           mtime: 1654171725.131976,
+        //           market: 'BTCUSDT',
+        //           source: 'web',
+        //           client_id: '',
+        //           stop_price: '1.00',
+        //           price: '1.00',
+        //           amount: '1.00000000',
+        //           taker_fee: '0.0020',
+        //           maker_fee: '0.0020',
+        //           fee_discount: '1',
+        //           fee_asset: null,
+        //           status: 0
+        //       }
         const timestamp = this.safeTimestamp2 (order, 'update_time', 'mtime');
         const marketId = this.safeString (order, 'market');
         const typeCode = this.safeString (order, 'type');
@@ -808,10 +834,11 @@ module.exports = class coinex extends ccxt.coinex {
         } else if (side === 'sell') {
             feeRate = this.safeNumber (order, 'maker_fee');
         }
+        const status = this.safeString (order, 'status');
         return this.safeOrder ({
             'info': order,
             'id': this.safeString2 (order, 'order_id', 'id'),
-            'clientOrderId': undefined,
+            'clientOrderId': this.safeString (order, 'client_id'),
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': this.safeTimestamp (order, 'last_deal_time'),
@@ -821,13 +848,13 @@ module.exports = class coinex extends ccxt.coinex {
             'postOnly': undefined,
             'side': side,
             'price': this.safeNumber (order, 'price'),
-            'stopPrice': undefined,
+            'stopPrice': this.safeString (order, 'stop_price'),
             'amount': this.parseNumber (amount),
             'filled': this.parseNumber (filled),
             'remaining': this.parseNumber (remaining),
             'cost': undefined,
             'average': undefined,
-            'status': undefined,
+            'status': this.parseWSOrderStatus (status),
             'fee': {
                 'currency': feeCode,
                 'cost': this.safeNumber2 (order, 'fee_asset', 'deal_fee'),
@@ -835,6 +862,14 @@ module.exports = class coinex extends ccxt.coinex {
             },
             'trades': undefined,
         }, this.safeMarket (marketId));
+    }
+
+    parseWSOrderStatus (status) {
+        const statuses = {
+            '0': 'pending',
+            '1': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     handleMessage (client, message) {
@@ -850,15 +885,46 @@ module.exports = class coinex extends ccxt.coinex {
             'depth.update': this.handleOrderBook,
             'order.update': this.handleOrders,
             'kline.update': this.handleOHLCV,
+            'order.update_stop': this.handleOrders,
         };
         const handler = this.safeValue (handlers, method);
         if (handler !== undefined) {
             return handler.call (this, client, message);
         }
+        return this.handleSubscriptionStatus (client, message);
+    }
+
+    handleAuthenticationMessage (client, message) {
+        //
+        //     {
+        //         error: null,
+        //         result: {
+        //             status: 'success'
+        //         },
+        //         id: 1
+        //     }
+        //
         const future = this.safeValue (client.futures, 'authenticated');
         if (future !== undefined) {
             future.resolve (true);
         }
+        return message;
+    }
+
+    handleSubscriptionStatus (client, message) {
+        const id = this.safeString (message, 'id');
+        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+        const subscription = this.safeValue (subscriptionsById, id);
+        if (subscription !== undefined) {
+            const method = this.safeValue (subscription, 'callmethod');
+            if (method !== undefined) {
+                return method.call (this, client, message, subscription);
+            }
+            if (id in client.subscriptions) {
+                delete client.subscriptions[id];
+            }
+        }
+        return message;
     }
 
     async authenticate (params = {}) {
@@ -872,10 +938,14 @@ module.exports = class coinex extends ccxt.coinex {
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             this.checkRequiredCredentials ();
+            const requestId = this.requestId ();
+            const subscribe = {
+                'id': requestId,
+                'callmethod': this.handleAuthenticationMessage,
+            };
             if (type === 'spot') {
                 const signData = 'access_id=' + this.apiKey + '&tonce=' + this.numberToString (time) + '&secret_key=' + this.secret;
                 const hash = this.hash (this.encode (signData), 'md5');
-                const requestId = this.requestId ();
                 const request = {
                     'method': 'server.sign',
                     'params': [
@@ -885,7 +955,7 @@ module.exports = class coinex extends ccxt.coinex {
                     ],
                     'id': requestId,
                 };
-                this.spawn (this.watch, url, messageHash, request);
+                this.spawn (this.watch, url, messageHash, request, messageHash, subscribe);
             } else {
                 const signData = 'access_id=' + this.apiKey + '&timestamp=' + this.numberToString (time) + '&secret_key=' + this.secret;
                 const hash = this.hash (this.encode (signData), 'sha256', 'hex');
@@ -898,7 +968,7 @@ module.exports = class coinex extends ccxt.coinex {
                     ],
                     'id': this.requestId (),
                 };
-                this.spawn (this.watch, url, messageHash, request);
+                this.spawn (this.watch, url, messageHash, request, messageHash, subscribe);
             }
         }
         return await future;
