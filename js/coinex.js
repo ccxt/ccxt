@@ -1407,7 +1407,7 @@ module.exports = class coinex extends Exchange {
         //         "type": "sell",
         //     }
         //
-        // Spot createOrder, cancelOrder, fetchOrder
+        // Spot and Margin createOrder, cancelOrder, fetchOrder
         //
         //      {
         //          "amount":"1.5",
@@ -1904,10 +1904,18 @@ module.exports = class coinex extends Exchange {
                 method = 'privateDeleteOrderStopPendingId';
             }
         }
-        const query = this.omit (params, 'stop');
+        const accountId = this.safeInteger (params, 'account_id');
+        const defaultType = this.safeString (this.options, 'defaultType');
+        if (defaultType === 'margin') {
+            if (accountId === undefined) {
+                throw new BadRequest (this.id + ' cancelOrder() requires an account_id parameter for margin orders');
+            }
+            request['account_id'] = accountId;
+        }
+        const query = this.omit (params, [ 'stop', 'account_id' ]);
         const response = await this[method] (this.extend (request, query));
         //
-        // Spot
+        // Spot and Margin
         //
         //     {
         //         "code": 0,
@@ -2008,7 +2016,7 @@ module.exports = class coinex extends Exchange {
         //         "message":"OK"
         //     }
         //
-        // Spot Stop
+        // Spot and Margin Stop
         //
         //     {"code":0,"data":{},"message":"Success"}
         //
