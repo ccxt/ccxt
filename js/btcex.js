@@ -69,7 +69,6 @@ module.exports = class btcex extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
-                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': false,
@@ -80,7 +79,7 @@ module.exports = class btcex extends Exchange {
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'signIn': true,
-                'withdraw': true,
+                'withdraw': false,
             },
             'timeframes': {
                 '15s': '15',
@@ -254,6 +253,7 @@ module.exports = class btcex extends Exchange {
                     '5013': InvalidOrder, // ORDER_PRICE_RANGE_IS_TOO_HIGH order price range is too high.
                     '5014': InvalidOrder, // ORDER_PRICE_RANGE_IS_TOO_LOW Order price range is too low.
                     '5109': InvalidOrder, // ORDER_PRICE_RANGE_IS_TOO_LOW Order price range is too low.
+                    '5135': InvalidOrder, // The quantity should be larger than: 0.01
                     '5901': InvalidOrder, // TRANSFER_RESULT transfer out success.
                     '5902': InvalidOrder, // ORDER_SUCCESS place order success.
                     '5903': InvalidOrder, // ORDER_FAIL place order fail.
@@ -278,12 +278,14 @@ module.exports = class btcex extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'networks': {
+                'accountsByType': {
+                    'wallet': 'WALLET',
+                    'spot': 'SPOT',
+                    'perpetual': 'PERPETUAL',
+                    'margin': 'MARGIN',
+                    'swap': 'PERPETUAL',
                     'BTC': 'BTC',
                     'ETH': 'ETH',
-                    'ERC20': 'ETH',
-                    'BEP20': 'BEP20',
-                    'BSC': 'BSC',
                 },
             },
             'commonCurrencies': {
@@ -345,7 +347,7 @@ module.exports = class btcex extends Exchange {
             const margin = (type === 'margin');
             const option = (type === 'option');
             const future = (type === 'future');
-            const contract = swap || future;
+            const contract = swap || future || option;
             let expiry = undefined;
             if (option || future) {
                 baseId = this.safeString (market, 'currency');
@@ -385,6 +387,9 @@ module.exports = class btcex extends Exchange {
             }
             const minTradeAmount = this.safeNumber (market, 'min_trade_amount');
             const tickSize = this.safeNumber (market, 'tick_size');
+            const maker = this.safeNumber (market, 'maker_commission');
+            const taker = this.safeNumber (market, 'taker_commission');
+            const percentage = !(option || future);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -395,8 +400,9 @@ module.exports = class btcex extends Exchange {
                 'settleId': settleId,
                 'settle': settle,
                 'type': unifiedType,
-                'maker': this.safeNumber (market, 'maker_commission'),
-                'taker': this.safeNumber (market, 'taker_commission'),
+                'maker': maker,
+                'taker': taker,
+                'percentage': percentage,
                 'spot': spot,
                 'margin': margin,
                 'swap': swap,
@@ -666,7 +672,7 @@ module.exports = class btcex extends Exchange {
         const feeCostString = this.safeString (trade, 'fee');
         let fee = undefined;
         if (feeCostString !== undefined) {
-            const feeCurrencyId = this.safeString (trade, 'fee_currency');
+            const feeCurrencyId = this.safeString (trade, 'fee_coin_type');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': feeCostString,
@@ -726,13 +732,6 @@ module.exports = class btcex extends Exchange {
         //
         const trades = this.safeValue (result, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
-    }
-
-    codeFromOptions (methodName, params = {}) {
-        const defaultCode = this.safeValue (this.options, 'code', 'BTC');
-        const options = this.safeValue (this.options, methodName, {});
-        const code = this.safeValue (options, 'code', defaultCode);
-        return this.safeValue (params, 'code', code);
     }
 
     async signIn (params = {}) {
@@ -886,22 +885,11 @@ module.exports = class btcex extends Exchange {
         //     }
         //
         const result = { 'info': response };
-        const assetsType = Object.keys (response);
-        for (let i = 0; i < assetsType.length; i++) {
-            const assetType = assetsType[i];
+        const assetTypes = Object.keys (response);
+        for (let i = 0; i < assetTypes.length; i++) {
+            const assetType = assetTypes[i];
             const currency = this.safeValue (response, assetType);
-            const currencyId = this.safeString (currency, 'currency');
-            if (currencyId !== undefined) {
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.safeValue (result, code, this.account ());
-                const free = this.safeString (currency, 'available_funds');
-                const used = this.safeString (currency, 'maintenance_margin');
-                const total = this.safeString (currency, 'equity');
-                account['free'] = Precise.stringAdd (account['free'], free);
-                account['used'] = Precise.stringAdd (account['used'], used);
-                account['total'] = Precise.stringAdd (account['total'], total);
-                result[code] = account;
-            } else {
+            if ((assetType === 'WALLET') || (assetType === 'SPOT')) {
                 const details = this.safeValue (currency, 'details');
                 if (details !== undefined) {
                     for (let i = 0; i < details.length; i++) {
@@ -909,15 +897,19 @@ module.exports = class btcex extends Exchange {
                         const coinType = this.safeString (detail, 'coin_type');
                         const code = this.safeCurrencyCode (coinType);
                         const account = this.safeValue (result, code, this.account ());
-                        const free = this.safeString (detail, 'available');
-                        const used = this.safeString (detail, 'freeze');
-                        const total = this.safeString (detail, 'total');
-                        account['free'] = Precise.stringAdd (account['free'], free);
-                        account['used'] = Precise.stringAdd (account['used'], used);
-                        account['total'] = Precise.stringAdd (account['total'], total);
+                        account['free'] = this.safeString (detail, 'available');
+                        account['used'] = this.safeString (detail, 'freeze');
+                        account['total'] = this.safeString (detail, 'total');
                         result[code] = account;
                     }
                 }
+            } else {
+                // all other wallets are linear futures
+                const code = 'USDT';
+                const account = this.account ();
+                account['total'] = this.safeString (currency, 'wallet_balance');
+                account['free'] = this.safeString (currency, 'available_withdraw_funds');
+                result[code] = account;
             }
         }
         return this.safeBalance (result);
@@ -926,12 +918,12 @@ module.exports = class btcex extends Exchange {
     async fetchBalance (params = {}) {
         await this.signIn ();
         await this.loadMarkets ();
-        let assetType = this.safeValue (params, 'asset_type');
-        if (assetType === undefined) {
-            assetType = [ 'SPOT' ];
-        }
+        const type = this.safeStringLower (params, 'type', 'spot');
+        const types = this.safeValue (this.options, 'accountsByType', {});
+        const assetType = this.safeString (types, type, type);
+        params = this.omit (params, 'type');
         const request = {
-            'asset_type': assetType,
+            'asset_type': [ assetType ],
         };
         const response = await this.privatePostGetAssetsInfo (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
@@ -1070,6 +1062,9 @@ module.exports = class btcex extends Exchange {
     }
 
     parseTimeInForce (timeInForce) {
+        if (timeInForce === '-') {
+            return undefined;
+        }
         const timeInForces = {
             'good_til_cancelled': 'GTC',
             'good_til_date': 'GTD',
@@ -1246,11 +1241,13 @@ module.exports = class btcex extends Exchange {
             } else if (timeInForce === 'IOC') {
                 request['time_in_force'] = 'immediate_or_cancel';
             }
-            const postOnly = this.isPostOnly (type, params);
+            const isMarketOrder = type === 'market';
+            const exchangeSpecificParam = this.safeValue (params, 'post_only', false);
+            const postOnly = this.isPostOnly (isMarketOrder, exchangeSpecificParam, params);
             if (postOnly) {
                 request['post_only'] = true;
             }
-            const reduceOnly = this.safeValue (params, 'reduceOnly');
+            const reduceOnly = this.safeValue (params, 'reduceOnly', false);
             if (reduceOnly) {
                 request['reduce_only'] = true;
             }
@@ -1302,22 +1299,16 @@ module.exports = class btcex extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            // 'kind': '', // The order kind, eg. margin, spot, option, future, perpetual. only used when call privatePostCancelAllByCurrency
-        };
-        let method = undefined;
         if (symbol === undefined) {
-            const code = this.codeFromOptions ('cancelAllOrders', params);
-            const currency = this.currency (code);
-            request['currency'] = currency['id'];
-            method = 'privatePostCancelAllByCurrency';
-        } else {
-            method = 'privatePostCancelAllByInstrument';
-            const market = this.market (symbol);
-            request['instrument_name'] = market['id'];
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
-        const response = await this[method] (this.extend (request, params));
+        await this.signIn ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument_name': market['id'],
+        };
+        const response = await this.privatePostCancelAllByInstrument (this.extend (request, params));
         //
         //     {
         //         "id":"1647686580",
@@ -1332,24 +1323,16 @@ module.exports = class btcex extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            // 'kind': '', // The order kind, eg. margin, spot, option, future, perpetual. only used when call privateGetGetOpenOrdersByCurrency
-            // 'type': '', // limit, market The order type
-        };
-        let market = undefined;
-        let method = undefined;
         if (symbol === undefined) {
-            const code = this.codeFromOptions ('fetchOpenOrders', params);
-            const currency = this.currency (code);
-            request['currency'] = currency['id'];
-            method = 'privateGetGetOpenOrdersByCurrency';
-        } else {
-            market = this.market (symbol);
-            request['instrument_name'] = market['id'];
-            method = 'privateGetGetOpenOrdersByInstrument';
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
-        const response = await this[method] (this.extend (request, params));
+        await this.signIn ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument_name': market['id'],
+        };
+        const response = await this.privateGetGetOpenOrdersByInstrument (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
         //
         //     {
@@ -1384,27 +1367,19 @@ module.exports = class btcex extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            // 'kind': '', // The order kind, eg. margin, spot, option, future, perpetual. only used when call privateGetGetOrderHistoryByCurrency
-            // 'offset': 0, // The default is 0. For example, if you query the second page and the quantity is 100, set offset = 100 and count = 100
-        };
-        let market = undefined;
-        let method = undefined;
         if (symbol === undefined) {
-            const code = this.codeFromOptions ('fetchClosedOrders', params);
-            const currency = this.currency (code);
-            request['currency'] = currency['id'];
-            method = 'privateGetGetOrderHistoryByCurrency';
-        } else {
-            market = this.market (symbol);
-            request['instrument_name'] = market['id'];
-            method = 'privateGetGetOrderHistoryByInstrument';
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
+        await this.signIn ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument_name': market['id'],
+        };
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.privateGetGetOrderHistoryByInstrument (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
         //
         //     {
@@ -1488,6 +1463,10 @@ module.exports = class btcex extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a id argument');
+        }
+        await this.signIn ();
         await this.loadMarkets ();
         const request = {
             // 'kind': '', // The order kind, eg. margin, spot, option, future, perpetual. only used when call privateGetGetUserTradesByCurrency
@@ -1496,25 +1475,13 @@ module.exports = class btcex extends Exchange {
             // 'sorting': '', // Direction of results sorting,default: desc
             // 'self_trade': false, // If not set, query all
         };
-        let market = undefined;
         let method = undefined;
-        if (symbol === undefined) {
-            const code = this.codeFromOptions ('fetchMyTrades', params);
-            const currency = this.currency (code);
-            request['currency'] = currency['id'];
-            if (since === undefined) {
-                method = 'privateGetGetUserTradesByCurrency';
-            } else {
-                method = 'privateGetGetUserTradesByCurrencyAndTime';
-            }
+        const market = this.market (symbol);
+        request['instrument_name'] = market['id'];
+        if (since === undefined) {
+            method = 'privateGetGetUserTradesByInstrument';
         } else {
-            market = this.market (symbol);
-            request['instrument_name'] = market['id'];
-            if (since === undefined) {
-                method = 'privateGetGetUserTradesByInstrument';
-            } else {
-                method = 'privateGetGetUserTradesByInstrumentAndTime';
-            }
+            method = 'privateGetGetUserTradesByInstrumentAndTime';
         }
         if (limit !== undefined) {
             request['count'] = limit; // default 20
@@ -1588,12 +1555,17 @@ module.exports = class btcex extends Exchange {
         const size = this.safeString (position, 'size');
         let side = this.safeString (position, 'direction');
         side = (side === 'buy') ? 'long' : 'short';
-        const maintenanceRate = this.safeString (position, 'maintenance_margin');
+        const maintenanceMarginString = this.safeString (position, 'maintenance_margin');
+        const riskLevel = this.safeString (position, 'risk_level');
+        // maint_margin / collateral = risk_level
+        // collateral = maint_margin / risk_level
+        const collateral = Precise.stringDiv (maintenanceMarginString, riskLevel);
         const markPrice = this.safeString (position, 'mark_price');
         const notionalString = Precise.stringMul (markPrice, size);
         const unrealisedPnl = this.safeString (position, 'floating_profit_loss');
         const initialMarginString = this.safeString (position, 'initial_margin');
         const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
+        const marginType = this.safeString (position, 'margin_type');
         return {
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
@@ -1601,25 +1573,26 @@ module.exports = class btcex extends Exchange {
             'datetime': undefined,
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notionalString)),
-            'maintenanceMargin': this.parseNumber (Precise.stringMul (maintenanceRate, notionalString)),
-            'maintenanceMarginPercentage': this.parseNumber (maintenanceRate),
-            'entryPrice': this.safeString (position, 'average_price'),
+            'maintenanceMargin': this.parseNumber (maintenanceMarginString),
+            'maintenanceMarginPercentage': this.parseNumber (Precise.stringDiv (maintenanceMarginString, notionalString)),
+            'entryPrice': this.safeNumber (position, 'average_price'),
             'notional': this.parseNumber (notionalString),
             'leverage': this.safeNumber (position, 'leverage'),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (size),  // in USD for perpetuals on deribit
             'contractSize': this.safeValue (market, 'contractSize'),
-            'marginRatio': undefined,
-            'liquidationPrice': this.safeNumber (position, 'estimated_liquidation_price'),
-            'markPrice': markPrice,
-            'collateral': undefined,
-            'marginType': undefined,
+            'marginRatio': this.parseNumber (riskLevel),
+            'liquidationPrice': this.safeNumber (position, 'liquid_price'),
+            'markPrice': this.parseNumber (markPrice),
+            'collateral': this.parseNumber (collateral),
+            'marginType': marginType,
             'side': side,
             'percentage': this.parseNumber (percentage),
         };
     }
 
     async fetchPosition (symbol, params = {}) {
+        await this.signIn ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1674,25 +1647,10 @@ module.exports = class btcex extends Exchange {
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
+        await this.signIn ();
         await this.loadMarkets ();
-        let code = undefined;
-        if (symbols === undefined) {
-            code = this.codeFromOptions ('fetchPositions', params);
-        } else if (typeof symbols === 'string') {
-            code = symbols;
-        } else {
-            if (Array.isArray (symbols)) {
-                const length = symbols.length;
-                if (length !== 1) {
-                    throw new BadRequest (this.id + ' fetchPositions symbols argument cannot contain more than 1 symbol');
-                }
-                const market = this.market (symbols[0]);
-                code = market['base'];
-            }
-        }
-        const currency = this.currency (code);
         const request = {
-            'currency': currency['id'],
+            'currency': 'PERPETUAL',
             // 'kind' : '', // option, future, spot, margin,perpetual The order kind
         };
         const response = await this.privateGetGetPositions (this.extend (request, params));
@@ -1732,7 +1690,7 @@ module.exports = class btcex extends Exchange {
         //         }]
         //     }
         //
-        return this.parsePositions (result);
+        return this.filterByArray (this.parsePositions (result), 'symbol', symbols);
     }
 
     parseTransactionStatus (status) {
@@ -1743,7 +1701,7 @@ module.exports = class btcex extends Exchange {
             'withdraw_noticed_block_chain': 'pending',
             'withdraw_waiting_confirm': 'pending',
             'withdraw_confirmed': 'ok',
-            'withdraw_faild': 'failed',
+            'withdraw_failed': 'failed',
             'withdraw_auditing': 'pending',
             'withdraw_audit_reject': 'failed',
         };
@@ -1783,6 +1741,7 @@ module.exports = class btcex extends Exchange {
         const id = this.safeString (transaction, 'id');
         const txId = this.safeString (transaction, 'tx_hash');
         const timestamp = this.safeInteger (transaction, 'create_time');
+        const updated = this.safeInteger (transaction, 'update_time');
         const amount = this.safeNumber (transaction, 'amount');
         const status = this.safeString (transaction, 'state');
         return {
@@ -1802,12 +1761,8 @@ module.exports = class btcex extends Exchange {
             'amount': amount,
             'currency': code,
             'status': this.parseTransactionStatus (status),
-            'updated': undefined,
-            'fee': {
-                'currency': code,
-                'cost': undefined,
-                'rate': undefined,
-            },
+            'updated': updated,
+            'fee': undefined,
         };
     }
 
@@ -1815,6 +1770,7 @@ module.exports = class btcex extends Exchange {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits() requires the code argument');
         }
+        await this.signIn ();
         await this.loadMarkets ();
         const currency = this.safeCurrency (code);
         const request = {
@@ -1849,6 +1805,7 @@ module.exports = class btcex extends Exchange {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires the code argument');
         }
+        await this.signIn ();
         await this.loadMarkets ();
         const currency = this.safeCurrency (code);
         const request = {
@@ -1883,6 +1840,7 @@ module.exports = class btcex extends Exchange {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawal() requires the code argument');
         }
+        await this.signIn ();
         await this.loadMarkets ();
         const currency = this.safeCurrency (code);
         const request = {
@@ -1913,38 +1871,6 @@ module.exports = class btcex extends Exchange {
         const records = this.filterBy (result, 'id', id);
         const record = this.safeValue (records, 0);
         return this.parseTransaction (record, currency);
-    }
-
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        await this.loadMarkets ();
-        this.checkAddress (address);
-        const currency = this.currency (code);
-        const request = {
-            'coin_type': currency['id'],
-            'amount': this.numberToString (amount),
-            'address': address,
-            // 'tfa': 0, // 2FA code
-        };
-        if ('network' in params) {
-            const networks = this.safeValue (this.options, 'networks', {});
-            const requestedNetwork = this.safeStringUpper (params, 'network');
-            params = this.omit (params, [ 'network' ]);
-            const networkId = this.safeString (networks, requestedNetwork);
-            if (networkId === undefined) {
-                throw new ExchangeError (this.id + ' invalid network ' + requestedNetwork);
-            }
-            request['main_chain'] = networkId;
-        }
-        if (tag !== undefined) {
-            request['memo'] = tag;
-        }
-        const response = await this.privatePostAddWithdrawAddress (this.extend (request, params));
-        const result = this.safeValue (response, 'data', {});
-        //
-        // TODO: didn't work
-        //
-        return this.parseTransaction (result, currency);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
