@@ -758,9 +758,8 @@ class okx extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $dataLength = is_array($data) ? count($data) : 0;
-        $timestamp = $this->milliseconds();
         $update = array(
-            'updated' => $timestamp,
+            'updated' => null,
             'status' => ($dataLength === 0) ? 'ok' : 'maintenance',
             'eta' => null,
             'url' => null,

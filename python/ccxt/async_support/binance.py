@@ -2109,7 +2109,7 @@ class binance(Exchange):
         statusRaw = self.safe_string(response, 'status')
         return {
             'status': self.safe_string({'0': 'ok', '1': 'maintenance'}, statusRaw, statusRaw),
-            'updated': self.milliseconds(),
+            'updated': None,
             'eta': None,
             'url': None,
             'info': response,

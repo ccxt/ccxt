@@ -306,7 +306,7 @@ class coinflex extends Exchange {
         $status = $this->safe_string(array( 'true' => 'ok', 'false' => 'maintenance' ), $statusRaw, $statusRaw);
         return array(
             'status' => $status,
-            'updated' => $this->milliseconds(),
+            'updated' => null,
             'eta' => null,
             'url' => null,
             'info' => $response,

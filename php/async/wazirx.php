@@ -432,7 +432,7 @@ class wazirx extends Exchange {
         $status = $this->safe_string($response, 'status');
         return array(
             'status' => ($status === 'normal') ? 'ok' : 'maintenance',
-            'updated' => $this->milliseconds(),
+            'updated' => null,
             'eta' => null,
             'url' => null,
             'info' => $response,

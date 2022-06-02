@@ -387,7 +387,7 @@ class mexc extends Exchange {
         $status = ($code === 200) ? 'ok' : 'maintenance';
         return array(
             'status' => $status,
-            'updated' => $this->milliseconds(),
+            'updated' => null,
             'eta' => null,
             'url' => null,
             'info' => $response,

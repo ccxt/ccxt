@@ -430,7 +430,7 @@ class bitmart extends Exchange {
         }
         return array(
             'status' => $status,
-            'updated' => $this->milliseconds(),
+            'updated' => null,
             'eta' => $eta,
             'url' => null,
             'info' => $response,

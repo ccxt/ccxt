@@ -175,7 +175,7 @@ class bitbns(Exchange):
         statusRaw = self.safe_string(response, 'status')
         return {
             'status': self.safe_string({'1': 'ok'}, statusRaw, statusRaw),
-            'updated': self.milliseconds(),
+            'updated': None,
             'eta': None,
             'url': None,
             'info': response,

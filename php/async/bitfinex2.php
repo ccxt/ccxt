@@ -396,7 +396,7 @@ class bitfinex2 extends bitfinex {
         $statusRaw = $this->safe_string($response, 0);
         return array(
             'status' => $this->safe_string(array( '0' => 'maintenance', '1' => 'ok' ), $statusRaw, $statusRaw),
-            'updated' => $this->milliseconds(),
+            'updated' => null,
             'eta' => null,
             'url' => null,
             'info' => $response,

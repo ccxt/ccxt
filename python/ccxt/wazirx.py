@@ -425,7 +425,7 @@ class wazirx(Exchange):
         status = self.safe_string(response, 'status')
         return {
             'status': 'ok' if (status == 'normal') else 'maintenance',
-            'updated': self.milliseconds(),
+            'updated': None,
             'eta': None,
             'url': None,
             'info': response,

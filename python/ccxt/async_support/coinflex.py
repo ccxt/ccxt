@@ -309,7 +309,7 @@ class coinflex(Exchange):
         status = self.safe_string({'true': 'ok', 'false': 'maintenance'}, statusRaw, statusRaw)
         return {
             'status': status,
-            'updated': self.milliseconds(),
+            'updated': None,
             'eta': None,
             'url': None,
             'info': response,

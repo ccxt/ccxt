@@ -431,6 +431,7 @@ class mexc3(Exchange):
         marketType, query = self.handle_market_type_and_params('fetchStatus', None, params)
         response = None
         status = None
+        updated = None
         if marketType == 'spot':
             response = await self.spotPublicGetPing(query)
             #
@@ -443,9 +444,11 @@ class mexc3(Exchange):
             #     {"success":true,"code":"0","data":"1648124374985"}
             #
             status = 'ok' if self.safe_value(response, 'success') else self.json(response)
+            updated = self.safe_integer(response, 'data')
         return {
             'status': status,
-            'updated': self.milliseconds(),
+            'updated': updated,
+            'url': None,
             'eta': None,
             'info': response,
         }

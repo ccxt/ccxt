@@ -399,10 +399,12 @@ class bkex(Exchange):
         #
         statusRaw = self.safe_integer(response, 'status')
         codeRaw = self.safe_integer(response, 'code')
+        updated = self.safe_integer(response, 'data')
         return {
             'status': 'ok' if (statusRaw == 0 and codeRaw == 0) else statusRaw,
-            'updated': self.milliseconds(),
+            'updated': updated,
             'eta': None,
+            'url': None,
             'info': response,
         }
 

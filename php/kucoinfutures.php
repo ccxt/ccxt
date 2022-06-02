@@ -329,7 +329,7 @@ class kucoinfutures extends kucoin {
         $status = $this->safe_string($data, 'status');
         return array(
             'status' => ($status === 'open') ? 'ok' : 'maintenance',
-            'updated' => $this->milliseconds(),
+            'updated' => null,
             'eta' => null,
             'url' => null,
             'info' => $response,

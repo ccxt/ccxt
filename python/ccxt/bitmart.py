@@ -436,7 +436,7 @@ class bitmart(Exchange):
                 eta = self.safe_integer(service, 'end_time')
         return {
             'status': status,
-            'updated': self.milliseconds(),
+            'updated': None,
             'eta': eta,
             'url': None,
             'info': response,

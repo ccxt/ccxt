@@ -772,9 +772,8 @@ class okx(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         dataLength = len(data)
-        timestamp = self.milliseconds()
         update = {
-            'updated': timestamp,
+            'updated': None,
             'status': 'ok' if (dataLength == 0) else 'maintenance',
             'eta': None,
             'url': None,

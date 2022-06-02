@@ -337,7 +337,7 @@ class kucoinfutures(kucoin):
         status = self.safe_string(data, 'status')
         return {
             'status': 'ok' if (status == 'open') else 'maintenance',
-            'updated': self.milliseconds(),
+            'updated': None,
             'eta': None,
             'url': None,
             'info': response,
