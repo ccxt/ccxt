@@ -1636,9 +1636,6 @@ module.exports = class scallop extends Exchange {
                     signatureBody = timestamp + method + `${midPath}/v1/${path}`;
                 }
             } else if (method === 'POST') {
-                headers = {
-                    'Content-Type': 'application/json',
-                };
                 if (urlencoded) {
                     body = this.json (query);
                 }
@@ -1646,10 +1643,10 @@ module.exports = class scallop extends Exchange {
             }
             const signature = this.hmac (signatureBody, this.secret, 'SHA256');
             headers = {
-                ...headers,
                 'X-CH-APIKEY': this.apiKey,
                 'X-CH-SIGN': signature,
                 'X-CH-TS': timestamp,
+                'Content-Type': 'application/json',
             };
         } else {
             if (urlencoded) {
