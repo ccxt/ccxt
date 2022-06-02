@@ -1769,7 +1769,6 @@ module.exports = class currencycom extends Exchange {
             'leverage': leverage,
             'percentage': undefined,
             'marginMode': undefined,
-            'marginType': undefined, // deprecated
             'notional': undefined,
             'markPrice': undefined,
             'liquidationPrice': undefined,

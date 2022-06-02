@@ -2553,7 +2553,6 @@ module.exports = class bitget extends Exchange {
             'symbol': market['symbol'],
             'notional': undefined,
             'marginMode': marginMode,
-            'marginType': undefined, // deprecated
             'liquidationPrice': liquidation,
             'entryPrice': this.safeNumber (position, 'averageOpenPrice'),
             'unrealizedPnl': this.safeNumber (position, 'unrealizedPL'),

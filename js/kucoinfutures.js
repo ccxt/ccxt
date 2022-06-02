@@ -970,7 +970,6 @@ module.exports = class kucoinfutures extends kucoin {
             'markPrice': this.safeNumber (position, 'markPrice'),
             'collateral': this.safeNumber (position, 'maintMargin'),
             'marginMode': marginMode,
-            'marginType': marginMode,
             'side': side,
             'percentage': this.parseNumber (Precise.stringDiv (unrealisedPnl, initialMargin)),
         };
