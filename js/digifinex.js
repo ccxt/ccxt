@@ -796,7 +796,7 @@ module.exports = class digifinex extends Exchange {
         const status = (code === 0) ? 'ok' : 'maintenance';
         return {
             'status': status,
-            'updated': this.milliseconds (),
+            'updated': undefined,
             'eta': undefined,
             'url': undefined,
             'info': response,

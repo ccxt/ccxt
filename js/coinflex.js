@@ -303,7 +303,7 @@ module.exports = class coinflex extends Exchange {
         const status = this.safeString ({ 'true': 'ok', 'false': 'maintenance' }, statusRaw, statusRaw);
         return {
             'status': status,
-            'updated': this.milliseconds (),
+            'updated': undefined,
             'eta': undefined,
             'url': undefined,
             'info': response,

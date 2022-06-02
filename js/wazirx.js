@@ -437,7 +437,7 @@ module.exports = class wazirx extends Exchange {
         const status = this.safeString (response, 'status');
         return {
             'status': (status === 'normal') ? 'ok' : 'maintenance',
-            'updated': this.milliseconds (),
+            'updated': undefined,
             'eta': undefined,
             'url': undefined,
             'info': response,
