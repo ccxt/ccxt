@@ -905,7 +905,7 @@ class coinex extends Exchange {
         //          "date_ms" =>  1638990110518
         //      ),
         //
-        // Spot fetchMyTrades (private)
+        // Spot and Margin fetchMyTrades (private)
         //
         //      {
         //          "id" => 2611520950,
@@ -2523,9 +2523,18 @@ class coinex extends Exchange {
             $method = 'privateGetOrderUserDeals';
             $request['page'] = 1;
         }
+        $accountId = $this->safe_integer($params, 'account_id');
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        if ($defaultType === 'margin') {
+            if ($accountId === null) {
+                throw new BadRequest($this->id . ' fetchMyTrades() requires an account_id parameter for margin trades');
+            }
+            $request['account_id'] = $accountId;
+            $params = $this->omit($params, 'account_id');
+        }
         $response = yield $this->$method (array_merge($request, $params));
         //
-        // Spot
+        // Spot and Margin
         //
         //      {
         //          "code" => 0,

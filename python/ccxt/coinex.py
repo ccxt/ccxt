@@ -891,7 +891,7 @@ class coinex(Exchange):
         #          "date_ms":  1638990110518
         #      },
         #
-        # Spot fetchMyTrades(private)
+        # Spot and Margin fetchMyTrades(private)
         #
         #      {
         #          "id": 2611520950,
@@ -2410,9 +2410,16 @@ class coinex(Exchange):
         else:
             method = 'privateGetOrderUserDeals'
             request['page'] = 1
+        accountId = self.safe_integer(params, 'account_id')
+        defaultType = self.safe_string(self.options, 'defaultType')
+        if defaultType == 'margin':
+            if accountId is None:
+                raise BadRequest(self.id + ' fetchMyTrades() requires an account_id parameter for margin trades')
+            request['account_id'] = accountId
+            params = self.omit(params, 'account_id')
         response = getattr(self, method)(self.extend(request, params))
         #
-        # Spot
+        # Spot and Margin
         #
         #      {
         #          "code": 0,
