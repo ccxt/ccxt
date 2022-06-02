@@ -755,9 +755,8 @@ module.exports = class okx extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const dataLength = data.length;
-        const timestamp = this.milliseconds ();
         const update = {
-            'updated': timestamp,
+            'updated': undefined,
             'status': (dataLength === 0) ? 'ok' : 'maintenance',
             'eta': undefined,
             'url': undefined,

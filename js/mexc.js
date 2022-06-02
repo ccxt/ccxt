@@ -386,7 +386,7 @@ module.exports = class mexc extends Exchange {
         const status = (code === 200) ? 'ok' : 'maintenance';
         return {
             'status': status,
-            'updated': this.milliseconds (),
+            'updated': undefined,
             'eta': undefined,
             'url': undefined,
             'info': response,
