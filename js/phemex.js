@@ -976,7 +976,8 @@ module.exports = class phemex extends ccxt.phemex {
         //     }
         // }
         //
-        client.resolve (message, 'authenticated');
+        const future = client.futures['authenticated'];
+        future.resolve (1);
         return message;
     }
 
