@@ -2352,7 +2352,7 @@ module.exports = class bybit extends Exchange {
             'CREATED': 'open',
             'REJECTED': 'rejected',
             'NEW': 'open',
-            'PENDING_NEW': 'opening',
+            'PENDING_NEW': 'open',
             'PARTIALLYFILLED': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
