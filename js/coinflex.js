@@ -453,8 +453,8 @@ module.exports = class coinflex extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.safeNumber (market, 'upperPriceBound'),
-                        'max': this.safeNumber (market, 'lowerPriceBound'),
+                        'min': this.safeNumber (market, 'lowerPriceBound'),
+                        'max': this.safeNumber (market, 'upperPriceBound'),
                     },
                     'cost': {
                         'min': undefined,
