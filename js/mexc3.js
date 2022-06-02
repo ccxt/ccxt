@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadRequest, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -274,6 +275,7 @@ module.exports = class mexc3 extends Exchange {
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'timeframes': {
                 '1m': '1m', // spot, swap
                 '3m': '3m', // spot
@@ -638,32 +640,38 @@ module.exports = class mexc3 extends Exchange {
         //         "exchangeFilters": [],
         //         "symbols": [
         //           {
-        //             "symbol": "BTCUSDT",
-        //             "status": "ENABLED",
-        //             "baseAsset": "BTC",
-        //             "baseAssetPrecision": 6,
-        //             "quoteAsset": "USDT",
-        //             "quotePrecision": 2,
-        //             "quoteAssetPrecision": 2,
-        //             "baseCommissionPrecision": 6,
-        //             "quoteCommissionPrecision": 2,
-        //             "orderTypes": [
-        //               "LIMIT",
-        //               "LIMIT_MAKER"
-        //             ],
-        //             "icebergAllowed": false,
-        //             "ocoAllowed": false,
-        //             "quoteOrderQtyMarketAllowed": false,
-        //             "isSpotTradingAllowed": true,
-        //             "isMarginTradingAllowed": false,
-        //             "permissions": [
-        //               "SPOT"
-        //             ],
-        //             "filters": []
-        //           },
+        //                "symbol": "OGNUSDT",
+        //                "status": "ENABLED",
+        //                "baseAsset": "OGN",
+        //                "baseAssetPrecision": "2",
+        //                "quoteAsset": "USDT",
+        //                "quotePrecision": "4",
+        //                "quoteAssetPrecision": "4",
+        //                "baseCommissionPrecision": "2",
+        //                "quoteCommissionPrecision": "4",
+        //                "orderTypes": [
+        //                    "LIMIT",
+        //                    "LIMIT_MAKER"
+        //                ],
+        //                "quoteOrderQtyMarketAllowed": false,
+        //                "isSpotTradingAllowed": true,
+        //                "isMarginTradingAllowed": true,
+        //                "permissions": [
+        //                    "SPOT",
+        //                    "MARGIN"
+        //                ],
+        //                "filters": [],
+        //                "quoteAmountPrecision": "5",
+        //                "baseSizePrecision": "0.01",
+        //                "maxQuoteAmount": "5000000",
+        //                "makerCommission": "0.002",
+        //                "takerCommission": "0.002"
+        //                // note, "icebergAllowed" & "ocoAllowed" were recently removed
+        //            },
         //         ]
         //     }
         //
+        // Notes: quotePrecision seems deprecated, in favor of quoteAssetPrecision : https://dev.binance.vision/t/what-is-the-difference-between-quoteprecision-and-quoteassetprecision/4333
         const data = this.safeValue (response, 'symbols', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
@@ -674,6 +682,13 @@ module.exports = class mexc3 extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const status = this.safeString (market, 'status');
+            const baseSizePrecision = this.safeString (market, 'baseSizePrecision');
+            const quoteAmountPrecision = this.safeString (market, 'quoteAmountPrecision');
+            const baseAssetPrecision = this.safeNumber (market, 'baseAssetPrecision');
+            const quoteAssetPrecision = this.safeNumber (market, 'quoteAssetPrecision');
+            const maxQuoteAmount = this.safeNumber (market, 'maxQuoteAmount');
+            const makerCommission = this.safeNumber (market, 'makerCommission');
+            const takerCommission = this.safeNumber (market, 'takerCommission');
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -693,18 +708,19 @@ module.exports = class mexc3 extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': undefined,
-                'maker': undefined,
+                'taker': takerCommission,
+                'maker': makerCommission,
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'baseAssetPrecision'),
-                    'price': this.safeInteger (market, 'quotePrecision'),
-                    'base': this.safeInteger (market, 'baseAssetPrecision'),
-                    'quote': this.safeInteger (market, 'quoteAssetPrecision'),
+                    'amount': baseSizePrecision,
+                    'price': this.parseNumber (Precise.stringDiv ('1', quoteAssetPrecision)),
+                    'cost': this.parseNumber (Precise.stringDiv ('1', quoteAmountPrecision)),
+                    'base': baseAssetPrecision,
+                    'quote': quoteAssetPrecision,
                 },
                 'limits': {
                     'leverage': {
@@ -721,7 +737,7 @@ module.exports = class mexc3 extends Exchange {
                     },
                     'cost': {
                         'min': undefined,
-                        'max': undefined,
+                        'max': maxQuoteAmount,
                     },
                 },
                 'info': market,
