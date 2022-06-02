@@ -492,7 +492,7 @@ module.exports = class btcex extends Exchange {
             'baseVolume': this.safeString (stats, 'volume'),
             'quoteVolume': this.safeString (stats, 'turnover'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
