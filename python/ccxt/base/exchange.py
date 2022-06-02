@@ -2007,15 +2007,15 @@ class Exchange(object):
         return timestamp - offset + (ms if direction == ROUND_UP else 0)
 
     def safe_ticker(self, ticker, market=None):
-        open = self.safe_value(ticker, 'open')
-        close = self.safe_value(ticker, 'close')
-        last = self.safe_value(ticker, 'last')
-        change = self.safe_value(ticker, 'change')
-        percentage = self.safe_value(ticker, 'percentage')
-        average = self.safe_value(ticker, 'average')
-        vwap = self.safe_value(ticker, 'vwap')
-        baseVolume = self.safe_value(ticker, 'baseVolume')
-        quoteVolume = self.safe_value(ticker, 'quoteVolume')
+        open = self.safe_string(ticker, 'open')
+        close = self.safe_string(ticker, 'close')
+        last = self.safe_string(ticker, 'last')
+        change = self.safe_string(ticker, 'change')
+        percentage = self.safe_string(ticker, 'percentage')
+        average = self.safe_string(ticker, 'average')
+        vwap = self.safe_string(ticker, 'vwap')
+        baseVolume = self.safe_string(ticker, 'baseVolume')
+        quoteVolume = self.safe_string(ticker, 'quoteVolume')
         if vwap is None:
             vwap = Precise.string_div(quoteVolume, baseVolume)
         if (last is not None) and (close is None):
