@@ -1081,9 +1081,6 @@ module.exports = class idex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-<<<<<<< Updated upstream
-        // https://docs.idex.io/#create-order
-=======
         /**
          * @method
          * @name idex#createOrder
@@ -1096,7 +1093,6 @@ module.exports = class idex extends Exchange {
          * @param {dict} params extra parameters specific to the idex api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
->>>>>>> Stashed changes
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
