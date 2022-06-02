@@ -532,7 +532,8 @@ module.exports = class mexc3 extends Exchange {
                 const active = (isDepositEnabled && isWithdrawEnabled);
                 currencyActive = active || currencyActive;
                 const precisionDigits = this.safeInteger (chain, 'precision');
-                const precision = 1 / Math.pow (10, precisionDigits);
+                let precision = 1 / Math.pow (10, precisionDigits);
+                precision = this.parseNumber (this.numberToString (precision));
                 const withdrawMin = this.safeString (chain, 'withdraw_limit_min');
                 const withdrawMax = this.safeString (chain, 'withdraw_limit_max');
                 currencyWithdrawMin = (currencyWithdrawMin === undefined) ? withdrawMin : currencyWithdrawMin;
@@ -723,6 +724,7 @@ module.exports = class mexc3 extends Exchange {
                     'amount': precisionBase,
                     'price': precisionPrice,
                     'cost': precisionCost,
+                    // note, the below values are just precisions related to trading and is the actual blockchain precision of the individual currency. To view currency's individual precision, refer to fetchCurrencies()
                     'base': precisionBase,
                     'quote': precisionQuote,
                 },
