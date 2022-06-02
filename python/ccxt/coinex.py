@@ -1941,7 +1941,7 @@ class coinex(Exchange):
         self.load_markets()
         market = self.market(symbol)
         marketId = market['id']
-        accountId = self.safe_string(params, 'id', '0')
+        accountId = self.safe_integer(params, 'account_id', 0)
         request = {
             'market': marketId,
             # 'account_id': accountId,  # SPOT, main account ID: 0, margin account ID: See < Inquire Margin Account Market Info >, future account ID: See < Inquire Future Account Market Info >
@@ -1959,10 +1959,10 @@ class coinex(Exchange):
             if stop:
                 method = 'privateDeleteOrderStopPending'
             request['account_id'] = accountId
-        params = self.omit(params, 'stop')
+        params = self.omit(params, ['stop', 'account_id'])
         response = getattr(self, method)(self.extend(request, params))
         #
-        # Spot
+        # Spot and Margin
         #
         #     {"code": 0, "data": null, "message": "Success"}
         #

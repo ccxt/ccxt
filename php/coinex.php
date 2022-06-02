@@ -2020,7 +2020,7 @@ class coinex extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['id'];
-        $accountId = $this->safe_string($params, 'id', '0');
+        $accountId = $this->safe_integer($params, 'account_id', 0);
         $request = array(
             'market' => $marketId,
             // 'account_id' => $accountId, // SPOT, main account ID => 0, margin account ID => See < Inquire Margin Account Market Info >, future account ID => See < Inquire Future Account Market Info >
@@ -2041,10 +2041,10 @@ class coinex extends Exchange {
             }
             $request['account_id'] = $accountId;
         }
-        $params = $this->omit($params, 'stop');
+        $params = $this->omit($params, array( 'stop', 'account_id' ));
         $response = $this->$method (array_merge($request, $params));
         //
-        // Spot
+        // Spot and Margin
         //
         //     array("code" => 0, "data" => null, "message" => "Success")
         //
