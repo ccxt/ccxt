@@ -855,6 +855,14 @@ module.exports = class idex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name idex#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the idex api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const request = {
             'orderId': id,
         };
@@ -1073,7 +1081,22 @@ module.exports = class idex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+<<<<<<< Updated upstream
         // https://docs.idex.io/#create-order
+=======
+        /**
+         * @method
+         * @name idex#createOrder
+         * @description create a trade order, https://docs.idex.io/#create-order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the idex api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+>>>>>>> Stashed changes
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);

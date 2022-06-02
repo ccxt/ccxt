@@ -739,6 +739,14 @@ module.exports = class kuna extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str} symbol not used by kuna fetchOrder
+         * @param {dict} params extra parameters specific to the kuna api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'id': parseInt (id),

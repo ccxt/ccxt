@@ -1145,6 +1145,14 @@ module.exports = class vcc extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name vcc#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str} symbol not used by vcc fetchOrder
+         * @param {dict} params extra parameters specific to the vcc api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'order_id': id,

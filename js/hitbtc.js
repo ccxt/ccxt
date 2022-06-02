@@ -1115,6 +1115,14 @@ module.exports = class hitbtc extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str} symbol not used by hitbtc fetchOrder
+         * @param {dict} params extra parameters specific to the hitbtc api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId

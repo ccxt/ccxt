@@ -934,6 +934,14 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name blockchaincom#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str} symbol not used by blockchaincom fetchOrder
+         * @param {dict} params extra parameters specific to the blockchaincom api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         // note: only works with exchange-order-id
         // does not work with clientOrderId
         await this.loadMarkets ();

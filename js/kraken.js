@@ -1465,6 +1465,14 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str} symbol not used by kraken fetchOrder
+         * @param {dict} params extra parameters specific to the kraken api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const clientOrderId = this.safeValue2 (params, 'userref', 'clientOrderId');
         const request = {
