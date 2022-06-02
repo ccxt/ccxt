@@ -2259,10 +2259,13 @@ class bybit(Exchange):
             'CREATED': 'open',
             'REJECTED': 'rejected',
             'NEW': 'open',
+            'PENDING_NEW': 'open',
             'PARTIALLYFILLED': 'open',
+            'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
             'PENDINGCANCEL': 'canceling',
+            'PENDING_CANCEL': 'canceling',
             # conditional orders
             'Active': 'open',  # order is triggered and placed successfully
             'Untriggered': 'open',  # order waits to be triggered
