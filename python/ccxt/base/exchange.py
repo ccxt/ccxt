@@ -368,6 +368,9 @@ class Exchange(object):
     synchronous = True
 
     def __init__(self, config={}):
+        self.ccxt_constructor(config)
+
+    def ccxt_constructor(self, config={}):
 
         self.precision = dict() if self.precision is None else self.precision
         self.limits = dict() if self.limits is None else self.limits

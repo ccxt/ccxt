@@ -239,6 +239,10 @@ module.exports = class Exchange {
     } // describe ()
 
     constructor (userConfig = {}) {
+        this.ccxtConstructor (userConfig);
+    }
+
+    ccxtConstructor (userConfig = {}) {
         Object.assign (this, functions)
         // if (isNode) {
         //     this.nodeVersion = process.version.match (/\d+\.\d+\.\d+/)[0]

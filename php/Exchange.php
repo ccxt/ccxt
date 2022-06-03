@@ -264,6 +264,7 @@ class Exchange {
         'extractParams' => 'extract_params',
         'fetchImplementation' => 'fetch_implementation',
         'executeRestRequest' => 'execute_rest_request',
+        'ccxtConstructor' => 'ccxt_constructor',
         'encodeURIComponent' => 'encode_uri_component',
         'checkRequiredVersion' => 'check_required_version',
         'checkRequiredCredentials' => 'check_required_credentials',
@@ -1138,7 +1139,10 @@ class Exchange {
     }
 
     public function __construct($options = array()) {
+        $this->ccxt_constructor($options);
+    }
 
+    public function ccxt_constructor($options = array()) {
         // todo auto-camelcasing for methods in PHP
         // $method_names = get_class_methods ($this);
         // foreach ($method_names as $method_name) {

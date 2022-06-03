@@ -193,6 +193,7 @@ class Transpiler {
             [ /\.handleMarketTypeAndParams\s/g, '.handle_market_type_and_params'],
             [ /\.checkOrderArguments\s/g, '.check_order_arguments'],
             [ /\.isPostOnly\s/g, '.is_post_only'],
+            [ /\.ccxtConstructor\s/g, '.ccxt_constructor'],
         ]
     }
 
