@@ -1334,7 +1334,7 @@ module.exports = class ascendex extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
-         * @name gateio#createOrder
+         * @name ascendex#createOrder
          * @description Create an order on the exchange
          * @param {str} symbol Unified CCXT market symbol
          * @param {str} type "limit" or "market"
@@ -1371,20 +1371,15 @@ module.exports = class ascendex extends Exchange {
             // 'execInst': // "Post" for postOnly, "ReduceOnly" for reduceOnly
             // 'respInst': 'ACK', // ACK, 'ACCEPT, DONE
             // 'posStopLossPrice': position stop loss price ( v2 swap orders only)
-            // 'posTakeProfitPrice': position take profit price (v2 swap orders only)
+            // 'posTakeProfitPrice': position take profit price ( v2 swap orders only)
         };
         const isMarketOrder = (type === 'market') || (type === 'stop_market');
         const isLimitOrder = (type === 'limit') || (type === 'stop_limit');
         const timeInForce = this.safeString (params, 'timeInForce');
-        const postOnly = this.isPostOnly (isMarketOrder, undefined, params);
+        const postOnly = this.isPostOnly (isMarketOrder, false, params);
         const reduceOnly = this.safeValue (params, 'reduceOnly', false);
         const stopPrice = this.safeString (params, 'stopPrice');
-        //
-        // await (currently not working, waiting for devs)
-        //
-        // const stopLossPrice = this.safeString2 (params, 'stopLossPrice', 'posStopLossPrice');
-        // const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'posTakeProfitPrice');
-        params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly', 'stopPrice', 'stopLossPrice', 'posStopLossPrice', 'takeProfitPrice', 'posTakeProfitPrice' ]);
+        params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         if (reduceOnly) {
             if (marketType !== 'swap') {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for perpetuals only');
@@ -1404,6 +1399,7 @@ module.exports = class ascendex extends Exchange {
             request['postOnly'] = true;
         }
         if (stopPrice !== undefined) {
+            console.log ('Hello');
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice).toString ();
             if (isLimitOrder) {
                 request['orderType'] = 'stop_limit';
@@ -1411,20 +1407,6 @@ module.exports = class ascendex extends Exchange {
                 request['orderType'] = 'stop_market';
             }
         }
-        //
-        // await (currently not working, waiting for devs)
-        //
-        // if (stopLossPrice || takeProfitPrice) {
-        //     if (marketType === 'spot') {
-        //         throw new NotSupported (this.id + ' createOrder () does not support stopLossPrice or takeProfitPrice on spot orders');
-        //     }
-        //     if (stopLossPrice) {
-        //         request['posStopLossPrice'] = this.priceToPrecision (symbol, stopLossPrice).toString ();
-        //     }
-        //     if (takeProfitPrice) {
-        //         request['posTakeProfitPrice'] = this.priceToPrecision (symbol, takeProfitPrice).toString ();
-        //     }
-        // }
         if (clientOrderId !== undefined) {
             request['id'] = clientOrderId;
         }
