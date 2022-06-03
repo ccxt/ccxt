@@ -1366,12 +1366,12 @@ module.exports = class ascendex extends Exchange {
             'symbol': market['id'],
             'time': this.milliseconds (),
             'orderQty': this.amountToPrecision (symbol, amount),
-            'orderType': type, // "limit", "market", "stop_market", "stop_limit"
-            'side': side, // "buy" or "sell",
-            // 'execInst': // "Post" for postOnly, "ReduceOnly" for reduceOnly
+            'orderType': type, // limit, market, stop_market, stop_limit
+            'side': side, // buy or sell,
+            // 'execInst': // Post for postOnly, ReduceOnly for reduceOnly
             // 'respInst': 'ACK', // ACK, 'ACCEPT, DONE
-            // 'posStopLossPrice': position stop loss price ( v2 swap orders only)
-            // 'posTakeProfitPrice': position take profit price ( v2 swap orders only)
+            // 'posStopLossPrice': position stop loss price
+            // 'posTakeProfitPrice': position take profit price
         };
         const isMarketOrder = (type === 'market') || (type === 'stop_market');
         const isLimitOrder = (type === 'limit') || (type === 'stop_limit');
