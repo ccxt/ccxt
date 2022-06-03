@@ -1386,6 +1386,9 @@ module.exports = class ascendex extends Exchange {
         // const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'posTakeProfitPrice');
         params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly', 'stopPrice', 'stopLossPrice', 'posStopLossPrice', 'takeProfitPrice', 'posTakeProfitPrice' ]);
         if (reduceOnly) {
+            if (marketType !== 'swap') {
+                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for perpetuals only');
+            }
             request['execInst'] = 'ReduceOnly';
         }
         if (isLimitOrder) {
