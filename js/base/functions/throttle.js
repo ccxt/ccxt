@@ -36,11 +36,14 @@ class Throttle {
                 }
             } else {
                 await sleep (this.config['delay'] * 1000);
-                const current = now ();
-                const elapsed = current - lastTimestamp;
-                lastTimestamp = current;
-                this.config['tokens'] = Math.min (this.config['tokens'] + (this.config['refillRate'] * elapsed), this.config['capacity']);
             }
+            const current = now ();
+            const elapsed = current - lastTimestamp;
+            lastTimestamp = current;
+            this.config['tokens'] = Math.min (
+                this.config['tokens'] + (this.config['refillRate'] * elapsed),
+                this.config['capacity']
+            );
         }
     }
 }
