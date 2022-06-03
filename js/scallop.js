@@ -32,7 +32,7 @@ module.exports = class scallop extends Exchange {
                 'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
-                'fetchOHLCV': true,
+                'fetchOHLCV': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -212,7 +212,6 @@ module.exports = class scallop extends Exchange {
                     '20042': [ BadSymbol, 'Current trading pair does not support API trading' ],
                     '-1021': [ InvalidTimestamp, 'time offset too large' ],
                     '-2015': [ AuthenticationError, 'time offset too large' ],
-
                 },
                 'broad': {
                 },
@@ -1660,7 +1659,7 @@ module.exports = class scallop extends Exchange {
         if (!response) {
             return; // fall back to default error handler
         }
-        if (statusCode === 200 || response.code === undefined) {
+        if (statusCode === 200 && response.code === undefined) {
             return;
         }
         const feedback = this.id + ' ' + responseBody;
