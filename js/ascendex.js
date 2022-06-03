@@ -1399,7 +1399,6 @@ module.exports = class ascendex extends Exchange {
             request['postOnly'] = true;
         }
         if (stopPrice !== undefined) {
-            console.log ('Hello');
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice).toString ();
             if (isLimitOrder) {
                 request['orderType'] = 'stop_limit';
