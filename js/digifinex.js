@@ -380,6 +380,9 @@ module.exports = class digifinex extends Exchange {
             // const active = (status === 'TRADING');
             //
             const isAllowed = this.safeInteger (market, 'is_allow', 1);
+            const type = (defaultType === 'margin') ? 'margin' : 'spot';
+            const spot = (defaultType === 'spot') ? true : undefined;
+            const margin = (defaultType === 'margin') ? true : undefined;
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -389,9 +392,9 @@ module.exports = class digifinex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': undefined,
-                'type': (defaultType === 'margin') ? 'margin' : 'spot',
-                'spot': (defaultType === 'spot') ? true : undefined,
-                'margin': (defaultType === 'margin') ? true : undefined,
+                'type': type,
+                'spot': spot,
+                'margin': margin,
                 'swap': false,
                 'future': false,
                 'option': false,
