@@ -1563,6 +1563,7 @@ class bitget(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitget api endpoint
+        :param dict params['till']: timestamp in ms of the latest candle to fetch
         :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_markets()
@@ -1575,24 +1576,32 @@ class bitget(Exchange):
             'spot': 'publicSpotGetMarketCandles',
             'swap': 'publicMixGetMarketCandles',
         })
+        till = self.safe_integer(params, 'till')
+        if limit is None:
+            limit = 100
         if market['type'] == 'spot':
             request['period'] = self.timeframes['spot'][timeframe]
-            if limit is not None:
-                request['limit'] = limit
+            request['limit'] = limit
             if since is not None:
                 request['after'] = since
+                if till is None:
+                    millisecondsPerTimeframe = self.timeframes['swap'][timeframe] * 1000
+                    request['before'] = self.sum(since, millisecondsPerTimeframe * limit)
+            if till is not None:
+                request['before'] = till
         elif market['type'] == 'swap':
             request['granularity'] = self.timeframes['swap'][timeframe]
             duration = self.parse_timeframe(timeframe)
             now = self.milliseconds()
-            if limit is None:
-                limit = 100
             if since is None:
                 request['startTime'] = now - (limit - 1) * (duration * 1000)
                 request['endTime'] = now
             else:
                 request['startTime'] = self.sum(since, duration * 1000)
-                request['endTime'] = self.sum(since, limit * duration * 1000)
+                if till is not None:
+                    request['endTime'] = till
+                else:
+                    request['endTime'] = self.sum(since, limit * duration * 1000)
         response = await getattr(self, method)(self.extend(request, query))
         #  [["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"]]
         data = self.safe_value(response, 'data', response)
