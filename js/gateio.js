@@ -625,13 +625,6 @@ module.exports = class gateio extends Exchange {
     }
 
     ccxtConstructor (userConfig = {}) {
-        /**
-         * @ignore
-         * @method
-         * @name gateio#ccxtConstructor
-         * @description called immediately by the constructor
-         * @param {dict} userConfig config options
-         */
         super.ccxtConstructor (userConfig);
         const type = this.safeString2 (this.options, 'type', 'defaultType');
         if (type === 'swap' || type === 'future') {

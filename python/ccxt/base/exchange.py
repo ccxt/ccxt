@@ -371,6 +371,11 @@ class Exchange(object):
         self.ccxt_constructor(config)
 
     def ccxt_constructor(self, config={}):
+        """
+        """"""
+        called immediately by the constructor
+        :param dict config: config options
+        """
 
         self.precision = dict() if self.precision is None else self.precision
         self.limits = dict() if self.limits is None else self.limits

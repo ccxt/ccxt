@@ -1143,6 +1143,11 @@ class Exchange {
     }
 
     public function ccxt_constructor($options = array()) {
+        /**
+         * @ignore
+         * called immediately by the constructor
+         * @param {dict} $options config options
+         */
         // todo auto-camelcasing for methods in PHP
         // $method_names = get_class_methods ($this);
         // foreach ($method_names as $method_name) {

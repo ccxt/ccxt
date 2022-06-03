@@ -243,6 +243,13 @@ module.exports = class Exchange {
     }
 
     ccxtConstructor (userConfig = {}) {
+        /**
+         * @ignore
+         * @method
+         * @name Exchange#ccxtConstructor
+         * @description called immediately by the constructor
+         * @param {dict} userConfig config options
+         */
         Object.assign (this, functions)
         // if (isNode) {
         //     this.nodeVersion = process.version.match (/\d+\.\d+\.\d+/)[0]
