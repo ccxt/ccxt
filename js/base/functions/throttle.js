@@ -21,13 +21,17 @@ class Throttle {
         this.running = false;
     }
 
+    async resolve (resolver) {
+        resolver (); // method for api endpoint
+    }
+
     async loop () {
         let lastTimestamp = now ();
         while (this.running) { // loops through method calls in the queue, executing them if tokens available, and waiting if tokens not available
             const { resolver, cost } = this.queue[0];
             if (this.config['tokens'] >= 0) { // if rate limit hasn't been reached
                 this.config['tokens'] -= cost;
-                resolver (); // method for api endpoint
+                this.resolve (resolver)
                 this.queue.shift ();
                 // contextswitch
                 await Promise.resolve (); // what does this do?
