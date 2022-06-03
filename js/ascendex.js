@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol, PermissionDenied, BadRequest, NotSupported } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol, PermissionDenied, BadRequest } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -1231,7 +1231,16 @@ module.exports = class ascendex extends Exchange {
                 clientOrderId = undefined;
             }
         }
-        const type = this.safeStringLower (order, 'orderType');
+        const rawTypeLower = this.safeStringLower (order, 'orderType');
+        let type = rawTypeLower;
+        if (rawTypeLower !== undefined) {
+            if (rawTypeLower === 'stoplimit') {
+                type = 'limit';
+            }
+            if (rawTypeLower === 'stopmarket') {
+                type = 'market';
+            }
+        }
         const side = this.safeStringLower (order, 'side');
         const feeCost = this.safeNumber (order, 'cumFee');
         let fee = undefined;
@@ -1336,8 +1345,8 @@ module.exports = class ascendex extends Exchange {
          * @param {str} params.timeInForce "GTC", "IOC", "FOK", or "PO"
          * @param {bool} params.postOnly true or false
          * @param {float} params.stopPrice The price at which a trigger order is triggered at
-         * @param {float} params.stopLossPrice position stop loss price (swap only)
-         * @param {float} params.takeProfitPrice position take profit price (swap only)
+         * @param {float} params.stopLossPrice position stop loss price (swap only + currently not working)
+         * @param {float} params.takeProfitPrice position take profit price (swap only + currently not working)
          * @returns [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1368,12 +1377,14 @@ module.exports = class ascendex extends Exchange {
         const isLimitOrder = (type === 'limit') || (type === 'stop_limit');
         const timeInForce = this.safeString (params, 'timeInForce');
         const postOnly = this.isPostOnly (isMarketOrder, undefined, params);
-        // const reduceOnly = this.safeValue (params, 'reduceOnly', true); // TODO investigate reduceOnly wrt GUI
+        const reduceOnly = this.safeValue (params, 'reduceOnly', false);
         const stopPrice = this.safeString (params, 'stopPrice');
-        const stopLossPrice = this.safeString2 (params, 'stopLossPrice', 'posStopLossPrice');
-        const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'posTakeProfitPrice');
-        params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly', 'stopPrice' ]);
-        // TODO add parsing for reduceOnly...
+        // const stopLossPrice = this.safeString2 (params, 'stopLossPrice', 'posStopLossPrice');
+        // const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'posTakeProfitPrice');
+        params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly', 'stopPrice', 'stopLossPrice', 'posStopLossPrice', 'takeProfitPrice', 'posTakeProfitPrice' ]);
+        if (reduceOnly) {
+            request['execInst'] = 'ReduceOnly';
+        }
         if (isLimitOrder) {
             request['orderPrice'] = this.priceToPrecision (symbol, price);
         }
@@ -1394,17 +1405,20 @@ module.exports = class ascendex extends Exchange {
                 request['orderType'] = 'stop_market';
             }
         }
-        if (stopLossPrice || takeProfitPrice) {
-            if (marketType === 'spot') {
-                throw new NotSupported (this.id + ' createOrder () does not support stopLossPrice or takeProfitPrice on spot orders');
-            }
-            if (stopLossPrice) {
-                request['posStopLossPrice'] = this.priceToPrecision (symbol, stopLossPrice);
-            }
-            if (takeProfitPrice) {
-                request['posTakeProfitPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
-            }
-        }
+        //
+        // stated in docs but currently not working, may be fixed at a later date
+        //
+        // if (stopLossPrice || takeProfitPrice) {
+        //     if (marketType === 'spot') {
+        //         throw new NotSupported (this.id + ' createOrder () does not support stopLossPrice or takeProfitPrice on spot orders');
+        //     }
+        //     if (stopLossPrice) {
+        //         request['posStopLossPrice'] = this.priceToPrecision (symbol, stopLossPrice).toString ();
+        //     }
+        //     if (takeProfitPrice) {
+        //         request['posTakeProfitPrice'] = this.priceToPrecision (symbol, takeProfitPrice).toString ();
+        //     }
+        // }
         if (clientOrderId !== undefined) {
             request['id'] = clientOrderId;
         }
