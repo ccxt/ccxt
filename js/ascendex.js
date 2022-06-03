@@ -1258,7 +1258,7 @@ module.exports = class ascendex extends Exchange {
         if (execInst === 'reduceOnly') {
             reduceOnly = true;
         }
-        let postOnly = false;
+        let postOnly = undefined;
         if (execInst === 'Post') {
             postOnly = true;
         }
