@@ -1379,7 +1379,7 @@ module.exports = class ascendex extends Exchange {
         const postOnly = this.isPostOnly (isMarketOrder, false, params);
         const reduceOnly = this.safeValue (params, 'reduceOnly', false);
         const stopPrice = this.safeString (params, 'stopPrice');
-        params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly', 'stopPrice' ]);
         if (reduceOnly) {
             if (marketType !== 'swap') {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for perpetuals only');
@@ -1399,7 +1399,7 @@ module.exports = class ascendex extends Exchange {
             request['postOnly'] = true;
         }
         if (stopPrice !== undefined) {
-            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice).toString ();
+            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             if (isLimitOrder) {
                 request['orderType'] = 'stop_limit';
             } else if (isMarketOrder) {
