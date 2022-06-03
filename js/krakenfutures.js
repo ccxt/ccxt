@@ -1668,7 +1668,7 @@ module.exports = class krakenfutures extends Exchange {
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
-    parsePositions (response) {
+    parsePositions (response, symbols = undefined, params = {}) {
         const result = [];
         const positions = this.safeValue (response, 'openPositions');
         for (let i = 0; i < positions.length; i++) {
