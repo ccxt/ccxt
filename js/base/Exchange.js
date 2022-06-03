@@ -455,9 +455,9 @@ module.exports = class Exchange {
         this.tokenBucket = this.extend ({
             delay:       0.001,
             capacity:    1,
-            cost: 1,
+            cost:        1,
             maxCapacity: 1000,
-            refillRate: (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE
+            refillRate:  (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE,
         }, this.tokenBucket)
 
         this.throttle = throttle (this.tokenBucket)

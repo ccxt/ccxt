@@ -15,6 +15,7 @@ class Throttle {
             maxCapacity: 2000,
             tokens: 0,
             cost: 1.0,
+            throttleLimit: false, // set to true to use the maximum available rate limit from the beginning
         };
         Object.assign (this.config, config);
         this.queue = [];  // requests to be sent
@@ -31,10 +32,14 @@ class Throttle {
             const { resolver, cost } = this.queue[0];
             if (this.config['tokens'] >= 0) { // if rate limit hasn't been reached
                 this.config['tokens'] -= cost;
-                this.resolve (resolver)
+                if (this.config[throttleLimit]) {
+                    this.resolve (resolver);
+                } else {
+                    resolver ();
+                    await Promise.resolve (); // what does this do?
+                }
                 this.queue.shift ();
                 // contextswitch
-                await Promise.resolve (); // what does this do?
                 if (this.queue.length === 0) {
                     this.running = false;
                 }
