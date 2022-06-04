@@ -857,6 +857,12 @@ module.exports = class woo extends Exchange {
             'perp': 'v1PrivateDeleteOrders',
         });
         const response = await this[method] (this.extend (request, query));
+        //
+        //     {
+        //         "success":true,
+        //         "status":"CANCEL_ALL_SENT"
+        //     }
+        //
         return response;
     }
 
@@ -934,6 +940,37 @@ module.exports = class woo extends Exchange {
             'perp': 'v1PrivateGetOrders',
         });
         const response = await this[method] (this.extend (request, query));
+        //
+        //     {
+        //         "success":true,
+        //         "meta":{
+        //             "total":1,
+        //             "records_per_page":100,
+        //             "current_page":1
+        //         },
+        //         "rows":[
+        //             {
+        //                 "symbol":"PERP_BTC_USDT",
+        //                 "status":"FILLED",
+        //                 "side":"SELL",
+        //                 "created_time":"1611617776.000",
+        //                 "updated_time":"1611617776.000",
+        //                 "order_id":52121167,
+        //                 "order_tag":"default",
+        //                 "price":null,
+        //                 "type":"MARKET",
+        //                 "quantity":0.002,
+        //                 "amount":null,
+        //                 "visible":0,
+        //                 "executed":0.002,
+        //                 "total_fee":0.01732885,
+        //                 "fee_asset":"USDT",
+        //                 "client_order_id":null,
+        //                 "average_executed_price":28881.41
+        //             }
+        //         ]
+        //     }
+        //
         const data = this.safeValue (response, 'rows');
         return this.parseOrders (data, market, since, limit, params);
     }
@@ -1480,6 +1517,17 @@ module.exports = class woo extends Exchange {
             'type': 'BALANCE',
         };
         const [ currency, rows ] = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
+        //
+        //     {
+        //         "rows":[],
+        //         "meta":{
+        //             "total":0,
+        //             "records_per_page":25,
+        //             "current_page":1
+        //         },
+        //         "success":true
+        //     }
+        //
         return this.parseTransactions (rows, currency, since, limit, params);
     }
 
