@@ -293,6 +293,7 @@ module.exports = class woo extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PublicGetInfo',
+            'perp': 'v1PublicGetFutures',
         });
         const response = await this[method] (query);
         //
@@ -421,6 +422,7 @@ module.exports = class woo extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTrades', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PublicGetMarketTrades',
+            'perp': 'v1PublicGetMarketTrades',
         });
         const response = await this[method] (this.extend (request, query));
         //
@@ -748,7 +750,7 @@ module.exports = class woo extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'order_type': type.toUpperCase (),
+            'order_type': type.toUpperCase (), // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
             'side': side.toUpperCase (),
         };
         if (price !== undefined) {
@@ -783,6 +785,7 @@ module.exports = class woo extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PrivatePostOrder',
+            'perp': 'v1PrivatePostOrder',
         });
         const response = await this[method] (this.extend (request, query));
         // {
@@ -806,7 +809,7 @@ module.exports = class woo extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const request = undefined;
+        const request = {};
         const clientOrderIdUnified = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString2 (params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
@@ -824,6 +827,7 @@ module.exports = class woo extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PrivateDeleteOrder',
+            'perp': 'v1PrivateDeleteOrder',
         });
         const response = await this[method] (this.extend (request, query));
         //
@@ -850,6 +854,7 @@ module.exports = class woo extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PrivateDeleteOrders',
+            'perp': 'v1PrivateDeleteOrders',
         });
         const response = await this[method] (this.extend (request, query));
         return response;
@@ -871,6 +876,7 @@ module.exports = class woo extends Exchange {
         }
         const method = this.getSupportedMapping (marketType, {
             'spot': chosenSpotMethod,
+            'perp': chosenSpotMethod,
         });
         const response = await this[method] (this.extend (request, query));
         //
@@ -925,6 +931,7 @@ module.exports = class woo extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PrivateGetOrders',
+            'perp': 'v1PrivateGetOrders',
         });
         const response = await this[method] (this.extend (request, query));
         const data = this.safeValue (response, 'rows');
@@ -991,6 +998,11 @@ module.exports = class woo extends Exchange {
                 'FILLED': 'closed',
                 'CANCEL_SENT': 'canceled',
                 'CANCEL_ALL_SENT': 'canceled',
+                'CANCELLED': 'canceled',
+                'PARTIAL_FILLED': 'open',
+                'REJECTED': 'rejected',
+                'INCOMPLETE': 'open',
+                'COMPLETED': 'closed',
             };
             return this.safeString (statuses, status, status);
         }
@@ -1019,6 +1031,7 @@ module.exports = class woo extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PrivateGetOrderbookSymbol',
+            'perp': 'v1PrivateGetOrderbookSymbol',
         });
         const response = await this[method] (this.extend (request, query));
         //
@@ -1065,6 +1078,7 @@ module.exports = class woo extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOHLCV', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PrivateGetKline',
+            'perp': 'v1PrivateGetKline',
         });
         const response = await this[method] (this.extend (request, query));
         // {
@@ -1125,6 +1139,7 @@ module.exports = class woo extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PrivateGetOrderOidTrades',
+            'perp': 'v1PrivateGetOrderOidTrades',
         });
         const response = await this[method] (this.extend (request, query));
         // {
@@ -1163,6 +1178,7 @@ module.exports = class woo extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PrivateGetClientTrades',
+            'perp': 'v1PrivateGetClientTrades',
         });
         const response = await this[method] (this.extend (request, query));
         // {
