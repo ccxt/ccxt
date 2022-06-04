@@ -725,8 +725,8 @@ module.exports = class mexc3 extends Exchange {
                     'price': precisionPrice,
                     'cost': precisionCost,
                     // note, the below values are just precisions related to trading and is the actual blockchain precision of the individual currency. To view currency's individual precision, refer to fetchCurrencies()
-                    'base': precisionBase,
-                    'quote': precisionQuote,
+                    // 'base': precisionBase,
+                    // 'quote': precisionQuote,
                 },
                 'limits': {
                     'leverage': {
