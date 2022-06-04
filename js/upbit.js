@@ -1435,7 +1435,7 @@ module.exports = class upbit extends Exchange {
          * @method
          * @name upbit#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str} symbol not used by upbit fetchOrder
+         * @param {str|undefined} symbol not used by upbit fetchOrder
          * @param {dict} params extra parameters specific to the upbit api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */

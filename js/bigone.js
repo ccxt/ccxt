@@ -932,7 +932,7 @@ module.exports = class bigone extends Exchange {
          * @method
          * @name bigone#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str} symbol not used by bigone fetchOrder
+         * @param {str|undefined} symbol not used by bigone fetchOrder
          * @param {dict} params extra parameters specific to the bigone api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */

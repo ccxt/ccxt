@@ -1188,7 +1188,7 @@ module.exports = class therock extends Exchange {
          * @method
          * @name therock#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {strs} symbol unified symbol of the market the order was made in
          * @param {dict} params extra parameters specific to the therock api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */

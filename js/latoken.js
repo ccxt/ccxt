@@ -1099,7 +1099,7 @@ module.exports = class latoken extends Exchange {
          * @method
          * @name latoken#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str} symbol not used by latoken fetchOrder
+         * @param {str|undefined} symbol not used by latoken fetchOrder
          * @param {dict} params extra parameters specific to the latoken api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */

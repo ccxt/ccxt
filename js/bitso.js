@@ -853,7 +853,7 @@ module.exports = class bitso extends Exchange {
          * @method
          * @name bitso#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str} symbol not used by bitso fetchOrder
+         * @param {str|undefined} symbol not used by bitso fetchOrder
          * @param {dict} params extra parameters specific to the bitso api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */

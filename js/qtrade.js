@@ -1058,7 +1058,7 @@ module.exports = class qtrade extends Exchange {
          * @method
          * @name qtrade#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str} symbol not used by qtrade fetchOrder
+         * @param {str|undefined} symbol not used by qtrade fetchOrder
          * @param {dict} params extra parameters specific to the qtrade api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */

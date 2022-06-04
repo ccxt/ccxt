@@ -921,7 +921,7 @@ module.exports = class yobit extends Exchange {
          * @method
          * @name yobit#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str} symbol not used by yobit fetchOrder
+         * @param {str|undefined} symbol not used by yobit fetchOrder
          * @param {dict} params extra parameters specific to the yobit api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */

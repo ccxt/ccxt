@@ -1278,7 +1278,7 @@ module.exports = class kucoin extends Exchange {
          * @name kucoin#cancelOrder
          * @description Cancels an order
          * @param {str} id Order id
-         * @param {str} symbol Not used by kucoin
+         * @param {str|undefined} symbol not used by kucoin
          * @param {dict} params Exchange specific parameters
          * @param {bool} params.stop True if cancelling a stop order
          * @returns Response fromt the exchange

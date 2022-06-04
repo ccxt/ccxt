@@ -1820,7 +1820,7 @@ module.exports = class ftx extends Exchange {
          * @method
          * @name ftx#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str} symbol not used by ftx fetchOrder
+         * @param {str|undefined} symbol not used by ftx fetchOrder
          * @param {dict} params extra parameters specific to the ftx api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */

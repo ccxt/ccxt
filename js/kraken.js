@@ -1469,7 +1469,7 @@ module.exports = class kraken extends Exchange {
          * @method
          * @name kraken#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str} symbol not used by kraken fetchOrder
+         * @param {str|undefined} symbol not used by kraken fetchOrder
          * @param {dict} params extra parameters specific to the kraken api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */

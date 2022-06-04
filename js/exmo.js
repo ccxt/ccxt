@@ -1216,7 +1216,7 @@ module.exports = class exmo extends Exchange {
          * @method
          * @name exmo#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str} symbol not used by exmo fetchOrder
+         * @param {str|undefined} symbol not used by exmo fetchOrder
          * @param {dict} params extra parameters specific to the exmo api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */

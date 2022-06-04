@@ -835,7 +835,7 @@ module.exports = class bitfinex2 extends bitfinex {
          * @method
          * @name bitfinex2#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
          * @param {dict} params extra parameters specific to the bitfinex2 api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */

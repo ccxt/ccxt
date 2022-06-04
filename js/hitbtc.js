@@ -1119,7 +1119,7 @@ module.exports = class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str} symbol not used by hitbtc fetchOrder
+         * @param {str|undefined} symbol not used by hitbtc fetchOrder
          * @param {dict} params extra parameters specific to the hitbtc api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
