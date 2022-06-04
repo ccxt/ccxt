@@ -2689,33 +2689,58 @@ class aax extends Exchange {
         $contractSize = $this->safe_string($market, 'contractSize');
         $initialQuote = Precise::string_mul($currentQty, $contractSize);
         $marketPrice = $this->safe_string($position, 'marketPrice');
-        $notional = Precise::string_mul($initialQuote, $marketPrice);
         $timestamp = $this->safe_integer($position, 'ts');
         $liquidationPrice = $this->safe_string($position, 'liquidationPrice');
-        $marginMode = $this->safe_string($position, 'settleType');
+        $marketInfo = $this->safe_value($market, 'info');
+        $multiplier = $this->safe_string($marketInfo, 'multiplier');
+        $settleType = $this->safe_string($position, 'settleType');
+        $avgEntryPrice = $this->safe_string($position, 'avgEntryPrice');
+        $commission = $this->safe_string($position, 'commission');
+        $initialMargin = null;
+        $maintenanceMargin = null;
+        $notional = null;
+        // https://support.aax.com/en/articles/5295653-what-is-margin
+        if ($settleType === 'VANILLA') {
+            $notional = Precise::string_mul($initialQuote, $marketPrice);
+            // Initial Margin (Limit order) = Number of contracts * Price * Multiplier / Leverage
+            $initialMargin = Precise::string_div(Precise::string_mul(Precise::string_mul($currentQty, $avgEntryPrice), $multiplier), $leverage);
+            // Maintenance Margin = (Number of contracts/ Entry Price * Multiplier / Leverage) . Commission fees
+            $tmp = Precise::string_div(Precise::string_mul($currentQty, $multiplier), Precise::string_mul($avgEntryPrice, $leverage));
+            $maintenanceMargin = Precise::string_add($tmp, $commission);
+        } else {
+            // inverse contracts
+            $notional = Precise::string_div($initialQuote, $marketPrice);
+            // Initial Margin (Limit Order) = Number of contracts / Entry Price / Leverage
+            // ^ no brackets /<::>\
+            $initialMargin = Precise::string_div($currentQty, Precise::string_mul($leverage, $avgEntryPrice));
+            // Maintenance Margin = Number of contracts / Entry price / Leverage
+            $maintenanceMargin = $initialMargin;
+        }
+        $collateral = $this->safe_string($position, 'posMargin');
+        $percentage = Precise::string_div($unrealisedPnl, $initialMargin);
+        $marginRatio = Precise::string_div($maintenanceMargin, $collateral);
         return array(
             'info' => $position,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'initialMargin' => null,
-            'initialMarginPercentage' => null,
-            'maintenanceMargin' => null,
-            'maintenanceMarginPercentage' => null,
-            'entryPrice' => $this->safe_number($position, 'avgEntryPrice'),
+            'initialMargin' => $this->parse_number($initialMargin),
+            'initialMarginPercentage' => $this->parse_number(Precise::string_div($initialMargin, $notional)),
+            'maintenanceMargin' => $this->parse_number($maintenanceMargin),
+            'maintenanceMarginPercentage' => $this->parse_number(Precise::string_div($maintenanceMargin, $notional)),
+            'entryPrice' => $this->parse_number($avgEntryPrice),
             'notional' => $this->parse_number($notional),
             'leverage' => $this->parse_number($leverage),
             'unrealizedPnl' => $this->parse_number($unrealisedPnl),
             'contracts' => $this->parse_number($size),
             'contractSize' => $this->parse_number($contractSize),
-            'marginRatio' => null,
+            'marginRatio' => $this->parse_number($marginRatio),
             'liquidationPrice' => $liquidationPrice,
             'markPrice' => $this->safe_number($position, 'marketPrice'),
-            'collateral' => $this->safe_number($position, 'posMargin'),
-            'marginMode' => $marginMode,
-            'marginType' => $marginMode, // deprecated
+            'collateral' => $this->parse_number($collateral),
+            'marginMode' => 'isolated',
             'side' => $side,
-            'percentage' => null,
+            'percentage' => $this->parse_number($percentage),
         );
     }
 

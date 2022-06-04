@@ -303,7 +303,7 @@ module.exports = class coinflex extends Exchange {
         const status = this.safeString ({ 'true': 'ok', 'false': 'maintenance' }, statusRaw, statusRaw);
         return {
             'status': status,
-            'updated': this.milliseconds (),
+            'updated': undefined,
             'eta': undefined,
             'url': undefined,
             'info': response,
@@ -453,8 +453,8 @@ module.exports = class coinflex extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.safeNumber (market, 'upperPriceBound'),
-                        'max': this.safeNumber (market, 'lowerPriceBound'),
+                        'min': this.safeNumber (market, 'lowerPriceBound'),
+                        'max': this.safeNumber (market, 'upperPriceBound'),
                     },
                     'cost': {
                         'min': undefined,
@@ -1666,7 +1666,7 @@ module.exports = class coinflex extends Exchange {
             'liquidationPrice': this.parseNumber (liquidationPriceString),
             'markPrice': this.parseNumber (markPriceString),
             'collateral': undefined,
-            'marginType': 'cross', // each account is cross : https://coinflex.com/support/3-4-margin-and-risk-management/
+            'marginMode': 'cross', // each account is cross : https://coinflex.com/support/3-4-margin-and-risk-management/
             'side': side,
             'percentage': undefined,
             'info': position,

@@ -3480,7 +3480,6 @@ class zb(Exchange):
             'leverage': self.parse_number(leverage),
             'percentage': percentage,
             'marginMode': marginMode,
-            'marginType': marginMode,  # deprecated
             'notional': notional,
             'markPrice': None,
             'liquidationPrice': liquidationPrice,

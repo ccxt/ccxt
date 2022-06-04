@@ -370,7 +370,7 @@ class lbank2 extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $timestamp = $this->safe_string($ticker, 'timestamp');
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
         $tickerData = $this->safe_value($ticker, 'ticker');
         return $this->safe_ticker(array(
             'symbol' => $symbol,

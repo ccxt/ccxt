@@ -44,6 +44,9 @@ class bibox(Exchange):
                 'cancelOrder': True,
                 'createMarketOrder': None,  # or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder': True,
+                'createStopLimitOrder': False,  # True for contract
+                'createStopMarketOrder': False,  # True for contract
+                'createStopOrder': False,  # True for contract
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRates': False,

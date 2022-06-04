@@ -758,9 +758,8 @@ class okx extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $dataLength = is_array($data) ? count($data) : 0;
-        $timestamp = $this->milliseconds();
         $update = array(
-            'updated' => $timestamp,
+            'updated' => null,
             'status' => ($dataLength === 0) ? 'ok' : 'maintenance',
             'eta' => null,
             'url' => null,
@@ -3894,7 +3893,6 @@ class okx extends Exchange {
             'symbol' => $symbol,
             'notional' => $notional,
             'marginMode' => $marginMode,
-            'marginType' => $marginMode, // deprecated
             'liquidationPrice' => $liquidationPrice,
             'entryPrice' => $this->parse_number($entryPriceString),
             'unrealizedPnl' => $this->parse_number($unrealizedPnlString),
@@ -4816,7 +4814,6 @@ class okx extends Exchange {
         return array(
             'account' => $account, // deprecated
             'symbol' => $this->safe_string($market, 'symbol'),
-            'marginType' => $marginMode, // deprecated
             'marginMode' => $marginMode,
             'currency' => $this->safe_currency_code($this->safe_string($info, 'ccy')),
             'interest' => $this->safe_number($info, 'interest'),

@@ -5116,7 +5116,6 @@ class huobi extends Exchange {
             'account' => ($marginMode === 'isolated') ? $symbol : 'cross',  // deprecated
             'symbol' => $symbol,
             'marginMode' => $marginMode,
-            'marginType' => $marginMode, // deprecated
             'currency' => $this->safe_currency_code($this->safe_string($info, 'currency')),
             'interest' => $this->safe_number($info, 'interest-amount'),
             'interestRate' => $this->safe_number($info, 'interest-rate'),
@@ -5506,7 +5505,6 @@ class huobi extends Exchange {
             'leverage' => $this->parse_number($leverage),
             'percentage' => $this->parse_number($percentage),
             'marginMode' => $marginMode,
-            'marginType' => $marginMode, // deprecated
             'notional' => $this->parse_number($notional),
             'markPrice' => null,
             'liquidationPrice' => $liquidationPrice,

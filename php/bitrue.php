@@ -354,7 +354,7 @@ class bitrue extends Exchange {
         $formattedStatus = $keysLength ? 'maintenance' : 'ok';
         return array(
             'status' => $formattedStatus,
-            'updated' => $this->milliseconds(),
+            'updated' => null,
             'eta' => null,
             'url' => null,
             'info' => $response,

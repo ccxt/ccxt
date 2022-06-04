@@ -309,7 +309,7 @@ class coinflex(Exchange):
         status = self.safe_string({'true': 'ok', 'false': 'maintenance'}, statusRaw, statusRaw)
         return {
             'status': status,
-            'updated': self.milliseconds(),
+            'updated': None,
             'eta': None,
             'url': None,
             'info': response,
@@ -454,8 +454,8 @@ class coinflex(Exchange):
                         'max': None,
                     },
                     'price': {
-                        'min': self.safe_number(market, 'upperPriceBound'),
-                        'max': self.safe_number(market, 'lowerPriceBound'),
+                        'min': self.safe_number(market, 'lowerPriceBound'),
+                        'max': self.safe_number(market, 'upperPriceBound'),
                     },
                     'cost': {
                         'min': None,
@@ -1581,7 +1581,7 @@ class coinflex(Exchange):
             'liquidationPrice': self.parse_number(liquidationPriceString),
             'markPrice': self.parse_number(markPriceString),
             'collateral': None,
-            'marginType': 'cross',  # each account is cross : https://coinflex.com/support/3-4-margin-and-risk-management/
+            'marginMode': 'cross',  # each account is cross : https://coinflex.com/support/3-4-margin-and-risk-management/
             'side': side,
             'percentage': None,
             'info': position,

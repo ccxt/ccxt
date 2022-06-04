@@ -891,7 +891,7 @@ class coinex(Exchange):
         #          "date_ms":  1638990110518
         #      },
         #
-        # Spot fetchMyTrades(private)
+        # Spot and Margin fetchMyTrades(private)
         #
         #      {
         #          "id": 2611520950,
@@ -1358,7 +1358,7 @@ class coinex(Exchange):
         #         "type": "sell",
         #     }
         #
-        # Spot createOrder, cancelOrder, fetchOrder
+        # Spot and Margin createOrder, cancelOrder, fetchOrder
         #
         #      {
         #          "amount":"1.5",
@@ -1818,10 +1818,16 @@ class coinex(Exchange):
                 method = 'perpetualPrivatePostOrderCancelStop'
             else:
                 method = 'privateDeleteOrderStopPendingId'
-        query = self.omit(params, 'stop')
+        accountId = self.safe_integer(params, 'account_id')
+        defaultType = self.safe_string(self.options, 'defaultType')
+        if defaultType == 'margin':
+            if accountId is None:
+                raise BadRequest(self.id + ' cancelOrder() requires an account_id parameter for margin orders')
+            request['account_id'] = accountId
+        query = self.omit(params, ['stop', 'account_id'])
         response = await getattr(self, method)(self.extend(request, query))
         #
-        # Spot
+        # Spot and Margin
         #
         #     {
         #         "code": 0,
@@ -1922,7 +1928,7 @@ class coinex(Exchange):
         #         "message":"OK"
         #     }
         #
-        # Spot Stop
+        # Spot and Margin Stop
         #
         #     {"code":0,"data":{},"message":"Success"}
         #
@@ -1935,7 +1941,7 @@ class coinex(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         marketId = market['id']
-        accountId = self.safe_string(params, 'id', '0')
+        accountId = self.safe_integer(params, 'account_id', 0)
         request = {
             'market': marketId,
             # 'account_id': accountId,  # SPOT, main account ID: 0, margin account ID: See < Inquire Margin Account Market Info >, future account ID: See < Inquire Future Account Market Info >
@@ -1953,10 +1959,10 @@ class coinex(Exchange):
             if stop:
                 method = 'privateDeleteOrderStopPending'
             request['account_id'] = accountId
-        params = self.omit(params, 'stop')
+        params = self.omit(params, ['stop', 'account_id'])
         response = await getattr(self, method)(self.extend(request, params))
         #
-        # Spot
+        # Spot and Margin
         #
         #     {"code": 0, "data": null, "message": "Success"}
         #
@@ -2404,9 +2410,16 @@ class coinex(Exchange):
         else:
             method = 'privateGetOrderUserDeals'
             request['page'] = 1
+        accountId = self.safe_integer(params, 'account_id')
+        defaultType = self.safe_string(self.options, 'defaultType')
+        if defaultType == 'margin':
+            if accountId is None:
+                raise BadRequest(self.id + ' fetchMyTrades() requires an account_id parameter for margin trades')
+            request['account_id'] = accountId
+            params = self.omit(params, 'account_id')
         response = await getattr(self, method)(self.extend(request, params))
         #
-        # Spot
+        # Spot and Margin
         #
         #      {
         #          "code": 0,
@@ -2709,7 +2722,6 @@ class coinex(Exchange):
             'symbol': symbol,
             'notional': None,
             'marginMode': marginMode,
-            'marginType': marginMode,  # deprecated
             'liquidationPrice': liquidationPrice,
             'entryPrice': entryPrice,
             'unrealizedPnl': unrealizedPnl,

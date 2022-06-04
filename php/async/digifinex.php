@@ -784,7 +784,7 @@ class digifinex extends Exchange {
         $status = ($code === 0) ? 'ok' : 'maintenance';
         return array(
             'status' => $status,
-            'updated' => $this->milliseconds(),
+            'updated' => null,
             'eta' => null,
             'url' => null,
             'info' => $response,

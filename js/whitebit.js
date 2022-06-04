@@ -821,7 +821,7 @@ module.exports = class whitebit extends Exchange {
         const status = this.safeString (response, 0);
         return {
             'status': (status === 'pong') ? 'ok' : status,
-            'updated': this.milliseconds (),
+            'updated': undefined,
             'eta': undefined,
             'url': undefined,
             'info': response,

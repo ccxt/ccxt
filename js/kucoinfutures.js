@@ -329,7 +329,7 @@ module.exports = class kucoinfutures extends kucoin {
         const status = this.safeString (data, 'status');
         return {
             'status': (status === 'open') ? 'ok' : 'maintenance',
-            'updated': this.milliseconds (),
+            'updated': undefined,
             'eta': undefined,
             'url': undefined,
             'info': response,
@@ -736,7 +736,7 @@ module.exports = class kucoinfutures extends kucoin {
         const last = this.safeString (ticker, 'price');
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market, '-');
-        const timestamp = Precise.stringDiv (this.safeString (ticker, 'ts'), '1000000');
+        const timestamp = this.safeIntegerProduct (ticker, 'ts', 0.000001);
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -970,7 +970,6 @@ module.exports = class kucoinfutures extends kucoin {
             'markPrice': this.safeNumber (position, 'markPrice'),
             'collateral': this.safeNumber (position, 'maintMargin'),
             'marginMode': marginMode,
-            'marginType': marginMode,
             'side': side,
             'percentage': this.parseNumber (Precise.stringDiv (unrealisedPnl, initialMargin)),
         };

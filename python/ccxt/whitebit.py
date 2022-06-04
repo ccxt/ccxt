@@ -793,7 +793,7 @@ class whitebit(Exchange):
         status = self.safe_string(response, 0)
         return {
             'status': 'ok' if (status == 'pong') else status,
-            'updated': self.milliseconds(),
+            'updated': None,
             'eta': None,
             'url': None,
             'info': response,

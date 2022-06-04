@@ -2706,33 +2706,58 @@ module.exports = class aax extends Exchange {
         const contractSize = this.safeString (market, 'contractSize');
         const initialQuote = Precise.stringMul (currentQty, contractSize);
         const marketPrice = this.safeString (position, 'marketPrice');
-        const notional = Precise.stringMul (initialQuote, marketPrice);
         const timestamp = this.safeInteger (position, 'ts');
         const liquidationPrice = this.safeString (position, 'liquidationPrice');
-        const marginMode = this.safeString (position, 'settleType');
+        const marketInfo = this.safeValue (market, 'info');
+        const multiplier = this.safeString (marketInfo, 'multiplier');
+        const settleType = this.safeString (position, 'settleType');
+        const avgEntryPrice = this.safeString (position, 'avgEntryPrice');
+        const commission = this.safeString (position, 'commission');
+        let initialMargin = undefined;
+        let maintenanceMargin = undefined;
+        let notional = undefined;
+        // https://support.aax.com/en/articles/5295653-what-is-margin
+        if (settleType === 'VANILLA') {
+            notional = Precise.stringMul (initialQuote, marketPrice);
+            // Initial Margin (Limit order) = Number of contracts * Price * Multiplier / Leverage
+            initialMargin = Precise.stringDiv (Precise.stringMul (Precise.stringMul (currentQty, avgEntryPrice), multiplier), leverage);
+            // Maintenance Margin = (Number of contracts/ Entry Price * Multiplier / Leverage) + Commission fees
+            const tmp = Precise.stringDiv (Precise.stringMul (currentQty, multiplier), Precise.stringMul (avgEntryPrice, leverage));
+            maintenanceMargin = Precise.stringAdd (tmp, commission);
+        } else {
+            // inverse contracts
+            notional = Precise.stringDiv (initialQuote, marketPrice);
+            // Initial Margin (Limit Order) = Number of contracts / Entry Price / Leverage
+            // ^ no brackets /<::>\
+            initialMargin = Precise.stringDiv (currentQty, Precise.stringMul (leverage, avgEntryPrice));
+            // Maintenance Margin = Number of contracts / Entry price / Leverage
+            maintenanceMargin = initialMargin;
+        }
+        const collateral = this.safeString (position, 'posMargin');
+        const percentage = Precise.stringDiv (unrealisedPnl, initialMargin);
+        const marginRatio = Precise.stringDiv (maintenanceMargin, collateral);
         return {
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'initialMargin': undefined,
-            'initialMarginPercentage': undefined,
-            'maintenanceMargin': undefined,
-            'maintenanceMarginPercentage': undefined,
-            'entryPrice': this.safeNumber (position, 'avgEntryPrice'),
+            'initialMargin': this.parseNumber (initialMargin),
+            'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMargin, notional)),
+            'maintenanceMargin': this.parseNumber (maintenanceMargin),
+            'maintenanceMarginPercentage': this.parseNumber (Precise.stringDiv (maintenanceMargin, notional)),
+            'entryPrice': this.parseNumber (avgEntryPrice),
             'notional': this.parseNumber (notional),
             'leverage': this.parseNumber (leverage),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (size),
             'contractSize': this.parseNumber (contractSize),
-            'marginRatio': undefined,
+            'marginRatio': this.parseNumber (marginRatio),
             'liquidationPrice': liquidationPrice,
             'markPrice': this.safeNumber (position, 'marketPrice'),
-            'collateral': this.safeNumber (position, 'posMargin'),
-            'marginMode': marginMode,
-            'marginType': marginMode, // deprecated
+            'collateral': this.parseNumber (collateral),
+            'marginMode': 'isolated',
             'side': side,
-            'percentage': undefined,
+            'percentage': this.parseNumber (percentage),
         };
     }
 

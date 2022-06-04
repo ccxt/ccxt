@@ -403,10 +403,12 @@ class bkex extends Exchange {
         //
         $statusRaw = $this->safe_integer($response, 'status');
         $codeRaw = $this->safe_integer($response, 'code');
+        $updated = $this->safe_integer($response, 'data');
         return array(
             'status' => ($statusRaw === 0 && $codeRaw === 0) ? 'ok' : $statusRaw,
-            'updated' => $this->milliseconds(),
+            'updated' => $updated,
             'eta' => null,
+            'url' => null,
             'info' => $response,
         );
     }

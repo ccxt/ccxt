@@ -755,9 +755,8 @@ module.exports = class okx extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const dataLength = data.length;
-        const timestamp = this.milliseconds ();
         const update = {
-            'updated': timestamp,
+            'updated': undefined,
             'status': (dataLength === 0) ? 'ok' : 'maintenance',
             'eta': undefined,
             'url': undefined,
@@ -3918,7 +3917,6 @@ module.exports = class okx extends Exchange {
             'symbol': symbol,
             'notional': notional,
             'marginMode': marginMode,
-            'marginType': marginMode, // deprecated
             'liquidationPrice': liquidationPrice,
             'entryPrice': this.parseNumber (entryPriceString),
             'unrealizedPnl': this.parseNumber (unrealizedPnlString),
@@ -4845,7 +4843,6 @@ module.exports = class okx extends Exchange {
         return {
             'account': account, // deprecated
             'symbol': this.safeString (market, 'symbol'),
-            'marginType': marginMode, // deprecated
             'marginMode': marginMode,
             'currency': this.safeCurrencyCode (this.safeString (info, 'ccy')),
             'interest': this.safeNumber (info, 'interest'),

@@ -330,7 +330,7 @@ class kucoinfutures extends kucoin {
         $status = $this->safe_string($data, 'status');
         return array(
             'status' => ($status === 'open') ? 'ok' : 'maintenance',
-            'updated' => $this->milliseconds(),
+            'updated' => null,
             'eta' => null,
             'url' => null,
             'info' => $response,
@@ -727,7 +727,7 @@ class kucoinfutures extends kucoin {
         $last = $this->safe_string($ticker, 'price');
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market, '-');
-        $timestamp = Precise::string_div($this->safe_string($ticker, 'ts'), '1000000');
+        $timestamp = $this->safe_integer_product($ticker, 'ts', 0.000001);
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
@@ -961,7 +961,6 @@ class kucoinfutures extends kucoin {
             'markPrice' => $this->safe_number($position, 'markPrice'),
             'collateral' => $this->safe_number($position, 'maintMargin'),
             'marginMode' => $marginMode,
-            'marginType' => $marginMode,
             'side' => $side,
             'percentage' => $this->parse_number(Precise::string_div($unrealisedPnl, $initialMargin)),
         );

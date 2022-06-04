@@ -2715,7 +2715,6 @@ class phemex(Exchange):
             'marginRatio': self.parse_number(marginRatio),
             'datetime': None,
             'marginMode': None,
-            'marginType': None,  # deprecated
             'side': side,
             'hedged': False,
             'percentage': self.parse_number(percentage),

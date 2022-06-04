@@ -2340,10 +2340,13 @@ class bybit extends Exchange {
             'CREATED' => 'open',
             'REJECTED' => 'rejected',
             'NEW' => 'open',
+            'PENDING_NEW' => 'open',
             'PARTIALLYFILLED' => 'open',
+            'PARTIALLY_FILLED' => 'open',
             'FILLED' => 'closed',
             'CANCELED' => 'canceled',
             'PENDINGCANCEL' => 'canceling',
+            'PENDING_CANCEL' => 'canceling',
             // conditional orders
             'Active' => 'open', // order is triggered and placed successfully
             'Untriggered' => 'open', // order waits to be triggered
@@ -2705,7 +2708,7 @@ class bybit extends Exchange {
             if ($price === null) {
                 throw new InvalidOrder($this->id . ' createOrder requires a $price argument for a ' . $type . ' order');
             }
-            $request['price'] = $this->price_to_precision($symbol, $price);
+            $request['price'] = floatval($this->price_to_precision($symbol, $price));
         }
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'orderLinkId');
         if ($clientOrderId !== null) {
@@ -2874,7 +2877,7 @@ class bybit extends Exchange {
             $request['close_on_trigger'] = $closeOnTrigger;
         }
         if ($price !== null) {
-            $request['price'] = $price;
+            $request['price'] = floatval($this->price_to_precision($symbol, $price));
         }
         $stopPx = $this->safe_value_2($params, 'stop_px', 'stopPrice');
         $basePrice = $this->safe_value_2($params, 'base_price', 'basePrice');

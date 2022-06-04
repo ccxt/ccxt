@@ -353,7 +353,7 @@ module.exports = class bitrue extends Exchange {
         const formattedStatus = keysLength ? 'maintenance' : 'ok';
         return {
             'status': formattedStatus,
-            'updated': this.milliseconds (),
+            'updated': undefined,
             'eta': undefined,
             'url': undefined,
             'info': response,

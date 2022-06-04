@@ -305,7 +305,7 @@ class coinflex extends Exchange {
         $status = $this->safe_string(array( 'true' => 'ok', 'false' => 'maintenance' ), $statusRaw, $statusRaw);
         return array(
             'status' => $status,
-            'updated' => $this->milliseconds(),
+            'updated' => null,
             'eta' => null,
             'url' => null,
             'info' => $response,
@@ -453,8 +453,8 @@ class coinflex extends Exchange {
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => $this->safe_number($market, 'upperPriceBound'),
-                        'max' => $this->safe_number($market, 'lowerPriceBound'),
+                        'min' => $this->safe_number($market, 'lowerPriceBound'),
+                        'max' => $this->safe_number($market, 'upperPriceBound'),
                     ),
                     'cost' => array(
                         'min' => null,
@@ -1650,7 +1650,7 @@ class coinflex extends Exchange {
             'liquidationPrice' => $this->parse_number($liquidationPriceString),
             'markPrice' => $this->parse_number($markPriceString),
             'collateral' => null,
-            'marginType' => 'cross', // each account is cross : https://coinflex.com/support/3-4-margin-and-risk-management/
+            'marginMode' => 'cross', // each account is cross : https://coinflex.com/support/3-4-margin-and-risk-management/
             'side' => $side,
             'percentage' => null,
             'info' => $position,

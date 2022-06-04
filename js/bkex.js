@@ -407,10 +407,12 @@ module.exports = class bkex extends Exchange {
         //
         const statusRaw = this.safeInteger (response, 'status');
         const codeRaw = this.safeInteger (response, 'code');
+        const updated = this.safeInteger (response, 'data');
         return {
             'status': (statusRaw === 0 && codeRaw === 0) ? 'ok' : statusRaw,
-            'updated': this.milliseconds (),
+            'updated': updated,
             'eta': undefined,
+            'url': undefined,
             'info': response,
         };
     }
