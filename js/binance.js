@@ -5408,7 +5408,7 @@ module.exports = class binance extends Exchange {
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
             if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
-                throw new DDoSProtection (this.id + ' temporary banned: ' + body);
+                throw new DDoSProtection (this.id + ' ' + body);
             }
             const feedback = this.id + ' ' + body;
             if (message === 'No need to change margin type.') {
